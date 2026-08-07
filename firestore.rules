@@ -1,0 +1,120 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- HELPER FUNCTIONS ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isSuperAdmin() {
+      return isSignedIn() && (
+        request.auth.token.superAdmin == true ||
+        request.auth.token.role == "SUPER_ADMIN" ||
+        (exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == "SUPER_ADMIN")
+      );
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        isSuperAdmin() ||
+        request.auth.token.admin == true ||
+        request.auth.token.role == "ADMIN" ||
+        request.auth.token.role == "SUB_ADMIN" ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // Default Catch-All Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 1. USERS COLLECTION
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow create: if isOwner(uid);
+      allow update: if isOwner(uid) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(["role", "accountStatus"]) || isAdmin();
+      allow delete: if isSuperAdmin();
+    }
+
+    // 2. WALLETS COLLECTION
+    // Users can read only their own wallet. Clients cannot modify balances directly.
+    match /wallets/{walletId} {
+      allow read: if isSignedIn() && (resource.data.uid == request.auth.uid || isOwner(walletId) || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    // 3. WALLET SUMMARY COLLECTION
+    // High-performance snapshot read. Write restricted strictly to backend / admin.
+    match /wallet_summary/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // 4. WALLET TRANSACTIONS COLLECTION
+    // Users can view only their own transactions.
+    match /wallet_transactions/{transactionId} {
+      allow read: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    // Legacy alias for backwards compatibility
+    match /transactions/{txnId} {
+      allow read: if isSignedIn() && (resource.data.uid == request.auth.uid || resource.data.userId == request.auth.uid || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    // 5. WALLET LEDGER COLLECTION
+    // Accessible only to backend services / Admins. Immutable financial ledger.
+    match /wallet_ledger/{ledgerId} {
+      allow read: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    // 6. PAYMENT SESSIONS COLLECTION
+    // Created/Updated via server API proxy.
+    match /payment_sessions/{sessionId} {
+      allow read: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    // 7. WEBHOOK EVENTS COLLECTION
+    // Ingested strictly by backend endpoints. Completely locked to client SDKs.
+    match /webhook_events/{eventId} {
+      allow read, write: if false;
+    }
+
+    // 8. NOTIFICATIONS COLLECTION
+    match /notifications/{notificationId} {
+      allow read: if isSignedIn() && (resource.data.uid == request.auth.uid || resource.data.userId == request.auth.uid || isAdmin());
+      allow update: if isSignedIn() && (resource.data.uid == request.auth.uid || resource.data.userId == request.auth.uid) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["read", "isRead"]);
+      allow create, delete: if isAdmin();
+    }
+
+    // 9. AUDIT LOGS COLLECTION
+    // Accessible only to trusted backend services / Admins.
+    match /audit_logs/{logId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // 10. APP SETTINGS COLLECTION
+    // Global operational configuration. Public read, write by Admin.
+    match /app_settings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ADMIN PRIVILEGES LIST
+    match /admins/{adminUid} {
+      allow read: if isAdmin();
+      allow write: if isSuperAdmin();
+    }
+  }
+}
