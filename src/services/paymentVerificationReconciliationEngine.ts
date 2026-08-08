@@ -14,8 +14,8 @@
  * Unmatched and unverified payments are strictly kept uncredited and logged for Super Admin review.
  */
 
-import { ServerWalletEngine } from "./serverWalletEngine";
-import { APIProviderManager } from "./apiProviderManager";
+import { ServerWalletEngine } from "./serverWalletEngine.js";
+import { APIProviderManager } from "./apiProviderManager.js";
 
 export type PaymentState = "PENDING" | "VERIFIED" | "FAILED" | "UNMATCHED" | "REVERSED";
 

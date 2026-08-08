@@ -1,5 +1,5 @@
-import { ServerWalletEngine } from "./serverWalletEngine";
-import { PaymentVerificationReconciliationEngine } from "./paymentVerificationReconciliationEngine";
+import { ServerWalletEngine } from "./serverWalletEngine.js";
+import { PaymentVerificationReconciliationEngine } from "./paymentVerificationReconciliationEngine.js";
 
 export interface IncomingPaymentNotification {
   accountNumber?: string;

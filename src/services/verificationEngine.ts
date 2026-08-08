@@ -13,9 +13,9 @@ import {
   VerificationHistoryItem,
   VerificationErrorState,
   VerificationProgressStep,
-} from "../types/verification";
-import { VerificationValidator } from "./verificationValidator";
-import { WalletService } from "./walletService";
+} from "../types/verification.js";
+import { VerificationValidator } from "./verificationValidator.js";
+import { WalletService } from "./walletService.js";
 
 export const VERIFICATION_SERVICES: VerificationServiceConfig[] = [
   {

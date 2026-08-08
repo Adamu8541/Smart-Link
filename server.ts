@@ -11,11 +11,11 @@ import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 import crypto from "crypto";
 import { ServerWalletEngine } from "./src/services/serverWalletEngine.js";
-import { APIProviderManager, DEFAULT_PROVIDERS } from "./src/services/apiProviderManager";
-import { monnifyService } from "./src/services/monnifyService";
-import { adminAuthService, ADMIN_ROLES_CONFIG } from "./src/services/adminAuthService";
-import { AutomaticWalletFundingEngine } from "./src/services/automaticWalletFundingEngine";
-import { PaymentVerificationReconciliationEngine } from "./src/services/paymentVerificationReconciliationEngine";
+import { APIProviderManager, DEFAULT_PROVIDERS } from "./src/services/apiProviderManager.js";
+import { monnifyService } from "./src/services/monnifyService.js";
+import { adminAuthService, ADMIN_ROLES_CONFIG } from "./src/services/adminAuthService.js";
+import { AutomaticWalletFundingEngine } from "./src/services/automaticWalletFundingEngine.js";
+import { PaymentVerificationReconciliationEngine } from "./src/services/paymentVerificationReconciliationEngine.js";
 
 dotenv.config();
 

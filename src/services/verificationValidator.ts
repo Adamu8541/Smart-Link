@@ -3,7 +3,7 @@
  * Validates verification input before calling backend APIs.
  */
 
-import { VerificationType } from "../types/verification";
+import { VerificationType } from "../types/verification.js";
 
 export interface ValidationResult {
   valid: boolean;

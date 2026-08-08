@@ -8,7 +8,7 @@ import {
   AdminPreferences,
   AdminBreadcrumb,
   AdminGlobalSearchItem,
-} from "../types/adminLayoutTypes";
+} from "../types/adminLayoutTypes.js";
 
 class AdminLayoutService {
   private static instance: AdminLayoutService;

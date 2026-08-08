@@ -9,7 +9,7 @@ import {
   TransactionStatusType,
   WalletDocument,
   NotificationDocument
-} from "../types/database";
+} from "../types/database.js";
 
 export interface InitiateTransactionParams {
   userId: string;

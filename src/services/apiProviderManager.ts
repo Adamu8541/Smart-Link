@@ -11,7 +11,7 @@ import {
   ProviderAuditLog,
   ProviderHealthStatus,
   ProviderCategory,
-} from "../types/provider";
+} from "../types/provider.js";
 
 export const DEFAULT_PROVIDERS: APIProviderConfig[] = [];
 

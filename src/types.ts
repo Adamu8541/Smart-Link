@@ -367,7 +367,7 @@ export interface ApiResponseMappingTestLog {
 }
 
 
-export * from "./types/verification";
-export * from "./types/provider";
-export * from "./types/auth";
-export * from "./types/database";
+export * from "./types/verification.js";
+export * from "./types/provider.js";
+export * from "./types/auth.js";
+export * from "./types/database.js";

@@ -5,7 +5,7 @@
 
 import dotenv from "dotenv";
 import crypto from "crypto";
-import { ServerWalletEngine } from "./serverWalletEngine";
+import { ServerWalletEngine } from "./serverWalletEngine.js";
 dotenv.config();
 
 export interface MonnifyAuthResponse {

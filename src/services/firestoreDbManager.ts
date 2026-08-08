@@ -17,8 +17,8 @@ import {
   serverTimestamp,
   Timestamp
 } from "firebase/firestore";
-import { db, auth } from "../firebase";
-import { StandardBaseDocument } from "../types/database";
+import { db, auth } from "../firebase.js";
+import { StandardBaseDocument } from "../types/database.js";
 
 export enum OperationType {
   CREATE = "create",

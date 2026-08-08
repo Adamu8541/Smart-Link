@@ -12,7 +12,7 @@ import {
   BillPaymentResponse,
   CustomerValidationRequest,
   CustomerValidationResponse,
-} from "../types/bills";
+} from "../types/bills.js";
 
 export class BillPaymentEngine {
   /**

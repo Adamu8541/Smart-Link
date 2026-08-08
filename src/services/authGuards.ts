@@ -2,7 +2,7 @@
  * SmartLink Role-Based Access Control (RBAC) & Permission Guards Engine
  */
 
-import { UserRole, FirebaseCustomClaims, PermissionGuards } from "../types";
+import { UserRole, FirebaseCustomClaims, PermissionGuards } from "../types.js";
 
 export class AuthGuardService {
   /**

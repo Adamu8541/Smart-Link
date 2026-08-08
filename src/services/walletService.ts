@@ -6,7 +6,7 @@
  * All wallet operations pass through secure backend API endpoints.
  */
 
-import { Wallet, WalletTransaction, WalletValidationResult, WalletErrorCode } from "../types";
+import { Wallet, WalletTransaction, WalletValidationResult, WalletErrorCode } from "../types.js";
 
 export interface ServiceExecutionOptions {
   userId: string;

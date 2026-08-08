@@ -9,7 +9,7 @@ import {
   ActivityLogDocument,
   AdminActivityLogDocument,
   NotificationSettingsDocument
-} from "../types/database";
+} from "../types/database.js";
 
 export interface DispatchNotificationParams {
   userId: string;
