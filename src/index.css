@@ -1,0 +1,120 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* Custom premium scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Global design system defaults */
+body {
+  background-color: #F5F7FA;
+  color: #4B5563;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #111827;
+  font-weight: 700;
+}
+
+/* Base custom interactive effects */
+.fintech-card {
+  background-color: #FFFFFF;
+  border-radius: 16px;
+  border: 1px solid #E5E7EB;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+  transition: all 0.2s ease-in-out;
+}
+
+.fintech-card-hover:hover {
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.1);
+  transform: translateY(-2px);
+}
+
+.fintech-btn-primary {
+  background-color: #0F2D5C;
+  color: #FFFFFF;
+  border-radius: 12px;
+  font-weight: 600;
+  padding: 0.625rem 1.25rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.fintech-btn-primary:hover {
+  background-color: #17407E;
+}
+
+.fintech-btn-secondary {
+  background-color: #FFFFFF;
+  color: #0F2D5C;
+  border: 1px solid #0F2D5C;
+  border-radius: 12px;
+  font-weight: 600;
+  padding: 0.625rem 1.25rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.fintech-btn-secondary:hover {
+  background-color: #F8FAFC;
+}
+
+.fintech-input {
+  background-color: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 0.625rem 1rem;
+  color: #111827;
+  transition: all 0.2s ease-in-out;
+}
+
+.fintech-input:focus {
+  outline: none;
+  border-color: #0F2D5C;
+  box-shadow: 0 0 0 2px rgba(15, 45, 92, 0.15);
+}
+
+.fintech-input::placeholder {
+  color: #9CA3AF;
+}
+
+/* Beautiful logo text styling */
+.beautiful-brand-logo {
+  color: #0F2D5C !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.03em !important;
+  transition: all 0.3s ease !important;
+}
+
+.beautiful-brand-logo:hover {
+  color: #17407E !important;
+}
+
+/* Force high-contrast white background for QR Code scanner compatibility */
+.keep-white-bg {
+  background-color: #ffffff !important;
+}
+
+
+
+
