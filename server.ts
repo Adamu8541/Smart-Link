@@ -16777,28 +16777,26 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   next(err);
 });
 
+
+export default app;
+
+if (process.env.NODE_ENV !== "production") {
+  startServer();
+}
+
 async function startServer() {
-  if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
-      server: {
-        middlewareMode: true,
-        hmr: false,
-        ws: false,
-      },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
-  } else {
-    const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
-    app.get("*", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
-    });
-  }
+  const vite = await createViteServer({
+    server: {
+      middlewareMode: true,
+      hmr: false,
+      ws: false,
+    },
+    appType: "spa",
+  });
+
+  app.use(vite.middlewares);
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Smart Link server running on port ${PORT}`);
   });
 }
-
-startServer();
