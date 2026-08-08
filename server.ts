@@ -10,7 +10,7 @@ import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 import crypto from "crypto";
-import { ServerWalletEngine } from "./src/services/serverWalletEngine";
+import { ServerWalletEngine } from "./src/services/serverWalletEngine.js";
 import { APIProviderManager, DEFAULT_PROVIDERS } from "./src/services/apiProviderManager";
 import { monnifyService } from "./src/services/monnifyService";
 import { adminAuthService, ADMIN_ROLES_CONFIG } from "./src/services/adminAuthService";
@@ -16800,3 +16800,4 @@ async function startServer() {
     console.log(`Smart Link server running on port ${PORT}`);
   });
 }
+
