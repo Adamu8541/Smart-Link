@@ -3,7 +3,7 @@
  * Phase 1 Part 5 Architecture
  */
 
-import { UserRole } from "../types";
+import { UserRole } from "../types.js";
 
 export interface StandardBaseDocument {
   id: string;

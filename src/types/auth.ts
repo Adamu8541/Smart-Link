@@ -2,7 +2,7 @@
  * SmartLink Authentication, Authorization & RBAC Types
  */
 
-import { UserRole, SubAdminPermission } from "../types";
+import { UserRole, SubAdminPermission } from "../types.js";
 
 export interface FirebaseCustomClaims {
   superAdmin?: boolean;
