@@ -27,6 +27,7 @@ import {
   ToggleLeft,
   ToggleRight
 } from "lucide-react";
+import { getStoredAdminSession } from "../../../services/adminAuthService";
 
 interface ProviderDetailDrawerProps {
   providerId: string | null;
@@ -77,6 +78,9 @@ export function ProviderDetailDrawer({
   const [failedUrl, setFailedUrl] = useState("");
   const [cancelUrl, setCancelUrl] = useState("");
   const [webhookSecret, setWebhookSecret] = useState("");
+  const [webhookSignatureMethod, setWebhookSignatureMethod] = useState<"HMAC-SHA512" | "HMAC-SHA256" | "NONE">("HMAC-SHA512");
+  const [webhookSignatureHeaderName, setWebhookSignatureHeaderName] = useState("");
+  const [webhookSigningSecret, setWebhookSigningSecret] = useState("");
 
   // SECTION 4: SECURITY KEYS
   const [encryptionKey, setEncryptionKey] = useState("");
@@ -129,7 +133,7 @@ export function ProviderDetailDrawer({
     if (!providerId) return;
     setLoading(true);
     try {
-      const token = localStorage.getItem("smartlink_admin_token") || "";
+      const token = getStoredAdminSession()?.sessionToken || "";
       const res = await fetch(`/api/admin/providers/${providerId}`, {
         headers: { "x-admin-token": token },
       });
@@ -168,6 +172,9 @@ export function ProviderDetailDrawer({
         setFailedUrl(p.failedUrl || "");
         setCancelUrl(p.cancelUrl || "");
         setWebhookSecret(p.webhookSecret || "");
+        setWebhookSignatureMethod(p.webhookSignatureMethod || "HMAC-SHA512");
+        setWebhookSignatureHeaderName(p.webhookSignatureHeaderName || (p.name && p.name.toLowerCase().includes("opay") ? "x-opay-signature" : "x-signature"));
+        setWebhookSigningSecret(p.webhookSigningSecret || p.webhookSecret || "");
 
         setEncryptionKey(p.encryptionKey || "");
         setSignatureKey(p.signatureKey || "");
@@ -204,8 +211,8 @@ export function ProviderDetailDrawer({
     setToast(null);
 
     try {
-      const token = localStorage.getItem("smartlink_admin_token") || "";
-      const adminUid = localStorage.getItem("smartlink_admin_uid") || "admin_master";
+      const token = getStoredAdminSession()?.sessionToken || "";
+      const adminUid = getStoredAdminSession()?.uid || "admin_master";
       const res = await fetch(`/api/admin/providers/${providerId}`, {
         method: "PUT",
         headers: {
@@ -241,6 +248,9 @@ export function ProviderDetailDrawer({
           failedUrl,
           cancelUrl,
           webhookSecret,
+          webhookSignatureMethod,
+          webhookSignatureHeaderName,
+          webhookSigningSecret,
           encryptionKey,
           signatureKey,
           rsaPublicKey,
@@ -283,7 +293,7 @@ export function ProviderDetailDrawer({
     setTestResult(null);
 
     try {
-      const token = localStorage.getItem("smartlink_admin_token") || "";
+      const token = getStoredAdminSession()?.sessionToken || "";
       const res = await fetch(`/api/admin/providers/${providerId}/test-connection`, {
         method: "POST",
         headers: {
@@ -316,7 +326,7 @@ export function ProviderDetailDrawer({
   const handleSetDefault = async () => {
     if (!providerId) return;
     try {
-      const token = localStorage.getItem("smartlink_admin_token") || "";
+      const token = getStoredAdminSession()?.sessionToken || "";
       const res = await fetch(`/api/admin/providers/${providerId}/set-default`, {
         method: "POST",
         headers: { "x-admin-token": token },
@@ -335,8 +345,8 @@ export function ProviderDetailDrawer({
     if (!window.confirm(`Are you sure you want to delete Provider "${name}"? This action cannot be undone.`)) return;
 
     try {
-      const token = localStorage.getItem("smartlink_admin_token") || "";
-      const adminUid = localStorage.getItem("smartlink_admin_uid") || "admin_master";
+      const token = getStoredAdminSession()?.sessionToken || "";
+      const adminUid = getStoredAdminSession()?.uid || "admin_master";
       const res = await fetch(`/api/admin/providers/${providerId}?adminUid=${adminUid}`, {
         method: "DELETE",
         headers: { "x-admin-token": token },
@@ -756,7 +766,7 @@ export function ProviderDetailDrawer({
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Webhook Secret / Signing Secret</label>
+                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Webhook Secret / General Secret</label>
                       <input
                         type="password"
                         value={webhookSecret}
@@ -764,6 +774,47 @@ export function ProviderDetailDrawer({
                         placeholder="••••••••"
                         className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-purple-500"
                       />
+                    </div>
+                  </div>
+
+                  {/* Webhook Signature Security Section */}
+                  <div className="p-3 bg-slate-900/80 border border-slate-800 rounded-xl space-y-3">
+                    <div className="text-[11px] font-semibold text-purple-300 uppercase tracking-wide">
+                      Webhook Signature Security Configuration
+                    </div>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Signature Method</label>
+                        <select
+                          value={webhookSignatureMethod}
+                          onChange={(e: any) => setWebhookSignatureMethod(e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-purple-500"
+                        >
+                          <option value="HMAC-SHA512">HMAC-SHA512</option>
+                          <option value="HMAC-SHA256">HMAC-SHA256</option>
+                          <option value="NONE">None (Disabled)</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Signature Header Name</label>
+                        <input
+                          type="text"
+                          value={webhookSignatureHeaderName}
+                          onChange={(e) => setWebhookSignatureHeaderName(e.target.value)}
+                          placeholder="e.g. x-signature"
+                          className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-purple-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Webhook Signing Secret</label>
+                        <input
+                          type="password"
+                          value={webhookSigningSecret}
+                          onChange={(e) => setWebhookSigningSecret(e.target.value)}
+                          placeholder="••••••••"
+                          className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-purple-500"
+                        />
+                      </div>
                     </div>
                   </div>
 

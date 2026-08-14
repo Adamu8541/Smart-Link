@@ -265,6 +265,108 @@ export interface AIInvoice {
   createdAt: string;
 }
 
+export interface ApiHeaderItem {
+  key: string;
+  value: string;
+  enabled?: boolean;
+}
+
+export interface ApiParamItem {
+  key: string;
+  value: string;
+  enabled?: boolean;
+}
+
+export interface ApiRequestConfig {
+  id: string;
+  provider: string;
+  requestName: string;
+  endpoint: string;
+  httpMethod: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
+  authType: "None" | "API Key" | "Bearer Token" | "Basic Authentication" | "HMAC Signature" | "Custom Header Authentication" | "Custom Auth Method" | string;
+  customAuthMethodName?: string;
+  contentType: "application/json" | "multipart/form-data" | "application/x-www-form-urlencoded" | "application/xml" | "text/plain" | "Custom" | string;
+  acceptHeader?: string;
+  authorizationHeader?: string;
+  customHeaders: ApiHeaderItem[];
+  bodyFormat: "JSON" | "Form Data" | "URL Encoded" | "XML" | "Plain Text" | "Custom Format" | string;
+  bodyContent?: string;
+  queryParams: ApiParamItem[];
+  urlParams: ApiParamItem[];
+  timeout: number;
+  retryCount: number;
+  status: "ENABLED" | "DISABLED";
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+  updatedBy?: string;
+}
+
+export interface ApiRequestTestLog {
+  id: string;
+  requestId: string;
+  requestName: string;
+  provider: string;
+  testResult: "Success" | "Failed" | "Unauthorized" | "Timeout";
+  httpStatus: number;
+  statusText?: string;
+  responseTime: number;
+  requestHeaders?: Record<string, string>;
+  requestBody?: string;
+  responseHeaders?: Record<string, string>;
+  responseBody?: string;
+  testedBy: string;
+  date: string;
+}
+
+export interface ApiResponseMappingConfig {
+  id: string;
+  provider: string;
+  endpoint: string;
+  mappingName: string;
+  responseStatusPath?: string;
+  successValue?: string;
+  transactionIdPath?: string;
+  transactionRefPath?: string;
+  amountPath?: string;
+  currencyPath?: string;
+  chargesPath?: string;
+  walletBalancePath?: string;
+  customerNamePath?: string;
+  customerEmailPath?: string;
+  customerPhonePath?: string;
+  accountNumberPath?: string;
+  accountNamePath?: string;
+  bankNamePath?: string;
+  sessionIdPath?: string;
+  messagePath?: string;
+  errorCodePath?: string;
+  errorMessagePath?: string;
+  rawJsonPath?: string;
+  status: "ENABLED" | "DISABLED";
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+  updatedBy?: string;
+}
+
+export interface ApiResponseMappingTestLog {
+  id: string;
+  mappingId?: string;
+  mappingName: string;
+  provider: string;
+  endpoint: string;
+  testResult: "SUCCESS" | "PARTIAL" | "FAILED" | "INVALID_JSON";
+  testedBy: string;
+  date: string;
+  time: string;
+  sampleInputJson: string;
+  parsedOutput?: Record<string, any>;
+  missingFields?: string[];
+  invalidPaths?: string[];
+}
+
+
 export * from "./types/verification";
 export * from "./types/provider";
 export * from "./types/auth";

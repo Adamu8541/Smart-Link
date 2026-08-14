@@ -147,7 +147,7 @@ export function CreditWalletModal({ user, session, onClose, onSuccess }: CreditW
                 <textarea
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
-                  placeholder="e.g. Compensation for Monnify delayed deposit ref #9921"
+                  placeholder="e.g. Compensation for delayed deposit ref #9921"
                   className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-xs focus:outline-none focus:border-emerald-500 h-20 resize-none"
                   required
                 />

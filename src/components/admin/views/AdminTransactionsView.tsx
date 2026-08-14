@@ -26,10 +26,9 @@ import {
   Zap,
   Info
 } from "lucide-react";
-import { AdminSession } from "../../../services/adminAuthService";
+import { AdminSession, getStoredAdminSession } from "../../../services/adminAuthService";
 import { TransactionDetailDrawer } from "./TransactionDetailDrawer";
 import { TransactionReceiptModal } from "./TransactionReceiptModal";
-import { AdminModule5TestPanel } from "./AdminModule5TestPanel";
 
 interface AdminTransactionsViewProps {
   session: AdminSession;
@@ -92,7 +91,7 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
     setError(null);
 
     try {
-      const token = localStorage.getItem("smartlink_admin_token") || "";
+      const token = session?.sessionToken || getStoredAdminSession()?.sessionToken || "";
       const queryParams = new URLSearchParams({
         page: page.toString(),
         limit: pagination.limitNum.toString(),
@@ -152,7 +151,7 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
   const handleExport = async (scope = "FILTERED_RESULTS", format = "CSV") => {
     setExporting(true);
     try {
-      const token = localStorage.getItem("smartlink_admin_token") || "";
+      const token = session?.sessionToken || getStoredAdminSession()?.sessionToken || "";
       const res = await fetch("/api/admin/transactions/export", {
         method: "POST",
         headers: {
@@ -303,9 +302,6 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
           </div>
         </div>
       </div>
-
-      {/* Test Panel Drawer if active */}
-      {showTestPanel && <AdminModule5TestPanel />}
 
       {/* Main Table & Controls Container */}
       <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 space-y-6 shadow-xl">
@@ -469,7 +465,7 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
                   className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-xs text-white"
                 >
                   <option value="ALL">All Providers</option>
-                  <option value="Monnify">Monnify</option>
+                  <option value="Aspfiy">Aspfiy</option>
                   <option value="OPay">OPay</option>
                   <option value="NIMC">NIMC API</option>
                   <option value="Prembly">Prembly</option>

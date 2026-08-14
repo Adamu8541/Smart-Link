@@ -930,7 +930,7 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. OPay Merchant Gateway, Monnify, Paystack"
+                    placeholder="e.g. OPay Merchant Gateway, Generic Gateway, Paystack"
                     value={paymentForm.name}
                     onChange={(e) => {
                       setPaymentForm({ ...paymentForm, name: e.target.value });

@@ -23,6 +23,7 @@ import {
   Layers
 } from "lucide-react";
 import { WebhookItem, WebhookLogItem, WebhookStatus } from "../../types/provider";
+import { getStoredAdminSession } from "../../services/adminAuthService";
 
 interface WebhookManagerAdminProps {
   adminUid: string;
@@ -45,15 +46,7 @@ const DEFAULT_EVENT_TYPES = [
 ];
 
 const DEFAULT_PROVIDERS = [
-  "All Providers",
-  "Monnify",
-  "OPay",
-  "PayVessel",
-  "Paystack",
-  "Flutterwave",
-  "Nomba",
-  "Palmpay",
-  "Custom Provider"
+  "All Providers"
 ];
 
 export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminUid }) => {
@@ -107,9 +100,11 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
   const fetchWebhooks = async () => {
     setLoading(true);
     try {
+      const token = getStoredAdminSession()?.sessionToken || "";
+      const headers = { "x-admin-token": token };
       const [whRes, provRes] = await Promise.all([
-        fetch("/api/admin/webhooks"),
-        fetch("/api/admin/payment-providers")
+        fetch("/api/admin/webhooks", { headers }),
+        fetch("/api/admin/payment-providers", { headers })
       ]);
 
       if (whRes.ok) {
@@ -122,7 +117,7 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
         const provData = await provRes.json();
         if (provData.paymentProviders && Array.isArray(provData.paymentProviders)) {
           const names = provData.paymentProviders.map((p: any) => p.name);
-          const combined = Array.from(new Set(["All Providers", ...names, "Monnify", "OPay", "PayVessel", "Paystack", "Flutterwave"]));
+          const combined = Array.from(new Set(["All Providers", ...names]));
           setRegisteredProviders(combined);
         }
       }
@@ -210,17 +205,22 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
     };
 
     try {
+      const token = getStoredAdminSession()?.sessionToken || "";
+      const headers = {
+        "Content-Type": "application/json",
+        "x-admin-token": token
+      };
       let res;
       if (editingWebhook) {
         res = await fetch(`/api/admin/webhooks/${editingWebhook.id}`, {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers,
           body: JSON.stringify(payload)
         });
       } else {
         res = await fetch("/api/admin/webhooks", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers,
           body: JSON.stringify(payload)
         });
       }
@@ -242,9 +242,13 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
   // Toggle Status
   const handleToggleStatus = async (wh: WebhookItem) => {
     try {
+      const token = getStoredAdminSession()?.sessionToken || "";
       const res = await fetch(`/api/admin/webhooks/${wh.id}/toggle-status`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-token": token
+        },
         body: JSON.stringify({ adminUid })
       });
       const data = await res.json();
@@ -264,9 +268,13 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
     if (!window.confirm(`Are you sure you want to delete webhook "${wh.name}"?`)) return;
 
     try {
+      const token = getStoredAdminSession()?.sessionToken || "";
       const res = await fetch(`/api/admin/webhooks/${wh.id}`, {
         method: "DELETE",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-token": token
+        },
         body: JSON.stringify({ adminUid })
       });
       const data = await res.json();
@@ -285,9 +293,13 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
   const handleTestWebhook = async (wh: WebhookItem) => {
     setTestingWebhookId(wh.id);
     try {
+      const token = getStoredAdminSession()?.sessionToken || "";
       const res = await fetch(`/api/admin/webhooks/${wh.id}/test`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-token": token
+        },
         body: JSON.stringify({ adminUid })
       });
       const data = await res.json();

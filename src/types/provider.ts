@@ -90,6 +90,9 @@ export interface APIProviderConfig {
   failedUrl?: string;
   cancelUrl?: string;
   webhookSecret?: string;
+  webhookSignatureMethod?: "HMAC-SHA512" | "HMAC-SHA256" | "NONE";
+  webhookSignatureHeaderName?: string;
+  webhookSigningSecret?: string;
 
   // Security Keys
   encryptionKey?: string;

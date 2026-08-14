@@ -27,7 +27,6 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import { AdminSession } from "../../../services/adminAuthService";
-import { AdminModule9TestPanel } from "./AdminModule9TestPanel";
 
 interface AdminNotificationsViewProps {
   session: AdminSession;
@@ -951,9 +950,6 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
           </div>
         </div>
       )}
-
-      {/* TAB 6: AUTOMATED TEST SUITE */}
-      {activeTab === "TEST_SUITE" && <AdminModule9TestPanel />}
 
       {/* ANNOUNCEMENT MODAL */}
       {showAnnModal && (

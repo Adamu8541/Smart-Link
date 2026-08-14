@@ -4,7 +4,7 @@ import {
   XCircle, AlertTriangle, LifeBuoy, FileText, Send, Lock, Plus, Trash2, Settings as SettingsIcon,
   UserCheck, ArrowRight, Sparkles, AlertCircle, ExternalLink, ChevronDown, ChevronUp, Layers
 } from "lucide-react";
-import { AdminModule8TestPanel } from "./AdminModule8TestPanel";
+import { getStoredAdminSession } from "../../../services/adminAuthService";
 
 export function AdminSupportView() {
   const [activeTab, setActiveTab] = useState<"overview" | "tickets" | "categories" | "settings" | "tests">("overview");
@@ -58,7 +58,7 @@ export function AdminSupportView() {
   const fetchDashboard = async () => {
     setLoadingDashboard(true);
     try {
-      const token = localStorage.getItem("smartlink_admin_token") || "";
+      const token = getStoredAdminSession()?.sessionToken || "";
       const res = await fetch("/api/admin/support/dashboard", {
         headers: { "x-admin-token": token },
       });
@@ -80,7 +80,7 @@ export function AdminSupportView() {
   const fetchTickets = async () => {
     setLoadingTickets(true);
     try {
-      const token = localStorage.getItem("smartlink_admin_token") || "";
+      const token = getStoredAdminSession()?.sessionToken || "";
       const params = new URLSearchParams({
         search,
         status: statusFilter,
@@ -109,7 +109,7 @@ export function AdminSupportView() {
     setLoadingTicketDetail(true);
     setSelectedTicketId(ticketId);
     try {
-      const token = localStorage.getItem("smartlink_admin_token") || "";
+      const token = getStoredAdminSession()?.sessionToken || "";
       const res = await fetch(`/api/support/tickets/${encodeURIComponent(ticketId)}?isAdmin=true`, {
         headers: { "x-admin-token": token },
       });
@@ -148,7 +148,7 @@ export function AdminSupportView() {
 
     setSubmittingReply(true);
     try {
-      const token = localStorage.getItem("smartlink_admin_token") || "";
+      const token = getStoredAdminSession()?.sessionToken || "";
       const res = await fetch(`/api/support/tickets/${encodeURIComponent(selectedTicket.id)}/reply`, {
         method: "POST",
         headers: {
@@ -185,7 +185,7 @@ export function AdminSupportView() {
   const handleUpdateTicketMeta = async (updates: { status?: string; priority?: string; assignedStaffId?: string; assignedStaffName?: string }) => {
     if (!selectedTicket) return;
     try {
-      const token = localStorage.getItem("smartlink_admin_token") || "";
+      const token = getStoredAdminSession()?.sessionToken || "";
       const res = await fetch(`/api/admin/support/tickets/${encodeURIComponent(selectedTicket.id)}/status`, {
         method: "PUT",
         headers: {
@@ -216,7 +216,7 @@ export function AdminSupportView() {
 
     setAddingCat(true);
     try {
-      const token = localStorage.getItem("smartlink_admin_token") || "";
+      const token = getStoredAdminSession()?.sessionToken || "";
       const res = await fetch("/api/admin/support/categories", {
         method: "POST",
         headers: {
@@ -246,7 +246,7 @@ export function AdminSupportView() {
   const handleDeleteCategory = async (catId: string) => {
     if (!confirm("Are you sure you want to delete this support category?")) return;
     try {
-      const token = localStorage.getItem("smartlink_admin_token") || "";
+      const token = getStoredAdminSession()?.sessionToken || "";
       await fetch(`/api/admin/support/categories/${catId}`, {
         method: "DELETE",
         headers: { "x-admin-token": token },
@@ -880,9 +880,6 @@ export function AdminSupportView() {
           </div>
         </div>
       )}
-
-      {/* TAB 5: AUTOMATED SELF-TESTS */}
-      {activeTab === "tests" && <AdminModule8TestPanel />}
     </div>
   );
 }

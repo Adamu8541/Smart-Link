@@ -3,17 +3,10 @@
  * Handles atomic balance updates, wallet validation, hold/release, reversals, and transaction logging.
  */
 
-export interface WalletDbRecord {
-  userId: string;
-  currentBalance: number;
-  heldBalance: number;
-  totalCredits: number;
-  totalDebits: number;
-  walletStatus: "ACTIVE" | "SUSPENDED" | "FROZEN";
-  currency: string;
-  lastUpdated: string;
-  createdAt: string;
-}
+import { walletsStore, WalletDbRecord } from "./walletsStore";
+import * as usersStore from "./usersStore";
+
+export type { WalletDbRecord };
 
 export interface WalletTxRecord {
   id: string;
@@ -33,6 +26,13 @@ export interface WalletTxRecord {
   updatedAt: string;
   type?: string;
   recipientDetails?: string;
+  idempotencyKey?: string;
+  currency?: "NGN";
+  providerReference?: string;
+  rawResponse?: any;
+  token?: string;
+  units?: string;
+  pins?: string;
 }
 
 export interface WalletEngineValidationResult {
@@ -47,41 +47,54 @@ export class ServerWalletEngine {
   /**
    * Gets or initializes user wallet in DB. Syncs currentBalance with user.walletBalance.
    */
-  static getOrCreateWallet(db: any, userId: string): WalletDbRecord | null {
+  static async getOrCreateWallet(db: any, userId: string): Promise<WalletDbRecord | null> {
     if (!userId) return null;
 
-    if (!db.wallets) db.wallets = [];
-    let wallet = db.wallets.find((w: any) => w.userId === userId || w.walletId === `wlt_${userId}`);
-
-    const user = db.users ? db.users.find((u: any) => u.uid === userId) : null;
+    let wallet = await walletsStore.getWalletByUserId(userId);
+    const user = (await usersStore.getUserById(userId)) || (db?.users ? db.users.find((u: any) => u.uid === userId) : null);
+    const now = new Date().toISOString();
 
     if (!wallet) {
       if (!user) return null;
-      wallet = {
+      const initialBal = typeof user.walletBalance === "number" && !isNaN(user.walletBalance) ? user.walletBalance : 0.0;
+      const newWallet: WalletDbRecord = {
         userId: user.uid,
-        currentBalance: typeof user.walletBalance === "number" ? user.walletBalance : 0,
-        heldBalance: 0,
-        totalCredits: typeof user.walletBalance === "number" ? user.walletBalance : 0,
-        totalDebits: 0,
+        walletId: `wal_${userId}`,
+        balance: initialBal,
+        currentBalance: initialBal,
+        heldBalance: 0.0,
+        totalCredits: initialBal,
+        totalDebits: 0.0,
+        status: user.status === "SUSPENDED" ? "SUSPENDED" : "ACTIVE",
         walletStatus: user.status === "SUSPENDED" ? "SUSPENDED" : "ACTIVE",
         currency: "NGN",
-        lastUpdated: new Date().toISOString(),
-        createdAt: user.createdAt || new Date().toISOString(),
+        updatedAt: now,
+        lastUpdated: now,
+        createdAt: user.createdAt || now,
       };
-      db.wallets.push(wallet);
+      wallet = await walletsStore.createWallet(newWallet);
     } else {
-      // Sync balance if user record has a higher balance (e.g., initialized elsewhere)
-      if (user && typeof user.walletBalance === "number") {
-        if (Math.abs((wallet.currentBalance || 0) - user.walletBalance) > 0.001) {
-          wallet.currentBalance = user.walletBalance;
-          wallet.lastUpdated = new Date().toISOString();
-        }
+      // Ensure fields are present and valid
+      if (!wallet.walletId) wallet.walletId = `wal_${userId}`;
+      if (typeof wallet.balance !== "number" || isNaN(wallet.balance)) {
+        wallet.balance = typeof wallet.currentBalance === "number" && !isNaN(wallet.currentBalance) ? wallet.currentBalance : 0.0;
       }
-      if (!wallet.heldBalance) wallet.heldBalance = 0;
-      if (!wallet.totalCredits) wallet.totalCredits = wallet.currentBalance || 0;
-      if (!wallet.totalDebits) wallet.totalDebits = 0;
-      if (!wallet.walletStatus) wallet.walletStatus = user?.status === "SUSPENDED" ? "SUSPENDED" : "ACTIVE";
-      if (!wallet.currency) wallet.currency = "NGN";
+      wallet.currentBalance = wallet.balance;
+      if (typeof wallet.heldBalance !== "number" || isNaN(wallet.heldBalance)) wallet.heldBalance = 0.0;
+      if (typeof wallet.totalCredits !== "number") wallet.totalCredits = wallet.balance;
+      if (typeof wallet.totalDebits !== "number") wallet.totalDebits = 0.0;
+      if (!wallet.status) wallet.status = wallet.walletStatus || "ACTIVE";
+      wallet.walletStatus = wallet.status;
+      wallet.currency = "NGN";
+      if (!wallet.createdAt) wallet.createdAt = now;
+      if (!wallet.updatedAt) wallet.updatedAt = wallet.lastUpdated || now;
+      wallet.lastUpdated = wallet.updatedAt;
+
+      // Keep user.walletBalance synchronized
+      if (user && user.walletBalance !== wallet.balance) {
+        user.walletBalance = wallet.balance;
+        usersStore.updateUser(userId, { walletBalance: wallet.balance }).catch(() => {});
+      }
     }
 
     return wallet;
@@ -90,8 +103,8 @@ export class ServerWalletEngine {
   /**
    * Get wallet balance for a user.
    */
-  static getWalletBalance(db: any, userId: string) {
-    const wallet = this.getOrCreateWallet(db, userId);
+  static async getWalletBalance(db: any, userId: string) {
+    const wallet = await this.getOrCreateWallet(db, userId);
     if (!wallet) {
       return {
         error: "Wallet not found",
@@ -99,16 +112,20 @@ export class ServerWalletEngine {
       };
     }
 
-    const availableBalance = Math.max(0, wallet.currentBalance - wallet.heldBalance);
+    const availableBalance = Math.max(0, wallet.balance - (wallet.heldBalance || 0));
 
     return {
       userId: wallet.userId,
-      currentBalance: wallet.currentBalance,
+      walletId: wallet.walletId,
+      balance: wallet.balance,
+      currentBalance: wallet.balance,
       heldBalance: wallet.heldBalance,
       availableBalance,
-      walletStatus: wallet.walletStatus,
-      currency: wallet.currency,
-      lastUpdated: wallet.lastUpdated,
+      status: wallet.status,
+      walletStatus: wallet.status,
+      currency: "NGN",
+      updatedAt: wallet.updatedAt,
+      lastUpdated: wallet.updatedAt,
       createdAt: wallet.createdAt,
     };
   }
@@ -116,53 +133,53 @@ export class ServerWalletEngine {
   /**
    * Validate wallet status and balance sufficiency before running any service.
    */
-  static validateWallet(db: any, userId: string, amount: number): WalletEngineValidationResult {
+  static async validateWallet(db: any, userId: string, amount: number): Promise<WalletEngineValidationResult> {
     if (!userId) {
       return {
         valid: false,
-        error: "User authentication required",
+        error: "User authentication required to access wallet.",
         errorCode: "WALLET_NOT_FOUND",
       };
     }
 
-    const user = db.users ? db.users.find((u: any) => u.uid === userId) : null;
+    const user = (await usersStore.getUserById(userId)) || (db?.users ? db.users.find((u: any) => u.uid === userId) : null);
     if (!user) {
       return {
         valid: false,
-        error: "User account not found on Smart Link",
+        error: "User account not found.",
         errorCode: "WALLET_NOT_FOUND",
       };
     }
 
-    const wallet = this.getOrCreateWallet(db, userId);
+    const wallet = await this.getOrCreateWallet(db, userId);
     if (!wallet) {
       return {
         valid: false,
-        error: "Wallet account not found",
+        error: "Wallet account not found.",
         errorCode: "WALLET_NOT_FOUND",
       };
     }
 
-    if (wallet.walletStatus !== "ACTIVE" || user.status === "SUSPENDED") {
+    if (wallet.status !== "ACTIVE" || wallet.walletStatus !== "ACTIVE" || user.status === "SUSPENDED" || user.status === "LOCKED") {
       return {
         valid: false,
-        error: "Wallet is currently suspended or frozen. Please contact support.",
+        error: "Wallet is currently suspended or locked. Transaction denied.",
         errorCode: "WALLET_SUSPENDED",
         wallet,
       };
     }
 
     const amt = parseFloat(String(amount));
-    if (isNaN(amt) || amt < 0) {
+    if (isNaN(amt) || !isFinite(amt) || amt < 0) {
       return {
         valid: false,
-        error: "Invalid payment amount specified",
+        error: "Invalid payment amount specified.",
         errorCode: "UNKNOWN_ERROR",
         wallet,
       };
     }
 
-    const availableBalance = wallet.currentBalance - wallet.heldBalance;
+    const availableBalance = wallet.balance - (wallet.heldBalance || 0);
     if (availableBalance < amt) {
       return {
         valid: false,
@@ -183,7 +200,7 @@ export class ServerWalletEngine {
   /**
    * Atomically credit user wallet and log transaction.
    */
-  static creditWallet(db: any, params: {
+  static async creditWallet(db: any, params: {
     userId: string;
     amount: number;
     serviceName: string;
@@ -193,35 +210,53 @@ export class ServerWalletEngine {
     fee?: number;
     recipientDetails?: string;
     type?: string;
+    idempotencyKey?: string;
   }) {
-    const { userId, amount, serviceName, provider = "SmartLink Wallet Service", description, reference, fee = 0, recipientDetails, type } = params;
+    const { userId, amount, serviceName, provider = "SmartLink Wallet Engine", description, reference, fee = 0, recipientDetails, type, idempotencyKey } = params;
 
-    const validation = this.validateWallet(db, userId, 0); // Check user & wallet existence
-    if (!validation.wallet) {
-      throw new Error(validation.error || "Wallet not found for crediting");
-    }
-
-    const wallet = validation.wallet;
-    const user = db.users.find((u: any) => u.uid === userId);
-
+    // Validate amount
     const amt = parseFloat(String(amount));
-    if (isNaN(amt) || amt <= 0) {
-      throw new Error("Credit amount must be greater than zero");
+    if (isNaN(amt) || !isFinite(amt) || amt <= 0) {
+      throw new Error("Invalid credit amount. Amount must be a positive number greater than zero.");
     }
 
-    const balanceBefore = wallet.currentBalance;
-    wallet.currentBalance += amt;
-    wallet.totalCredits = (wallet.totalCredits || 0) + amt;
-    wallet.lastUpdated = new Date().toISOString();
+    // Check for duplicate transaction processing / double credit
+    const ref = reference || idempotencyKey || "SML-CRD-" + Math.floor(100000 + Math.random() * 900000);
+    const allTxs = (db.transactions || []).concat(db.wallet_transactions || []);
+    const existingTx = allTxs.find((t: any) => (t.reference && t.reference === ref) || (idempotencyKey && t.idempotencyKey === idempotencyKey));
+
+    if (existingTx) {
+      throw new Error(`Duplicate transaction reference detected (${ref}). Credit operation already processed.`);
+    }
+
+    const validation = await this.validateWallet(db, userId, 0); // Check user & wallet existence
+    if (!validation.wallet) {
+      throw new Error(validation.error || "Wallet not found for crediting.");
+    }
+
+    const user = (await usersStore.getUserById(userId)) || (db?.users ? db.users.find((u: any) => u.uid === userId) : null);
+
+    let balanceBefore = validation.wallet.balance;
+    const updatedWallet = await walletsStore.updateWalletAtomic(userId, (current) => {
+      balanceBefore = current.balance;
+      const newBal = current.balance + amt;
+      return {
+        balance: newBal,
+        currentBalance: newBal,
+        totalCredits: (current.totalCredits || 0) + amt,
+      };
+    });
+
+    const wallet = updatedWallet || validation.wallet;
+    const now = new Date().toISOString();
 
     // Sync user.walletBalance
     if (user) {
-      user.walletBalance = wallet.currentBalance;
+      user.walletBalance = wallet.balance;
     }
+    await usersStore.updateUser(userId, { walletBalance: wallet.balance }).catch(() => {});
 
-    const ref = reference || "SML-CRD-" + Math.floor(100000 + Math.random() * 900000);
     const txId = "tx_" + Math.random().toString(36).substring(2, 9);
-    const now = new Date().toISOString();
 
     const tx: WalletTxRecord = {
       id: txId,
@@ -229,25 +264,43 @@ export class ServerWalletEngine {
       reference: ref,
       userId,
       userEmail: user?.email || "",
-      serviceName,
+      serviceName: serviceName || "Wallet Top-up",
       amount: amt,
+      currency: "NGN",
       fee,
       walletBalanceBefore: balanceBefore,
-      walletBalanceAfter: wallet.currentBalance,
+      walletBalanceAfter: wallet.balance,
       status: "SUCCESS",
       provider,
-      description: description || `Wallet Credited ₦${amt.toLocaleString()} via ${serviceName}`,
+      description: description || `Wallet Credited ₦${amt.toLocaleString("en-NG", { minimumFractionDigits: 2 })} via ${serviceName}`,
       createdAt: now,
       updatedAt: now,
       recipientDetails,
       type: type || "WALLET_FUNDING",
+      idempotencyKey,
     };
 
     if (!db.transactions) db.transactions = [];
     db.transactions.push(tx);
 
+    if (!db.wallet_transactions) db.wallet_transactions = [];
+    db.wallet_transactions.push(tx);
+
     return {
-      wallet,
+      success: true,
+      wallet: {
+        userId: wallet.userId,
+        walletId: wallet.walletId,
+        balance: wallet.balance,
+        currentBalance: wallet.balance,
+        heldBalance: wallet.heldBalance || 0.0,
+        currency: "NGN",
+        status: wallet.status,
+        walletStatus: wallet.status,
+        createdAt: wallet.createdAt,
+        updatedAt: wallet.updatedAt,
+        lastUpdated: wallet.updatedAt,
+      },
       transaction: tx,
     };
   }
@@ -255,7 +308,7 @@ export class ServerWalletEngine {
   /**
    * Atomically debit user wallet and log transaction.
    */
-  static debitWallet(db: any, params: {
+  static async debitWallet(db: any, params: {
     userId: string;
     amount: number;
     serviceName: string;
@@ -265,31 +318,78 @@ export class ServerWalletEngine {
     fee?: number;
     recipientDetails?: string;
     type?: string;
+    idempotencyKey?: string;
+    providerReference?: string;
+    rawResponse?: any;
+    token?: string;
+    units?: string;
+    pins?: string;
   }) {
-    const { userId, amount, serviceName, provider = "SmartLink Payment Engine", description, reference, fee = 0, recipientDetails, type } = params;
+    const {
+      userId,
+      amount,
+      serviceName,
+      provider = "SmartLink Payment Engine",
+      description,
+      reference,
+      fee = 0,
+      recipientDetails,
+      type,
+      idempotencyKey,
+      providerReference,
+      rawResponse,
+      token,
+      units,
+      pins,
+    } = params;
 
-    const validation = this.validateWallet(db, userId, amount);
-    if (!validation.valid || !validation.wallet) {
-      throw new Error(validation.error || "Wallet validation failed for debit");
+    // Validate amount
+    const amt = parseFloat(String(amount));
+    if (isNaN(amt) || !isFinite(amt) || amt <= 0) {
+      throw new Error("Invalid debit amount. Amount must be a positive number greater than zero.");
     }
 
-    const wallet = validation.wallet;
-    const user = db.users.find((u: any) => u.uid === userId);
+    // Check for duplicate transaction processing / double debit
+    const ref = reference || idempotencyKey || "SML-DBT-" + Math.floor(100000 + Math.random() * 900000);
+    const allTxs = (db.transactions || []).concat(db.wallet_transactions || []);
+    const existingTx = allTxs.find((t: any) => (t.reference && t.reference === ref) || (idempotencyKey && t.idempotencyKey === idempotencyKey));
 
-    const amt = parseFloat(String(amount));
-    const balanceBefore = wallet.currentBalance;
-    wallet.currentBalance -= amt;
-    wallet.totalDebits = (wallet.totalDebits || 0) + amt;
-    wallet.lastUpdated = new Date().toISOString();
+    if (existingTx) {
+      throw new Error(`Duplicate transaction reference detected (${ref}). Debit operation already processed.`);
+    }
+
+    const validation = await this.validateWallet(db, userId, amt);
+    if (!validation.valid || !validation.wallet) {
+      throw new Error(validation.error || "Wallet validation failed for debit.");
+    }
+
+    const user = (await usersStore.getUserById(userId)) || (db?.users ? db.users.find((u: any) => u.uid === userId) : null);
+
+    let balanceBefore = validation.wallet.balance;
+    const updatedWallet = await walletsStore.updateWalletAtomic(userId, (current) => {
+      const available = current.balance - (current.heldBalance || 0);
+      if (available < amt) {
+        throw new Error(`Insufficient wallet balance. Available: ₦${available.toLocaleString("en-NG", { minimumFractionDigits: 2 })}, Requested Debit: ₦${amt.toLocaleString("en-NG", { minimumFractionDigits: 2 })}.`);
+      }
+      balanceBefore = current.balance;
+      const newBal = current.balance - amt;
+      return {
+        balance: newBal,
+        currentBalance: newBal,
+        totalDebits: (current.totalDebits || 0) + amt,
+      };
+    });
+
+    const wallet = updatedWallet || validation.wallet;
+    const now = new Date().toISOString();
 
     // Sync user.walletBalance
     if (user) {
-      user.walletBalance = wallet.currentBalance;
+      user.walletBalance = wallet.balance;
     }
+    await usersStore.updateUser(userId, { walletBalance: wallet.balance }).catch(() => {});
 
-    const ref = reference || "SML-DBT-" + Math.floor(100000 + Math.random() * 900000);
     const txId = "tx_" + Math.random().toString(36).substring(2, 9);
-    const now = new Date().toISOString();
 
     const tx: WalletTxRecord = {
       id: txId,
@@ -297,25 +397,48 @@ export class ServerWalletEngine {
       reference: ref,
       userId,
       userEmail: user?.email || "",
-      serviceName,
+      serviceName: serviceName || "Service Payment",
       amount: amt,
+      currency: "NGN",
       fee,
       walletBalanceBefore: balanceBefore,
-      walletBalanceAfter: wallet.currentBalance,
+      walletBalanceAfter: wallet.balance,
       status: "SUCCESS",
       provider,
       description: description || `Payment for ${serviceName}`,
       createdAt: now,
       updatedAt: now,
       recipientDetails,
-      type,
+      type: type || "SERVICE_PAYMENT",
+      idempotencyKey,
+      providerReference,
+      rawResponse,
+      token,
+      units,
+      pins,
     };
 
     if (!db.transactions) db.transactions = [];
     db.transactions.push(tx);
 
+    if (!db.wallet_transactions) db.wallet_transactions = [];
+    db.wallet_transactions.push(tx);
+
     return {
-      wallet,
+      success: true,
+      wallet: {
+        userId: wallet.userId,
+        walletId: wallet.walletId,
+        balance: wallet.balance,
+        currentBalance: wallet.balance,
+        heldBalance: wallet.heldBalance || 0.0,
+        currency: "NGN",
+        status: wallet.status,
+        walletStatus: wallet.status,
+        createdAt: wallet.createdAt,
+        updatedAt: wallet.updatedAt,
+        lastUpdated: wallet.updatedAt,
+      },
       transaction: tx,
     };
   }
@@ -323,7 +446,7 @@ export class ServerWalletEngine {
   /**
    * Place a temporary hold on wallet balance before asynchronous processing.
    */
-  static holdWalletBalance(db: any, params: {
+  static async holdWalletBalance(db: any, params: {
     userId: string;
     amount: number;
     serviceName: string;
@@ -333,19 +456,23 @@ export class ServerWalletEngine {
   }) {
     const { userId, amount, serviceName, reference, provider = "SmartLink Escrow Engine", description } = params;
 
-    const validation = this.validateWallet(db, userId, amount);
+    const validation = await this.validateWallet(db, userId, amount);
     if (!validation.valid || !validation.wallet) {
       throw new Error(validation.error || "Wallet validation failed for hold");
     }
 
-    const wallet = validation.wallet;
-    const user = db.users.find((u: any) => u.uid === userId);
+    const user = (await usersStore.getUserById(userId)) || (db?.users ? db.users.find((u: any) => u.uid === userId) : null);
     const amt = parseFloat(String(amount));
 
-    const balanceBefore = wallet.currentBalance;
-    wallet.heldBalance += amt;
-    wallet.lastUpdated = new Date().toISOString();
+    let balanceBefore = validation.wallet.currentBalance;
+    const updatedWallet = await walletsStore.updateWalletAtomic(userId, (current) => {
+      balanceBefore = current.currentBalance;
+      return {
+        heldBalance: (current.heldBalance || 0) + amt,
+      };
+    });
 
+    const wallet = updatedWallet || validation.wallet;
     const ref = reference || "SML-HLD-" + Math.floor(100000 + Math.random() * 900000);
     const txId = "tx_" + Math.random().toString(36).substring(2, 9);
     const now = new Date().toISOString();
@@ -379,7 +506,7 @@ export class ServerWalletEngine {
   /**
    * Release held balance (either commit debit on success or unhold on failure).
    */
-  static releaseHeldBalance(db: any, params: {
+  static async releaseHeldBalance(db: any, params: {
     userId: string;
     reference?: string;
     transactionId?: string;
@@ -387,7 +514,7 @@ export class ServerWalletEngine {
   }) {
     const { userId, reference, transactionId, commitDebit } = params;
 
-    const wallet = this.getOrCreateWallet(db, userId);
+    const wallet = await this.getOrCreateWallet(db, userId);
     if (!wallet) throw new Error("Wallet not found");
 
     if (!db.transactions) db.transactions = [];
@@ -401,27 +528,42 @@ export class ServerWalletEngine {
     const tx = db.transactions[txIndex];
     const amt = tx.amount;
 
-    wallet.heldBalance = Math.max(0, wallet.heldBalance - amt);
+    let balanceBefore = wallet.balance;
+    const updatedWallet = await walletsStore.updateWalletAtomic(userId, (current) => {
+      balanceBefore = current.balance;
+      const newHeld = Math.max(0, (current.heldBalance || 0) - amt);
+      if (commitDebit) {
+        const newBal = current.balance - amt;
+        return {
+          heldBalance: newHeld,
+          balance: newBal,
+          currentBalance: newBal,
+          totalDebits: (current.totalDebits || 0) + amt,
+        };
+      }
+      return {
+        heldBalance: newHeld,
+      };
+    });
+
+    const finalWallet = updatedWallet || wallet;
 
     if (commitDebit) {
-      const user = db.users.find((u: any) => u.uid === userId);
-      const balanceBefore = wallet.currentBalance;
-      wallet.currentBalance -= amt;
-      wallet.totalDebits = (wallet.totalDebits || 0) + amt;
-      if (user) user.walletBalance = wallet.currentBalance;
+      const user = (await usersStore.getUserById(userId)) || (db?.users ? db.users.find((u: any) => u.uid === userId) : null);
+      if (user) user.walletBalance = finalWallet.balance;
+      await usersStore.updateUser(userId, { walletBalance: finalWallet.balance }).catch(() => {});
 
       tx.status = "SUCCESS";
       tx.walletBalanceBefore = balanceBefore;
-      tx.walletBalanceAfter = wallet.currentBalance;
+      tx.walletBalanceAfter = finalWallet.balance;
     } else {
       tx.status = "FAILED";
     }
 
     tx.updatedAt = new Date().toISOString();
-    wallet.lastUpdated = new Date().toISOString();
 
     return {
-      wallet,
+      wallet: finalWallet,
       transaction: tx,
     };
   }
@@ -429,14 +571,14 @@ export class ServerWalletEngine {
   /**
    * Reverse a completed transaction safely.
    */
-  static reverseTransaction(db: any, params: {
+  static async reverseTransaction(db: any, params: {
     userId: string;
     transactionId: string;
     reason?: string;
   }) {
     const { userId, transactionId, reason } = params;
 
-    const wallet = this.getOrCreateWallet(db, userId);
+    const wallet = await this.getOrCreateWallet(db, userId);
     if (!wallet) throw new Error("Wallet not found");
 
     if (!db.transactions) db.transactions = [];
@@ -452,13 +594,22 @@ export class ServerWalletEngine {
     }
 
     const amt = origTx.amount;
-    const balanceBefore = wallet.currentBalance;
-    wallet.currentBalance += amt;
-    wallet.totalDebits = Math.max(0, (wallet.totalDebits || 0) - amt);
-    wallet.lastUpdated = new Date().toISOString();
+    let balanceBefore = wallet.balance;
 
-    const user = db.users.find((u: any) => u.uid === userId);
-    if (user) user.walletBalance = wallet.currentBalance;
+    const updatedWallet = await walletsStore.updateWalletAtomic(userId, (current) => {
+      balanceBefore = current.balance;
+      const newBal = current.balance + amt;
+      return {
+        balance: newBal,
+        currentBalance: newBal,
+        totalDebits: Math.max(0, (current.totalDebits || 0) - amt),
+      };
+    });
+
+    const finalWallet = updatedWallet || wallet;
+    const user = (await usersStore.getUserById(userId)) || (db?.users ? db.users.find((u: any) => u.uid === userId) : null);
+    if (user) user.walletBalance = finalWallet.balance;
+    await usersStore.updateUser(userId, { walletBalance: finalWallet.balance }).catch(() => {});
 
     origTx.status = "REVERSED";
     origTx.updatedAt = new Date().toISOString();
@@ -476,7 +627,7 @@ export class ServerWalletEngine {
       serviceName: `Reversal: ${origTx.serviceName || origTx.description}`,
       amount: amt,
       walletBalanceBefore: balanceBefore,
-      walletBalanceAfter: wallet.currentBalance,
+      walletBalanceAfter: finalWallet.currentBalance,
       status: "SUCCESS",
       provider: "SmartLink Refund Engine",
       description: `Reversal for Tx #${origTx.reference}. Reason: ${reason || "Service reversal"}`,
@@ -487,7 +638,7 @@ export class ServerWalletEngine {
     db.transactions.push(revTx);
 
     return {
-      wallet,
+      wallet: finalWallet,
       originalTransaction: origTx,
       reversalTransaction: revTx,
     };

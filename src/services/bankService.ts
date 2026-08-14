@@ -29,7 +29,6 @@ export const DEFAULT_NIGERIAN_BANKS: Bank[] = [
   { id: "bank_000026", name: "Taj Bank", code: "000026", slug: "taj-bank", category: "COMMERCIAL", status: "ACTIVE" },
   { id: "bank_000029", name: "Lotus Bank", code: "000029", slug: "lotus-bank", category: "COMMERCIAL", status: "ACTIVE" },
   { id: "bank_50211", name: "Kuda Microfinance Bank", code: "50211", slug: "kuda-bank", category: "MICROFINANCE", status: "ACTIVE" },
-  { id: "bank_999992", name: "OPay Digital Services", code: "999992", slug: "opay", category: "PAYMENT_SERVICE", status: "ACTIVE" },
   { id: "bank_999991", name: "PalmPay Nigeria", code: "999991", slug: "palmpay", category: "PAYMENT_SERVICE", status: "ACTIVE" },
   { id: "bank_50515", name: "Moniepoint Microfinance Bank", code: "50515", slug: "moniepoint", category: "MICROFINANCE", status: "ACTIVE" },
   { id: "bank_566", name: "VFD Microfinance Bank", code: "566", slug: "vfd-bank", category: "MICROFINANCE", status: "ACTIVE" },

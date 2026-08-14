@@ -55,16 +55,16 @@ export interface WalletFundingViewProps {
   currentUser: UserProfile;
   onBackToDashboard: () => void;
   onBalanceUpdate: () => void;
-  initialTab?: "OPAY" | "MONNIFY" | "BANK_TRANSFER" | "CARD" | "ADMIN_CREDIT";
+  initialTab?: "VIRTUAL_ACCOUNT" | "BANK_TRANSFER" | "CARD" | "ADMIN_CREDIT";
 }
 
 export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
   currentUser,
   onBackToDashboard,
   onBalanceUpdate,
-  initialTab = "OPAY",
+  initialTab = "VIRTUAL_ACCOUNT",
 }) => {
-  const [activeTab, setActiveTab] = useState<"OPAY" | "MONNIFY" | "BANK_TRANSFER" | "CARD" | "ADMIN_CREDIT">(
+  const [activeTab, setActiveTab] = useState<"VIRTUAL_ACCOUNT" | "BANK_TRANSFER" | "CARD" | "ADMIN_CREDIT">(
     initialTab
   );
 
@@ -79,10 +79,8 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Virtual Accounts state
-  const [opayAccount, setOpayAccount] = useState<VirtualAccountDetails | null>(null);
-  const [monnifyAccount, setMonnifyAccount] = useState<VirtualAccountDetails | null>(null);
-  const [loadingOpay, setLoadingOpay] = useState(false);
-  const [loadingMonnify, setLoadingMonnify] = useState(false);
+  const [reservedAccount, setReservedAccount] = useState<VirtualAccountDetails | null>(null);
+  const [loadingReserved, setLoadingReserved] = useState(false);
 
   // Dynamic Bank Transfer state
   const [transferAmount, setTransferAmount] = useState<string>("5000");
@@ -174,11 +172,11 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
   };
 
   const loadVirtualAccounts = async (prov?: ActiveProviderConfig) => {
-    setLoadingOpay(true);
+    setLoadingReserved(true);
     try {
       const vaRes = await ProviderService.getVirtualAccount(currentUser.uid);
       if (vaRes.success && vaRes.account) {
-        setOpayAccount({
+        setReservedAccount({
           provider: vaRes.account.providerName || prov?.name || "ACTIVE_PROVIDER",
           bankName: vaRes.account.bankName,
           accountNumber: vaRes.account.accountNumber,
@@ -190,7 +188,7 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
     } catch (e) {
       console.error("Virtual Account fetch note:", e);
     } finally {
-      setLoadingOpay(false);
+      setLoadingReserved(false);
     }
   };
 
@@ -216,51 +214,27 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
     }
   };
 
-  // Generate or Retrieve OPay Virtual Account
-  const handleGenerateOpayAccount = async () => {
-    setLoadingOpay(true);
+  // Generate or Retrieve Reserved Virtual Account
+  const handleGenerateReservedAccount = async () => {
+    setLoadingReserved(true);
     try {
       const res = await fetch("/api/wallet/virtual-account/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: currentUser.uid,
-          provider: "OPAY",
+          provider: "GATEWAY",
           userEmail: currentUser.email,
           userName: currentUser.fullName,
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to generate OPay Virtual Account");
-      setOpayAccount(data.virtualAccount);
+      if (!res.ok) throw new Error(data.error || "Failed to generate Reserved Account");
+      setReservedAccount(data.virtualAccount);
     } catch (err: any) {
-      alert(err.message || "Failed to generate OPay Virtual Account");
+      alert(err.message || "Failed to generate Reserved Account");
     } finally {
-      setLoadingOpay(false);
-    }
-  };
-
-  // Generate or Retrieve Monnify Reserved Account
-  const handleGenerateMonnifyAccount = async () => {
-    setLoadingMonnify(true);
-    try {
-      const res = await fetch("/api/wallet/virtual-account/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: currentUser.uid,
-          provider: "MONNIFY",
-          userEmail: currentUser.email,
-          userName: currentUser.fullName,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to generate Monnify Reserved Account");
-      setMonnifyAccount(data.virtualAccount);
-    } catch (err: any) {
-      alert(err.message || "Failed to generate Monnify Reserved Account");
-    } finally {
-      setLoadingMonnify(false);
+      setLoadingReserved(false);
     }
   };
 
@@ -294,45 +268,7 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
     }
   };
 
-  // Simulate OPay/Monnify Webhook Credit
-  const handleSimulateWebhook = async (provider: "OPAY" | "MONNIFY", reference?: string) => {
-    setSimulatingWebhook(true);
-    setWebhookMessage(null);
-    try {
-      const refToUse = reference || `SIM-${provider}-${Date.now()}`;
-      const res = await fetch("/api/wallet/simulate-webhook", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: currentUser.uid,
-          provider,
-          amount: 5000.0,
-          reference: refToUse,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Webhook simulation failed");
-
-      setWebhookMessage(`✅ Webhook payment verified! ₦5,000.00 credited to your wallet via ${provider}.`);
-      fetchLatestBalance();
-      loadFundingHistory();
-
-      // Trigger global event
-      window.dispatchEvent(
-        new CustomEvent("wallet_credited", {
-          detail: {
-            amount: 5000,
-            gateway: `${provider} Webhook`,
-            reference: refToUse,
-          },
-        })
-      );
-    } catch (err: any) {
-      setWebhookMessage(`❌ Webhook Error: ${err.message}`);
-    } finally {
-      setSimulatingWebhook(false);
-    }
-  };
+  // Webhook automatic funding is processed directly via server-side active provider notifications
 
   // Card Payment Handler
   const handleInitiateCardPayment = (e: React.FormEvent) => {
@@ -582,7 +518,7 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
             </div>
             <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white">Wallet Funding Portal</h1>
             <p className="text-xs text-slate-300 max-w-xl leading-relaxed">
-              Instantly fund your SmartLink wallet via OPay Virtual Accounts, Monnify Reserved Accounts, Bank Transfers, or Debit Cards.
+              Instantly fund your SmartLink wallet via Virtual Bank Accounts, Dynamic Bank Transfers, or Debit Cards.
             </p>
           </div>
 
@@ -677,28 +613,15 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
       {/* Navigation Tabs */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none border-b border-[#E5E7EB]">
         <button
-          onClick={() => setActiveTab("OPAY")}
+          onClick={() => setActiveTab("VIRTUAL_ACCOUNT")}
           className={`flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-xs transition-all whitespace-nowrap cursor-pointer border ${
-            activeTab === "OPAY"
+            activeTab === "VIRTUAL_ACCOUNT"
               ? "bg-[#0F2D5C] text-white border-[#0F2D5C] shadow-xs"
               : "bg-white text-[#4B5563] border-[#E5E7EB] hover:border-[#0F2D5C]"
           }`}
         >
           <Building2 className="h-4 w-4" />
-          <span>OPay Virtual Account</span>
-          <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-mono font-bold">0% Fee</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab("MONNIFY")}
-          className={`flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-xs transition-all whitespace-nowrap cursor-pointer border ${
-            activeTab === "MONNIFY"
-              ? "bg-[#0F2D5C] text-white border-[#0F2D5C] shadow-xs"
-              : "bg-white text-[#4B5563] border-[#E5E7EB] hover:border-[#0F2D5C]"
-          }`}
-        >
-          <Building2 className="h-4 w-4" />
-          <span>Monnify Reserved Account</span>
+          <span>Virtual Bank Account</span>
           <span className="text-[10px] bg-blue-100 text-[#0F2D5C] px-1.5 py-0.5 rounded font-mono font-bold">Instant Bank</span>
         </button>
 
@@ -742,165 +665,37 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
         )}
       </div>
 
-      {/* Tab 1: OPay Virtual Account */}
-      {activeTab === "OPAY" && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 space-y-6 shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded-full bg-emerald-500 animate-pulse"></span>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white">OPay Digital Virtual Account</h3>
-              </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                Transfer funds from any Nigerian bank app to your dedicated OPay account for 100% instant credit.
-              </p>
-            </div>
-            <button
-              onClick={() => handleSimulateWebhook("OPAY")}
-              disabled={simulatingWebhook}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 text-xs font-bold border border-emerald-200 dark:border-emerald-800 transition-all cursor-pointer disabled:opacity-50"
-            >
-              <RefreshCw className={`h-3.5 w-3.5 ${simulatingWebhook ? "animate-spin" : ""}`} />
-              <span>Simulate Webhook Credit</span>
-            </button>
-          </div>
-
-          {loadingOpay ? (
-            <div className="py-12 text-center space-y-3 flex flex-col items-center">
-              <SmartLinkLogoMark size="lg" animating={true} />
-              <p className="text-xs text-slate-500 font-medium">Retrieving your dedicated OPay Virtual Account...</p>
-            </div>
-          ) : opayAccount ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Virtual Account Card */}
-              <div className="md:col-span-2 bg-gradient-to-br from-emerald-900 via-slate-900 to-emerald-950 rounded-2xl p-6 text-white space-y-6 shadow-xl relative overflow-hidden border border-emerald-500/30">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="h-10 w-10 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center font-black text-emerald-300 text-lg">
-                      OP
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-sm text-white">OPay Digital Services</h4>
-                      <p className="text-[10px] text-emerald-300 font-mono">9PSB / OPay Merchant Gateway</p>
-                    </div>
-                  </div>
-                  <span className="text-[10px] uppercase tracking-wider font-bold text-emerald-400 bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-1 rounded-full">
-                    Active & Linked
-                  </span>
-                </div>
-
-                <div className="space-y-4 pt-2">
-                  <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/15">
-                    <span className="text-[10px] text-slate-300 uppercase tracking-wider font-semibold">Account Number</span>
-                    <div className="flex items-center justify-between mt-1">
-                      <span className="text-2xl md:text-3xl font-mono font-black tracking-wider text-emerald-300">
-                        {opayAccount.accountNumber}
-                      </span>
-                      <button
-                        onClick={() => copyToClipboard(opayAccount.accountNumber, "opayNum")}
-                        className="p-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl transition-all cursor-pointer flex items-center gap-1 text-xs"
-                      >
-                        {copiedField === "opayNum" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                        <span>{copiedField === "opayNum" ? "Copied" : "Copy"}</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4 text-xs">
-                    <div>
-                      <span className="text-[10px] text-slate-400 uppercase">Account Name</span>
-                      <p className="font-bold text-white mt-0.5">{opayAccount.accountName}</p>
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-slate-400 uppercase">Bank Name</span>
-                      <p className="font-bold text-white mt-0.5">{opayAccount.bankName}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between pt-3 border-t border-white/10 text-[11px] text-slate-300">
-                  <button
-                    onClick={() => openQrModal(opayAccount.accountNumber, opayAccount.bankName, opayAccount.accountName)}
-                    className="inline-flex items-center gap-1.5 text-emerald-300 hover:text-white font-bold cursor-pointer"
-                  >
-                    <QrCode className="h-4 w-4" /> Show QR Code
-                  </button>
-                  <span className="text-[10px] text-emerald-400 font-mono">Reference: {opayAccount.reference || "PERMANENT"}</span>
-                </div>
-              </div>
-
-              {/* Instructions Sidebar */}
-              <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-4 text-xs">
-                <h4 className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                  <Lock className="h-4 w-4 text-emerald-600" /> How to Fund
-                </h4>
-                <ol className="space-y-3 text-slate-600 dark:text-slate-300 list-decimal pl-4 leading-relaxed">
-                  <li>Open your bank app or USSD portal (*901#, *737#, etc.).</li>
-                  <li>Select <strong>Transfer Money</strong> and choose bank: <strong>OPay / 9PSB</strong>.</li>
-                  <li>Enter Account Number: <strong className="font-mono text-slate-900 dark:text-white">{opayAccount.accountNumber}</strong>.</li>
-                  <li>Confirm recipient is <strong className="text-slate-900 dark:text-white">{opayAccount.accountName}</strong>.</li>
-                  <li>Enter amount and complete transfer. Your SmartLink wallet credits automatically in under 5 seconds!</li>
-                </ol>
-              </div>
-            </div>
-          ) : (
-            <div className="text-center py-12 space-y-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700">
-              <Building2 className="h-12 w-12 text-slate-400 mx-auto" />
-              <div className="max-w-md mx-auto space-y-1">
-                <h4 className="font-bold text-slate-900 dark:text-white">No OPay Virtual Account Found</h4>
-                <p className="text-xs text-slate-500">Generate your permanent OPay Virtual Account now to receive instant bank transfers directly into your wallet.</p>
-              </div>
-              <button
-                onClick={handleGenerateOpayAccount}
-                disabled={loadingOpay}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-all shadow-md shadow-emerald-600/20 cursor-pointer disabled:opacity-50"
-              >
-                <Plus className="h-4 w-4" /> Generate OPay Account
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Tab 2: Monnify Reserved Account */}
-      {activeTab === "MONNIFY" && (
+      {/* Tab 1: Virtual Bank Account */}
+      {activeTab === "VIRTUAL_ACCOUNT" && (
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 space-y-6 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
             <div>
               <div className="flex items-center gap-2">
                 <span className="h-3 w-3 rounded-full bg-blue-500 animate-pulse"></span>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Monnify Reserved Account</h3>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Virtual Bank Account</h3>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                Dedicated commercial bank account (Wema / Providus / Sterling) reserved permanently for your wallet.
+                Dedicated commercial bank account reserved permanently for your wallet.
               </p>
             </div>
-            <button
-              onClick={() => handleSimulateWebhook("MONNIFY")}
-              disabled={simulatingWebhook}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-950/40 text-blue-700 dark:text-blue-400 text-xs font-bold border border-blue-200 dark:border-blue-800 transition-all cursor-pointer disabled:opacity-50"
-            >
-              <RefreshCw className={`h-3.5 w-3.5 ${simulatingWebhook ? "animate-spin" : ""}`} />
-              <span>Simulate Webhook Credit</span>
-            </button>
           </div>
 
-          {loadingMonnify ? (
+          {loadingReserved ? (
             <div className="py-12 text-center space-y-3 flex flex-col items-center">
               <SmartLinkLogoMark size="lg" animating={true} />
-              <p className="text-xs text-slate-500 font-medium">Retrieving Monnify Reserved Account details...</p>
+              <p className="text-xs text-slate-500 font-medium">Retrieving Virtual Bank Account details...</p>
             </div>
-          ) : monnifyAccount ? (
+          ) : reservedAccount ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="md:col-span-2 bg-gradient-to-br from-blue-950 via-slate-900 to-indigo-950 rounded-2xl p-6 text-white space-y-6 shadow-xl relative overflow-hidden border border-blue-500/30">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="h-10 w-10 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center font-black text-blue-300 text-lg">
-                      MN
+                      VA
                     </div>
                     <div>
-                      <h4 className="font-bold text-sm text-white">Monnify Payment Gateway</h4>
-                      <p className="text-[10px] text-blue-300 font-mono">Wema Bank / Moniepoint Partner</p>
+                      <h4 className="font-bold text-sm text-white">Payment Gateway Account</h4>
+                      <p className="text-[10px] text-blue-300 font-mono">Bank Transfer Gateway</p>
                     </div>
                   </div>
                   <span className="text-[10px] uppercase tracking-wider font-bold text-blue-400 bg-blue-500/20 border border-blue-500/30 px-2.5 py-1 rounded-full">
@@ -913,14 +708,14 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
                     <span className="text-[10px] text-slate-300 uppercase tracking-wider font-semibold">Account Number</span>
                     <div className="flex items-center justify-between mt-1">
                       <span className="text-2xl md:text-3xl font-mono font-black tracking-wider text-blue-300">
-                        {monnifyAccount.accountNumber}
+                        {reservedAccount.accountNumber}
                       </span>
                       <button
-                        onClick={() => copyToClipboard(monnifyAccount.accountNumber, "monnifyNum")}
+                        onClick={() => copyToClipboard(reservedAccount.accountNumber, "reservedNum")}
                         className="p-2.5 bg-blue-500 hover:bg-blue-400 text-slate-950 font-bold rounded-xl transition-all cursor-pointer flex items-center gap-1 text-xs"
                       >
-                        {copiedField === "monnifyNum" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                        <span>{copiedField === "monnifyNum" ? "Copied" : "Copy"}</span>
+                        {copiedField === "reservedNum" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                        <span>{copiedField === "reservedNum" ? "Copied" : "Copy"}</span>
                       </button>
                     </div>
                   </div>
@@ -928,32 +723,32 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
                   <div className="grid grid-cols-2 gap-4 text-xs">
                     <div>
                       <span className="text-[10px] text-slate-400 uppercase">Account Name</span>
-                      <p className="font-bold text-white mt-0.5">{monnifyAccount.accountName}</p>
+                      <p className="font-bold text-white mt-0.5">{reservedAccount.accountName}</p>
                     </div>
                     <div>
                       <span className="text-[10px] text-slate-400 uppercase">Bank Name</span>
-                      <p className="font-bold text-white mt-0.5">{monnifyAccount.bankName}</p>
+                      <p className="font-bold text-white mt-0.5">{reservedAccount.bankName}</p>
                     </div>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between pt-3 border-t border-white/10 text-[11px] text-slate-300">
                   <button
-                    onClick={() => openQrModal(monnifyAccount.accountNumber, monnifyAccount.bankName, monnifyAccount.accountName)}
+                    onClick={() => openQrModal(reservedAccount.accountNumber, reservedAccount.bankName, reservedAccount.accountName)}
                     className="inline-flex items-center gap-1.5 text-blue-300 hover:text-white font-bold cursor-pointer"
                   >
                     <QrCode className="h-4 w-4" /> Show QR Code
                   </button>
-                  <span className="text-[10px] text-blue-400 font-mono">Reference: {monnifyAccount.reference || "RESERVED"}</span>
+                  <span className="text-[10px] text-blue-400 font-mono">Reference: {reservedAccount.reference || "RESERVED"}</span>
                 </div>
               </div>
 
               <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-4 text-xs">
                 <h4 className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                  <ShieldCheck className="h-4 w-4 text-blue-600" /> Monnify Integration
+                  <ShieldCheck className="h-4 w-4 text-blue-600" /> Gateway Integration
                 </h4>
                 <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
-                  Monnify Reserved Accounts are monitored 24/7 by automated banking webhooks. Any transfer to this account immediately triggers the SmartLink Wallet Engine.
+                  Reserved Accounts are monitored 24/7 by automated banking webhooks. Any transfer to this account immediately triggers the SmartLink Wallet Engine.
                 </p>
                 <div className="p-3 bg-blue-50 dark:bg-blue-950/30 rounded-xl border border-blue-200 dark:border-blue-800 text-[11px] text-blue-900 dark:text-blue-200 font-medium">
                   💡 Zero minimum funding limit. All incoming transfers are credited instantly.
@@ -964,15 +759,15 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
             <div className="text-center py-12 space-y-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700">
               <Building2 className="h-12 w-12 text-slate-400 mx-auto" />
               <div className="max-w-md mx-auto space-y-1">
-                <h4 className="font-bold text-slate-900 dark:text-white">No Monnify Account Allocated</h4>
-                <p className="text-xs text-slate-500">Allocate your dedicated Monnify Reserved Account to receive transfers from any bank.</p>
+                <h4 className="font-bold text-slate-900 dark:text-white">No Reserved Account Allocated</h4>
+                <p className="text-xs text-slate-500">Allocate your dedicated Reserved Account to receive transfers from any bank.</p>
               </div>
               <button
-                onClick={handleGenerateMonnifyAccount}
-                disabled={loadingMonnify}
+                onClick={handleGenerateReservedAccount}
+                disabled={loadingReserved}
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition-all shadow-md shadow-blue-600/20 cursor-pointer disabled:opacity-50"
               >
-                <Plus className="h-4 w-4" /> Allocate Monnify Account
+                <Plus className="h-4 w-4" /> Allocate Account
               </button>
             </div>
           )}

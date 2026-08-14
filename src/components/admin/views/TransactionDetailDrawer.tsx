@@ -19,7 +19,7 @@ import {
   ArrowRight,
   Info
 } from "lucide-react";
-import { AdminSession } from "../../../services/adminAuthService";
+import { AdminSession, getStoredAdminSession } from "../../../services/adminAuthService";
 
 interface TransactionDetailDrawerProps {
   isOpen: boolean;
@@ -63,7 +63,7 @@ export function TransactionDetailDrawer({
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem("smartlink_admin_token") || "";
+      const token = session?.sessionToken || getStoredAdminSession()?.sessionToken || "";
       const res = await fetch(`/api/admin/transactions/${txId}`, {
         headers: { "x-admin-token": token }
       });
@@ -87,7 +87,7 @@ export function TransactionDetailDrawer({
     setSubmittingNote(true);
     setNoteSuccess(null);
     try {
-      const token = localStorage.getItem("smartlink_admin_token") || "";
+      const token = session?.sessionToken || getStoredAdminSession()?.sessionToken || "";
       const res = await fetch(`/api/admin/transactions/${data.transaction.id}/notes`, {
         method: "POST",
         headers: {
@@ -119,7 +119,7 @@ export function TransactionDetailDrawer({
     if (!data?.transaction) return;
     setIsRetrying(true);
     try {
-      const token = localStorage.getItem("smartlink_admin_token") || "";
+      const token = session?.sessionToken || getStoredAdminSession()?.sessionToken || "";
       const res = await fetch(`/api/admin/transactions/${data.transaction.id}/retry`, {
         method: "POST",
         headers: {

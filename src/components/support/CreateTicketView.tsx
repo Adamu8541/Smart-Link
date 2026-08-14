@@ -202,7 +202,7 @@ export function CreateTicketView({ onBack, onTicketCreated, userEmail = "adamuam
               type="text"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
-              placeholder="e.g. Monnify Wallet Funding Pending ₦5,000 / NIN Slip Delay"
+              placeholder="e.g. Wallet Funding Pending ₦5,000 / NIN Slip Delay"
               className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
               required
             />
@@ -270,7 +270,7 @@ export function CreateTicketView({ onBack, onTicketCreated, userEmail = "adamuam
               type="text"
               value={relatedTransactionRef}
               onChange={(e) => setRelatedTransactionRef(e.target.value)}
-              placeholder="e.g. MNF-PAY-882910 or NIN-20260731-98210"
+              placeholder="e.g. SL-PAY-882910 or NIN-20260731-98210"
               className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-blue-500 outline-none transition-all"
             />
           </div>

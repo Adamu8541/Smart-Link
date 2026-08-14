@@ -25,7 +25,10 @@ import {
   ChevronRight,
   Lock,
   Zap,
-  Globe
+  Globe,
+  Code,
+  ArrowRightLeft,
+  KeyRound
 } from "lucide-react";
 import { AdminSession, ADMIN_ROLES_CONFIG } from "../../../services/adminAuthService";
 import logoImg from "../../../assets/images/smartlink_logo_1785934050308.jpg";
@@ -64,6 +67,7 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
     items: [
       { id: "NAV_USERS", label: "Users Directory", path: "/admin/users", icon: Users, requiredPermissions: ["MANAGE_USERS", "VIEW_USERS"] },
       { id: "NAV_WALLET", label: "Wallet Management", path: "/admin/wallet", icon: Wallet, requiredPermissions: ["MANAGE_WALLET", "VIEW_FINANCE"] },
+      { id: "NAV_PERMISSIONS", label: "Permission Matrix", path: "/admin/permissions", icon: KeyRound, requiredPermissions: ["MANAGE_SUBADMINS", "MANAGE_SECURITY"] },
     ],
   },
   {
@@ -71,6 +75,8 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
     items: [
       { id: "NAV_SERVICES", label: "Verification Services", path: "/admin/services", icon: CheckSquare, requiredPermissions: ["MANAGE_SERVICES", "VIEW_SERVICES"] },
       { id: "NAV_PROVIDERS", label: "API Gateway Providers", path: "/admin/providers", icon: Server, requiredPermissions: ["MANAGE_PROVIDERS", "VIEW_PROVIDERS"] },
+      { id: "NAV_API_BUILDER", label: "API Request Builder", path: "/admin/api-builder", icon: Code, requiredPermissions: ["MANAGE_PROVIDERS", "VIEW_PROVIDERS"] },
+      { id: "NAV_RESPONSE_MAPPER", label: "API Response Mapper", path: "/admin/response-mapper", icon: ArrowRightLeft, requiredPermissions: ["MANAGE_PROVIDERS", "VIEW_PROVIDERS"] },
     ],
   },
   {

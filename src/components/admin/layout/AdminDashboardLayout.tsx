@@ -69,7 +69,7 @@ export default function AdminDashboardLayout({
   const unreadNotifCount = notifications.filter((n) => !n.read).length;
 
   return (
-    <div className={`min-h-screen flex flex-col font-sans transition-colors duration-300 ${theme === "dark" ? "bg-slate-950 text-slate-100" : "bg-slate-900 text-slate-100"}`}>
+    <div className={`min-h-screen flex flex-col font-sans transition-colors duration-300 ${theme === "dark" ? "dark bg-slate-950 text-slate-100" : "bg-white text-slate-900"}`}>
       <div className="flex-1 flex overflow-hidden">
         {/* Desktop Left Sidebar */}
         <div className="hidden lg:block shrink-0 sticky top-0 h-screen z-20">
@@ -101,7 +101,7 @@ export default function AdminDashboardLayout({
                 animate={{ x: 0 }}
                 exit={{ x: "-100%" }}
                 transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                className="relative w-80 max-w-full bg-slate-950 h-full z-10"
+                className={`relative w-80 max-w-full h-full z-10 ${theme === "dark" ? "bg-slate-950 text-slate-100" : "bg-white text-slate-900 shadow-2xl"}`}
               >
                 <AdminSidebar
                   currentRoute={currentRoute}
@@ -135,7 +135,7 @@ export default function AdminDashboardLayout({
           />
 
           {/* Breadcrumbs Bar */}
-          <div className="px-4 md:px-8 py-2 bg-slate-950/60 border-b border-slate-800/60">
+          <div className={`px-4 md:px-8 py-2 border-b transition-colors duration-200 ${theme === "dark" ? "bg-slate-950/60 border-slate-800/60 text-slate-300" : "bg-slate-50 border-slate-200 text-slate-700 shadow-xs"}`}>
             <AdminBreadcrumbs breadcrumbs={breadcrumbs} onNavigate={onNavigate} />
           </div>
 

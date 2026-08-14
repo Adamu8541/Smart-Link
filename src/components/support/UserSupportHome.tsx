@@ -27,8 +27,8 @@ export function UserSupportHome({ onCreateNew, onViewHistory, onSelectTicket, us
 
   const faqs = [
     {
-      q: "My wallet funding via Monnify bank transfer is not reflecting. What should I do?",
-      a: "Monnify transfers usually credit instantly. If your account was debited but your wallet balance is unchanged after 15 minutes, please create a ticket with category 'Wallet Issues' and attach your transfer reference or receipt.",
+      q: "My wallet funding via bank transfer is not reflecting. What should I do?",
+      a: "Bank transfers usually credit instantly. If your account was debited but your wallet balance is unchanged after 15 minutes, please create a ticket with category 'Wallet Issues' and attach your transfer reference or receipt.",
     },
     {
       q: "How long does NIN slip verification or IPE clearance take?",

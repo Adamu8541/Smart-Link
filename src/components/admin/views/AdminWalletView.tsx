@@ -38,7 +38,6 @@ import {
   WalletStatusModal
 } from "../wallet/WalletActionModals";
 import { WalletStatementModal } from "../wallet/WalletStatementModal";
-import AdminModule4TestPanel from "../AdminModule4TestPanel";
 
 interface AdminWalletViewProps {
   session: AdminSession;
@@ -220,17 +219,6 @@ export function AdminWalletView({ session, onNavigate }: AdminWalletViewProps) {
         </div>
       </div>
 
-      {/* Automated Self-Test Suite Panel (Collapsible) */}
-      {showTestPanel && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-        >
-          <AdminModule4TestPanel session={session} />
-        </motion.div>
-      )}
-
       {/* Top System Financial Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-5 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-3xl space-y-2 shadow-xl">
@@ -287,7 +275,7 @@ export function AdminWalletView({ session, onNavigate }: AdminWalletViewProps) {
       </div>
 
       {/* Multi-Filter & Search Bar */}
-      <div className="p-4 bg-slate-900 border border-slate-800 rounded-3xl space-y-4 shadow-xl">
+      <div className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl space-y-4 shadow-xs dark:shadow-xl">
         <form onSubmit={handleSearchSubmit} className="flex flex-col md:flex-row items-center gap-3">
           <div className="relative flex-1 w-full">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -296,7 +284,7 @@ export function AdminWalletView({ session, onNavigate }: AdminWalletViewProps) {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by Name, Email, Phone, Wallet ID, or User ID..."
-              className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-2xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 font-medium"
+              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500 font-medium"
             />
           </div>
 
@@ -308,7 +296,7 @@ export function AdminWalletView({ session, onNavigate }: AdminWalletViewProps) {
           </button>
         </form>
 
-        <div className="pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="pt-3 border-t border-slate-200 dark:border-slate-800/80 flex flex-wrap items-center justify-between gap-3 text-xs">
           <div className="flex flex-wrap items-center gap-3">
             {/* Balance State Filter */}
             <div className="flex items-center gap-1.5">
@@ -316,7 +304,7 @@ export function AdminWalletView({ session, onNavigate }: AdminWalletViewProps) {
               <select
                 value={balanceFilter}
                 onChange={(e) => setBalanceFilter(e.target.value)}
-                className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-slate-200 text-xs focus:outline-none font-medium"
+                className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-1.5 text-slate-800 dark:text-slate-200 text-xs focus:outline-none font-medium"
               >
                 <option value="ALL">All Balances</option>
                 <option value="POSITIVE">Positive Balance (&gt; ₦0)</option>
@@ -331,7 +319,7 @@ export function AdminWalletView({ session, onNavigate }: AdminWalletViewProps) {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-slate-200 text-xs focus:outline-none font-medium"
+                className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-1.5 text-slate-800 dark:text-slate-200 text-xs focus:outline-none font-medium"
               >
                 <option value="ALL">All Statuses</option>
                 <option value="ACTIVE">Active Wallets</option>
@@ -346,7 +334,7 @@ export function AdminWalletView({ session, onNavigate }: AdminWalletViewProps) {
               <select
                 value={activityFilter}
                 onChange={(e) => setActivityFilter(e.target.value)}
-                className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-slate-200 text-xs focus:outline-none font-medium"
+                className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-1.5 text-slate-800 dark:text-slate-200 text-xs focus:outline-none font-medium"
               >
                 <option value="ALL">All Activity</option>
                 <option value="RECENTLY_FUNDED">Recently Funded</option>
@@ -359,7 +347,7 @@ export function AdminWalletView({ session, onNavigate }: AdminWalletViewProps) {
             <button
               type="button"
               onClick={handleResetFilters}
-              className="text-xs text-amber-400 hover:underline font-bold cursor-pointer"
+              className="text-xs text-amber-600 dark:text-amber-400 hover:underline font-bold cursor-pointer"
             >
               Clear All Filters
             </button>
@@ -368,11 +356,11 @@ export function AdminWalletView({ session, onNavigate }: AdminWalletViewProps) {
       </div>
 
       {/* Main Wallets Directory Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-xl">
-        <div className="p-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs dark:shadow-xl">
+        <div className="p-4 bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <h2 className="text-sm font-bold text-white">Wallet Directory & Ledgers</h2>
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-slate-800 text-slate-300 font-bold">
+            <h2 className="text-sm font-bold text-slate-900 dark:text-white">Wallet Directory & Ledgers</h2>
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-300 font-bold">
               {totalRecords} Wallets Found
             </span>
           </div>

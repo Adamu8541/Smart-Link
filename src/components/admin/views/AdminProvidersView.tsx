@@ -34,7 +34,7 @@ import {
   ToggleRight
 } from "lucide-react";
 import { ProviderDetailDrawer } from "./ProviderDetailDrawer";
-import { AdminModule6TestPanel } from "./AdminModule6TestPanel";
+import { getStoredAdminSession } from "../../../services/adminAuthService";
 
 export function AdminProvidersView() {
   const [providers, setProviders] = useState<any[]>([]);
@@ -119,7 +119,7 @@ export function AdminProvidersView() {
   const fetchProviders = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem("smartlink_admin_token") || "";
+      const token = getStoredAdminSession()?.sessionToken || "";
       const queryParams = new URLSearchParams({
         search,
         category,
@@ -158,8 +158,8 @@ export function AdminProvidersView() {
 
   const handleToggleStatus = async (provider: any) => {
     try {
-      const token = localStorage.getItem("smartlink_admin_token") || "";
-      const adminUid = localStorage.getItem("smartlink_admin_uid") || "admin_master";
+      const token = getStoredAdminSession()?.sessionToken || "";
+      const adminUid = getStoredAdminSession()?.uid || "admin_master";
       const newEnabled = !(provider.enabled || provider.isActive || provider.status === "ENABLED");
 
       const res = await fetch(`/api/admin/providers/${provider.id}/toggle`, {
@@ -188,7 +188,7 @@ export function AdminProvidersView() {
 
   const handleSetDefault = async (provider: any) => {
     try {
-      const token = localStorage.getItem("smartlink_admin_token") || "";
+      const token = getStoredAdminSession()?.sessionToken || "";
       const res = await fetch(`/api/admin/providers/${provider.id}/set-default`, {
         method: "POST",
         headers: { "x-admin-token": token },
@@ -205,7 +205,7 @@ export function AdminProvidersView() {
 
   const handleTestConnection = async (providerId: string) => {
     try {
-      const token = localStorage.getItem("smartlink_admin_token") || "";
+      const token = getStoredAdminSession()?.sessionToken || "";
       const res = await fetch(`/api/admin/providers/${providerId}/test-connection`, {
         method: "POST",
         headers: { "x-admin-token": token },
@@ -225,8 +225,8 @@ export function AdminProvidersView() {
   const handleDeleteProvider = async (provider: any) => {
     if (!window.confirm(`Are you sure you want to delete "${provider.name}"?`)) return;
     try {
-      const token = localStorage.getItem("smartlink_admin_token") || "";
-      const adminUid = localStorage.getItem("smartlink_admin_uid") || "admin_master";
+      const token = getStoredAdminSession()?.sessionToken || "";
+      const adminUid = getStoredAdminSession()?.uid || "admin_master";
       const res = await fetch(`/api/admin/providers/${provider.id}?adminUid=${adminUid}`, {
         method: "DELETE",
         headers: { "x-admin-token": token },
@@ -250,8 +250,8 @@ export function AdminProvidersView() {
 
     setSubmittingAdd(true);
     try {
-      const token = localStorage.getItem("smartlink_admin_token") || "";
-      const adminUid = localStorage.getItem("smartlink_admin_uid") || "admin_master";
+      const token = getStoredAdminSession()?.sessionToken || "";
+      const adminUid = getStoredAdminSession()?.uid || "admin_master";
 
       const payload = {
         adminUid,
@@ -714,9 +714,6 @@ export function AdminProvidersView() {
           </div>
         </div>
       </div>
-
-      {/* Module 6 Automated Test Panel */}
-      <AdminModule6TestPanel />
 
       {/* Provider Details Drawer */}
       <ProviderDetailDrawer

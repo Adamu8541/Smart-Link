@@ -41,7 +41,6 @@ import {
   Check
 } from "lucide-react";
 import { UserProfile, UserRole, Transaction, CACApplication, SupportTicket } from "../types";
-import AdminPanel from "./AdminPanel";
 import { ProviderService } from "../services/providerService";
 import { jsPDF } from "jspdf";
 import { SMART_LINK_SERVICES } from "./ServicesGrid";
@@ -237,12 +236,6 @@ export default function Dashboards({
     setCopiedAccount(true);
     setTimeout(() => setCopiedAccount(false), 2000);
   };
-
-  // OPay Digital Wallet states
-  const [opayReceiveInfo, setOpayReceiveInfo] = useState<any>(null);
-  const [opayLoading, setOpayLoading] = useState(false);
-  const [opayError, setOpayError] = useState<string | null>(null);
-  const [opayAmountNaira, setOpayAmountNaira] = useState("5000");
 
   // Action feedback
   const [actionLoading, setActionLoading] = useState(false);
@@ -576,87 +569,7 @@ export default function Dashboards({
     }
   };
 
-  // OPay Receive Money (Bank Transfer Account Generation)
-  const handleOPayReceiveMoney = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    setOpayError(null);
-    setOpayLoading(true);
-
-    try {
-      const amountNaira = parseFloat(opayAmountNaira);
-      if (isNaN(amountNaira) || amountNaira <= 0) {
-        throw new Error("Please enter a valid amount");
-      }
-
-      const amountKobo = Math.round(amountNaira * 100);
-
-      const res = await fetch("/api/opay/receive-money", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: currentUser.uid,
-          amountKobo,
-          userEmail: currentUser.email,
-          userName: currentUser.fullName,
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || "Failed to generate OPay bank transfer details");
-      }
-
-      setOpayReceiveInfo(data);
-    } catch (err: any) {
-      setOpayError(err.message);
-    } finally {
-      setOpayLoading(false);
-    }
-  };
-
-  // Simulate OPay webhook credit trigger (Sandbox testing)
-  const handleSimulateOPayCallback = async () => {
-    if (!opayReceiveInfo?.reference) return;
-    setOpayLoading(true);
-    setOpayError(null);
-
-    try {
-      const res = await fetch("/api/opay/simulate-webhook", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          reference: opayReceiveInfo.reference,
-          status: "SUCCESS",
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || "Simulation failed");
-      }
-
-      const creditedNaira = opayReceiveInfo.amount / 100;
-      setActionSuccess(`OPay Payment Webhook Simulated! Your wallet has been credited with ₦${creditedNaira.toLocaleString()}`);
-      
-      window.dispatchEvent(
-        new CustomEvent("wallet_credited", {
-          detail: {
-            amount: creditedNaira,
-            gateway: "OPay Webhook",
-            reference: opayReceiveInfo.reference,
-          },
-        })
-      );
-
-      setOpayReceiveInfo(null);
-      onRefreshUser(currentUser.uid);
-      loadData();
-    } catch (err: any) {
-      setOpayError(err.message);
-    } finally {
-      setOpayLoading(false);
-    }
-  };
+  // Automatic wallet funding via incoming active provider webhook notifications
 
   // Handle transfer
   const handleTransfer = async (e: React.FormEvent) => {
@@ -938,85 +851,6 @@ export default function Dashboards({
                 </div>
               </div>
 
-              {/* OPay Bank Account Generation Result Card */}
-              {opayReceiveInfo && (
-                <div className="mt-6 p-5 bg-slate-900/90 border border-emerald-500/30 rounded-2xl space-y-4 animate-slideDown relative z-10 text-left">
-                  <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="px-2.5 py-0.5 bg-emerald-500/20 text-emerald-400 font-mono text-[10px] font-bold rounded-full uppercase tracking-wider">
-                        OPay Secure Virtual Account
-                      </span>
-                      <span className="text-[10px] font-mono text-slate-400">Ref: {opayReceiveInfo.reference}</span>
-                    </div>
-                    <button
-                      onClick={() => setOpayReceiveInfo(null)}
-                      className="text-slate-400 hover:text-white text-xs font-bold cursor-pointer"
-                    >
-                      Close ✕
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="bg-slate-950/60 p-3.5 rounded-xl border border-white/5 space-y-1">
-                      <span className="text-[10px] text-slate-400 font-mono uppercase">Bank Name</span>
-                      <div className="text-sm font-bold text-white font-mono">{opayReceiveInfo.bankName}</div>
-                    </div>
-                    <div className="bg-slate-950/60 p-3.5 rounded-xl border border-white/5 space-y-1">
-                      <span className="text-[10px] text-slate-400 font-mono uppercase">Account Number</span>
-                      <div className="text-lg font-black text-emerald-400 font-mono tracking-wider flex items-center justify-between">
-                        {opayReceiveInfo.accountNumber}
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(opayReceiveInfo.accountNumber);
-                            alert("Account number copied!");
-                          }}
-                          className="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-md hover:bg-emerald-500/30 cursor-pointer"
-                        >
-                          Copy
-                        </button>
-                      </div>
-                    </div>
-                    <div className="bg-slate-950/60 p-3.5 rounded-xl border border-white/5 space-y-1">
-                      <span className="text-[10px] text-slate-400 font-mono uppercase">Expected Credit</span>
-                      <div className="text-sm font-bold text-white font-mono">
-                        ₦{(opayReceiveInfo.amount / 100).toLocaleString("en-NG", { minimumFractionDigits: 2 })}
-                      </div>
-                    </div>
-                  </div>
-
-                  <p className="text-[11px] text-slate-300 leading-relaxed">
-                    Transfer exactly <span className="font-bold text-white">₦{(opayReceiveInfo.amount / 100).toLocaleString()}</span> from your banking app to the account above. Your digital wallet will be credited automatically via HMAC-verified OPay webhook.
-                  </p>
-
-                  <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-white/10">
-                    <span className="text-[10px] text-slate-400 font-mono flex items-center gap-1">
-                      <Clock className="h-3 w-3 text-amber-400" />
-                      Expires in 30 minutes
-                    </span>
-                    <button
-                      onClick={handleSimulateOPayCallback}
-                      disabled={opayLoading}
-                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition-all shadow-md active:scale-95 cursor-pointer flex items-center gap-2"
-                    >
-                      {opayLoading ? (
-                        <span className="h-3 w-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                      ) : (
-                        <>
-                          <CheckCircle2 className="h-3.5 w-3.5" />
-                          Simulate OPay Instant Webhook Credit (Sandbox)
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {opayError && (
-                <div className="mt-4 p-3 bg-red-900/40 border border-red-500/30 rounded-xl text-red-300 text-xs text-left">
-                  {opayError}
-                </div>
-              )}
-
             </div>
 
             {/* Fund Wallet Modal */}
@@ -1137,7 +971,26 @@ export default function Dashboards({
               </div>
             )}
             {(currentUser.role === UserRole.SUPER_ADMIN || currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.SUB_ADMIN) && (
-              <AdminPanel currentUser={currentUser} onRefreshUser={onRefreshUser} isDarkMode={isDarkMode} />
+              <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white rounded-2xl p-5 border border-indigo-500/30 shadow-lg flex flex-col md:flex-row items-center justify-between gap-4 my-6">
+                <div className="flex items-center gap-3 text-left">
+                  <div className="p-3 bg-indigo-600/20 rounded-xl border border-indigo-500/40 text-indigo-400 shrink-0">
+                    <ShieldCheck className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm text-white">SmartLink Admin Control Suite</h3>
+                    <p className="text-xs text-slate-300">
+                      Unified administrative management portal for Users, Wallets, Transactions, API Providers, Security & System Configuration.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => onSwitchView("ADMIN_DASHBOARD")}
+                  className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl transition-all shadow-md flex items-center gap-2 shrink-0 cursor-pointer"
+                >
+                  <Shield className="h-4 w-4" />
+                  <span>Launch Admin Portal</span>
+                </button>
+              </div>
             )}
 
             {/* --- PRIMARY SERVICES GRID SECTION (MATCHING THE SCREENSHOT EXACTLY) --- */}

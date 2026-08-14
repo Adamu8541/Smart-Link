@@ -65,7 +65,7 @@ export interface TransactionDocument extends StandardBaseDocument {
   service: string; // e.g. "VTU_AIRTIME", "NIN_SLIP_PREMIUM"
   amount: number;
   charge: number;
-  provider: string; // e.g. "Prembly", "Monnify"
+  provider: string; // e.g. "Prembly", "Paystack"
   providerReference: string;
   smartlinkReference: string;
   description: string;
@@ -264,7 +264,7 @@ export interface WalletFundingDocument extends StandardBaseDocument {
   userId: string;
   walletId: string;
   amount: number;
-  gateway: "OPAY" | "MONNIFY" | "PAYSTACK" | "MANUAL_BANK_TRANSFER";
+  gateway: "PAYSTACK" | "GATEWAY" | "MANUAL_BANK_TRANSFER";
   gatewayReference: string;
   smartlinkReference: string;
 }

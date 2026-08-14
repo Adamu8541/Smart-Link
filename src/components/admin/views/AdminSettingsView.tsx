@@ -2596,7 +2596,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Monnify Webhook Secret Reference</label>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Gateway Webhook Secret Reference</label>
                 <input
                   type="text"
                   value={systemSettings.api?.webhookSecretRef || "WH_SEC_****89a2"}

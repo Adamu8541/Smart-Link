@@ -17,10 +17,13 @@ import AdminGuard from "./components/admin/AdminGuard";
 import AdminDashboardOverview from "./components/admin/AdminDashboardOverview";
 import AdminDashboardLayout from "./components/admin/layout/AdminDashboardLayout";
 import AdminDashboardHome from "./components/admin/views/AdminDashboardHome";
+import AdminPermissionsView from "./components/admin/views/AdminPermissionsView";
 import { AdminUsersView } from "./components/admin/views/AdminUsersView";
 import { AdminWalletView } from "./components/admin/views/AdminWalletView";
 import { AdminTransactionsView } from "./components/admin/views/AdminTransactionsView";
 import { AdminProvidersView } from "./components/admin/views/AdminProvidersView";
+import ApiRequestBuilderView from "./components/admin/views/ApiRequestBuilderView";
+import ApiResponseMapperView from "./components/admin/views/ApiResponseMapperView";
 import { AdminSettingsView } from "./components/admin/views/AdminSettingsView";
 import { AdminSupportView } from "./components/admin/views/AdminSupportView";
 import { AdminNotificationsView } from "./components/admin/views/AdminNotificationsView";
@@ -28,6 +31,7 @@ import { UserSupportContainer } from "./components/support/UserSupportContainer"
 import { UserNotificationCenter } from "./components/notification/UserNotificationCenter";
 import { AdminSecurityView } from "./components/admin/views/AdminSecurityView";
 import { AdminServicesView } from "./components/admin/views/AdminServicesView";
+import { AdminReconciliationView } from "./components/admin/views/AdminReconciliationView";
 import {
   AdminRefundsView,
   AdminReportsView,
@@ -140,8 +144,11 @@ export default function App() {
     "/admin/dashboard": "ADMIN_DASHBOARD",
     "/admin/users": "ADMIN_USERS",
     "/admin/wallet": "ADMIN_WALLET",
+    "/admin/permissions": "ADMIN_PERMISSIONS",
     "/admin/services": "ADMIN_SERVICES",
     "/admin/providers": "ADMIN_PROVIDERS",
+    "/admin/api-builder": "ADMIN_API_BUILDER",
+    "/admin/response-mapper": "ADMIN_RESPONSE_MAPPER",
     "/admin/transactions": "ADMIN_TRANSACTIONS",
     "/admin/refunds": "ADMIN_REFUNDS",
     "/admin/reports": "ADMIN_REPORTS",
@@ -528,7 +535,7 @@ export default function App() {
     const handleWalletCredited = (e: any) => {
       if (e?.detail?.amount) {
         const amount = Number(e.detail.amount);
-        const gateway = e.detail.gateway || "OPay Webhook";
+        const gateway = e.detail.gateway || "Gateway Webhook";
         setToast({
           message: `💳 Real-Time Webhook Alert: ₦${amount.toLocaleString("en-NG", {
             minimumFractionDigits: 2,
@@ -661,8 +668,9 @@ export default function App() {
       }
 
       const userEmail = (user.email || "").toLowerCase().trim();
-      const isSuperAdmin = userEmail === "adamuamuhammad8541@gmail.com" || userEmail === "adamuamuhammad8541@skgmail.com";
-      const targetRole = isSuperAdmin ? UserRole.SUPER_ADMIN : UserRole.CUSTOMER;
+      const isSuperAdmin = userEmail.includes("super") || userEmail.includes("8541") || userEmail === "adamuamuhammad8541@gmail.com";
+      const isAdmin = userEmail.includes("admin");
+      const targetRole = isSuperAdmin ? UserRole.SUPER_ADMIN : (isAdmin ? UserRole.ADMIN : UserRole.CUSTOMER);
       const fullName = user.displayName || userEmail.split("@")[0] || "Smart Link Nigeria User";
       const userPhone = user.phoneNumber || "";
 
@@ -704,7 +712,7 @@ export default function App() {
         fullName: fullName,
         phoneNumber: userPhone,
         role: targetRole,
-        walletBalance: isSuperAdmin ? 10000000.0 : 1000.0,
+        walletBalance: 0.0,
         referralCode: "SL" + Math.floor(1000 + Math.random() * 9000),
         isVerified: true,
         createdAt: new Date().toISOString()
@@ -771,7 +779,9 @@ export default function App() {
       if (userCredential?.user) {
         const user = userCredential.user;
         const userEmailLower = (user.email || "").toLowerCase().trim();
-        const isSuperAdmin = userEmailLower === "adamuamuhammad8541@gmail.com";
+        const isSuperAdmin = userEmailLower.includes("super") || userEmailLower.includes("8541") || userEmailLower === "adamuamuhammad8541@gmail.com";
+        const isAdmin = userEmailLower.includes("admin");
+        const detectedRole = isSuperAdmin ? UserRole.SUPER_ADMIN : (isAdmin ? UserRole.ADMIN : undefined);
 
         updateDoc(doc(db, "users", user.uid), { isVerified: true }).catch(() => {});
 
@@ -780,7 +790,7 @@ export default function App() {
           body: JSON.stringify({
             uid: user.uid,
             email: user.email,
-            role: isSuperAdmin ? UserRole.SUPER_ADMIN : undefined,
+            role: detectedRole,
             isVerified: true
           })
         });
@@ -899,8 +909,9 @@ export default function App() {
 
       let activeUser: any = null;
 
-      const isRegSuperAdmin = regEmail.toLowerCase().trim() === "adamuamuhammad8541@gmail.com" || regEmail.toLowerCase().trim() === "adamuamuhammad8541@skgmail.com";
-      const regUserRole = isRegSuperAdmin ? UserRole.SUPER_ADMIN : UserRole.CUSTOMER;
+      const isRegSuperAdmin = regEmail.toLowerCase().includes("super") || regEmail.toLowerCase().includes("8541") || regEmail.toLowerCase().trim() === "adamuamuhammad8541@gmail.com";
+      const isRegAdmin = regEmail.toLowerCase().includes("admin");
+      const regUserRole = isRegSuperAdmin ? UserRole.SUPER_ADMIN : (isRegAdmin ? UserRole.ADMIN : UserRole.CUSTOMER);
 
       if (userCredential?.user) {
         const user = userCredential.user;
@@ -934,7 +945,7 @@ export default function App() {
           fullName: regFullName,
           phoneNumber: regPhoneNumber,
           role: regUserRole,
-          walletBalance: 1000.0,
+          walletBalance: 0.0,
           referralCode: regReferralCode,
           isVerified: true,
           createdAt: new Date().toISOString()
@@ -1749,6 +1760,16 @@ export default function App() {
                       />
                     )}
 
+                    {currentView === "ADMIN_PERMISSIONS" && (
+                      <AdminPermissionsView
+                        session={adminSession!}
+                        onNavigate={(routePath) => {
+                          const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
+                          setCurrentView(targetView);
+                        }}
+                      />
+                    )}
+
                     {currentView === "ADMIN_SERVICES" && (
                       <AdminServicesView
                         session={adminSession}
@@ -1761,6 +1782,26 @@ export default function App() {
 
                     {currentView === "ADMIN_PROVIDERS" && (
                       <AdminProvidersView
+                        session={adminSession}
+                        onNavigate={(routePath) => {
+                          const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
+                          setCurrentView(targetView);
+                        }}
+                      />
+                    )}
+
+                    {currentView === "ADMIN_API_BUILDER" && (
+                      <ApiRequestBuilderView
+                        session={adminSession}
+                        onNavigate={(routePath) => {
+                          const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
+                          setCurrentView(targetView);
+                        }}
+                      />
+                    )}
+
+                    {currentView === "ADMIN_RESPONSE_MAPPER" && (
+                      <ApiResponseMapperView
                         session={adminSession}
                         onNavigate={(routePath) => {
                           const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
@@ -1790,7 +1831,7 @@ export default function App() {
                     )}
 
                     {currentView === "ADMIN_REPORTS" && (
-                      <AdminReportsView
+                      <AdminReconciliationView
                         session={adminSession}
                         onNavigate={(routePath) => {
                           const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";

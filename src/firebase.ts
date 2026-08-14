@@ -64,16 +64,26 @@ const dummyConfig = {
 };
 
 // Resolve config prioritizing environment variables (VITE_FIREBASE_*)
+const getEnv = (key: string) => {
+  if (typeof import.meta !== "undefined" && import.meta && import.meta.env && import.meta.env[key]) {
+    return import.meta.env[key];
+  }
+  if (typeof process !== "undefined" && process.env && process.env[key]) {
+    return process.env[key];
+  }
+  return undefined;
+};
+
 const activeFirebaseConfig = {
   ...dummyConfig,
   ...firebaseConfig,
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || firebaseConfig.apiKey || dummyConfig.apiKey,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || firebaseConfig.projectId || dummyConfig.projectId,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || firebaseConfig.appId || dummyConfig.appId,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || firebaseConfig.authDomain || dummyConfig.authDomain,
-  firestoreDatabaseId: import.meta.env.VITE_FIREBASE_DATABASE_ID || firebaseConfig.firestoreDatabaseId || "(default)",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || firebaseConfig.storageBucket || dummyConfig.storageBucket,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || firebaseConfig.messagingSenderId || dummyConfig.messagingSenderId,
+  apiKey: getEnv("VITE_FIREBASE_API_KEY") || firebaseConfig.apiKey || dummyConfig.apiKey,
+  projectId: getEnv("VITE_FIREBASE_PROJECT_ID") || firebaseConfig.projectId || dummyConfig.projectId,
+  appId: getEnv("VITE_FIREBASE_APP_ID") || firebaseConfig.appId || dummyConfig.appId,
+  authDomain: getEnv("VITE_FIREBASE_AUTH_DOMAIN") || firebaseConfig.authDomain || dummyConfig.authDomain,
+  firestoreDatabaseId: getEnv("VITE_FIREBASE_DATABASE_ID") || firebaseConfig.firestoreDatabaseId || "(default)",
+  storageBucket: getEnv("VITE_FIREBASE_STORAGE_BUCKET") || firebaseConfig.storageBucket || dummyConfig.storageBucket,
+  messagingSenderId: getEnv("VITE_FIREBASE_MESSAGING_SENDER_ID") || firebaseConfig.messagingSenderId || dummyConfig.messagingSenderId,
 };
 
 // Initialize Firebase App

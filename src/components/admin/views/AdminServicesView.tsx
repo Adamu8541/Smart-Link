@@ -32,6 +32,7 @@ import {
   ArrowUp,
   ArrowDown
 } from "lucide-react";
+import { getStoredAdminSession } from "../../../services/adminAuthService";
 
 interface AdminServicesViewProps {
   session?: any;
@@ -91,7 +92,7 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
   const fetchServices = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem("smartlink_admin_token") || "";
+      const token = getStoredAdminSession()?.sessionToken || "";
       const queryParams = new URLSearchParams({
         search,
         category: selectedCategory,
@@ -171,8 +172,8 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
     }
 
     setFormLoading(true);
-    const token = localStorage.getItem("smartlink_admin_token") || "";
-    const adminUid = session?.adminUid || "SUPER_ADMIN";
+    const token = getStoredAdminSession()?.sessionToken || "";
+    const adminUid = session?.adminUid || getStoredAdminSession()?.uid || "SUPER_ADMIN";
 
     const payload = {
       adminUid,
@@ -221,8 +222,8 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
   };
 
   const handleToggleStatus = async (serviceId: string, currentStatus: boolean) => {
-    const token = localStorage.getItem("smartlink_admin_token") || "";
-    const adminUid = session?.adminUid || "SUPER_ADMIN";
+    const token = getStoredAdminSession()?.sessionToken || "";
+    const adminUid = session?.adminUid || getStoredAdminSession()?.uid || "SUPER_ADMIN";
 
     try {
       const res = await fetch(`/api/admin/services/${serviceId}/toggle`, {
@@ -247,8 +248,8 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
   };
 
   const handleDeleteService = async (serviceId: string) => {
-    const token = localStorage.getItem("smartlink_admin_token") || "";
-    const adminUid = session?.adminUid || "SUPER_ADMIN";
+    const token = getStoredAdminSession()?.sessionToken || "";
+    const adminUid = session?.adminUid || getStoredAdminSession()?.uid || "SUPER_ADMIN";
 
     try {
       const res = await fetch(`/api/admin/services/${serviceId}`, {
@@ -287,8 +288,8 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
     if (!pricingService) return;
 
     setFormLoading(true);
-    const token = localStorage.getItem("smartlink_admin_token") || "";
-    const adminUid = session?.adminUid || "SUPER_ADMIN";
+    const token = getStoredAdminSession()?.sessionToken || "";
+    const adminUid = session?.adminUid || getStoredAdminSession()?.uid || "SUPER_ADMIN";
 
     try {
       const res = await fetch(`/api/admin/services/${pricingService.id}/pricing`, {
@@ -344,8 +345,8 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
 
     setServices(updated);
 
-    const token = localStorage.getItem("smartlink_admin_token") || "";
-    const adminUid = session?.adminUid || "SUPER_ADMIN";
+    const token = getStoredAdminSession()?.sessionToken || "";
+    const adminUid = session?.adminUid || getStoredAdminSession()?.uid || "SUPER_ADMIN";
 
     const orders = updated.map((s, idx) => ({ id: s.id, displayOrder: idx + 1 }));
 

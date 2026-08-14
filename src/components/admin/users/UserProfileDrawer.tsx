@@ -414,7 +414,7 @@ export function UserProfileDrawer({
                       <div className="relative">
                         <div className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-blue-500" />
                         <p className="font-bold text-white">Wallet Credit Transaction</p>
-                        <p className="text-slate-400 text-[11px]">Credited ₦10,000 via Monnify Reserved Account</p>
+                        <p className="text-slate-400 text-[11px]">Credited ₦10,000 via Virtual Bank Account</p>
                         <span className="text-[10px] text-slate-500 font-mono">2026-07-30 18:30:12</span>
                       </div>
                     </div>

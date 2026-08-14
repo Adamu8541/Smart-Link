@@ -119,61 +119,59 @@ class AdminLayoutService {
   /**
    * Global Search Engine
    */
-  public searchAdminData(query: string): AdminGlobalSearchItem[] {
+  public searchAdminData(query: string, dataSources?: { users?: any[]; transactions?: any[]; providers?: any[] }): AdminGlobalSearchItem[] {
     if (!query || query.trim().length < 2) return [];
 
     const q = query.toLowerCase().trim();
     const results: AdminGlobalSearchItem[] = [];
 
-    // Mock match candidates
-    const mockUsers = [
-      { uid: "USR_101", email: "adamuamuhammad8541@gmail.com", name: "Adamu Muhammad", role: "Super Admin" },
-    ];
+    const users = dataSources?.users || [];
+    const transactions = dataSources?.transactions || [];
+    const providers = dataSources?.providers || [];
 
-    const mockTransactions: any[] = [];
-
-    const mockProviders = [
-      { name: "Monnify Payment Gateway", code: "MONNIFY", type: "Wallet Auto-Funding" },
-      { name: "OPay Direct Transfer", code: "OPAY", type: "Collection API" },
-      { name: "Paystack Gateway", code: "PAYSTACK", type: "Card & Transfer API" },
-      { name: "Flutterwave Gateway", code: "FLUTTERWAVE", type: "Card & Mobile Money" },
-    ];
-
-    mockUsers.forEach((u) => {
-      if (u.email.toLowerCase().includes(q) || u.name.toLowerCase().includes(q) || u.uid.toLowerCase().includes(q)) {
+    users.forEach((u: any) => {
+      const email = u.email || "";
+      const name = u.fullName || u.name || "";
+      const uid = u.uid || u.id || "";
+      if (email.toLowerCase().includes(q) || name.toLowerCase().includes(q) || uid.toLowerCase().includes(q)) {
         results.push({
-          id: u.uid,
+          id: uid,
           type: "USER",
-          title: u.name,
-          subtitle: `${u.email} • Role: ${u.role}`,
+          title: name || email,
+          subtitle: `${email} • Role: ${u.role || "User"}`,
           path: "/admin/users",
-          status: "ACTIVE",
+          status: u.status || "ACTIVE",
         });
       }
     });
 
-    mockTransactions.forEach((t) => {
-      if (t.id.toLowerCase().includes(q) || t.type.toLowerCase().includes(q) || t.user.toLowerCase().includes(q)) {
+    transactions.forEach((t: any) => {
+      const id = t.id || t.reference || "";
+      const type = t.type || t.serviceName || "Transaction";
+      const user = t.userEmail || t.userId || "";
+      if (id.toLowerCase().includes(q) || type.toLowerCase().includes(q) || user.toLowerCase().includes(q)) {
         results.push({
-          id: t.id,
+          id,
           type: "TRANSACTION",
-          title: `${t.id} — ${t.type}`,
-          subtitle: `Amount: ${t.amount} • Account: ${t.user}`,
+          title: `${id} — ${type}`,
+          subtitle: `Amount: ₦${t.amount || 0} • ${user}`,
           path: "/admin/transactions",
-          status: t.status,
+          status: t.status || "SUCCESSFUL",
         });
       }
     });
 
-    mockProviders.forEach((p) => {
-      if (p.name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q)) {
+    providers.forEach((p: any) => {
+      const name = p.name || p.providerName || "";
+      const code = p.code || p.id || "";
+      if (name.toLowerCase().includes(q) || code.toLowerCase().includes(q)) {
         results.push({
-          id: p.code,
+          id: code,
           type: "PROVIDER",
-          title: p.name,
-          subtitle: `Provider Code: ${p.code} • Service: ${p.type}`,
+          title: name,
+          subtitle: `Provider Code: ${code} • Service: ${p.category || "API Provider"}`,
           path: "/admin/providers",
-          status: "OPERATIONAL",
+          status: p.status || "OPERATIONAL",
         });
       }
     });

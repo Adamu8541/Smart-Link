@@ -38,7 +38,7 @@ export const TransactionReceiptModal: React.FC<TransactionReceiptModalProps> = (
 
   // Normalize data between receipt & transaction
   const ref = receipt?.smartlinkRef || (receipt as any)?.smartlinkReference || transaction?.smartlinkReference || "SL-RECEIPT-00000";
-  const providerRef = receipt?.providerRef || (receipt as any)?.providerReference || (receipt as any)?.monnifyReference || transaction?.providerReference || "PROV-PENDING";
+  const providerRef = receipt?.providerRef || (receipt as any)?.providerReference || transaction?.providerReference || "PROV-PENDING";
   const title = receipt?.title || transaction?.service || "SmartLink Wallet Funding";
   const amount = receipt?.amount ?? transaction?.amount ?? 0;
   const charge = receipt?.charge ?? transaction?.charge ?? 0;
@@ -50,7 +50,7 @@ export const TransactionReceiptModal: React.FC<TransactionReceiptModalProps> = (
     timeStyle: "medium"
   });
   const recipient = receipt?.recipient || transaction?.recipient || "Self";
-  const paymentMethod = receipt?.paymentMethod || transaction?.paymentMethod || "Monnify Reserved Virtual Account";
+  const paymentMethod = receipt?.paymentMethod || transaction?.paymentMethod || "Virtual Bank Account";
   const userName = receipt?.userName || (receipt as any)?.userEmail || "Verified User";
   const userEmail = receipt?.userEmail || "user@smartlink.com";
   const balanceBefore = receipt?.balanceBefore ?? (receipt as any)?.previousBalance ?? transaction?.balanceBefore;
@@ -72,7 +72,7 @@ export const TransactionReceiptModal: React.FC<TransactionReceiptModalProps> = (
     setSendingEmail(true);
     setEmailStatus(null);
     try {
-      const res = await fetch("/api/monnify/receipt/email", {
+      const res = await fetch("/api/receipt/email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ receiptId: ref, email: userEmail }),

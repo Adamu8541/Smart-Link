@@ -49,7 +49,6 @@ import {
   BulkActionModal
 } from "../users/UserActionModals";
 import { UserExportModal } from "../users/UserExportModal";
-import AdminModule3TestPanel from "../AdminModule3TestPanel";
 
 interface AdminUsersViewProps {
   session: AdminSession;
@@ -278,81 +277,73 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
       </AnimatePresence>
 
       {/* Header Bar */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 space-y-6 shadow-xs">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
           <div className="flex items-center gap-3.5">
-            <div className="p-3 bg-blue-950 border border-blue-800 rounded-2xl text-blue-400">
+            <div className="p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-2xl text-blue-600 dark:text-blue-400">
               <Users className="h-7 w-7" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-400">User Governance Engine</span>
-                <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">MODULE 3 ACTIVE</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">User Governance Engine</span>
+                <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">MODULE 3 ACTIVE</span>
               </div>
-              <h1 className="text-xl md:text-2xl font-bold text-white">SmartLink Users Directory</h1>
-              <p className="text-xs text-slate-400 mt-0.5">Manage user profiles, account statuses, wallet floats, KYC verifications, and audit controls.</p>
+              <h1 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white">SmartLink Users Directory</h1>
+              <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">Manage user profiles, account statuses, wallet floats, KYC verifications, and audit controls.</p>
             </div>
           </div>
 
           <div className="flex items-center gap-2.5 flex-wrap">
             <button
               type="button"
-              onClick={() => setShowTestPanel(true)}
-              className="py-2.5 px-4 bg-purple-950 hover:bg-purple-900 text-purple-300 border border-purple-800 rounded-xl text-xs font-bold flex items-center gap-2 transition-colors cursor-pointer"
-            >
-              <PlayCircle className="h-4 w-4 text-purple-400" /> Run Module 3 Self-Test
-            </button>
-
-            <button
-              type="button"
               onClick={() => setIsExportModalOpen(true)}
-              className="py-2.5 px-4 bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-800 rounded-xl text-xs font-bold flex items-center gap-2 transition-colors cursor-pointer"
+              className="py-2.5 px-4 bg-emerald-50 dark:bg-emerald-950 hover:bg-emerald-100 dark:hover:bg-emerald-900 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 rounded-xl text-xs font-bold flex items-center gap-2 transition-colors cursor-pointer"
             >
-              <Download className="h-4 w-4 text-emerald-400" /> Export Data ({filteredUsers.length})
+              <Download className="h-4 w-4 text-emerald-600 dark:text-emerald-400" /> Export Data ({filteredUsers.length})
             </button>
 
             <button
               type="button"
               onClick={fetchUsers}
               disabled={refreshing}
-              className="py-2.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+              className="py-2.5 px-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
             >
-              <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin text-blue-400" : ""}`} />
+              <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin text-blue-500" : ""}`} />
             </button>
           </div>
         </div>
 
         {/* Metrics Bar */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl">
-            <p className="text-[10px] text-slate-400 uppercase font-bold">Total Directory Users</p>
-            <p className="text-xl font-extrabold text-white mt-1">{users.length} Accounts</p>
+          <div className="p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl">
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold">Total Directory Users</p>
+            <p className="text-xl font-extrabold text-slate-900 dark:text-white mt-1">{users.length} Accounts</p>
           </div>
 
-          <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl">
-            <p className="text-[10px] text-slate-400 uppercase font-bold">Active User Accounts</p>
-            <p className="text-xl font-extrabold text-emerald-400 mt-1">{activeCount} Active</p>
+          <div className="p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl">
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold">Active User Accounts</p>
+            <p className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">{activeCount} Active</p>
           </div>
 
-          <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl">
-            <p className="text-[10px] text-slate-400 uppercase font-bold">Suspended / Disabled</p>
-            <p className="text-xl font-extrabold text-amber-400 mt-1">{suspendedCount} Suspended</p>
+          <div className="p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl">
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold">Suspended / Disabled</p>
+            <p className="text-xl font-extrabold text-amber-600 dark:text-amber-400 mt-1">{suspendedCount} Suspended</p>
           </div>
 
-          <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl">
-            <p className="text-[10px] text-slate-400 uppercase font-bold">Combined Wallet Float</p>
-            <p className="text-xl font-extrabold text-blue-400 mt-1">
+          <div className="p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl">
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold">Combined Wallet Float</p>
+            <p className="text-xl font-extrabold text-blue-600 dark:text-blue-400 mt-1">
               ₦{totalBalanceSum.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
             </p>
           </div>
         </div>
 
         {/* Search & Multi-Filters Toolbar */}
-        <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl space-y-3">
+        <div className="p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3">
           <div className="flex flex-col md:flex-row gap-3">
             {/* Search Input */}
             <div className="flex-1 relative">
-              <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-500" />
+              <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
               <input
                 type="text"
                 value={searchQuery}
@@ -361,7 +352,7 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
                   setCurrentPage(1);
                 }}
                 placeholder="Search by Name, Username, Email, Phone, or User ID..."
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs font-medium focus:outline-hidden focus:border-blue-500 placeholder:text-slate-500"
+                className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white text-xs font-medium focus:outline-hidden focus:border-blue-500 placeholder:text-slate-400"
               />
             </div>
 
@@ -374,7 +365,7 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
                   setStatusFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="px-3 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-200 font-medium focus:outline-hidden cursor-pointer"
+                className="px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-800 dark:text-slate-200 font-medium focus:outline-hidden cursor-pointer"
               >
                 <option value="ALL">Status: All</option>
                 <option value="ACTIVE">Active Users</option>
@@ -482,10 +473,10 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
         </div>
 
         {/* Data Table */}
-        <div className="bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+        <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs dark:shadow-xl">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-slate-300">
-              <thead className="bg-slate-900/90 border-b border-slate-800 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300">
+              <thead className="bg-slate-100 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800 text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
                 <tr>
                   <th className="p-4 w-10 text-center">
                     <input
@@ -552,8 +543,8 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
                     return (
                       <tr
                         key={u.uid}
-                        className={`hover:bg-slate-900/60 transition-colors ${
-                          isSelected ? "bg-purple-950/20" : ""
+                        className={`hover:bg-slate-100 dark:hover:bg-slate-900/60 transition-colors ${
+                          isSelected ? "bg-purple-50 dark:bg-purple-950/20" : ""
                         }`}
                       >
                         {/* Checkbox */}
@@ -562,25 +553,25 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => handleToggleSelectUser(u.uid)}
-                            className="rounded-xs border-slate-700 bg-slate-900 text-blue-600 focus:ring-0 cursor-pointer"
+                            className="rounded-xs border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-blue-600 focus:ring-0 cursor-pointer"
                           />
                         </td>
 
                         {/* Name & Avatar */}
                         <td className="p-4">
                           <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-200 font-bold shrink-0 text-xs">
+                            <div className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-800 dark:text-slate-200 font-bold shrink-0 text-xs">
                               {u.fullName ? u.fullName.substring(0, 2).toUpperCase() : "US"}
                             </div>
                             <div>
                               <button
                                 type="button"
                                 onClick={() => setActiveDrawerUserId(u.uid)}
-                                className="font-bold text-white hover:text-blue-400 text-left transition-colors cursor-pointer"
+                                className="font-bold text-slate-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 text-left transition-colors cursor-pointer"
                               >
                                 {u.fullName}
                               </button>
-                              <p className="text-[11px] text-slate-400 font-mono">
+                              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
                                 {(u as any).username || "@" + (u.fullName || "user").toLowerCase().replace(/\s+/g, "")}
                               </p>
                             </div>
@@ -830,14 +821,6 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
         usersToExport={filteredUsers}
         activeFilterSummary={`Status: ${statusFilter} | Verification: ${verificationFilter} | Role: ${roleFilter}`}
       />
-
-      {/* Module 3 Self-Test Panel */}
-      {showTestPanel && (
-        <AdminModule3TestPanel
-          onClose={() => setShowTestPanel(false)}
-          session={session}
-        />
-      )}
     </div>
   );
 }
