@@ -203,7 +203,6 @@ export const TransactionHistoryView: React.FC<TransactionHistoryViewProps> = ({
             >
               <option value="ALL">All Providers</option>
               <option value="GATEWAY">Payment Gateway</option>
-              <option value="OPAY">OPay</option>
               <option value="DYNAMIC">Dynamic Bank</option>
             </select>
           </div>

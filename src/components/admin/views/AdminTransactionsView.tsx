@@ -466,7 +466,6 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
                 >
                   <option value="ALL">All Providers</option>
                   <option value="Aspfiy">Aspfiy</option>
-                  <option value="OPay">OPay</option>
                   <option value="NIMC">NIMC API</option>
                   <option value="Prembly">Prembly</option>
                   <option value="VTU Direct">VTU Direct Gateway</option>

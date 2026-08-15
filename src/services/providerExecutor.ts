@@ -8,7 +8,7 @@
  */
 
 import crypto from "crypto";
-import { getActiveProviderAndAdapter } from "./providerGateway";
+import { getActiveProviderAndAdapter, getAdapterForProvider } from "./providerGateway";
 
 export interface ProviderExecutionParams {
   category: string; // AIRTIME, DATA, ELECTRICITY, CABLE, EDUCATION, UTILITY, etc.
@@ -111,7 +111,7 @@ export function verifyWebhookSignature(
   // Determine header name
   const headerName = (
     providerConfig.webhookSignatureHeaderName ||
-    (providerConfig.name && providerConfig.name.toLowerCase().includes("opay") ? "x-opay-signature" : "") ||
+    (providerConfig.name && providerConfig.name.toLowerCase().includes("aspfiy") ? "x-wiaxy-signature" : "") ||
     "x-signature"
   ).toLowerCase().trim();
 
@@ -127,7 +127,7 @@ export function verifyWebhookSignature(
 
     if (!signatureHeaderVal) {
       signatureHeaderVal = (
-        headers["x-opay-signature"] ||
+        headers["x-wiaxy-signature"] ||
         headers["authorization"] ||
         headers["x-signature"] ||
         headers["signature"]
@@ -153,9 +153,15 @@ export function verifyWebhookSignature(
     return { isValid: false, reason: `Webhook signing secret is not configured for provider '${providerConfig.name || providerConfig.id}'.` };
   }
 
-  // Determine HMAC algorithm
+  // Determine algorithm and evaluate signature
   let algorithm: string;
-  if (method === "HMAC-SHA512" || method === "SHA512") {
+  if (method === "MD5_OF_SECRET") {
+    const expected = crypto.createHash("md5").update(signingSecret.trim()).digest("hex");
+    if (receivedSig.toLowerCase() === expected.toLowerCase()) {
+      return { isValid: true };
+    }
+    return { isValid: false, reason: `MD5 signature mismatch for provider '${providerConfig.name}'.` };
+  } else if (method === "HMAC-SHA512" || method === "SHA512") {
     algorithm = "sha512";
   } else if (method === "HMAC-SHA256" || method === "SHA256") {
     algorithm = "sha256";
@@ -692,6 +698,39 @@ export class ProviderExecutor {
       };
     }
 
+    const directAdapter = getAdapterForProvider(provider);
+    if (directAdapter && directAdapter.createVirtualAccount) {
+      const user = {
+        id: params.userId,
+        uid: params.userId,
+        fullName: params.userName || "SMARTLINK CUSTOMER",
+        email: params.userEmail || "customer@smartlink.ng",
+        phone: (params as any).phone || "",
+      };
+      const res = await directAdapter.createVirtualAccount(db, user, provider);
+      if (res.success && res.accountNumber) {
+        return {
+          success: true,
+          providerName: provider.name,
+          providerCode: provider.id,
+          accountNumber: res.accountNumber,
+          bankName: res.bankName,
+          accountName: res.accountName,
+          accountReference: res.providerReference || `SL-${params.userId}`,
+          reservationReference: res.providerReference,
+          accounts: [{ bankName: res.bankName, accountNumber: res.accountNumber }],
+          rawResponse: res.rawResponse,
+        };
+      }
+      return {
+        success: false,
+        providerName: provider.name,
+        providerCode: provider.id,
+        error: res.error || "Failed to create virtual account",
+        rawResponse: res.rawResponse,
+      };
+    }
+
     const providerName = provider.name || params.providerName || "Provider";
     const providerCode = provider.id || params.providerCode || "PROV";
 
@@ -714,11 +753,7 @@ export class ProviderExecutor {
     // If template exists and endpoint is configured, execute HTTP request
     let endpoint = requestTemplate?.endpoint || "";
     if (!endpoint && (provider.baseUrl || "").trim()) {
-      if ((providerName || "").toLowerCase().includes("opay")) {
-        endpoint = `${provider.baseUrl.replace(/\/+$/, "")}/api/v1/international/payment/create`;
-      } else {
-        endpoint = `${provider.baseUrl.replace(/\/+$/, "")}/api/v2/bank-transfer/reserved-accounts`;
-      }
+      endpoint = `${provider.baseUrl.replace(/\/+$/, "")}/api/v2/bank-transfer/reserved-accounts`;
     }
 
     if (endpoint) {
@@ -757,24 +792,15 @@ export class ProviderExecutor {
         headers["MerchantId"] = provider.merchantId;
       }
 
-      const bodyObj = (providerName || "").toLowerCase().includes("opay")
-        ? {
-            amount: { currency: "NGN", total: (params.amount || 1000) * 100 },
-            country: "NG",
-            payMethod: "BankTransfer",
-            reference: accountReference,
-            customerName: nameToUse,
-            userInfo: { userId: params.userId, userName: nameToUse, userEmail: emailToUse },
-          }
-        : {
-            accountReference,
-            accountName: `SMARTLINK / ${nameToUse.toUpperCase()}`,
-            currencyCode: "NGN",
-            contractCode: provider.contractCode || provider.businessId || "0000000000",
-            customerEmail: emailToUse,
-            customerName: nameToUse,
-            getAllAvailableBanks: true,
-          };
+      const bodyObj = {
+        accountReference,
+        accountName: `SMARTLINK / ${nameToUse.toUpperCase()}`,
+        currencyCode: "NGN",
+        contractCode: provider.contractCode || provider.businessId || "0000000000",
+        customerEmail: emailToUse,
+        customerName: nameToUse,
+        getAllAvailableBanks: true,
+      };
 
       try {
         const controller = new AbortController();
@@ -805,7 +831,7 @@ export class ProviderExecutor {
             providerName,
             providerCode,
             accountNumber,
-            bankName: bankName || (providerName.toLowerCase().includes("opay") ? "OPay / 9PSB" : "Virtual Commercial Bank"),
+            bankName: bankName || "Virtual Commercial Bank",
             accountName: accountName || `SMARTLINK / ${nameToUse.toUpperCase()}`,
             bankCode: primaryAcc?.bankCode,
             accountReference: resBody?.accountReference || accountReference,
@@ -822,11 +848,8 @@ export class ProviderExecutor {
 
     // High-fidelity Virtual Account Allocation Fallback using provider parameters
     const randDigits = Math.floor(10000000 + Math.random() * 90000000);
-    const fallbackBankName = providerName.toLowerCase().includes("opay")
-      ? "OPay / 9PSB"
-      : "Virtual Commercial Bank";
-
-    const prefix = providerName.toLowerCase().includes("opay") ? "99" : "77";
+    const fallbackBankName = "Virtual Commercial Bank";
+    const prefix = "77";
 
     return {
       success: true,
@@ -885,16 +908,28 @@ export class ProviderExecutor {
       };
     }
 
+    const directAdapter = getAdapterForProvider(provider);
+    if (directAdapter && directAdapter.verifyTransaction) {
+      const res = await directAdapter.verifyTransaction(db, params.paymentReference, provider);
+      return {
+        success: res.verified,
+        verified: res.verified,
+        providerName: provider.name,
+        providerCode: provider.id,
+        paymentStatus: res.paymentStatus || (res.verified ? "SUCCESSFUL" : "FAILED"),
+        amountPaid: res.amountPaid,
+        transactionReference: params.paymentReference,
+        rawResponse: res.rawResponse,
+        error: res.error,
+      };
+    }
+
     const providerName = provider.name || params.providerName || "Provider";
     const providerCode = provider.id || params.providerCode || "PROV";
 
     // Build Endpoint
     let endpoint = provider.baseUrl ? provider.baseUrl.trim().replace(/\/+$/, "") : "";
-    if (providerName.toLowerCase().includes("opay")) {
-      endpoint += `/api/v1/international/cashier/status`;
-    } else {
-      endpoint += `/api/v1/transactions/verify/${encodeURIComponent(params.paymentReference)}`;
-    }
+    endpoint += `/api/v1/transactions/verify/${encodeURIComponent(params.paymentReference)}`;
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",

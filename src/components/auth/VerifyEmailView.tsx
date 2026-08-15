@@ -34,8 +34,18 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
   const targetEmail = userEmailFromProps || currentUser?.email || "your email address";
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const code = oobCodeFromProps || params.get("oobCode");
+    const searchParams = new URLSearchParams(window.location.search);
+    let hashParams = new URLSearchParams();
+    if (window.location.hash && window.location.hash.includes("?")) {
+      hashParams = new URLSearchParams(window.location.hash.substring(window.location.hash.indexOf("?")));
+    }
+
+    const code =
+      oobCodeFromProps ||
+      searchParams.get("oobCode") ||
+      searchParams.get("token") ||
+      hashParams.get("oobCode") ||
+      hashParams.get("token");
 
     if (code) {
       setOobCode(code);

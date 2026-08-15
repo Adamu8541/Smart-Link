@@ -41,6 +41,19 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({
     try {
       const cleanEmail = email.trim().toLowerCase();
       
+      const checkRes = await fetch("/api/auth/check-email-exists", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: cleanEmail }),
+      });
+      const checkData = await checkRes.json();
+      if (!checkData.exists) {
+        soundFx.playErrorSound();
+        setError("No account found with this email address. Please check the email or sign up.");
+        setLoading(false);
+        return;
+      }
+
       if (isFirebaseConfigured) {
         const actionCodeSettings = {
           url: `${window.location.origin}/reset-password`,

@@ -93,7 +93,7 @@ export function AdminProvidersView({ session, onNavigate }: PlaceholderViewProps
           <div>
             <span className="text-[10px] font-bold uppercase tracking-wider text-teal-400">API Gateway Integration</span>
             <h1 className="text-xl font-bold text-white">API Providers & Health Gateways</h1>
-            <p className="text-xs text-slate-400 mt-0.5">Monitor Aspfiy, OPay, NIMC, Prembly & VTU gateway uptime & keys.</p>
+            <p className="text-xs text-slate-400 mt-0.5">Monitor Aspfiy, NIMC, Prembly & VTU gateway uptime & keys.</p>
           </div>
         </div>
         <button type="button" onClick={() => onNavigate("/admin/dashboard")} className="py-2 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer">

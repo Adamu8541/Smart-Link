@@ -21,9 +21,40 @@ export const AuthActionHandler: React.FC<AuthActionHandlerProps> = ({
   const [oobCode, setOobCode] = useState<string | null>(null);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const modeParam = params.get("mode");
-    const codeParam = params.get("oobCode") || params.get("resetToken") || params.get("token");
+    // 1. Parse search query parameters
+    const searchParams = new URLSearchParams(window.location.search);
+
+    // 2. Parse hash query parameters if present (e.g. /#/reset-password?mode=...)
+    let hashParams = new URLSearchParams();
+    if (window.location.hash && window.location.hash.includes("?")) {
+      hashParams = new URLSearchParams(window.location.hash.substring(window.location.hash.indexOf("?")));
+    }
+
+    // 3. Parse continueUrl embedded parameters if passed by Firebase custom action handler
+    let continueParams = new URLSearchParams();
+    const continueUrl = searchParams.get("continueUrl") || hashParams.get("continueUrl");
+    if (continueUrl) {
+      try {
+        const parsedUrl = new URL(continueUrl, window.location.origin);
+        continueParams = new URLSearchParams(parsedUrl.search);
+      } catch (e) {}
+    }
+
+    const modeParam =
+      searchParams.get("mode") ||
+      hashParams.get("mode") ||
+      continueParams.get("mode");
+
+    const codeParam =
+      searchParams.get("oobCode") ||
+      searchParams.get("resetToken") ||
+      searchParams.get("token") ||
+      hashParams.get("oobCode") ||
+      hashParams.get("resetToken") ||
+      hashParams.get("token") ||
+      continueParams.get("oobCode") ||
+      continueParams.get("resetToken") ||
+      continueParams.get("token");
 
     setMode(modeParam);
     setOobCode(codeParam);

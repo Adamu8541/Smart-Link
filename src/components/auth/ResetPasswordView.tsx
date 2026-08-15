@@ -88,8 +88,20 @@ export const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({
 
   // Parse and verify oobCode on mount
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const code = oobCodeFromProps || params.get("oobCode") || params.get("resetToken") || params.get("token");
+    const searchParams = new URLSearchParams(window.location.search);
+    let hashParams = new URLSearchParams();
+    if (window.location.hash && window.location.hash.includes("?")) {
+      hashParams = new URLSearchParams(window.location.hash.substring(window.location.hash.indexOf("?")));
+    }
+
+    const code =
+      oobCodeFromProps ||
+      searchParams.get("oobCode") ||
+      searchParams.get("resetToken") ||
+      searchParams.get("token") ||
+      hashParams.get("oobCode") ||
+      hashParams.get("resetToken") ||
+      hashParams.get("token");
 
     if (!code) {
       setVerifyingCode(false);

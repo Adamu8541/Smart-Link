@@ -388,9 +388,19 @@ export default function App() {
       setCurrentView(targetView);
     };
 
-    // Initialize initial route state
-    const pathOnMount = window.location.pathname;
-    const initialView = routeToViewMap[pathOnMount] || "HOME";
+        const pathOnMount = window.location.pathname;
+    const paramsOnMount = new URLSearchParams(window.location.search);
+    let initialView = routeToViewMap[pathOnMount] || "HOME";
+
+    if (
+      pathOnMount.startsWith("/auth/action") ||
+      pathOnMount.startsWith("/__/auth/action") ||
+      paramsOnMount.get("mode") ||
+      (paramsOnMount.get("oobCode") && !pathOnMount.includes("reset-password") && !pathOnMount.includes("verify-email"))
+    ) {
+      initialView = "AUTH_ACTION";
+    }
+
     try {
       window.history.replaceState({ view: initialView, userUid: currentUser?.uid || null }, document.title, pathOnMount);
     } catch (e) {}
@@ -624,76 +634,17 @@ export default function App() {
       let user: any = null;
 
       try {
-        if (window.self !== window.top) {
-          // Inside iframe preview, use instant seamless Google authentication fallback
-          throw new Error("IFRAME_SANDBOX_DIRECT_AUTH");
-        }
-        const popupPromise = signInWithPopup(auth, provider);
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error("GOOGLE_POPUP_TIMEOUT")), 3000);
-        });
-        const result: any = await Promise.race([popupPromise, timeoutPromise]);
+        const result = await signInWithPopup(auth, provider);
         user = result.user;
       } catch (popupErr: any) {
-        if (popupErr?.code === "auth/popup-closed-by-user") {
-          throw popupErr;
-        }
-
-        // Fallback for iframe sandbox restrictions, popups blocked, or timeouts
-        const defaultGoogleAccountEmail = "adamuamuhammad8541@gmail.com";
-        const targetEmail = (authEmail || regEmail || "").trim().toLowerCase();
-        let chosenEmail = targetEmail || defaultGoogleAccountEmail;
-
-        let fallbackName = regFullName ? regFullName.trim() : "";
-        if (!fallbackName) {
-          if (chosenEmail === defaultGoogleAccountEmail) {
-            fallbackName = "Adamu A. Muhammad";
-          } else {
-            const rawPrefix = chosenEmail.split("@")[0] || "google_user";
-            fallbackName = rawPrefix
-              .replace(/[._\d]+/g, " ")
-              .trim()
-              .split(" ")
-              .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-              .join(" ") || "Google User";
-          }
-        }
-
-        user = {
-          uid: "google_" + Math.random().toString(36).substring(2, 10),
-          email: chosenEmail,
-          displayName: fallbackName,
-          phoneNumber: regPhoneNumber || ""
-        };
+        throw popupErr; // never fabricate a user — surface the real error instead
       }
 
       const userEmail = (user.email || "").toLowerCase().trim();
-      const isSuperAdmin = userEmail.includes("super") || userEmail.includes("8541") || userEmail === "adamuamuhammad8541@gmail.com";
-      const isAdmin = userEmail.includes("admin");
-      const targetRole = isSuperAdmin ? UserRole.SUPER_ADMIN : (isAdmin ? UserRole.ADMIN : UserRole.CUSTOMER);
       const fullName = user.displayName || userEmail.split("@")[0] || "Smart Link Nigeria User";
       const userPhone = user.phoneNumber || "";
 
-      // 1. Save / Update profile in Firestore
-      try {
-        await setDoc(
-          doc(db, "users", user.uid),
-          {
-            uid: user.uid,
-            email: userEmail,
-            fullName: fullName,
-            phoneNumber: userPhone,
-            role: targetRole,
-            isVerified: true,
-            createdAt: new Date().toISOString()
-          },
-          { merge: true }
-        );
-      } catch (fsErr) {
-        console.warn("Firestore Google Auth sync note:", fsErr);
-      }
-
-      // 2. Sync profile with local server DB safely
+      // 1. Sync profile with local server DB FIRST to obtain authoritative server-verified role
       const syncResult = await safeFetchJson("/api/auth/sync-firebase-user", {
         method: "POST",
         body: JSON.stringify({
@@ -701,7 +652,6 @@ export default function App() {
           email: userEmail,
           fullName: fullName,
           phoneNumber: userPhone,
-          role: targetRole,
           isVerified: true
         })
       });
@@ -711,12 +661,30 @@ export default function App() {
         email: userEmail,
         fullName: fullName,
         phoneNumber: userPhone,
-        role: targetRole,
+        role: UserRole.CUSTOMER,
         walletBalance: 0.0,
         referralCode: "SL" + Math.floor(1000 + Math.random() * 9000),
         isVerified: true,
         createdAt: new Date().toISOString()
       };
+
+      // 2. Save / Update profile in Firestore without client-side role
+      try {
+        await setDoc(
+          doc(db, "users", user.uid),
+          {
+            uid: user.uid,
+            email: userEmail,
+            fullName: fullName,
+            phoneNumber: userPhone,
+            isVerified: true,
+            createdAt: new Date().toISOString()
+          },
+          { merge: true }
+        );
+      } catch (fsErr) {
+        console.warn("Firestore Google Auth sync note:", fsErr);
+      }
 
       if (activeUser?.status === "SUSPENDED" || activeUser?.status === "INACTIVE" || activeUser?.status === "BLOCKED") {
         throw new Error("Your account has been strictly blocked or suspended by security administration. Access to the dashboard is denied.");
@@ -779,9 +747,6 @@ export default function App() {
       if (userCredential?.user) {
         const user = userCredential.user;
         const userEmailLower = (user.email || "").toLowerCase().trim();
-        const isSuperAdmin = userEmailLower.includes("super") || userEmailLower.includes("8541") || userEmailLower === "adamuamuhammad8541@gmail.com";
-        const isAdmin = userEmailLower.includes("admin");
-        const detectedRole = isSuperAdmin ? UserRole.SUPER_ADMIN : (isAdmin ? UserRole.ADMIN : undefined);
 
         updateDoc(doc(db, "users", user.uid), { isVerified: true }).catch(() => {});
 
@@ -790,7 +755,6 @@ export default function App() {
           body: JSON.stringify({
             uid: user.uid,
             email: user.email,
-            role: detectedRole,
             isVerified: true
           })
         });
@@ -800,16 +764,12 @@ export default function App() {
           email: user.email || "",
           fullName: user.displayName || user.email?.split("@")[0] || "Member",
           phoneNumber: "",
-          role: isSuperAdmin ? UserRole.SUPER_ADMIN : UserRole.CUSTOMER,
+          role: UserRole.CUSTOMER,
           walletBalance: 0.0,
           referralCode: "SL" + Math.floor(1000 + Math.random() * 9000),
           isVerified: true,
           createdAt: new Date().toISOString()
         };
-
-        if (isSuperAdmin) {
-          loginUser.role = UserRole.SUPER_ADMIN;
-        }
       } else {
         // Fallback fast server auth call
         const apiRes = await safeFetchJson("/api/auth/login", {
@@ -909,10 +869,6 @@ export default function App() {
 
       let activeUser: any = null;
 
-      const isRegSuperAdmin = regEmail.toLowerCase().includes("super") || regEmail.toLowerCase().includes("8541") || regEmail.toLowerCase().trim() === "adamuamuhammad8541@gmail.com";
-      const isRegAdmin = regEmail.toLowerCase().includes("admin");
-      const regUserRole = isRegSuperAdmin ? UserRole.SUPER_ADMIN : (isRegAdmin ? UserRole.ADMIN : UserRole.CUSTOMER);
-
       if (userCredential?.user) {
         const user = userCredential.user;
         setDoc(doc(db, "users", user.uid), {
@@ -920,7 +876,6 @@ export default function App() {
           email: regEmail.toLowerCase(),
           fullName: regFullName,
           phoneNumber: regPhoneNumber,
-          role: regUserRole,
           referralCode: regReferralCode,
           isVerified: true,
           createdAt: new Date().toISOString()
@@ -933,7 +888,6 @@ export default function App() {
             email: regEmail,
             fullName: regFullName,
             phoneNumber: regPhoneNumber,
-            role: regUserRole,
             referralCode: regReferralCode,
             isVerified: true
           })
@@ -944,7 +898,7 @@ export default function App() {
           email: regEmail.toLowerCase(),
           fullName: regFullName,
           phoneNumber: regPhoneNumber,
-          role: regUserRole,
+          role: UserRole.CUSTOMER,
           walletBalance: 0.0,
           referralCode: regReferralCode,
           isVerified: true,
@@ -958,7 +912,6 @@ export default function App() {
             password: regPassword,
             fullName: regFullName,
             phoneNumber: regPhoneNumber,
-            role: regUserRole,
             referralCode: regReferralCode
           }),
         });

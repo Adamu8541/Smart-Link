@@ -40,7 +40,6 @@ const PROVIDER_OPTIONS = [
   "VFD Bank",
   "Squad",
   "Interswitch",
-  "OPay",
   "Palmpay",
   "Prembly",
   "VerifyMe",

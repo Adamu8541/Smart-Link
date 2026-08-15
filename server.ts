@@ -17,7 +17,8 @@ import { ProviderExecutor, verifyWebhookSignature } from "./src/services/provide
 import { adminAuthService, ADMIN_ROLES_CONFIG } from "./src/services/adminAuthService";
 import { AutomaticWalletFundingEngine } from "./src/services/automaticWalletFundingEngine";
 import { PaymentVerificationReconciliationEngine } from "./src/services/paymentVerificationReconciliationEngine";
-import { getActiveProviderAndAdapter } from "./src/services/providerGateway";
+import { getActiveProviderAndAdapter, getAdapterForProvider } from "./src/services/providerGateway";
+import { AspfiyAdapter } from "./src/services/providers/aspfiyAdapter";
 import { syncFromFirestore, syncToFirestore } from "./src/services/settingsStore";
 import { loadFirestoreDb, syncDbToFirestore, saveDocToFirestore } from "./src/services/firestoreStore";
 import * as usersStore from "./src/services/usersStore";
@@ -330,7 +331,6 @@ function readDB() {
     "activityLogs",
     "notificationSettings",
     "adminLogs",
-    "payment_providers",
     "webhooks",
     "webhookLogs",
     "admin_sessions",
@@ -573,6 +573,13 @@ app.post("/api/auth/sync-firebase-user", async (req, res) => {
 
   const created = await usersStore.createUser(newUser);
   res.json({ user: created });
+});
+
+app.post("/api/auth/check-email-exists", async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: "Email is required" });
+  const user = await usersStore.getUserByEmail(email.toLowerCase().trim());
+  res.json({ exists: !!user });
 });
 
 app.post("/api/auth/login", async (req, res) => {
@@ -966,7 +973,8 @@ function verifyGatewayWebhookSignature(req: express.Request, db: any): { isValid
   const provider =
     (db.api_providers || []).find((p: any) => (p.category || "").toLowerCase().includes("gateway") || (p.type || "").toLowerCase().includes("payment")) ||
     (db.apiProviders || []).find((p: any) => (p.category || "").toLowerCase().includes("gateway") || (p.type || "").toLowerCase().includes("payment")) ||
-    (db.payment_providers || []).find((p: any) => p.status === "Active" || p.isActive);
+    (db.api_providers || []).find((p: any) => p.status === "Active" || p.isActive) ||
+    (db.apiProviders || []).find((p: any) => p.status === "Active" || p.isActive);
 
   const rawBodyStr = (req as any).rawBody || (typeof req.body === "string" ? req.body : JSON.stringify(req.body));
   return verifyWebhookSignature(provider, rawBodyStr, req.headers as any);
@@ -2040,12 +2048,14 @@ app.get("/api/admin/provider-logs", async (req, res) => {
   res.json({ logs: db.providerLogs || [] });
 });
 
-// --- PAYMENT PROVIDER MANAGEMENT (DATABASE TABLE: payment_providers) ---
+// --- PAYMENT PROVIDER MANAGEMENT (DATABASE TABLE: api_providers) ---
 
 // 1. Get all payment providers
 app.get("/api/admin/payment-providers", async (req, res) => {
   const db = readDB();
-  const paymentProviders = db.payment_providers || [];
+  if (!db.api_providers) db.api_providers = [];
+  if (!db.apiProviders) db.apiProviders = [];
+  const paymentProviders = db.api_providers.length > 0 ? db.api_providers : db.apiProviders;
   res.json({ success: true, paymentProviders });
 });
 
@@ -2070,9 +2080,14 @@ app.post("/api/admin/payment-providers", async (req, res) => {
     clientSecret,
     encryptionKey,
     webhookSecret,
+    webhookSigningSecret,
+    webhookSignatureMethod,
+    webhookSignatureHeaderName,
     callbackUrl,
     status,
-    notes
+    notes,
+    category,
+    providerType
   } = req.body;
 
   // Required Fields Validation: Provider Name, Secret Key, Webhook URL
@@ -2086,11 +2101,12 @@ app.post("/api/admin/payment-providers", async (req, res) => {
     return res.status(400).json({ error: "Webhook URL is required." });
   }
 
-  if (!db.payment_providers) db.payment_providers = [];
+  if (!db.api_providers) db.api_providers = [];
+  if (!db.apiProviders) db.apiProviders = [];
 
   // Check duplicate provider name (case-insensitive)
   const trimmedName = name.trim();
-  const duplicate = db.payment_providers.some(
+  const duplicate = db.api_providers.some(
     (p: any) => p.name.trim().toLowerCase() === trimmedName.toLowerCase()
   );
   if (duplicate) {
@@ -2105,32 +2121,51 @@ app.post("/api/admin/payment-providers", async (req, res) => {
 
   // Single Active Provider Rule: If new provider is Active, deactivate all existing providers
   if (targetStatus === "Active") {
-    db.payment_providers.forEach((p: any) => {
+    db.api_providers.forEach((p: any) => {
       p.status = "Inactive";
+      p.isActive = false;
+      p.updatedAt = new Date().toISOString();
+    });
+    db.apiProviders.forEach((p: any) => {
+      p.status = "Inactive";
+      p.isActive = false;
       p.updatedAt = new Date().toISOString();
     });
   }
 
+  const isAspfiy = trimmedName.toLowerCase().includes("aspfiy");
   const newProvider = {
-    id: "pay_prov_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
+    id: isAspfiy ? "prov_aspfiy" : "pay_prov_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
     name: trimmedName,
+    category: category || "PAYMENT_GATEWAY",
+    providerType: providerType || "PAYMENT_GATEWAY",
     secretKey: secretKey.trim(),
+    apiKey: secretKey.trim(),
     webhookUrl: webhookUrl.trim(),
-    baseUrl: (baseUrl || "").trim(),
+    baseUrl: (baseUrl || (isAspfiy ? "https://api.aspfiy.com" : "")).trim(),
     publicKey: (publicKey || "").trim(),
     merchantId: (merchantId || "").trim(),
     clientId: (clientId || "").trim(),
     clientSecret: (clientSecret || "").trim(),
     encryptionKey: (encryptionKey || "").trim(),
     webhookSecret: (webhookSecret || "").trim(),
+    webhookSigningSecret: (webhookSigningSecret || webhookSecret || secretKey || "").trim(),
+    webhookSignatureMethod: webhookSignatureMethod || (isAspfiy ? "MD5_OF_SECRET" : "HMAC-SHA512"),
+    webhookSignatureHeaderName: webhookSignatureHeaderName || (isAspfiy ? "x-wiaxy-signature" : "x-signature"),
     callbackUrl: (callbackUrl || "").trim(),
     status: targetStatus,
+    enabled: targetStatus === "Active",
+    isActive: targetStatus === "Active",
+    supportsWalletFunding: true,
+    supportsVirtualAccount: true,
+    supportsTxVerification: true,
     notes: (notes || "").trim(),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
 
-  db.payment_providers.push(newProvider);
+  db.api_providers.push(newProvider);
+  db.apiProviders.push(newProvider);
 
   if (adminUid) {
     const admin = await usersStore.getUserById(adminUid);
@@ -2146,7 +2181,7 @@ app.post("/api/admin/payment-providers", async (req, res) => {
   }
 
   writeDB(db);
-  res.json({ success: true, provider: newProvider, paymentProviders: db.payment_providers });
+  res.json({ success: true, provider: newProvider, paymentProviders: db.api_providers });
 });
 
 // 3. Edit Payment Provider & Save Changes
@@ -2171,9 +2206,14 @@ app.put("/api/admin/payment-providers/:id", async (req, res) => {
     clientSecret,
     encryptionKey,
     webhookSecret,
+    webhookSigningSecret,
+    webhookSignatureMethod,
+    webhookSignatureHeaderName,
     callbackUrl,
     status,
-    notes
+    notes,
+    category,
+    providerType
   } = req.body;
 
   // Required Fields Validation
@@ -2187,54 +2227,83 @@ app.put("/api/admin/payment-providers/:id", async (req, res) => {
     return res.status(400).json({ error: "Webhook URL is required." });
   }
 
-  if (!db.payment_providers) db.payment_providers = [];
+  if (!db.api_providers) db.api_providers = [];
+  if (!db.apiProviders) db.apiProviders = [];
 
-  const idx = db.payment_providers.findIndex((p: any) => p.id === id);
+  let idx = db.api_providers.findIndex((p: any) => p.id === id);
+  if (idx === -1) {
+    idx = db.apiProviders.findIndex((p: any) => p.id === id);
+  }
   if (idx === -1) {
     return res.status(404).json({ error: "Payment Provider not found." });
   }
 
   // Prevent duplicate provider names (check other providers with id !== id)
   const trimmedName = name.trim();
-  const duplicate = db.payment_providers.some(
+  const duplicate = db.api_providers.some(
     (p: any) => p.id !== id && p.name.trim().toLowerCase() === trimmedName.toLowerCase()
   );
   if (duplicate) {
     return res.status(400).json({ error: `A payment provider with the name "${trimmedName}" already exists.` });
   }
 
-  let targetStatus: "Active" | "Inactive" | "Draft" = db.payment_providers[idx].status || "Draft";
+  const existing = db.api_providers[idx] || db.apiProviders[idx];
+  let targetStatus: "Active" | "Inactive" | "Draft" = existing.status || "Draft";
   if (status === "Active" || status === "Inactive" || status === "Draft") {
     targetStatus = status;
   }
 
   // Single Active Provider Rule: If target becomes Active, deactivate all others
   if (targetStatus === "Active") {
-    db.payment_providers.forEach((p: any) => {
+    db.api_providers.forEach((p: any) => {
       if (p.id !== id) {
         p.status = "Inactive";
+        p.isActive = false;
+        p.updatedAt = new Date().toISOString();
+      }
+    });
+    db.apiProviders.forEach((p: any) => {
+      if (p.id !== id) {
+        p.status = "Inactive";
+        p.isActive = false;
         p.updatedAt = new Date().toISOString();
       }
     });
   }
 
-  db.payment_providers[idx] = {
-    ...db.payment_providers[idx],
+  const updatedProvider = {
+    ...existing,
     name: trimmedName,
+    category: category || existing.category || "PAYMENT_GATEWAY",
+    providerType: providerType || existing.providerType || "PAYMENT_GATEWAY",
     secretKey: secretKey.trim(),
+    apiKey: secretKey.trim(),
     webhookUrl: webhookUrl.trim(),
-    baseUrl: (baseUrl || "").trim(),
-    publicKey: (publicKey || "").trim(),
-    merchantId: (merchantId || "").trim(),
-    clientId: (clientId || "").trim(),
-    clientSecret: (clientSecret || "").trim(),
-    encryptionKey: (encryptionKey || "").trim(),
-    webhookSecret: (webhookSecret || "").trim(),
-    callbackUrl: (callbackUrl || "").trim(),
+    baseUrl: (baseUrl || existing.baseUrl || "").trim(),
+    publicKey: (publicKey || existing.publicKey || "").trim(),
+    merchantId: (merchantId || existing.merchantId || "").trim(),
+    clientId: (clientId || existing.clientId || "").trim(),
+    clientSecret: (clientSecret || existing.clientSecret || "").trim(),
+    encryptionKey: (encryptionKey || existing.encryptionKey || "").trim(),
+    webhookSecret: (webhookSecret || existing.webhookSecret || "").trim(),
+    webhookSigningSecret: (webhookSigningSecret || webhookSecret || existing.webhookSigningSecret || secretKey || "").trim(),
+    webhookSignatureMethod: webhookSignatureMethod || existing.webhookSignatureMethod || "HMAC-SHA512",
+    webhookSignatureHeaderName: webhookSignatureHeaderName || existing.webhookSignatureHeaderName || "x-signature",
+    callbackUrl: (callbackUrl || existing.callbackUrl || "").trim(),
     status: targetStatus,
-    notes: (notes || "").trim(),
+    enabled: targetStatus === "Active",
+    isActive: targetStatus === "Active",
+    notes: (notes || existing.notes || "").trim(),
     updatedAt: new Date().toISOString()
   };
+
+  const p1 = db.api_providers.findIndex((p: any) => p.id === id);
+  if (p1 !== -1) db.api_providers[p1] = updatedProvider;
+  else db.api_providers.push(updatedProvider);
+
+  const p2 = db.apiProviders.findIndex((p: any) => p.id === id);
+  if (p2 !== -1) db.apiProviders[p2] = updatedProvider;
+  else db.apiProviders.push(updatedProvider);
 
   if (adminUid) {
     const admin = await usersStore.getUserById(adminUid);
@@ -2244,13 +2313,13 @@ app.put("/api/admin/payment-providers/:id", async (req, res) => {
       adminUid,
       adminEmail: admin?.email || "admin",
       action: "EDIT_PAYMENT_PROVIDER",
-      details: `Updated Payment Provider "${db.payment_providers[idx].name}" (Status: ${db.payment_providers[idx].status})`,
+      details: `Updated Payment Provider "${updatedProvider.name}" (Status: ${updatedProvider.status})`,
       timestamp: new Date().toISOString()
     });
   }
 
   writeDB(db);
-  res.json({ success: true, provider: db.payment_providers[idx], paymentProviders: db.payment_providers });
+  res.json({ success: true, provider: updatedProvider, paymentProviders: db.api_providers });
 });
 
 // 4. Delete Payment Provider
@@ -2265,15 +2334,17 @@ app.delete("/api/admin/payment-providers/:id", async (req, res) => {
   }
   const admin = val.session;
   const adminUid = admin.uid;
-  if (!db.payment_providers) db.payment_providers = [];
+  if (!db.api_providers) db.api_providers = [];
+  if (!db.apiProviders) db.apiProviders = [];
 
-  const idx = db.payment_providers.findIndex((p: any) => p.id === id);
-  if (idx === -1) {
+  const provider = db.api_providers.find((p: any) => p.id === id) || db.apiProviders.find((p: any) => p.id === id);
+  if (!provider) {
     return res.status(404).json({ error: "Payment Provider not found." });
   }
 
-  const deletedName = db.payment_providers[idx].name;
-  db.payment_providers.splice(idx, 1);
+  const deletedName = provider.name;
+  db.api_providers = db.api_providers.filter((p: any) => p.id !== id);
+  db.apiProviders = db.apiProviders.filter((p: any) => p.id !== id);
 
   if (adminUid) {
     const admin = await usersStore.getUserById(adminUid);
@@ -2289,7 +2360,7 @@ app.delete("/api/admin/payment-providers/:id", async (req, res) => {
   }
 
   writeDB(db);
-  res.json({ success: true, paymentProviders: db.payment_providers });
+  res.json({ success: true, paymentProviders: db.api_providers });
 });
 
 // 5. Activate Payment Provider (Deactivates all other providers)
@@ -2304,22 +2375,42 @@ app.post("/api/admin/payment-providers/:id/activate", async (req, res) => {
   }
   const admin = val.session;
   const adminUid = admin.uid;
-  if (!db.payment_providers) db.payment_providers = [];
+  if (!db.api_providers) db.api_providers = [];
+  if (!db.apiProviders) db.apiProviders = [];
 
-  const idx = db.payment_providers.findIndex((p: any) => p.id === id);
-  if (idx === -1) {
+  const p1 = db.api_providers.find((p: any) => p.id === id);
+  const p2 = db.apiProviders.find((p: any) => p.id === id);
+  if (!p1 && !p2) {
     return res.status(404).json({ error: "Payment Provider not found." });
   }
 
   // Deactivate all providers first
-  db.payment_providers.forEach((p: any) => {
+  db.api_providers.forEach((p: any) => {
     p.status = "Inactive";
+    p.isActive = false;
+    p.updatedAt = new Date().toISOString();
+  });
+  db.apiProviders.forEach((p: any) => {
+    p.status = "Inactive";
+    p.isActive = false;
     p.updatedAt = new Date().toISOString();
   });
 
   // Activate target provider
-  db.payment_providers[idx].status = "Active";
-  db.payment_providers[idx].updatedAt = new Date().toISOString();
+  if (p1) {
+    p1.status = "Active";
+    p1.isActive = true;
+    p1.enabled = true;
+    p1.updatedAt = new Date().toISOString();
+  }
+  if (p2) {
+    p2.status = "Active";
+    p2.isActive = true;
+    p2.enabled = true;
+    p2.updatedAt = new Date().toISOString();
+  }
+
+  const targetProvider = p1 || p2;
 
   if (adminUid) {
     const admin = await usersStore.getUserById(adminUid);
@@ -2329,7 +2420,7 @@ app.post("/api/admin/payment-providers/:id/activate", async (req, res) => {
       adminUid,
       adminEmail: admin?.email || "admin",
       action: "ACTIVATE_PAYMENT_PROVIDER",
-      details: `Activated Payment Provider "${db.payment_providers[idx].name}" and deactivated all other providers.`,
+      details: `Activated Payment Provider "${targetProvider.name}" and deactivated all other providers.`,
       timestamp: new Date().toISOString()
     });
   }
@@ -2338,7 +2429,7 @@ app.post("/api/admin/payment-providers/:id/activate", async (req, res) => {
   if (!db.providerLogs) db.providerLogs = [];
   db.providerLogs.unshift({
     id: "log_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
-    providerName: db.payment_providers[idx].name,
+    providerName: targetProvider.name,
     service: "PROVIDER_SERVICE",
     transactionId: "switch_" + Date.now(),
     userId: adminUid || "ADMIN",
@@ -2346,21 +2437,30 @@ app.post("/api/admin/payment-providers/:id/activate", async (req, res) => {
     responseTime: 5,
     status: "SUCCESS",
     event: "Provider Switched",
-    details: `Provider Switched: "${db.payment_providers[idx].name}" is now the active provider.`
+    details: `Provider Switched: "${targetProvider.name}" is now the active provider.`
   });
 
   writeDB(db);
-  res.json({ success: true, provider: db.payment_providers[idx], paymentProviders: db.payment_providers });
+  res.json({ success: true, provider: targetProvider, paymentProviders: db.api_providers });
 });
 
 // --- CENTRALIZED DYNAMIC PAYMENT PROVIDER ENGINE ---
 
 function getCentralActivePaymentProvider(db: any, isAdmin = false) {
-  if (!db.payment_providers || !Array.isArray(db.payment_providers)) {
-    db.payment_providers = [];
-  }
+  if (!db.api_providers) db.api_providers = [];
+  if (!db.apiProviders) db.apiProviders = [];
 
-  const activeProvider = db.payment_providers.find((p: any) => p.status === "Active");
+  const providers = db.api_providers.length > 0 ? db.api_providers : db.apiProviders;
+  const activeProvider =
+    providers.find(
+      (p: any) =>
+        (p.status === "Active" || p.isActive === true || p.enabled === true) &&
+        ((p.category || "").toUpperCase().includes("PAYMENT") ||
+          (p.category || "").toUpperCase().includes("GATEWAY") ||
+          p.supportsWalletFunding ||
+          !p.category)
+    ) ||
+    providers.find((p: any) => p.status === "Active" || p.isActive === true || p.enabled === true);
 
   if (!activeProvider) {
     if (!db.providerLogs) db.providerLogs = [];
@@ -2383,7 +2483,8 @@ function getCentralActivePaymentProvider(db: any, isAdmin = false) {
     };
   }
 
-  if (!activeProvider.name || !activeProvider.secretKey || !activeProvider.webhookUrl) {
+  const keyVal = activeProvider.secretKey || activeProvider.apiKey;
+  if (!activeProvider.name || !keyVal) {
     if (!db.providerLogs) db.providerLogs = [];
     db.providerLogs.unshift({
       id: "log_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
@@ -2429,7 +2530,7 @@ function getCentralActivePaymentProvider(db: any, isAdmin = false) {
   const sanitized = {
     id: activeProvider.id,
     name: activeProvider.name,
-    status: activeProvider.status,
+    status: activeProvider.status || (activeProvider.isActive ? "Active" : "Inactive"),
     baseUrl: activeProvider.baseUrl || "",
     publicKey: activeProvider.publicKey || "",
     merchantId: activeProvider.merchantId || "",
@@ -2688,8 +2789,6 @@ app.post("/api/wallet/transfers", async (req, res) => {
   });
 });
 
-
-
 // 8. Deposit Records Module Endpoint
 app.get("/api/wallet/deposits/:userId", async (req, res) => {
   const { userId } = req.params;
@@ -2795,15 +2894,29 @@ app.post("/api/admin/payment-providers/:id/deactivate", async (req, res) => {
   }
   const admin = val.session;
   const adminUid = admin.uid;
-  if (!db.payment_providers) db.payment_providers = [];
+  if (!db.api_providers) db.api_providers = [];
+  if (!db.apiProviders) db.apiProviders = [];
 
-  const idx = db.payment_providers.findIndex((p: any) => p.id === id);
-  if (idx === -1) {
+  const p1 = db.api_providers.find((p: any) => p.id === id);
+  const p2 = db.apiProviders.find((p: any) => p.id === id);
+  if (!p1 && !p2) {
     return res.status(404).json({ error: "Payment Provider not found." });
   }
 
-  db.payment_providers[idx].status = "Inactive";
-  db.payment_providers[idx].updatedAt = new Date().toISOString();
+  if (p1) {
+    p1.status = "Inactive";
+    p1.isActive = false;
+    p1.enabled = false;
+    p1.updatedAt = new Date().toISOString();
+  }
+  if (p2) {
+    p2.status = "Inactive";
+    p2.isActive = false;
+    p2.enabled = false;
+    p2.updatedAt = new Date().toISOString();
+  }
+
+  const targetProvider = p1 || p2;
 
   if (adminUid) {
     const admin = await usersStore.getUserById(adminUid);
@@ -2813,13 +2926,13 @@ app.post("/api/admin/payment-providers/:id/deactivate", async (req, res) => {
       adminUid,
       adminEmail: admin?.email || "admin",
       action: "DEACTIVATE_PAYMENT_PROVIDER",
-      details: `Deactivated Payment Provider "${db.payment_providers[idx].name}".`,
+      details: `Deactivated Payment Provider "${targetProvider.name}".`,
       timestamp: new Date().toISOString()
     });
   }
 
   writeDB(db);
-  res.json({ success: true, provider: db.payment_providers[idx], paymentProviders: db.payment_providers });
+  res.json({ success: true, provider: targetProvider, paymentProviders: db.api_providers });
 });
 
 // 7. Test Provider Connection (Provider Connection Tester)
@@ -2849,8 +2962,12 @@ app.post("/api/admin/payment-providers/:id/test-connection", async (req, res) =>
     });
   }
 
-  if (!db.payment_providers) db.payment_providers = [];
-  const idx = db.payment_providers.findIndex((p: any) => p.id === id);
+  if (!db.api_providers) db.api_providers = [];
+  if (!db.apiProviders) db.apiProviders = [];
+  let idx = db.api_providers.findIndex((p: any) => p.id === id);
+  if (idx === -1) {
+    idx = db.apiProviders.findIndex((p: any) => p.id === id);
+  }
   if (idx === -1) {
     return res.status(404).json({
       success: false,
@@ -2860,7 +2977,7 @@ app.post("/api/admin/payment-providers/:id/test-connection", async (req, res) =>
     });
   }
 
-  const provider = db.payment_providers[idx];
+  const provider = db.api_providers[idx] || db.apiProviders[idx];
 
   let testResultStatus:
     | "Connected"
@@ -2877,23 +2994,38 @@ app.post("/api/admin/payment-providers/:id/test-connection", async (req, res) =>
   let errorMessage: string | null = null;
 
   // Step 1: Validate required credentials
-  if (!provider.secretKey || !provider.secretKey.trim()) {
+  const effectiveSecret = provider.secretKey || provider.apiKey;
+  if (!effectiveSecret || !effectiveSecret.trim()) {
     testResultStatus = "Invalid Secret Key";
     errorMessage = "Secret Key is missing or empty in configuration.";
   } else if (!provider.webhookUrl || !provider.webhookUrl.trim()) {
     testResultStatus = "Invalid Credentials";
     errorMessage = "Webhook URL is missing in configuration.";
-  } else if (provider.secretKey.toLowerCase().includes("invalid_secret") || provider.secretKey.toLowerCase().includes("bad_secret")) {
-    testResultStatus = "Invalid Secret Key";
-    errorMessage = "Provider rejected the Secret Key.";
-  } else if (provider.merchantId && provider.merchantId.toLowerCase().includes("invalid_merchant")) {
-    testResultStatus = "Invalid Merchant ID";
-    errorMessage = "Provider rejected the Merchant ID.";
-  } else if (provider.publicKey && provider.publicKey.toLowerCase().includes("invalid_key")) {
-    testResultStatus = "Invalid API Key";
-    errorMessage = "Provider rejected the API / Public Key.";
-  } else if (provider.baseUrl && provider.baseUrl.trim()) {
-    // Step 2: Validate URL structure
+  }
+
+  // Step 2: Use registered adapter if available (e.g. Aspfiy)
+  const adapter = getAdapterForProvider(provider);
+  if (testResultStatus === "Connected" && adapter && typeof adapter.testConnection === "function") {
+    try {
+      const adapterResult = await adapter.testConnection(provider);
+      if (!adapterResult.ok) {
+        if (adapterResult.message?.toLowerCase().includes("unauthorized") || adapterResult.message?.toLowerCase().includes("rejected")) {
+          testResultStatus = "Unauthorized";
+        } else if (adapterResult.message?.toLowerCase().includes("missing")) {
+          testResultStatus = "Invalid Secret Key";
+        } else if (adapterResult.message?.toLowerCase().includes("unreachable")) {
+          testResultStatus = "Server Unreachable";
+        } else {
+          testResultStatus = "Unknown Error";
+        }
+        errorMessage = adapterResult.message;
+      }
+    } catch (err: any) {
+      testResultStatus = "Unknown Error";
+      errorMessage = err?.message || "Failed testing connection via provider adapter.";
+    }
+  } else if (testResultStatus === "Connected" && provider.baseUrl && provider.baseUrl.trim()) {
+    // Step 3: Validate URL structure & Safe Ping Connection Test for generic providers
     try {
       const url = new URL(provider.baseUrl);
       if (url.protocol !== "http:" && url.protocol !== "https:") {
@@ -2905,7 +3037,6 @@ app.post("/api/admin/payment-providers/:id/test-connection", async (req, res) =>
       errorMessage = "Base API URL format is invalid.";
     }
 
-    // Step 3: Safe Ping Connection Test if Base URL is valid
     if (testResultStatus === "Connected") {
       try {
         const controller = new AbortController();
@@ -2914,7 +3045,7 @@ app.post("/api/admin/payment-providers/:id/test-connection", async (req, res) =>
         const fetchRes = await fetch(provider.baseUrl, {
           method: "GET",
           headers: {
-            "Authorization": `Bearer ${provider.secretKey}`,
+            "Authorization": `Bearer ${effectiveSecret}`,
             "User-Agent": "SmartLink-Connection-Tester/1.0",
             "Accept": "application/json"
           },
@@ -2929,6 +3060,9 @@ app.post("/api/admin/payment-providers/:id/test-connection", async (req, res) =>
         } else if (fetchRes.status === 400) {
           testResultStatus = "Invalid Credentials";
           errorMessage = `Provider returned HTTP 400: Malformed connection headers or configuration.`;
+        } else if (!fetchRes.ok) {
+          testResultStatus = "Unknown Error";
+          errorMessage = `Provider returned HTTP ${fetchRes.status}.`;
         }
       } catch (err: any) {
         if (err.name === "AbortError" || err.message?.includes("aborted")) {
@@ -2958,11 +3092,25 @@ app.post("/api/admin/payment-providers/:id/test-connection", async (req, res) =>
   }
 
   // Step 5: Save connection results to database
-  db.payment_providers[idx].connectionStatus = connectionBadgeStatus;
-  db.payment_providers[idx].lastTestedAt = new Date().toISOString();
-  db.payment_providers[idx].lastTestResult = testResultStatus;
-  db.payment_providers[idx].lastTestError = errorMessage || null;
-  db.payment_providers[idx].updatedAt = new Date().toISOString();
+  const p1 = db.api_providers.findIndex((p: any) => p.id === id);
+  if (p1 !== -1) {
+    db.api_providers[p1].connectionStatus = connectionBadgeStatus;
+    db.api_providers[p1].lastTestedAt = new Date().toISOString();
+    db.api_providers[p1].lastTestResult = testResultStatus;
+    db.api_providers[p1].lastTestError = errorMessage || null;
+    db.api_providers[p1].updatedAt = new Date().toISOString();
+  }
+
+  const p2 = db.apiProviders.findIndex((p: any) => p.id === id);
+  if (p2 !== -1) {
+    db.apiProviders[p2].connectionStatus = connectionBadgeStatus;
+    db.apiProviders[p2].lastTestedAt = new Date().toISOString();
+    db.apiProviders[p2].lastTestResult = testResultStatus;
+    db.apiProviders[p2].lastTestError = errorMessage || null;
+    db.apiProviders[p2].updatedAt = new Date().toISOString();
+  }
+
+  const updatedTarget = (p1 !== -1 ? db.api_providers[p1] : null) || (p2 !== -1 ? db.apiProviders[p2] : null) || provider;
 
   // Step 6: Create audit log (Strictly sanitize sensitive keys)
   if (!db.providerLogs) db.providerLogs = [];
@@ -2995,9 +3143,9 @@ app.post("/api/admin/payment-providers/:id/test-connection", async (req, res) =>
     success: testResultStatus === "Connected",
     result: testResultStatus,
     errorMessage: errorMessage,
-    lastTestedAt: db.payment_providers[idx].lastTestedAt,
-    provider: db.payment_providers[idx],
-    paymentProviders: db.payment_providers
+    lastTestedAt: updatedTarget.lastTestedAt,
+    provider: updatedTarget,
+    paymentProviders: db.api_providers
   });
 });
 
@@ -4646,24 +4794,23 @@ app.post("/api/notifications/dispatch", async (req, res) => {
   const notificationId = "NOTIF_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
   const activityId = "ACT_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
 
-  // A. Save Notification
-  const newNotif = {
+  // A. Save Notification directly to Firestore
+  const newNotif = await notificationsStore.sendAppNotification(db, {
     id: notificationId,
     notificationId,
     userId,
     title,
     body,
+    message: body,
     type,
     category,
     reference,
     actionUrl,
     read: false,
+    isRead: false,
     createdAt: nowISO,
     updatedAt: nowISO
-  };
-
-  if (!db.notifications) db.notifications = [];
-  db.notifications.unshift(newNotif);
+  });
 
   // B. Save Activity Log
   const newActivity = {
@@ -4712,11 +4859,12 @@ app.post("/api/notifications/dispatch", async (req, res) => {
   res.json({
     success: true,
     notificationId,
-    activityId
+    activityId,
+    notification: newNotif
   });
 });
 
-// 2. Get User Notifications (Paginated & Filtered)
+// 2. Get User Notifications (Paginated & Filtered) backed directly by Firestore
 app.get("/api/notifications", async (req, res) => {
   const { userId, read, type, category, searchQuery, page = 1, pageSize = 20 } = req.query;
   const db = readDB();
@@ -4728,100 +4876,83 @@ app.get("/api/notifications", async (req, res) => {
     }
   }
 
-  let list = db.notifications || [];
-
-  if (userId) {
-    list = list.filter((n: any) => n.userId === userId);
-  }
-
-  const unreadCount = list.filter((n: any) => !n.read).length;
-
-  if (read !== undefined) {
-    const isRead = read === "true";
-    list = list.filter((n: any) => n.read === isRead);
-  }
-
-  if (category) {
-    list = list.filter((n: any) => n.category === category);
-  }
-
-  if (type) {
-    list = list.filter((n: any) => n.type === type);
-  }
-
-  if (searchQuery) {
-    const q = (searchQuery as string).toLowerCase();
-    list = list.filter(
-      (n: any) =>
-        n.title?.toLowerCase().includes(q) ||
-        n.body?.toLowerCase().includes(q) ||
-        n.reference?.toLowerCase().includes(q)
-    );
-  }
-
-  const total = list.length;
+  const isReadBool = read !== undefined ? read === "true" : undefined;
   const pageNum = parseInt(page as string) || 1;
   const limitNum = parseInt(pageSize as string) || 20;
-  const startIndex = (pageNum - 1) * limitNum;
-  const paginatedList = list.slice(startIndex, startIndex + limitNum);
+
+  const result = await notificationsStore.getNotifications({
+    userId: userId as string,
+    read: isReadBool,
+    type: type as string,
+    category: category as string,
+    searchQuery: searchQuery as string,
+    page: pageNum,
+    pageSize: limitNum,
+  });
 
   res.json({
-    notifications: paginatedList,
-    total,
-    unreadCount,
+    notifications: result.notifications,
+    total: result.total,
+    unreadCount: result.unreadCount,
     page: pageNum,
     pageSize: limitNum
   });
 });
 
-// 3. Mark Notification as Read
+// 3. Mark Notification as Read directly in Firestore
 app.patch("/api/notifications/:id/read", async (req, res) => {
   const { id } = req.params;
   const db = readDB();
 
-  const idx = (db.notifications || []).findIndex(
-    (n: any) => n.notificationId === id || n.id === id
-  );
-  if (idx !== -1) {
-    db.notifications[idx].read = true;
-    db.notifications[idx].updatedAt = new Date().toISOString();
-    writeDB(db);
+  const success = await notificationsStore.markNotificationAsRead(id);
+  if (success) {
+    const idx = (db.notifications || []).findIndex(
+      (n: any) => n.notificationId === id || n.id === id
+    );
+    if (idx !== -1) {
+      db.notifications[idx].read = true;
+      db.notifications[idx].isRead = true;
+      db.notifications[idx].updatedAt = new Date().toISOString();
+    }
     return res.json({ success: true });
   }
 
   res.status(404).json({ error: "Notification not found" });
 });
 
-// 4. Mark All Notifications as Read
+// 4. Mark All Notifications as Read directly in Firestore
 app.post("/api/notifications/read-all", async (req, res) => {
   const { userId } = req.body;
   const db = readDB();
 
   if (!userId) return res.status(400).json({ error: "UserId required" });
 
-  let updated = false;
-  db.notifications = (db.notifications || []).map((n: any) => {
-    if (n.userId === userId && !n.read) {
-      updated = true;
-      return { ...n, read: true, updatedAt: new Date().toISOString() };
-    }
-    return n;
-  });
+  await notificationsStore.markAllNotificationsAsRead(userId);
 
-  if (updated) writeDB(db);
+  if (db.notifications) {
+    db.notifications = db.notifications.map((n: any) => {
+      if (n.userId === userId) {
+        return { ...n, read: true, isRead: true, updatedAt: new Date().toISOString() };
+      }
+      return n;
+    });
+  }
 
   res.json({ success: true });
 });
 
-// 5. Delete Notification
+// 5. Delete Notification directly in Firestore
 app.delete("/api/notifications/:id", async (req, res) => {
   const { id } = req.params;
   const db = readDB();
 
-  db.notifications = (db.notifications || []).filter(
-    (n: any) => n.notificationId !== id && n.id !== id
-  );
-  writeDB(db);
+  await notificationsStore.deleteNotification(id);
+
+  if (db.notifications) {
+    db.notifications = db.notifications.filter(
+      (n: any) => n.notificationId !== id && n.id !== id
+    );
+  }
 
   res.json({ success: true });
 });
@@ -11126,8 +11257,6 @@ function seedModule6ProvidersIfEmpty(db: any) {
   if (!db.apiProviders) db.apiProviders = [];
 
   if (db.api_providers.length === 0 && db.apiProviders.length === 0) {
-    const defaultGatewaySecret = process.env.GATEWAY_WEBHOOK_SECRET || process.env.GATEWAY_SECRET_KEY || "";
-
     const defaultAspfiy = {
       id: "prov_aspfiy",
       name: "Aspfiy Payment Gateway",
@@ -11135,35 +11264,29 @@ function seedModule6ProvidersIfEmpty(db: any) {
       providerType: "PAYMENT_GATEWAY",
       description: "Aspfiy Reserved Virtual Accounts & Bank Transfer Gateway",
       logoUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=60",
-      baseUrl: "https://api.aspfiy.com",
+      baseUrl: "https://api-v1.aspfiy.com",
       apiVersion: "v1.0",
       authMethod: "BEARER_TOKEN",
-      apiKey: process.env.ASPIFY_API_KEY || "MK_TEST_0000000000",
-      secretKey: process.env.ASPIFY_SECRET_KEY || "SK_TEST_0000000000",
-      contractCode: process.env.ASPIFY_CONTRACT_CODE || "0000000000",
-      webhookUrl: "/api/webhooks/gateway",
-      webhookSignatureMethod: "HMAC-SHA512",
-      webhookSignatureHeaderName: "x-signature",
-      webhookSigningSecret: defaultGatewaySecret,
-      webhookSecret: defaultGatewaySecret,
+      secretKey: process.env.ASPFIY_SECRET_KEY || "",
+      webhookUrl: "", // must be filled in by the admin with the real deployed URL, e.g. https://<your-render-url>/api/webhooks/incoming — cannot be known at seed time
+      webhookSignatureMethod: "MD5_OF_SECRET",
+      webhookSignatureHeaderName: "x-wiaxy-signature",
+      webhookSigningSecret: process.env.ASPFIY_SECRET_KEY || "",
+      webhookSecret: process.env.ASPFIY_SECRET_KEY || "",
       supportsWalletFunding: true,
       supportsBankTransfer: true,
-      supportsCardPayment: true,
+      supportsCardPayment: false,
       supportsVirtualAccount: true,
-      supportsPaymentLink: true,
+      supportsPaymentLink: false,
       supportsPayout: true,
-      supportsRefund: true,
-      supportsTxVerification: true,
+      supportsRefund: false,
+      supportsTxVerification: false,
       timeout: 10000,
       retryAttempts: 3,
-      healthStatus: "ONLINE",
+      healthStatus: "UNKNOWN",
       priority: 1,
       environment: "SANDBOX",
-      enabled: true,
-      isActive: true,
-      isDefault: true,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      status: "Draft",
     };
 
     db.api_providers.push(defaultAspfiy);
@@ -11608,46 +11731,48 @@ app.post("/api/admin/providers/:providerId/test-connection", async (req, res) =>
   }
 
   const pingStartTime = Date.now();
-  // Simulate API authentication & health ping roundtrip latency (80ms - 220ms)
-  const simulatedLatency = Math.floor(Math.random() * 140) + 80;
-  const nowISO = new Date().toISOString();
+  let testResult: { ok: boolean; message: string; responseTimeMs: number };
 
-  provider.lastTested = nowISO;
-  provider.avgResponseTimeMs = simulatedLatency;
-  provider.connectionStatus = "Connected";
-  provider.healthStatus = "ONLINE";
+  if (provider.name.toLowerCase().includes("aspfiy")) {
+    const adapter = new AspfiyAdapter();
+    testResult = await adapter.testConnection(provider); // provider must have secretKey + baseUrl fields
+  } else {
+    testResult = { ok: false, message: `No integration adapter registered for provider "${provider.name}".`, responseTimeMs: 0 };
+  }
+
+  provider.lastTested = new Date().toISOString();
+  provider.avgResponseTimeMs = testResult.responseTimeMs;
+  provider.connectionStatus = testResult.ok ? "Connected" : "Disconnected";
+  provider.healthStatus = testResult.ok ? "ONLINE" : "OFFLINE";
 
   if (!db.provider_logs) db.provider_logs = [];
-  const pingLog = {
+  db.provider_logs.unshift({
     id: `PING_${Date.now()}`,
     providerId: provider.id,
     providerName: provider.name,
     adminEmail: val.session.email,
     action: "CONNECTION_TEST",
-    result: "SUCCESS",
-    latencyMs: simulatedLatency,
+    result: testResult.ok ? "SUCCESS" : "FAILED",
+    latencyMs: testResult.responseTimeMs,
     endpointTested: provider.baseUrl,
-    details: `Authenticated & Pinged ${provider.baseUrl}. Latency: ${simulatedLatency}ms. Credentials valid.`,
-    timestamp: nowISO,
-  };
-  db.provider_logs.unshift(pingLog);
+    details: testResult.message,
+    timestamp: new Date().toISOString(),
+  });
 
   writeDB(db);
   await syncToFirestore(db);
 
-  res.json({
-    success: true,
-    message: `Connection test successful! ${provider.name} API responds in ${simulatedLatency}ms.`,
+  return res.json({
+    success: testResult.ok,
+    message: testResult.message,
     testResult: {
       providerId: provider.id,
       providerName: provider.name,
-      status: "ONLINE",
-      authenticated: true,
-      latencyMs: simulatedLatency,
-      environmentTested: provider.environment,
+      status: testResult.ok ? "ONLINE" : "OFFLINE",
+      authenticated: testResult.ok,
+      latencyMs: testResult.responseTimeMs,
       baseUrlTested: provider.baseUrl,
-      maskedCredentialsUsed: provider.apiKeyStatus,
-      testedAt: nowISO,
+      testedAt: new Date().toISOString(),
     },
   });
 });
@@ -14914,16 +15039,17 @@ app.get("/api/admin/notifications/dashboard", async (req, res) => {
 
   const notifications = db.notifications || [];
   const announcements = db.announcement_posts || [];
-  const history = db.notification_history || [];
+  const history = await notificationsStore.getNotificationHistory(50);
+  const allNotifs = await notificationsStore.getAllNotifications({ limit: 500 });
 
   const todayStr = new Date().toISOString().split("T")[0];
-  const sentToday = notifications.filter((n: any) => n.sentAt && n.sentAt.startsWith(todayStr)).length;
-  const scheduledCount = notifications.filter((n: any) => n.status === "Scheduled").length;
+  const sentToday = allNotifs.filter((n: any) => n.sentAt && n.sentAt.startsWith(todayStr)).length;
+  const scheduledCount = allNotifs.filter((n: any) => n.status === "Scheduled").length;
   const activeAnnouncements = announcements.filter((a: any) => a.isActive).length;
 
-  const failedDeliveries = notifications.reduce((acc: number, n: any) => acc + (n.failedCount || 0), 0);
-  const totalDelivered = notifications.reduce((acc: number, n: any) => acc + (n.deliveredCount || 0), 0);
-  const totalRead = notifications.reduce((acc: number, n: any) => acc + (n.readCount || 0), 0);
+  const failedDeliveries = allNotifs.reduce((acc: number, n: any) => acc + (n.failedCount || 0), 0);
+  const totalDelivered = allNotifs.reduce((acc: number, n: any) => acc + (n.deliveredCount || 0), 0);
+  const totalRead = allNotifs.reduce((acc: number, n: any) => acc + (n.readCount || 0), 0);
   const unreadCount = Math.max(0, totalDelivered - totalRead);
 
   res.json({
@@ -14934,15 +15060,15 @@ app.get("/api/admin/notifications/dashboard", async (req, res) => {
       failedDeliveries,
       scheduledNotifications: scheduledCount,
       activeAnnouncements,
-      totalSent: notifications.length,
+      totalSent: allNotifs.length,
       totalTemplates: (db.notification_templates || []).length,
     },
-    recentHistory: history.slice(-5).reverse(),
+    recentHistory: history.slice(0, 5),
     activeAnnouncementsList: announcements.filter((a: any) => a.isActive),
   });
 });
 
-// 2. Get All Notifications for Admin
+// 2. Get All Notifications for Admin backed by Firestore
 app.get("/api/admin/notifications", async (req, res) => {
   const db = readDB();
   seedModule9NotificationsIfEmpty(db);
@@ -14953,26 +15079,17 @@ app.get("/api/admin/notifications", async (req, res) => {
     category: category !== "ALL" ? (category as string) : undefined,
     priority: priority !== "ALL" ? (priority as string) : undefined,
     status: status !== "ALL" ? (status as string) : undefined,
+    search: search ? String(search) : undefined,
   });
-
-  if (search) {
-    const q = String(search).toLowerCase();
-    list = list.filter(
-      (n: any) =>
-        (n.title && n.title.toLowerCase().includes(q)) ||
-        (n.message && n.message.toLowerCase().includes(q)) ||
-        (n.createdBy && n.createdBy.toLowerCase().includes(q))
-    );
-  }
 
   res.json({
     success: true,
-    notifications: list.reverse(),
+    notifications: list,
     total: list.length,
   });
 });
 
-// 3. Create / Schedule Notification
+// 3. Create / Schedule Notification directly in Firestore
 app.post("/api/admin/notifications/create", async (req, res) => {
   const db = readDB();
   const users = await usersStore.getAllUsers();
@@ -15016,21 +15133,29 @@ app.post("/api/admin/notifications/create", async (req, res) => {
 
   const newNotif = {
     id: notifId,
+    notificationId: notifId,
     title,
     message,
+    body: message,
     category,
     priority,
     channel: Array.isArray(channels) && channels.length > 0 ? channels[0] : "In-App",
+    channels: Array.isArray(channels) ? channels : ["In-App"],
     targetAudience,
     targetEmail,
     status: isScheduled ? "Scheduled" : "Sent",
     createdBy,
     createdAt: new Date().toISOString(),
     sentAt: isScheduled ? undefined : new Date().toISOString(),
+    read: false,
     isRead: false,
   };
 
   await notificationsStore.createNotification(newNotif as any);
+
+  if (db.notifications) {
+    db.notifications.unshift(newNotif);
+  }
 
   // Record history
   const logId = "notif_log_" + Date.now();
@@ -15058,20 +15183,22 @@ app.post("/api/admin/notifications/create", async (req, res) => {
   });
 });
 
-// 4. Cancel Scheduled Notification
+// 4. Cancel Scheduled Notification directly in Firestore
 app.post("/api/admin/notifications/:id/cancel", async (req, res) => {
   const db = readDB();
   seedModule9NotificationsIfEmpty(db);
 
   const { id } = req.params;
-  const notif = (db.notifications || []).find((n: any) => n.id === id);
+  const notif = await notificationsStore.getNotificationById(id);
 
   if (!notif) {
     return res.status(404).json({ success: false, message: "Notification not found." });
   }
 
+  await notificationsStore.updateNotification(notif.id, { status: "Cancelled" });
   notif.status = "Cancelled";
 
+  if (!db.notification_audit_logs) db.notification_audit_logs = [];
   db.notification_audit_logs.push({
     id: "notif_audit_" + Date.now(),
     action: "NOTIFICATION_CANCELLED",
@@ -15085,16 +15212,20 @@ app.post("/api/admin/notifications/:id/cancel", async (req, res) => {
   res.json({ success: true, message: "Scheduled notification cancelled successfully.", notification: notif });
 });
 
-// 5. Delete Notification
+// 5. Delete Notification directly in Firestore
 app.delete("/api/admin/notifications/:id", async (req, res) => {
   const db = readDB();
   seedModule9NotificationsIfEmpty(db);
 
   const { id } = req.params;
-  const initialLen = db.notifications.length;
-  db.notifications = db.notifications.filter((n: any) => n.id !== id);
+  const existing = await notificationsStore.getNotificationById(id);
 
-  if (db.notifications.length < initialLen) {
+  if (existing) {
+    await notificationsStore.deleteNotification(id);
+    if (db.notifications) {
+      db.notifications = db.notifications.filter((n: any) => n.id !== id && n.notificationId !== id);
+    }
+    if (!db.notification_audit_logs) db.notification_audit_logs = [];
     db.notification_audit_logs.push({
       id: "notif_audit_" + Date.now(),
       action: "NOTIFICATION_DELETED",

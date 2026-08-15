@@ -6,7 +6,6 @@ export interface AdminConfigDoc {
   maintenance_settings?: any;
   platform_configuration?: any;
   apiProviders?: any[];
-  payment_providers?: any[];
   settings_audit_logs?: any[];
 }
 
@@ -36,7 +35,6 @@ export async function saveSettingsDoc(data: AdminConfigDoc): Promise<boolean> {
         maintenance_settings: data.maintenance_settings ?? {},
         platform_configuration: data.platform_configuration ?? {},
         apiProviders: data.apiProviders ?? [],
-        payment_providers: data.payment_providers ?? [],
         settings_audit_logs: data.settings_audit_logs ?? [],
       })
     );
@@ -73,9 +71,6 @@ export async function syncFromFirestore(dbObj: any): Promise<void> {
       dbObj.apiProviders = fsProviders;
       dbObj.api_providers = fsProviders;
     }
-    if (Array.isArray(fsDoc.payment_providers) && fsDoc.payment_providers.length > 0) {
-      dbObj.payment_providers = fsDoc.payment_providers;
-    }
     if (Array.isArray(fsDoc.settings_audit_logs)) {
       dbObj.settings_audit_logs = fsDoc.settings_audit_logs;
     }
@@ -96,7 +91,6 @@ export async function syncToFirestore(dbObj: any): Promise<void> {
     maintenance_settings: dbObj.maintenance_settings,
     platform_configuration: dbObj.platform_configuration,
     apiProviders: providers,
-    payment_providers: dbObj.payment_providers || [],
     settings_audit_logs: dbObj.settings_audit_logs || [],
   });
 }

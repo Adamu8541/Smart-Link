@@ -397,7 +397,6 @@
   "provider_health": [],
   "provider_logs": [],
   "provider_failovers": [],
-  "payment_providers": [],
   "system_settings": {
     "general": {
       "platformName": "SmartLink Enterprise",

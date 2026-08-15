@@ -36,7 +36,7 @@ export function getFriendlyErrorMessage(error: any): string {
     code === "auth/expired-action-code" ||
     rawMsg.includes("expired-action-code")
   ) {
-    return "This verification link has expired. Please request a new link.";
+    return "This password reset or verification link has expired. Please request a new link.";
   }
 
   if (

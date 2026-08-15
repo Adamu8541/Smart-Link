@@ -5,7 +5,7 @@
  * Auth: Authorization: Bearer <secretKey>
  *
  * Credentials come from the provider row saved in Admin → API Gateway
- * Providers → Add Provider (db.payment_providers[]). This class receives
+ * Providers → Add Provider (db.api_providers[]). This class receives
  * that exact row's { secretKey, baseUrl, webhookUrl } — nothing is hardcoded
  * and nothing is read from environment variables.
  */
@@ -116,30 +116,58 @@ export class AspfiyAdapter implements ProviderAdapter {
     }
   }
 
-  async verifyTransaction(db: any, reference: string, config: PaymentProviderConfig) {
+  async resolveAccount(accountNumber: string, bankCode: string, config: PaymentProviderConfig) {
     try {
       const res = await fetch(`${this.baseUrl(config)}/transfers/resolve-nuban`, {
         method: "POST",
         headers: this.headers(config),
-        body: JSON.stringify({ reference }),
+        body: JSON.stringify({ account_number: accountNumber, bank_code: bankCode }),
       });
       const json: any = await res.json().catch(() => ({}));
       if (!res.ok || json?.status === false) {
-        return {
-          verified: false,
-          paymentStatus: "FAILED",
-          rawResponse: json,
-          error: json?.message || `Verification failed (HTTP ${res.status})`,
-        };
+        return { success: false, error: json?.message || `Resolution failed (HTTP ${res.status})` };
       }
-      return {
-        verified: true,
-        amountPaid: json?.data?.amount ?? 0,
-        paymentStatus: json?.data?.status || "SUCCESSFUL",
-        rawResponse: json,
-      };
+      return { success: true, accountName: json.data?.account_name || "", accountNumber, bankCode };
     } catch (err: any) {
-      return { verified: false, paymentStatus: "FAILED", error: err?.message || "Network error calling Aspfiy" };
+      return { success: false, error: err?.message || "Network error calling Aspfiy" };
+    }
+  }
+
+  async initiateTransfer(
+    params: { accountNumber: string; bankCode: string; amount: number; narration?: string; callbackUrl: string },
+    config: PaymentProviderConfig
+  ) {
+    try {
+      const res = await fetch(`${this.baseUrl(config)}/Initiate Transfer`, {
+        method: "POST",
+        headers: this.headers(config),
+        body: JSON.stringify({
+          account_number: params.accountNumber,
+          bank_code: params.bankCode,
+          amount: params.amount,
+          narration: params.narration,
+          callback_url: params.callbackUrl,
+        }),
+      });
+      const json: any = await res.json().catch(() => ({}));
+      if (!res.ok || json?.status === false) {
+        return { success: false, error: json?.message || `Transfer failed (HTTP ${res.status})` };
+      }
+      return { success: true, providerReference: json.data?.reference || "", status: json.data?.status || "INITIATED" };
+    } catch (err: any) {
+      return { success: false, error: err?.message || "Network error calling Aspfiy" };
+    }
+  }
+
+  async listBanks(config: PaymentProviderConfig) {
+    try {
+      const res = await fetch(`${this.baseUrl(config)}/transfers/banks/`, { method: "GET", headers: this.headers(config) });
+      const json: any = await res.json().catch(() => ({}));
+      if (!res.ok || json?.status === false) return { success: false, banks: [], error: json?.message || `HTTP ${res.status}` };
+      const banks = (json.data || []).map((b: any) => ({ bankCode: b.bank_code, bankName: b.bank_name }));
+      return { success: true, banks };
+    } catch (err: any) {
+      return { success: false, banks: [], error: err?.message || "Network error calling Aspfiy" };
     }
   }
 

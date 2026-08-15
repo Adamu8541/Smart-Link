@@ -2,7 +2,7 @@
  * SmartLink Centralized Provider Service & Dynamic Payment Engine
  *
  * Ensures all payment features dynamically load and use whichever provider
- * is currently marked "Active" in the database (payment_providers).
+ * is currently marked "Active" in the database (api_providers).
  *
  * Direct database access by payment modules is forbidden; all modules
  * route requests through this central Provider Service.

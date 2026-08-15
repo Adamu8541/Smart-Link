@@ -78,7 +78,7 @@ export function ProviderDetailDrawer({
   const [failedUrl, setFailedUrl] = useState("");
   const [cancelUrl, setCancelUrl] = useState("");
   const [webhookSecret, setWebhookSecret] = useState("");
-  const [webhookSignatureMethod, setWebhookSignatureMethod] = useState<"HMAC-SHA512" | "HMAC-SHA256" | "NONE">("HMAC-SHA512");
+  const [webhookSignatureMethod, setWebhookSignatureMethod] = useState<"HMAC-SHA512" | "HMAC-SHA256" | "MD5_OF_SECRET" | "NONE">("HMAC-SHA512");
   const [webhookSignatureHeaderName, setWebhookSignatureHeaderName] = useState("");
   const [webhookSigningSecret, setWebhookSigningSecret] = useState("");
 
@@ -172,8 +172,9 @@ export function ProviderDetailDrawer({
         setFailedUrl(p.failedUrl || "");
         setCancelUrl(p.cancelUrl || "");
         setWebhookSecret(p.webhookSecret || "");
-        setWebhookSignatureMethod(p.webhookSignatureMethod || "HMAC-SHA512");
-        setWebhookSignatureHeaderName(p.webhookSignatureHeaderName || (p.name && p.name.toLowerCase().includes("opay") ? "x-opay-signature" : "x-signature"));
+        const isAspfiy = (p.name || "").toLowerCase().includes("aspfiy") || p.id === "prov_aspfiy";
+        setWebhookSignatureMethod(p.webhookSignatureMethod || (isAspfiy ? "MD5_OF_SECRET" : "HMAC-SHA512"));
+        setWebhookSignatureHeaderName(p.webhookSignatureHeaderName || (isAspfiy ? "x-wiaxy-signature" : "x-signature"));
         setWebhookSigningSecret(p.webhookSigningSecret || p.webhookSecret || "");
 
         setEncryptionKey(p.encryptionKey || "");
@@ -790,6 +791,7 @@ export function ProviderDetailDrawer({
                           onChange={(e: any) => setWebhookSignatureMethod(e.target.value)}
                           className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-purple-500"
                         >
+                          <option value="MD5_OF_SECRET">MD5 (Secret Key)</option>
                           <option value="HMAC-SHA512">HMAC-SHA512</option>
                           <option value="HMAC-SHA256">HMAC-SHA256</option>
                           <option value="NONE">None (Disabled)</option>

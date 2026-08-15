@@ -16,7 +16,7 @@
 
 import { ServerWalletEngine } from "./serverWalletEngine";
 import { APIProviderManager } from "./apiProviderManager";
-import { ProviderExecutor } from "./providerExecutor";
+import { ProviderExecutor, verifyWebhookSignature } from "./providerExecutor";
 import { getActiveProviderAndAdapter, getAdapterById } from "./providerGateway";
 
 export type PaymentState = "PENDING" | "VERIFIED" | "FAILED" | "UNMATCHED" | "REVERSED";
@@ -103,13 +103,31 @@ export class PaymentVerificationReconciliationEngine {
 
     // 1. Resolve Active Payment Provider dynamically without hardcoding
     let activeProvider = null;
-    if (db.payment_providers && Array.isArray(db.payment_providers)) {
-      activeProvider = db.payment_providers.find(
+    const providersList = db.api_providers || db.apiProviders || [];
+    if (Array.isArray(providersList)) {
+      activeProvider = providersList.find(
         (p: any) => p.status === "Active" || p.enabled === true || p.isActive === true
       );
     }
     if (!activeProvider && db.apiProviders && Array.isArray(db.apiProviders)) {
       activeProvider = APIProviderManager.getActiveProvider(db, { feature: "verification" });
+    }
+
+    if (activeProvider) {
+      const sigCheck = verifyWebhookSignature(activeProvider, JSON.stringify(params.payload), params.headers || {});
+      if (!sigCheck.isValid) {
+        return {
+          success: false,
+          code: "INVALID_WEBHOOK_SIGNATURE",
+          message: sigCheck.reason || "Webhook signature verification failed.",
+        };
+      }
+    } else {
+      return {
+        success: false,
+        code: "NO_ACTIVE_PROVIDER",
+        message: "No active provider configured to verify this webhook against.",
+      };
     }
 
     const providerName =

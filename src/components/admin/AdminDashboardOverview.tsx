@@ -61,7 +61,7 @@ export default function AdminDashboardOverview({
     { path: "/admin/wallet", label: "Wallet Management", icon: Wallet, desc: "Review user balances, funding & debits", color: "from-emerald-600/20 to-emerald-900/10 border-emerald-800/40" },
     { path: "/admin/transactions", label: "Transaction Ledger", icon: BarChart3, desc: "Audit live transaction histories & status", color: "from-purple-600/20 to-purple-900/10 border-purple-800/40" },
     { path: "/admin/refunds", label: "Refunds Portal", icon: DollarSign, desc: "Process refund requests & ledger", color: "from-amber-600/20 to-amber-900/10 border-amber-800/40" },
-    { path: "/admin/providers", label: "API Gateway Providers", icon: Server, desc: "Paystack, OPay, VTU provider status", color: "from-teal-600/20 to-teal-900/10 border-teal-800/40" },
+    { path: "/admin/providers", label: "API Gateway Providers", icon: Server, desc: "Paystack, Aspfiy, VTU provider status", color: "from-teal-600/20 to-teal-900/10 border-teal-800/40" },
     { path: "/admin/settings", label: "System Settings", icon: Settings, desc: "Platform rates, fees & configuration", color: "from-indigo-600/20 to-indigo-900/10 border-indigo-800/40" },
     { path: "/admin/reports", label: "Settlement & Audit Reports", icon: FileText, desc: "Export financial & reconciliation reports", color: "from-rose-600/20 to-rose-900/10 border-rose-800/40" },
   ];

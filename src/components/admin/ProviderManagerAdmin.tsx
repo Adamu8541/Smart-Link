@@ -1,6 +1,6 @@
 /**
  * SmartLink Payment Provider Management Foundation UI
- * Database-backed Administration Panel for Payment Providers (payment_providers)
+ * Database-backed Administration Panel for Payment Providers (api_providers)
  * Full CRUD, single active provider constraint, validation, permanent storage.
  */
 
@@ -46,7 +46,7 @@ interface ProviderManagerAdminProps {
 }
 
 export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: ProviderManagerAdminProps) {
-  // State for Payment Providers (Database Table: payment_providers)
+  // State for Payment Providers (Database Table: api_providers)
   const [paymentProviders, setPaymentProviders] = useState<PaymentProvider[]>([]);
   const [loadingPayment, setLoadingPayment] = useState<boolean>(true);
 
@@ -460,7 +460,7 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
           <div>
             <div className="flex items-center gap-2 mb-1.5">
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 font-mono">
-                DATABASE TABLE: payment_providers
+                DATABASE TABLE: api_providers
               </span>
               <span className="text-xs text-slate-400 font-mono">PERMANENT STORAGE</span>
             </div>
@@ -580,7 +580,7 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
         )}
       </div>
 
-      {/* SUB-TAB 1: PAYMENT PROVIDERS (payment_providers) */}
+      {/* SUB-TAB 1: PAYMENT PROVIDERS (api_providers) */}
       {activeSubTab === "PAYMENT_PROVIDERS" && (
         <div className="space-y-4">
           {filteredPaymentProviders.length === 0 ? (
@@ -930,7 +930,7 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. OPay Merchant Gateway, Generic Gateway, Paystack"
+                    placeholder="e.g. Aspfiy Payment Gateway, Generic Gateway, Paystack"
                     value={paymentForm.name}
                     onChange={(e) => {
                       setPaymentForm({ ...paymentForm, name: e.target.value });
@@ -1019,7 +1019,7 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
                     <label className="block text-slate-500 font-bold mb-1">Base API URL</label>
                     <input
                       type="text"
-                      placeholder="e.g. https://api.opaycheckout.com"
+                      placeholder="e.g. https://api.aspfiy.com"
                       value={paymentForm.baseUrl}
                       onChange={(e) => setPaymentForm({ ...paymentForm, baseUrl: e.target.value })}
                       className="w-full p-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-mono text-slate-900 dark:text-white"
