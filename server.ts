@@ -543,6 +543,18 @@ app.post("/api/auth/sync-firebase-user", async (req, res) => {
   const superAdminEmails = [SUPER_ADMIN_EMAIL, "adamuamuhammad8541@gmail.com"];
   const isSuperAdminEmail = superAdminEmails.includes(lowerEmail);
 
+  if (phoneNumber && phoneNumber.trim()) {
+    const existingPhone = await usersStore.getUserByPhone(phoneNumber.trim());
+    if (
+      existingPhone &&
+      existingPhone.email?.toLowerCase().trim() !== lowerEmail &&
+      existingPhone.uid !== (existingUser?.uid || uid) &&
+      existingPhone.id !== (existingUser?.id || uid)
+    ) {
+      return res.status(400).json({ error: "This phone number is already registered to another account." });
+    }
+  }
+
   if (existingUser) {
     const updates: any = {};
     if (isSuperAdminEmail) updates.role = "SUPER_ADMIN";
@@ -580,6 +592,22 @@ app.post("/api/auth/check-email-exists", async (req, res) => {
   if (!email) return res.status(400).json({ error: "Email is required" });
   const user = await usersStore.getUserByEmail(email.toLowerCase().trim());
   res.json({ exists: !!user });
+});
+
+app.post("/api/auth/check-phone-exists", async (req, res) => {
+  const { phoneNumber, email, excludeUid } = req.body;
+  if (!phoneNumber || !phoneNumber.trim()) return res.status(400).json({ error: "Phone number is required" });
+  const user = await usersStore.getUserByPhone(phoneNumber.trim());
+  if (user) {
+    if (email && user.email?.toLowerCase().trim() === email.toLowerCase().trim()) {
+      return res.json({ exists: false });
+    }
+    if (excludeUid && (user.uid === excludeUid || user.id === excludeUid)) {
+      return res.json({ exists: false });
+    }
+    return res.json({ exists: true, error: "This phone number is already registered to another account." });
+  }
+  res.json({ exists: false });
 });
 
 app.post("/api/auth/login", async (req, res) => {
@@ -683,6 +711,13 @@ app.post("/api/auth/register", async (req, res) => {
   const existing = await usersStore.getUserByEmail(lowerEmail);
   if (existing) {
     return res.status(400).json({ error: "User already exists with this email" });
+  }
+
+  if (phoneNumber && phoneNumber.trim()) {
+    const existingPhone = await usersStore.getUserByPhone(phoneNumber.trim());
+    if (existingPhone) {
+      return res.status(400).json({ error: "This phone number is already registered to another account." });
+    }
   }
 
   const uid = "usr_" + Math.random().toString(36).substring(2, 9);
@@ -959,6 +994,13 @@ app.put("/api/users/:uid", async (req, res) => {
 
   const existing = await usersStore.getUserById(uid);
   if (!existing) return res.status(404).json({ error: "User not found" });
+
+  if (phoneNumber && phoneNumber.trim() && phoneNumber.trim() !== (existing.phoneNumber || "").trim()) {
+    const existingPhone = await usersStore.getUserByPhone(phoneNumber.trim());
+    if (existingPhone && existingPhone.uid !== uid && existingPhone.id !== uid) {
+      return res.status(400).json({ error: "This phone number is already registered to another account." });
+    }
+  }
 
   const updated = await usersStore.updateUser(uid, {
     fullName: fullName || existing.fullName,

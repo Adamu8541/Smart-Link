@@ -656,6 +656,10 @@ export default function App() {
         })
       });
 
+      if (!syncResult.ok) {
+        throw new Error(syncResult.error || "Failed to synchronize profile details.");
+      }
+
       const activeUser = syncResult.data?.user || {
         uid: user.uid,
         email: userEmail,
@@ -892,6 +896,10 @@ export default function App() {
             isVerified: true
           })
         });
+
+        if (!syncResult.ok) {
+          throw new Error(syncResult.error || "Failed to register profile details.");
+        }
 
         activeUser = syncResult.data?.user || {
           uid: user.uid,

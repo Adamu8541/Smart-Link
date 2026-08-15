@@ -115,6 +115,7 @@ export function getAdminFirestore(): Firestore {
     }
 
     adminDbInstance = getFirestore(FIRESTORE_DATABASE_ID);
+    adminDbInstance.settings({ ignoreUndefinedProperties: true });
     return adminDbInstance;
   } catch (err: any) {
     databaseInitError = `Database Disconnected: ${err?.message || err}`;

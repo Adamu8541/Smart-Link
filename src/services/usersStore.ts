@@ -109,6 +109,42 @@ export async function getUserByEmail(email: string): Promise<UserDoc | null> {
   return null;
 }
 
+export async function getUserByPhone(phoneNumber: string): Promise<UserDoc | null> {
+  if (!phoneNumber) return null;
+  try {
+    const db = getAdminFirestore();
+    const normalized = phoneNumber.replace(/\D/g, "");
+    if (!normalized) return null;
+
+    // 1. Direct query by exact phoneNumber
+    const snapshot = await db.collection(COLLECTION_NAME).where("phoneNumber", "==", phoneNumber.trim()).limit(1).get();
+    if (!snapshot.empty) {
+      const doc = snapshot.docs[0];
+      const data = doc.data() as UserDoc;
+      return { id: doc.id, uid: data.uid || doc.id, ...data };
+    }
+
+    // 2. Normalized digits fallback match
+    const allUsers = await getAllUsers();
+    const found = allUsers.find(
+      (u: any) => u.phoneNumber && u.phoneNumber.replace(/\D/g, "") === normalized
+    );
+    return found || null;
+  } catch (err) {
+    console.error("[usersStore] getUserByPhone error:", err);
+    try {
+      const allUsers = await getAllUsers();
+      const normalized = phoneNumber.replace(/\D/g, "");
+      const found = allUsers.find(
+        (u: any) => u.phoneNumber && u.phoneNumber.replace(/\D/g, "") === normalized
+      );
+      return found || null;
+    } catch {
+      return null;
+    }
+  }
+}
+
 /**
  * Create a new user document in "users" collection.
  */
@@ -196,6 +232,7 @@ export const usersStore = {
   getAllUsers,
   getUserById,
   getUserByEmail,
+  getUserByPhone,
   createUser,
   updateUser,
   deleteUser,

@@ -8,6 +8,22 @@
  * route requests through this central Provider Service.
  */
 
+import { auth } from "../firebase";
+
+async function getAuthHeaders(): Promise<Record<string, string>> {
+  const user = auth.currentUser;
+  if (!user) return { "Content-Type": "application/json" };
+  try {
+    const idToken = await user.getIdToken();
+    return {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${idToken}`,
+    };
+  } catch {
+    return { "Content-Type": "application/json" };
+  }
+}
+
 export interface ActiveProviderConfig {
   id: string;
   name: string;
@@ -56,11 +72,12 @@ export class ProviderService {
    */
   static async getActiveProvider(adminUid?: string): Promise<ProviderResponse<ActiveProviderConfig>> {
     try {
+      const headers = await getAuthHeaders();
       const url = adminUid
         ? `/api/provider-engine/active-provider?adminUid=${encodeURIComponent(adminUid)}`
         : `/api/provider-engine/active-provider`;
 
-      const res = await fetch(url);
+      const res = await fetch(url, { headers });
       const data = await res.json();
 
       if (!res.ok || !data.success || !data.provider) {
@@ -94,7 +111,8 @@ export class ProviderService {
     statusMsg: string;
   }> {
     try {
-      const res = await fetch("/api/provider-engine/status");
+      const headers = await getAuthHeaders();
+      const res = await fetch("/api/provider-engine/status", { headers });
       const data = await res.json();
       if (res.ok && data.active && data.provider) {
         return {
@@ -120,7 +138,8 @@ export class ProviderService {
    */
   static async getFundingConfig(userId: string): Promise<ProviderResponse> {
     try {
-      const res = await fetch(`/api/wallet/funding-info?userId=${encodeURIComponent(userId)}`);
+      const headers = await getAuthHeaders();
+      const res = await fetch(`/api/wallet/funding-info?userId=${encodeURIComponent(userId)}`, { headers });
       const data = await res.json();
       if (!res.ok || !data.success) {
         return {
@@ -144,7 +163,8 @@ export class ProviderService {
    */
   static async getVirtualAccount(userId: string): Promise<ProviderResponse> {
     try {
-      const res = await fetch(`/api/wallet/virtual-account/${encodeURIComponent(userId)}`);
+      const headers = await getAuthHeaders();
+      const res = await fetch(`/api/wallet/virtual-account/${encodeURIComponent(userId)}`, { headers });
       const data = await res.json();
       if (!res.ok || !data.success) {
         return {
@@ -168,7 +188,8 @@ export class ProviderService {
    */
   static async verifyPayment(paymentReference: string): Promise<ProviderResponse> {
     try {
-      const res = await fetch(`/api/wallet/verify-payment?reference=${encodeURIComponent(paymentReference)}`);
+      const headers = await getAuthHeaders();
+      const res = await fetch(`/api/wallet/verify-payment?reference=${encodeURIComponent(paymentReference)}`, { headers });
       const data = await res.json();
       if (!res.ok || !data.success) {
         return {
@@ -192,9 +213,10 @@ export class ProviderService {
    */
   static async processTransfer(transferData: any): Promise<ProviderResponse> {
     try {
+      const headers = await getAuthHeaders();
       const res = await fetch("/api/wallet/transfers", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify(transferData),
       });
       const data = await res.json();
@@ -220,7 +242,8 @@ export class ProviderService {
    */
   static async getTransactionHistory(userId: string): Promise<ProviderResponse> {
     try {
-      const res = await fetch(`/api/wallet/history/${encodeURIComponent(userId)}`);
+      const headers = await getAuthHeaders();
+      const res = await fetch(`/api/wallet/history/${encodeURIComponent(userId)}`, { headers });
       const data = await res.json();
       if (!res.ok || !data.success) {
         return {
@@ -244,7 +267,8 @@ export class ProviderService {
    */
   static async getDepositRecords(userId: string): Promise<ProviderResponse> {
     try {
-      const res = await fetch(`/api/wallet/deposits/${encodeURIComponent(userId)}`);
+      const headers = await getAuthHeaders();
+      const res = await fetch(`/api/wallet/deposits/${encodeURIComponent(userId)}`, { headers });
       const data = await res.json();
       if (!res.ok || !data.success) {
         return {
@@ -268,7 +292,8 @@ export class ProviderService {
    */
   static async getWithdrawalRecords(userId: string): Promise<ProviderResponse> {
     try {
-      const res = await fetch(`/api/wallet/withdrawals/${encodeURIComponent(userId)}`);
+      const headers = await getAuthHeaders();
+      const res = await fetch(`/api/wallet/withdrawals/${encodeURIComponent(userId)}`, { headers });
       const data = await res.json();
       if (!res.ok || !data.success) {
         return {
@@ -292,7 +317,8 @@ export class ProviderService {
    */
   static async getPaymentStatus(reference: string): Promise<ProviderResponse> {
     try {
-      const res = await fetch(`/api/wallet/payment-status/${encodeURIComponent(reference)}`);
+      const headers = await getAuthHeaders();
+      const res = await fetch(`/api/wallet/payment-status/${encodeURIComponent(reference)}`, { headers });
       const data = await res.json();
       if (!res.ok || !data.success) {
         return {
