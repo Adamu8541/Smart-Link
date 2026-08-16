@@ -26,7 +26,7 @@ import {
   FileText
 } from "lucide-react";
 import { UserProfile, UserRole } from "../../../types";
-import { AdminSession } from "../../../services/adminAuthService";
+import { AdminSession } from "../../../services/adminAuthTypes";
 
 interface ModalBaseProps {
   isOpen: boolean;

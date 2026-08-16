@@ -54,7 +54,7 @@ interface NavigationProps {
   isDarkMode: boolean;
   onToggleDarkMode: () => void;
   onSelectService?: (service: any) => void;
-  onSetAuthStates?: (states: { isRegistering: boolean; isForgotPassword: boolean; isResetPassword: boolean }) => void;
+  onSetAuthStates?: (states: { isRegistering: boolean; isResetPassword: boolean }) => void;
 }
 
 interface NavigationItem {
@@ -209,11 +209,15 @@ export default function Navigation({
   };
 
   const handleAuthClick = (mode: "login" | "register" | "forgot") => {
+    if (mode === "forgot") {
+      window.location.href = "/forgot-password";
+      setMobileMenuOpen(false);
+      return;
+    }
     onNavigate("DASHBOARD");
     if (onSetAuthStates) {
       onSetAuthStates({
-        isRegistering: false, // Redirect to login
-        isForgotPassword: mode === "forgot",
+        isRegistering: mode === "register",
         isResetPassword: false
       });
     }

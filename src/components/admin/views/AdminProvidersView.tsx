@@ -34,7 +34,7 @@ import {
   ToggleRight
 } from "lucide-react";
 import { ProviderDetailDrawer } from "./ProviderDetailDrawer";
-import { getStoredAdminSession } from "../../../services/adminAuthService";
+import { getStoredAdminSession } from "../../../services/adminAuthTypes";
 
 export function AdminProvidersView() {
   const [providers, setProviders] = useState<any[]>([]);

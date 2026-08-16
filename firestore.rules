@@ -111,6 +111,23 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // 11. SERVICE PRICING & CONFIGURATION
+    match /service_pricing/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /site_settings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 12. TEST & PROBE
+    match /test/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     // ADMIN PRIVILEGES LIST
     match /admins/{adminUid} {
       allow read: if isAdmin();

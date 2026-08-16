@@ -25,7 +25,7 @@ import {
   ShieldCheck,
   CheckSquare
 } from "lucide-react";
-import { AdminSession } from "../../../services/adminAuthService";
+import { AdminSession } from "../../../services/adminAuthTypes";
 import { ApiRequestConfig, ApiRequestTestLog, ApiHeaderItem, ApiParamItem } from "../../../types";
 
 interface ApiRequestBuilderViewProps {

@@ -46,7 +46,7 @@ import {
   Trash2,
   Image as ImageIcon
 } from "lucide-react";
-import { AdminSession } from "../../../services/adminAuthService";
+import { AdminSession } from "../../../services/adminAuthTypes";
 
 interface AdminSettingsViewProps {
   session: AdminSession;

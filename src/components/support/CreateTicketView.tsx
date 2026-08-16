@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ArrowLeft, Ticket, Upload, X, CheckCircle2, AlertCircle, FileText, Send, Sparkles, Image as ImageIcon } from "lucide-react";
+import { safeFetchJson } from "../../utils/authErrorHandler";
+import { getAuthHeaders } from "../../services/providerService";
 
 interface CreateTicketViewProps {
   onBack: () => void;
@@ -33,11 +35,12 @@ export function CreateTicketView({ onBack, onTicketCreated, userEmail = "adamuam
     setPreviewNumber(`SL-TKT-${dateStr}-${rand}`);
 
     // Fetch support categories
-    fetch("/api/support/tickets?email=" + encodeURIComponent(userEmail))
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.categories && data.categories.length > 0) {
-          setCategories(data.categories);
+    (async () => {
+      try {
+        const headers = await getAuthHeaders();
+        const res = await safeFetchJson<{ categories?: any[] }>("/api/support/tickets?email=" + encodeURIComponent(userEmail), { headers });
+        if (res.ok && res.data?.categories && res.data.categories.length > 0) {
+          setCategories(res.data.categories);
         } else {
           setCategories([
             { id: "cat_wallet", name: "Wallet Issues" },
@@ -52,9 +55,12 @@ export function CreateTicketView({ onBack, onTicketCreated, userEmail = "adamuam
             { id: "cat_other", name: "Other" },
           ]);
         }
-      })
-      .catch(() => {})
-      .finally(() => setLoadingCats(false));
+      } catch (err) {
+        console.warn("Categories fetch note:", err);
+      } finally {
+        setLoadingCats(false);
+      }
+    })();
   }, [userEmail]);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -110,9 +116,11 @@ export function CreateTicketView({ onBack, onTicketCreated, userEmail = "adamuam
     setSubmitting(true);
 
     try {
-      const res = await fetch("/api/support/tickets/new", {
+      const authHeaders = await getAuthHeaders();
+      const res = await safeFetchJson<{ success: boolean; ticket?: any; message?: string }>("/api/support/tickets/new", {
         method: "POST",
         headers: {
+          ...authHeaders,
           "Content-Type": "application/json",
           "x-user-email": userEmail,
         },
@@ -129,17 +137,16 @@ export function CreateTicketView({ onBack, onTicketCreated, userEmail = "adamuam
         }),
       });
 
-      const data = await res.json();
-      if (data.success && data.ticket) {
-        setSuccessMsg(`Ticket ${data.ticket.ticketNumber} successfully submitted! Assigning support staff...`);
+      if (res.ok && res.data?.success && res.data.ticket) {
+        setSuccessMsg(`Ticket ${res.data.ticket.ticketNumber} successfully submitted! Assigning support staff...`);
         setTimeout(() => {
-          onTicketCreated(data.ticket.id);
+          onTicketCreated(res.data?.ticket.id);
         }, 1200);
       } else {
-        setError(data.message || "Failed to create support ticket. Please try again.");
+        setError(res.error || res.data?.message || "Failed to create support ticket. Please try again.");
       }
-    } catch (err) {
-      setError("Network error encountered. Please verify connection.");
+    } catch (err: any) {
+      setError(err?.message || "Network error encountered. Please verify connection.");
     } finally {
       setSubmitting(false);
     }

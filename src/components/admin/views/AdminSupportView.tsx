@@ -4,7 +4,7 @@ import {
   XCircle, AlertTriangle, LifeBuoy, FileText, Send, Lock, Plus, Trash2, Settings as SettingsIcon,
   UserCheck, ArrowRight, Sparkles, AlertCircle, ExternalLink, ChevronDown, ChevronUp, Layers
 } from "lucide-react";
-import { getStoredAdminSession } from "../../../services/adminAuthService";
+import { getStoredAdminSession } from "../../../services/adminAuthTypes";
 
 export function AdminSupportView() {
   const [activeTab, setActiveTab] = useState<"overview" | "tickets" | "categories" | "settings" | "tests">("overview");

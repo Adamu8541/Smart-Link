@@ -29,7 +29,7 @@ import {
   XCircle,
   ShieldAlert
 } from "lucide-react";
-import { AdminSession } from "../../../services/adminAuthService";
+import { AdminSession } from "../../../services/adminAuthTypes";
 
 interface WalletDetailDrawerProps {
   userId: string | null;

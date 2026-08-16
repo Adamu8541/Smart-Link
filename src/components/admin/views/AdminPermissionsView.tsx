@@ -20,7 +20,7 @@ import {
   Sliders,
   X
 } from "lucide-react";
-import { AdminSession } from "../../../services/adminAuthService";
+import { AdminSession } from "../../../services/adminAuthTypes";
 import { SubAdminPermission, UserRole } from "../../../types";
 
 interface SubAdminUser {

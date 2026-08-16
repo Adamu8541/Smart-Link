@@ -17,7 +17,7 @@ import {
   SlidersHorizontal,
   Info
 } from "lucide-react";
-import { AdminSession, getStoredAdminSession } from "../../../services/adminAuthService";
+import { AdminSession, getStoredAdminSession } from "../../../services/adminAuthTypes";
 
 interface AdminReconciliationViewProps {
   session: AdminSession;

@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { ArrowLeft, Ticket, MessageSquare, Send, Paperclip, Clock, CheckCircle2, AlertCircle, RefreshCw, User, ShieldCheck, FileText, Image as ImageIcon, X, Lock } from "lucide-react";
+import { safeFetchJson } from "../../utils/authErrorHandler";
+import { getAuthHeaders } from "../../services/providerService";
 
 interface UserTicketDetailViewProps {
   ticketId: string;
@@ -25,18 +27,21 @@ export function UserTicketDetailView({ ticketId, onBack, userEmail = "adamuamuha
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/support/tickets/${encodeURIComponent(ticketId)}`, {
-        headers: { "x-user-email": userEmail },
-      });
-      const data = await res.json();
-      if (data.success && data.ticket) {
-        setTicket(data.ticket);
-        setMessages(data.messages || []);
-        setActivityLogs(data.activityLogs || []);
+      const headers = await getAuthHeaders();
+      const res = await safeFetchJson<{ success: boolean; ticket?: any; messages?: any[]; activityLogs?: any[]; message?: string }>(
+        `/api/support/tickets/${encodeURIComponent(ticketId)}`,
+        {
+          headers: { ...headers, "x-user-email": userEmail },
+        }
+      );
+      if (res.ok && res.data?.success && res.data.ticket) {
+        setTicket(res.data.ticket);
+        setMessages(res.data.messages || []);
+        setActivityLogs(res.data.activityLogs || []);
       } else {
-        setError(data.message || "Ticket details not found.");
+        setError(res.error || res.data?.message || "Ticket details not found.");
       }
-    } catch (err) {
+    } catch (err: any) {
       setError("Failed to connect to support server.");
     } finally {
       setLoading(false);
@@ -82,28 +87,32 @@ export function UserTicketDetailView({ ticketId, onBack, userEmail = "adamuamuha
 
     setSending(true);
     try {
-      const res = await fetch(`/api/support/tickets/${encodeURIComponent(ticketId)}/reply`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-user-email": userEmail,
-        },
-        body: JSON.stringify({
-          message: replyMessage.trim(),
-          attachments: replyAttachments,
-          senderType: "USER",
-          senderName: userName,
-          senderEmail: userEmail,
-        }),
-      });
+      const headers = await getAuthHeaders();
+      const res = await safeFetchJson<{ success: boolean; message?: string }>(
+        `/api/support/tickets/${encodeURIComponent(ticketId)}/reply`,
+        {
+          method: "POST",
+          headers: {
+            ...headers,
+            "Content-Type": "application/json",
+            "x-user-email": userEmail,
+          },
+          body: JSON.stringify({
+            message: replyMessage.trim(),
+            attachments: replyAttachments,
+            senderType: "USER",
+            senderName: userName,
+            senderEmail: userEmail,
+          }),
+        }
+      );
 
-      const data = await res.json();
-      if (data.success) {
+      if (res.ok && res.data?.success) {
         setReplyMessage("");
         setReplyAttachments([]);
         fetchTicketDetails();
       } else {
-        alert(data.message || "Failed to submit reply.");
+        alert(res.error || res.data?.message || "Failed to submit reply.");
       }
     } catch (err) {
       alert("Error sending message reply.");

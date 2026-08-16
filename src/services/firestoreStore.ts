@@ -151,8 +151,8 @@ export async function loadFirestoreDb(forceRefresh = false): Promise<any> {
 
     inMemoryDbCache = db;
     lastSyncTimestamp = now;
-  } catch (err) {
-    console.warn("[firestoreStore] Firestore load fallback to local state:", err);
+  } catch (err: any) {
+    console.info(`[firestoreStore] Local state active (${err?.message || "fallback mode"})`);
   }
 
   return db;

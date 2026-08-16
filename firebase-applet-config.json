@@ -1,8 +1,9 @@
 {
   "projectId": "smart-link-a18e9",
-  "appId": "",
-  "apiKey": "",
-  "authDomain": "smartlinkng.com.ng",
+  "appId": "1:97411097895:web:496781c1d0ac89aacb7502",
+  "apiKey": "AIzaSyAqwh36jlWOrdOhBogUjOGtj44nGehU5_0",
+  "authDomain": "smart-link-a18e9.firebaseapp.com",
+  "databaseURL": "https://smart-link-a18e9-default-rtdb.firebaseio.com",
   "firestoreDatabaseId": "ai-studio-smartlinkdigital-99537f8d-90f9-4901-bec9-4b6844af0ecc",
   "storageBucket": "smart-link-a18e9.firebasestorage.app",
   "messagingSenderId": "97411097895",

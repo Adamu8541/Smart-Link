@@ -18,6 +18,8 @@ import {
   Eye,
 } from "lucide-react";
 import { UserProfile } from "../../types";
+import { safeFetchJson } from "../../utils/authErrorHandler";
+import { getAuthHeaders } from "../../services/providerService";
 
 interface UserNotificationCenterProps {
   currentUser?: UserProfile | null;
@@ -44,14 +46,17 @@ export function UserNotificationCenter({ currentUser, onNavigateHome, isModal = 
   const fetchNotifications = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/user/notifications?email=${encodeURIComponent(userEmail)}`);
-      const data = await res.json();
-      if (data.success) {
-        setNotifications(data.notifications || []);
-        setUnreadCount(data.unreadCount || 0);
+      const headers = await getAuthHeaders();
+      const res = await safeFetchJson<{ success: boolean; notifications?: any[]; unreadCount?: number }>(
+        `/api/user/notifications?email=${encodeURIComponent(userEmail)}`,
+        { headers }
+      );
+      if (res.ok && res.data?.success) {
+        setNotifications(res.data.notifications || []);
+        setUnreadCount(res.data.unreadCount || 0);
       }
     } catch (err) {
-      console.error("Failed to fetch user notifications:", err);
+      console.warn("User notifications note:", err);
     } finally {
       setLoading(false);
     }
@@ -59,52 +64,57 @@ export function UserNotificationCenter({ currentUser, onNavigateHome, isModal = 
 
   const handleMarkAsRead = async (id: string) => {
     try {
-      await fetch("/api/user/notifications/mark-read", {
+      const headers = await getAuthHeaders();
+      await safeFetchJson("/api/user/notifications/mark-read", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { ...headers, "Content-Type": "application/json" },
         body: JSON.stringify({ email: userEmail, notificationId: id }),
       });
       fetchNotifications();
     } catch (err) {
-      console.error("Mark read error:", err);
+      console.warn("Mark read note:", err);
     }
   };
 
   const handleMarkAllRead = async () => {
     try {
-      await fetch("/api/user/notifications/mark-read", {
+      const headers = await getAuthHeaders();
+      await safeFetchJson("/api/user/notifications/mark-read", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { ...headers, "Content-Type": "application/json" },
         body: JSON.stringify({ email: userEmail, markAll: true }),
       });
       fetchNotifications();
     } catch (err) {
-      console.error("Mark all read error:", err);
+      console.warn("Mark all read note:", err);
     }
   };
 
   const handleArchive = async (id: string) => {
     try {
-      await fetch("/api/user/notifications/archive", {
+      const headers = await getAuthHeaders();
+      await safeFetchJson("/api/user/notifications/archive", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { ...headers, "Content-Type": "application/json" },
         body: JSON.stringify({ email: userEmail, notificationId: id }),
       });
       fetchNotifications();
     } catch (err) {
-      console.error("Archive error:", err);
+      console.warn("Archive note:", err);
     }
   };
 
   const handleDelete = async (id: string) => {
     try {
-      await fetch(`/api/user/notifications/${id}?email=${encodeURIComponent(userEmail)}`, {
+      const headers = await getAuthHeaders();
+      await safeFetchJson(`/api/user/notifications/${id}?email=${encodeURIComponent(userEmail)}`, {
         method: "DELETE",
+        headers,
       });
       fetchNotifications();
       if (selectedNotif?.id === id) setSelectedNotif(null);
     } catch (err) {
-      console.error("Delete error:", err);
+      console.warn("Delete note:", err);
     }
   };
 

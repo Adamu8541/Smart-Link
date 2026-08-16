@@ -38,7 +38,7 @@ import QRCode from "qrcode";
 import { jsPDF } from "jspdf";
 import { UserProfile, UserRole } from "../../types";
 import { SmartLinkLogoMark } from "../ui/SmartLinkLogoMark";
-import { ProviderService, ActiveProviderConfig } from "../../services/providerService";
+import { ProviderService, ActiveProviderConfig, getAuthHeaders } from "../../services/providerService";
 
 export interface VirtualAccountDetails {
   provider: string;
@@ -132,7 +132,8 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
   const fetchLatestBalance = async () => {
     setIsRefreshing(true);
     try {
-      const res = await fetch(`/api/auth/profile?uid=${currentUser.uid}`);
+      const headers = await getAuthHeaders();
+      const res = await fetch(`/api/auth/profile?uid=${currentUser.uid}`, { headers });
       const data = await res.json();
       if (res.ok && data.user) {
         setWalletBalance(data.user.walletBalance || 0);

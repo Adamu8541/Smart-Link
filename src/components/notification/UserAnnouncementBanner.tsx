@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { AlertTriangle, Info, Bell, ShieldAlert, Sparkles, X, ChevronRight, ExternalLink } from "lucide-react";
+import { safeFetchJson } from "../../utils/authErrorHandler";
 
 export function UserAnnouncementBanner() {
   const [announcements, setAnnouncements] = useState<any[]>([]);
@@ -11,13 +12,12 @@ export function UserAnnouncementBanner() {
 
   const fetchActiveAnnouncements = async () => {
     try {
-      const res = await fetch("/api/user/announcements/active");
-      const data = await res.json();
-      if (data.success && Array.isArray(data.announcements)) {
-        setAnnouncements(data.announcements);
+      const res = await safeFetchJson<{ success: boolean; announcements?: any[] }>("/api/user/announcements/active");
+      if (res.ok && res.data?.success && Array.isArray(res.data.announcements)) {
+        setAnnouncements(res.data.announcements);
       }
     } catch (err) {
-      console.error("Failed to load active announcements:", err);
+      console.warn("Announcements note:", err);
     }
   };
 

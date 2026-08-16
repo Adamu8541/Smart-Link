@@ -32,7 +32,7 @@ import {
   ArrowUp,
   ArrowDown
 } from "lucide-react";
-import { getStoredAdminSession } from "../../../services/adminAuthService";
+import { getStoredAdminSession } from "../../../services/adminAuthTypes";
 
 interface AdminServicesViewProps {
   session?: any;

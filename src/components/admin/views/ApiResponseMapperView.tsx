@@ -25,7 +25,7 @@ import {
   ShieldCheck,
   Code
 } from "lucide-react";
-import { AdminSession } from "../../../services/adminAuthService";
+import { AdminSession } from "../../../services/adminAuthTypes";
 import { ApiResponseMappingConfig, ApiResponseMappingTestLog } from "../../../types";
 
 interface ApiResponseMapperViewProps {

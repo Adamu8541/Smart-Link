@@ -41,7 +41,8 @@ import {
   Check
 } from "lucide-react";
 import { UserProfile, UserRole, Transaction, CACApplication, SupportTicket } from "../types";
-import { ProviderService } from "../services/providerService";
+import { ProviderService, getAuthHeaders } from "../services/providerService";
+import { safeFetchJson } from "../utils/authErrorHandler";
 import { jsPDF } from "jspdf";
 import { SMART_LINK_SERVICES } from "./ServicesGrid";
 import {
@@ -246,41 +247,49 @@ export default function Dashboards({
   const [replyText, setReplyText] = useState<{ [ticketId: string]: string }>({});
 
   const loadData = async () => {
+    if (!currentUser?.uid) return;
     try {
+      const headers = await getAuthHeaders();
+
       // Load user transactions
-      const txRes = await fetch(`/api/transactions/${currentUser.uid}`);
-      const txData = await txRes.json();
-      if (txRes.ok) setTransactions(txData.transactions);
+      const txRes = await safeFetchJson<{ transactions: Transaction[] }>(`/api/transactions/${currentUser.uid}`, { headers });
+      if (txRes.ok && txRes.data?.transactions) {
+        setTransactions(txRes.data.transactions);
+      }
 
       // Load user support tickets
-      const tkRes = await fetch(`/api/tickets/user/${currentUser.uid}`);
-      const tkData = await tkRes.json();
-      if (tkRes.ok) setTickets(tkData.tickets);
+      const tkRes = await safeFetchJson<{ tickets: SupportTicket[] }>(`/api/tickets/user/${currentUser.uid}`, { headers });
+      if (tkRes.ok && tkRes.data?.tickets) {
+        setTickets(tkRes.data.tickets);
+      }
 
       // Load CAC Applications
       let cacUrl = `/api/cac/user/${currentUser.uid}`;
-      if (currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.STAFF) {
+      if (currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.STAFF || currentUser.role === UserRole.SUPER_ADMIN) {
         cacUrl = "/api/cac/all";
       }
-      const cacRes = await fetch(cacUrl);
-      const cacData = await cacRes.json();
-      if (cacRes.ok) setCacApps(cacData.applications);
+      const cacRes = await safeFetchJson<{ applications: CACApplication[] }>(cacUrl, { headers });
+      if (cacRes.ok && cacRes.data?.applications) {
+        setCacApps(cacRes.data.applications);
+      }
 
       // Load all tickets for Admin/Staff
-      if (currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.STAFF) {
-        const allTkRes = await fetch("/api/tickets/all");
-        const allTkData = await allTkRes.json();
-        if (allTkRes.ok) setTickets(allTkData.tickets);
+      if (currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.STAFF || currentUser.role === UserRole.SUPER_ADMIN) {
+        const allTkRes = await safeFetchJson<{ tickets: SupportTicket[] }>("/api/tickets/all", { headers });
+        if (allTkRes.ok && allTkRes.data?.tickets) {
+          setTickets(allTkRes.data.tickets);
+        }
       }
 
       // Load Admin Financials
-      if (currentUser.role === UserRole.ADMIN) {
-        const statRes = await fetch("/api/admin/stats");
-        const statData = await statRes.json();
-        if (statRes.ok) setAdminStats(statData);
+      if (currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.SUPER_ADMIN) {
+        const statRes = await safeFetchJson<any>("/api/admin/stats", { headers });
+        if (statRes.ok && statRes.data) {
+          setAdminStats(statRes.data);
+        }
       }
     } catch (err) {
-      console.error("Error loading dashboard metrics", err);
+      console.warn("Dashboard metrics load note:", err);
     }
   };
 
@@ -533,17 +542,18 @@ export default function Dashboards({
     setActionLoading(true);
 
     try {
-      const res = await fetch("/api/wallet/fund", {
+      const authHeaders = await getAuthHeaders();
+      const res = await safeFetchJson<{ transaction?: Transaction; error?: string }>("/api/wallet/fund", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { ...authHeaders, "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: currentUser.uid,
           amount: parseFloat(fundAmount),
           gateway: fundGateway,
         }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Funding failed");
+      if (!res.ok) throw new Error(res.error || "Funding failed");
+      const data = res.data || {};
 
       const fundedAmt = parseFloat(fundAmount);
       setActionSuccess(`Successfully funded ₦${fundedAmt.toLocaleString()} via ${fundGateway}!`);
@@ -579,17 +589,17 @@ export default function Dashboards({
     setActionLoading(true);
 
     try {
-      const res = await fetch("/api/wallet/transfer", {
+      const authHeaders = await getAuthHeaders();
+      const res = await safeFetchJson<{ error?: string }>("/api/wallet/transfer", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { ...authHeaders, "Content-Type": "application/json" },
         body: JSON.stringify({
           fromUserId: currentUser.uid,
           recipientEmail: transferEmail,
           amount: parseFloat(transferAmount),
         }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Transfer failed");
+      if (!res.ok) throw new Error(res.error || "Transfer failed");
 
       setActionSuccess(`Successfully transferred ₦${parseFloat(transferAmount).toLocaleString()} to ${transferEmail}!`);
       setTransferEmail("");
@@ -611,17 +621,17 @@ export default function Dashboards({
     setActionLoading(true);
 
     try {
-      const res = await fetch("/api/tickets/create", {
+      const authHeaders = await getAuthHeaders();
+      const res = await safeFetchJson<{ error?: string }>("/api/tickets/create", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { ...authHeaders, "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: currentUser.uid,
           subject: ticketSubject,
           message: ticketMsg,
         }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Ticket failed");
+      if (!res.ok) throw new Error(res.error || "Ticket failed");
 
       setActionSuccess("Support ticket opened! Our technical staff will respond shortly.");
       setTicketSubject("");
@@ -642,9 +652,10 @@ export default function Dashboards({
     setActionLoading(true);
 
     try {
-      const res = await fetch("/api/marketplace/services", {
+      const authHeaders = await getAuthHeaders();
+      const res = await safeFetchJson<{ error?: string }>("/api/marketplace/services", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { ...authHeaders, "Content-Type": "application/json" },
         body: JSON.stringify({
           vendorId: currentUser.uid,
           vendorName: currentUser.fullName,
@@ -656,8 +667,7 @@ export default function Dashboards({
           deliveryTime: srvDelivery,
         }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Filing service failed");
+      if (!res.ok) throw new Error(res.error || "Filing service failed");
 
       setActionSuccess(`Marketplace Service: "${srvTitle}" has been posted successfully under commission guidelines!`);
       setSrvTitle("");
@@ -674,9 +684,10 @@ export default function Dashboards({
   // Staff/Admin: Approve CAC Application
   const handleCacApproval = async (id: string, status: "APPROVED" | "REJECTED", approvedName?: string) => {
     try {
-      const res = await fetch(`/api/cac/${id}`, {
+      const authHeaders = await getAuthHeaders();
+      const res = await safeFetchJson(`/api/cac/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { ...authHeaders, "Content-Type": "application/json" },
         body: JSON.stringify({
           status,
           approvedName,
@@ -698,9 +709,10 @@ export default function Dashboards({
     if (!text) return;
 
     try {
-      const res = await fetch(`/api/tickets/reply/${id}`, {
+      const authHeaders = await getAuthHeaders();
+      const res = await safeFetchJson(`/api/tickets/reply/${id}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { ...authHeaders, "Content-Type": "application/json" },
         body: JSON.stringify({
           reply: text,
           repliedBy: currentUser.fullName,

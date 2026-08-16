@@ -30,7 +30,7 @@ import {
   ArrowRightLeft,
   KeyRound
 } from "lucide-react";
-import { AdminSession, ADMIN_ROLES_CONFIG } from "../../../services/adminAuthService";
+import { AdminSession, ADMIN_ROLES_CONFIG } from "../../../services/adminAuthTypes";
 import logoImg from "../../../assets/images/smartlink_logo_1785934050308.jpg";
 
 interface AdminSidebarProps {

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ArrowLeft, Search, Filter, Ticket, Plus, ChevronRight, Clock, CheckCircle2, AlertCircle, RefreshCw } from "lucide-react";
+import { safeFetchJson } from "../../utils/authErrorHandler";
+import { getAuthHeaders } from "../../services/providerService";
 
 interface UserTicketHistoryViewProps {
   onBack: () => void;
@@ -28,14 +30,17 @@ export function UserTicketHistoryView({ onBack, onCreateNew, onSelectTicket, use
         category: categoryFilter,
         priority: priorityFilter,
       });
-      const res = await fetch(`/api/support/tickets?${params.toString()}`);
-      const data = await res.json();
-      if (data.success) {
-        setTickets(data.tickets || []);
-        if (data.categories) setCategories(data.categories);
+      const headers = await getAuthHeaders();
+      const res = await safeFetchJson<{ success: boolean; tickets?: any[]; categories?: any[] }>(
+        `/api/support/tickets?${params.toString()}`,
+        { headers }
+      );
+      if (res.ok && res.data?.success) {
+        setTickets(res.data.tickets || []);
+        if (res.data.categories) setCategories(res.data.categories);
       }
     } catch (err) {
-      console.error(err);
+      console.warn("Fetch tickets note:", err);
     } finally {
       setLoading(false);
     }

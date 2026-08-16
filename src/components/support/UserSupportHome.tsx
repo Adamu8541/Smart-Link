@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { MessageSquare, Plus, History, HelpCircle, Ticket, Search, ChevronRight, ShieldCheck, Zap, AlertTriangle, LifeBuoy, FileText, ArrowUpRight } from "lucide-react";
+import { safeFetchJson } from "../../utils/authErrorHandler";
+import { getAuthHeaders } from "../../services/providerService";
 
 interface UserSupportHomeProps {
   onCreateNew: () => void;
@@ -14,15 +16,24 @@ export function UserSupportHome({ onCreateNew, onViewHistory, onSelectTicket, us
   const [activeFaq, setActiveFaq] = useState<number | null>(0);
 
   useEffect(() => {
-    fetch(`/api/support/tickets?email=${encodeURIComponent(userEmail)}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success && data.tickets) {
-          setRecentTickets(data.tickets.slice(0, 3));
+    let isMounted = true;
+    (async () => {
+      try {
+        const headers = await getAuthHeaders();
+        const res = await safeFetchJson<{ success: boolean; tickets: any[] }>(
+          `/api/support/tickets?email=${encodeURIComponent(userEmail)}`,
+          { headers }
+        );
+        if (isMounted && res.ok && res.data?.tickets) {
+          setRecentTickets(res.data.tickets.slice(0, 3));
         }
-      })
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false));
+      } catch (err) {
+        console.warn("Support tickets note:", err);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    })();
+    return () => { isMounted = false; };
   }, [userEmail]);
 
   const faqs = [

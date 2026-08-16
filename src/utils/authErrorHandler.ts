@@ -99,6 +99,39 @@ export function getFriendlyErrorMessage(error: any): string {
   }
 
   if (
+    code === "auth/unauthorized-domain" ||
+    rawMsg.includes("unauthorized-domain") ||
+    rawMsg.includes("unauthorized domain")
+  ) {
+    return "This domain is not authorized for Google Sign-In in Firebase. Please add this domain to Firebase Console > Authentication > Settings > Authorized Domains.";
+  }
+
+  if (
+    code === "auth/operation-not-allowed" ||
+    rawMsg.includes("operation-not-allowed") ||
+    rawMsg.includes("OPERATION_NOT_ALLOWED")
+  ) {
+    return "Google Sign-In is not enabled in Firebase Console. Please enable Google under Authentication > Sign-in method.";
+  }
+
+  if (
+    code === "auth/invalid-api-key" ||
+    code === "auth/api-key-not-valid" ||
+    rawMsg.includes("invalid-api-key") ||
+    rawMsg.includes("API key not valid")
+  ) {
+    return "Firebase API Key is invalid or restricted. Please check your Firebase project settings.";
+  }
+
+  if (
+    rawMsg.includes("invalid_request") ||
+    rawMsg.includes("Invalid request") ||
+    rawMsg.includes("request is invalid")
+  ) {
+    return "Google Authentication request was invalid. Please ensure Google Sign-In is enabled in Firebase Console with a valid project support email.";
+  }
+
+  if (
     code === "auth/user-disabled" ||
     rawMsg.includes("user-disabled")
   ) {
@@ -148,57 +181,73 @@ export function getFriendlyErrorMessage(error: any): string {
 /**
  * Safe fetch wrapper that validates content-type and HTTP response status
  * before calling `.json()`, avoiding "Unexpected token" JSON parse crashes.
+ * Includes automatic retry for transient connection hiccups.
  */
 export async function safeFetchJson<T = any>(
   url: string,
-  options?: RequestInit
+  options?: RequestInit,
+  retries = 2
 ): Promise<{ ok: boolean; status: number; data?: T; error?: string }> {
-  try {
-    const res = await fetch(url, {
-      ...options,
-      headers: {
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-        ...(options?.headers || {}),
-      },
-    });
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch(url, {
+        ...options,
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+          ...(options?.headers || {}),
+        },
+      });
 
-    const contentType = res.headers.get("content-type") || "";
+      const contentType = res.headers.get("content-type") || "";
 
-    // If server returned non-JSON content (e.g. HTML error page or text)
-    if (!contentType.includes("application/json")) {
-      const rawText = await res.text().catch(() => "");
-      console.warn(`[safeFetchJson] Expected JSON but received ${contentType} from ${url}. Raw output sample: ${rawText.substring(0, 100)}`);
+      // If server returned non-JSON content (e.g. HTML error page or text)
+      if (!contentType.includes("application/json")) {
+        const rawText = await res.text().catch(() => "");
+        if (attempt < retries) {
+          await new Promise((r) => setTimeout(r, 300 * (attempt + 1)));
+          continue;
+        }
+        return {
+          ok: false,
+          status: res.status,
+          error: "Our servers are temporarily unavailable. Please try again in a few minutes.",
+        };
+      }
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        const friendlyMsg = getFriendlyErrorMessage(json.error || json.message || res.statusText);
+        return {
+          ok: false,
+          status: res.status,
+          data: json,
+          error: friendlyMsg,
+        };
+      }
+
       return {
-        ok: false,
-        status: res.status,
-        error: "Our servers are temporarily unavailable. Please try again in a few minutes.",
-      };
-    }
-
-    const json = await res.json();
-
-    if (!res.ok) {
-      const friendlyMsg = getFriendlyErrorMessage(json.error || json.message || res.statusText);
-      return {
-        ok: false,
+        ok: true,
         status: res.status,
         data: json,
-        error: friendlyMsg,
+      };
+    } catch (err: any) {
+      if (attempt < retries) {
+        await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
+        continue;
+      }
+      return {
+        ok: false,
+        status: 0,
+        error: getFriendlyErrorMessage(err),
       };
     }
-
-    return {
-      ok: true,
-      status: res.status,
-      data: json,
-    };
-  } catch (err: any) {
-    console.warn(`[safeFetchJson Note] Request to ${url} failed:`, err?.message || err);
-    return {
-      ok: false,
-      status: 0,
-      error: getFriendlyErrorMessage(err),
-    };
   }
+
+  return {
+    ok: false,
+    status: 0,
+    error: "Network request could not be completed.",
+  };
 }

@@ -68,8 +68,8 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({
           body: JSON.stringify({ email: cleanEmail }),
         });
         const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.error || "Unable to send password reset email.");
+        if (!res.ok || data.success === false) {
+          throw new Error(data.error || data.message || "Unable to send password reset email.");
         }
       }
 

@@ -36,7 +36,7 @@ import {
   Radio,
   Trash2
 } from "lucide-react";
-import { AdminSession } from "../../../services/adminAuthService";
+import { AdminSession } from "../../../services/adminAuthTypes";
 
 interface AdminSecurityViewProps {
   session: AdminSession;

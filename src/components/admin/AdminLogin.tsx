@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import logoImg from "../../assets/images/smartlink_logo_1785934050308.jpg";
 import { SmartLinkLogoMark } from "../ui/SmartLinkLogoMark";
-import { AdminRoleType } from "../../services/adminAuthService";
+import { AdminRoleType } from "../../services/adminAuthTypes";
 
 interface AdminLoginProps {
   onLoginSuccess: (session: any) => void;

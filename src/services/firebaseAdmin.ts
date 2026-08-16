@@ -1,5 +1,6 @@
 import { initializeApp, getApps, cert } from "firebase-admin/app";
 import { getFirestore, Firestore } from "firebase-admin/firestore";
+import { getAuth, Auth } from "firebase-admin/auth";
 import firebaseConfig from "../../firebase-applet-config.json";
 
 export const FIRESTORE_DATABASE_ID = "ai-studio-smartlinkdigital-99537f8d-90f9-4901-bec9-4b6844af0ecc";
@@ -91,13 +92,8 @@ export function getAdminFirestore(): Firestore {
   try {
     if (getApps().length === 0) {
       const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-      if (!serviceAccountKey || !serviceAccountKey.trim()) {
-        databaseInitError = "Database Disconnected: FIREBASE_SERVICE_ACCOUNT_KEY environment variable is not configured";
-        throw new Error(databaseInitError);
-      }
-
-      let serviceAccount: any;
-      if (typeof serviceAccountKey === "string") {
+      if (serviceAccountKey && serviceAccountKey.trim()) {
+        let serviceAccount: any;
         const trimmed = serviceAccountKey.trim();
         if (trimmed.startsWith("{")) {
           serviceAccount = JSON.parse(trimmed);
@@ -105,22 +101,33 @@ export function getAdminFirestore(): Firestore {
           const decoded = Buffer.from(trimmed, "base64").toString("utf8");
           serviceAccount = JSON.parse(decoded);
         }
+        initializeApp({
+          credential: cert(serviceAccount),
+          projectId: FIRESTORE_PROJECT_ID,
+        });
       } else {
-        serviceAccount = serviceAccountKey;
+        // Initialize with default GCP credentials / projectId
+        initializeApp({
+          projectId: FIRESTORE_PROJECT_ID,
+        });
       }
-
-      initializeApp({
-        credential: cert(serviceAccount),
-      });
     }
 
     adminDbInstance = getFirestore(FIRESTORE_DATABASE_ID);
     adminDbInstance.settings({ ignoreUndefinedProperties: true });
     return adminDbInstance;
   } catch (err: any) {
-    databaseInitError = `Database Disconnected: ${err?.message || err}`;
-    console.error(`[firebaseAdmin] ${databaseInitError}`);
+    const rawMsg = err?.message || String(err);
+    databaseInitError = rawMsg.startsWith("Database Disconnected:")
+      ? rawMsg
+      : `Database Disconnected: ${rawMsg}`;
     throw new Error(databaseInitError);
   }
 }
+
+export function getAdminAuth(): Auth {
+  getAdminFirestore();
+  return getAuth();
+}
+
 

@@ -9,7 +9,7 @@ import AdminHeader from "./AdminHeader";
 import AdminBreadcrumbs from "./AdminBreadcrumbs";
 import AdminFooter from "./AdminFooter";
 import AdminNotificationDrawer from "./AdminNotificationDrawer";
-import { AdminSession } from "../../../services/adminAuthService";
+import { AdminSession } from "../../../services/adminAuthTypes";
 import { adminLayoutService } from "../../../services/adminLayoutService";
 import { AdminNotification, AdminBreadcrumb } from "../../../types/adminLayoutTypes";
 

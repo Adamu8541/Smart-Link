@@ -21,7 +21,7 @@ import {
   Zap,
   Info
 } from "lucide-react";
-import { AdminSession } from "../../../services/adminAuthService";
+import { AdminSession } from "../../../services/adminAuthTypes";
 
 interface PlaceholderViewProps {
   session: AdminSession;

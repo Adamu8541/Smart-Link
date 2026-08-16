@@ -30,7 +30,7 @@ import {
   Plus,
   Minus
 } from "lucide-react";
-import { AdminSession } from "../../../services/adminAuthService";
+import { AdminSession } from "../../../services/adminAuthTypes";
 import { WalletDetailDrawer } from "../wallet/WalletDetailDrawer";
 import {
   CreditWalletModal,

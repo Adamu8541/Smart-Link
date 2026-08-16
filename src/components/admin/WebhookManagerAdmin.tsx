@@ -23,7 +23,7 @@ import {
   Layers
 } from "lucide-react";
 import { WebhookItem, WebhookLogItem, WebhookStatus } from "../../types/provider";
-import { getStoredAdminSession } from "../../services/adminAuthService";
+import { getStoredAdminSession } from "../../services/adminAuthTypes";
 
 interface WebhookManagerAdminProps {
   adminUid: string;

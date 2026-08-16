@@ -3,6 +3,8 @@
  * Firestore-Backed Sessions & Credentials Management
  */
 
+import crypto from "crypto";
+import { getAdminFirestore } from "./firebaseAdmin";
 export * from "./adminAuthTypes";
 import {
   AdminSession,
@@ -16,23 +18,18 @@ import {
 
 function getFsDb() {
   try {
-    const { getAdminFirestore } = require("./firebaseAdmin");
     return getAdminFirestore();
   } catch {
     return null;
   }
 }
 
-function getCrypto() {
-  return require("crypto");
-}
-
 export function generateSalt(): string {
-  return getCrypto().randomBytes(16).toString("hex");
+  return crypto.randomBytes(16).toString("hex");
 }
 
 export function hashPassword(password: string, salt: string): string {
-  return getCrypto().createHash("sha256").update(password + salt).digest("hex");
+  return crypto.createHash("sha256").update(password + salt).digest("hex");
 }
 
 export function safeCompareHash(providedHash: string, storedHash: string): boolean {
@@ -41,7 +38,7 @@ export function safeCompareHash(providedHash: string, storedHash: string): boole
     const bufferA = Buffer.from(providedHash, "hex");
     const bufferB = Buffer.from(storedHash, "hex");
     if (bufferA.length !== bufferB.length) return false;
-    return getCrypto().timingSafeEqual(bufferA, bufferB);
+    return crypto.timingSafeEqual(bufferA, bufferB);
   } catch {
     return false;
   }
@@ -81,7 +78,7 @@ export function signAdminJwt(payload: {
   const encodedHeader = base64UrlEncode(JSON.stringify(header));
   const encodedPayload = base64UrlEncode(JSON.stringify(payload));
   const signatureInput = `${encodedHeader}.${encodedPayload}`;
-  const signature = getCrypto()
+  const signature = crypto
     .createHmac("sha256", getJwtSecret())
     .update(signatureInput)
     .digest("base64")
@@ -104,7 +101,7 @@ export function verifyAdminJwt(token: string): {
 
   const [encodedHeader, encodedPayload, signature] = parts;
   const signatureInput = `${encodedHeader}.${encodedPayload}`;
-  const expectedSignature = getCrypto()
+  const expectedSignature = crypto
     .createHmac("sha256", getJwtSecret())
     .update(signatureInput)
     .digest("base64")
@@ -115,7 +112,7 @@ export function verifyAdminJwt(token: string): {
   const sigBuffer = Buffer.from(signature);
   const expectedSigBuffer = Buffer.from(expectedSignature);
   if (sigBuffer.length !== expectedSigBuffer.length) return null;
-  if (!getCrypto().timingSafeEqual(sigBuffer, expectedSigBuffer)) return null;
+  if (!crypto.timingSafeEqual(sigBuffer, expectedSigBuffer)) return null;
 
   try {
     const payloadStr = base64UrlDecode(encodedPayload);

@@ -39,7 +39,7 @@ import {
   PlayCircle
 } from "lucide-react";
 import { UserProfile, UserRole } from "../../../types";
-import { AdminSession } from "../../../services/adminAuthService";
+import { AdminSession } from "../../../services/adminAuthTypes";
 import { UserProfileDrawer } from "../users/UserProfileDrawer";
 import {
   EditProfileModal,

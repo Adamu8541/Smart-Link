@@ -18,6 +18,8 @@ import {
 } from "firebase/auth";
 import {
   getFirestore,
+  initializeFirestore,
+  memoryLocalCache,
   setLogLevel,
   doc,
   setDoc,
@@ -91,9 +93,29 @@ export const firebaseApp = initializeApp(activeFirebaseConfig);
 
 // Initialize Services
 export const auth = getAuth(firebaseApp);
-export const db = activeFirebaseConfig.firestoreDatabaseId && activeFirebaseConfig.firestoreDatabaseId !== "(default)"
-  ? getFirestore(firebaseApp, activeFirebaseConfig.firestoreDatabaseId)
-  : getFirestore(firebaseApp);
+
+let firestoreInstance: ReturnType<typeof getFirestore>;
+try {
+  const customDbId = activeFirebaseConfig.firestoreDatabaseId && activeFirebaseConfig.firestoreDatabaseId !== "(default)"
+    ? activeFirebaseConfig.firestoreDatabaseId
+    : undefined;
+
+  firestoreInstance = initializeFirestore(
+    firebaseApp,
+    {
+      localCache: memoryLocalCache(),
+      experimentalAutoDetectLongPolling: true,
+    },
+    customDbId
+  );
+} catch (initErr) {
+  // If already initialized or fallback needed
+  firestoreInstance = activeFirebaseConfig.firestoreDatabaseId && activeFirebaseConfig.firestoreDatabaseId !== "(default)"
+    ? getFirestore(firebaseApp, activeFirebaseConfig.firestoreDatabaseId)
+    : getFirestore(firebaseApp);
+}
+
+export const db = firestoreInstance;
 export const storage = getStorage(firebaseApp);
 export const functions = getFunctions(firebaseApp);
 
@@ -159,6 +181,75 @@ export async function callCloudFunction<TData = any, TResult = any>(
     throw error;
   }
 }
+
+export enum OperationType {
+  CREATE = "create",
+  UPDATE = "update",
+  DELETE = "delete",
+  LIST = "list",
+  GET = "get",
+  WRITE = "write",
+}
+
+export interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId?: string | null;
+    email?: string | null;
+    emailVerified?: boolean | null;
+    isAnonymous?: boolean | null;
+    tenantId?: string | null;
+    providerInfo?: {
+      providerId?: string | null;
+      email?: string | null;
+    }[];
+  };
+}
+
+export function handleFirestoreError(
+  error: unknown,
+  operationType: OperationType,
+  path: string | null
+): never {
+  const currentUser = auth.currentUser;
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: currentUser?.uid || null,
+      email: currentUser?.email || null,
+      emailVerified: currentUser?.emailVerified || false,
+      isAnonymous: currentUser?.isAnonymous || false,
+      tenantId: currentUser?.tenantId || null,
+      providerInfo:
+        currentUser?.providerData?.map((p) => ({
+          providerId: p.providerId,
+          email: p.email,
+        })) || [],
+    },
+    operationType,
+    path,
+  };
+  console.error("Firestore Error: ", JSON.stringify(errInfo));
+  throw new Error(JSON.stringify(errInfo));
+}
+
+// Startup connection verification
+export async function testConnection() {
+  try {
+    if (isFirebaseConfigured && db) {
+      // Allow connection handshake to complete
+      await new Promise((r) => setTimeout(r, 600));
+      await getDocFromServer(doc(db, "test", "connection"));
+    }
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("the client is offline")) {
+      console.warn("Please check your Firebase configuration.");
+    }
+  }
+}
+testConnection();
 
 export {
   createUserWithEmailAndPassword,

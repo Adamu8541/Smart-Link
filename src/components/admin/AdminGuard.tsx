@@ -16,7 +16,7 @@ import {
   User,
   Shield
 } from "lucide-react";
-import { AdminSession, ADMIN_ROLES_CONFIG, ADMIN_ROUTE_PERMISSIONS } from "../../services/adminAuthService";
+import { AdminSession, ADMIN_ROLES_CONFIG, ADMIN_ROUTE_PERMISSIONS } from "../../services/adminAuthTypes";
 
 interface AdminGuardProps {
   currentRoute: string;

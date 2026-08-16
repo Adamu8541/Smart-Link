@@ -18,7 +18,7 @@ import {
   ShieldAlert,
   Info
 } from "lucide-react";
-import { AdminSession } from "../../../services/adminAuthService";
+import { AdminSession } from "../../../services/adminAuthTypes";
 
 // ==========================================
 // 1. CREDIT WALLET MODAL

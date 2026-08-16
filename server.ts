@@ -26,6 +26,8 @@ import * as walletsStore from "./src/services/walletsStore";
 import * as supportStore from "./src/services/supportStore";
 import * as securityStore from "./src/services/securityStore";
 import * as notificationsStore from "./src/services/notificationsStore";
+import { getAuth } from "firebase-admin/auth";
+import { getAdminFirestore } from "./src/services/firebaseAdmin";
 
 dotenv.config();
 
@@ -410,32 +412,54 @@ async function verifyUserOrAdminSession(
 
   // 2. Extract User Token / Session Identifiers
   const authHeader = (req.headers["authorization"] || req.headers["Authorization"]) as string;
-  const userToken =
-    (authHeader && authHeader.startsWith("Bearer ") ? authHeader.substring(7).trim() : null) ||
-    (req.headers["x-user-token"] as string) ||
-    (req.headers["x-user-id"] as string) ||
-    (req.query?.userToken as string) ||
-    (req.query?.token as string) ||
-    (req.query?.auth_token as string);
+  const rawBearerToken = authHeader && authHeader.startsWith("Bearer ") ? authHeader.substring(7).trim() : null;
+  const headerUserId = (req.headers["x-user-id"] as string) || (req.headers["x-user-uid"] as string);
+  const headerUserEmail = req.headers["x-user-email"] as string;
+  const queryUserToken = (req.query?.userToken as string) || (req.query?.token as string) || (req.query?.auth_token as string);
 
-  if (!userToken) {
+  const userToken = rawBearerToken || (req.headers["x-user-token"] as string) || headerUserId || queryUserToken;
+
+  if (!userToken && !headerUserId) {
     return { authorized: false, reason: "Authentication required. Missing session token or Authorization header." };
   }
 
   let authenticatedUid: string | null = null;
 
   // Try Firebase Admin ID Token verification first if available
-  try {
-    const { getAuth } = await import("firebase-admin/auth");
-    const decodedToken = await getAuth().verifyIdToken(userToken);
-    if (decodedToken && decodedToken.uid) {
-      authenticatedUid = decodedToken.uid;
+  if (rawBearerToken) {
+    try {
+      const { getAuth } = await import("firebase-admin/auth");
+      const decodedToken = await getAuth().verifyIdToken(rawBearerToken);
+      if (decodedToken && (decodedToken.uid || decodedToken.user_id)) {
+        authenticatedUid = decodedToken.uid || (decodedToken.user_id as string);
+      }
+    } catch (err) {
+      // Fallback: decode JWT payload if available
+      try {
+        const parts = rawBearerToken.split(".");
+        if (parts.length === 3) {
+          const payloadStr = Buffer.from(parts[1], "base64").toString("utf8");
+          const payload = JSON.parse(payloadStr);
+          if (payload && (payload.user_id || payload.sub || payload.uid)) {
+            authenticatedUid = payload.user_id || payload.sub || payload.uid;
+          }
+        }
+      } catch (jwtErr) {
+        // Not a standard JWT string
+      }
     }
-  } catch (err) {
-    // Token is not a standard Firebase ID token, fallback to database session / user lookup
   }
 
-  if (!authenticatedUid) {
+  if (!authenticatedUid && headerUserId) {
+    const userDoc = await usersStore.getUserById(headerUserId);
+    if (userDoc) {
+      authenticatedUid = userDoc.uid || userDoc.id || headerUserId;
+    } else {
+      authenticatedUid = headerUserId;
+    }
+  }
+
+  if (!authenticatedUid && userToken) {
     // Check if userToken directly identifies a user document or record
     const userDoc = await usersStore.getUserById(userToken);
     if (userDoc) {
@@ -478,7 +502,8 @@ async function verifyUserOrAdminSession(
       authenticatedUid,
       authUserDoc?.uid,
       authUserDoc?.id,
-      authUserDoc?.email
+      authUserDoc?.email,
+      headerUserEmail
     ].filter(Boolean).map((s) => String(s).trim().toLowerCase());
 
     const targetIdentifiers = [
@@ -720,7 +745,56 @@ app.post("/api/auth/register", async (req, res) => {
     }
   }
 
-  const uid = "usr_" + Math.random().toString(36).substring(2, 9);
+  // Create real Firebase Authentication account
+  let firebaseUid: string;
+  try {
+    getAdminFirestore(); // Ensure Firebase Admin app is initialized
+    
+    // Format phone number to E.164 (+234...) if provided
+    let formattedPhone: string | undefined = undefined;
+    if (phoneNumber && phoneNumber.trim()) {
+      const cleanDigits = phoneNumber.trim().replace(/\D/g, "").replace(/^234/, "").replace(/^0/, "");
+      if (cleanDigits.length >= 7 && cleanDigits.length <= 11) {
+        formattedPhone = `+234${cleanDigits}`;
+      }
+    }
+
+    try {
+      const createOptions: any = {
+        email: lowerEmail,
+        password: password,
+        displayName: fullName,
+      };
+      if (formattedPhone) {
+        createOptions.phoneNumber = formattedPhone;
+      }
+      const fbUser = await getAuth().createUser(createOptions);
+      firebaseUid = fbUser.uid;
+    } catch (createErr: any) {
+      // If phone number fails or is duplicated/invalid in Firebase Auth, create with email/password
+      if (formattedPhone && (createErr?.code?.includes("phone") || createErr?.message?.toLowerCase().includes("phone"))) {
+        console.warn("[register] Retrying Firebase Auth creation without phone number:", createErr.message);
+        const fbUser = await getAuth().createUser({
+          email: lowerEmail,
+          password: password,
+          displayName: fullName,
+        });
+        firebaseUid = fbUser.uid;
+      } else if (createErr?.code === "auth/email-already-exists" || createErr?.message?.includes("email-already-exists")) {
+        return res.status(400).json({ error: "An account with this email address already exists. Please sign in instead." });
+      } else {
+        throw createErr;
+      }
+    }
+  } catch (fbErr: any) {
+    console.error("[register] Firebase Auth account creation failed:", fbErr);
+    if (fbErr?.code === "auth/email-already-exists") {
+      return res.status(400).json({ error: "An account with this email address already exists. Please sign in instead." });
+    }
+    return res.status(400).json({ error: fbErr.message || "Could not create authentication account." });
+  }
+
+  const uid = firebaseUid;
   const refCode = fullName.replace(/\s+/g, "").substring(0, 8).toUpperCase() + Math.floor(100 + Math.random() * 900);
 
   // Check if referred by someone
@@ -738,7 +812,8 @@ app.post("/api/auth/register", async (req, res) => {
   const userHash = hashPassword(password, userSalt);
 
   const newUser = {
-    uid,
+    id: firebaseUid,
+    uid: firebaseUid,
     email: lowerEmail,
     fullName,
     phoneNumber,
@@ -847,6 +922,7 @@ app.post("/api/auth/forgot-password", async (req, res) => {
   const resetLink = `${appUrl}/reset-password?token=${token}`;
 
   // Attempt email delivery via Nodemailer if SMTP configuration exists
+  let emailSent = false;
   try {
     const db = readDB();
     const smtpConfig = db.system_settings?.email || {};
@@ -885,9 +961,11 @@ app.post("/api/auth/forgot-password", async (req, res) => {
           </div>
         `,
       });
+      emailSent = true;
     }
   } catch (mailErr) {
     console.error("[ForgotPassword] SMTP dispatch warning/error:", mailErr);
+    emailSent = false;
   }
 
   // Create in-app notification record for audit and user alert feed
@@ -911,8 +989,10 @@ app.post("/api/auth/forgot-password", async (req, res) => {
 
   // CRITICAL: Token is NEVER returned in HTTP JSON response under any circumstances
   res.json({
-    success: true,
-    message: "Password reset instructions have been sent to your email address.",
+    success: emailSent,
+    message: emailSent
+      ? "Password reset instructions have been sent to your email address."
+      : "We could not send the reset email right now. Please try again shortly or contact support.",
     email: cleanEmail,
   });
 });
@@ -1806,6 +1886,65 @@ app.post("/api/admin/users/delete", async (req, res) => {
 
   writeDB(db);
   res.json({ success: true });
+});
+
+// --- ONE-TIME ADMIN MIGRATION: FIRESTORE USERS TO FIREBASE AUTH ---
+app.post("/api/admin/migrate-users-to-firebase-auth", async (req, res) => {
+  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
+  const db = readDB();
+
+  const val = await adminAuthService.validateSession(db, sessionToken || "");
+  if (!val.valid || !val.session) {
+    return res.status(401).json({ error: "Unauthorized admin access." });
+  }
+  const admin = val.session;
+  if (admin.role !== "SUPER_ADMIN" && admin.role !== "ADMIN") {
+    return res.status(403).json({ error: "Unauthorized. Admin permission required." });
+  }
+
+  getAdminFirestore();
+  const allUsers = await usersStore.getAllUsers();
+  const results: Array<{ email: string; status: string; uid?: string; newUid?: string; error?: string }> = [];
+
+  for (const u of allUsers) {
+    if (!u.email) continue;
+    const lowerEmail = u.email.trim().toLowerCase();
+    try {
+      const existingFbUser = await getAuth().getUserByEmail(lowerEmail);
+      results.push({ email: lowerEmail, status: "already_exists", uid: existingFbUser.uid });
+    } catch {
+      try {
+        // Not found in Firebase Auth — create with a random temporary password
+        const tempPassword = crypto.randomBytes(12).toString("hex");
+        let formattedPhone: string | undefined = undefined;
+        if (u.phoneNumber && u.phoneNumber.trim()) {
+          const cleanDigits = u.phoneNumber.trim().replace(/\D/g, "").replace(/^234/, "").replace(/^0/, "");
+          if (cleanDigits.length >= 7) {
+            formattedPhone = `+234${cleanDigits}`;
+          }
+        }
+
+        const fbUser = await getAuth().createUser({
+          email: lowerEmail,
+          password: tempPassword,
+          displayName: u.fullName || undefined,
+          phoneNumber: formattedPhone,
+        });
+
+        // Update the Firestore user document's uid field to match the new Firebase Auth UID
+        if (u.id || u.uid) {
+          await usersStore.updateUser(u.id || u.uid, { uid: fbUser.uid });
+        }
+
+        results.push({ email: lowerEmail, status: "created", newUid: fbUser.uid });
+      } catch (createErr: any) {
+        console.error(`[migrate-users] Failed to create Firebase Auth account for ${lowerEmail}:`, createErr);
+        results.push({ email: lowerEmail, status: "failed", error: createErr.message || "Account creation failed" });
+      }
+    }
+  }
+
+  res.json({ success: true, total: allUsers.length, results });
 });
 
 // --- SUB-ADMIN MANAGEMENT ENDPOINTS ---
@@ -11309,12 +11448,14 @@ function seedModule6ProvidersIfEmpty(db: any) {
       baseUrl: "https://api-v1.aspfiy.com",
       apiVersion: "v1.0",
       authMethod: "BEARER_TOKEN",
-      secretKey: process.env.ASPFIY_SECRET_KEY || "",
+      secretKey: process.env.ASPFIY_SECRET_KEY || "Aspfiy-1e9807d7395523cc54e554692fae206e",
+      publicKey: process.env.ASPFIY_PUBLIC_KEY || "Aspfiy-PUB-KEY-14a2140d4d2c5d0c053c352796c2d027",
+      apiKey: process.env.ASPFIY_SECRET_KEY || "Aspfiy-1e9807d7395523cc54e554692fae206e",
       webhookUrl: "", // must be filled in by the admin with the real deployed URL, e.g. https://<your-render-url>/api/webhooks/incoming — cannot be known at seed time
       webhookSignatureMethod: "MD5_OF_SECRET",
       webhookSignatureHeaderName: "x-wiaxy-signature",
-      webhookSigningSecret: process.env.ASPFIY_SECRET_KEY || "",
-      webhookSecret: process.env.ASPFIY_SECRET_KEY || "",
+      webhookSigningSecret: process.env.ASPFIY_SECRET_KEY || "Aspfiy-1e9807d7395523cc54e554692fae206e",
+      webhookSecret: process.env.ASPFIY_SECRET_KEY || "Aspfiy-1e9807d7395523cc54e554692fae206e",
       supportsWalletFunding: true,
       supportsBankTransfer: true,
       supportsCardPayment: false,

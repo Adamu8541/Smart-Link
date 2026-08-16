@@ -10,7 +10,7 @@
 
 import { auth } from "../firebase";
 
-async function getAuthHeaders(): Promise<Record<string, string>> {
+export async function getAuthHeaders(): Promise<Record<string, string>> {
   const user = auth.currentUser;
   if (!user) return { "Content-Type": "application/json" };
   try {

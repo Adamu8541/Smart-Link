@@ -27,7 +27,7 @@ import {
   RefreshCw,
   LogOut
 } from "lucide-react";
-import { AdminSession, ADMIN_ROLES_CONFIG } from "../../services/adminAuthService";
+import { AdminSession, ADMIN_ROLES_CONFIG } from "../../services/adminAuthTypes";
 
 interface AdminDashboardOverviewProps {
   session: AdminSession;

@@ -214,6 +214,14 @@
     "/app_settings/{settingId}": {
       "schema": { "$ref": "#/entities/app_settings" },
       "description": "Global application configuration document"
+    },
+    "/service_pricing/{settingId}": {
+      "schema": { "$ref": "#/entities/app_settings" },
+      "description": "Real-time service rates and fee configuration"
+    },
+    "/test/{docId}": {
+      "schema": { "$ref": "#/entities/app_settings" },
+      "description": "Health connection probe"
     }
   }
 }

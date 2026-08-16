@@ -27,7 +27,7 @@ import {
   ToggleLeft,
   ToggleRight
 } from "lucide-react";
-import { getStoredAdminSession } from "../../../services/adminAuthService";
+import { getStoredAdminSession } from "../../../services/adminAuthTypes";
 
 interface ProviderDetailDrawerProps {
   providerId: string | null;

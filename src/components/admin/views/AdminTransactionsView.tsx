@@ -26,7 +26,7 @@ import {
   Zap,
   Info
 } from "lucide-react";
-import { AdminSession, getStoredAdminSession } from "../../../services/adminAuthService";
+import { AdminSession, getStoredAdminSession } from "../../../services/adminAuthTypes";
 import { TransactionDetailDrawer } from "./TransactionDetailDrawer";
 import { TransactionReceiptModal } from "./TransactionReceiptModal";
 

@@ -18,7 +18,7 @@ import {
   RefreshCw,
   Wallet
 } from "lucide-react";
-import { AdminSession } from "../../../services/adminAuthService";
+import { AdminSession } from "../../../services/adminAuthTypes";
 
 interface WalletStatementModalProps {
   user: any;

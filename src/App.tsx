@@ -37,7 +37,7 @@ import {
   AdminReportsView,
   AdminSystemView,
 } from "./components/admin/views/AdminPlaceholderViews";
-import { AdminSession, getStoredAdminSession, clearAdminSession } from "./services/adminAuthService";
+import { AdminSession, getStoredAdminSession, clearAdminSession } from "./services/adminAuthTypes";
 import { UserProfile, UserRole } from "./types";
 import logoImg from "./assets/images/smartlink_logo_1785934050308.jpg";
 import { motion, AnimatePresence } from "motion/react";
@@ -55,6 +55,8 @@ import {
   db,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
   sendEmailVerification,
   sendPasswordResetEmail,
   reload,
@@ -121,9 +123,60 @@ const getPasswordStrength = (password: string): PasswordStrength => {
   return { score, label, colorClass, textColorClass, checks };
 };
 
+async function getAuthHeaders(): Promise<Record<string, string>> {
+  const user = auth.currentUser;
+  if (!user) {
+    try {
+      const stored = localStorage.getItem("smart_link_user");
+      if (stored) {
+        const u = JSON.parse(stored);
+        if (u?.uid) {
+          return {
+            "Content-Type": "application/json",
+            "x-user-id": u.uid,
+            "x-user-email": u.email || "",
+          };
+        }
+      }
+    } catch {}
+    return { "Content-Type": "application/json" };
+  }
+  try {
+    const idToken = await user.getIdToken();
+    return {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${idToken}`,
+      "x-user-id": user.uid,
+      "x-user-email": user.email || "",
+    };
+  } catch {
+    return {
+      "Content-Type": "application/json",
+      "x-user-id": user.uid,
+      "x-user-email": user.email || "",
+    };
+  }
+}
+
 export default function App() {
-  const [currentView, setCurrentView] = useState<string>("HOME");
-  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
+    try {
+      const stored = localStorage.getItem("smart_link_user");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed && parsed.email) return parsed;
+      }
+    } catch (e) {}
+    return null;
+  });
+  const [currentView, setCurrentView] = useState<string>(() => {
+    const path = window.location.pathname;
+    if (path === "/dashboard") return "DASHBOARD";
+    if (path === "/services") return "SERVICES";
+    if (path === "/marketplace") return "MARKETPLACE";
+    if (path === "/admin/login" || path.startsWith("/admin")) return "ADMIN_DASHBOARD";
+    return "HOME";
+  });
   const [selectedService, setSelectedService] = useState<ServiceItem | null>(null);
   const [showServicesSummaryDropdown, setShowServicesSummaryDropdown] = useState<boolean>(false);
   const [showLogoutModal, setShowLogoutModal] = useState<boolean>(false);
@@ -260,16 +313,13 @@ export default function App() {
   const [regReferralCode, setRegReferralCode] = useState("");
 
   // Password recovery states
-  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [isResetPassword, setIsResetPassword] = useState(false);
-  const [forgotEmail, setForgotEmail] = useState("");
   const [recoveryToken, setRecoveryToken] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [showAuthPassword, setShowAuthPassword] = useState(false);
   const [showRegPassword, setShowRegPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [recoverySuccessMessage, setRecoverySuccessMessage] = useState<string | null>(null);
-  const [simulatedMailSandbox, setSimulatedMailSandbox] = useState<{ email: string; token: string } | null>(null);
 
   // Email verification states
   const [isVerifyingEmail, setIsVerifyingEmail] = useState(false);
@@ -279,13 +329,24 @@ export default function App() {
   const [toast, setToast] = useState<{ message: string; type: "info" | "success" | "error" } | null>(null);
 
   // Site Settings state (theme, announcement, maintenance)
-  const [siteSettings, setSiteSettings] = useState<any>(null);
+  const [siteSettings, setSiteSettings] = useState<any>({
+    appName: "Smart Link Nigeria",
+    tagline: "Unified Nigeria Digital Platform",
+    announcement: "",
+    maintenanceMode: false,
+    ninFee: 500,
+    bvnFee: 500,
+    cacBaseFee: 15000,
+  });
 
   useEffect(() => {
     safeFetchJson("/api/site/settings")
       .then((res) => {
         if (res.ok && res.data?.settings) {
-          setSiteSettings(res.data.settings);
+          setSiteSettings((prev: any) => ({
+            ...prev,
+            ...res.data.settings,
+          }));
         }
       })
       .catch(() => {
@@ -412,7 +473,6 @@ export default function App() {
     if (token && window.location.pathname !== "/reset-password") {
       setRecoveryToken(token);
       setIsResetPassword(true);
-      setIsForgotPassword(false);
       setIsRegistering(false);
       setCurrentView("DASHBOARD");
     }
@@ -447,6 +507,83 @@ export default function App() {
     }
 
     return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  // Continuous Firebase Authentication & Firestore Synchronization Listener
+  useEffect(() => {
+    if (!isFirebaseConfigured) return;
+
+    const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
+      if (fbUser) {
+        const email = (fbUser.email || "").toLowerCase().trim();
+        const fullName = fbUser.displayName || email.split("@")[0] || "Smart Link User";
+        const phone = fbUser.phoneNumber || "";
+
+        try {
+          // 1. Sync with server database / usersStore
+          const syncRes = await safeFetchJson("/api/auth/sync-firebase-user", {
+            method: "POST",
+            body: JSON.stringify({
+              uid: fbUser.uid,
+              email: email,
+              fullName: fullName,
+              phoneNumber: phone,
+              isVerified: true,
+            }),
+          });
+
+          let userObj = syncRes.ok && syncRes.data?.user ? syncRes.data.user : null;
+
+          if (!userObj) {
+            userObj = {
+              uid: fbUser.uid,
+              email: email,
+              fullName: fullName,
+              phoneNumber: phone,
+              role: UserRole.CUSTOMER,
+              walletBalance: 0.0,
+              referralCode: "SL" + Math.floor(1000 + Math.random() * 9000),
+              isVerified: true,
+              createdAt: new Date().toISOString(),
+            };
+          }
+
+          // 2. Ensure Firestore users document is merged
+          try {
+            await setDoc(
+              doc(db, "users", fbUser.uid),
+              {
+                uid: fbUser.uid,
+                email: email,
+                fullName: fullName,
+                phoneNumber: phone || userObj.phoneNumber || "",
+                isVerified: true,
+                role: userObj.role || "CUSTOMER",
+                walletBalance: userObj.walletBalance ?? 0.0,
+                referralCode: userObj.referralCode || "SL" + Math.floor(1000 + Math.random() * 9000),
+                updatedAt: new Date().toISOString(),
+              },
+              { merge: true }
+            );
+          } catch (fsErr) {
+            console.warn("[onAuthStateChanged] Firestore sync note:", fsErr);
+          }
+
+          setCurrentUser(userObj);
+          localStorage.setItem("smart_link_user", JSON.stringify(userObj));
+
+          // If on home/auth pages, route directly to DASHBOARD
+          const currentPath = window.location.pathname;
+          if (currentPath === "/dashboard" || currentPath === "/login" || currentPath === "/register") {
+            navigateToView("DASHBOARD");
+          }
+        } catch (e) {
+          console.warn("[onAuthStateChanged] Error syncing auth user:", e);
+        }
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
   // Poll verification status in the background so the user is instantly logged in when verified in Firebase
@@ -526,9 +663,10 @@ export default function App() {
   // Load profile details from server
   const fetchUserProfile = async (uid: string) => {
     try {
-      const res = await fetch(`/api/auth/profile?uid=${uid}`);
+      const headers = await getAuthHeaders();
+      const res = await fetch(`/api/auth/profile?uid=${uid}`, { headers });
       const data = await res.json();
-      if (res.ok) {
+      if (res.ok && data?.user) {
         setCurrentUser(data.user);
       }
     } catch (err) {
@@ -591,10 +729,21 @@ export default function App() {
   useEffect(() => {
     if (!currentUser?.uid) return;
 
+    let consecutiveFailures = 0;
+    const maxConsecutiveFailures = 3;
+
     const interval = setInterval(async () => {
+      if (consecutiveFailures >= maxConsecutiveFailures) {
+        clearInterval(interval);
+        console.warn("[App poller] Paused background profile polling due to consecutive authentication or network errors.");
+        return;
+      }
+
       try {
-        const res = await fetch(`/api/auth/profile?uid=${currentUser.uid}`);
+        const headers = await getAuthHeaders();
+        const res = await fetch(`/api/auth/profile?uid=${currentUser.uid}`, { headers });
         if (res.ok) {
+          consecutiveFailures = 0;
           const data = await res.json();
           if (data?.user) {
             if (prevBalanceRef.current !== null && data.user.walletBalance > prevBalanceRef.current) {
@@ -613,9 +762,19 @@ export default function App() {
               setCurrentUser(data.user);
             }
           }
+        } else {
+          consecutiveFailures++;
+          if (consecutiveFailures >= maxConsecutiveFailures) {
+            console.warn(`[App poller] Background poller encountered status ${res.status}. Stopping polling interval.`);
+            clearInterval(interval);
+          }
         }
       } catch (err) {
-        // Silent catch
+        consecutiveFailures++;
+        if (consecutiveFailures >= maxConsecutiveFailures) {
+          console.warn("[App poller] Background poller encountered consecutive network failures. Stopping polling interval.", err);
+          clearInterval(interval);
+        }
       }
     }, 3000);
 
@@ -637,11 +796,15 @@ export default function App() {
         const result = await signInWithPopup(auth, provider);
         user = result.user;
       } catch (popupErr: any) {
-        throw popupErr; // never fabricate a user — surface the real error instead
+        throw popupErr; // surface the real error instead
+      }
+
+      if (!user) {
+        throw new Error("No Google credentials returned.");
       }
 
       const userEmail = (user.email || "").toLowerCase().trim();
-      const fullName = user.displayName || userEmail.split("@")[0] || "Smart Link Nigeria User";
+      const fullName = user.displayName || userEmail.split("@")[0] || "Smart Link User";
       const userPhone = user.phoneNumber || "";
 
       // 1. Sync profile with local server DB FIRST to obtain authoritative server-verified role
@@ -656,11 +819,7 @@ export default function App() {
         })
       });
 
-      if (!syncResult.ok) {
-        throw new Error(syncResult.error || "Failed to synchronize profile details.");
-      }
-
-      const activeUser = syncResult.data?.user || {
+      const activeUser: UserProfile = syncResult.ok && syncResult.data?.user ? syncResult.data.user : {
         uid: user.uid,
         email: userEmail,
         fullName: fullName,
@@ -672,7 +831,7 @@ export default function App() {
         createdAt: new Date().toISOString()
       };
 
-      // 2. Save / Update profile in Firestore without client-side role
+      // 2. Save / Update profile in Firestore with verified status
       try {
         await setDoc(
           doc(db, "users", user.uid),
@@ -680,9 +839,12 @@ export default function App() {
             uid: user.uid,
             email: userEmail,
             fullName: fullName,
-            phoneNumber: userPhone,
+            phoneNumber: userPhone || activeUser.phoneNumber || "",
             isVerified: true,
-            createdAt: new Date().toISOString()
+            role: activeUser.role || "CUSTOMER",
+            walletBalance: activeUser.walletBalance ?? 0.0,
+            referralCode: activeUser.referralCode || "SL" + Math.floor(1000 + Math.random() * 9000),
+            updatedAt: new Date().toISOString()
           },
           { merge: true }
         );
@@ -694,20 +856,21 @@ export default function App() {
         throw new Error("Your account has been strictly blocked or suspended by security administration. Access to the dashboard is denied.");
       }
 
+      // Persist in localStorage immediately
+      localStorage.setItem("smart_link_user", JSON.stringify(activeUser));
+
       soundFx.playSuccessSound();
       setAuthSuccessState(isRegistering ? "register" : "login");
 
-      setTimeout(() => {
-        setCurrentUser(activeUser);
-        navigateToView("DASHBOARD");
-        setIsRegistering(false);
-        setIsVerifyingEmail(false);
-        setAuthSuccessState(null);
-        setToast({
-          message: `Welcome ${fullName}! Successfully authenticated with Google.`,
-          type: "success"
-        });
-      }, 800);
+      setCurrentUser(activeUser);
+      setIsRegistering(false);
+      setIsVerifyingEmail(false);
+      setAuthSuccessState(null);
+      navigateToView("DASHBOARD");
+      setToast({
+        message: `Welcome ${fullName}! Successfully authenticated with Google.`,
+        type: "success"
+      });
     } catch (err: any) {
       soundFx.playErrorSound();
       setAuthError(getFriendlyErrorMessage(err));
@@ -794,20 +957,21 @@ export default function App() {
         throw new Error("Your account has been strictly blocked or suspended by security administration. Access to the dashboard is denied.");
       }
 
+      // Persist in localStorage
+      localStorage.setItem("smart_link_user", JSON.stringify(loginUser));
+
       soundFx.playSuccessSound();
       setAuthSuccessState("login");
 
-      setTimeout(() => {
-        setCurrentUser(loginUser);
-        navigateToView("DASHBOARD");
-        setAuthEmail("");
-        setAuthPassword("");
-        setAuthSuccessState(null);
-        setToast({
-          message: "Successfully authenticated! Welcome to your Smart Link Nigeria portal.",
-          type: "success"
-        });
-      }, 400);
+      setCurrentUser(loginUser);
+      navigateToView("DASHBOARD");
+      setAuthEmail("");
+      setAuthPassword("");
+      setAuthSuccessState(null);
+      setToast({
+        message: "Successfully authenticated! Welcome to your Smart Link Nigeria portal.",
+        type: "success"
+      });
     } catch (err: any) {
       soundFx.playErrorSound();
       const friendlyMsg = getFriendlyErrorMessage(err);
@@ -880,10 +1044,12 @@ export default function App() {
           email: regEmail.toLowerCase(),
           fullName: regFullName,
           phoneNumber: regPhoneNumber,
-          referralCode: regReferralCode,
+          referralCode: regReferralCode || ("SL" + Math.floor(1000 + Math.random() * 9000)),
           isVerified: true,
+          role: "CUSTOMER",
+          walletBalance: 0.0,
           createdAt: new Date().toISOString()
-        }).catch(() => {});
+        }, { merge: true }).catch(() => {});
 
         const syncResult = await safeFetchJson("/api/auth/sync-firebase-user", {
           method: "POST",
@@ -908,7 +1074,7 @@ export default function App() {
           phoneNumber: regPhoneNumber,
           role: UserRole.CUSTOMER,
           walletBalance: 0.0,
-          referralCode: regReferralCode,
+          referralCode: regReferralCode || ("SL" + Math.floor(1000 + Math.random() * 9000)),
           isVerified: true,
           createdAt: new Date().toISOString()
         };
@@ -929,28 +1095,38 @@ export default function App() {
         }
 
         activeUser = apiRes.data.user;
+
+        // Sign in on Firebase Auth client if available
+        if (isFirebaseConfigured) {
+          try {
+            await signInWithEmailAndPassword(auth, regEmail, regPassword);
+          } catch {
+            // ignore
+          }
+        }
       }
+
+      // Persist in localStorage
+      localStorage.setItem("smart_link_user", JSON.stringify(activeUser));
 
       soundFx.playSuccessSound();
       setAuthSuccessState("register");
 
-      setTimeout(() => {
-        setCurrentUser(activeUser);
-        navigateToView("DASHBOARD");
-        setRegEmail("");
-        setRegPassword("");
-        setRegFullName("");
-        setRegPhoneNumber("");
-        setRegRole(UserRole.CUSTOMER);
-        setRegReferralCode("");
-        setIsRegistering(false);
-        setIsVerifyingEmail(false);
-        setAuthSuccessState(null);
-        setToast({
-          message: "Account created successfully! Welcome to Smart Link Nigeria.",
-          type: "success"
-        });
-      }, 400);
+      setCurrentUser(activeUser);
+      navigateToView("DASHBOARD");
+      setRegEmail("");
+      setRegPassword("");
+      setRegFullName("");
+      setRegPhoneNumber("");
+      setRegRole(UserRole.CUSTOMER);
+      setRegReferralCode("");
+      setIsRegistering(false);
+      setIsVerifyingEmail(false);
+      setAuthSuccessState(null);
+      setToast({
+        message: "Account created successfully! Welcome to Smart Link Nigeria.",
+        type: "success"
+      });
     } catch (err: any) {
       soundFx.playErrorSound();
       setAuthError(getFriendlyErrorMessage(err));
@@ -1033,7 +1209,11 @@ export default function App() {
     try {
       const currentUserObj = auth.currentUser;
       if (currentUserObj) {
-        await sendEmailVerification(currentUserObj);
+        const actionCodeSettings = {
+          url: `${window.location.origin}/verify-email`,
+          handleCodeInApp: true,
+        };
+        await sendEmailVerification(currentUserObj, actionCodeSettings);
       } else {
         const res = await safeFetchJson("/api/auth/resend-verification", {
           method: "POST",
@@ -1098,60 +1278,6 @@ export default function App() {
     }
   };
 
-  // Request recovery token
-  const handleRequestRecovery = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setAuthLoading(true);
-    setAuthError(null);
-    setRecoverySuccessMessage(null);
-    setSimulatedMailSandbox(null);
-
-    setToast({
-      message: `Sending password reset email to ${forgotEmail}...`,
-      type: "info"
-    });
-
-    try {
-      try {
-        await sendPasswordResetEmail(auth, forgotEmail);
-        soundFx.playSuccessSound();
-        setRecoverySuccessMessage(`Password reset link sent to ${forgotEmail} via Firebase Authentication. Please check your email inbox.`);
-        setToast({
-          message: `Password reset email sent to ${forgotEmail} via Firebase!`,
-          type: "success"
-        });
-        return;
-      } catch (fbErr: any) {
-        console.warn("Firebase sendPasswordResetEmail note, checking server fallback:", fbErr);
-      }
-
-      const res = await safeFetchJson("/api/auth/forgot-password", {
-        method: "POST",
-        body: JSON.stringify({ email: forgotEmail }),
-      });
-      if (!res.ok) throw new Error(res.error || "Password reset request failed.");
-
-      soundFx.playSuccessSound();
-      setRecoverySuccessMessage("A secure recovery token has been generated.");
-      setSimulatedMailSandbox({ email: res.data.email, token: res.data.token });
-
-      setToast({
-        message: `Recovery token generated for ${forgotEmail}.`,
-        type: "success"
-      });
-    } catch (err: any) {
-      soundFx.playErrorSound();
-      const msg = getFriendlyErrorMessage(err);
-      setAuthError(msg);
-      setToast({
-        message: msg,
-        type: "error"
-      });
-    } finally {
-      setAuthLoading(false);
-    }
-  };
-
   // Submit new password
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1170,10 +1296,8 @@ export default function App() {
       setRecoverySuccessMessage(res.data?.message || "Your password has been reset successfully!");
       setRecoveryToken("");
       setNewPassword("");
-      setSimulatedMailSandbox(null);
       
       setIsResetPassword(false);
-      setIsForgotPassword(false);
     } catch (err: any) {
       soundFx.playErrorSound();
       setAuthError(getFriendlyErrorMessage(err));
@@ -1196,6 +1320,11 @@ export default function App() {
     const destView = pendingNavigationRef.current || "HOME";
     pendingNavigationRef.current = null;
 
+    if (isFirebaseConfigured) {
+      signOut(auth).catch(() => {});
+    }
+
+    localStorage.removeItem("smart_link_user");
     setCurrentUser(null);
     if (adminSession) {
       clearAdminSession();
@@ -1279,13 +1408,11 @@ export default function App() {
           isDarkMode={isDarkMode}
           onToggleDarkMode={handleToggleDarkMode}
           onSelectService={setSelectedService}
-          onSetAuthStates={({ isRegistering, isForgotPassword, isResetPassword }) => {
+          onSetAuthStates={({ isRegistering, isResetPassword }) => {
             setIsRegistering(isRegistering);
-            setIsForgotPassword(isForgotPassword);
             setIsResetPassword(isResetPassword);
             setAuthError(null);
             setRecoverySuccessMessage(null);
-            setSimulatedMailSandbox(null);
           }}
         />
       )}
@@ -1477,7 +1604,6 @@ export default function App() {
                 onClick={() => {
                   setCurrentView("DASHBOARD");
                   setIsRegistering(false);
-                  setIsForgotPassword(false);
                   setIsResetPassword(false);
                   setAuthError(null);
                 }}
@@ -1504,21 +1630,18 @@ export default function App() {
               onLogin={() => {
                 setCurrentView("DASHBOARD");
                 setIsRegistering(false);
-                setIsForgotPassword(false);
                 setIsResetPassword(false);
                 setAuthError(null);
               }}
               onRegister={() => {
                 setCurrentView("DASHBOARD");
                 setIsRegistering(true);
-                setIsForgotPassword(false);
                 setIsResetPassword(false);
                 setAuthError(null);
               }}
               onGetStarted={() => {
                 setCurrentView("DASHBOARD");
                 setIsRegistering(true);
-                setIsForgotPassword(false);
                 setIsResetPassword(false);
                 setAuthError(null);
               }}
@@ -1891,7 +2014,6 @@ export default function App() {
                 window.history.pushState({}, "", "/");
                 setCurrentView("DASHBOARD");
                 setIsRegistering(false);
-                setIsForgotPassword(false);
                 setIsResetPassword(false);
                 setAuthError(null);
               }}
@@ -1899,7 +2021,7 @@ export default function App() {
                 window.history.pushState({}, "", "/");
                 setCurrentView("HOME");
               }}
-              initialEmail={authEmail || forgotEmail}
+              initialEmail={authEmail}
             />
           )}
 
@@ -1909,7 +2031,6 @@ export default function App() {
                 window.history.pushState({}, "", "/");
                 setCurrentView("DASHBOARD");
                 setIsRegistering(false);
-                setIsForgotPassword(false);
                 setIsResetPassword(false);
                 setAuthError(null);
               }}
@@ -1930,7 +2051,6 @@ export default function App() {
                 window.history.pushState({}, "", "/");
                 setCurrentView("DASHBOARD");
                 setIsRegistering(false);
-                setIsForgotPassword(false);
                 setIsResetPassword(false);
                 setAuthError(null);
               }}
@@ -1952,7 +2072,6 @@ export default function App() {
                 window.history.pushState({}, "", "/");
                 setCurrentView("DASHBOARD");
                 setIsRegistering(false);
-                setIsForgotPassword(false);
                 setIsResetPassword(false);
                 setAuthError(null);
               }}
@@ -2275,138 +2394,10 @@ export default function App() {
                       <div className="pt-4 text-center">
                         <button
                           onClick={() => {
-                            setIsForgotPassword(false);
                             setIsResetPassword(false);
                             setIsRegistering(false);
                             setAuthError(null);
                             setRecoverySuccessMessage(null);
-                            setSimulatedMailSandbox(null);
-                          }}
-                          className="text-xs text-blue-600 hover:text-blue-700 font-bold hover:underline cursor-pointer focus:outline-none"
-                        >
-                          ← Back to Secure Login
-                        </button>
-                      </div>
-                    </motion.div>
-                  ) : isForgotPassword ? (
-                    <motion.div
-                      key="forgot-password"
-                      initial={{ opacity: 0, x: 15 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -15 }}
-                      transition={{ duration: 0.22, ease: "easeInOut" }}
-                      className="space-y-6"
-                    >
-                      <div className="text-center space-y-1">
-                        <div className="h-12 w-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto border border-blue-100">
-                          <ShieldCheck className="h-6 w-6" />
-                        </div>
-                        <h2 className="text-xl font-bold text-slate-900 tracking-tight">Access Recovery</h2>
-                        <p className="text-xs text-slate-500 font-medium">Request a secure token to regain database gateway access</p>
-                      </div>
-
-                      {authError && (
-                        <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded font-medium animate-fadeIn">
-                          {authError}
-                        </div>
-                      )}
-
-                      {recoverySuccessMessage && (
-                        <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded font-medium animate-fadeIn">
-                          {recoverySuccessMessage}
-                        </div>
-                      )}
-
-                      {simulatedMailSandbox && (
-                        <div className="p-4 bg-slate-950 text-slate-200 text-[11px] rounded-2xl font-mono border border-blue-500/30 space-y-3 shadow-inner animate-fadeIn">
-                          <div className="flex items-center justify-between border-b border-slate-800 pb-1.5">
-                            <span className="text-[10px] text-blue-400 font-bold uppercase tracking-wider flex items-center gap-1">
-                              <Mail className="h-3 w-3 animate-bounce" />
-                              Secure Token Delivery Feed
-                            </span>
-                            <span className="text-[9px] text-slate-500 font-light">Status: Sent</span>
-                          </div>
-                          <p className="leading-normal text-slate-300 text-left">
-                            To: <span className="text-white font-semibold">{simulatedMailSandbox.email}</span><br />
-                            Subject: <span className="text-slate-100 font-semibold">Security Credential Update Request</span>
-                          </p>
-                          <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 text-left space-y-2">
-                            <p className="text-slate-400 leading-normal text-[10px]">
-                              A request has been made to reset your password. Use the token below to set your new credentials:
-                            </p>
-                            <div className="bg-slate-950 p-2.5 text-center rounded-lg border border-slate-800 break-all select-all select-text font-bold text-blue-400 tracking-wider">
-                              {simulatedMailSandbox.token}
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setRecoveryToken(simulatedMailSandbox.token);
-                                setIsResetPassword(true);
-                                setIsForgotPassword(false);
-                                setSimulatedMailSandbox(null);
-                              }}
-                              className="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg text-[10px] text-center transition-all cursor-pointer block focus:outline-none"
-                            >
-                              Auto-Apply Token & Go to Reset Form
-                            </button>
-                          </div>
-                        </div>
-                      )}
-
-                      <form onSubmit={handleRequestRecovery} className="space-y-4">
-                        <div className="space-y-1.5 text-left">
-                          <label className="text-xs font-semibold text-slate-800">
-                            Registered Email Address
-                          </label>
-                          <input
-                            type="email"
-                            required
-                            value={forgotEmail}
-                            onChange={(e) => setForgotEmail(e.target.value)}
-                            placeholder="e.g. client@company.com"
-                            className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none transition-all placeholder-slate-400 text-slate-800 bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-                          />
-                        </div>
-
-                        {authLoading && (
-                          <div className="p-3 bg-blue-50 border border-blue-200 text-blue-900 text-xs rounded-xl font-medium flex items-start gap-2.5 animate-pulse text-left">
-                            <div className="mt-0.5 shrink-0 flex items-center justify-center">
-                              <SmartLinkLogoMark size="xs" animating={true} />
-                            </div>
-                            <div>
-                              <p className="font-bold text-[11px] text-blue-950">Dispatched in real-time</p>
-                              <p className="text-[10px] text-blue-700 font-normal mt-0.5">
-                                An encrypted security reset link & token is currently being generated and routed to <span className="font-semibold text-blue-900">{forgotEmail}</span>. Please check your inbox shortly.
-                              </p>
-                            </div>
-                          </div>
-                        )}
-
-                        <button
-                          type="submit"
-                          disabled={authLoading}
-                          className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-blue-500/10"
-                        >
-                          {authLoading ? (
-                            <>
-                              <SmartLinkLogoMark size="xs" color="#FFFFFF" animating={true} />
-                              Generating Token...
-                            </>
-                          ) : (
-                            "Generate Security Reset Token"
-                          )}
-                        </button>
-                      </form>
-
-                      <div className="pt-4 text-center">
-                        <button
-                          onClick={() => {
-                            setIsForgotPassword(false);
-                            setIsResetPassword(false);
-                            setIsRegistering(false);
-                            setAuthError(null);
-                            setRecoverySuccessMessage(null);
-                            setSimulatedMailSandbox(null);
                           }}
                           className="text-xs text-blue-600 hover:text-blue-700 font-bold hover:underline cursor-pointer focus:outline-none"
                         >
@@ -2570,13 +2561,7 @@ export default function App() {
                           <button
                             type="button"
                             onClick={() => {
-                              window.history.pushState({}, "", "/forgot-password");
-                              setCurrentView("FORGOT_PASSWORD");
-                              setIsForgotPassword(true);
-                              setIsRegistering(false);
-                              setIsResetPassword(false);
-                              setAuthError(null);
-                              setRecoverySuccessMessage(null);
+                              window.location.href = "/forgot-password";
                             }}
                             className="text-xs font-semibold text-[#0F2D5C] hover:underline cursor-pointer bg-transparent border-none p-0 focus:outline-none"
                           >
@@ -2619,7 +2604,6 @@ export default function App() {
                               setIsRegistering(true);
                               setAuthError(null);
                               setRecoverySuccessMessage(null);
-                              setSimulatedMailSandbox(null);
                             }}
                             className="text-blue-600 hover:text-blue-700 font-bold hover:underline cursor-pointer bg-transparent border-none p-0 focus:outline-none"
                           >
@@ -2973,7 +2957,6 @@ export default function App() {
                               setIsRegistering(false);
                               setAuthError(null);
                               setRecoverySuccessMessage(null);
-                              setSimulatedMailSandbox(null);
                             }}
                             className="text-blue-600 hover:text-blue-700 font-bold hover:underline cursor-pointer bg-transparent border-none p-0 focus:outline-none"
                           >

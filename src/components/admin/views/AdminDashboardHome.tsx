@@ -27,7 +27,7 @@ import {
   RefreshCw,
   Bell
 } from "lucide-react";
-import { AdminSession, ADMIN_ROLES_CONFIG } from "../../../services/adminAuthService";
+import { AdminSession, ADMIN_ROLES_CONFIG } from "../../../services/adminAuthTypes";
 import { AdminStatSkeletonCard } from "../widgets/AdminSkeletonLoader";
 
 interface AdminDashboardHomeProps {

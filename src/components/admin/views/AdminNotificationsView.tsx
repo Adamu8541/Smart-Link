@@ -26,7 +26,7 @@ import {
   Edit,
   SlidersHorizontal,
 } from "lucide-react";
-import { AdminSession } from "../../../services/adminAuthService";
+import { AdminSession } from "../../../services/adminAuthTypes";
 
 interface AdminNotificationsViewProps {
   session: AdminSession;
