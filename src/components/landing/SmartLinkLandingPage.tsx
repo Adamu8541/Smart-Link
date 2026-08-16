@@ -72,6 +72,7 @@ export const SmartLinkLandingPage: React.FC<SmartLinkLandingPageProps> = ({
         <LandingHero
           onGetStarted={onGetStarted}
           onExploreServices={onExploreServices}
+          onLogin={onLogin}
         />
 
         {/* Trust Section */}

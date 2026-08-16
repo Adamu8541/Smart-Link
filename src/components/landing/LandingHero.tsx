@@ -28,11 +28,13 @@ import {
 interface LandingHeroProps {
   onGetStarted: () => void;
   onExploreServices: () => void;
+  onLogin?: () => void;
 }
 
 export const LandingHero: React.FC<LandingHeroProps> = ({
   onGetStarted,
   onExploreServices,
+  onLogin,
 }) => {
   const [activeTab, setActiveTab] = useState<"verification" | "wallet" | "vtu">("verification");
   const [demoInput, setDemoInput] = useState("12345678901");
@@ -83,25 +85,38 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2"
+            className="flex flex-col items-center justify-center gap-3 pt-2"
           >
-            <button
-              id="hero-primary-btn"
-              onClick={onGetStarted}
-              className="w-full sm:w-auto px-8 py-4 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold rounded-xl text-sm shadow-xs transition-all active:scale-98 cursor-pointer flex items-center justify-center gap-2.5"
-            >
-              Get Started
-              <ArrowRight className="h-4 w-4 text-white" />
-            </button>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
+              <button
+                id="hero-primary-btn"
+                onClick={onGetStarted}
+                className="w-full sm:w-auto px-8 py-4 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold rounded-xl text-sm shadow-xs transition-all active:scale-98 cursor-pointer flex items-center justify-center gap-2.5"
+              >
+                Get Started
+                <ArrowRight className="h-4 w-4 text-white" />
+              </button>
 
-            <button
-              id="hero-secondary-btn"
-              onClick={onExploreServices}
-              className="w-full sm:w-auto px-7 py-4 bg-white hover:bg-[#F5F7FA] text-[#111827] border border-[#E5E7EB] font-bold rounded-xl text-sm transition-all cursor-pointer flex items-center justify-center gap-2"
-            >
-              Explore Services
-              <ArrowUpRight className="h-4 w-4 text-[#0F2D5C]" />
-            </button>
+              <button
+                id="hero-secondary-btn"
+                onClick={onExploreServices}
+                className="w-full sm:w-auto px-7 py-4 bg-white hover:bg-[#F5F7FA] text-[#111827] border border-[#E5E7EB] font-bold rounded-xl text-sm transition-all cursor-pointer flex items-center justify-center gap-2"
+              >
+                Explore Services
+                <ArrowUpRight className="h-4 w-4 text-[#0F2D5C]" />
+              </button>
+            </div>
+
+            {onLogin && (
+              <button
+                id="hero-login-btn"
+                onClick={onLogin}
+                className="w-full sm:w-auto px-8 py-4 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold rounded-xl text-sm shadow-xs transition-all active:scale-98 cursor-pointer flex items-center justify-center gap-2.5"
+              >
+                Login
+                <ArrowRight className="h-4 w-4 text-white" />
+              </button>
+            )}
           </motion.div>
 
         </div>
