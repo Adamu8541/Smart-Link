@@ -29,6 +29,15 @@ import * as notificationsStore from "./src/services/notificationsStore";
 import { getAuth } from "firebase-admin/auth";
 import { getAdminFirestore, getAdminAuth } from "./src/services/firebaseAdmin";
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 dotenv.config();
 
 const app = express();
@@ -1032,7 +1041,9 @@ app.post("/api/auth/forgot-password", async (req, res) => {
     });
   }
 
-  const appUrl = process.env.APP_URL || `${req.protocol}://${req.get("host")}`;
+  const requestHost = req.get("host") || "";
+  const safeHost = /^[a-z0-9.-]+(?::\d{1,5})?$/i.test(requestHost) ? requestHost : "localhost";
+  const appUrl = process.env.APP_URL || `${req.protocol}://${safeHost}`;
   const effectiveResetLink = firebaseResetLink || `${appUrl}/reset-password?token=${token}`;
 
   // Attempt email delivery via Nodemailer if SMTP configuration exists
@@ -1056,6 +1067,10 @@ app.post("/api/auth/forgot-password", async (req, res) => {
         },
       });
 
+      const safeFullName = escapeHtml(user.fullName || "User");
+      const safeEmail = escapeHtml(cleanEmail);
+      const safeResetLink = escapeHtml(effectiveResetLink);
+
       await transporter.sendMail({
         from: `"${smtpConfig.senderName || 'SmartLink Support'}" <${smtpConfig.replyToAddress || 'no-reply@smartlinkng.com.ng'}>`,
         to: cleanEmail,
@@ -1064,13 +1079,13 @@ app.post("/api/auth/forgot-password", async (req, res) => {
           <div style="font-family: sans-serif; padding: 20px; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px;">
             <h2 style="color: #0f172a;">SMART LINK NG</h2>
             <h3>Password Reset Request</h3>
-            <p>Hello ${user.fullName || 'User'},</p>
-            <p>A password reset was requested for your account (<strong>${cleanEmail}</strong>). Please click the button below to reset your password:</p>
+            <p>Hello ${safeFullName},</p>
+            <p>A password reset was requested for your account (<strong>${safeEmail}</strong>). Please click the button below to reset your password:</p>
             <p style="margin: 24px 0;">
-              <a href="${effectiveResetLink}" style="background-color: #2563eb; color: #ffffff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">Reset Password</a>
+              <a href="${safeResetLink}" style="background-color: #2563eb; color: #ffffff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">Reset Password</a>
             </p>
             <p style="color: #64748b; font-size: 13px;">Or copy and paste this link into your browser:</p>
-            <p style="word-break: break-all;"><a href="${effectiveResetLink}">${effectiveResetLink}</a></p>
+            <p style="word-break: break-all;"><a href="${safeResetLink}">${safeResetLink}</a></p>
             <p style="color: #64748b; font-size: 12px; margin-top: 20px;">This password reset link expires in 1 hour.</p>
             <p style="color: #64748b; font-size: 12px;">If you did not request a password reset, please disregard this email.</p>
           </div>
