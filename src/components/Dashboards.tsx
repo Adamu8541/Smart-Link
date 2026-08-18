@@ -915,7 +915,7 @@ export default function Dashboards({
                       <div className="p-3 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/80 rounded-2xl flex items-center justify-between text-xs font-semibold text-emerald-900 dark:text-emerald-300">
                         <div className="flex items-center gap-2">
                           <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                          <span>Active Provider: <strong className="font-extrabold uppercase">{fundAccount.providerName}</strong></span>
+                          <span>Active Provider: <strong className="font-extrabold uppercase">{String(fundAccount.providerName || fundAccount.bankName || "ASPFIY").trim()}</strong></span>
                         </div>
                         <span className="text-[10px] bg-emerald-200/80 dark:bg-emerald-900/80 text-emerald-900 dark:text-emerald-200 px-2 py-0.5 rounded-full font-mono font-bold">
                           LIVE ENGINE
@@ -926,17 +926,17 @@ export default function Dashboards({
                       <div className="bg-slate-900 text-white p-5 rounded-2xl space-y-4 shadow-inner">
                         <div className="space-y-1">
                           <span className="text-[10px] font-mono uppercase text-slate-400 tracking-wider">Bank Name</span>
-                          <div className="text-sm font-black font-mono text-white">{fundAccount.bankName}</div>
+                          <div className="text-sm font-black font-mono text-white">{String(fundAccount.bankName || "").trim()}</div>
                         </div>
 
                         <div className="space-y-1 border-t border-slate-800 pt-3">
                           <span className="text-[10px] font-mono uppercase text-slate-400 tracking-wider">Virtual Account Number</span>
                           <div className="flex items-center justify-between bg-slate-950 p-3 rounded-xl border border-slate-800">
                             <span className="text-xl font-black font-mono tracking-widest text-emerald-400">
-                              {fundAccount.accountNumber}
+                              {String(fundAccount.accountNumber || "").trim()}
                             </span>
                             <button
-                              onClick={() => handleCopyAccount(fundAccount.accountNumber)}
+                              onClick={() => handleCopyAccount(String(fundAccount.accountNumber || "").trim())}
                               className="px-3 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
                             >
                               {copiedAccount ? (
@@ -956,7 +956,7 @@ export default function Dashboards({
 
                         <div className="space-y-1 border-t border-slate-800 pt-3">
                           <span className="text-[10px] font-mono uppercase text-slate-400 tracking-wider">Account Name</span>
-                          <div className="text-xs font-bold font-mono text-slate-200">{fundAccount.accountName}</div>
+                          <div className="text-xs font-bold font-mono text-slate-200">{String(fundAccount.accountName || "").trim()}</div>
                         </div>
                       </div>
 
@@ -964,7 +964,7 @@ export default function Dashboards({
                       <div className="p-3.5 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 leading-relaxed space-y-1">
                         <p className="font-bold text-slate-800 dark:text-slate-200">How to fund your wallet:</p>
                         <p>1. Copy the Virtual Account Number above.</p>
-                        <p>2. Open your banking app or USSD service and transfer your desired amount to <strong className="text-slate-900 dark:text-white">{fundAccount.bankName}</strong>.</p>
+                        <p>2. Open your banking app or USSD service and transfer your desired amount to <strong className="text-slate-900 dark:text-white">{String(fundAccount.bankName || "").trim()}</strong>.</p>
                         <p>3. Your wallet balance will be automatically credited once the active provider receives the deposit.</p>
                       </div>
                     </div>

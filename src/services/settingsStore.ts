@@ -48,6 +48,7 @@ export async function saveSettingsDoc(data: AdminConfigDoc): Promise<boolean> {
 
 /**
  * Hydrates in-memory db object with Firestore settings & providers if available.
+ * Makes db.api_providers the single canonical runtime provider collection.
  */
 export async function syncFromFirestore(dbObj: any): Promise<void> {
   const fsDoc = await getSettingsDoc();
@@ -68,8 +69,12 @@ export async function syncFromFirestore(dbObj: any): Promise<void> {
       ? fsDoc.apiProviders
       : (Array.isArray((fsDoc as any).api_providers) && (fsDoc as any).api_providers.length > 0 ? (fsDoc as any).api_providers : null);
     if (fsProviders) {
-      dbObj.apiProviders = fsProviders;
       dbObj.api_providers = fsProviders;
+      // Keep alias in sync for any external reader
+      dbObj.apiProviders = dbObj.api_providers;
+    } else if (Array.isArray(dbObj.apiProviders) && dbObj.apiProviders.length > 0 && (!dbObj.api_providers || dbObj.api_providers.length === 0)) {
+      // Migrate legacy apiProviders to api_providers
+      dbObj.api_providers = dbObj.apiProviders;
     }
     if (Array.isArray(fsDoc.settings_audit_logs)) {
       dbObj.settings_audit_logs = fsDoc.settings_audit_logs;
@@ -79,11 +84,12 @@ export async function syncFromFirestore(dbObj: any): Promise<void> {
 
 /**
  * Persists in-memory settings & providers to Firestore adminConfig document.
+ * Always persists canonical db.api_providers collection.
  */
 export async function syncToFirestore(dbObj: any): Promise<void> {
-  const providers = (Array.isArray(dbObj.apiProviders) && dbObj.apiProviders.length > 0)
-    ? dbObj.apiProviders
-    : (Array.isArray(dbObj.api_providers) && dbObj.api_providers.length > 0 ? dbObj.api_providers : []);
+  const providers = (Array.isArray(dbObj.api_providers) && dbObj.api_providers.length > 0)
+    ? dbObj.api_providers
+    : (Array.isArray(dbObj.apiProviders) && dbObj.apiProviders.length > 0 ? dbObj.apiProviders : []);
 
   await saveSettingsDoc({
     system_settings: dbObj.system_settings,

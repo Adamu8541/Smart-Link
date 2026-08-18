@@ -27,24 +27,38 @@ export function getAdapterForProvider(provider: { name?: string; id?: string }):
 }
 
 /**
- * Gets the single currently-Active provider row from the JSON/Firestore db (db.api_providers)
+ * Gets the single currently-Active provider row from the canonical collection (db.api_providers)
  * plus its matching adapter, ready to call. Returns null if none configured.
+ * ASPFIY or any other provider must be explicitly Enabled/Active and not in Draft status.
  */
 export function getActiveProviderAndAdapter(
   db: any
 ): { provider: PaymentProviderConfig; adapter: ProviderAdapter } | null {
-  const providers = db.api_providers || db.apiProviders || [];
+  const providers = (Array.isArray(db.api_providers) && db.api_providers.length > 0)
+    ? db.api_providers
+    : (Array.isArray(db.apiProviders) ? db.apiProviders : []);
+
   const active = providers.find(
     (p: any) =>
-      p.status === "Active" ||
-      p.isActive === true ||
-      p.enabled === true ||
-      ((p.status === "Draft" || p.status === "Active") && (p.name || "").toLowerCase().includes("aspfiy"))
+      (p.status === "Active" || p.status === "ENABLED" || p.isActive === true || p.enabled === true) &&
+      p.status !== "Draft" &&
+      p.status !== "Inactive" &&
+      p.status !== "DISABLED"
   );
   if (!active) return null;
-  const adapter = getAdapterForProvider(active);
+
+  // Ensure active ASPFIY provider uses the server-side environment secret if available
+  const resolvedProvider: PaymentProviderConfig = {
+    ...active,
+    secretKey:
+      ((active.name || "").toLowerCase().includes("aspfiy") && process.env.ASPFIY_SECRET_KEY)
+        ? String(process.env.ASPFIY_SECRET_KEY).trim()
+        : active.secretKey,
+  };
+
+  const adapter = getAdapterForProvider(resolvedProvider);
   if (!adapter) return null;
-  return { provider: active, adapter };
+  return { provider: resolvedProvider, adapter };
 }
 
 /**

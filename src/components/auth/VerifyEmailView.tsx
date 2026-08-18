@@ -152,19 +152,14 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
         className="w-full max-w-md bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-8 shadow-xl shadow-slate-200/70 relative z-10 space-y-6"
       >
         {/* Brand Header */}
-        <div className="text-center space-y-3">
-          <div className="inline-flex items-center justify-center p-2 rounded-2xl bg-slate-50 border border-slate-200 shadow-sm">
-            <img
-              src={logoImg}
-              alt="Smart Link Logo"
-              className="w-12 h-12 object-contain rounded-xl"
-              onError={(e: any) => { e.currentTarget.src = "/logo.png"; }}
-            />
-          </div>
+        <div className="text-center space-y-2">
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 uppercase font-sans">
+            SMART LINK NG
+          </h1>
           <div>
-            <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+            <h2 className="text-xl font-bold text-slate-900 tracking-tight">
               Email Verification
-            </h1>
+            </h2>
           </div>
         </div>
 

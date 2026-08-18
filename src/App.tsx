@@ -41,7 +41,7 @@ import { AdminSession, getStoredAdminSession, clearAdminSession } from "./servic
 import { UserProfile, UserRole } from "./types";
 import logoImg from "./assets/images/smartlink_logo_1785934050308.jpg";
 import { motion, AnimatePresence } from "motion/react";
-import { Sparkles, ArrowRight, ShieldCheck, Mail, Lock, Phone, Tag, UserRound, Check, Eye, EyeOff, AlertCircle, RefreshCw, CheckCircle2, LogOut, X } from "lucide-react";
+import { Sparkles, ArrowRight, ArrowLeft, ShieldCheck, Mail, Lock, Phone, Tag, UserRound, Check, Eye, EyeOff, AlertCircle, RefreshCw, CheckCircle2, LogOut, X } from "lucide-react";
 import { SmartLinkLogoMark } from "./components/ui/SmartLinkLogoMark";
 import { getFriendlyErrorMessage, safeFetchJson } from "./utils/authErrorHandler";
 import { soundFx } from "./utils/audioEffects";
@@ -305,7 +305,8 @@ export default function App() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [regEmail, setRegEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
-  const [regFullName, setRegFullName] = useState("");
+  const [regFirstName, setRegFirstName] = useState("");
+  const [regSurname, setRegSurname] = useState("");
   const [regPhoneNumber, setRegPhoneNumber] = useState("");
   const [regRole, setRegRole] = useState<UserRole>(UserRole.CUSTOMER);
   const [regReferralCode, setRegReferralCode] = useState("");
@@ -886,11 +887,19 @@ export default function App() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!regFullName || regFullName.trim() === "") {
+    if (!regFirstName || regFirstName.trim() === "") {
       soundFx.playErrorSound();
-      setAuthError("Full Name is required and cannot be empty.");
+      setAuthError("First Name is required and cannot be empty.");
       return;
     }
+
+    if (!regSurname || regSurname.trim() === "") {
+      soundFx.playErrorSound();
+      setAuthError("Surname is required and cannot be empty.");
+      return;
+    }
+
+    const computedFullName = `${regFirstName.trim()} ${regSurname.trim()}`.trim();
 
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!regEmail || !emailPattern.test(regEmail)) {
@@ -906,9 +915,9 @@ export default function App() {
     }
 
     const phoneDigits = regPhoneNumber.replace(/\D/g, "");
-    if (phoneDigits.length < 7 || phoneDigits.length > 15) {
+    if (!phoneDigits || phoneDigits.length !== 11 || !phoneDigits.startsWith("0")) {
       soundFx.playErrorSound();
-      setAuthError(`Phone number must contain between 7 and 15 digits. Found ${phoneDigits.length} digits.`);
+      setAuthError("Phone number must be exactly 11 numeric digits and start with 0 (e.g. 08012345678).");
       return;
     }
 
@@ -942,7 +951,10 @@ export default function App() {
         setDoc(doc(db, "users", user.uid), {
           uid: user.uid,
           email: regEmail.toLowerCase(),
-          fullName: regFullName,
+          firstName: regFirstName.trim(),
+          surname: regSurname.trim(),
+          lastName: regSurname.trim(),
+          fullName: computedFullName,
           phoneNumber: regPhoneNumber,
           referralCode: regReferralCode || ("SL" + Math.floor(1000 + Math.random() * 9000)),
           isVerified: true,
@@ -956,7 +968,9 @@ export default function App() {
           body: JSON.stringify({
             uid: user.uid,
             email: regEmail,
-            fullName: regFullName,
+            firstName: regFirstName.trim(),
+            surname: regSurname.trim(),
+            fullName: computedFullName,
             phoneNumber: regPhoneNumber,
             referralCode: regReferralCode,
             isVerified: true
@@ -970,7 +984,10 @@ export default function App() {
         activeUser = syncResult.data?.user || {
           uid: user.uid,
           email: regEmail.toLowerCase(),
-          fullName: regFullName,
+          firstName: regFirstName.trim(),
+          surname: regSurname.trim(),
+          lastName: regSurname.trim(),
+          fullName: computedFullName,
           phoneNumber: regPhoneNumber,
           role: UserRole.CUSTOMER,
           walletBalance: 0.0,
@@ -984,7 +1001,9 @@ export default function App() {
           body: JSON.stringify({
             email: regEmail,
             password: regPassword,
-            fullName: regFullName,
+            firstName: regFirstName.trim(),
+            surname: regSurname.trim(),
+            fullName: computedFullName,
             phoneNumber: regPhoneNumber,
             referralCode: regReferralCode
           }),
@@ -1016,7 +1035,8 @@ export default function App() {
       navigateToView("DASHBOARD");
       setRegEmail("");
       setRegPassword("");
-      setRegFullName("");
+      setRegFirstName("");
+      setRegSurname("");
       setRegPhoneNumber("");
       setRegRole(UserRole.CUSTOMER);
       setRegReferralCode("");
@@ -1254,6 +1274,14 @@ export default function App() {
 
   return (
     <div className={`min-h-screen bg-slate-50 transition-colors duration-300 ${isDarkMode ? "dark-theme-active" : ""} ${!currentUser ? "flex flex-col bg-white" : "flex flex-col lg:flex-row"}`}>
+      {/* Full-screen non-interactive loading overlay */}
+      {authLoading && (
+        <div className="fixed inset-0 z-[9999] bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center gap-4">
+          <SmartLinkLogoMark size="lg" color="#0F2D5C" animating={true} />
+          <p className="text-sm font-semibold text-[#111827]">Processing, please wait...</p>
+        </div>
+      )}
+
       {/* Real-time Global Toast Notifications */}
       <AnimatePresence>
         {toast && (
@@ -1528,29 +1556,29 @@ export default function App() {
           {currentView === "HOME" && (
             <SmartLinkLandingPage
               onLogin={() => {
-                setCurrentView("DASHBOARD");
+                navigateToView("DASHBOARD");
                 setIsRegistering(false);
                 setIsResetPassword(false);
                 setAuthError(null);
               }}
               onRegister={() => {
-                setCurrentView("DASHBOARD");
+                navigateToView("DASHBOARD");
                 setIsRegistering(true);
                 setIsResetPassword(false);
                 setAuthError(null);
               }}
               onGetStarted={() => {
-                setCurrentView("DASHBOARD");
+                navigateToView("DASHBOARD");
                 setIsRegistering(true);
                 setIsResetPassword(false);
                 setAuthError(null);
               }}
               onAdminLogin={() => {
-                setCurrentView("ADMIN_LOGIN");
+                navigateToView("ADMIN_LOGIN");
               }}
               onExploreServices={() => {
                 if (currentUser) {
-                  setCurrentView("SERVICES");
+                  navigateToView("SERVICES");
                 } else {
                   const el = document.getElementById("services-section");
                   if (el) el.scrollIntoView({ behavior: "smooth" });
@@ -1558,9 +1586,9 @@ export default function App() {
               }}
               onSelectService={(serviceId) => {
                 if (currentUser) {
-                  setCurrentView("SERVICES");
+                  navigateToView("SERVICES");
                 } else {
-                  setCurrentView("DASHBOARD");
+                  navigateToView("DASHBOARD");
                   setIsRegistering(false);
                 }
               }}
@@ -1990,6 +2018,24 @@ export default function App() {
           {currentView === "DASHBOARD" && !currentUser && (
             <div className="w-full bg-[#f8f9fc] min-h-[calc(100vh-75px)] flex flex-col items-center justify-center py-16 px-4">
               <div className="w-full max-w-[460px] bg-white border border-slate-100 rounded-[28px] p-8 md:p-10 shadow-[0_10px_30px_rgba(0,0,0,0.03)] text-left overflow-hidden transition-all duration-300">
+                <div className="flex items-center justify-between mb-4">
+                  <button
+                    type="button"
+                    onClick={() => navigateToView("HOME")}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors cursor-pointer"
+                  >
+                    <ArrowLeft className="h-3.5 w-3.5" />
+                    Back to Home
+                  </button>
+                </div>
+
+                {/* Top Header */}
+                <div className="text-center mb-6">
+                  <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 uppercase font-sans">
+                    SMART LINK NG
+                  </h1>
+                </div>
+
                 <AnimatePresence mode="wait">
                   {isAppInitializing ? (
                     <motion.div
@@ -2314,22 +2360,7 @@ export default function App() {
                       transition={{ duration: 0.22, ease: "easeInOut" }}
                       className="space-y-6"
                     >
-                      <div className="flex flex-col items-center justify-center space-y-6">
-                        {/* Logo and Brand in one row */}
-                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 select-none text-center sm:text-left">
-                          <img
-                            src={logoImg}
-                            alt="Smart Link"
-                            className="h-32 w-32 sm:h-40 sm:w-40 md:h-48 md:w-48 object-contain rounded-3xl shadow-xl border-2 border-[#E5E7EB] bg-white p-3"
-                            referrerPolicy="no-referrer"
-                            onError={(e: any) => { e.currentTarget.src = "/logo.png"; }}
-                          />
-                          {/* Logo text */}
-                          <span className="text-2xl sm:text-3xl font-black tracking-[0.08em] text-[#111827] uppercase font-sans">
-                            SMART LINK NIGERIA
-                          </span>
-                        </div>
-
+                      <div className="flex flex-col items-center justify-center space-y-2">
                         <div className="text-center space-y-1">
                           <h2 className="text-2xl font-bold text-[#111827] tracking-tight">Welcome back!</h2>
                           <p className="text-xs text-[#6B7280] font-medium">Happy to see you again!</p>
@@ -2472,24 +2503,10 @@ export default function App() {
                       transition={{ duration: 0.22, ease: "easeInOut" }}
                       className="space-y-6"
                     >
-                      <div className="flex flex-col items-center justify-center space-y-6">
-                        {/* Logo and Brand in one row */}
-                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 select-none text-center sm:text-left">
-                          <img
-                            src={logoImg}
-                            alt="Smart Link"
-                            className="h-32 w-32 sm:h-40 sm:w-40 md:h-48 md:w-48 object-contain rounded-3xl shadow-xl border-2 border-[#E5E7EB] bg-white p-3"
-                            referrerPolicy="no-referrer"
-                            onError={(e: any) => { e.currentTarget.src = "/logo.png"; }}
-                          />
-                          {/* Logo text */}
-                          <span className="text-2xl sm:text-3xl font-black tracking-[0.08em] text-[#111827] uppercase font-sans">
-                            SMART LINK NIGERIA
-                          </span>
-                        </div>
-
+                      <div className="flex flex-col items-center justify-center space-y-2">
                         <div className="text-center space-y-1">
                           <h2 className="text-xl font-bold text-slate-900 tracking-tight">Create Secure Account</h2>
+                          <p className="text-xs text-slate-500 font-medium">Enter your details to create an account</p>
                         </div>
                       </div>
 
@@ -2501,34 +2518,70 @@ export default function App() {
                       )}
 
                       <form onSubmit={handleRegister} className="space-y-4">
-                        <div className="space-y-1.5 text-left">
-                          <div className="flex justify-between items-center">
-                            <label className="text-xs font-semibold text-slate-800">
-                              Full Name
-                            </label>
-                            {regFullName && (
-                              <span className={`text-[10px] font-bold ${regFullName.trim().length > 0 ? "text-emerald-600 animate-fadeIn" : "text-rose-500 animate-fadeIn"}`}>
-                                {regFullName.trim().length > 0 ? "✓ Name present" : "✗ Cannot be empty"}
-                              </span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {/* First Name */}
+                          <div className="space-y-1.5 text-left">
+                            <div className="flex justify-between items-center">
+                              <label htmlFor="reg-first-name" className="text-xs font-semibold text-slate-800">
+                                First Name
+                              </label>
+                              {regFirstName && (
+                                <span className={`text-[10px] font-bold ${regFirstName.trim().length > 0 ? "text-emerald-600 animate-fadeIn" : "text-rose-500 animate-fadeIn"}`}>
+                                  {regFirstName.trim().length > 0 ? "✓ Present" : "✗ Required"}
+                                </span>
+                              )}
+                            </div>
+                            <input
+                              id="reg-first-name"
+                              type="text"
+                              required
+                              value={regFirstName}
+                              onChange={(e) => setRegFirstName(e.target.value)}
+                              placeholder="e.g. Abubakar"
+                              className={`w-full px-4 py-3 border rounded-xl text-sm outline-none transition-all bg-white ${
+                                regFirstName
+                                  ? regFirstName.trim().length > 0
+                                    ? "border-emerald-500 focus:ring-4 focus:ring-emerald-100 bg-emerald-50/10"
+                                    : "border-rose-500 focus:ring-4 focus:ring-rose-100 bg-rose-50/10"
+                                  : "border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                              }`}
+                            />
+                            {regFirstName && regFirstName.trim().length === 0 && (
+                              <p className="text-[10px] text-rose-500 font-semibold animate-fadeIn">First name cannot consist of spaces only.</p>
                             )}
                           </div>
-                          <input
-                            type="text"
-                            required
-                            value={regFullName}
-                            onChange={(e) => setRegFullName(e.target.value)}
-                            placeholder="e.g. Abubakar Muhammad"
-                            className={`w-full px-4 py-3 border rounded-xl text-sm outline-none transition-all bg-white ${
-                              regFullName
-                                ? regFullName.trim().length > 0
-                                  ? "border-emerald-500 focus:ring-4 focus:ring-emerald-100 bg-emerald-50/10"
-                                  : "border-rose-500 focus:ring-4 focus:ring-rose-100 bg-rose-50/10"
-                                : "border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-                            }`}
-                          />
-                          {regFullName && regFullName.trim().length === 0 && (
-                            <p className="text-[10px] text-rose-500 font-semibold animate-fadeIn">Name cannot consist of empty spaces only.</p>
-                          )}
+
+                          {/* Surname */}
+                          <div className="space-y-1.5 text-left">
+                            <div className="flex justify-between items-center">
+                              <label htmlFor="reg-surname" className="text-xs font-semibold text-slate-800">
+                                Surname
+                              </label>
+                              {regSurname && (
+                                <span className={`text-[10px] font-bold ${regSurname.trim().length > 0 ? "text-emerald-600 animate-fadeIn" : "text-rose-500 animate-fadeIn"}`}>
+                                  {regSurname.trim().length > 0 ? "✓ Present" : "✗ Required"}
+                                </span>
+                              )}
+                            </div>
+                            <input
+                              id="reg-surname"
+                              type="text"
+                              required
+                              value={regSurname}
+                              onChange={(e) => setRegSurname(e.target.value)}
+                              placeholder="e.g. Muhammad"
+                              className={`w-full px-4 py-3 border rounded-xl text-sm outline-none transition-all bg-white ${
+                                regSurname
+                                  ? regSurname.trim().length > 0
+                                    ? "border-emerald-500 focus:ring-4 focus:ring-emerald-100 bg-emerald-50/10"
+                                    : "border-rose-500 focus:ring-4 focus:ring-rose-100 bg-rose-50/10"
+                                  : "border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                              }`}
+                            />
+                            {regSurname && regSurname.trim().length === 0 && (
+                              <p className="text-[10px] text-rose-500 font-semibold animate-fadeIn">Surname cannot consist of spaces only.</p>
+                            )}
+                          </div>
                         </div>
 
                         <div className="space-y-1.5 text-left">
@@ -2677,43 +2730,57 @@ export default function App() {
 
                         <div className="space-y-1.5 text-left">
                           <div className="flex justify-between items-center">
-                            <label className="text-xs font-semibold text-slate-800">
+                            <label htmlFor="reg-phone-number" className="text-xs font-semibold text-slate-800">
                               Phone Number
                             </label>
                             {regPhoneNumber && (() => {
-                              const digits = regPhoneNumber.replace(/\D/g, "");
-                              const isValid = digits.length >= 7 && digits.length <= 15;
+                              const isElevenDigits = regPhoneNumber.length === 11;
+                              const startsWithZero = regPhoneNumber.startsWith("0");
+                              const isValid = isElevenDigits && startsWithZero;
                               return (
                                 <span className={`text-[10px] font-bold ${isValid ? "text-emerald-600 animate-fadeIn" : "text-rose-500 animate-fadeIn"}`}>
-                                  {isValid ? "✓ Valid length" : `✗ ${digits.length} digits (needs 7-15)`}
+                                  {isValid ? "✓ 11 digits (Valid)" : !startsWithZero ? "✗ Must start with 0" : `✗ ${regPhoneNumber.length}/11 digits`}
                                 </span>
                               );
                             })()}
                           </div>
                           <input
+                            id="reg-phone-number"
                             type="tel"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            maxLength={11}
                             required
                             value={regPhoneNumber}
-                            onChange={(e) => setRegPhoneNumber(e.target.value)}
-                            placeholder="e.g. +2348000000000 or 08012345678"
-                            className={`w-full px-4 py-3 border rounded-xl text-sm outline-none transition-all bg-white ${
+                            onChange={(e) => {
+                              // Rule 4: Numbers only (letters, characters, symbols, space all not allowed)
+                              // Rule 3: Max 11 digits
+                              const numbersOnly = e.target.value.replace(/\D/g, "").slice(0, 11);
+                              setRegPhoneNumber(numbersOnly);
+                            }}
+                            placeholder="e.g. 08012345678"
+                            className={`w-full px-4 py-3 border rounded-xl text-sm outline-none transition-all font-mono tracking-wide bg-white ${
                               regPhoneNumber
-                                ? (() => {
-                                    const digits = regPhoneNumber.replace(/\D/g, "");
-                                    return digits.length >= 7 && digits.length <= 15
-                                      ? "border-emerald-500 focus:ring-4 focus:ring-emerald-100 bg-emerald-50/10"
-                                      : "border-rose-500 focus:ring-4 focus:ring-rose-100 bg-rose-50/10";
-                                  })()
+                                ? regPhoneNumber.length === 11 && regPhoneNumber.startsWith("0")
+                                  ? "border-emerald-500 focus:ring-4 focus:ring-emerald-100 bg-emerald-50/10"
+                                  : "border-rose-500 focus:ring-4 focus:ring-rose-100 bg-rose-50/10"
                                 : "border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                             }`}
                           />
                           {regPhoneNumber && (() => {
-                            const digits = regPhoneNumber.replace(/\D/g, "");
-                            const isValid = digits.length >= 7 && digits.length <= 15;
-                            if (!isValid) {
+                            const startsWithZero = regPhoneNumber.startsWith("0");
+                            const isElevenDigits = regPhoneNumber.length === 11;
+                            if (!startsWithZero) {
                               return (
                                 <p className="text-[10px] text-rose-500 font-semibold animate-fadeIn">
-                                  Must have 7 to 15 numeric digits. Current digits: {digits.length}.
+                                  Phone number must start with 0 (e.g. 08012345678).
+                                </p>
+                              );
+                            }
+                            if (!isElevenDigits) {
+                              return (
+                                <p className="text-[10px] text-rose-500 font-semibold animate-fadeIn">
+                                  Phone number must be exactly 11 digits. Current: {regPhoneNumber.length}/11 digits.
                                 </p>
                               );
                             }

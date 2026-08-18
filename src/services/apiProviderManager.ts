@@ -41,12 +41,29 @@ export class APIProviderManager {
    * Automatically switches to another active default provider if active one is disabled.
    */
   static getActiveProvider(db: any, options?: { category?: string; feature?: string }): APIProviderConfig | null {
-    if (!db || !db.apiProviders || db.apiProviders.length === 0) return null;
+    const providers = (Array.isArray(db?.api_providers) && db.api_providers.length > 0)
+      ? db.api_providers
+      : (Array.isArray(db?.apiProviders) ? db.apiProviders : []);
 
-    const enabledProviders = db.apiProviders.filter((p: any) => (p.enabled || p.isActive) && p.healthStatus !== "OFFLINE");
+    if (providers.length === 0) return null;
+
+    const enabledProviders = providers.filter(
+      (p: any) =>
+        (p.enabled || p.isActive || p.status === "Active" || p.status === "ENABLED") &&
+        p.status !== "Draft" &&
+        p.status !== "Inactive" &&
+        p.status !== "DISABLED" &&
+        p.healthStatus !== "OFFLINE"
+    );
 
     if (enabledProviders.length === 0) {
-      const fallbackAny = db.apiProviders.filter((p: any) => p.enabled || p.isActive);
+      const fallbackAny = providers.filter(
+        (p: any) =>
+          (p.enabled || p.isActive || p.status === "Active" || p.status === "ENABLED") &&
+          p.status !== "Draft" &&
+          p.status !== "Inactive" &&
+          p.status !== "DISABLED"
+      );
       if (fallbackAny.length === 0) return null;
       return fallbackAny[0];
     }

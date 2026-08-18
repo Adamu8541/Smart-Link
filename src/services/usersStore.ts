@@ -5,6 +5,9 @@ export interface UserDoc {
   uid?: string;
   email?: string;
   fullName?: string;
+  firstName?: string;
+  surname?: string;
+  lastName?: string;
   phoneNumber?: string;
   role?: string;
   walletBalance?: number;

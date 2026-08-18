@@ -61,6 +61,8 @@ export function UserProfileDrawer({
   const [loading, setLoading] = useState(true);
   const [userDetails, setUserDetails] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetFeedback, setResetFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   const fetchUserDetails = async () => {
     setLoading(true);
@@ -80,6 +82,32 @@ export function UserProfileDrawer({
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!user.email) return;
+    if (!confirm(`Are you sure you want to send a password reset link to ${user.fullName || user.email} (${user.email}) via Firebase?`)) return;
+
+    setResetLoading(true);
+    setResetFeedback(null);
+    try {
+      const res = await fetch(`/api/admin/users/${user.uid || userId}/reset-password`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-token": session.sessionToken,
+        },
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || data.error || "Password reset link could not be sent.");
+      }
+      setResetFeedback({ type: "success", message: `Password reset link sent to ${user.email} via Firebase.` });
+    } catch (err: any) {
+      setResetFeedback({ type: "error", message: err.message || "Failed to trigger password reset." });
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -157,6 +185,16 @@ export function UserProfileDrawer({
                 </button>
                 <button
                   type="button"
+                  onClick={handleResetPassword}
+                  disabled={resetLoading}
+                  className="px-3 py-1.5 bg-amber-950 border border-amber-800 text-amber-300 hover:bg-amber-900 text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  title="Send password reset link to user's registered email via Firebase"
+                >
+                  {resetLoading ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Key className="h-3.5 w-3.5" />}
+                  Reset Password
+                </button>
+                <button
+                  type="button"
                   onClick={() => onOpenNotify(user)}
                   className="px-3 py-1.5 bg-blue-950 border border-blue-800 text-blue-300 hover:bg-blue-900 text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer"
                 >
@@ -223,6 +261,32 @@ export function UserProfileDrawer({
             {error && (
               <div className="p-4 bg-rose-950 border border-rose-800 rounded-2xl text-rose-300 text-xs">
                 {error}
+              </div>
+            )}
+
+            {resetFeedback && (
+              <div
+                className={`p-4 rounded-2xl text-xs flex items-center justify-between border ${
+                  resetFeedback.type === "success"
+                    ? "bg-emerald-950/80 border-emerald-800 text-emerald-300"
+                    : "bg-rose-950/80 border-rose-800 text-rose-300"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  {resetFeedback.type === "success" ? (
+                    <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                  ) : (
+                    <AlertCircle className="h-4 w-4 text-rose-400 shrink-0" />
+                  )}
+                  <span>{resetFeedback.message}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setResetFeedback(null)}
+                  className="text-xs font-bold underline hover:opacity-80 ml-3 cursor-pointer"
+                >
+                  Dismiss
+                </button>
               </div>
             )}
 
@@ -375,26 +439,52 @@ export function UserProfileDrawer({
                   </div>
                 )}
 
-                {/* TAB 5: DEVICES */}
+                {/* TAB 5: DEVICES & SECURITY */}
                 {activeTab === "DEVICES" && (
-                  <div className="space-y-4 text-xs">
-                    <p className="font-bold text-slate-300">Known Login Devices & IP Addresses:</p>
-                    <div className="space-y-2">
-                      {[
-                        { device: "Chrome / Windows 11 Desktop", ip: "102.89.23.14", loc: "Lagos, Nigeria", lastSeen: "2 hours ago" },
-                        { device: "Safari / iPhone 14 Pro", ip: "105.112.42.8", loc: "Abuja, Nigeria", lastSeen: "Yesterday, 14:20" },
-                      ].map((d, i) => (
-                        <div key={i} className="p-3.5 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <Laptop className="h-5 w-5 text-blue-400" />
-                            <div>
-                              <p className="font-bold text-white">{d.device}</p>
-                              <p className="font-mono text-[11px] text-slate-400">IP: {d.ip} ({d.loc})</p>
-                            </div>
-                          </div>
-                          <span className="text-[10px] text-slate-500">{d.lastSeen}</span>
+                  <div className="space-y-6 text-xs">
+                    {/* Security Actions Card */}
+                    <div className="p-5 bg-slate-950 border border-slate-800 rounded-2xl space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-bold text-white text-sm flex items-center gap-2">
+                            <Key className="h-4 w-4 text-amber-400" />
+                            Firebase Password Reset
+                          </h4>
+                          <p className="text-slate-400 text-xs mt-0.5">
+                            Send an automated password reset link directly to <strong className="text-slate-200">{user.email}</strong> using Firebase default setup.
+                          </p>
                         </div>
-                      ))}
+                        <button
+                          type="button"
+                          onClick={handleResetPassword}
+                          disabled={resetLoading}
+                          className="px-4 py-2 bg-amber-950 border border-amber-700 text-amber-300 hover:bg-amber-900 font-bold rounded-xl flex items-center gap-2 cursor-pointer disabled:opacity-50 text-xs shrink-0"
+                        >
+                          {resetLoading && <RefreshCw className="h-3.5 w-3.5 animate-spin" />}
+                          Trigger Firebase Reset
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <p className="font-bold text-slate-300">Known Login Devices & IP Addresses:</p>
+                      <div className="space-y-2">
+                        {[
+                          { device: "Chrome / Windows 11 Desktop", ip: "102.89.23.14", loc: "Lagos, Nigeria", lastSeen: "2 hours ago" },
+                          { device: "Safari / iPhone 14 Pro", ip: "105.112.42.8", loc: "Abuja, Nigeria", lastSeen: "Yesterday, 14:20" },
+                        ].map((d, i) => (
+                          <div key={i} className="p-3.5 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <Laptop className="h-5 w-5 text-blue-400" />
+                              <div>
+                                <p className="font-bold text-white">{d.device}</p>
+                                <p className="font-mono text-[11px] text-slate-400">IP: {d.ip} ({d.loc})</p>
+                              </div>
+                            </div>
+                            <span className="text-[10px] text-slate-500">{d.lastSeen}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 )}

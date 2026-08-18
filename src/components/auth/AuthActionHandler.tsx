@@ -102,10 +102,12 @@ export const AuthActionHandler: React.FC<AuthActionHandlerProps> = ({
           animate={{ opacity: 1, y: 0 }}
           className="w-full max-w-md bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-8 text-center space-y-5 shadow-xl shadow-slate-200/70"
         >
-          <div className="inline-flex items-center justify-center p-2 rounded-2xl bg-slate-50 border border-slate-200 shadow-sm">
-            <img src={logoImg} alt="Smart Link" className="w-12 h-12 rounded-xl object-contain" />
+          <div className="text-center space-y-1">
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 uppercase font-sans">
+              SMART LINK NG
+            </h1>
+            <h2 className="text-lg font-bold text-slate-900">Email Recovery Action</h2>
           </div>
-          <h2 className="text-lg font-bold text-slate-900">Email Recovery Action</h2>
           <p className="text-xs text-slate-600 leading-relaxed">
             You are attempting to restore a previous email address associated with your Smart Link account.
           </p>

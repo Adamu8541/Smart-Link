@@ -8,6 +8,8 @@
         "id": { "type": "string" },
         "uid": { "type": "string" },
         "fullName": { "type": "string" },
+        "firstName": { "type": "string" },
+        "surname": { "type": "string" },
         "email": { "type": "string" },
         "phone": { "type": "string" },
         "photoURL": { "type": "string" },

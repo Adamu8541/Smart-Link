@@ -47,6 +47,12 @@ const COLLECTION_MAPPING: Record<string, string> = {
   api_response_mapping_logs: "api_response_mapping_logs",
   virtualAccounts: "virtual_accounts",
   virtual_accounts: "virtual_accounts",
+  reconciliation_records: "reconciliation_records",
+  reconciliationRecords: "reconciliation_records",
+  payment_records: "payment_records",
+  paymentRecords: "payment_records",
+  processed_payment_references: "processed_payment_references",
+  processed_provider_tx_ids: "processed_provider_tx_ids",
   walletLogs: "wallet_logs",
   wallet_logs: "wallet_logs",
   providerLogs: "provider_logs",
@@ -227,6 +233,11 @@ export async function syncDbToFirestore(db: any, updatedCollections?: string[]):
             const docId = String(
               item.id ||
               item.uid ||
+              item.recordId ||
+              item.paymentReference ||
+              item.providerTransactionId ||
+              item.reference ||
+              item.accountNumber ||
               item.logId ||
               item.sessionId ||
               item.ticketId ||

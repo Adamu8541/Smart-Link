@@ -5,6 +5,7 @@
 
 import { walletsStore, WalletDbRecord } from "./walletsStore";
 import * as usersStore from "./usersStore";
+import { saveDocToFirestore } from "./firestoreStore";
 
 export type { WalletDbRecord };
 
@@ -286,6 +287,8 @@ export class ServerWalletEngine {
     if (!db.wallet_transactions) db.wallet_transactions = [];
     db.wallet_transactions.push(tx);
 
+    saveDocToFirestore("transactions", tx.id, tx).catch(() => {});
+
     return {
       success: true,
       wallet: {
@@ -423,6 +426,8 @@ export class ServerWalletEngine {
 
     if (!db.wallet_transactions) db.wallet_transactions = [];
     db.wallet_transactions.push(tx);
+
+    saveDocToFirestore("transactions", tx.id, tx).catch(() => {});
 
     return {
       success: true,

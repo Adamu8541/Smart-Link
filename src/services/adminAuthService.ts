@@ -45,10 +45,13 @@ export function safeCompareHash(providedHash: string, storedHash: string): boole
 }
 
 const getJwtSecret = (): string => {
-  if (typeof process !== "undefined" && process.env && process.env.ADMIN_JWT_SECRET) {
-    return process.env.ADMIN_JWT_SECRET;
+  const secret = String(process.env.ADMIN_JWT_SECRET || "").trim();
+
+  if (!secret) {
+    throw new Error("ADMIN_JWT_SECRET is not configured.");
   }
-  return "smartlink-default-admin-jwt-secret-key-2025";
+
+  return secret;
 };
 
 function base64UrlEncode(str: string): string {
