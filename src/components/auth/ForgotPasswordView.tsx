@@ -1,7 +1,18 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Mail, ArrowLeft, CheckCircle2, AlertCircle, Sparkles, KeyRound } from "lucide-react";
-import { auth, sendPasswordResetEmail, isFirebaseConfigured } from "../../firebase";
+import { Mail, ArrowLeft, CheckCircle2, AlertCircle, Sparkles, KeyRound, UserPlus } from "lucide-react";
+import {
+  auth,
+  db,
+  sendPasswordResetEmail,
+  collection,
+  query,
+  where,
+  limit,
+  getDocs,
+  withTimeout,
+  isFirebaseConfigured
+} from "../../firebase";
 import { SmartLinkLogoMark } from "../ui/SmartLinkLogoMark";
 import { getFriendlyErrorMessage } from "../../utils/authErrorHandler";
 import { soundFx } from "../../utils/audioEffects";
@@ -10,12 +21,14 @@ import { AuthFormSkeleton } from "../ui/AuthSkeleton";
 interface ForgotPasswordViewProps {
   onNavigateToLogin: () => void;
   onNavigateHome: () => void;
+  onNavigateToRegister?: () => void;
   initialEmail?: string;
 }
 
 export const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({
   onNavigateToLogin,
   onNavigateHome,
+  onNavigateToRegister,
   initialEmail = "",
 }) => {
   const [email, setEmail] = useState(initialEmail);
@@ -39,7 +52,41 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({
 
     try {
       const cleanEmail = email.trim().toLowerCase();
-      
+
+      // Step 1: Check Firestore database first to verify if the email is registered
+      if (isFirebaseConfigured) {
+        try {
+          const userQuery = query(collection(db, "users"), where("email", "==", cleanEmail), limit(1));
+          const snap = await withTimeout(getDocs(userQuery), 3000);
+          if (snap.empty) {
+            soundFx.playErrorSound();
+            setError("email not found or not registered, register instead");
+            setLoading(false);
+            return;
+          }
+        } catch (dbErr) {
+          console.warn("[ForgotPasswordView] Client Firestore check bypass:", dbErr);
+        }
+      }
+
+      // Step 2: Also verify via backend check to ensure accuracy across all data sources
+      try {
+        const checkRes = await fetch("/api/auth/check-email-exists", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: cleanEmail }),
+        });
+        const checkData = await checkRes.json();
+        if (checkData && checkData.exists === false) {
+          soundFx.playErrorSound();
+          setError("email not found or not registered, register instead");
+          setLoading(false);
+          return;
+        }
+      } catch (checkErr) {
+        console.warn("[ForgotPasswordView] Backend check-email-exists error:", checkErr);
+      }
+
       let sent = false;
       if (isFirebaseConfigured) {
         try {
@@ -47,9 +94,13 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({
           sent = true;
         } catch (fbErr: any) {
           console.warn("[ForgotPasswordView] Firebase Auth reset failed, falling back to server:", fbErr);
-          if (fbErr?.code === "auth/user-not-found") {
+          if (
+            fbErr?.code === "auth/user-not-found" ||
+            fbErr?.message?.includes("user-not-found") ||
+            fbErr?.message?.includes("User not found")
+          ) {
             soundFx.playErrorSound();
-            setError("No account found with this email address. Please check the email or sign up.");
+            setError("email not found or not registered, register instead");
             setLoading(false);
             return;
           }
@@ -65,6 +116,16 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({
         });
         const data = await res.json();
         if (!res.ok || data.success === false) {
+          if (
+            res.status === 404 ||
+            data.error?.toLowerCase().includes("not found") ||
+            data.error?.toLowerCase().includes("not registered")
+          ) {
+            soundFx.playErrorSound();
+            setError("email not found or not registered, register instead");
+            setLoading(false);
+            return;
+          }
           throw new Error(data.error || data.message || "Unable to send password reset email.");
         }
         sent = true;
@@ -77,7 +138,15 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({
       );
     } catch (err: any) {
       soundFx.playErrorSound();
-      setError(getFriendlyErrorMessage(err));
+      const friendly = getFriendlyErrorMessage(err);
+      if (
+        friendly.toLowerCase().includes("not found") ||
+        friendly.toLowerCase().includes("not registered")
+      ) {
+        setError("email not found or not registered, register instead");
+      } else {
+        setError(friendly);
+      }
     } finally {
       setLoading(false);
     }
@@ -136,7 +205,22 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({
               role="alert"
             >
               <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-              <div className="leading-relaxed flex-1 font-medium">{error}</div>
+              <div className="leading-relaxed flex-1 font-medium">
+                <div>{error}</div>
+                {error.includes("register instead") && (
+                  <div className="mt-2 pt-2 border-t border-rose-200/80 flex items-center justify-between">
+                    <span className="text-[11px] text-rose-700 font-normal">Need an account?</span>
+                    <button
+                      type="button"
+                      onClick={onNavigateToRegister || onNavigateToLogin}
+                      className="text-xs font-bold text-rose-900 hover:text-rose-950 underline flex items-center gap-1 cursor-pointer bg-transparent border-none p-0 focus:outline-none"
+                    >
+                      <UserPlus className="w-3.5 h-3.5" />
+                      Register now
+                    </button>
+                  </div>
+                )}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>

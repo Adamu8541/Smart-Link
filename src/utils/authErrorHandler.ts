@@ -20,6 +20,22 @@ export function getFriendlyErrorMessage(error: any): string {
     ? error 
     : error.message || error.error || error.toString();
 
+  if (
+    rawMsg.includes("email not found or not registered") ||
+    rawMsg.includes("not registered, register instead")
+  ) {
+    return "email not found or not registered, register instead";
+  }
+
+  if (
+    rawMsg.includes("user not found sign up/ register please") ||
+    rawMsg.includes("user not found sign up") ||
+    rawMsg.includes("user not found") ||
+    rawMsg.includes("User not found")
+  ) {
+    return "user not found sign up/ register please";
+  }
+
   const code = error.code || "";
 
   // 1. Firebase Auth Errors
@@ -45,9 +61,11 @@ export function getFriendlyErrorMessage(error: any): string {
     code === "auth/wrong-password" ||
     rawMsg.includes("invalid-credential") ||
     rawMsg.includes("User not found") ||
-    rawMsg.includes("Incorrect password")
+    rawMsg.includes("user not found") ||
+    rawMsg.includes("Incorrect password") ||
+    rawMsg.includes("Authentication failed")
   ) {
-    return "We couldn't sign you in. Please check your email and password.";
+    return "user not found sign up/ register please";
   }
 
   if (
@@ -70,10 +88,13 @@ export function getFriendlyErrorMessage(error: any): string {
 
   if (
     code === "auth/email-already-in-use" ||
+    code === "auth/email-already-exists" ||
     rawMsg.includes("email-already-in-use") ||
-    rawMsg.includes("User already exists")
+    rawMsg.includes("email-already-exists") ||
+    rawMsg.includes("User already exists") ||
+    rawMsg.includes("email already exists")
   ) {
-    return "An account with this email address already exists. Please sign in instead.";
+    return "Sorry, this email already exists. Sign in instead.";
   }
 
   if (

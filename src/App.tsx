@@ -64,6 +64,11 @@ import {
   setDoc,
   getDoc,
   updateDoc,
+  collection,
+  getDocs,
+  query,
+  where,
+  limit,
   onSnapshot,
   isFirebaseConfigured,
   withTimeout
@@ -869,7 +874,7 @@ export default function App() {
         } else if (apiRes.error) {
           throw new Error(apiRes.error);
         } else {
-          throw fbError || new Error("Authentication failed. Incorrect email address or password.");
+          throw fbError || new Error("user not found sign up/ register please");
         }
       }
 
@@ -925,10 +930,9 @@ export default function App() {
       return;
     }
 
-    const phoneDigits = regPhoneNumber.replace(/\D/g, "");
-    if (phoneDigits.length < 7 || phoneDigits.length > 15) {
+    if (!regPhoneNumber || !/^0\d{10}$/.test(regPhoneNumber)) {
       soundFx.playErrorSound();
-      setAuthError(`Phone number must contain between 7 and 15 digits. Found ${phoneDigits.length} digits.`);
+      setAuthError("Phone number must be exactly 11 digits and must start with 0.");
       return;
     }
 
@@ -937,92 +941,93 @@ export default function App() {
     setAuthSuccessState(null);
 
     try {
-      let userCredential: any = null;
-      let fbError: any = null;
+      const cleanEmail = regEmail.toLowerCase().trim();
+      const cleanPhone = regPhoneNumber.trim();
 
+      // Step 1: Check whether the entered email already exists in Firestore users database
       if (isFirebaseConfigured) {
         try {
-          userCredential = await withTimeout(
-            createUserWithEmailAndPassword(auth, regEmail, regPassword),
-            5000
-          );
-        } catch (err: any) {
-          fbError = err;
-          if (err.code === "auth/email-already-in-use") {
-            throw err;
+          const emailQuery = query(collection(db, "users"), where("email", "==", cleanEmail), limit(1));
+          const emailSnap = await withTimeout(getDocs(emailQuery), 3000);
+          if (!emailSnap.empty) {
+            soundFx.playErrorSound();
+            setAuthError("Sorry, this email already exists. Sign in instead.");
+            setAuthLoading(false);
+            return;
           }
-          console.info("Firebase Auth sign-up bypassed or timed out, routing to fast server auth:", err?.message || err);
+        } catch (err) {
+          console.warn("[Register] Firestore client email check error/bypass:", err);
         }
       }
 
-      let activeUser: any = null;
+      // Backend email existence verification
+      const emailCheckRes = await safeFetchJson("/api/auth/check-email-exists", {
+        method: "POST",
+        body: JSON.stringify({ email: cleanEmail })
+      });
+      if (emailCheckRes.data?.exists) {
+        soundFx.playErrorSound();
+        setAuthError("Sorry, this email already exists. Sign in instead.");
+        setAuthLoading(false);
+        return;
+      }
 
-      if (userCredential?.user) {
-        const user = userCredential.user;
-        setDoc(doc(db, "users", user.uid), {
-          uid: user.uid,
-          email: regEmail.toLowerCase(),
-          fullName: regFullName,
-          phoneNumber: regPhoneNumber,
-          referralCode: regReferralCode || ("SL" + Math.floor(1000 + Math.random() * 9000)),
-          isVerified: true,
-          role: "CUSTOMER",
-          walletBalance: 0.0,
-          createdAt: new Date().toISOString()
-        }, { merge: true }).catch(() => {});
-
-        const syncResult = await safeFetchJson("/api/auth/sync-firebase-user", {
-          method: "POST",
-          body: JSON.stringify({
-            uid: user.uid,
-            email: regEmail,
-            fullName: regFullName,
-            phoneNumber: regPhoneNumber,
-            referralCode: regReferralCode,
-            isVerified: true
-          })
-        });
-
-        if (!syncResult.ok) {
-          throw new Error(syncResult.error || "Failed to register profile details.");
-        }
-
-        activeUser = syncResult.data?.user || {
-          uid: user.uid,
-          email: regEmail.toLowerCase(),
-          fullName: regFullName,
-          phoneNumber: regPhoneNumber,
-          role: UserRole.CUSTOMER,
-          walletBalance: 0.0,
-          referralCode: regReferralCode || ("SL" + Math.floor(1000 + Math.random() * 9000)),
-          isVerified: true,
-          createdAt: new Date().toISOString()
-        };
-      } else {
-        const apiRes = await safeFetchJson("/api/auth/register", {
-          method: "POST",
-          body: JSON.stringify({
-            email: regEmail,
-            password: regPassword,
-            fullName: regFullName,
-            phoneNumber: regPhoneNumber,
-            referralCode: regReferralCode
-          }),
-        });
-
-        if (!apiRes.ok || !apiRes.data?.user) {
-          throw fbError || new Error(apiRes.error || "Registration rejected. Please check your details.");
-        }
-
-        activeUser = apiRes.data.user;
-
-        // Sign in on Firebase Auth client if available
-        if (isFirebaseConfigured) {
-          try {
-            await signInWithEmailAndPassword(auth, regEmail, regPassword);
-          } catch {
-            // ignore
+      // Step 2: Check whether the entered phone number already exists in Firestore users database
+      if (isFirebaseConfigured) {
+        try {
+          const phoneQuery = query(collection(db, "users"), where("phoneNumber", "==", cleanPhone), limit(1));
+          const phoneSnap = await withTimeout(getDocs(phoneQuery), 3000);
+          if (!phoneSnap.empty) {
+            soundFx.playErrorSound();
+            setAuthError("This phone number already exists. Sign in instead.");
+            setAuthLoading(false);
+            return;
           }
+        } catch (err) {
+          console.warn("[Register] Firestore client phone check error/bypass:", err);
+        }
+      }
+
+      // Backend phone existence verification
+      const phoneCheckRes = await safeFetchJson("/api/auth/check-phone-exists", {
+        method: "POST",
+        body: JSON.stringify({ phoneNumber: cleanPhone })
+      });
+      if (phoneCheckRes.data?.exists) {
+        soundFx.playErrorSound();
+        setAuthError("This phone number already exists. Sign in instead.");
+        setAuthLoading(false);
+        return;
+      }
+
+      // Step 3: Server-side account creation with atomic Firestore and Firebase Auth registration
+      const apiRes = await safeFetchJson("/api/auth/register", {
+        method: "POST",
+        body: JSON.stringify({
+          email: cleanEmail,
+          password: regPassword,
+          fullName: regFullName,
+          phoneNumber: cleanPhone,
+          referralCode: regReferralCode
+        }),
+      });
+
+      if (!apiRes.ok || !apiRes.data?.user) {
+        soundFx.playErrorSound();
+        const errMsg = apiRes.error || "Registration rejected. Please check your details.";
+        setAuthError(errMsg);
+        setAuthLoading(false);
+        return;
+      }
+
+      const activeUser = apiRes.data.user;
+
+      // Sign in on Firebase Auth client if available
+      if (isFirebaseConfigured) {
+        try {
+          await signInWithEmailAndPassword(auth, cleanEmail, regPassword);
+        } catch {
+          // ignore
         }
       }
 
@@ -1945,6 +1950,13 @@ export default function App() {
                 setIsResetPassword(false);
                 setAuthError(null);
               }}
+              onNavigateToRegister={() => {
+                window.history.pushState({}, "", "/");
+                setCurrentView("DASHBOARD");
+                setIsRegistering(true);
+                setIsResetPassword(false);
+                setAuthError(null);
+              }}
               onNavigateHome={() => {
                 window.history.pushState({}, "", "/");
                 setCurrentView("HOME");
@@ -2365,7 +2377,24 @@ export default function App() {
                       {authError && (
                         <div role="alert" aria-live="polite" className="p-3.5 bg-red-50 border border-red-200 text-red-800 text-xs rounded-xl font-medium flex items-start gap-2.5 animate-fadeIn text-left">
                           <AlertCircle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
-                          <div className="flex-1 leading-relaxed">{authError}</div>
+                          <div className="flex-1 leading-relaxed">
+                            <div>{authError}</div>
+                            {(authError.includes("register please") || authError.includes("sign up") || authError.includes("not found")) && (
+                              <div className="mt-2 pt-2 border-t border-red-200/80 flex items-center justify-between">
+                                <span className="text-[11px] text-red-700 font-normal">Need an account?</span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setIsRegistering(true);
+                                    setAuthError(null);
+                                  }}
+                                  className="text-xs font-bold text-red-900 hover:text-red-950 underline flex items-center gap-1 cursor-pointer bg-transparent border-none p-0 focus:outline-none"
+                                >
+                                  Register now →
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       )}
 
@@ -2701,11 +2730,10 @@ export default function App() {
                               Phone Number
                             </label>
                             {regPhoneNumber && (() => {
-                              const digits = regPhoneNumber.replace(/\D/g, "");
-                              const isValid = digits.length >= 7 && digits.length <= 15;
+                              const isValid = /^0\d{10}$/.test(regPhoneNumber);
                               return (
                                 <span className={`text-[10px] font-bold ${isValid ? "text-emerald-600 animate-fadeIn" : "text-rose-500 animate-fadeIn"}`}>
-                                  {isValid ? "✓ Valid length" : `✗ ${digits.length} digits (needs 7-15)`}
+                                  {isValid ? "✓ Valid 11 digits" : !regPhoneNumber.startsWith("0") ? "✗ Must start with 0" : regPhoneNumber.length !== 11 ? `✗ ${regPhoneNumber.length}/11 digits` : "✗ Numbers only"}
                                 </span>
                               );
                             })()}
@@ -2713,32 +2741,26 @@ export default function App() {
                           <input
                             type="tel"
                             required
+                            maxLength={11}
                             value={regPhoneNumber}
                             onChange={(e) => setRegPhoneNumber(e.target.value)}
-                            placeholder="e.g. +2348000000000 or 08012345678"
-                            className={`w-full px-4 py-3 border rounded-xl text-sm outline-none transition-all bg-white ${
+                            placeholder="e.g. 08012345678"
+                            className={`w-full px-4 py-3 border rounded-xl text-sm outline-none transition-all bg-white font-mono tracking-wide ${
                               regPhoneNumber
                                 ? (() => {
-                                    const digits = regPhoneNumber.replace(/\D/g, "");
-                                    return digits.length >= 7 && digits.length <= 15
+                                    const isValid = /^0\d{10}$/.test(regPhoneNumber);
+                                    return isValid
                                       ? "border-emerald-500 focus:ring-4 focus:ring-emerald-100 bg-emerald-50/10"
                                       : "border-rose-500 focus:ring-4 focus:ring-rose-100 bg-rose-50/10";
                                   })()
                                 : "border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                             }`}
                           />
-                          {regPhoneNumber && (() => {
-                            const digits = regPhoneNumber.replace(/\D/g, "");
-                            const isValid = digits.length >= 7 && digits.length <= 15;
-                            if (!isValid) {
-                              return (
-                                <p className="text-[10px] text-rose-500 font-semibold animate-fadeIn">
-                                  Must have 7 to 15 numeric digits. Current digits: {digits.length}.
-                                </p>
-                              );
-                            }
-                            return null;
-                          })()}
+                          {regPhoneNumber && !/^0\d{10}$/.test(regPhoneNumber) && (
+                            <p className="text-[10px] text-rose-500 font-semibold animate-fadeIn">
+                              Phone number must be exactly 11 digits and must start with 0.
+                            </p>
+                          )}
                         </div>
 
 

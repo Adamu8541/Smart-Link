@@ -569,15 +569,19 @@ app.post("/api/auth/sync-firebase-user", async (req, res) => {
   const superAdminEmails = [SUPER_ADMIN_EMAIL, "adamuamuhammad8541@gmail.com"];
   const isSuperAdminEmail = superAdminEmails.includes(lowerEmail);
 
-  if (phoneNumber && phoneNumber.trim()) {
-    const existingPhone = await usersStore.getUserByPhone(phoneNumber.trim());
+  if (phoneNumber !== undefined && phoneNumber !== null && phoneNumber !== "") {
+    if (typeof phoneNumber !== "string" || !/^0\d{10}$/.test(phoneNumber.trim())) {
+      return res.status(400).json({ error: "Phone number must be exactly 11 digits and must start with 0." });
+    }
+    const cleanPhone = phoneNumber.trim();
+    const existingPhone = await usersStore.getUserByPhone(cleanPhone);
     if (
       existingPhone &&
       existingPhone.email?.toLowerCase().trim() !== lowerEmail &&
       existingPhone.uid !== (existingUser?.uid || uid) &&
       existingPhone.id !== (existingUser?.id || uid)
     ) {
-      return res.status(400).json({ error: "This phone number is already registered to another account." });
+      return res.status(400).json({ error: "This phone number already exists. Sign in instead." });
     }
   }
 
@@ -617,13 +621,19 @@ app.post("/api/auth/check-email-exists", async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: "Email is required" });
   const user = await usersStore.getUserByEmail(email.toLowerCase().trim());
-  res.json({ exists: !!user });
+  if (user) {
+    return res.json({ exists: true, error: "Sorry, this email already exists. Sign in instead." });
+  }
+  res.json({ exists: false });
 });
 
 app.post("/api/auth/check-phone-exists", async (req, res) => {
   const { phoneNumber, email, excludeUid } = req.body;
-  if (!phoneNumber || !phoneNumber.trim()) return res.status(400).json({ error: "Phone number is required" });
-  const user = await usersStore.getUserByPhone(phoneNumber.trim());
+  if (!phoneNumber || typeof phoneNumber !== "string" || !/^0\d{10}$/.test(phoneNumber.trim())) {
+    return res.status(400).json({ error: "Phone number must be exactly 11 digits and must start with 0." });
+  }
+  const cleanPhone = phoneNumber.trim();
+  const user = await usersStore.getUserByPhone(cleanPhone);
   if (user) {
     if (email && user.email?.toLowerCase().trim() === email.toLowerCase().trim()) {
       return res.json({ exists: false });
@@ -631,7 +641,7 @@ app.post("/api/auth/check-phone-exists", async (req, res) => {
     if (excludeUid && (user.uid === excludeUid || user.id === excludeUid)) {
       return res.json({ exists: false });
     }
-    return res.json({ exists: true, error: "This phone number is already registered to another account." });
+    return res.json({ exists: true, error: "This phone number already exists. Sign in instead." });
   }
   res.json({ exists: false });
 });
@@ -694,13 +704,13 @@ app.post("/api/auth/login", async (req, res) => {
   }
 
   if (!user) {
-    return res.status(401).json({ error: "Authentication failed. User not found." });
+    return res.status(401).json({ error: "user not found sign up/ register please" });
   }
 
   // Validate hashed password safely against timing side-channel attacks
   const isMatch = !!(user.salt && user.passwordHash && safeCompareHash(hashPassword(password, user.salt), user.passwordHash));
   if (!isMatch) {
-    return res.status(401).json({ error: "Authentication failed. Incorrect password." });
+    return res.status(401).json({ error: "user not found sign up/ register please" });
   }
 
   // Auto verify if needed
@@ -736,29 +746,23 @@ app.post("/api/auth/register", async (req, res) => {
 
   const existing = await usersStore.getUserByEmail(lowerEmail);
   if (existing) {
-    return res.status(400).json({ error: "User already exists with this email" });
+    return res.status(400).json({ error: "Sorry, this email already exists. Sign in instead." });
   }
 
-  if (phoneNumber && phoneNumber.trim()) {
-    const existingPhone = await usersStore.getUserByPhone(phoneNumber.trim());
-    if (existingPhone) {
-      return res.status(400).json({ error: "This phone number is already registered to another account." });
-    }
+  if (!phoneNumber || typeof phoneNumber !== "string" || !/^0\d{10}$/.test(phoneNumber.trim())) {
+    return res.status(400).json({ error: "Phone number must be exactly 11 digits and must start with 0." });
+  }
+  const cleanPhone = phoneNumber.trim();
+
+  const existingPhone = await usersStore.getUserByPhone(cleanPhone);
+  if (existingPhone) {
+    return res.status(400).json({ error: "This phone number already exists. Sign in instead." });
   }
 
   // Create real Firebase Authentication account
   let firebaseUid: string;
   try {
     getAdminFirestore(); // Ensure Firebase Admin app is initialized
-    
-    // Format phone number to E.164 (+234...) if provided
-    let formattedPhone: string | undefined = undefined;
-    if (phoneNumber && phoneNumber.trim()) {
-      const cleanDigits = phoneNumber.trim().replace(/\D/g, "").replace(/^234/, "").replace(/^0/, "");
-      if (cleanDigits.length >= 7 && cleanDigits.length <= 11) {
-        formattedPhone = `+234${cleanDigits}`;
-      }
-    }
 
     try {
       const createOptions: any = {
@@ -766,31 +770,29 @@ app.post("/api/auth/register", async (req, res) => {
         password: password,
         displayName: fullName,
       };
-      if (formattedPhone) {
-        createOptions.phoneNumber = formattedPhone;
-      }
       const fbUser = await getAuth().createUser(createOptions);
       firebaseUid = fbUser.uid;
     } catch (createErr: any) {
-      // If phone number fails or is duplicated/invalid in Firebase Auth, create with email/password
-      if (formattedPhone && (createErr?.code?.includes("phone") || createErr?.message?.toLowerCase().includes("phone"))) {
-        console.warn("[register] Retrying Firebase Auth creation without phone number:", createErr.message);
-        const fbUser = await getAuth().createUser({
-          email: lowerEmail,
-          password: password,
-          displayName: fullName,
-        });
-        firebaseUid = fbUser.uid;
-      } else if (createErr?.code === "auth/email-already-exists" || createErr?.message?.includes("email-already-exists")) {
-        return res.status(400).json({ error: "An account with this email address already exists. Please sign in instead." });
+      if (
+        createErr?.code === "auth/email-already-exists" ||
+        createErr?.code === "auth/email-already-in-use" ||
+        createErr?.message?.includes("email-already-exists") ||
+        createErr?.message?.includes("email-already-in-use")
+      ) {
+        return res.status(400).json({ error: "Sorry, this email already exists. Sign in instead." });
       } else {
         throw createErr;
       }
     }
   } catch (fbErr: any) {
     console.error("[register] Firebase Auth account creation failed:", fbErr);
-    if (fbErr?.code === "auth/email-already-exists") {
-      return res.status(400).json({ error: "An account with this email address already exists. Please sign in instead." });
+    if (
+      fbErr?.code === "auth/email-already-exists" ||
+      fbErr?.code === "auth/email-already-in-use" ||
+      fbErr?.message?.includes("email-already-exists") ||
+      fbErr?.message?.includes("email-already-in-use")
+    ) {
+      return res.status(400).json({ error: "Sorry, this email already exists. Sign in instead." });
     }
     return res.status(400).json({ error: fbErr.message || "Could not create authentication account." });
   }
@@ -907,7 +909,7 @@ app.post("/api/auth/forgot-password", async (req, res) => {
   const user = await usersStore.getUserByEmail(cleanEmail);
 
   if (!user) {
-    return res.status(404).json({ error: "We could not find an account registered with this email address." });
+    return res.status(404).json({ error: "email not found or not registered, register instead" });
   }
 
   // Generate a secure, high-entropy token
@@ -1075,10 +1077,16 @@ app.put("/api/users/:uid", async (req, res) => {
   const existing = await usersStore.getUserById(uid);
   if (!existing) return res.status(404).json({ error: "User not found" });
 
-  if (phoneNumber && phoneNumber.trim() && phoneNumber.trim() !== (existing.phoneNumber || "").trim()) {
-    const existingPhone = await usersStore.getUserByPhone(phoneNumber.trim());
-    if (existingPhone && existingPhone.uid !== uid && existingPhone.id !== uid) {
-      return res.status(400).json({ error: "This phone number is already registered to another account." });
+  if (phoneNumber && typeof phoneNumber === "string" && phoneNumber.trim()) {
+    if (!/^0\d{10}$/.test(phoneNumber.trim())) {
+      return res.status(400).json({ error: "Phone number must be exactly 11 digits and must start with 0." });
+    }
+    const cleanPhone = phoneNumber.trim();
+    if (cleanPhone !== (existing.phoneNumber || "").trim()) {
+      const existingPhone = await usersStore.getUserByPhone(cleanPhone);
+      if (existingPhone && existingPhone.uid !== uid && existingPhone.id !== uid) {
+        return res.status(400).json({ error: "This phone number is already registered to another account." });
+      }
     }
   }
 

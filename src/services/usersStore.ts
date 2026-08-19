@@ -149,21 +149,50 @@ export async function getUserByPhone(phoneNumber: string): Promise<UserDoc | nul
  * Create a new user document in "users" collection.
  */
 export async function createUser(user: UserDoc): Promise<UserDoc> {
+  const normalizedEmail = (user.email || "").toLowerCase().trim();
+  const cleanPhone = (user.phoneNumber || "").trim();
+
+  // 1. Strict uniqueness check for email before creation
+  if (normalizedEmail) {
+    const existingUserWithEmail = await getUserByEmail(normalizedEmail);
+    if (existingUserWithEmail && existingUserWithEmail.uid !== user.uid) {
+      throw new Error("Sorry, this email already exists. Sign in instead.");
+    }
+  }
+
+  // 2. Strict uniqueness check for phone before creation
+  if (cleanPhone) {
+    const existingUserWithPhone = await getUserByPhone(cleanPhone);
+    if (existingUserWithPhone && existingUserWithPhone.uid !== user.uid) {
+      throw new Error("This phone number already exists. Sign in instead.");
+    }
+  }
+
   const docId = user.id || user.uid || `usr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
   const cleanUser: UserDoc = {
     ...user,
     id: docId,
     uid: user.uid || docId,
+    email: normalizedEmail || user.email,
+    phoneNumber: cleanPhone || user.phoneNumber,
     createdAt: user.createdAt || new Date().toISOString(),
   };
 
-  try {
-    const db = getAdminFirestore();
-    const sanitized = JSON.parse(JSON.stringify(cleanUser));
-    await db.collection(COLLECTION_NAME).doc(docId).set(sanitized, { merge: true });
-  } catch (err) {
-    console.error("[usersStore] createUser error:", err);
+  const db = getAdminFirestore();
+  const sanitized = JSON.parse(JSON.stringify(cleanUser));
+  const docRef = db.collection(COLLECTION_NAME).doc(docId);
+
+  // Check if document with docId already exists to avoid silently overwriting
+  const snap = await docRef.get();
+  if (snap.exists) {
+    const existingData = snap.data() as UserDoc;
+    if (existingData.email && existingData.email.toLowerCase().trim() !== normalizedEmail) {
+      throw new Error("Sorry, this email already exists. Sign in instead.");
+    }
+    return { id: snap.id, uid: existingData.uid || snap.id, ...existingData };
   }
+
+  await docRef.set(sanitized);
   return cleanUser;
 }
 

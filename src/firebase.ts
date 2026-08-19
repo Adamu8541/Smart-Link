@@ -32,6 +32,7 @@ import {
   getDocs,
   query,
   where,
+  limit,
   orderBy
 } from "firebase/firestore";
 
@@ -276,6 +277,7 @@ export {
   getDocs,
   query,
   where,
+  limit,
   orderBy,
   ref,
   uploadBytes,
