@@ -53,8 +53,6 @@ export interface ReconciliationRecord {
   provider: string;
   amount: number;
   accountNumber: string;
-  merchantReference?: string;
-  reference?: string;
   status: PaymentState;
   userId: string;
   userEmail: string;
@@ -143,66 +141,54 @@ export class PaymentVerificationReconciliationEngine {
     const payload = params.payload || {};
     const eventData = payload.eventData || payload.data || payload;
 
-    const aspfiyData = payload?.data || {};
-    const aspfiyAccount = aspfiyData?.account || {};
-
     const accountNumber = String(
-      aspfiyAccount?.account_number ||
-      aspfiyAccount?.accountNumber ||
-      aspfiyData?.account_number ||
-      aspfiyData?.accountNumber ||
-      payload?.accountNumber ||
-      payload?.account_number ||
-      params.expectedAccount ||
-      ""
+      payload.accountNumber ||
+        payload.destinationAccountNumber ||
+        payload.virtualAccountNumber ||
+        payload.account_number ||
+        eventData.destinationAccountNumber ||
+        eventData.accountNumber ||
+        params.expectedAccount ||
+        ""
     ).trim();
 
     const reference = String(
-      aspfiyData?.reference ||
-      payload?.reference ||
-      payload?.transactionReference ||
-      params.expectedReference ||
-      ""
+      payload.reference ||
+        payload.transactionReference ||
+        payload.paymentReference ||
+        payload.orderNo ||
+        payload.transRef ||
+        payload.ref ||
+        eventData.transactionReference ||
+        eventData.paymentReference ||
+        params.expectedReference ||
+        ""
     ).trim();
 
     const providerTransactionId = String(
-      aspfiyData?.aspfiy_ref ||
-      payload?.providerTransactionId ||
-      payload?.transactionId ||
-      payload?.flwRef ||
-      payload?.paystackRef ||
-      ""
+      payload.providerTransactionId ||
+        payload.transactionId ||
+        payload.flwRef ||
+        payload.paystackRef ||
+        eventData.transactionReference ||
+        eventData.paymentReference ||
+        eventData.transactionId ||
+        reference ||
+        ""
     ).trim();
 
-    const merchantReference = String(
-      aspfiyData?.merchant_reference ||
-      payload?.merchantReference ||
-      payload?.merchant_reference ||
-      ""
-    ).trim();
-
-    const amount = Number(
-      aspfiyData?.amount ||
-      payload?.amount ||
+    const rawAmt =
+      payload.amount ||
+      payload.amountPaid ||
+      payload.settledAmount ||
+      payload.orderAmount ||
+      eventData.amountPaid ||
+      eventData.settledAmount ||
+      eventData.amount ||
       params.expectedAmount ||
-      0
-    );
+      0;
 
-    const bankName = String(
-      aspfiyAccount?.bank_name ||
-      aspfiyAccount?.bankName ||
-      aspfiyData?.bank_name ||
-      aspfiyData?.bankName ||
-      ""
-    ).trim();
-
-    const accountName = String(
-      aspfiyAccount?.account_name ||
-      aspfiyAccount?.accountName ||
-      aspfiyData?.account_name ||
-      aspfiyData?.accountName ||
-      ""
-    ).trim();
+    const amount = parseFloat(String(rawAmt));
 
     const userReference = String(
       payload.userId ||
@@ -230,12 +216,7 @@ export class PaymentVerificationReconciliationEngine {
     if (!db.processed_provider_tx_ids) db.processed_provider_tx_ids = [];
     if (!db.reconciliation_records) db.reconciliation_records = [];
 
-    const effectiveRef = String(
-      providerTransactionId ||
-      reference ||
-      ""
-    ).trim();
-
+    const effectiveRef = reference || providerTransactionId;
     if (!effectiveRef) {
       return {
         success: false,
@@ -246,13 +227,10 @@ export class PaymentVerificationReconciliationEngine {
 
     const isDuplicate =
       db.processed_payment_references.includes(effectiveRef) ||
-      (reference && db.processed_payment_references.includes(reference)) ||
       (providerTransactionId && db.processed_provider_tx_ids.includes(providerTransactionId)) ||
       db.reconciliation_records.some(
         (r: any) =>
-          ((effectiveRef && r.paymentReference === effectiveRef) ||
-            (reference && r.reference === reference) ||
-            (reference && r.paymentReference === reference) ||
+          (r.paymentReference === effectiveRef ||
             (providerTransactionId && r.providerTransactionId === providerTransactionId)) &&
           (r.status === "VERIFIED" || r.status === "CREDITED")
       );
@@ -267,23 +245,16 @@ export class PaymentVerificationReconciliationEngine {
     }
 
     // 4. Compare Verified Payment Information with Expected Information & Perform Independent Server-to-Server Verification (Requirement 3)
-    const isAspfiyReservedAccountNotification =
-      (String(payload.event || "").toUpperCase() === "PAYMENT_NOTIFIFICATION" ||
-       String(payload.event || "").toUpperCase() === "PAYMENT_NOTIFICATION") &&
-      String(aspfiyData?.type || "").toUpperCase() === "RESERVED_ACCOUNT_TRANSACTION";
-
-    const isSuccessfulStatus =
-      isAspfiyReservedAccountNotification ||
-      [
-        "SUCCESS",
-        "SUCCESSFUL",
-        "PAID",
-        "COMPLETED",
-        "00",
-        "PAID_SUCCESSFUL",
-        "SUCCESSFUL_TRANSACTION",
-        "PAYMENT_SUCCESS",
-      ].some((s) => rawStatus.includes(s));
+    const isSuccessfulStatus = [
+      "SUCCESS",
+      "SUCCESSFUL",
+      "PAID",
+      "COMPLETED",
+      "00",
+      "PAID_SUCCESSFUL",
+      "SUCCESSFUL_TRANSACTION",
+      "PAYMENT_SUCCESS",
+    ].some((s) => rawStatus.includes(s));
 
     const isReversedStatus = [
       "REVERSED",
@@ -370,103 +341,44 @@ export class PaymentVerificationReconciliationEngine {
       state = "VERIFIED";
     }
 
-    // 5. User & Wallet Matching Strategy (Order: 1. accountNumber -> 2. merchantReference -> 3. providerReference -> 4. Smart Link reference)
+    // 5. User & Wallet Matching Strategy
     let matchedUser: any = null;
 
-    const allAccounts = [
-      ...(db.virtualAccounts || []),
-      ...(db.walletAccounts || [])
-    ];
-
-    // 1. Match by accountNumber
-    if (accountNumber) {
+    if (accountNumber && (db.virtualAccounts || db.walletAccounts)) {
+      const allAccounts = (db.virtualAccounts || []).concat(db.walletAccounts || []);
       const matchedAccount = allAccounts.find(
-        (acc: any) =>
-          String(acc?.accountNumber || "").trim() ===
-            String(accountNumber || "").trim() &&
-          String(acc?.providerId || acc?.provider || "")
-            .toLowerCase()
-            .includes("aspfiy")
-      ) || allAccounts.find(
-        (acc: any) =>
-          String(acc?.accountNumber || "").trim() ===
-            String(accountNumber || "").trim()
+        (acc: any) => acc.accountNumber && String(acc.accountNumber).trim() === accountNumber
       );
-
       if (matchedAccount) {
-        matchedUser = (db.users || []).find(
-          (u: any) =>
-            String(u?.uid || "").trim() ===
-            String(matchedAccount?.userId || "").trim()
-        );
+        matchedUser = (db.users || []).find((u: any) => u.uid === matchedAccount.userId);
       }
     }
 
-    // 2. Match by merchantReference
-    if (!matchedUser && merchantReference) {
-      const referenceAccount = allAccounts.find(
-        (acc: any) =>
-          String(acc?.providerReference || "").trim() === merchantReference ||
-          String(acc?.reference || "").trim() === merchantReference ||
-          String(acc?.merchantReference || "").trim() === merchantReference
-      );
-
-      if (referenceAccount) {
-        matchedUser = (db.users || []).find(
-          (u: any) =>
-            String(u?.uid || "").trim() ===
-            String(referenceAccount?.userId || "").trim()
-        );
-      }
-
-      if (!matchedUser) {
-        matchedUser = (db.users || []).find(
-          (u: any) =>
-            String(u?.uid || "").trim() === merchantReference ||
-            `SL-${String(u?.uid || "").trim()}` === merchantReference ||
-            (u?.email && u.email.toLowerCase() === merchantReference.toLowerCase())
-        );
-      }
-    }
-
-    // 3. Match by providerReference (provider transaction reference)
-    if (!matchedUser && providerTransactionId) {
-      const provRefAccount = allAccounts.find(
-        (acc: any) =>
-          String(acc?.providerReference || "").trim() === providerTransactionId
-      );
-      if (provRefAccount) {
-        matchedUser = (db.users || []).find(
-          (u: any) =>
-            String(u?.uid || "").trim() ===
-            String(provRefAccount?.userId || "").trim()
-        );
-      }
-    }
-
-    // 4. Match by Smart Link reference
     if (!matchedUser && userReference) {
-      const slAccount = allAccounts.find(
-        (acc: any) =>
-          String(acc?.reference || "").trim() === userReference ||
-          String(acc?.accountReference || "").trim() === userReference ||
-          `SL-${String(acc?.userId || "").trim()}` === userReference
+      matchedUser = (db.users || []).find(
+        (u: any) =>
+          u.uid === userReference ||
+          (u.email && u.email.toLowerCase() === userReference.toLowerCase())
       );
-      if (slAccount) {
-        matchedUser = (db.users || []).find(
-          (u: any) =>
-            String(u?.uid || "").trim() ===
-            String(slAccount?.userId || "").trim()
-        );
-      }
 
-      if (!matchedUser) {
-        matchedUser = (db.users || []).find(
-          (u: any) =>
-            String(u?.uid || "").trim() === userReference ||
-            `SL-${String(u?.uid || "").trim()}` === userReference ||
-            (u?.email && u.email.toLowerCase() === userReference.toLowerCase())
+      if (!matchedUser && (db.virtualAccounts || db.walletAccounts)) {
+        const allAccounts = (db.virtualAccounts || []).concat(db.walletAccounts || []);
+        const matchedAccount = allAccounts.find(
+          (acc: any) =>
+            (acc.accountReference && acc.accountReference === userReference) ||
+            (acc.reference && acc.reference === userReference)
         );
+        if (matchedAccount) {
+          matchedUser = (db.users || []).find((u: any) => u.uid === matchedAccount.userId);
+        }
+      }
+    }
+
+    if (!matchedUser && reference && (db.virtualAccounts || db.walletAccounts)) {
+      const allAccounts = (db.virtualAccounts || []).concat(db.walletAccounts || []);
+      const matchedAccount = allAccounts.find((acc: any) => acc.reference && acc.reference === reference);
+      if (matchedAccount) {
+        matchedUser = (db.users || []).find((u: any) => u.uid === matchedAccount.userId);
       }
     }
 
@@ -507,8 +419,6 @@ export class PaymentVerificationReconciliationEngine {
       provider: providerName,
       amount: isNaN(amount) ? 0 : amount,
       accountNumber: accountNumber || "N/A",
-      merchantReference: merchantReference || undefined,
-      reference: reference || undefined,
       status: state,
       userId: matchedUser ? matchedUser.uid : "UNMATCHED",
       userEmail: matchedUser ? matchedUser.email : "unmatched@smartlink.com",
@@ -534,8 +444,6 @@ export class PaymentVerificationReconciliationEngine {
         provider: providerName,
         amount: reconciliationRecord.amount,
         accountNumber: reconciliationRecord.accountNumber,
-        merchantReference: reconciliationRecord.merchantReference,
-        reference: reconciliationRecord.reference,
         status: state,
         userId: reconciliationRecord.userId,
         userEmail: reconciliationRecord.userEmail,
@@ -557,15 +465,6 @@ export class PaymentVerificationReconciliationEngine {
     }
 
     // 6. Valid & Verified: Credit Wallet via existing Wallet Engine (Requirement 8)
-    if (state !== "VERIFIED" || !matchedUser || !Number.isFinite(amount) || amount <= 0) {
-      return {
-        success: false,
-        code: "INVALID_CREDIT_STATE",
-        message: "Wallet can only be credited for verified transactions with valid positive amount and matched user.",
-        record: reconciliationRecord,
-      };
-    }
-
     let creditResult;
     try {
       creditResult = await ServerWalletEngine.creditWallet(db, {
@@ -592,16 +491,10 @@ export class PaymentVerificationReconciliationEngine {
       };
     }
 
-    // Mark as processed in duplicate lists
-    if (effectiveRef && !db.processed_payment_references.includes(effectiveRef)) {
-      db.processed_payment_references.push(effectiveRef);
-      saveDocToFirestore("processed_payment_references", effectiveRef, { reference: effectiveRef, processedAt: new Date().toISOString() }).catch(() => {});
-    }
-    if (reference && !db.processed_payment_references.includes(reference)) {
-      db.processed_payment_references.push(reference);
-      saveDocToFirestore("processed_payment_references", reference, { reference, processedAt: new Date().toISOString() }).catch(() => {});
-    }
-    if (providerTransactionId && !db.processed_provider_tx_ids.includes(providerTransactionId)) {
+    // Mark as processed
+    db.processed_payment_references.push(effectiveRef);
+    saveDocToFirestore("processed_payment_references", effectiveRef, { reference: effectiveRef, processedAt: new Date().toISOString() }).catch(() => {});
+    if (providerTransactionId) {
       db.processed_provider_tx_ids.push(providerTransactionId);
       saveDocToFirestore("processed_provider_tx_ids", providerTransactionId, { providerTxId: providerTransactionId, processedAt: new Date().toISOString() }).catch(() => {});
     }

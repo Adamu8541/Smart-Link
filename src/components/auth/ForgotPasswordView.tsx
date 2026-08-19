@@ -55,20 +55,11 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({
       }
 
       if (isFirebaseConfigured) {
-        try {
-          await sendPasswordResetEmail(auth, cleanEmail);
-        } catch (firebaseErr: any) {
-          console.warn("Client Firebase reset failed, falling back to server Firebase handler:", firebaseErr);
-          const res = await fetch("/api/auth/forgot-password", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: cleanEmail }),
-          });
-          const data = await res.json();
-          if (!res.ok || data.success === false) {
-            throw new Error(data.error || data.message || "Unable to send password reset email.");
-          }
-        }
+        const actionCodeSettings = {
+          url: `${window.location.origin}/reset-password`,
+          handleCodeInApp: true,
+        };
+        await sendPasswordResetEmail(auth, cleanEmail, actionCodeSettings);
       } else {
         // Fallback or local dev simulation
         const res = await fetch("/api/auth/forgot-password", {
@@ -126,14 +117,19 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({
         className="w-full max-w-md bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-8 shadow-xl shadow-slate-200/70 relative z-10 space-y-6"
       >
         {/* Brand Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 uppercase font-sans">
-            SMART LINK NG
-          </h1>
+        <div className="text-center space-y-3">
+          <div className="inline-flex items-center justify-center p-2 rounded-2xl bg-slate-50 border border-slate-200 shadow-sm">
+            <img
+              src={logoImg}
+              alt="Smart Link Logo"
+              className="w-12 h-12 object-contain rounded-xl"
+              onError={(e: any) => { e.currentTarget.src = "/logo.png"; }}
+            />
+          </div>
           <div>
-            <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center justify-center gap-2">
+            <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center justify-center gap-2">
               Forgot Password?
-            </h2>
+            </h1>
             <p className="text-xs text-slate-600 mt-1 leading-relaxed">
               Enter your registered email address and we'll send you secure instructions to reset your Smart Link password.
             </p>

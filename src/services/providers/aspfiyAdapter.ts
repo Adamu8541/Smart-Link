@@ -138,15 +138,7 @@ export class AspfiyAdapter implements ProviderAdapter {
       const lastName = rest.join(" ") || firstName;
 
       const userId = user?.uid || user?.id;
-
-      if (!userId) {
-        return {
-          success: false,
-          error: "User ID is required",
-        };
-      }
-
-      const reference = `SL-${String(userId).trim()}`;
+      const userEmail = email.toLowerCase();
 
       // Check whether the user already has an active ASPFIY virtual account
       const candidateAccounts = [
@@ -160,29 +152,42 @@ export class AspfiyAdapter implements ProviderAdapter {
       const existingAccount = candidateAccounts.find(
         (acc: any) =>
           acc &&
-          String(acc.accountNumber || "").trim() &&
-          String(acc.userId || "").trim() === String(userId || "").trim() &&
-          (
-            String(acc.provider || "").toLowerCase() === "aspfiy" ||
-            String(acc.providerId || "").toLowerCase() === "prov_aspfiy" ||
-            String(acc.providerName || "").toLowerCase().includes("aspfiy")
-          ) &&
-          !["INACTIVE", "DISABLED", "FAILED"].includes(
-            String(acc.status || "").toUpperCase()
-          )
+          acc.accountNumber &&
+          (acc.userId === userId || (userEmail && (acc.userEmail || "").toLowerCase() === userEmail)) &&
+          (acc.provider === "aspfiy" ||
+            acc.providerId === "prov_aspfiy" ||
+            acc.providerId === config.id ||
+            (acc.bankName || "").toLowerCase().includes("paga") ||
+            (acc.providerName || "").toLowerCase().includes("aspfiy") ||
+            (acc.provider || "").toLowerCase().includes("aspfiy")) &&
+          acc.status !== "INACTIVE" &&
+          acc.status !== "DISABLED" &&
+          acc.status !== "FAILED"
       );
 
       if (existingAccount) {
         return {
           success: true,
-          accountNumber: String(existingAccount.accountNumber || "").trim(),
-          accountName: String(existingAccount.accountName || `${firstName} ${lastName}`).trim(),
-          bankName: String(existingAccount.bankName || "").trim(),
-          providerReference: String(existingAccount.providerReference || existingAccount.reference || reference).trim(),
+          accountNumber: existingAccount.accountNumber,
+          accountName: existingAccount.accountName || `${firstName} ${lastName}`,
+          bankName: existingAccount.bankName || "Paga",
+          providerReference: existingAccount.providerReference || existingAccount.reference || `SL-${userId || Date.now()}`,
           rawResponse: { message: "Existing active virtual account retrieved", existing: true },
         };
       }
 
+      if (user?.virtualAccountNumber && (user.virtualBankName || "").toLowerCase().includes("paga")) {
+        return {
+          success: true,
+          accountNumber: user.virtualAccountNumber,
+          accountName: user.virtualAccountName || `${firstName} ${lastName}`,
+          bankName: user.virtualBankName || "Paga",
+          providerReference: user.virtualAccountReference || `SL-${userId || Date.now()}`,
+          rawResponse: { message: "Existing active virtual account retrieved from profile", existing: true },
+        };
+      }
+
+      const reference = `SL-${userId || Date.now()}`;
       const normalizedPhone = normalizeNigerianPhone(phone) || phone;
 
       const res = await fetch(`${this.baseUrl(config)}/reserve-paga/`, {
@@ -201,44 +206,9 @@ export class AspfiyAdapter implements ProviderAdapter {
       const json: any = await res.json().catch(() => ({}));
 
       if (!res.ok || json?.status === false) {
-        const backendMsg = String(json?.message || json?.error || "");
-        const isRefExists =
-          backendMsg.toLowerCase().includes("reference already exists") ||
-          backendMsg.toLowerCase().includes("already exist") ||
-          backendMsg.toLowerCase().includes("already reserved") ||
-          backendMsg.toLowerCase().includes("duplicate reference");
-
-        if (isRefExists) {
-          if (existingAccount) {
-            return {
-              success: true,
-              accountNumber: String(existingAccount.accountNumber || "").trim(),
-              accountName: String(existingAccount.accountName || `${firstName} ${lastName}`).trim(),
-              bankName: String(existingAccount.bankName || "").trim(),
-              providerReference: String(existingAccount.providerReference || existingAccount.reference || reference).trim(),
-              rawResponse: { message: "Existing virtual account recovered on duplicate reference", recovered: true, original: json },
-            };
-          }
-
-          const anyUserAccount = candidateAccounts.find(
-            (acc: any) =>
-              acc &&
-              String(acc.accountNumber || "").trim() &&
-              String(acc.userId || "").trim() === String(userId || "").trim()
-          );
-          if (anyUserAccount) {
-            return {
-              success: true,
-              accountNumber: String(anyUserAccount.accountNumber || "").trim(),
-              accountName: String(anyUserAccount.accountName || `${firstName} ${lastName}`).trim(),
-              bankName: String(anyUserAccount.bankName || "").trim(),
-              providerReference: String(anyUserAccount.providerReference || anyUserAccount.reference || reference).trim(),
-              rawResponse: { message: "Existing virtual account recovered on duplicate reference", recovered: true, original: json },
-            };
-          }
-        }
-
         let errorMessage: string;
+        const backendMsg = json?.message || json?.error || "";
+
         switch (res.status) {
           case 400:
             errorMessage = backendMsg
@@ -276,72 +246,23 @@ export class AspfiyAdapter implements ProviderAdapter {
         };
       }
 
-      const root = json || {};
-      const data = root.data || root.result || root;
-      const account =
-        data?.account ||
-        data?.virtual_account ||
-        data?.virtualAccount ||
-        {};
-
-      const accountNumber = String(
-        account?.account_number ||
-        account?.accountNumber ||
-        account?.account_no ||
-        account?.accountNo ||
-        data?.account_number ||
-        data?.accountNumber ||
-        data?.account_no ||
-        data?.accountNo ||
-        root?.account_number ||
-        root?.accountNumber ||
-        ""
-      ).trim();
-
-      const accountName = String(
-        account?.account_name ||
-        account?.accountName ||
-        data?.account_name ||
-        data?.accountName ||
-        root?.account_name ||
-        root?.accountName ||
-        ""
-      ).trim();
-
-      const bankName = String(
-        account?.bank_name ||
-        account?.bankName ||
-        data?.bank_name ||
-        data?.bankName ||
-        root?.bank_name ||
-        root?.bankName ||
-        ""
-      ).trim();
-
-      const providerReference = String(
-        data?.reference ||
-        data?.merchant_reference ||
-        account?.reference ||
-        account?.merchant_reference ||
-        root?.reference ||
-        root?.merchant_reference ||
-        reference
-      ).trim();
+      const data = json.data || json.result || json;
+      const accountNumber = data.account_number || data.accountNumber || data.account_no || data.accountNo || "";
 
       if (!accountNumber) {
         return {
           success: false,
           rawResponse: json,
-          error: json?.message || json?.error || "Aspfiy did not return a valid virtual account number.",
+          error: json?.message || "Aspfiy did not return a valid virtual account number.",
         };
       }
 
       return {
         success: true,
-        providerReference,
+        providerReference: data.reference || reference,
         accountNumber,
-        accountName,
-        bankName,
+        accountName: data.account_name || data.accountName || `${firstName} ${lastName}`,
+        bankName: data.bank_name || data.bankName || "Paga",
         rawResponse: json,
       };
     } catch (err: any) {

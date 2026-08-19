@@ -27,7 +27,7 @@ import * as supportStore from "./src/services/supportStore";
 import * as securityStore from "./src/services/securityStore";
 import * as notificationsStore from "./src/services/notificationsStore";
 import { getAuth } from "firebase-admin/auth";
-import { getAdminFirestore, getAdminAuth } from "./src/services/firebaseAdmin";
+import { getAdminFirestore } from "./src/services/firebaseAdmin";
 
 dotenv.config();
 
@@ -555,7 +555,7 @@ app.get("/api/health", async (req, res) => {
 
 // 1. Auth & Profiles
 app.post("/api/auth/sync-firebase-user", async (req, res) => {
-  const { uid, email, fullName, firstName, surname, lastName, phoneNumber, role, referralCode, isVerified } = req.body;
+  const { uid, email, fullName, phoneNumber, role, referralCode, isVerified } = req.body;
   if (!email) {
     return res.status(400).json({ error: "Email is required" });
   }
@@ -578,24 +578,11 @@ app.post("/api/auth/sync-firebase-user", async (req, res) => {
     }
   }
 
-  const effectiveSurname = (surname || lastName || "").trim();
-  const effectiveFirstName = (firstName || "").trim();
-  const effectiveFullName = (
-    fullName ||
-    (effectiveFirstName || effectiveSurname ? `${effectiveFirstName} ${effectiveSurname}`.trim() : "") ||
-    lowerEmail.split("@")[0]
-  ).trim();
-
   if (existingUser) {
     const updates: any = {};
     if (isSuperAdminEmail) updates.role = "SUPER_ADMIN";
     if (uid) updates.uid = uid;
-    if (effectiveFullName) updates.fullName = effectiveFullName;
-    if (effectiveFirstName) updates.firstName = effectiveFirstName;
-    if (effectiveSurname) {
-      updates.surname = effectiveSurname;
-      updates.lastName = effectiveSurname;
-    }
+    if (fullName) updates.fullName = fullName;
     if (phoneNumber) updates.phoneNumber = phoneNumber;
     updates.isVerified = isVerified !== undefined ? !!isVerified : true;
     
@@ -606,14 +593,11 @@ app.post("/api/auth/sync-firebase-user", async (req, res) => {
 
   // Create user entry - default to CUSTOMER unless designated Super Admin
   const targetRole = isSuperAdminEmail ? "SUPER_ADMIN" : "CUSTOMER";
-  const refCode = (effectiveFullName || "USER").replace(/\s+/g, "").substring(0, 8).toUpperCase() + Math.floor(100 + Math.random() * 900);
+  const refCode = (fullName || "USER").replace(/\s+/g, "").substring(0, 8).toUpperCase() + Math.floor(100 + Math.random() * 900);
   const newUser = {
     uid: uid || "usr_" + Math.random().toString(36).substring(2, 9),
     email: lowerEmail,
-    fullName: effectiveFullName,
-    firstName: effectiveFirstName || effectiveFullName.split(" ")[0] || "",
-    surname: effectiveSurname || effectiveFullName.split(" ").slice(1).join(" ") || "",
-    lastName: effectiveSurname || effectiveFullName.split(" ").slice(1).join(" ") || "",
+    fullName: fullName || lowerEmail.split("@")[0],
     phoneNumber: phoneNumber || "",
     role: targetRole,
     walletBalance: 0.0,
@@ -727,17 +711,10 @@ app.post("/api/auth/login", async (req, res) => {
 });
 
 app.post("/api/auth/register", async (req, res) => {
-  const { email, fullName, firstName, surname, lastName, phoneNumber, role, referralCode, password } = req.body;
+  const { email, fullName, phoneNumber, role, referralCode, password } = req.body;
 
-  const effectiveSurname = (surname || lastName || "").trim();
-  const effectiveFirstName = (firstName || "").trim();
-  const effectiveFullName = (
-    fullName ||
-    (effectiveFirstName || effectiveSurname ? `${effectiveFirstName} ${effectiveSurname}`.trim() : "")
-  ).trim();
-
-  if (!email || !password || (!effectiveFullName && (!effectiveFirstName || !effectiveSurname))) {
-    return res.status(400).json({ error: "Email, First Name, Surname, and Password are required fields" });
+  if (!email || !fullName || !password) {
+    return res.status(400).json({ error: "Email, Full Name, and Password are required fields" });
   }
 
   const lowerEmail = email.toLowerCase().trim();
@@ -784,7 +761,7 @@ app.post("/api/auth/register", async (req, res) => {
       const createOptions: any = {
         email: lowerEmail,
         password: password,
-        displayName: effectiveFullName,
+        displayName: fullName,
       };
       if (formattedPhone) {
         createOptions.phoneNumber = formattedPhone;
@@ -798,7 +775,7 @@ app.post("/api/auth/register", async (req, res) => {
         const fbUser = await getAuth().createUser({
           email: lowerEmail,
           password: password,
-          displayName: effectiveFullName,
+          displayName: fullName,
         });
         firebaseUid = fbUser.uid;
       } else if (createErr?.code === "auth/email-already-exists" || createErr?.message?.includes("email-already-exists")) {
@@ -816,7 +793,7 @@ app.post("/api/auth/register", async (req, res) => {
   }
 
   const uid = firebaseUid;
-  const refCode = effectiveFullName.replace(/\s+/g, "").substring(0, 8).toUpperCase() + Math.floor(100 + Math.random() * 900);
+  const refCode = fullName.replace(/\s+/g, "").substring(0, 8).toUpperCase() + Math.floor(100 + Math.random() * 900);
 
   // Check if referred by someone
   let referredBy = "";
@@ -836,10 +813,7 @@ app.post("/api/auth/register", async (req, res) => {
     id: firebaseUid,
     uid: firebaseUid,
     email: lowerEmail,
-    fullName: effectiveFullName,
-    firstName: effectiveFirstName || effectiveFullName.split(" ")[0] || "",
-    surname: effectiveSurname || effectiveFullName.split(" ").slice(1).join(" ") || "",
-    lastName: effectiveSurname || effectiveFullName.split(" ").slice(1).join(" ") || "",
+    fullName,
     phoneNumber,
     role: targetRole,
     walletBalance: 0.0,
@@ -920,120 +894,30 @@ app.post("/api/auth/resend-verification", async (req, res) => {
   });
 });
 
-app.post("/api/auth/check-email-exists", async (req, res) => {
-  try {
-    const { email } = req.body;
-    if (!email) {
-      return res.status(400).json({ exists: false, error: "Email is required." });
-    }
-
-    const cleanEmail = (email as string).toLowerCase().trim();
-    let user = await usersStore.getUserByEmail(cleanEmail);
-
-    if (!user) {
-      try {
-        const fbUser = await getAdminAuth().getUserByEmail(cleanEmail);
-        if (fbUser) {
-          user = {
-            id: fbUser.uid,
-            uid: fbUser.uid,
-            email: fbUser.email || cleanEmail,
-            fullName: fbUser.displayName || "",
-          };
-        }
-      } catch {
-        // Not in Firebase Auth either
-      }
-    }
-
-    if (user) {
-      return res.json({
-        exists: true,
-        user: {
-          uid: user.uid || user.id,
-          email: user.email,
-          fullName: user.fullName || `${user.firstName || ""} ${user.surname || ""}`.trim(),
-        },
-      });
-    }
-
-    return res.json({ exists: false, error: "No account found with this email address." });
-  } catch (err: any) {
-    console.error("[check-email-exists] Error:", err);
-    return res.status(500).json({ exists: false, error: "Error checking email address." });
-  }
-});
-
 app.post("/api/auth/forgot-password", async (req, res) => {
   const { email } = req.body;
   if (!email) {
     return res.status(400).json({ error: "Email address is required" });
   }
 
-  const cleanEmail = (email as string).toLowerCase().trim();
-  let user = await usersStore.getUserByEmail(cleanEmail);
-
-  if (!user) {
-    // Check Firebase Auth as well
-    try {
-      const fbUser = await getAdminAuth().getUserByEmail(cleanEmail);
-      if (fbUser) {
-        user = {
-          id: fbUser.uid,
-          uid: fbUser.uid,
-          email: fbUser.email || cleanEmail,
-          fullName: fbUser.displayName || "",
-        };
-      }
-    } catch {
-      // User not found in Firebase Auth
-    }
-  }
+  const cleanEmail = email.toLowerCase().trim();
+  const user = await usersStore.getUserByEmail(cleanEmail);
 
   if (!user) {
     return res.status(404).json({ error: "We could not find an account registered with this email address." });
   }
 
-  // Attempt Firebase default setup password reset link generation
-  let firebaseResetLink = "";
-  try {
-    const adminAuth = getAdminAuth();
-    try {
-      await adminAuth.getUserByEmail(cleanEmail);
-    } catch {
-      // If user exists in Firestore but not in Firebase Auth, auto-create to allow Firebase password reset
-      try {
-        await adminAuth.createUser({
-          email: cleanEmail,
-          displayName: user.fullName || `${user.firstName || ""} ${user.surname || ""}`.trim() || undefined,
-        });
-      } catch (createErr) {
-        console.warn("[forgot-password] Auto-create Firebase Auth user warning:", createErr);
-      }
-    }
-
-    try {
-      firebaseResetLink = await adminAuth.generatePasswordResetLink(cleanEmail);
-    } catch (linkErr) {
-      console.warn("[forgot-password] generatePasswordResetLink warning:", linkErr);
-    }
-  } catch (fbErr) {
-    console.warn("[forgot-password] Firebase Admin Auth error:", fbErr);
-  }
-
-  // Generate fallback secure token for web reset route
+  // Generate a secure, high-entropy token
   const token = crypto.randomBytes(20).toString("hex");
   const expires = Date.now() + 3600000; // 1 hour validity
 
-  if (user.id || user.uid) {
-    await usersStore.updateUser(user.id || user.uid || "", {
-      resetToken: token,
-      resetTokenExpires: expires,
-    });
-  }
+  await usersStore.updateUser(user.id || user.uid || "", {
+    resetToken: token,
+    resetTokenExpires: expires,
+  });
 
   const appUrl = process.env.APP_URL || `${req.protocol}://${req.get("host")}`;
-  const effectiveResetLink = firebaseResetLink || `${appUrl}/reset-password?token=${token}`;
+  const resetLink = `${appUrl}/reset-password?token=${token}`;
 
   // Attempt email delivery via Nodemailer if SMTP configuration exists
   let emailSent = false;
@@ -1061,18 +945,17 @@ app.post("/api/auth/forgot-password", async (req, res) => {
         to: cleanEmail,
         subject: "SmartLink Account Password Reset Instructions",
         html: `
-          <div style="font-family: sans-serif; padding: 20px; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px;">
-            <h2 style="color: #0f172a;">SMART LINK NG</h2>
-            <h3>Password Reset Request</h3>
-            <p>Hello ${user.fullName || 'User'},</p>
-            <p>A password reset was requested for your account (<strong>${cleanEmail}</strong>). Please click the button below to reset your password:</p>
-            <p style="margin: 24px 0;">
-              <a href="${effectiveResetLink}" style="background-color: #2563eb; color: #ffffff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">Reset Password</a>
+          <div style="font-family: sans-serif; padding: 20px; color: #333;">
+            <h2>SmartLink Password Reset Request</h2>
+            <p>Hello,</p>
+            <p>A password reset was requested for your account (${cleanEmail}). Please click the link below to reset your password:</p>
+            <p style="margin: 20px 0;">
+              <a href="${resetLink}" style="background-color: #0f172a; color: #ffffff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">Reset Password</a>
             </p>
-            <p style="color: #64748b; font-size: 13px;">Or copy and paste this link into your browser:</p>
-            <p style="word-break: break-all;"><a href="${effectiveResetLink}">${effectiveResetLink}</a></p>
-            <p style="color: #64748b; font-size: 12px; margin-top: 20px;">This password reset link expires in 1 hour.</p>
-            <p style="color: #64748b; font-size: 12px;">If you did not request a password reset, please disregard this email.</p>
+            <p>Or copy and paste this link into your browser:</p>
+            <p><a href="${resetLink}">${resetLink}</a></p>
+            <p>This password reset link expires in 1 hour.</p>
+            <p>If you did not request a password reset, please disregard this email.</p>
           </div>
         `,
       });
@@ -1085,7 +968,7 @@ app.post("/api/auth/forgot-password", async (req, res) => {
 
   // Create in-app notification record for audit and user alert feed
   try {
-    const notifMsg = `A password reset link was generated for your account. Reset link: ${effectiveResetLink} (Expires in 1 hour).`;
+    const notifMsg = `A password reset link was generated for your account. Reset link: ${resetLink} (Expires in 1 hour).`;
     await notificationsStore.createNotification({
       id: `notif_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       userId: user.id || user.uid || "",
@@ -1102,9 +985,12 @@ app.post("/api/auth/forgot-password", async (req, res) => {
     console.error("[ForgotPassword] Notification dispatch error:", notifErr);
   }
 
+  // CRITICAL: Token is NEVER returned in HTTP JSON response under any circumstances
   res.json({
-    success: true,
-    message: "Password reset instructions have been sent to your email address.",
+    success: emailSent,
+    message: emailSent
+      ? "Password reset instructions have been sent to your email address."
+      : "We could not send the reset email right now. Please try again shortly or contact support.",
     email: cleanEmail,
   });
 });
@@ -2043,329 +1929,6 @@ app.post("/api/admin/users/delete", async (req, res) => {
   res.json({ success: true });
 });
 
-// Admin Password Reset Endpoint (Firebase-aware route)
-app.post(["/api/admin/users/:userId/reset-password", "/api/admin/users/reset-password"], async (req, res) => {
-  const targetId = req.params.userId || req.body.targetUid || req.body.userId || req.body.email;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
-  const db = readDB();
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
-  const admin = val.session;
-  const adminUid = admin.uid;
-  if (admin.role !== "SUPER_ADMIN" && admin.role !== "ADMIN" && !admin.permissions?.includes("manage_users")) {
-    return res.status(403).json({ success: false, message: "Unauthorized. User management permission required." });
-  }
-
-  if (!targetId) {
-    return res.status(400).json({ success: false, message: "Target user ID or email is required." });
-  }
-
-  const targetUser = await usersStore.getUserById(targetId) || await usersStore.getUserByEmail(targetId);
-  if (!targetUser) {
-    return res.status(404).json({ success: false, message: "User not found in Firebase database." });
-  }
-
-  const cleanEmail = (targetUser.email || "").toLowerCase().trim();
-  if (!cleanEmail) {
-    return res.status(400).json({ success: false, message: "Target user does not have a registered email." });
-  }
-
-  // Attempt Firebase default setup password reset link generation
-  let firebaseResetLink = "";
-  try {
-    const adminAuth = getAdminAuth();
-    try {
-      await adminAuth.getUserByEmail(cleanEmail);
-    } catch {
-      // If user exists in Firestore but not in Firebase Auth yet, auto-create to allow Firebase password reset
-      try {
-        await adminAuth.createUser({
-          email: cleanEmail,
-          displayName: targetUser.fullName || `${targetUser.firstName || ""} ${targetUser.surname || ""}`.trim() || undefined,
-        });
-      } catch (createErr) {
-        console.warn("[admin-reset-password] Auto-create Firebase Auth user warning:", createErr);
-      }
-    }
-
-    try {
-      firebaseResetLink = await adminAuth.generatePasswordResetLink(cleanEmail);
-    } catch (linkErr) {
-      console.warn("[admin-reset-password] generatePasswordResetLink warning:", linkErr);
-    }
-  } catch (fbErr) {
-    console.warn("[admin-reset-password] Firebase Admin Auth error:", fbErr);
-  }
-
-  // Fallback token for local route
-  const token = crypto.randomBytes(20).toString("hex");
-  const expires = Date.now() + 3600000; // 1 hour validity
-
-  if (targetUser.id || targetUser.uid) {
-    await usersStore.updateUser(targetUser.id || targetUser.uid || "", {
-      resetToken: token,
-      resetTokenExpires: expires,
-    });
-  }
-
-  const appUrl = process.env.APP_URL || `${req.protocol}://${req.get("host")}`;
-  const effectiveResetLink = firebaseResetLink || `${appUrl}/reset-password?token=${token}`;
-
-  // Attempt email delivery via Nodemailer if SMTP configuration exists
-  try {
-    const smtpConfig = db.system_settings?.email || {};
-    const smtpHost = process.env.SMTP_HOST || smtpConfig.smtpHost;
-    const smtpPort = Number(process.env.SMTP_PORT || smtpConfig.smtpPort || 587);
-    const smtpUser = process.env.SMTP_USER || smtpConfig.smtpUsername;
-    const smtpPass = process.env.SMTP_PASS || process.env.SMTP_PASSWORD;
-
-    if (smtpHost && smtpUser && smtpPass) {
-      const transporter = nodemailer.createTransport({
-        host: smtpHost,
-        port: smtpPort,
-        secure: smtpPort === 465,
-        auth: {
-          user: smtpUser,
-          pass: smtpPass,
-        },
-      });
-
-      await transporter.sendMail({
-        from: `"${smtpConfig.senderName || 'SmartLink Support'}" <${smtpConfig.replyToAddress || 'no-reply@smartlinkng.com.ng'}>`,
-        to: cleanEmail,
-        subject: "SmartLink Account Password Reset Instructions (Admin)",
-        html: `
-          <div style="font-family: sans-serif; padding: 20px; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px;">
-            <h2 style="color: #0f172a;">SMART LINK NG</h2>
-            <h3>Password Reset Request (Admin Initiated)</h3>
-            <p>Hello ${targetUser.fullName || 'User'},</p>
-            <p>An administrator has generated a secure password reset link for your account (<strong>${cleanEmail}</strong>). Please click the button below to set your new password:</p>
-            <p style="margin: 24px 0;">
-              <a href="${effectiveResetLink}" style="background-color: #2563eb; color: #ffffff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">Reset Password</a>
-            </p>
-            <p style="color: #64748b; font-size: 13px;">Or copy and paste this link into your browser:</p>
-            <p style="word-break: break-all;"><a href="${effectiveResetLink}">${effectiveResetLink}</a></p>
-            <p style="color: #64748b; font-size: 12px; margin-top: 20px;">This password reset link expires in 1 hour.</p>
-          </div>
-        `,
-      });
-    }
-  } catch (mailErr) {
-    console.error("[admin-reset-password] SMTP dispatch warning/error:", mailErr);
-  }
-
-  // Create in-app notification record for audit and user alert feed
-  try {
-    const notifMsg = `A password reset link was triggered by administrator (${admin.fullName || admin.email}). Reset link: ${effectiveResetLink} (Expires in 1 hour).`;
-    await notificationsStore.createNotification({
-      id: `notif_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-      userId: targetUser.id || targetUser.uid || "",
-      userEmail: cleanEmail,
-      title: "Password Reset Triggered",
-      message: notifMsg,
-      category: "SECURITY",
-      priority: "High",
-      status: "Sent",
-      body: notifMsg,
-      createdAt: new Date().toISOString(),
-    });
-  } catch (notifErr) {
-    console.error("[admin-reset-password] Notification dispatch error:", notifErr);
-  }
-
-  if (!db.auditLogs) db.auditLogs = [];
-  db.auditLogs.unshift({
-    id: "audit_" + Date.now(),
-    adminUid,
-    adminEmail: admin.email,
-    action: "TRIGGER_PASSWORD_RESET",
-    details: `Triggered Firebase password reset email for user ${cleanEmail}`,
-    timestamp: new Date().toISOString(),
-  });
-  writeDB(db);
-
-  res.json({
-    success: true,
-    message: `Password reset link sent to ${cleanEmail} via Firebase.`,
-    email: cleanEmail,
-  });
-});
-
-// Admin Edit Profile
-app.put("/api/admin/users/:uid/profile", async (req, res) => {
-  const { uid } = req.params;
-  const { fullName, phoneNumber, email, role, kycLevel } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
-  const db = readDB();
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
-  const admin = val.session;
-
-  const targetUser = await usersStore.getUserById(uid);
-  if (!targetUser) return res.status(404).json({ success: false, message: "User not found." });
-
-  const updateData: any = {};
-  if (fullName !== undefined) updateData.fullName = fullName;
-  if (phoneNumber !== undefined) updateData.phoneNumber = phoneNumber;
-  if (email !== undefined) updateData.email = (email as string).toLowerCase().trim();
-  if (role !== undefined) updateData.role = role;
-  if (kycLevel !== undefined) updateData.kycLevel = kycLevel;
-
-  const updated = await usersStore.updateUser(uid, updateData);
-
-  if (!db.auditLogs) db.auditLogs = [];
-  db.auditLogs.unshift({
-    id: "audit_" + Date.now(),
-    adminUid: admin.uid,
-    adminEmail: admin.email,
-    action: "EDIT_USER_PROFILE",
-    details: `Updated user profile for ${targetUser.email}`,
-    timestamp: new Date().toISOString(),
-  });
-  writeDB(db);
-
-  res.json({ success: true, user: updated });
-});
-
-// Admin Status Change
-app.post("/api/admin/users/:uid/status", async (req, res) => {
-  const { uid } = req.params;
-  const { status, reason } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
-  const db = readDB();
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
-  const admin = val.session;
-
-  const targetUser = await usersStore.getUserById(uid);
-  if (!targetUser) return res.status(404).json({ success: false, message: "User not found." });
-
-  const updated = await usersStore.updateUser(uid, { status });
-
-  if (!db.auditLogs) db.auditLogs = [];
-  db.auditLogs.unshift({
-    id: "audit_" + Date.now(),
-    adminUid: admin.uid,
-    adminEmail: admin.email,
-    action: `USER_STATUS_${status}`,
-    details: `Changed status of ${targetUser.email} to ${status}. Reason: ${reason || "N/A"}`,
-    timestamp: new Date().toISOString(),
-  });
-  writeDB(db);
-
-  res.json({ success: true, user: updated });
-});
-
-// Admin Direct User Notification
-app.post("/api/admin/users/:uid/notify", async (req, res) => {
-  const { uid } = req.params;
-  const { title, body, type } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
-  const db = readDB();
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
-  const admin = val.session;
-
-  const targetUser = await usersStore.getUserById(uid);
-  if (!targetUser) return res.status(404).json({ success: false, message: "User not found." });
-
-  await notificationsStore.createNotification({
-    id: `notif_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-    userId: targetUser.id || targetUser.uid || uid,
-    userEmail: targetUser.email,
-    title: title || "Important Administrative Notice",
-    message: body || "",
-    category: type || "ACCOUNT",
-    priority: "High",
-    status: "Sent",
-    body: body || "",
-    createdAt: new Date().toISOString(),
-  });
-
-  if (!db.auditLogs) db.auditLogs = [];
-  db.auditLogs.unshift({
-    id: "audit_" + Date.now(),
-    adminUid: admin.uid,
-    adminEmail: admin.email,
-    action: "DISPATCH_DIRECT_NOTIFICATION",
-    details: `Sent direct notification "${title}" to ${targetUser.email}`,
-    timestamp: new Date().toISOString(),
-  });
-  writeDB(db);
-
-  res.json({ success: true });
-});
-
-// Admin Bulk User Actions
-app.post("/api/admin/users/bulk-action", async (req, res) => {
-  const { userIds, action, reason, broadcastTitle, broadcastBody } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
-  const db = readDB();
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
-  const admin = val.session;
-
-  if (!Array.isArray(userIds) || userIds.length === 0) {
-    return res.status(400).json({ success: false, message: "No target users provided." });
-  }
-
-  for (const uid of userIds) {
-    const user = await usersStore.getUserById(uid);
-    if (!user) continue;
-
-    if (action === "ACTIVATE") {
-      await usersStore.updateUser(uid, { status: "ACTIVE" });
-    } else if (action === "SUSPEND") {
-      await usersStore.updateUser(uid, { status: "SUSPENDED" });
-    } else if (action === "DELETE") {
-      if (user.role !== "SUPER_ADMIN") {
-        await usersStore.deleteUser(uid);
-      }
-    } else if (action === "BROADCAST") {
-      await notificationsStore.createNotification({
-        id: `notif_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-        userId: user.id || user.uid || uid,
-        userEmail: user.email,
-        title: broadcastTitle || "Administrative Announcement",
-        message: broadcastBody || "",
-        category: "SYSTEM",
-        priority: "Normal",
-        status: "Sent",
-        body: broadcastBody || "",
-        createdAt: new Date().toISOString(),
-      });
-    }
-  }
-
-  if (!db.auditLogs) db.auditLogs = [];
-  db.auditLogs.unshift({
-    id: "audit_" + Date.now(),
-    adminUid: admin.uid,
-    adminEmail: admin.email,
-    action: `BULK_${action}`,
-    details: `Executed bulk ${action} on ${userIds.length} users. Reason: ${reason || "N/A"}`,
-    timestamp: new Date().toISOString(),
-  });
-  writeDB(db);
-
-  res.json({ success: true, count: userIds.length });
-});
-
 // --- ONE-TIME ADMIN MIGRATION: FIRESTORE USERS TO FIREBASE AUTH ---
 app.post("/api/admin/migrate-users-to-firebase-auth", async (req, res) => {
   const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
@@ -3302,24 +2865,8 @@ app.get("/api/wallet/virtual-account/:userId", async (req, res) => {
   if (!db.virtualAccounts) db.virtualAccounts = [];
   if (!db.walletAccounts) db.walletAccounts = [];
 
-  const existingAccount =
-    (db.virtualAccounts || []).find(
-      (acc: any) =>
-        String(acc?.userId || "").trim() === String(userId).trim() &&
-        String(acc?.accountNumber || "").trim() &&
-        String(acc?.providerId || acc?.provider || "")
-          .toLowerCase()
-          .includes("aspfiy")
-    ) ||
-    (db.walletAccounts || []).find(
-      (acc: any) =>
-        String(acc?.userId || "").trim() === String(userId).trim() &&
-        String(acc?.accountNumber || "").trim() &&
-        String(acc?.providerId || acc?.provider || "")
-          .toLowerCase()
-          .includes("aspfiy")
-    );
-
+  const existingAccount = (db.virtualAccounts || []).find((acc: any) => acc.userId === userId) ||
+                          (db.walletAccounts || []).find((acc: any) => acc.userId === userId);
   if (existingAccount) {
     return res.json({
       success: true,
@@ -3349,14 +2896,7 @@ app.get("/api/wallet/virtual-account/:userId", async (req, res) => {
   }
 
   const result = await adapter.createVirtualAccount(db, user, provider);
-  const accountNumber = String(result.accountNumber || "").trim();
-  const accountName = String(result.accountName || "").trim();
-  const bankName = String(result.bankName || "").trim();
-  const providerReference = String(
-    result.providerReference || `SL-${String(userId).trim()}`
-  ).trim();
-
-  if (!result.success || !accountNumber) {
+  if (!result.success || !result.accountNumber) {
     return res.status(502).json({
       success: false,
       error: result.error || "Failed to create virtual account with active provider.",
@@ -3364,56 +2904,34 @@ app.get("/api/wallet/virtual-account/:userId", async (req, res) => {
     });
   }
 
-  // persist normalized virtual account record
+  // persist result.accountNumber / accountName / bankName to the user's wallet record
   const virtualAccount = {
-    id: `va_${provider.id}_${String(userId).trim()}`,
-    userId: String(userId).trim(),
+    id: `va_${provider.id || "prov"}_${Date.now()}`,
+    userId,
     userEmail: user.email,
     userName: user.fullName,
-    provider: provider.id,
+    provider: provider.id || "GATEWAY",
     providerId: provider.id,
     providerName: provider.name,
-    bankName,
-    accountNumber,
-    accountName,
-    providerReference,
-    reference: providerReference,
+    bankName: result.bankName || "Bank",
+    accountNumber: result.accountNumber,
+    accountName: result.accountName || `SMARTLINK / ${(user.fullName || "CUSTOMER").toUpperCase()}`,
+    providerReference: result.providerReference,
+    reference: result.providerReference || `SL-${userId}`,
     status: "ACTIVE",
     createdAt: new Date().toISOString()
   };
 
-  const existingIdx = (db.virtualAccounts || []).findIndex(
-    (acc: any) =>
-      String(acc?.userId || "").trim() === String(userId).trim() &&
-      String(acc?.providerId || acc?.provider || "").toLowerCase().includes("aspfiy")
-  );
-  if (existingIdx >= 0) {
-    db.virtualAccounts[existingIdx] = virtualAccount;
-  } else {
-    db.virtualAccounts.push(virtualAccount);
-  }
-
-  const existingWalletAccIdx = (db.walletAccounts || []).findIndex(
-    (acc: any) =>
-      String(acc?.userId || "").trim() === String(userId).trim() &&
-      String(acc?.providerId || acc?.provider || "").toLowerCase().includes("aspfiy")
-  );
-  if (existingWalletAccIdx >= 0) {
-    db.walletAccounts[existingWalletAccIdx] = virtualAccount;
-  } else {
-    db.walletAccounts.push(virtualAccount);
-  }
-
-  saveDocToFirestore("virtual_accounts", virtualAccount.id, virtualAccount).catch(() => {});
+  db.virtualAccounts.push(virtualAccount);
+  db.walletAccounts.push(virtualAccount);
 
   // Update wallet record with virtual account details
   try {
     await walletsStore.updateWalletAtomic(userId, () => ({
-      virtualAccountNumber: accountNumber,
-      virtualBankName: bankName,
-      virtualAccountName: accountName,
-      virtualAccountReference: providerReference,
-      provider: provider.id,
+      virtualAccountNumber: result.accountNumber,
+      virtualBankName: result.bankName || "Bank",
+      virtualAccountName: result.accountName || `SMARTLINK / ${(user.fullName || "CUSTOMER").toUpperCase()}`,
+      provider: provider.id || provider.name,
       updatedAt: new Date().toISOString(),
     }));
   } catch (err: any) {
@@ -8017,23 +7535,11 @@ app.post("/api/virtual-account/create", async (req, res) => {
   if (!db.virtualAccounts) db.virtualAccounts = [];
   if (!db.walletAccounts) db.walletAccounts = [];
 
-  const existingAccount =
-    (db.virtualAccounts || []).find(
-      (acc: any) =>
-        String(acc?.userId || "").trim() === String(userId).trim() &&
-        String(acc?.accountNumber || "").trim() &&
-        String(acc?.providerId || acc?.provider || "")
-          .toLowerCase()
-          .includes("aspfiy")
-    ) ||
-    (db.walletAccounts || []).find(
-      (acc: any) =>
-        String(acc?.userId || "").trim() === String(userId).trim() &&
-        String(acc?.accountNumber || "").trim() &&
-        String(acc?.providerId || acc?.provider || "")
-          .toLowerCase()
-          .includes("aspfiy")
-    );
+  const existingAccount = (db.walletAccounts || []).find(
+    (acc: any) => acc.userId === userId
+  ) || (db.virtualAccounts || []).find(
+    (acc: any) => acc.userId === userId
+  );
 
   if (existingAccount) {
     return res.json({
@@ -8072,14 +7578,7 @@ app.post("/api/virtual-account/create", async (req, res) => {
 
   try {
     const result = await adapter.createVirtualAccount(db, user, provider);
-    const accountNumber = String(result.accountNumber || "").trim();
-    const accountName = String(result.accountName || "").trim();
-    const bankName = String(result.bankName || "").trim();
-    const providerReference = String(
-      result.providerReference || `SL-${String(userId).trim()}`
-    ).trim();
-
-    if (!result.success || !accountNumber) {
+    if (!result.success || !result.accountNumber) {
       return res.status(502).json({
         success: false,
         error: result.error || "Failed to create virtual account with active provider.",
@@ -8087,56 +7586,35 @@ app.post("/api/virtual-account/create", async (req, res) => {
       });
     }
 
+    // persist result.accountNumber / accountName / bankName to the user's wallet record
     const newVirtualAccount = {
-      id: `va_${provider.id}_${String(userId).trim()}`,
-      userId: String(userId).trim(),
+      id: `va_${provider.id || "prov"}_${Date.now()}`,
+      userId,
       userEmail: user.email || userEmail,
       userName: user.fullName || userName,
-      provider: provider.id,
+      provider: provider.id || "GATEWAY",
       providerId: provider.id,
       providerName: provider.name,
-      bankName,
-      accountNumber,
-      accountName,
-      providerReference,
-      reference: providerReference,
-      accounts: [{ bankName, accountNumber }],
-      status: "ACTIVE",
+      bankName: result.bankName || "Bank",
+      accountNumber: result.accountNumber,
+      accountName: result.accountName || `SMARTLINK / ${(user.fullName || userName || "CUSTOMER").toUpperCase()}`,
+      providerReference: result.providerReference,
+      reference: result.providerReference || `SL-${userId}`,
+      accounts: [{ bankName: result.bankName || "Bank", accountNumber: result.accountNumber }],
       createdAt: new Date().toISOString(),
     };
 
-    const existingIdx = (db.virtualAccounts || []).findIndex(
-      (acc: any) =>
-        String(acc?.userId || "").trim() === String(userId).trim() &&
-        String(acc?.providerId || acc?.provider || "").toLowerCase().includes("aspfiy")
-    );
-    if (existingIdx >= 0) {
-      db.virtualAccounts[existingIdx] = newVirtualAccount;
-    } else {
-      db.virtualAccounts.push(newVirtualAccount);
-    }
-
-    const existingWalletAccIdx = (db.walletAccounts || []).findIndex(
-      (acc: any) =>
-        String(acc?.userId || "").trim() === String(userId).trim() &&
-        String(acc?.providerId || acc?.provider || "").toLowerCase().includes("aspfiy")
-    );
-    if (existingWalletAccIdx >= 0) {
-      db.walletAccounts[existingWalletAccIdx] = newVirtualAccount;
-    } else {
-      db.walletAccounts.push(newVirtualAccount);
-    }
-
-    saveDocToFirestore("virtual_accounts", newVirtualAccount.id, newVirtualAccount).catch(() => {});
+    db.virtualAccounts.push(newVirtualAccount);
+    if (!db.walletAccounts) db.walletAccounts = [];
+    db.walletAccounts.push(newVirtualAccount);
 
     // Update wallet record with virtual account details
     try {
       await walletsStore.updateWalletAtomic(userId, () => ({
-        virtualAccountNumber: accountNumber,
-        virtualBankName: bankName,
-        virtualAccountName: accountName,
-        virtualAccountReference: providerReference,
-        provider: provider.id,
+        virtualAccountNumber: result.accountNumber,
+        virtualBankName: result.bankName || "Bank",
+        virtualAccountName: result.accountName || `SMARTLINK / ${(user.fullName || userName || "CUSTOMER").toUpperCase()}`,
+        provider: provider.id || provider.name,
         updatedAt: new Date().toISOString(),
       }));
     } catch (err: any) {
@@ -8473,23 +7951,11 @@ app.get("/api/wallet/virtual-account", async (req, res) => {
   if (!db.virtualAccounts) db.virtualAccounts = [];
   if (!db.walletAccounts) db.walletAccounts = [];
 
-  let account =
-    (db.virtualAccounts || []).find(
-      (acc: any) =>
-        String(acc?.userId || "").trim() === String(userId).trim() &&
-        String(acc?.accountNumber || "").trim() &&
-        String(acc?.providerId || acc?.provider || "")
-          .toLowerCase()
-          .includes("aspfiy")
-    ) ||
-    (db.walletAccounts || []).find(
-      (acc: any) =>
-        String(acc?.userId || "").trim() === String(userId).trim() &&
-        String(acc?.accountNumber || "").trim() &&
-        String(acc?.providerId || acc?.provider || "")
-          .toLowerCase()
-          .includes("aspfiy")
-    );
+  let account = db.virtualAccounts.find(
+    (acc: any) => acc.userId === userId
+  ) || db.walletAccounts.find(
+    (acc: any) => acc.userId === userId
+  );
 
   if (!account) {
     const user = await usersStore.getUserById(userId);
@@ -8517,14 +7983,7 @@ app.get("/api/wallet/virtual-account", async (req, res) => {
     }
 
     const result = await adapter.createVirtualAccount(db, user, provider);
-    const accountNumber = String(result.accountNumber || "").trim();
-    const accountName = String(result.accountName || "").trim();
-    const bankName = String(result.bankName || "").trim();
-    const providerReference = String(
-      result.providerReference || `SL-${String(userId).trim()}`
-    ).trim();
-
-    if (!result.success || !accountNumber) {
+    if (!result.success || !result.accountNumber) {
       return res.status(502).json({
         success: false,
         error: result.error || "Failed to create virtual account with active provider.",
@@ -8532,55 +7991,34 @@ app.get("/api/wallet/virtual-account", async (req, res) => {
       });
     }
 
+    // persist result.accountNumber / accountName / bankName to the user's wallet record
     account = {
-      id: `va_${provider.id}_${String(userId).trim()}`,
-      userId: String(userId).trim(),
+      id: `va_${provider.id || "prov"}_${Date.now()}`,
+      userId,
       userEmail: user.email,
       userName: user.fullName,
-      provider: provider.id,
+      provider: provider.id || "GATEWAY",
       providerId: provider.id,
       providerName: provider.name,
-      bankName,
-      accountNumber,
-      accountName,
-      providerReference,
-      reference: providerReference,
-      accounts: [{ bankName, accountNumber }],
+      bankName: result.bankName || "Bank",
+      accountNumber: result.accountNumber,
+      accountName: result.accountName || `SMARTLINK / ${(user.fullName || "CUSTOMER").toUpperCase()}`,
+      providerReference: result.providerReference,
+      reference: result.providerReference || `SL-${userId}`,
+      accounts: [{ bankName: result.bankName || "Bank", accountNumber: result.accountNumber }],
       status: "ACTIVE",
       createdAt: new Date().toISOString(),
     };
 
-    const existingIdx = (db.virtualAccounts || []).findIndex(
-      (acc: any) =>
-        String(acc?.userId || "").trim() === String(userId).trim() &&
-        String(acc?.providerId || acc?.provider || "").toLowerCase().includes("aspfiy")
-    );
-    if (existingIdx >= 0) {
-      db.virtualAccounts[existingIdx] = account;
-    } else {
-      db.virtualAccounts.push(account);
-    }
-
-    const existingWalletAccIdx = (db.walletAccounts || []).findIndex(
-      (acc: any) =>
-        String(acc?.userId || "").trim() === String(userId).trim() &&
-        String(acc?.providerId || acc?.provider || "").toLowerCase().includes("aspfiy")
-    );
-    if (existingWalletAccIdx >= 0) {
-      db.walletAccounts[existingWalletAccIdx] = account;
-    } else {
-      db.walletAccounts.push(account);
-    }
-
-    saveDocToFirestore("virtual_accounts", account.id, account).catch(() => {});
+    db.virtualAccounts.push(account);
+    db.walletAccounts.push(account);
 
     try {
       await walletsStore.updateWalletAtomic(userId, () => ({
-        virtualAccountNumber: accountNumber,
-        virtualBankName: bankName,
-        virtualAccountName: accountName,
-        virtualAccountReference: providerReference,
-        provider: provider.id,
+        virtualAccountNumber: result.accountNumber,
+        virtualBankName: result.bankName || "Bank",
+        virtualAccountName: result.accountName || `SMARTLINK / ${(user.fullName || "CUSTOMER").toUpperCase()}`,
+        provider: provider.id || provider.name,
         updatedAt: new Date().toISOString(),
       }));
     } catch (err: any) {
@@ -8604,24 +8042,8 @@ app.post("/api/wallet/virtual-account/generate", async (req, res) => {
   if (!db.virtualAccounts) db.virtualAccounts = [];
   if (!db.walletAccounts) db.walletAccounts = [];
 
-  const existing =
-    (db.virtualAccounts || []).find(
-      (acc: any) =>
-        String(acc?.userId || "").trim() === String(userId).trim() &&
-        String(acc?.accountNumber || "").trim() &&
-        String(acc?.providerId || acc?.provider || "")
-          .toLowerCase()
-          .includes("aspfiy")
-    ) ||
-    (db.walletAccounts || []).find(
-      (acc: any) =>
-        String(acc?.userId || "").trim() === String(userId).trim() &&
-        String(acc?.accountNumber || "").trim() &&
-        String(acc?.providerId || acc?.provider || "")
-          .toLowerCase()
-          .includes("aspfiy")
-    );
-
+  const existing = (db.walletAccounts || []).find((a: any) => a.userId === userId) ||
+                   (db.virtualAccounts || []).find((a: any) => a.userId === userId);
   if (existing) {
     return res.json({ success: true, isDuplicatePrevented: true, virtualAccount: existing });
   }
@@ -8654,14 +8076,7 @@ app.post("/api/wallet/virtual-account/generate", async (req, res) => {
 
   try {
     const result = await adapter.createVirtualAccount(db, user, provider);
-    const accountNumber = String(result.accountNumber || "").trim();
-    const accountName = String(result.accountName || "").trim();
-    const bankName = String(result.bankName || "").trim();
-    const providerReference = String(
-      result.providerReference || `SL-${String(userId).trim()}`
-    ).trim();
-
-    if (!result.success || !accountNumber) {
+    if (!result.success || !result.accountNumber) {
       return res.status(502).json({
         success: false,
         error: result.error || "Failed to create virtual account with active provider.",
@@ -8669,56 +8084,35 @@ app.post("/api/wallet/virtual-account/generate", async (req, res) => {
       });
     }
 
+    // persist result.accountNumber / accountName / bankName to the user's wallet record
     const account = {
-      id: `va_${provider.id}_${String(userId).trim()}`,
-      userId: String(userId).trim(),
+      id: `va_${provider.id || "prov"}_${Date.now()}`,
+      userId,
       userEmail: user.email || userEmail,
       userName: user.fullName || userName,
-      provider: provider.id,
+      provider: provider.id || "GATEWAY",
       providerId: provider.id,
       providerName: provider.name,
-      bankName,
-      accountNumber,
-      accountName,
-      providerReference,
-      reference: providerReference,
-      accounts: [{ bankName, accountNumber }],
+      bankName: result.bankName || "Bank",
+      accountNumber: result.accountNumber,
+      accountName: result.accountName || `SMARTLINK / ${(user.fullName || userName || "CUSTOMER").toUpperCase()}`,
+      providerReference: result.providerReference,
+      reference: result.providerReference || `SL-${userId}`,
+      accounts: [{ bankName: result.bankName || "Bank", accountNumber: result.accountNumber }],
       amountExpected: amount || null,
       status: "ACTIVE",
       createdAt: new Date().toISOString(),
     };
 
-    const existingIdx = (db.virtualAccounts || []).findIndex(
-      (acc: any) =>
-        String(acc?.userId || "").trim() === String(userId).trim() &&
-        String(acc?.providerId || acc?.provider || "").toLowerCase().includes("aspfiy")
-    );
-    if (existingIdx >= 0) {
-      db.virtualAccounts[existingIdx] = account;
-    } else {
-      db.virtualAccounts.push(account);
-    }
-
-    const existingWalletAccIdx = (db.walletAccounts || []).findIndex(
-      (acc: any) =>
-        String(acc?.userId || "").trim() === String(userId).trim() &&
-        String(acc?.providerId || acc?.provider || "").toLowerCase().includes("aspfiy")
-    );
-    if (existingWalletAccIdx >= 0) {
-      db.walletAccounts[existingWalletAccIdx] = account;
-    } else {
-      db.walletAccounts.push(account);
-    }
-
-    saveDocToFirestore("virtual_accounts", account.id, account).catch(() => {});
+    db.virtualAccounts.push(account);
+    db.walletAccounts.push(account);
 
     try {
       await walletsStore.updateWalletAtomic(userId, () => ({
-        virtualAccountNumber: accountNumber,
-        virtualBankName: bankName,
-        virtualAccountName: accountName,
-        virtualAccountReference: providerReference,
-        provider: provider.id,
+        virtualAccountNumber: result.accountNumber,
+        virtualBankName: result.bankName || "Bank",
+        virtualAccountName: result.accountName || `SMARTLINK / ${(user.fullName || userName || "CUSTOMER").toUpperCase()}`,
+        provider: provider.id || provider.name,
         updatedAt: new Date().toISOString(),
       }));
     } catch (err: any) {

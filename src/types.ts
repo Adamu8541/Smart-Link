@@ -30,9 +30,6 @@ export interface UserProfile {
   uid: string;
   email: string;
   fullName: string;
-  firstName?: string;
-  surname?: string;
-  lastName?: string;
   phoneNumber?: string;
   role: UserRole;
   walletBalance: number;
