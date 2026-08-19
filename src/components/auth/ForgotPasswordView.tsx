@@ -6,7 +6,6 @@ import { SmartLinkLogoMark } from "../ui/SmartLinkLogoMark";
 import { getFriendlyErrorMessage } from "../../utils/authErrorHandler";
 import { soundFx } from "../../utils/audioEffects";
 import { AuthFormSkeleton } from "../ui/AuthSkeleton";
-import logoImg from "../../assets/images/smartlink_logo_1785934050308.jpg";
 
 interface ForgotPasswordViewProps {
   onNavigateToLogin: () => void;
@@ -41,27 +40,24 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({
     try {
       const cleanEmail = email.trim().toLowerCase();
       
-      const checkRes = await fetch("/api/auth/check-email-exists", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: cleanEmail }),
-      });
-      const checkData = await checkRes.json();
-      if (!checkData.exists) {
-        soundFx.playErrorSound();
-        setError("No account found with this email address. Please check the email or sign up.");
-        setLoading(false);
-        return;
+      let sent = false;
+      if (isFirebaseConfigured) {
+        try {
+          await sendPasswordResetEmail(auth, cleanEmail);
+          sent = true;
+        } catch (fbErr: any) {
+          console.warn("[ForgotPasswordView] Firebase Auth reset failed, falling back to server:", fbErr);
+          if (fbErr?.code === "auth/user-not-found") {
+            soundFx.playErrorSound();
+            setError("No account found with this email address. Please check the email or sign up.");
+            setLoading(false);
+            return;
+          }
+        }
       }
 
-      if (isFirebaseConfigured) {
-        const actionCodeSettings = {
-          url: `${window.location.origin}/reset-password`,
-          handleCodeInApp: true,
-        };
-        await sendPasswordResetEmail(auth, cleanEmail, actionCodeSettings);
-      } else {
-        // Fallback or local dev simulation
+      if (!sent) {
+        // Fallback or server-side email dispatch
         const res = await fetch("/api/auth/forgot-password", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -71,6 +67,7 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({
         if (!res.ok || data.success === false) {
           throw new Error(data.error || data.message || "Unable to send password reset email.");
         }
+        sent = true;
       }
 
       soundFx.playSuccessSound();
@@ -117,15 +114,7 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({
         className="w-full max-w-md bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-8 shadow-xl shadow-slate-200/70 relative z-10 space-y-6"
       >
         {/* Brand Header */}
-        <div className="text-center space-y-3">
-          <div className="inline-flex items-center justify-center p-2 rounded-2xl bg-slate-50 border border-slate-200 shadow-sm">
-            <img
-              src={logoImg}
-              alt="Smart Link Logo"
-              className="w-12 h-12 object-contain rounded-xl"
-              onError={(e: any) => { e.currentTarget.src = "/logo.png"; }}
-            />
-          </div>
+        <div className="text-center space-y-2">
           <div>
             <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center justify-center gap-2">
               Forgot Password?

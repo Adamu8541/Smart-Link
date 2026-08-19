@@ -4,7 +4,6 @@ import { VerifyEmailView } from "./VerifyEmailView";
 import { ForgotPasswordView } from "./ForgotPasswordView";
 import { motion } from "motion/react";
 import { AlertCircle, ShieldCheck, ArrowLeft, CheckCircle2 } from "lucide-react";
-import logoImg from "../../assets/images/smartlink_logo_1785934050308.jpg";
 
 interface AuthActionHandlerProps {
   onNavigateToLogin: () => void;
@@ -100,11 +99,8 @@ export const AuthActionHandler: React.FC<AuthActionHandlerProps> = ({
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-md bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-8 text-center space-y-5 shadow-xl shadow-slate-200/70"
+          className="w-full max-w-md bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-8 text-center space-y-4 shadow-xl shadow-slate-200/70"
         >
-          <div className="inline-flex items-center justify-center p-2 rounded-2xl bg-slate-50 border border-slate-200 shadow-sm">
-            <img src={logoImg} alt="Smart Link" className="w-12 h-12 rounded-xl object-contain" />
-          </div>
           <h2 className="text-lg font-bold text-slate-900">Email Recovery Action</h2>
           <p className="text-xs text-slate-600 leading-relaxed">
             You are attempting to restore a previous email address associated with your Smart Link account.

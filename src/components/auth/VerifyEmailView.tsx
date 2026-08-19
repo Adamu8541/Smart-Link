@@ -5,7 +5,6 @@ import { auth, applyActionCode, sendEmailVerification, reload, isFirebaseConfigu
 import { getFriendlyErrorMessage, safeFetchJson } from "../../utils/authErrorHandler";
 import { soundFx } from "../../utils/audioEffects";
 import { AuthFormSkeleton } from "../ui/AuthSkeleton";
-import logoImg from "../../assets/images/smartlink_logo_1785934050308.jpg";
 
 interface VerifyEmailViewProps {
   onNavigateToLogin: () => void;
@@ -152,15 +151,7 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
         className="w-full max-w-md bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-8 shadow-xl shadow-slate-200/70 relative z-10 space-y-6"
       >
         {/* Brand Header */}
-        <div className="text-center space-y-3">
-          <div className="inline-flex items-center justify-center p-2 rounded-2xl bg-slate-50 border border-slate-200 shadow-sm">
-            <img
-              src={logoImg}
-              alt="Smart Link Logo"
-              className="w-12 h-12 object-contain rounded-xl"
-              onError={(e: any) => { e.currentTarget.src = "/logo.png"; }}
-            />
-          </div>
+        <div className="text-center space-y-2">
           <div>
             <h1 className="text-xl font-bold text-slate-900 tracking-tight">
               Email Verification

@@ -210,7 +210,10 @@ export default function Navigation({
 
   const handleAuthClick = (mode: "login" | "register" | "forgot") => {
     if (mode === "forgot") {
-      window.location.href = "/forgot-password";
+      try {
+        window.history.pushState({ view: "FORGOT_PASSWORD" }, "", "/forgot-password");
+      } catch (err) {}
+      onNavigate("FORGOT_PASSWORD");
       setMobileMenuOpen(false);
       return;
     }

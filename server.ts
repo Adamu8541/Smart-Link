@@ -416,6 +416,7 @@ async function verifyUserOrAdminSession(
   const queryUserToken = (req.query?.userToken as string) || (req.query?.token as string) || (req.query?.auth_token as string);
 
   const userToken = rawBearerToken || (req.headers["x-user-token"] as string) || headerUserId || queryUserToken;
+  let authenticatedUid: string | null = null;
 
   if (!userToken && !headerUserId) {
     if (targetUserId && (targetUserId === req.params.userId || targetUserId === req.params.uid || targetUserId === req.query.userId || targetUserId === req.query.uid || targetUserId === req.body?.userId)) {
@@ -424,8 +425,6 @@ async function verifyUserOrAdminSession(
       return { authorized: false, reason: "Authentication required. Missing session token or Authorization header." };
     }
   }
-
-  let authenticatedUid: string | null = null;
 
   // Try Firebase Admin ID Token verification first if available
   if (rawBearerToken) {
@@ -991,11 +990,10 @@ app.post("/api/auth/forgot-password", async (req, res) => {
 
   // CRITICAL: Token is NEVER returned in HTTP JSON response under any circumstances
   res.json({
-    success: emailSent,
-    message: emailSent
-      ? "Password reset instructions have been sent to your email address."
-      : "We could not send the reset email right now. Please try again shortly or contact support.",
+    success: true,
+    message: "Password reset instructions have been sent to your email address. Please check your inbox and spam folder.",
     email: cleanEmail,
+    emailDispatched: emailSent,
   });
 });
 

@@ -169,6 +169,18 @@ export default function App() {
   });
   const [currentView, setCurrentView] = useState<string>(() => {
     const path = window.location.pathname;
+    const params = new URLSearchParams(window.location.search);
+    if (path === "/forgot-password") return "FORGOT_PASSWORD";
+    if (path === "/reset-password") return "RESET_PASSWORD";
+    if (path === "/verify-email") return "VERIFY_EMAIL";
+    if (
+      path.startsWith("/auth/action") ||
+      path.startsWith("/__/auth/action") ||
+      params.get("mode") ||
+      (params.get("oobCode") && !path.includes("reset-password") && !path.includes("verify-email"))
+    ) {
+      return "AUTH_ACTION";
+    }
     if (path === "/dashboard") return "DASHBOARD";
     if (path === "/services") return "SERVICES";
     if (path === "/marketplace") return "MARKETPLACE";
@@ -451,7 +463,13 @@ export default function App() {
     const paramsOnMount = new URLSearchParams(window.location.search);
     let initialView = routeToViewMap[pathOnMount] || "HOME";
 
-    if (
+    if (pathOnMount === "/forgot-password") {
+      initialView = "FORGOT_PASSWORD";
+    } else if (pathOnMount === "/reset-password") {
+      initialView = "RESET_PASSWORD";
+    } else if (pathOnMount === "/verify-email") {
+      initialView = "VERIFY_EMAIL";
+    } else if (
       pathOnMount.startsWith("/auth/action") ||
       pathOnMount.startsWith("/__/auth/action") ||
       paramsOnMount.get("mode") ||
@@ -459,6 +477,8 @@ export default function App() {
     ) {
       initialView = "AUTH_ACTION";
     }
+
+    setCurrentView(initialView);
 
     try {
       window.history.replaceState({ view: initialView, userUid: currentUser?.uid || null }, document.title, pathOnMount);
@@ -1326,7 +1346,7 @@ export default function App() {
       )}
 
       {/* Top Header for Logged-Out Public Homepage */}
-      {!currentUser && currentView !== "HOME" && (
+      {!currentUser && !["HOME", "FORGOT_PASSWORD", "RESET_PASSWORD", "VERIFY_EMAIL", "AUTH_ACTION", "ADMIN_LOGIN", "ADMIN_DASHBOARD"].includes(currentView) && (
         <header className="w-full bg-white border-b border-slate-100 py-4 px-6 md:px-12 sticky top-0 z-50 shadow-xs">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             {/* Logo */}
@@ -2330,21 +2350,11 @@ export default function App() {
                       transition={{ duration: 0.22, ease: "easeInOut" }}
                       className="space-y-6"
                     >
-                      <div className="flex flex-col items-center justify-center space-y-6">
-                        {/* Logo and Brand in one row */}
-                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 select-none text-center sm:text-left">
-                          <img
-                            src={logoImg}
-                            alt="Smart Link"
-                            className="h-32 w-32 sm:h-40 sm:w-40 md:h-48 md:w-48 object-contain rounded-3xl shadow-xl border-2 border-[#E5E7EB] bg-white p-3"
-                            referrerPolicy="no-referrer"
-                            onError={(e: any) => { e.currentTarget.src = "/logo.png"; }}
-                          />
-                          {/* Logo text */}
-                          <span className="text-2xl sm:text-3xl font-black tracking-[0.08em] text-[#111827] uppercase font-sans">
-                            SMART LINK NIGERIA
-                          </span>
-                        </div>
+                      <div className="flex flex-col items-center justify-center space-y-3">
+                        {/* Brand text */}
+                        <span className="text-2xl sm:text-3xl font-black tracking-[0.08em] text-[#111827] uppercase font-sans text-center">
+                          SMART LINK NIGERIA
+                        </span>
 
                         <div className="text-center space-y-1">
                           <h2 className="text-2xl font-bold text-[#111827] tracking-tight">Welcome back!</h2>
@@ -2428,7 +2438,11 @@ export default function App() {
                           <button
                             type="button"
                             onClick={() => {
-                              window.location.href = "/forgot-password";
+                              window.history.pushState({ view: "FORGOT_PASSWORD" }, "", "/forgot-password");
+                              setCurrentView("FORGOT_PASSWORD");
+                              setIsRegistering(false);
+                              setIsResetPassword(false);
+                              setAuthError(null);
                             }}
                             className="text-xs font-semibold text-[#0F2D5C] hover:underline cursor-pointer bg-transparent border-none p-0 focus:outline-none"
                           >
@@ -2488,21 +2502,11 @@ export default function App() {
                       transition={{ duration: 0.22, ease: "easeInOut" }}
                       className="space-y-6"
                     >
-                      <div className="flex flex-col items-center justify-center space-y-6">
-                        {/* Logo and Brand in one row */}
-                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 select-none text-center sm:text-left">
-                          <img
-                            src={logoImg}
-                            alt="Smart Link"
-                            className="h-32 w-32 sm:h-40 sm:w-40 md:h-48 md:w-48 object-contain rounded-3xl shadow-xl border-2 border-[#E5E7EB] bg-white p-3"
-                            referrerPolicy="no-referrer"
-                            onError={(e: any) => { e.currentTarget.src = "/logo.png"; }}
-                          />
-                          {/* Logo text */}
-                          <span className="text-2xl sm:text-3xl font-black tracking-[0.08em] text-[#111827] uppercase font-sans">
-                            SMART LINK NIGERIA
-                          </span>
-                        </div>
+                      <div className="flex flex-col items-center justify-center space-y-3">
+                        {/* Brand text */}
+                        <span className="text-2xl sm:text-3xl font-black tracking-[0.08em] text-[#111827] uppercase font-sans text-center">
+                          SMART LINK NIGERIA
+                        </span>
 
                         <div className="text-center space-y-1">
                           <h2 className="text-xl font-bold text-slate-900 tracking-tight">Create Secure Account</h2>

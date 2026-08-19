@@ -53,6 +53,7 @@ export interface ProviderResponse<T = any> {
   provider?: ActiveProviderConfig;
   data?: T;
   account?: any;
+  virtualAccount?: any;
   fundingMethods?: any[];
   reference?: string;
   verified?: boolean;
