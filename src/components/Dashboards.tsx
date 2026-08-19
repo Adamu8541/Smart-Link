@@ -216,17 +216,67 @@ export default function Dashboards({
     setShowFundModal(true);
     setFundLoading(true);
     setFundError(null);
+
+    // If currentUser already has virtual account details in memory, seed them immediately
+    const userAny = currentUser as any;
+    if (userAny.virtualAccountNumber || userAny.accountNumber) {
+      setFundAccount({
+        accountNumber: userAny.virtualAccountNumber || userAny.accountNumber,
+        accountName: userAny.virtualAccountName || userAny.accountName || currentUser.fullName || "SMARTLINK CUSTOMER",
+        bankName: userAny.virtualBankName || userAny.bankName || "Paga",
+        providerName: userAny.providerName || "Aspfiy Payment Gateway",
+        providerReference: userAny.virtualAccountReference || userAny.reference || `SL-${currentUser.uid}`,
+      });
+    }
+
     try {
       const res = await ProviderService.getVirtualAccount(currentUser.uid);
-      if (res.success && res.account) {
-        setFundAccount(res.account);
-      } else {
+      const acc = res.account || res.virtualAccount || (res as any).data?.account || (res as any).data?.virtualAccount || (res as any).data;
+      if (res.success && acc && (acc.accountNumber || acc.account_number)) {
+        setFundAccount({
+          accountNumber: acc.accountNumber || acc.account_number,
+          accountName: acc.accountName || acc.account_name || currentUser.fullName || "SMARTLINK CUSTOMER",
+          bankName: acc.bankName || acc.bank_name || "Paga",
+          providerName: acc.providerName || (res.provider as any)?.name || acc.bankName || "Aspfiy Gateway",
+          providerReference: acc.providerReference || acc.reference || `SL-${currentUser.uid}`,
+        });
+        setFundError(null);
+      } else if (!userAny.virtualAccountNumber && !userAny.accountNumber) {
+        // Direct attempt via /api/wallet/virtual-account/generate
+        try {
+          const genRes = await fetch("/api/wallet/virtual-account/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "x-user-id": currentUser.uid },
+            body: JSON.stringify({
+              userId: currentUser.uid,
+              userEmail: currentUser.email,
+              userName: currentUser.fullName,
+            }),
+          });
+          const genData = await genRes.json();
+          const genAcc = genData.account || genData.virtualAccount;
+          if (genRes.ok && genAcc && (genAcc.accountNumber || genAcc.account_number)) {
+            setFundAccount({
+              accountNumber: genAcc.accountNumber || genAcc.account_number,
+              accountName: genAcc.accountName || genAcc.account_name || currentUser.fullName || "SMARTLINK CUSTOMER",
+              bankName: genAcc.bankName || genAcc.bank_name || "Paga",
+              providerName: genAcc.providerName || "Aspfiy Gateway",
+              providerReference: genAcc.providerReference || genAcc.reference || `SL-${currentUser.uid}`,
+            });
+            setFundError(null);
+            return;
+          }
+        } catch (innerErr) {
+          // ignore
+        }
         setFundAccount(null);
         setFundError(res.error || "No active payment provider configured.");
       }
     } catch (err: any) {
-      setFundAccount(null);
-      setFundError("No active payment provider configured.");
+      if (!userAny.virtualAccountNumber && !userAny.accountNumber) {
+        setFundAccount(null);
+        setFundError("No active payment provider configured.");
+      }
     } finally {
       setFundLoading(false);
     }

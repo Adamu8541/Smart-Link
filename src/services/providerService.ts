@@ -10,18 +10,23 @@
 
 import { auth } from "../firebase";
 
-export async function getAuthHeaders(): Promise<Record<string, string>> {
+export async function getAuthHeaders(userId?: string): Promise<Record<string, string>> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
   const user = auth.currentUser;
-  if (!user) return { "Content-Type": "application/json" };
-  try {
-    const idToken = await user.getIdToken();
-    return {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${idToken}`,
-    };
-  } catch {
-    return { "Content-Type": "application/json" };
+  if (user) {
+    try {
+      const idToken = await user.getIdToken();
+      headers["Authorization"] = `Bearer ${idToken}`;
+      headers["x-user-id"] = user.uid;
+      if (user.email) headers["x-user-email"] = user.email;
+    } catch {
+      // ignore
+    }
   }
+  if (userId) {
+    headers["x-user-id"] = userId;
+  }
+  return headers;
 }
 
 export interface ActiveProviderConfig {
@@ -163,13 +168,42 @@ export class ProviderService {
    */
   static async getVirtualAccount(userId: string): Promise<ProviderResponse> {
     try {
-      const headers = await getAuthHeaders();
-      const res = await fetch(`/api/wallet/virtual-account/${encodeURIComponent(userId)}`, { headers });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
+      const headers = await getAuthHeaders(userId);
+      let res = await fetch(`/api/wallet/virtual-account/${encodeURIComponent(userId)}`, { headers });
+      let data = await res.json().catch(() => ({}));
+      
+      if (!res.ok || !data.success || !data.account) {
+        // Fallback endpoint 1: /api/virtual-account/:userId
+        const fallbackRes = await fetch(`/api/virtual-account/${encodeURIComponent(userId)}`, { headers });
+        const fallbackData = await fallbackRes.json().catch(() => ({}));
+        if (fallbackRes.ok && fallbackData.success && (fallbackData.account || fallbackData.virtualAccount)) {
+          return {
+            success: true,
+            account: fallbackData.account || fallbackData.virtualAccount,
+            virtualAccount: fallbackData.virtualAccount || fallbackData.account,
+            provider: fallbackData.provider,
+          };
+        }
+
+        // Fallback endpoint 2: /api/virtual-account/create
+        const createRes = await fetch(`/api/virtual-account/create`, {
+          method: "POST",
+          headers: { ...headers, "Content-Type": "application/json" },
+          body: JSON.stringify({ userId }),
+        });
+        const createData = await createRes.json().catch(() => ({}));
+        if (createRes.ok && createData.success && (createData.account || createData.virtualAccount)) {
+          return {
+            success: true,
+            account: createData.account || createData.virtualAccount,
+            virtualAccount: createData.virtualAccount || createData.account,
+            provider: createData.provider,
+          };
+        }
+
         return {
           success: false,
-          error: data.error || "No active payment provider configured.",
+          error: data.error || data.message || "No active payment provider configured.",
           code: data.code || "NO_ACTIVE_PROVIDER",
         };
       }
