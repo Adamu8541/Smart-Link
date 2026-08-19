@@ -12262,6 +12262,42 @@ app.post("/api/admin/api-builder/test", async (req, res) => {
       return res.status(400).json({ success: false, message: "Endpoint URL is required to test." });
     }
 
+    const isAllowedTestUrl = (rawUrl: string): boolean => {
+      let parsed: URL;
+      try {
+        parsed = new URL(rawUrl);
+      } catch {
+        return false;
+      }
+
+      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+        return false;
+      }
+
+      const host = parsed.hostname.toLowerCase();
+      if (!host || host === "localhost" || host === "127.0.0.1" || host === "::1") {
+        return false;
+      }
+
+      // Block direct IPv4/IPv6 literals to reduce access to internal network targets.
+      const isIpv4 = /^(?:\d{1,3}\.){3}\d{1,3}$/.test(host);
+      const isIpv6 = host.includes(":");
+      if (isIpv4 || isIpv6) {
+        return false;
+      }
+
+      const allowedHosts = (process.env.API_TEST_ALLOWED_HOSTS || "")
+        .split(",")
+        .map((h) => h.trim().toLowerCase())
+        .filter(Boolean);
+
+      if (allowedHosts.length === 0) {
+        return false;
+      }
+
+      return allowedHosts.some((allowed) => host === allowed || host.endsWith(`.${allowed}`));
+    };
+
     // Build URL with path params
     let finalUrl = endpoint.trim();
     if (Array.isArray(urlParams)) {
@@ -12269,6 +12305,13 @@ app.post("/api/admin/api-builder/test", async (req, res) => {
         if (p.key && p.enabled !== false) {
           finalUrl = finalUrl.replace(new RegExp(`\\{${p.key}\\}`, "g"), encodeURIComponent(p.value || ""));
         }
+      });
+    }
+
+    if (!isAllowedTestUrl(finalUrl)) {
+      return res.status(400).json({
+        success: false,
+        message: "Endpoint URL is not allowed. Use http/https and an approved hostname."
       });
     }
 
