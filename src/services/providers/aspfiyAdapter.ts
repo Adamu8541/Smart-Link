@@ -176,7 +176,7 @@ export class AspfiyAdapter implements ProviderAdapter {
       const normalizedPhone = normalizeNigerianPhone(phone) || phone;
       const webhookUrl = (config.webhookUrl || "").trim() || "https://ais-dev-jvwr4xuk5jbhsxajgu2sfh-455880744130.europe-west2.run.app/api/webhooks/aspfiy";
 
-      const res = await fetch(`${this.baseUrl(config)}/reserve-paga/`, {
+      const res = await fetch(`${this.baseUrl(config)}/reserve-palmpay/`, {
         method: "POST",
         headers: this.headers(config),
         body: JSON.stringify({
