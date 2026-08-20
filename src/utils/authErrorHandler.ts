@@ -20,6 +20,8 @@ export function getFriendlyErrorMessage(error: any): string {
     ? error 
     : error.message || error.error || error.toString();
 
+  const code = error?.code || "";
+
   if (
     rawMsg.includes("email not found or not registered") ||
     rawMsg.includes("not registered, register instead")
@@ -28,15 +30,23 @@ export function getFriendlyErrorMessage(error: any): string {
   }
 
   if (
-    rawMsg.includes("user not found sign up/ register please") ||
-    rawMsg.includes("user not found sign up") ||
-    rawMsg.includes("user not found") ||
-    rawMsg.includes("User not found")
+    rawMsg.includes("check email and try again or sign up if not register before") ||
+    rawMsg.includes("check email and try again") ||
+    rawMsg.includes("sign up if not register before") ||
+    code === "auth/user-not-found"
   ) {
-    return "user not found sign up/ register please";
+    return "check email and try again or sign up if not register before.";
   }
 
-  const code = error.code || "";
+  if (
+    rawMsg.includes("incorrect password, try forgot password instead") ||
+    rawMsg.includes("try forgot password instead") ||
+    rawMsg.includes("Incorrect password") ||
+    rawMsg.includes("incorrect password") ||
+    code === "auth/wrong-password"
+  ) {
+    return "incorrect password, try forgot password instead";
+  }
 
   // 1. Firebase Auth Errors
   if (
@@ -57,15 +67,11 @@ export function getFriendlyErrorMessage(error: any): string {
 
   if (
     code === "auth/invalid-credential" ||
-    code === "auth/user-not-found" ||
     code === "auth/wrong-password" ||
     rawMsg.includes("invalid-credential") ||
-    rawMsg.includes("User not found") ||
-    rawMsg.includes("user not found") ||
-    rawMsg.includes("Incorrect password") ||
     rawMsg.includes("Authentication failed")
   ) {
-    return "user not found sign up/ register please";
+    return "incorrect password, try forgot password instead";
   }
 
   if (

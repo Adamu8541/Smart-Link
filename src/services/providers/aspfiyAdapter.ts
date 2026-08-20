@@ -153,7 +153,7 @@ export class AspfiyAdapter implements ProviderAdapter {
           success: true,
           accountNumber: accNum,
           accountName: existingAccount.accountName || existingAccount.account_name || `${firstName} ${lastName}`,
-          bankName: existingAccount.bankName || existingAccount.bank_name || "Paga",
+          bankName: existingAccount.bankName || existingAccount.bank_name || "PalmPay",
           providerReference: existingAccount.providerReference || existingAccount.reference || `SL-${userId || Date.now()}`,
           rawResponse: { message: "Existing active virtual account retrieved", existing: true },
         };
@@ -165,7 +165,7 @@ export class AspfiyAdapter implements ProviderAdapter {
           success: true,
           accountNumber: accNum,
           accountName: user.virtualAccountName || user.accountName || `${firstName} ${lastName}`,
-          bankName: user.virtualBankName || user.bankName || "Paga",
+          bankName: user.virtualBankName || user.bankName || "PalmPay",
           providerReference: user.virtualAccountReference || user.reference || `SL-${userId || Date.now()}`,
           rawResponse: { message: "Existing active virtual account retrieved from profile", existing: true },
         };
@@ -227,12 +227,16 @@ export class AspfiyAdapter implements ProviderAdapter {
           const n = extractAccNum(obj.details);
           if (n) return n;
         }
-        if (obj.paga_account && typeof obj.paga_account === "object") {
-          const n = extractAccNum(obj.paga_account);
+        if (obj.palmpay_account && typeof obj.palmpay_account === "object") {
+          const n = extractAccNum(obj.palmpay_account);
           if (n) return n;
         }
-        if (obj.pagaAccount && typeof obj.pagaAccount === "object") {
-          const n = extractAccNum(obj.pagaAccount);
+        if (obj.palmpayAccount && typeof obj.palmpayAccount === "object") {
+          const n = extractAccNum(obj.palmpayAccount);
+          if (n) return n;
+        }
+        if (obj.palmpay && typeof obj.palmpay === "object") {
+          const n = extractAccNum(obj.palmpay);
           if (n) return n;
         }
         return "";
@@ -241,7 +245,7 @@ export class AspfiyAdapter implements ProviderAdapter {
       let accountNumber = extractAccNum(json);
       if (!accountNumber) {
         const jsonStr = JSON.stringify(json || {});
-        const match = jsonStr.match(/"(?:account_number|accountNumber|account_no|accountNo|account|nuban|paga)"\s*:\s*"?(\d{10})"?/i) ||
+        const match = jsonStr.match(/"(?:account_number|accountNumber|account_no|accountNo|account|nuban|palmpay)"\s*:\s*"?(\d{10})"?/i) ||
                       jsonStr.match(/\b(\d{10})\b/);
         if (match && match[1]) {
           accountNumber = match[1];
@@ -254,7 +258,7 @@ export class AspfiyAdapter implements ProviderAdapter {
       const isReserved = /reserved/i.test(backendMsg) || /success/i.test(String(json?.status)) || json?.status === true;
 
       // Extract bank name and account name
-      const bankName = data?.bank_name || data?.bankName || json?.bank_name || json?.bankName || "Paga";
+      const bankName = data?.bank_name || data?.bankName || json?.bank_name || json?.bankName || "PalmPay";
       const accountName = data?.account_name || data?.accountName || json?.account_name || json?.accountName || `${firstName} ${lastName}`;
       const providerRef = data?.reference || data?.providerReference || json?.reference || reference;
 
@@ -288,7 +292,7 @@ export class AspfiyAdapter implements ProviderAdapter {
           providerReference: reference,
           accountNumber: getFallbackAccNum(),
           accountName: `${firstName} ${lastName}`,
-          bankName: "Paga",
+          bankName: "PalmPay",
           rawResponse: { message: backendMsg || "Account reserved successfully", isExisting: isAlreadyExist, raw: json },
         };
       }
@@ -323,7 +327,7 @@ export class AspfiyAdapter implements ProviderAdapter {
               : `Aspfiy upstream service unavailable (HTTP ${res.status}). Please try again later.`;
             break;
           default:
-            errorMessage = backendMsg || `Aspfiy reserve-paga failed (HTTP ${res.status})`;
+            errorMessage = backendMsg || `Aspfiy reserve-palmpay failed (HTTP ${res.status})`;
         }
 
         return {

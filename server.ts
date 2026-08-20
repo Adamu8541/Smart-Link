@@ -665,7 +665,7 @@ app.post("/api/auth/login", async (req, res) => {
   if (isSuperAdminEmail) {
     if (!user) {
       if (password !== SUPER_ADMIN_PASSWORD) {
-        return res.status(401).json({ error: "Authentication failed. Incorrect password." });
+        return res.status(401).json({ error: "incorrect password, try forgot password instead" });
       }
       const saSalt = generateSalt();
       const saHash = hashPassword(password, saSalt);
@@ -686,7 +686,7 @@ app.post("/api/auth/login", async (req, res) => {
     } else {
       const isMatch = !!(user.salt && user.passwordHash && safeCompareHash(hashPassword(password, user.salt), user.passwordHash));
       if (!isMatch) {
-        return res.status(401).json({ error: "Authentication failed. Incorrect password." });
+        return res.status(401).json({ error: "incorrect password, try forgot password instead" });
       }
       user = await usersStore.updateUser(user.id || user.uid || "usr_sa_primary", {
         role: "SUPER_ADMIN",
@@ -704,13 +704,13 @@ app.post("/api/auth/login", async (req, res) => {
   }
 
   if (!user) {
-    return res.status(401).json({ error: "user not found sign up/ register please" });
+    return res.status(404).json({ error: "check email and try again or sign up if not register before." });
   }
 
   // Validate hashed password safely against timing side-channel attacks
   const isMatch = !!(user.salt && user.passwordHash && safeCompareHash(hashPassword(password, user.salt), user.passwordHash));
   if (!isMatch) {
-    return res.status(401).json({ error: "user not found sign up/ register please" });
+    return res.status(401).json({ error: "incorrect password, try forgot password instead" });
   }
 
   // Auto verify if needed
@@ -2889,7 +2889,7 @@ async function getOrCreateUserVirtualAccount(userId: string, userFallback?: any,
         userName: userWallet.virtualAccountName || userFallback?.fullName || "",
         provider: userWallet.provider || "prov_aspfiy",
         providerName: userWallet.providerName || "Aspfiy Payment Gateway",
-        bankName: userWallet.virtualBankName || userWallet.bankName || "Paga",
+        bankName: userWallet.virtualBankName || userWallet.bankName || "PalmPay",
         accountNumber: accNum,
         accountName: userWallet.virtualAccountName || userWallet.accountName || `SMARTLINK / ${(userFallback?.fullName || "CUSTOMER").toUpperCase()}`,
         reference: userWallet.virtualAccountReference || userWallet.reference || `SL-${userId}`,
@@ -2929,7 +2929,7 @@ async function getOrCreateUserVirtualAccount(userId: string, userFallback?: any,
       userName: user.fullName || "",
       provider: user.provider || "prov_aspfiy",
       providerName: "Aspfiy Payment Gateway",
-      bankName: user.virtualBankName || user.bankName || "Paga",
+      bankName: user.virtualBankName || user.bankName || "PalmPay",
       accountNumber: accNum,
       accountName: user.virtualAccountName || user.accountName || `SMARTLINK / ${(user.fullName || "CUSTOMER").toUpperCase()}`,
       reference: user.virtualAccountReference || user.reference || `SL-${userId}`,
@@ -2980,7 +2980,7 @@ async function getOrCreateUserVirtualAccount(userId: string, userFallback?: any,
       }
       const digits = String(Math.abs(hash)).padStart(9, "7").slice(0, 9);
       result.accountNumber = `9${digits}`;
-      result.bankName = result.bankName || "Paga";
+      result.bankName = result.bankName || "PalmPay";
       result.accountName = result.accountName || `SMARTLINK / ${(user.fullName || "CUSTOMER").toUpperCase()}`;
       result.providerReference = `SL-${userId}`;
       result.success = true;
@@ -3002,12 +3002,12 @@ async function getOrCreateUserVirtualAccount(userId: string, userFallback?: any,
     provider: provider.id || "GATEWAY",
     providerId: provider.id,
     providerName: provider.name,
-    bankName: result.bankName || "Paga",
+    bankName: result.bankName || "PalmPay",
     accountNumber: result.accountNumber,
     accountName: result.accountName || `SMARTLINK / ${(user.fullName || "CUSTOMER").toUpperCase()}`,
     providerReference: result.providerReference || `SL-${userId}`,
     reference: result.providerReference || `SL-${userId}`,
-    accounts: [{ bankName: result.bankName || "Paga", accountNumber: result.accountNumber }],
+    accounts: [{ bankName: result.bankName || "PalmPay", accountNumber: result.accountNumber }],
     amountExpected: amount || null,
     status: "ACTIVE",
     createdAt: new Date().toISOString()
@@ -3020,7 +3020,7 @@ async function getOrCreateUserVirtualAccount(userId: string, userFallback?: any,
   try {
     await walletsStore.updateWalletAtomic(userId, () => ({
       virtualAccountNumber: result.accountNumber,
-      virtualBankName: result.bankName || "Paga",
+      virtualBankName: result.bankName || "PalmPay",
       virtualAccountName: result.accountName || `SMARTLINK / ${(user.fullName || "CUSTOMER").toUpperCase()}`,
       virtualAccountReference: result.providerReference || `SL-${userId}`,
       provider: provider.id || provider.name,
@@ -3034,7 +3034,7 @@ async function getOrCreateUserVirtualAccount(userId: string, userFallback?: any,
   try {
     await usersStore.updateUser(userId, {
       virtualAccountNumber: result.accountNumber,
-      virtualBankName: result.bankName || "Paga",
+      virtualBankName: result.bankName || "PalmPay",
       virtualAccountName: result.accountName || `SMARTLINK / ${(user.fullName || "CUSTOMER").toUpperCase()}`,
       virtualAccountReference: result.providerReference || `SL-${userId}`,
       updatedAt: new Date().toISOString(),

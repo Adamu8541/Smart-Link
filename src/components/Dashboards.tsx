@@ -223,7 +223,7 @@ export default function Dashboards({
       setFundAccount({
         accountNumber: userAny.virtualAccountNumber || userAny.accountNumber,
         accountName: userAny.virtualAccountName || userAny.accountName || currentUser.fullName || "SMARTLINK CUSTOMER",
-        bankName: userAny.virtualBankName || userAny.bankName || "Paga",
+        bankName: userAny.virtualBankName || userAny.bankName || "PalmPay",
         providerName: userAny.providerName || "Aspfiy Payment Gateway",
         providerReference: userAny.virtualAccountReference || userAny.reference || `SL-${currentUser.uid}`,
       });
@@ -236,7 +236,7 @@ export default function Dashboards({
         setFundAccount({
           accountNumber: acc.accountNumber || acc.account_number,
           accountName: acc.accountName || acc.account_name || currentUser.fullName || "SMARTLINK CUSTOMER",
-          bankName: acc.bankName || acc.bank_name || "Paga",
+          bankName: acc.bankName || acc.bank_name || "PalmPay",
           providerName: acc.providerName || (res.provider as any)?.name || acc.bankName || "Aspfiy Gateway",
           providerReference: acc.providerReference || acc.reference || `SL-${currentUser.uid}`,
         });
@@ -259,7 +259,7 @@ export default function Dashboards({
             setFundAccount({
               accountNumber: genAcc.accountNumber || genAcc.account_number,
               accountName: genAcc.accountName || genAcc.account_name || currentUser.fullName || "SMARTLINK CUSTOMER",
-              bankName: genAcc.bankName || genAcc.bank_name || "Paga",
+              bankName: genAcc.bankName || genAcc.bank_name || "PalmPay",
               providerName: genAcc.providerName || "Aspfiy Gateway",
               providerReference: genAcc.providerReference || genAcc.reference || `SL-${currentUser.uid}`,
             });

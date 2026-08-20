@@ -810,15 +810,53 @@ export default function App() {
 
     if (!authEmail || !authPassword) {
       soundFx.playErrorSound();
-      setAuthError("We couldn't sign you in. Please check your email and password.");
+      setAuthError("Email and password are required.");
       return;
     }
+
+    const cleanEmail = authEmail.toLowerCase().trim();
 
     setAuthLoading(true);
     setAuthError(null);
     setAuthSuccessState(null);
 
     try {
+      // Step 1: Check if email exists in database first (Firestore users collection or server usersStore)
+      let emailExists = false;
+
+      if (isFirebaseConfigured) {
+        try {
+          const usersRef = collection(db, "users");
+          const emailQuery = query(usersRef, where("email", "==", cleanEmail), limit(1));
+          const querySnap = await withTimeout(getDocs(emailQuery), 4000);
+          if (!querySnap.empty) {
+            emailExists = true;
+          }
+        } catch (dbErr) {
+          console.warn("Direct Firestore login email lookup check note:", dbErr);
+        }
+      }
+
+      if (!emailExists) {
+        try {
+          const checkRes = await safeFetchJson("/api/auth/check-email-exists", {
+            method: "POST",
+            body: JSON.stringify({ email: cleanEmail }),
+          });
+          if (checkRes.data?.exists) {
+            emailExists = true;
+          }
+        } catch (apiErr) {
+          console.warn("Server email lookup check note:", apiErr);
+        }
+      }
+
+      // If email doesn't exist in database:
+      if (!emailExists) {
+        throw new Error("check email and try again or sign up if not register before.");
+      }
+
+      // Step 2: Email exists in database -> proceed to password authentication
       let userCredential: any = null;
       let fbError: any = null;
 
@@ -838,7 +876,6 @@ export default function App() {
 
       if (userCredential?.user) {
         const user = userCredential.user;
-        const userEmailLower = (user.email || "").toLowerCase().trim();
 
         updateDoc(doc(db, "users", user.uid), { isVerified: true }).catch(() => {});
 
@@ -874,7 +911,7 @@ export default function App() {
         } else if (apiRes.error) {
           throw new Error(apiRes.error);
         } else {
-          throw fbError || new Error("user not found sign up/ register please");
+          throw new Error("incorrect password, try forgot password instead");
         }
       }
 
@@ -2379,7 +2416,7 @@ export default function App() {
                           <AlertCircle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
                           <div className="flex-1 leading-relaxed">
                             <div>{authError}</div>
-                            {(authError.includes("register please") || authError.includes("sign up") || authError.includes("not found")) && (
+                            {(authError.includes("sign up if not register before") || authError.includes("check email and try again") || authError.includes("register please") || authError.includes("sign up")) && (
                               <div className="mt-2 pt-2 border-t border-red-200/80 flex items-center justify-between">
                                 <span className="text-[11px] text-red-700 font-normal">Need an account?</span>
                                 <button
@@ -2390,7 +2427,22 @@ export default function App() {
                                   }}
                                   className="text-xs font-bold text-red-900 hover:text-red-950 underline flex items-center gap-1 cursor-pointer bg-transparent border-none p-0 focus:outline-none"
                                 >
-                                  Register now →
+                                  Sign up / Register now →
+                                </button>
+                              </div>
+                            )}
+                            {(authError.includes("try forgot password instead") || authError.includes("incorrect password") || authError.includes("forgot password")) && (
+                              <div className="mt-2 pt-2 border-t border-red-200/80 flex items-center justify-between">
+                                <span className="text-[11px] text-red-700 font-normal">Forgotten your password?</span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setCurrentView("FORGOT_PASSWORD");
+                                    setAuthError(null);
+                                  }}
+                                  className="text-xs font-bold text-red-900 hover:text-red-950 underline flex items-center gap-1 cursor-pointer bg-transparent border-none p-0 focus:outline-none"
+                                >
+                                  Forgot password? Reset here →
                                 </button>
                               </div>
                             )}

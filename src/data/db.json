@@ -1933,14 +1933,14 @@
       "provider": "prov_aspfiy",
       "providerId": "prov_aspfiy",
       "providerName": "Aspfiy Payment Gateway",
-      "bankName": "Paga",
+      "bankName": "PalmPay",
       "accountNumber": "1760364397",
       "accountName": "SMARTLINK CUSTOMER",
       "providerReference": "SL-test-user-123",
       "reference": "SL-test-user-123",
       "accounts": [
         {
-          "bankName": "Paga",
+          "bankName": "PalmPay",
           "accountNumber": "1760364397"
         }
       ],
@@ -3252,14 +3252,14 @@
       "provider": "prov_aspfiy",
       "providerId": "prov_aspfiy",
       "providerName": "Aspfiy Payment Gateway",
-      "bankName": "Paga",
+      "bankName": "PalmPay",
       "accountNumber": "1760364397",
       "accountName": "SMARTLINK CUSTOMER",
       "providerReference": "SL-test-user-123",
       "reference": "SL-test-user-123",
       "accounts": [
         {
-          "bankName": "Paga",
+          "bankName": "PalmPay",
           "accountNumber": "1760364397"
         }
       ],
