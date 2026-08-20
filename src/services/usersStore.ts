@@ -156,7 +156,7 @@ export async function createUser(user: UserDoc): Promise<UserDoc> {
   if (normalizedEmail) {
     const existingUserWithEmail = await getUserByEmail(normalizedEmail);
     if (existingUserWithEmail && existingUserWithEmail.uid !== user.uid) {
-      throw new Error("Sorry, this email already exists. Sign in instead.");
+      throw new Error("email exist sign in instead");
     }
   }
 
@@ -164,7 +164,7 @@ export async function createUser(user: UserDoc): Promise<UserDoc> {
   if (cleanPhone) {
     const existingUserWithPhone = await getUserByPhone(cleanPhone);
     if (existingUserWithPhone && existingUserWithPhone.uid !== user.uid) {
-      throw new Error("This phone number already exists. Sign in instead.");
+      throw new Error('"phone number already linked to another account" change phone number');
     }
   }
 
@@ -187,7 +187,7 @@ export async function createUser(user: UserDoc): Promise<UserDoc> {
   if (snap.exists) {
     const existingData = snap.data() as UserDoc;
     if (existingData.email && existingData.email.toLowerCase().trim() !== normalizedEmail) {
-      throw new Error("Sorry, this email already exists. Sign in instead.");
+      throw new Error("email exist sign in instead");
     }
     return { id: snap.id, uid: existingData.uid || snap.id, ...existingData };
   }

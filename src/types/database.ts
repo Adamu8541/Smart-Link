@@ -234,18 +234,6 @@ export interface ServiceCategoryDocument extends StandardBaseDocument {
   enabled: boolean;
 }
 
-// 15. SupportTicket Document
-export interface SupportTicketDocument extends StandardBaseDocument {
-  ticketId: string;
-  userId: string;
-  userEmail: string;
-  subject: string;
-  message: string;
-  priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
-  assignedTo?: string;
-  resolutionNotes?: string;
-}
-
 // 16. WalletLog Document
 export interface WalletLogDocument extends StandardBaseDocument {
   logId: string;

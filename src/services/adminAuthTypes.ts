@@ -7,7 +7,6 @@ export type AdminRoleType =
   | "SUPER_ADMIN"
   | "ADMIN"
   | "FINANCE_MANAGER"
-  | "SUPPORT_OFFICER"
   | "VERIFICATION_OFFICER"
   | "READ_ONLY_AUDITOR";
 
@@ -38,7 +37,6 @@ export const ADMIN_ROLES_CONFIG: Record<AdminRoleType, AdminRoleDefinition> = {
       "MANAGE_TRANSACTIONS",
       "VIEW_TRANSACTIONS",
       "MANAGE_SERVICES",
-      "MANAGE_SUPPORT",
       "VIEW_REPORTS",
     ],
     colorBadge: "bg-blue-950 text-blue-400 border-blue-800",
@@ -49,13 +47,6 @@ export const ADMIN_ROLES_CONFIG: Record<AdminRoleType, AdminRoleDefinition> = {
     description: "Financial reconciliations, refund processing, pricing configuration & wallet overrides",
     permissions: ["VIEW_DASHBOARD", "MANAGE_WALLET", "MANAGE_REFUNDS", "VIEW_TRANSACTIONS", "VIEW_REPORTS", "MANAGE_SETTINGS"],
     colorBadge: "bg-emerald-950 text-emerald-400 border-emerald-800",
-  },
-  SUPPORT_OFFICER: {
-    role: "SUPPORT_OFFICER",
-    displayName: "Support Officer",
-    description: "Manage support tickets, customer communications, notifications & user profile assistance",
-    permissions: ["VIEW_DASHBOARD", "MANAGE_SUPPORT", "MANAGE_NOTIFICATIONS", "VIEW_USERS", "VIEW_TRANSACTIONS"],
-    colorBadge: "bg-amber-950 text-amber-400 border-amber-800",
   },
   VERIFICATION_OFFICER: {
     role: "VERIFICATION_OFFICER",
@@ -139,7 +130,6 @@ export const ADMIN_ROUTE_PERMISSIONS: Record<string, string[]> = {
   "/admin/refunds": ["MANAGE_REFUNDS", "VIEW_FINANCE"],
   "/admin/reports": ["MANAGE_REPORTS", "VIEW_REPORTS"],
   "/admin/settings": ["MANAGE_SETTINGS", "VIEW_SETTINGS"],
-  "/admin/support": ["MANAGE_TICKETS", "VIEW_SUPPORT"],
   "/admin/security": ["MANAGE_SECURITY", "VIEW_AUDIT_LOGS"],
   "/admin/system": ["MANAGE_SYSTEM", "VIEW_AUDIT_LOGS"],
   "/admin/notifications": ["VIEW_DASHBOARD"],

@@ -90,7 +90,6 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
   {
     title: "OPERATIONS & SYSTEM",
     items: [
-      { id: "NAV_SUPPORT", label: "Customer Support", path: "/admin/support", icon: HelpCircle, requiredPermissions: ["MANAGE_TICKETS", "VIEW_SUPPORT"] },
       { id: "NAV_SECURITY", label: "Security & Audit Logs", path: "/admin/security", icon: Shield, requiredPermissions: ["MANAGE_SECURITY", "VIEW_AUDIT_LOGS"] },
       { id: "NAV_SETTINGS", label: "System Settings", path: "/admin/settings", icon: Settings, requiredPermissions: ["MANAGE_SETTINGS", "VIEW_SETTINGS"] },
       { id: "NAV_SYSTEM", label: "System Logs & Health", path: "/admin/system", icon: Activity, requiredPermissions: ["MANAGE_SYSTEM", "VIEW_AUDIT_LOGS"] },

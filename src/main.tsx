@@ -3,17 +3,23 @@ import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 
-// Suppress benign Vite WebSocket / HMR connection errors in sandboxed runtime environment
+// Suppress benign Vite WebSocket / HMR and iframe database lifecycle errors in sandboxed runtime environment
 if (typeof window !== 'undefined') {
-  const isViteWsError = (str: string) => {
+  const isIgnorableRuntimeError = (str: string) => {
     const lower = (str || '').toLowerCase();
     return (
       lower.includes('websocket') ||
       lower.includes('vite') ||
       lower.includes('ws://') ||
       lower.includes('wss://') ||
-      lower.includes('closed without opened')
-    ) && !lower.includes('smartlink');
+      lower.includes('closed without opened') ||
+      lower.includes('database is closing') ||
+      lower.includes('database is hidden') ||
+      lower.includes('database is closing/hidden') ||
+      lower.includes('database connection is closing') ||
+      lower.includes('transaction was aborted') ||
+      lower.includes('the database is closed')
+    ) && !lower.includes('smartlink-critical');
   };
 
   const origError = console.error;
@@ -21,7 +27,7 @@ if (typeof window !== 'undefined') {
     const fullMsg = args
       .map((a) => (typeof a === 'string' ? a : a?.message || (a?.stack ? a.stack : String(a || ''))))
       .join(' ');
-    if (isViteWsError(fullMsg)) return;
+    if (isIgnorableRuntimeError(fullMsg)) return;
     origError.apply(console, args);
   };
 
@@ -30,7 +36,7 @@ if (typeof window !== 'undefined') {
     const fullMsg = args
       .map((a) => (typeof a === 'string' ? a : a?.message || String(a || '')))
       .join(' ');
-    if (isViteWsError(fullMsg)) return;
+    if (isIgnorableRuntimeError(fullMsg)) return;
     origWarn.apply(console, args);
   };
 
@@ -42,7 +48,7 @@ if (typeof window !== 'undefined') {
         typeof reason === 'string'
           ? reason
           : reason?.message || String(reason || '');
-      if (isViteWsError(message)) {
+      if (isIgnorableRuntimeError(message)) {
         event.preventDefault();
         event.stopPropagation();
         if (typeof event.stopImmediatePropagation === 'function') {
@@ -57,7 +63,7 @@ if (typeof window !== 'undefined') {
     'error',
     (event) => {
       const message = event?.message || event?.error?.message || '';
-      if (isViteWsError(message)) {
+      if (isIgnorableRuntimeError(message)) {
         event.preventDefault();
         event.stopPropagation();
         if (typeof event.stopImmediatePropagation === 'function') {

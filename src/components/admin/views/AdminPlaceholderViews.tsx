@@ -190,33 +190,6 @@ export function AdminReportsView({ session, onNavigate }: PlaceholderViewProps) 
   );
 }
 
-export function AdminSupportView({ session, onNavigate }: PlaceholderViewProps) {
-  return (
-    <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 space-y-6">
-      <div className="flex items-center justify-between border-b border-slate-800 pb-5">
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-indigo-950 border border-indigo-800 rounded-2xl text-indigo-400">
-            <HelpCircle className="h-6 w-6" />
-          </div>
-          <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400">Customer Desk</span>
-            <h1 className="text-xl font-bold text-white">Customer Support Tickets</h1>
-            <p className="text-xs text-slate-400 mt-0.5">Respond to customer inquiries, complaints, and ticket escalations.</p>
-          </div>
-        </div>
-        <button type="button" onClick={() => onNavigate("/admin/dashboard")} className="py-2 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer">
-          <ArrowLeft className="h-3.5 w-3.5" /> Back to Dashboard
-        </button>
-      </div>
-
-      <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl flex items-center gap-3 text-xs text-slate-300">
-        <Info className="h-4 w-4 text-indigo-400 shrink-0" />
-        <span>Module 2 Shell Active — Support desk portal & ticket resolution engine. RBAC Route Guard: <strong className="text-emerald-400 font-mono">ENFORCED</strong>.</span>
-      </div>
-    </div>
-  );
-}
-
 export function AdminSecurityView({ session, onNavigate }: PlaceholderViewProps) {
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 space-y-6">

@@ -43,7 +43,6 @@ const ALL_PERMISSIONS: { id: SubAdminPermission; label: string; desc: string }[]
   { id: SubAdminPermission.MANAGE_USERS, label: "Users & KYC", desc: "View and manage user accounts, status & KYC" },
   { id: SubAdminPermission.MANAGE_TRANSACTIONS, label: "Transactions", desc: "View, approve & refund user wallet transactions" },
   { id: SubAdminPermission.MANAGE_SERVICES, label: "VTU Services", desc: "Manage VTU data, airtime, power & cable services" },
-  { id: SubAdminPermission.MANAGE_SUPPORT, label: "Support Tickets", desc: "View and respond to customer support tickets" },
   { id: SubAdminPermission.MANAGE_PRICES, label: "Provider APIs", desc: "Configure gateway providers & API credentials" },
   { id: SubAdminPermission.MANAGE_THEME, label: "System Settings", desc: "Configure system maintenance & site branding" },
   { id: SubAdminPermission.MANAGE_CAC, label: "CAC Verification", desc: "Process identity and CAC business verification" },
@@ -67,7 +66,7 @@ export default function AdminPermissionsView({ session, onNavigate }: AdminPermi
   const [newPassword, setNewPassword] = useState("");
   const [newPermissions, setNewPermissions] = useState<string[]>([
     SubAdminPermission.MANAGE_USERS,
-    SubAdminPermission.MANAGE_SUPPORT
+    SubAdminPermission.MANAGE_TRANSACTIONS
   ]);
   const [creating, setCreating] = useState(false);
 
@@ -224,7 +223,7 @@ export default function AdminPermissionsView({ session, onNavigate }: AdminPermi
       setNewEmail("");
       setNewPhone("");
       setNewPassword("");
-      setNewPermissions([SubAdminPermission.MANAGE_USERS, SubAdminPermission.MANAGE_SUPPORT]);
+      setNewPermissions([SubAdminPermission.MANAGE_USERS, SubAdminPermission.MANAGE_TRANSACTIONS]);
       fetchSubAdmins();
     } catch (err: any) {
       setStatusMessage({ type: "error", text: err.message || "Failed to create sub-admin account." });

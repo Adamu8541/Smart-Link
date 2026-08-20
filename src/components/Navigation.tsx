@@ -102,7 +102,6 @@ export default function Navigation({
       currentUser.role === UserRole.SUB_ADMIN ||
       currentUser.role === UserRole.STAFF ||
       currentUser.role === UserRole.FINANCE_OFFICER ||
-      currentUser.role === UserRole.SUPPORT_AGENT ||
       currentUser.email?.toLowerCase() === "adamuamuhammad8541@gmail.com"
     )
   );
@@ -122,7 +121,6 @@ export default function Navigation({
         { id: "WALLET_FINANCE", label: "Wallet & Finance", icon: Wallet, viewId: "DASHBOARD", tabId: "OVERVIEW" },
         { id: "SERVICES_HISTORY", label: "Services History", icon: Clock, viewId: "DASHBOARD", tabId: "ACTIVITY_FEED" },
         { id: "API_DEVELOPERS", label: "API & Developers", icon: Code, viewId: "MARKETPLACE" },
-        { id: "CUSTOMER_SUPPORT", label: "Customer Support", icon: HelpCircle, viewId: "USER_SUPPORT" },
       ]
     },
     {

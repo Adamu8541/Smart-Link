@@ -111,7 +111,6 @@ export default function UserManagementAdmin({
       superAdmin: user.role === UserRole.SUPER_ADMIN,
       admin: user.role === UserRole.ADMIN || user.role === UserRole.SUPER_ADMIN,
       staff: user.role === UserRole.STAFF,
-      support: user.role === UserRole.SUPPORT_AGENT,
       finance: user.role === UserRole.FINANCE_OFFICER,
     });
   };
@@ -281,7 +280,6 @@ export default function UserManagementAdmin({
             <option value={UserRole.ADMIN}>Admin</option>
             <option value={UserRole.SUPER_ADMIN}>Super Admin</option>
             <option value={UserRole.STAFF}>Staff</option>
-            <option value={UserRole.SUPPORT_AGENT}>Support Agent</option>
             <option value={UserRole.FINANCE_OFFICER}>Finance Officer</option>
             <option value={UserRole.AGENT_VENDOR}>Agent Vendor</option>
           </select>
@@ -448,7 +446,6 @@ export default function UserManagementAdmin({
                 >
                   <option value={UserRole.CUSTOMER}>Customer (Standard User)</option>
                   <option value={UserRole.STAFF}>Staff Member</option>
-                  <option value={UserRole.SUPPORT_AGENT}>Support Agent</option>
                   <option value={UserRole.FINANCE_OFFICER}>Finance Officer</option>
                   <option value={UserRole.AGENT_VENDOR}>Agent Vendor</option>
                   <option value={UserRole.ADMIN} disabled={!isSuperAdmin}>

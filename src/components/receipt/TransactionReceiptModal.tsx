@@ -13,7 +13,6 @@ import {
   Mail
 } from "lucide-react";
 import { ReceiptDocument, TransactionDocument } from "../../types/database";
-import { QRCodeSVG } from "./QRCodeSVG";
 
 interface TransactionReceiptModalProps {
   receipt?: ReceiptDocument | null;
@@ -55,8 +54,6 @@ export const TransactionReceiptModal: React.FC<TransactionReceiptModalProps> = (
   const userEmail = receipt?.userEmail || "user@smartlink.com";
   const balanceBefore = receipt?.balanceBefore ?? (receipt as any)?.previousBalance ?? transaction?.balanceBefore;
   const balanceAfter = receipt?.balanceAfter ?? (receipt as any)?.newBalance ?? transaction?.balanceAfter;
-
-  const qrData = `SMARTLINK-RECEIPT|REF:${ref}|STATUS:${status}|AMOUNT:${totalAmount}NGN|DATE:${formattedDate}`;
 
   const handleCopyRef = () => {
     navigator.clipboard.writeText(ref);
@@ -235,18 +232,20 @@ export const TransactionReceiptModal: React.FC<TransactionReceiptModalProps> = (
             )}
           </div>
 
-          {/* QR Code & Footer Security Seal */}
+          {/* Footer Security Seal */}
           <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/60 dark:border-slate-800">
             <div className="space-y-1 text-left">
               <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 dark:text-white">
                 <ShieldCheck className="w-4 h-4 text-emerald-500" />
                 Verified Digital Receipt
               </div>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 max-w-[200px]">
-                Scan QR code to verify authenticity on SmartLink core network.
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                Official transaction record verified on SmartLink core network.
               </p>
             </div>
-            <QRCodeSVG value={qrData} size={70} />
+            <div className="px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono text-[11px] font-bold">
+              VERIFIED
+            </div>
           </div>
         </div>
 

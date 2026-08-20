@@ -10,7 +10,6 @@ import ServicesGrid, { ServiceItem } from "./components/ServicesGrid";
 import ServiceModal from "./components/ServiceModal";
 import Dashboards from "./components/Dashboards";
 import Marketplace from "./components/Marketplace";
-import AIAutomationSuite from "./components/AIAutomationSuite";
 import Navigation from "./components/Navigation";
 import AdminLogin from "./components/admin/AdminLogin";
 import AdminGuard from "./components/admin/AdminGuard";
@@ -25,9 +24,7 @@ import { AdminProvidersView } from "./components/admin/views/AdminProvidersView"
 import ApiRequestBuilderView from "./components/admin/views/ApiRequestBuilderView";
 import ApiResponseMapperView from "./components/admin/views/ApiResponseMapperView";
 import { AdminSettingsView } from "./components/admin/views/AdminSettingsView";
-import { AdminSupportView } from "./components/admin/views/AdminSupportView";
 import { AdminNotificationsView } from "./components/admin/views/AdminNotificationsView";
-import { UserSupportContainer } from "./components/support/UserSupportContainer";
 import { UserNotificationCenter } from "./components/notification/UserNotificationCenter";
 import { AdminSecurityView } from "./components/admin/views/AdminSecurityView";
 import { AdminServicesView } from "./components/admin/views/AdminServicesView";
@@ -205,8 +202,6 @@ export default function App() {
     "/dashboard": "DASHBOARD",
     "/services": "SERVICES",
     "/marketplace": "MARKETPLACE",
-    "/ai-automation": "AI_SUITE",
-    "/support": "SUPPORT",
     "/notifications": "NOTIFICATIONS",
     "/admin/login": "ADMIN_LOGIN",
     "/admin/dashboard": "ADMIN_DASHBOARD",
@@ -221,7 +216,6 @@ export default function App() {
     "/admin/refunds": "ADMIN_REFUNDS",
     "/admin/reports": "ADMIN_REPORTS",
     "/admin/settings": "ADMIN_SETTINGS",
-    "/admin/support": "ADMIN_SUPPORT",
     "/admin/security": "ADMIN_SECURITY",
     "/admin/security/audit-logs": "ADMIN_SECURITY",
     "/admin/security/login-history": "ADMIN_SECURITY",
@@ -245,8 +239,6 @@ export default function App() {
     DASHBOARD: "/dashboard",
     SERVICES: "/services",
     MARKETPLACE: "/marketplace",
-    AI_SUITE: "/ai-automation",
-    SUPPORT: "/support",
     NOTIFICATIONS: "/notifications",
     ADMIN_LOGIN: "/admin/login",
     ADMIN_DASHBOARD: "/admin/dashboard",
@@ -258,7 +250,6 @@ export default function App() {
     ADMIN_REFUNDS: "/admin/refunds",
     ADMIN_REPORTS: "/admin/reports",
     ADMIN_SETTINGS: "/admin/settings",
-    ADMIN_SUPPORT: "/admin/support",
     ADMIN_SECURITY: "/admin/security",
     ADMIN_SYSTEM: "/admin/system",
     ADMIN_NOTIFICATIONS: "/admin/notifications",
@@ -988,7 +979,7 @@ export default function App() {
           const emailSnap = await withTimeout(getDocs(emailQuery), 3000);
           if (!emailSnap.empty) {
             soundFx.playErrorSound();
-            setAuthError("Sorry, this email already exists. Sign in instead.");
+            setAuthError("email exist sign in instead");
             setAuthLoading(false);
             return;
           }
@@ -1004,7 +995,7 @@ export default function App() {
       });
       if (emailCheckRes.data?.exists) {
         soundFx.playErrorSound();
-        setAuthError("Sorry, this email already exists. Sign in instead.");
+        setAuthError("email exist sign in instead");
         setAuthLoading(false);
         return;
       }
@@ -1016,7 +1007,7 @@ export default function App() {
           const phoneSnap = await withTimeout(getDocs(phoneQuery), 3000);
           if (!phoneSnap.empty) {
             soundFx.playErrorSound();
-            setAuthError("This phone number already exists. Sign in instead.");
+            setAuthError('"phone number already linked to another account" change phone number');
             setAuthLoading(false);
             return;
           }
@@ -1032,7 +1023,7 @@ export default function App() {
       });
       if (phoneCheckRes.data?.exists) {
         soundFx.playErrorSound();
-        setAuthError("This phone number already exists. Sign in instead.");
+        setAuthError('"phone number already linked to another account" change phone number');
         setAuthLoading(false);
         return;
       }
@@ -1705,38 +1696,6 @@ export default function App() {
             )
           )}
 
-          {currentView === "AI_SUITE" && (
-            currentUser ? (
-              <AIAutomationSuite userEmail={currentUser?.email} />
-            ) : (
-              <div className="max-w-md mx-auto my-16 px-4">
-                <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm text-center space-y-6">
-                  <div className="h-12 w-12 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center mx-auto text-indigo-600">
-                    <Lock className="h-5 w-5" />
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="text-base font-black text-slate-900">AI Automation Suite Restricted</h3>
-                    <p className="text-xs text-slate-500 leading-relaxed max-w-xs mx-auto">
-                      Please log in to access our real-time smart advisor, custom legal business drafters, and localized market insights.
-                    </p>
-                  </div>
-                  <div className="flex flex-col gap-2 pt-2">
-                    <button
-                      onClick={() => {
-                        setCurrentView("DASHBOARD");
-                        setIsRegistering(false);
-                        setAuthError(null);
-                      }}
-                      className="w-full py-2.5 bg-slate-900 text-white hover:bg-blue-600 hover:text-white font-bold rounded-lg text-xs transition-all cursor-pointer shadow-xs"
-                    >
-                      Secure Portal Login
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )
-          )}
-
           {/* Admin Login View */}
           {currentView === "ADMIN_LOGIN" && (
             <div className="w-full bg-slate-950 min-h-[calc(100vh-75px)] flex flex-col items-center justify-center p-4 md:p-8">
@@ -1904,16 +1863,6 @@ export default function App() {
                       />
                     )}
 
-                    {currentView === "ADMIN_SUPPORT" && (
-                      <AdminSupportView
-                        session={adminSession}
-                        onNavigate={(routePath) => {
-                          const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
-                          setCurrentView(targetView);
-                        }}
-                      />
-                    )}
-
                     {currentView === "ADMIN_SECURITY" && (
                       <AdminSecurityView
                         session={adminSession}
@@ -1960,13 +1909,6 @@ export default function App() {
               isDarkMode={isDarkMode}
               onToggleDarkMode={handleToggleDarkMode}
               onSelectService={setSelectedService}
-            />
-          )}
-
-          {currentView === "USER_SUPPORT" && (
-            <UserSupportContainer
-              currentUser={currentUser}
-              onNavigateHome={() => setCurrentView("DASHBOARD")}
             />
           )}
 
@@ -2597,7 +2539,25 @@ export default function App() {
                       {authError && (
                         <div role="alert" aria-live="polite" className="p-3.5 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-xl font-medium flex items-start gap-2.5 animate-fadeIn text-left">
                           <AlertCircle className="h-4 w-4 text-rose-500 shrink-0 mt-0.5" />
-                          <div className="flex-1 leading-relaxed">{authError}</div>
+                          <div className="flex-1 leading-relaxed">
+                            <div>{authError}</div>
+                            {authError.toLowerCase().includes("email exist") && (
+                              <div className="mt-2 pt-2 border-t border-rose-200/80 flex items-center justify-between">
+                                <span className="text-[11px] text-rose-700 font-normal">Already have an account?</span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setIsRegistering(false);
+                                    setAuthEmail(regEmail);
+                                    setAuthError(null);
+                                  }}
+                                  className="text-xs font-bold text-rose-900 hover:text-rose-950 underline flex items-center gap-1 cursor-pointer bg-transparent border-none p-0 focus:outline-none"
+                                >
+                                  Sign In now →
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       )}
 

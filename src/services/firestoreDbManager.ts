@@ -196,7 +196,6 @@ export const ApiProvidersRepo = new FirestoreRepository<any>("apiProviders");
 export const ProviderLogsRepo = new FirestoreRepository<any>("providerLogs");
 export const ServicePricingRepo = new FirestoreRepository<any>("servicePricing");
 export const ServiceCategoriesRepo = new FirestoreRepository<any>("serviceCategories");
-export const SupportTicketsRepo = new FirestoreRepository<any>("supportTickets");
 export const WalletLogsRepo = new FirestoreRepository<any>("walletLogs");
 export const WalletFundingRepo = new FirestoreRepository<any>("walletFunding");
 export const WithdrawalsRepo = new FirestoreRepository<any>("withdrawals");

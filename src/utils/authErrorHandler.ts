@@ -98,9 +98,21 @@ export function getFriendlyErrorMessage(error: any): string {
     rawMsg.includes("email-already-in-use") ||
     rawMsg.includes("email-already-exists") ||
     rawMsg.includes("User already exists") ||
-    rawMsg.includes("email already exists")
+    rawMsg.includes("email already exists") ||
+    rawMsg.includes("email exist") ||
+    rawMsg.includes("email exist sign in instead")
   ) {
-    return "Sorry, this email already exists. Sign in instead.";
+    return "email exist sign in instead";
+  }
+
+  if (
+    rawMsg.includes("phone number already linked to another account") ||
+    rawMsg.includes("change phone number") ||
+    rawMsg.includes("phone number already exists") ||
+    rawMsg.includes("phone-already-in-use") ||
+    rawMsg.includes("phone already exists")
+  ) {
+    return '"phone number already linked to another account" change phone number';
   }
 
   if (

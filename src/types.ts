@@ -7,7 +7,6 @@ export enum UserRole {
   CUSTOMER = "CUSTOMER",
   AGENT_VENDOR = "AGENT_VENDOR",
   STAFF = "STAFF",
-  SUPPORT_AGENT = "SUPPORT_AGENT",
   FINANCE_OFFICER = "FINANCE_OFFICER",
   ADMIN = "ADMIN",
   SUB_ADMIN = "SUB_ADMIN",
@@ -20,7 +19,6 @@ export enum SubAdminPermission {
   MANAGE_PRICES = "manage_prices",
   MANAGE_TRANSACTIONS = "manage_transactions",
   MANAGE_CAC = "manage_cac",
-  MANAGE_SUPPORT = "manage_support",
   MANAGE_SERVICES = "manage_services",
   MANAGE_THEME = "manage_theme",
   MANAGE_SUBADMINS = "manage_subadmins"
@@ -204,17 +202,6 @@ export interface CACApplication {
   proprietors: { name: string; email: string; phone: string; address: string }[];
   status: "PENDING" | "PROCESSING" | "APPROVED" | "REJECTED";
   comments?: string;
-  createdAt: string;
-}
-
-export interface SupportTicket {
-  id: string;
-  userId: string;
-  subject: string;
-  message: string;
-  status: "OPEN" | "RESOLVED" | "CLOSED";
-  reply?: string;
-  repliedBy?: string;
   createdAt: string;
 }
 

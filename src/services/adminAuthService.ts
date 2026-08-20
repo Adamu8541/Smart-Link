@@ -373,7 +373,7 @@ export class AdminAuthService {
       if (uData) {
         const saEnvEmail = (process.env.SUPER_ADMIN_EMAIL || "").toLowerCase().trim();
         const isSuperAdminEmail = Boolean(saEnvEmail && email === saEnvEmail);
-        const adminRoles = ["SUPER_ADMIN", "ADMIN", "SUB_ADMIN", "STAFF", "FINANCE_MANAGER", "SUPPORT_OFFICER", "VERIFICATION_OFFICER", "READ_ONLY_AUDITOR"];
+        const adminRoles = ["SUPER_ADMIN", "ADMIN", "SUB_ADMIN", "STAFF", "FINANCE_MANAGER", "VERIFICATION_OFFICER", "READ_ONLY_AUDITOR"];
 
         if (adminRoles.includes(uData.role) || isSuperAdminEmail) {
           const assignedRole: AdminRoleType = isSuperAdminEmail || uData.role === "SUPER_ADMIN" ? "SUPER_ADMIN" : (uData.role as AdminRoleType) || "ADMIN";
@@ -971,9 +971,9 @@ export class AdminAuthService {
 
     // Test 5: Route Guard Enforcement & Access Control
     const t5Start = Date.now();
-    const tempSuppUid = `adm_test_supp_${Date.now()}`;
-    const tempSuppEmail = `test_supp_${Date.now()}_${Math.floor(Math.random() * 1000)}@test.local`;
-    const tempSuppPass = `TestSuppPass_${Date.now()}!`;
+    const tempSuppUid = `adm_test_vo_${Date.now()}`;
+    const tempSuppEmail = `test_vo_${Date.now()}_${Math.floor(Math.random() * 1000)}@test.local`;
+    const tempSuppPass = `TestVoPass_${Date.now()}!`;
     const tempSuppSalt = generateSalt();
     const tempSuppHash = hashPassword(tempSuppPass, tempSuppSalt);
 
@@ -983,9 +983,9 @@ export class AdminAuthService {
         await fsDb.collection("admin_users").doc(tempSuppUid).set({
           uid: tempSuppUid,
           email: tempSuppEmail,
-          fullName: "Test Support Officer",
-          role: "SUPPORT_OFFICER",
-          permissions: ADMIN_ROLES_CONFIG.SUPPORT_OFFICER.permissions,
+          fullName: "Test Verification Officer",
+          role: "VERIFICATION_OFFICER",
+          permissions: ADMIN_ROLES_CONFIG.VERIFICATION_OFFICER.permissions,
           status: "ACTIVE",
           passwordHash: tempSuppHash,
           salt: tempSuppSalt,
@@ -1004,13 +1004,13 @@ export class AdminAuthService {
             testName: "5. Route Guard & Path Access Restriction",
             status: "PASSED",
             durationMs: Date.now() - t5Start,
-            details: "Route guard restricted Support Officer from /admin/wallet while allowing /admin/dashboard.",
+            details: "Route guard restricted Verification Officer from /admin/wallet while allowing /admin/dashboard.",
           });
         } else {
           throw new Error("Route guard failed to enforce path permissions.");
         }
       } else {
-        throw new Error("Support Officer login failed for route guard test.");
+        throw new Error("Verification Officer login failed for route guard test.");
       }
     } catch (err: any) {
       results.push({

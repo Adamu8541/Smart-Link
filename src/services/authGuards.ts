@@ -30,14 +30,13 @@ export class AuthGuardService {
     const isSuper = userRole === UserRole.SUPER_ADMIN || claims?.superAdmin === true;
     const isAdmin = isSuper || userRole === UserRole.ADMIN || userRole === UserRole.SUB_ADMIN || claims?.admin === true;
     const isFinance = isSuper || isAdmin || userRole === UserRole.FINANCE_OFFICER || claims?.finance === true;
-    const isSupport = isSuper || isAdmin || userRole === UserRole.SUPPORT_AGENT || userRole === UserRole.STAFF || claims?.support === true;
     const isStaff = isSuper || isAdmin || userRole === UserRole.STAFF || claims?.staff === true;
 
     return {
       canAccessAdmin: isAdmin,
       canAccessSuperAdmin: isSuper,
       canAccessFinance: isFinance,
-      canAccessSupport: isSupport,
+      canAccessSupport: false,
       canAccessUsers: isAdmin,
       canAccessServices: isStaff || isAdmin,
       canAccessWallet: true,

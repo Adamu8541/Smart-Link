@@ -40,7 +40,7 @@ import {
   Copy,
   Check
 } from "lucide-react";
-import { UserProfile, UserRole, Transaction, CACApplication, SupportTicket } from "../types";
+import { UserProfile, UserRole, Transaction, CACApplication } from "../types";
 import { ProviderService, getAuthHeaders } from "../services/providerService";
 import { safeFetchJson } from "../utils/authErrorHandler";
 import { jsPDF } from "jspdf";
@@ -173,7 +173,6 @@ export default function Dashboards({
 }: DashboardsProps) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [cacApps, setCacApps] = useState<CACApplication[]>([]);
-  const [tickets, setTickets] = useState<SupportTicket[]>([]);
 
   const [activeTab, setActiveTab] = useState<"OVERVIEW" | "ACTIVITY_FEED">("OVERVIEW");
   const [activityFilter, setActivityFilter] = useState<string>("ALL");
@@ -185,8 +184,6 @@ export default function Dashboards({
   const [showFundInput, setShowFundInput] = useState(false);
   const [transferEmail, setTransferEmail] = useState("");
   const [transferAmount, setTransferAmount] = useState("");
-  const [ticketSubject, setTicketSubject] = useState("");
-  const [ticketMsg, setTicketMsg] = useState("");
 
   // Agent Service states
   const [srvTitle, setSrvTitle] = useState("");
@@ -293,9 +290,6 @@ export default function Dashboards({
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
 
-  // Admin/Staff Action states
-  const [replyText, setReplyText] = useState<{ [ticketId: string]: string }>({});
-
   const loadData = async () => {
     if (!currentUser?.uid) return;
     try {
@@ -307,12 +301,6 @@ export default function Dashboards({
         setTransactions(txRes.data.transactions);
       }
 
-      // Load user support tickets
-      const tkRes = await safeFetchJson<{ tickets: SupportTicket[] }>(`/api/tickets/user/${currentUser.uid}`, { headers });
-      if (tkRes.ok && tkRes.data?.tickets) {
-        setTickets(tkRes.data.tickets);
-      }
-
       // Load CAC Applications
       let cacUrl = `/api/cac/user/${currentUser.uid}`;
       if (currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.STAFF || currentUser.role === UserRole.SUPER_ADMIN) {
@@ -321,14 +309,6 @@ export default function Dashboards({
       const cacRes = await safeFetchJson<{ applications: CACApplication[] }>(cacUrl, { headers });
       if (cacRes.ok && cacRes.data?.applications) {
         setCacApps(cacRes.data.applications);
-      }
-
-      // Load all tickets for Admin/Staff
-      if (currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.STAFF || currentUser.role === UserRole.SUPER_ADMIN) {
-        const allTkRes = await safeFetchJson<{ tickets: SupportTicket[] }>("/api/tickets/all", { headers });
-        if (allTkRes.ok && allTkRes.data?.tickets) {
-          setTickets(allTkRes.data.tickets);
-        }
       }
 
       // Load Admin Financials
@@ -462,28 +442,6 @@ export default function Dashboards({
           description: `CAC Registry flagged proposed names. Reason: ${app.comments || "Corporate name similarity conflict detected."}`,
           type: "CAC_FILING",
           status: "WARNING",
-        });
-      }
-    });
-
-    tickets.forEach((tk) => {
-      list.push({
-        id: `ticket-open-${tk.id}`,
-        timestamp: new Date(tk.createdAt || Date.now()),
-        title: "Technical Support Ticket Opened",
-        description: `Subject: "${tk.subject}". Query: "${tk.message}"`,
-        type: "SUPPORT",
-        status: tk.status === "RESOLVED" ? "RESOLVED" : "PENDING",
-      });
-
-      if (tk.reply) {
-        list.push({
-          id: `ticket-reply-${tk.id}`,
-          timestamp: new Date(new Date(tk.createdAt || Date.now()).getTime() + 900000),
-          title: "Technical Support Ticket Resolved",
-          description: `Staff Resolution: "${tk.reply}" (Resolved by ${tk.repliedBy})`,
-          type: "SUPPORT",
-          status: "SUCCESS",
         });
       }
     });
@@ -663,37 +621,6 @@ export default function Dashboards({
     }
   };
 
-  // Create ticket
-  const handleCreateTicket = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setActionError(null);
-    setActionSuccess(null);
-    setActionLoading(true);
-
-    try {
-      const authHeaders = await getAuthHeaders();
-      const res = await safeFetchJson<{ error?: string }>("/api/tickets/create", {
-        method: "POST",
-        headers: { ...authHeaders, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: currentUser.uid,
-          subject: ticketSubject,
-          message: ticketMsg,
-        }),
-      });
-      if (!res.ok) throw new Error(res.error || "Ticket failed");
-
-      setActionSuccess("Support ticket opened! Our technical staff will respond shortly.");
-      setTicketSubject("");
-      setTicketMsg("");
-      loadData();
-    } catch (err: any) {
-      setActionError(err.message);
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
   // Agent: Add Marketplace Service
   const handleAddService = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -746,31 +673,6 @@ export default function Dashboards({
       });
       if (res.ok) {
         alert(`Application status updated to ${status}!`);
-        loadData();
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  // Staff/Admin: Reply Ticket
-  const handleTicketReply = async (id: string) => {
-    const text = replyText[id];
-    if (!text) return;
-
-    try {
-      const authHeaders = await getAuthHeaders();
-      const res = await safeFetchJson(`/api/tickets/reply/${id}`, {
-        method: "POST",
-        headers: { ...authHeaders, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          reply: text,
-          repliedBy: currentUser.fullName,
-        }),
-      });
-      if (res.ok) {
-        alert("Reply submitted!");
-        setReplyText((prev) => ({ ...prev, [id]: "" }));
         loadData();
       }
     } catch (err) {
@@ -1164,7 +1066,7 @@ export default function Dashboards({
             {(currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.STAFF) && (
               <div className="grid lg:grid-cols-12 gap-8 pt-4">
                 {/* Pending CAC Registries */}
-                <div className="lg:col-span-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-2xs text-left space-y-4">
+                <div className="lg:col-span-12 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-2xs text-left space-y-4">
                   <div className="border-b pb-3">
                     <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                       <Briefcase className="h-4.5 w-4.5 text-blue-500" />
@@ -1209,63 +1111,6 @@ export default function Dashboards({
                               >
                                 Approve Name File
                               </button>
-                            </div>
-                          )}
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-
-                {/* Support Response Desk */}
-                <div className="lg:col-span-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-2xs text-left space-y-4">
-                  <div className="border-b pb-3">
-                    <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                      <MessageSquare className="h-4.5 w-4.5 text-blue-500" />
-                      Support Ticket Resolutions Desk
-                    </h2>
-                    <p className="text-xs text-slate-500">Manage issues regarding bill utilities and examinations</p>
-                  </div>
-
-                  <div className="space-y-4 divide-y">
-                    {tickets.length === 0 ? (
-                      <p className="text-xs text-slate-400 py-6 text-center font-mono">No support tickets currently open.</p>
-                    ) : (
-                      tickets.map((tk) => (
-                        <div key={tk.id} className="pt-4 space-y-3">
-                          <div className="flex justify-between items-center">
-                            <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">{tk.subject}</h4>
-                            <span className={`px-2 py-0.5 rounded text-[10px] font-mono ${
-                              tk.status === "OPEN" ? "bg-amber-100 text-amber-800" : "bg-indigo-100 text-indigo-800"
-                            }`}>
-                              {tk.status}
-                            </span>
-                          </div>
-                          <p className="text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-950/40 p-2.5 rounded font-mono">
-                            {tk.message}
-                          </p>
-
-                          {tk.reply ? (
-                            <div className="p-2.5 rounded bg-indigo-50/50 border border-indigo-100 text-xs">
-                              <strong>Staff Response:</strong> <p className="text-slate-600 mt-1">{tk.reply}</p>
-                            </div>
-                          ) : (
-                            <div className="space-y-2">
-                              <textarea
-                                value={replyText[tk.id] || ""}
-                                onChange={(e) => setReplyText((prev) => ({ ...prev, [tk.id]: e.target.value }))}
-                                placeholder="Type resolution message here..."
-                                rows={2}
-                                className="w-full px-3 py-1.5 rounded border text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                              />
-                              <div className="flex justify-end">
-                                <button
-                                  onClick={() => handleTicketReply(tk.id)}
-                                  className="px-3 py-1 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded text-xs cursor-pointer"
-                                >
-                                  Dispatch Resolution
-                                </button>
-                              </div>
                             </div>
                           )}
                         </div>

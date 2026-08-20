@@ -168,7 +168,6 @@ export function EditProfileModal({ isOpen, onClose, session, onSuccess, user }: 
                 <option value={UserRole.CUSTOMER}>Customer (Standard Tier)</option>
                 <option value={UserRole.AGENT_VENDOR}>Agent Vendor (Discount Tier)</option>
                 <option value={UserRole.STAFF}>Staff Member</option>
-                <option value={UserRole.SUPPORT_AGENT}>Support Agent</option>
                 <option value={UserRole.FINANCE_OFFICER}>Finance Officer</option>
                 <option value={UserRole.SUB_ADMIN}>Sub Admin</option>
                 <option value={UserRole.ADMIN}>Administrator</option>
