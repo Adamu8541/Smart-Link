@@ -1,22 +1,18 @@
 /**
- * SmartLink Admin Panel — Left Sidebar Navigation Component (Module 2)
+ * SmartLink Admin Panel — Left Sidebar Navigation Component
+ * Homepage Theme Matching (#0F2D5C, #F5F7FA, #111827, #E5E7EB)
  */
 
 import React from "react";
-import { motion, AnimatePresence } from "motion/react";
 import {
-  ShieldCheck,
   LayoutDashboard,
   Users,
   Wallet,
   CheckSquare,
-  Receipt,
   Server,
   BarChart3,
   DollarSign,
   FileText,
-  HelpCircle,
-  Bell,
   Shield,
   Settings,
   Activity,
@@ -24,11 +20,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Lock,
-  Zap,
   Globe,
   Code,
   ArrowRightLeft,
-  KeyRound
+  KeyRound,
+  RotateCcw
 } from "lucide-react";
 import { AdminSession, ADMIN_ROLES_CONFIG } from "../../../services/adminAuthTypes";
 import logoImg from "../../../assets/images/smartlink_logo_1785934050308.jpg";
@@ -83,8 +79,8 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
     title: "FINANCIALS & LEDGER",
     items: [
       { id: "NAV_TRANSACTIONS", label: "Transactions Ledger", path: "/admin/transactions", icon: BarChart3, requiredPermissions: ["MANAGE_TRANSACTIONS", "VIEW_TRANSACTIONS"] },
-      { id: "NAV_REFUNDS", label: "Refunds Portal", path: "/admin/refunds", icon: DollarSign, requiredPermissions: ["MANAGE_REFUNDS", "VIEW_FINANCE"] },
-      { id: "NAV_REPORTS", label: "Audit & Settlement Reports", path: "/admin/reports", icon: FileText, requiredPermissions: ["MANAGE_REPORTS", "VIEW_REPORTS"] },
+      { id: "NAV_REFUNDS", label: "Refunds Portal", path: "/admin/refunds", icon: RotateCcw, requiredPermissions: ["MANAGE_REFUNDS", "VIEW_FINANCE"] },
+      { id: "NAV_REPORTS", label: "Financial Reports", path: "/admin/reports", icon: FileText, requiredPermissions: ["MANAGE_REPORTS", "VIEW_REPORTS"] },
     ],
   },
   {
@@ -92,7 +88,7 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
     items: [
       { id: "NAV_SECURITY", label: "Security & Audit Logs", path: "/admin/security", icon: Shield, requiredPermissions: ["MANAGE_SECURITY", "VIEW_AUDIT_LOGS"] },
       { id: "NAV_SETTINGS", label: "System Settings", path: "/admin/settings", icon: Settings, requiredPermissions: ["MANAGE_SETTINGS", "VIEW_SETTINGS"] },
-      { id: "NAV_SYSTEM", label: "System Logs & Health", path: "/admin/system", icon: Activity, requiredPermissions: ["MANAGE_SYSTEM", "VIEW_AUDIT_LOGS"] },
+      { id: "NAV_SYSTEM", label: "System Health & Logs", path: "/admin/system", icon: Activity, requiredPermissions: ["MANAGE_SYSTEM", "VIEW_AUDIT_LOGS"] },
     ],
   },
 ];
@@ -108,7 +104,7 @@ export default function AdminSidebar({
 }: AdminSidebarProps) {
   const roleDef = ADMIN_ROLES_CONFIG[session.role] || {
     displayName: session.role,
-    colorBadge: "bg-blue-950 text-blue-400 border-blue-800",
+    colorBadge: "bg-[#EAF3FF] text-[#0066FF] border-[#E5EAF0]",
   };
 
   const checkHasAccess = (requiredPerms: string[]) => {
@@ -118,24 +114,36 @@ export default function AdminSidebar({
 
   return (
     <aside
-      className={`h-full bg-slate-950 text-slate-200 border-r border-slate-800 flex flex-col justify-between transition-all duration-300 relative select-none ${
+      className={`h-full bg-white text-[#101828] border-r border-[#E5EAF0] flex flex-col justify-between transition-all duration-300 relative select-none shadow-[2px_0_8px_rgba(11,31,58,0.04)] ${
         collapsed && !isMobileDrawer ? "w-20" : "w-72"
       }`}
     >
       {/* Top Header Logo */}
-      <div className="p-4 border-b border-slate-800/80 flex items-center justify-between">
-        <div className="flex items-center gap-3 overflow-hidden cursor-pointer" onClick={() => onNavigate("/admin/dashboard")}>
+      <div className="p-4 border-b border-[#E5EAF0] flex items-center justify-between bg-[#F7F9FC]">
+        <div
+          className="flex items-center gap-3 overflow-hidden cursor-pointer"
+          onClick={() => onNavigate("/admin/dashboard")}
+        >
           <div className="relative shrink-0">
-            <img src={logoImg} alt="SmartLink Logo" className="h-16 w-16 md:h-20 md:w-20 rounded-2xl object-contain bg-white border-2 border-slate-700 p-1.5 shadow-lg" onError={(e: any) => { e.currentTarget.src = "/logo.png"; }} />
-            <span className="absolute -bottom-1 -right-1 h-3.5 w-3.5 bg-emerald-500 rounded-full border-2 border-slate-950 animate-pulse" />
+            <img
+              src={logoImg}
+              alt="SmartLink Logo"
+              className="h-12 w-12 md:h-14 md:w-14 rounded-xl object-contain bg-white border border-[#E5EAF0] p-1"
+              onError={(e: any) => {
+                e.currentTarget.src = "/logo.png";
+              }}
+            />
+            <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 bg-[#12B76A] rounded-full border-2 border-white" />
           </div>
           {(!collapsed || isMobileDrawer) && (
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-sm text-white tracking-tight">SmartLink</span>
-                <span className="px-1.5 py-0.2 rounded bg-blue-600/30 text-blue-400 border border-blue-500/40 font-mono text-[9px] font-bold">ADMIN</span>
+                <span className="font-extrabold text-sm text-[#0B1F3A] tracking-tight">SmartLink</span>
+                <span className="px-1.5 py-0.2 rounded bg-[#EAF3FF] text-[#0066FF] font-mono text-[9px] font-bold">
+                  ADMIN
+                </span>
               </div>
-              <p className="text-[10px] text-slate-400 truncate">Enterprise Portal v2.4</p>
+              <p className="text-[10px] text-[#667085] truncate">Enterprise Control</p>
             </div>
           )}
         </div>
@@ -144,7 +152,7 @@ export default function AdminSidebar({
           <button
             type="button"
             onClick={onToggleCollapse}
-            className="p-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
+            className="p-1.5 rounded-xl bg-white hover:bg-[#F7F9FC] border border-[#E5EAF0] text-[#667085] hover:text-[#101828] transition-colors cursor-pointer"
             title={collapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           >
             {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
@@ -153,17 +161,17 @@ export default function AdminSidebar({
       </div>
 
       {/* Admin User Card (Snapshot) */}
-      <div className="p-4 border-b border-slate-800/80 bg-slate-900/40">
+      <div className="p-4 border-b border-[#E5EAF0] bg-white">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 border border-blue-400/30 flex items-center justify-center font-extrabold text-white text-sm shrink-0 shadow-lg shadow-blue-600/20">
+          <div className="h-10 w-10 rounded-xl bg-[#0B1F3A] text-white flex items-center justify-center font-extrabold text-sm shrink-0">
             {session.fullName.charAt(0).toUpperCase()}
           </div>
 
           {(!collapsed || isMobileDrawer) && (
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold text-white truncate">{session.fullName}</p>
+              <p className="text-xs font-bold text-[#101828] truncate">{session.fullName}</p>
               <div className="flex items-center gap-1.5 mt-0.5">
-                <span className={`px-2 py-0.5 rounded-md font-mono text-[10px] font-bold border ${roleDef.colorBadge}`}>
+                <span className="px-2 py-0.5 rounded-md font-mono text-[10px] font-bold bg-[#EAF3FF] text-[#0066FF] border border-[#E5EAF0]">
                   {roleDef.displayName}
                 </span>
               </div>
@@ -173,11 +181,11 @@ export default function AdminSidebar({
       </div>
 
       {/* Navigation Groups List */}
-      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6 scrollbar-thin scrollbar-thumb-slate-800">
+      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
         {ADMIN_NAV_GROUPS.map((group) => (
           <div key={group.title} className="space-y-1">
             {(!collapsed || isMobileDrawer) && (
-              <p className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+              <p className="px-3 text-[10px] font-bold text-[#667085] uppercase tracking-wider mb-2">
                 {group.title}
               </p>
             )}
@@ -194,19 +202,19 @@ export default function AdminSidebar({
                     type="button"
                     disabled={!hasAccess}
                     onClick={() => onNavigate(item.path)}
-                    title={collapsed ? `${item.label} ${!hasAccess ? '(Restricted)' : ''}` : undefined}
-                    className={`w-full py-2.5 px-3 rounded-2xl flex items-center justify-between text-xs font-medium transition-all cursor-pointer group ${
+                    title={collapsed ? `${item.label} ${!hasAccess ? "(Restricted)" : ""}` : undefined}
+                    className={`w-full py-2.5 px-3 rounded-xl flex items-center justify-between text-xs font-semibold transition-all cursor-pointer group ${
                       isActive
-                        ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-lg shadow-blue-600/20"
+                        ? "bg-[#0B1F3A] text-white"
                         : hasAccess
-                        ? "text-slate-300 hover:bg-slate-900 hover:text-white"
-                        : "text-slate-600 opacity-60 cursor-not-allowed hover:bg-slate-950"
+                        ? "text-[#667085] hover:bg-[#F7F9FC] hover:text-[#0B1F3A]"
+                        : "text-[#667085] opacity-40 cursor-not-allowed"
                     }`}
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <IconComp
                         className={`h-4 w-4 shrink-0 transition-transform group-hover:scale-110 ${
-                          isActive ? "text-white" : hasAccess ? "text-slate-400 group-hover:text-blue-400" : "text-slate-600"
+                          isActive ? "text-white" : hasAccess ? "text-[#667085] group-hover:text-[#0B1F3A]" : "text-[#667085]"
                         }`}
                       />
                       {(!collapsed || isMobileDrawer) && (
@@ -217,12 +225,12 @@ export default function AdminSidebar({
                     {(!collapsed || isMobileDrawer) && (
                       <div className="flex items-center gap-1.5 shrink-0">
                         {!hasAccess && (
-                          <Lock className="h-3 w-3 text-slate-600" title="Permission Denied by RBAC" />
+                          <Lock className="h-3 w-3 text-[#667085]" title="Permission Denied by RBAC" />
                         )}
                         {item.badge && hasAccess && (
                           <span
                             className={`px-1.5 py-0.2 rounded-full font-mono text-[10px] font-bold ${
-                              isActive ? "bg-white text-blue-600" : "bg-blue-950 text-blue-400 border border-blue-800"
+                              isActive ? "bg-white text-[#0B1F3A]" : "bg-[#EAF3FF] text-[#0066FF] border border-[#E5EAF0]"
                             }`}
                           >
                             {item.badge}
@@ -239,23 +247,23 @@ export default function AdminSidebar({
       </div>
 
       {/* Footer System Status & Logout */}
-      <div className="p-3 border-t border-slate-800/80 bg-slate-950 space-y-2">
+      <div className="p-3 border-t border-[#E5EAF0] bg-[#F7F9FC] space-y-2">
         {(!collapsed || isMobileDrawer) && (
-          <div className="p-2.5 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between text-[10px] text-slate-400">
-            <div className="flex items-center gap-2">
-              <Globe className="h-3.5 w-3.5 text-emerald-400" />
-              <span>Gateway Region: <strong className="text-slate-200">WAT / NG</strong></span>
+          <div className="p-2 rounded-xl bg-white border border-[#E5EAF0] flex items-center justify-between text-[10px] text-[#667085]">
+            <div className="flex items-center gap-1.5">
+              <Globe className="h-3.5 w-3.5 text-[#12B76A]" />
+              <span>Region: <strong className="text-[#101828]">Nigeria (WAT)</strong></span>
             </div>
-            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
+            <span className="h-2 w-2 rounded-full bg-[#12B76A]" />
           </div>
         )}
 
         <button
           type="button"
           onClick={onLogout}
-          className="w-full py-2.5 px-3 rounded-2xl bg-rose-950/40 hover:bg-rose-900/60 border border-rose-900/60 text-rose-300 font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+          className="w-full py-2.5 px-3 rounded-xl bg-white hover:bg-[#F7F9FC] border border-[#E5EAF0] text-[#F04438] font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
         >
-          <LogOut className="h-4 w-4 shrink-0 text-rose-400" />
+          <LogOut className="h-4 w-4 shrink-0 text-[#F04438]" />
           {(!collapsed || isMobileDrawer) && <span>Logout Session</span>}
         </button>
       </div>

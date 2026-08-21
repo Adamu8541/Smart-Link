@@ -211,6 +211,8 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
         showToast("success", json.message || "Service saved successfully.");
         setIsModalOpen(false);
         fetchServices();
+        window.dispatchEvent(new CustomEvent("site_config_updated"));
+        window.dispatchEvent(new CustomEvent("services_updated"));
       } else {
         showToast("error", json.error || "Failed to save service.");
       }
@@ -239,6 +241,8 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
       if (json.success) {
         showToast("success", json.message);
         fetchServices();
+        window.dispatchEvent(new CustomEvent("site_config_updated"));
+        window.dispatchEvent(new CustomEvent("services_updated"));
       } else {
         showToast("error", json.error || "Failed to toggle status.");
       }
@@ -266,6 +270,8 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
         showToast("success", json.message);
         setDeletingId(null);
         fetchServices();
+        window.dispatchEvent(new CustomEvent("site_config_updated"));
+        window.dispatchEvent(new CustomEvent("services_updated"));
       } else {
         showToast("error", json.error || "Failed to delete service.");
       }
@@ -312,6 +318,8 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
         showToast("success", json.message);
         setIsPricingModalOpen(false);
         fetchServices();
+        window.dispatchEvent(new CustomEvent("site_config_updated"));
+        window.dispatchEvent(new CustomEvent("services_updated"));
       } else {
         showToast("error", json.error || "Failed to update pricing.");
       }

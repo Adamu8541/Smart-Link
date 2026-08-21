@@ -43,7 +43,8 @@ import {
 } from "lucide-react";
 import { UserProfile, UserRole } from "../types";
 import { SMART_LINK_SERVICES } from "./ServicesGrid";
-import logoImg from "../assets/images/smartlink_logo_1785934050308.jpg";
+import defaultLogoImg from "../assets/images/smartlink_logo_1785934050308.jpg";
+import { useSiteConfig } from "../context/SiteConfigContext";
 
 interface NavigationProps {
   currentView: string;
@@ -80,6 +81,7 @@ export default function Navigation({
   onSelectService,
   onSetAuthStates
 }: NavigationProps) {
+  const { logoUrl, siteName } = useSiteConfig();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeTabVal, setActiveTabVal] = useState("OVERVIEW");
 
@@ -236,17 +238,17 @@ export default function Navigation({
 
         <div className="flex-1 text-center truncate px-2">
           <span className="font-sans text-xs sm:text-sm font-bold tracking-tight text-white">
-            Smart<span className="text-blue-200"> Link Nigeria</span>
+            {siteName}
           </span>
         </div>
 
         <div className="flex items-center shrink-0">
           <img
-            src={logoImg}
-            alt="Smart Link Nigeria"
-            className="h-16 w-16 sm:h-20 sm:w-20 object-contain rounded-2xl bg-white p-1.5 shadow-lg border border-slate-200"
+            src={logoUrl}
+            alt={siteName}
+            className="h-14 w-14 sm:h-16 sm:w-16 object-contain rounded-2xl bg-white p-1.5 shadow-lg border border-slate-200"
             referrerPolicy="no-referrer"
-            onError={(e: any) => { e.currentTarget.src = "/logo.png"; }}
+            onError={(e: any) => { e.currentTarget.src = defaultLogoImg; }}
           />
         </div>
       </header>
@@ -265,14 +267,14 @@ export default function Navigation({
               {/* Logo / Brand */}
               <div className="flex items-center gap-3 border-b border-white/10 pb-4">
                 <img
-                  src={logoImg}
-                  alt="Smart Link Nigeria"
-                  className="h-16 w-16 object-contain rounded-2xl shadow-lg bg-white p-1.5 shrink-0"
+                  src={logoUrl}
+                  alt={siteName}
+                  className="h-14 w-14 object-contain rounded-2xl shadow-lg bg-white p-1.5 shrink-0"
                   referrerPolicy="no-referrer"
-                  onError={(e: any) => { e.currentTarget.src = "/logo.png"; }}
+                  onError={(e: any) => { e.currentTarget.src = defaultLogoImg; }}
                 />
                 <span className="font-sans text-base font-bold tracking-tight text-white">
-                  Smart<span className="text-blue-200"> Link Nigeria</span>
+                  {siteName}
                 </span>
               </div>
 
@@ -366,14 +368,14 @@ export default function Navigation({
           {/* Logo Brand matching the Image precisely */}
           <div className="flex items-center gap-3 px-1 py-1 select-none">
             <img
-              src={logoImg}
-              alt="Smart Link Nigeria"
-              className="h-20 w-20 object-contain rounded-2xl shadow-xl bg-white p-1.5 shrink-0 border border-slate-200 hover:scale-105 transition-transform"
+              src={logoUrl}
+              alt={siteName}
+              className="h-16 w-16 object-contain rounded-2xl shadow-xl bg-white p-1.5 shrink-0 border border-slate-200 hover:scale-105 transition-transform"
               referrerPolicy="no-referrer"
-              onError={(e: any) => { e.currentTarget.src = "/logo.png"; }}
+              onError={(e: any) => { e.currentTarget.src = defaultLogoImg; }}
             />
             <span className="font-sans text-xl font-black tracking-tight text-white">
-              Smart<span className="text-blue-300"> Link Nigeria</span>
+              {siteName}
             </span>
           </div>
 

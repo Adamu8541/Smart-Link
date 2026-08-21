@@ -58,6 +58,12 @@ const COLLECTION_MAPPING: Record<string, string> = {
   branding_settings: "branding_settings",
   maintenance_settings: "maintenance_settings",
   platform_configuration: "platform_configuration",
+  refunds: "refunds",
+  refund_requests: "refunds",
+  reports: "reports",
+  settlement_reports: "settlement_reports",
+  reconciliation_reports: "reconciliation_reports",
+  system_logs: "system_logs",
 };
 
 let inMemoryDbCache: any = null;
@@ -125,6 +131,8 @@ export async function loadFirestoreDb(forceRefresh = false): Promise<any> {
         if (data.branding_settings) db.branding_settings = data.branding_settings;
         if (data.maintenance_settings) db.maintenance_settings = data.maintenance_settings;
         if (data.platform_configuration) db.platform_configuration = data.platform_configuration;
+        if (data.servicesCatalog) db.servicesCatalog = data.servicesCatalog;
+        if (data.services_catalog && (!db.servicesCatalog || db.servicesCatalog.length === 0)) db.servicesCatalog = data.services_catalog;
       }
     } catch (e) {
       console.warn("[firestoreStore] Failed to load adminConfig singleton:", e);
@@ -207,6 +215,8 @@ export async function syncDbToFirestore(db: any, updatedCollections?: string[]):
           branding_settings: db.branding_settings || db.brandingSettings || {},
           maintenance_settings: db.maintenance_settings || db.maintenanceSettings || {},
           platform_configuration: db.platform_configuration || db.platformConfiguration || {},
+          servicesCatalog: db.servicesCatalog || [],
+          services_catalog: db.servicesCatalog || [],
           updatedAt: new Date().toISOString(),
         },
         { merge: true }

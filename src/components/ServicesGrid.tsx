@@ -18,6 +18,7 @@ import {
   X
 } from "lucide-react";
 import { motion } from "motion/react";
+import { useSiteConfig } from "../context/SiteConfigContext";
 
 export interface ServiceItem {
   id: string;
@@ -418,6 +419,7 @@ export const SMART_LINK_SERVICES: ServiceItem[] = [
 ];
 
 export default function ServicesGrid({ onSelectService }: ServicesGridProps) {
+  const { getServicePrice } = useSiteConfig();
   const [activeTab, setActiveTab] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
@@ -541,58 +543,61 @@ export default function ServicesGrid({ onSelectService }: ServicesGridProps) {
 
         {/* Services Cards Grid */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredServices.map((srv) => (
-            <motion.div
-              layout
-              key={srv.id}
-              className="group flex flex-col justify-between p-6 rounded-2xl border border-[#E5E7EB] hover:border-[#0F2D5C] shadow-[0_4px_12px_rgba(15,23,42,0.06)] hover:shadow-md transition-all bg-white relative overflow-hidden"
-            >
-              <div className="space-y-4">
-                {/* Category Indicator */}
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] uppercase bg-blue-50 text-[#0F2D5C] px-2.5 py-0.5 rounded font-bold tracking-wider">
-                    {srv.category}
-                  </span>
-                  {srv.price && (
-                    <span className="text-xs font-bold text-[#0F2D5C] bg-blue-50 px-2.5 py-0.5 rounded-full flex items-center gap-1 font-mono border border-blue-100">
-                      <Tag className="h-3 w-3" />
-                      ₦{srv.price.toLocaleString()}
+          {filteredServices.map((srv) => {
+            const livePrice = srv.price !== undefined ? getServicePrice(srv.id, srv.price) : undefined;
+            return (
+              <motion.div
+                layout
+                key={srv.id}
+                className="group flex flex-col justify-between p-6 rounded-2xl border border-[#E5E7EB] hover:border-[#0F2D5C] shadow-[0_4px_12px_rgba(15,23,42,0.06)] hover:shadow-md transition-all bg-white relative overflow-hidden"
+              >
+                <div className="space-y-4">
+                  {/* Category Indicator */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase bg-blue-50 text-[#0F2D5C] px-2.5 py-0.5 rounded font-bold tracking-wider">
+                      {srv.category}
                     </span>
-                  )}
-                  {srv.priceLabel && (
-                    <span className="text-[10px] text-[#6B7280] italic bg-[#F5F7FA] px-2 py-0.5 rounded">
-                      {srv.priceLabel}
-                    </span>
-                  )}
+                    {livePrice !== undefined && (
+                      <span className="text-xs font-bold text-[#0F2D5C] bg-blue-50 px-2.5 py-0.5 rounded-full flex items-center gap-1 font-mono border border-blue-100">
+                        <Tag className="h-3 w-3" />
+                        ₦{livePrice.toLocaleString()}
+                      </span>
+                    )}
+                    {srv.priceLabel && (
+                      <span className="text-[10px] text-[#6B7280] italic bg-[#F5F7FA] px-2 py-0.5 rounded">
+                        {srv.priceLabel}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Name */}
+                  <h3 className="text-base font-bold text-[#111827] group-hover:text-[#0F2D5C] transition-colors">
+                    {srv.name}
+                  </h3>
+
+                  {/* Description */}
+                  <p className="text-xs text-[#4B5563] leading-relaxed">
+                    {srv.description}
+                  </p>
                 </div>
 
-                {/* Name */}
-                <h3 className="text-base font-bold text-[#111827] group-hover:text-[#0F2D5C] transition-colors">
-                  {srv.name}
-                </h3>
-
-                {/* Description */}
-                <p className="text-xs text-[#4B5563] leading-relaxed">
-                  {srv.description}
-                </p>
-              </div>
-
-              {/* Action Button */}
-              <div className="mt-6 pt-4 border-t border-[#E5E7EB] flex items-center justify-between">
-                <span className="flex items-center gap-1 text-[11px] text-[#6B7280]">
-                  <CheckCircle className="h-3.5 w-3.5 text-[#0F2D5C]" />
-                  Instant processing
-                </span>
-                <button
-                  onClick={() => onSelectService(srv)}
-                  id={`btn-order-${srv.id}`}
-                  className="px-4 py-2 bg-[#0F2D5C] hover:bg-[#17407E] text-white rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-xs"
-                >
-                  {srv.actionLabel}
-                </button>
-              </div>
-            </motion.div>
-          ))}
+                {/* Action Button */}
+                <div className="mt-6 pt-4 border-t border-[#E5E7EB] flex items-center justify-between">
+                  <span className="flex items-center gap-1 text-[11px] text-[#6B7280]">
+                    <CheckCircle className="h-3.5 w-3.5 text-[#0F2D5C]" />
+                    Instant processing
+                  </span>
+                  <button
+                    onClick={() => onSelectService({ ...srv, price: livePrice ?? srv.price })}
+                    id={`btn-order-${srv.id}`}
+                    className="px-4 py-2 bg-[#0F2D5C] hover:bg-[#17407E] text-white rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-xs"
+                  >
+                    {srv.actionLabel}
+                  </button>
+                </div>
+              </motion.div>
+            );
+          })}
 
           {filteredServices.length === 0 && (
             <div className="col-span-full py-12 text-center space-y-3">

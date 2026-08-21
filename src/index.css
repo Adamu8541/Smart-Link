@@ -14,17 +14,31 @@
   height: 6px;
 }
 
+:root {
+  --admin-navy: #0B1F3A;
+  --admin-deep-blue: #123C73;
+  --admin-primary-blue: #0066FF;
+  --admin-light-blue: #EAF3FF;
+  --admin-white: #FFFFFF;
+  --admin-light-bg: #F7F9FC;
+  --admin-border-gray: #E5EAF0;
+  --admin-text-gray: #667085;
+  --admin-dark-text: #101828;
+  --admin-success-green: #12B76A;
+  --admin-error-red: #F04438;
+}
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #E5EAF0;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #667085;
 }
 
 /* Global design system defaults */

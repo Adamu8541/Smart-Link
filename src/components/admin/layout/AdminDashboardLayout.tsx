@@ -1,8 +1,9 @@
 /**
- * SmartLink Admin Panel — Responsive Shell Layout (Module 2)
+ * SmartLink Admin Panel — Responsive Shell Layout
+ * Enforcing Homepage Design Aesthetic (#F5F7FA, #0F2D5C, #111827, #E5E7EB)
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import AdminSidebar from "./AdminSidebar";
 import AdminHeader from "./AdminHeader";
@@ -32,10 +33,6 @@ export default function AdminDashboardLayout({
     return adminLayoutService.getPreferences().sidebarCollapsed;
   });
 
-  const [theme, setTheme] = useState<"dark" | "light">(() => {
-    return adminLayoutService.getPreferences().theme;
-  });
-
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [notificationDrawerOpen, setNotificationDrawerOpen] = useState(false);
   const [notifications, setNotifications] = useState<AdminNotification[]>(() => {
@@ -48,12 +45,6 @@ export default function AdminDashboardLayout({
     const nextState = !sidebarCollapsed;
     setSidebarCollapsed(nextState);
     adminLayoutService.savePreferences({ sidebarCollapsed: nextState });
-  };
-
-  const toggleTheme = () => {
-    const nextTheme = theme === "dark" ? "light" : "dark";
-    setTheme(nextTheme);
-    adminLayoutService.savePreferences({ theme: nextTheme });
   };
 
   const handleMarkRead = (id: string) => {
@@ -69,7 +60,7 @@ export default function AdminDashboardLayout({
   const unreadNotifCount = notifications.filter((n) => !n.read).length;
 
   return (
-    <div className={`min-h-screen flex flex-col font-sans transition-colors duration-300 ${theme === "dark" ? "dark bg-slate-950 text-slate-100" : "bg-white text-slate-900"}`}>
+    <div className="min-h-screen flex flex-col font-sans bg-[#F7F9FC] text-[#101828]">
       <div className="flex-1 flex overflow-hidden">
         {/* Desktop Left Sidebar */}
         <div className="hidden lg:block shrink-0 sticky top-0 h-screen z-20">
@@ -94,14 +85,14 @@ export default function AdminDashboardLayout({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={() => setMobileDrawerOpen(false)}
-                className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs"
+                className="fixed inset-0 bg-[#0B1F3A]/60 backdrop-blur-xs"
               />
               <motion.div
                 initial={{ x: "-100%" }}
                 animate={{ x: 0 }}
                 exit={{ x: "-100%" }}
                 transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                className={`relative w-80 max-w-full h-full z-10 ${theme === "dark" ? "bg-slate-950 text-slate-100" : "bg-white text-slate-900 shadow-2xl"}`}
+                className="relative w-80 max-w-full h-full z-10 bg-white text-[#101828] shadow-2xl"
               >
                 <AdminSidebar
                   currentRoute={currentRoute}
@@ -121,12 +112,12 @@ export default function AdminDashboardLayout({
         </AnimatePresence>
 
         {/* Right Main Container */}
-        <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        <div className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-[#F7F9FC]">
           {/* Top Sticky Header */}
           <AdminHeader
             session={session}
-            theme={theme}
-            onToggleTheme={toggleTheme}
+            theme="light"
+            onToggleTheme={() => {}}
             onToggleMobileDrawer={() => setMobileDrawerOpen(true)}
             onToggleNotificationDrawer={() => setNotificationDrawerOpen(true)}
             unreadNotifCount={unreadNotifCount}
@@ -135,7 +126,7 @@ export default function AdminDashboardLayout({
           />
 
           {/* Breadcrumbs Bar */}
-          <div className={`px-4 md:px-8 py-2 border-b transition-colors duration-200 ${theme === "dark" ? "bg-slate-950/60 border-slate-800/60 text-slate-300" : "bg-slate-50 border-slate-200 text-slate-700 shadow-xs"}`}>
+          <div className="px-4 md:px-8 py-2.5 border-b border-[#E5EAF0] bg-white text-[#667085]">
             <AdminBreadcrumbs breadcrumbs={breadcrumbs} onNavigate={onNavigate} />
           </div>
 

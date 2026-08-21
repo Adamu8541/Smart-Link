@@ -1,6 +1,7 @@
 import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
+import { SiteConfigProvider } from './context/SiteConfigContext.tsx';
 import './index.css';
 
 // Suppress benign Vite WebSocket / HMR and iframe database lifecycle errors in sandboxed runtime environment
@@ -77,7 +78,9 @@ if (typeof window !== 'undefined') {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <SiteConfigProvider>
+      <App />
+    </SiteConfigProvider>
   </StrictMode>,
 );
 

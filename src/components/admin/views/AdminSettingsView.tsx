@@ -149,6 +149,8 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
         if (data.maintenanceSettings) setMaintenanceSettings(data.maintenanceSettings);
         if (data.platformConfig) setPlatformConfig(data.platformConfig);
         fetchAuditLogs();
+        window.dispatchEvent(new CustomEvent("site_config_updated"));
+        window.dispatchEvent(new CustomEvent("theme_changed"));
       } else {
         setMessage({ type: "error", text: data.message || "Failed to save settings." });
       }
@@ -250,6 +252,8 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
         setImportParsedData(null);
         setImportJsonText("");
         fetchAuditLogs();
+        window.dispatchEvent(new CustomEvent("site_config_updated"));
+        window.dispatchEvent(new CustomEvent("theme_changed"));
       } else {
         alert(data.message || "Failed to import platform settings.");
       }

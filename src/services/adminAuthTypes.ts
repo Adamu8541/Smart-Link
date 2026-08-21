@@ -24,7 +24,7 @@ export const ADMIN_ROLES_CONFIG: Record<AdminRoleType, AdminRoleDefinition> = {
     displayName: "Super Admin",
     description: "Full system access, role management, security overrides & full administrative control",
     permissions: ["*"],
-    colorBadge: "bg-purple-950 text-purple-400 border-purple-800",
+    colorBadge: "bg-[#0B1F3A] text-white border-[#E5EAF0]",
   },
   ADMIN: {
     role: "ADMIN",
@@ -39,28 +39,28 @@ export const ADMIN_ROLES_CONFIG: Record<AdminRoleType, AdminRoleDefinition> = {
       "MANAGE_SERVICES",
       "VIEW_REPORTS",
     ],
-    colorBadge: "bg-blue-950 text-blue-400 border-blue-800",
+    colorBadge: "bg-[#EAF3FF] text-[#0066FF] border-[#E5EAF0]",
   },
   FINANCE_MANAGER: {
     role: "FINANCE_MANAGER",
     displayName: "Finance Manager",
     description: "Financial reconciliations, refund processing, pricing configuration & wallet overrides",
     permissions: ["VIEW_DASHBOARD", "MANAGE_WALLET", "MANAGE_REFUNDS", "VIEW_TRANSACTIONS", "VIEW_REPORTS", "MANAGE_SETTINGS"],
-    colorBadge: "bg-emerald-950 text-emerald-400 border-emerald-800",
+    colorBadge: "bg-[#EAF3FF] text-[#123C73] border-[#E5EAF0]",
   },
   VERIFICATION_OFFICER: {
     role: "VERIFICATION_OFFICER",
     displayName: "Verification Officer",
     description: "Identity verification oversight (NIN/BVN/CAC), API provider monitoring & logs verification",
     permissions: ["VIEW_DASHBOARD", "MANAGE_VERIFICATION", "MANAGE_PROVIDERS", "VIEW_PROVIDERS", "VIEW_TRANSACTIONS"],
-    colorBadge: "bg-cyan-950 text-cyan-400 border-cyan-800",
+    colorBadge: "bg-[#EAF3FF] text-[#0066FF] border-[#E5EAF0]",
   },
   READ_ONLY_AUDITOR: {
     role: "READ_ONLY_AUDITOR",
     displayName: "Read-Only Auditor",
     description: "View-only access across all administrative modules. Cannot modify, create, or delete data",
     permissions: ["VIEW_DASHBOARD", "VIEW_USERS", "VIEW_TRANSACTIONS", "VIEW_REFUNDS", "VIEW_SETTINGS", "VIEW_PROVIDERS", "VIEW_REPORTS"],
-    colorBadge: "bg-slate-900 text-slate-400 border-slate-700",
+    colorBadge: "bg-[#F7F9FC] text-[#667085] border-[#E5EAF0]",
   },
 };
 
