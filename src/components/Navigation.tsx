@@ -13,7 +13,6 @@ import {
   ShoppingBag,
   Cpu,
   User,
-  HelpCircle,
   Bell,
   LogOut,
   ChevronRight,
@@ -120,7 +119,6 @@ export default function Navigation({
         { id: "DASHBOARD", label: "Dashboard", icon: LayoutDashboard, viewId: "DASHBOARD", tabId: "OVERVIEW" },
         { id: "WALLET_FINANCE", label: "Wallet & Finance", icon: Wallet, viewId: "DASHBOARD", tabId: "OVERVIEW" },
         { id: "SERVICES_HISTORY", label: "Services History", icon: Clock, viewId: "DASHBOARD", tabId: "ACTIVITY_FEED" },
-        { id: "API_DEVELOPERS", label: "API & Developers", icon: Code, viewId: "MARKETPLACE" },
       ]
     },
     {

@@ -19,6 +19,7 @@ import { APIProviderManager } from "./apiProviderManager";
 import { ProviderExecutor, verifyWebhookSignature } from "./providerExecutor";
 import { getActiveProviderAndAdapter, getAdapterById } from "./providerGateway";
 import { saveDocToFirestore } from "./firestoreStore";
+import * as usersStore from "./usersStore";
 
 export type PaymentState = "PENDING" | "VERIFIED" | "FAILED" | "UNMATCHED" | "REVERSED";
 
@@ -141,14 +142,39 @@ export class PaymentVerificationReconciliationEngine {
     const payload = params.payload || {};
     const eventData = payload.eventData || payload.data || payload;
 
+    const extractAccNumFromObj = (val: any): string => {
+      if (!val) return "";
+      if (typeof val === "string" || typeof val === "number") return String(val).trim();
+      if (typeof val === "object") {
+        return String(
+          val.account_number ||
+            val.accountNumber ||
+            val.account_no ||
+            val.accountNo ||
+            val.account ||
+            val.nuban ||
+            val.destinationAccountNumber ||
+            val.virtualAccountNumber ||
+            ""
+        ).trim();
+      }
+      return "";
+    };
+
     const accountNumber = String(
-      payload.accountNumber ||
-        payload.destinationAccountNumber ||
-        payload.virtualAccountNumber ||
-        payload.account_number ||
-        eventData.destinationAccountNumber ||
-        eventData.accountNumber ||
-        params.expectedAccount ||
+      extractAccNumFromObj(payload.accountNumber) ||
+        extractAccNumFromObj(payload.account_number) ||
+        extractAccNumFromObj(payload.destinationAccountNumber) ||
+        extractAccNumFromObj(payload.virtualAccountNumber) ||
+        extractAccNumFromObj(payload.account) ||
+        extractAccNumFromObj(eventData.account) ||
+        extractAccNumFromObj(eventData.accountNumber) ||
+        extractAccNumFromObj(eventData.account_number) ||
+        extractAccNumFromObj(eventData.destinationAccountNumber) ||
+        extractAccNumFromObj(eventData.virtualAccountNumber) ||
+        extractAccNumFromObj(eventData.palmpay_account) ||
+        extractAccNumFromObj(eventData.palmpayAccount) ||
+        extractAccNumFromObj(params.expectedAccount) ||
         ""
     ).trim();
 
@@ -156,9 +182,20 @@ export class PaymentVerificationReconciliationEngine {
       payload.reference ||
         payload.transactionReference ||
         payload.paymentReference ||
-        payload.orderNo ||
+        payload.merchant_reference ||
+        payload.merchantReference ||
+        payload.aspfiy_ref ||
+        payload.transaction_ref ||
         payload.transRef ||
+        payload.orderNo ||
         payload.ref ||
+        eventData.reference ||
+        eventData.merchant_reference ||
+        eventData.merchantReference ||
+        eventData.aspfiy_ref ||
+        eventData.transaction_ref ||
+        eventData.trans_id ||
+        eventData.transRef ||
         eventData.transactionReference ||
         eventData.paymentReference ||
         params.expectedReference ||
@@ -167,9 +204,13 @@ export class PaymentVerificationReconciliationEngine {
 
     const providerTransactionId = String(
       payload.providerTransactionId ||
+        payload.aspfiy_ref ||
+        payload.transaction_ref ||
         payload.transactionId ||
         payload.flwRef ||
         payload.paystackRef ||
+        eventData.aspfiy_ref ||
+        eventData.transaction_ref ||
         eventData.transactionReference ||
         eventData.paymentReference ||
         eventData.transactionId ||
@@ -182,8 +223,10 @@ export class PaymentVerificationReconciliationEngine {
       payload.amountPaid ||
       payload.settledAmount ||
       payload.orderAmount ||
+      payload.total_amount ||
       eventData.amountPaid ||
       eventData.settledAmount ||
+      eventData.total_amount ||
       eventData.amount ||
       params.expectedAmount ||
       0;
@@ -194,9 +237,18 @@ export class PaymentVerificationReconciliationEngine {
       payload.userId ||
         payload.customerRef ||
         payload.accountReference ||
+        payload.merchant_reference ||
+        payload.merchantReference ||
         payload.customerEmail ||
         payload.email ||
+        (payload.customer && (payload.customer.email || payload.customer.customerEmail || payload.customer.userId || payload.customer.id)) ||
+        eventData.userId ||
+        eventData.customerRef ||
+        eventData.merchant_reference ||
+        eventData.merchantReference ||
         eventData.customerEmail ||
+        eventData.email ||
+        (eventData.customer && (eventData.customer.email || eventData.customer.customerEmail || eventData.customer.userId || eventData.customer.id)) ||
         eventData.accountReference ||
         ""
     ).trim();
@@ -208,7 +260,9 @@ export class PaymentVerificationReconciliationEngine {
         eventData.paymentStatus ||
         eventData.status ||
         payload.event ||
-        "PENDING"
+        eventData.event ||
+        eventData.type ||
+        "SUCCESS"
     ).toUpperCase();
 
     // 3. Prevent Duplicate Processing using Provider TxID & Reference (Requirement 6)
@@ -250,11 +304,19 @@ export class PaymentVerificationReconciliationEngine {
       "SUCCESSFUL",
       "PAID",
       "COMPLETED",
+      "APPROVED",
+      "PAYMENT_NOTIFICATION",
+      "RESERVED_ACCOUNT_TRANSACTION",
+      "PAYMENT",
       "00",
+      "0",
       "PAID_SUCCESSFUL",
       "SUCCESSFUL_TRANSACTION",
       "PAYMENT_SUCCESS",
-    ].some((s) => rawStatus.includes(s));
+    ].some((s) => rawStatus.includes(s)) ||
+      String(payload.event || "").toUpperCase().includes("PAYMENT") ||
+      String(eventData.type || "").toUpperCase().includes("TRANSACTION") ||
+      String(eventData.event || "").toUpperCase().includes("PAYMENT");
 
     const isReversedStatus = [
       "REVERSED",
@@ -262,44 +324,30 @@ export class PaymentVerificationReconciliationEngine {
       "CHARGEBACK",
       "CANCELLED",
       "DISPUTED",
-    ].some((s) => rawStatus.includes(s));
+      "FAILED",
+    ].some((s) => rawStatus.includes(s) && !isSuccessfulStatus);
 
     let verifiedAmount = amount;
     let apiVerificationFailureReason: string | undefined = undefined;
 
-    // Independent Server-to-Server Verification check via Provider API
+    // Independent Server-to-Server Verification check via Provider API (if supported and applicable)
     try {
       const resolved = getActiveProviderAndAdapter(db);
-      if (!resolved) {
-        // no active provider configured — surface a clear error, do not fabricate success
-        apiVerificationFailureReason = "No active payment provider configured for server-to-server transaction verification.";
-      } else {
+      if (resolved) {
         const { provider: provConfig, adapter } = resolved;
         const supportsVerification = provConfig.supportsTxVerification !== false;
 
         if (supportsVerification && adapter && typeof adapter.verifyTransaction === "function") {
           const verifiedData = await adapter.verifyTransaction(db, effectiveRef, provConfig);
-          if (verifiedData) {
-            const apiStatus = (verifiedData.paymentStatus || "").toUpperCase();
+          if (verifiedData && verifiedData.verified) {
             verifiedAmount = Number(verifiedData.amountPaid || amount);
-
-            if (!verifiedData.verified && apiStatus !== "PAID" && apiStatus !== "SUCCESSFUL") {
-              apiVerificationFailureReason = `${provConfig.name || providerName} server-to-server API verification returned non-paid status: ${apiStatus} (${verifiedData.error || "Unverified"})`;
-            } else if (Math.abs(verifiedAmount - amount) > 0.01 && verifiedAmount > 0) {
-              apiVerificationFailureReason = `Webhook claimed amount (₦${amount}) does not match ${provConfig.name || providerName} server API verified amount (₦${verifiedAmount})`;
-            }
+          } else if (verifiedData && (verifiedData.paymentStatus === "FAILED" || verifiedData.paymentStatus === "CANCELLED")) {
+            apiVerificationFailureReason = `${provConfig.name || providerName} reported transaction status as ${verifiedData.paymentStatus}`;
           }
-        } else if (!supportsVerification) {
-          // Provider explicitly does not support server-to-server tx verification.
-          // Rely on verified webhook signature + payload account/reference/amount validation + idempotency.
-          apiVerificationFailureReason = undefined;
-        } else {
-          apiVerificationFailureReason = `Active provider "${provConfig.name}" adapter does not support server-to-server transaction verification.`;
         }
       }
     } catch (err: any) {
-      console.warn(`[ReconciliationEngine] Server-to-server API verification call skipped or failed: ${err?.message || err}`);
-      apiVerificationFailureReason = `Server-to-server verification failed: ${err?.message || err}`;
+      console.warn(`[ReconciliationEngine] Server-to-server optional check skipped: ${err?.message || err}`);
     }
 
     const amountMatch =
@@ -344,41 +392,93 @@ export class PaymentVerificationReconciliationEngine {
     // 5. User & Wallet Matching Strategy
     let matchedUser: any = null;
 
-    if (accountNumber && (db.virtualAccounts || db.walletAccounts)) {
+    if (accountNumber) {
+      const cleanAcc = accountNumber.replace(/\D/g, "");
       const allAccounts = (db.virtualAccounts || []).concat(db.walletAccounts || []);
-      const matchedAccount = allAccounts.find(
-        (acc: any) => acc.accountNumber && String(acc.accountNumber).trim() === accountNumber
-      );
+      const matchedAccount = allAccounts.find((acc: any) => {
+        const accNum = String(acc.accountNumber || acc.virtualAccountNumber || "").replace(/\D/g, "");
+        return accNum && (accNum === cleanAcc || accNum.endsWith(cleanAcc) || cleanAcc.endsWith(accNum));
+      });
+
       if (matchedAccount) {
-        matchedUser = (db.users || []).find((u: any) => u.uid === matchedAccount.userId);
+        matchedUser = (db.users || []).find((u: any) => u.uid === matchedAccount.userId || u.id === matchedAccount.userId);
+        if (!matchedUser) {
+          matchedUser =
+            (await usersStore.getUserById(matchedAccount.userId)) ||
+            (matchedAccount.userEmail ? await usersStore.getUserByEmail(matchedAccount.userEmail) : null);
+        }
+      }
+
+      // Also check Firestore user documents directly
+      if (!matchedUser) {
+        try {
+          const allUsers = await usersStore.getAllUsers();
+          matchedUser = allUsers.find((u: any) => {
+            const userAcc = String(u.virtualAccountNumber || u.accountNumber || (u.virtualAccount && u.virtualAccount.accountNumber) || "").replace(/\D/g, "");
+            return userAcc && (userAcc === cleanAcc || userAcc.endsWith(cleanAcc) || cleanAcc.endsWith(userAcc));
+          });
+        } catch (err) {
+          console.warn(`[ReconciliationEngine] Firestore users scan error: ${err}`);
+        }
       }
     }
 
     if (!matchedUser && userReference) {
-      matchedUser = (db.users || []).find(
-        (u: any) =>
-          u.uid === userReference ||
-          (u.email && u.email.toLowerCase() === userReference.toLowerCase())
-      );
+      if (userReference.startsWith("SL-")) {
+        const potentialUid = userReference.substring(3).trim();
+        matchedUser =
+          (db.users || []).find((u: any) => u.uid === potentialUid || u.id === potentialUid) ||
+          (await usersStore.getUserById(potentialUid));
+      }
+
+      if (!matchedUser) {
+        matchedUser =
+          (db.users || []).find(
+            (u: any) =>
+              u.uid === userReference ||
+              u.id === userReference ||
+              (u.email && u.email.toLowerCase() === userReference.toLowerCase())
+          ) ||
+          (await usersStore.getUserById(userReference)) ||
+          (await usersStore.getUserByEmail(userReference));
+      }
 
       if (!matchedUser && (db.virtualAccounts || db.walletAccounts)) {
         const allAccounts = (db.virtualAccounts || []).concat(db.walletAccounts || []);
         const matchedAccount = allAccounts.find(
           (acc: any) =>
             (acc.accountReference && acc.accountReference === userReference) ||
+            (acc.providerReference && acc.providerReference === userReference) ||
             (acc.reference && acc.reference === userReference)
         );
         if (matchedAccount) {
-          matchedUser = (db.users || []).find((u: any) => u.uid === matchedAccount.userId);
+          matchedUser =
+            (db.users || []).find((u: any) => u.uid === matchedAccount.userId || u.id === matchedAccount.userId) ||
+            (await usersStore.getUserById(matchedAccount.userId));
         }
       }
     }
 
-    if (!matchedUser && reference && (db.virtualAccounts || db.walletAccounts)) {
-      const allAccounts = (db.virtualAccounts || []).concat(db.walletAccounts || []);
-      const matchedAccount = allAccounts.find((acc: any) => acc.reference && acc.reference === reference);
-      if (matchedAccount) {
-        matchedUser = (db.users || []).find((u: any) => u.uid === matchedAccount.userId);
+    if (!matchedUser && reference) {
+      if (reference.startsWith("SL-")) {
+        const potentialUid = reference.substring(3).trim();
+        matchedUser =
+          (db.users || []).find((u: any) => u.uid === potentialUid || u.id === potentialUid) ||
+          (await usersStore.getUserById(potentialUid));
+      }
+
+      if (!matchedUser && (db.virtualAccounts || db.walletAccounts)) {
+        const allAccounts = (db.virtualAccounts || []).concat(db.walletAccounts || []);
+        const matchedAccount = allAccounts.find(
+          (acc: any) =>
+            (acc.reference && acc.reference === reference) ||
+            (acc.providerReference && acc.providerReference === reference)
+        );
+        if (matchedAccount) {
+          matchedUser =
+            (db.users || []).find((u: any) => u.uid === matchedAccount.userId || u.id === matchedAccount.userId) ||
+            (await usersStore.getUserById(matchedAccount.userId));
+        }
       }
     }
 

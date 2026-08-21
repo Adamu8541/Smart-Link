@@ -1097,6 +1097,8 @@ app.put("/api/users/:uid", async (req, res) => {
 // --- GATEWAY SIGNATURE & SECURE DIGITAL WALLET HELPER FUNCTIONS ---
 function verifyGatewayWebhookSignature(req: express.Request, db: any): { isValid: boolean; reason?: string } {
   const provider =
+    (db.api_providers || []).find((p: any) => (p.name || "").toLowerCase().includes("aspfiy") || (p.id || "").toLowerCase().includes("aspfiy")) ||
+    (db.apiProviders || []).find((p: any) => (p.name || "").toLowerCase().includes("aspfiy") || (p.id || "").toLowerCase().includes("aspfiy")) ||
     (db.api_providers || []).find((p: any) => (p.category || "").toLowerCase().includes("gateway") || (p.type || "").toLowerCase().includes("payment")) ||
     (db.apiProviders || []).find((p: any) => (p.category || "").toLowerCase().includes("gateway") || (p.type || "").toLowerCase().includes("payment")) ||
     (db.api_providers || []).find((p: any) => p.status === "Active" || p.isActive) ||
@@ -1173,16 +1175,49 @@ function recordUnmatchedWebhookAttempt(db: any, params: {
   });
 }
 
+const WEBHOOK_ENDPOINTS = [
+  "/api/webhooks",
+  "/api/webhooks/",
+  "/api/webhook",
+  "/api/webhook/",
+  "/api/webhooks/aspfiy",
+  "/api/webhooks/aspfiy/",
+  "/api/webhooks/incoming",
+  "/api/webhooks/payment",
+  "/api/webhooks/gateway",
+  "/api/wallet/funding/webhook",
+  "/api/wallet/webhook",
+  "/api/v1/webhooks",
+  "/api/v1/webhook",
+];
+
+// Webhook Connectivity Health & Status Ping
+app.get(WEBHOOK_ENDPOINTS, (req, res) => {
+  res.status(200).json({
+    status: "SUCCESS",
+    success: true,
+    message: "SmartLink Webhook Gateway is active, healthy, and listening for payment events.",
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // Canonical ASPFIY & Compatibility Gateway Webhook Handler
-// Handles POST /api/webhooks/aspfiy (canonical) along with compatibility aliases (/api/webhooks/incoming, /api/webhooks/payment, /api/webhooks/gateway, /api/wallet/funding/webhook)
 app.post(
-  ["/api/webhooks/aspfiy", "/api/webhooks/incoming", "/api/webhooks/payment", "/api/webhooks/gateway", "/api/wallet/funding/webhook"],
+  WEBHOOK_ENDPOINTS,
   async (req, res) => {
     const db = readDB();
+
+    console.log(`[Webhook] Received incoming webhook on ${req.originalUrl || req.url}:`, {
+      event: req.body?.event,
+      ref: req.body?.data?.reference || req.body?.reference || req.body?.paymentReference,
+      amount: req.body?.data?.amount || req.body?.amount,
+      account: req.body?.data?.account?.account_number || req.body?.accountNumber,
+    });
 
     // 1. Validate Provider & Webhook Signature before processing any payment
     const sigResult = verifyGatewayWebhookSignature(req, db);
     if (!sigResult.isValid) {
+      console.warn(`[Webhook] Signature check failed: ${sigResult.reason}`);
       // Record suspicious attempt in security audit ledger and unmatched payments
       recordUnmatchedWebhookAttempt(db, {
         provider: "ASPFIY",

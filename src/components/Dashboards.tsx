@@ -16,7 +16,6 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  HelpCircle,
   MessageSquare,
   FileText,
   BarChart3,
@@ -184,13 +183,6 @@ export default function Dashboards({
   const [showFundInput, setShowFundInput] = useState(false);
   const [transferEmail, setTransferEmail] = useState("");
   const [transferAmount, setTransferAmount] = useState("");
-
-  // Agent Service states
-  const [srvTitle, setSrvTitle] = useState("");
-  const [srvDesc, setSrvDesc] = useState("");
-  const [srvPrice, setSrvPrice] = useState("");
-  const [srvCategory, setSrvCategory] = useState("IDENTITY");
-  const [srvDelivery, setSrvDelivery] = useState("24-48 Hours");
 
   // Admin stats
   const [adminStats, setAdminStats] = useState<any>({
@@ -391,7 +383,7 @@ export default function Dashboards({
       timestamp: Date;
       title: string;
       description: string;
-      type: "TRANSACTION" | "CAC_FILING" | "SUPPORT" | "SECURITY" | "LOGIN";
+      type: "TRANSACTION" | "CAC_FILING" | "SECURITY" | "LOGIN";
       status: "SUCCESS" | "PENDING" | "INFO" | "WARNING" | "RESOLVED";
     }> = [];
 
@@ -614,43 +606,6 @@ export default function Dashboards({
       setTransferAmount("");
       onRefreshUser(currentUser.uid);
       loadData();
-    } catch (err: any) {
-      setActionError(err.message);
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  // Agent: Add Marketplace Service
-  const handleAddService = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setActionError(null);
-    setActionSuccess(null);
-    setActionLoading(true);
-
-    try {
-      const authHeaders = await getAuthHeaders();
-      const res = await safeFetchJson<{ error?: string }>("/api/marketplace/services", {
-        method: "POST",
-        headers: { ...authHeaders, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          vendorId: currentUser.uid,
-          vendorName: currentUser.fullName,
-          title: srvTitle,
-          description: srvDesc,
-          category: srvCategory,
-          price: parseFloat(srvPrice),
-          commissionPercent: 10,
-          deliveryTime: srvDelivery,
-        }),
-      });
-      if (!res.ok) throw new Error(res.error || "Filing service failed");
-
-      setActionSuccess(`Marketplace Service: "${srvTitle}" has been posted successfully under commission guidelines!`);
-      setSrvTitle("");
-      setSrvDesc("");
-      setSrvPrice("");
-      setSrvCategory("IDENTITY");
     } catch (err: any) {
       setActionError(err.message);
     } finally {

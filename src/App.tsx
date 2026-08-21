@@ -9,7 +9,6 @@ import HeroSection from "./components/HeroSection";
 import ServicesGrid, { ServiceItem } from "./components/ServicesGrid";
 import ServiceModal from "./components/ServiceModal";
 import Dashboards from "./components/Dashboards";
-import Marketplace from "./components/Marketplace";
 import Navigation from "./components/Navigation";
 import AdminLogin from "./components/admin/AdminLogin";
 import AdminGuard from "./components/admin/AdminGuard";
@@ -185,7 +184,6 @@ export default function App() {
     }
     if (path === "/dashboard") return "DASHBOARD";
     if (path === "/services") return "SERVICES";
-    if (path === "/marketplace") return "MARKETPLACE";
     if (path === "/admin/login" || path.startsWith("/admin")) return "ADMIN_DASHBOARD";
     return "HOME";
   });
@@ -201,7 +199,6 @@ export default function App() {
     "/": "HOME",
     "/dashboard": "DASHBOARD",
     "/services": "SERVICES",
-    "/marketplace": "MARKETPLACE",
     "/notifications": "NOTIFICATIONS",
     "/admin/login": "ADMIN_LOGIN",
     "/admin/dashboard": "ADMIN_DASHBOARD",
@@ -238,7 +235,6 @@ export default function App() {
     HOME: "/",
     DASHBOARD: "/dashboard",
     SERVICES: "/services",
-    MARKETPLACE: "/marketplace",
     NOTIFICATIONS: "/notifications",
     ADMIN_LOGIN: "/admin/login",
     ADMIN_DASHBOARD: "/admin/dashboard",
@@ -667,9 +663,9 @@ export default function App() {
     };
   }, [isVerifyingEmail, verificationEmail]);
 
-  // Redirect SERVICES and MARKETPLACE view to DASHBOARD if not logged in
+  // Redirect SERVICES view to DASHBOARD if not logged in
   useEffect(() => {
-    if ((currentView === "SERVICES" || currentView === "MARKETPLACE") && !currentUser) {
+    if (currentView === "SERVICES" && !currentUser) {
       setCurrentView("DASHBOARD");
     }
   }, [currentView, currentUser]);
@@ -1657,38 +1653,6 @@ export default function App() {
                       className="w-full py-2.5 bg-slate-900 text-white hover:bg-blue-600 hover:text-white font-bold rounded-lg text-xs transition-all cursor-pointer shadow-xs"
                     >
                       Authenticate Now
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )
-          )}
-
-          {currentView === "MARKETPLACE" && (
-            currentUser ? (
-              <Marketplace currentUser={currentUser} onRefreshUser={fetchUserProfile} isDarkMode={isDarkMode} />
-            ) : (
-              <div className="max-w-md mx-auto my-16 px-4">
-                <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm text-center space-y-6">
-                  <div className="h-12 w-12 rounded-full bg-amber-50 border border-amber-100 flex items-center justify-center mx-auto text-amber-600">
-                    <Lock className="h-5 w-5" />
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="text-base font-black text-slate-900">Escrow Marketplace Locked</h3>
-                    <p className="text-xs text-slate-500 leading-relaxed max-w-xs mx-auto">
-                      Access to our multi-vendor agent list, commission payouts, and custom filing services is restricted to registered members.
-                    </p>
-                  </div>
-                  <div className="flex flex-col gap-2 pt-2">
-                    <button
-                      onClick={() => {
-                        setCurrentView("DASHBOARD");
-                        setIsRegistering(false);
-                        setAuthError(null);
-                      }}
-                      className="w-full py-2.5 bg-slate-900 text-white hover:bg-blue-600 hover:text-white font-bold rounded-lg text-xs transition-all cursor-pointer shadow-xs"
-                    >
-                      Sign In to Marketplace
                     </button>
                   </div>
                 </div>

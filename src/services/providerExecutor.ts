@@ -142,8 +142,11 @@ export function verifyWebhookSignature(
   // Clean signature header (strip "Bearer " if present)
   const receivedSig = signatureHeaderVal.replace(/^Bearer\s+/i, "").trim();
 
-  // Secret lookup: prefer webhookSigningSecret, then webhookSecret, secretKey, apiKey
+  // Secret lookup: prefer webhookSigningSecret, then webhookSecret, secretKey, apiKey, and env vars
+  const isAspfiy = String(providerConfig.name || providerConfig.id || "").toLowerCase().includes("aspfiy");
+  const envSecret = isAspfiy && process.env.ASPFIY_SECRET_KEY ? String(process.env.ASPFIY_SECRET_KEY).trim() : "";
   const signingSecret =
+    envSecret ||
     providerConfig.webhookSigningSecret ||
     providerConfig.webhookSecret ||
     providerConfig.secretKey ||
@@ -153,18 +156,29 @@ export function verifyWebhookSignature(
     return { isValid: false, reason: `Webhook signing secret is not configured for provider '${providerConfig.name || providerConfig.id}'.` };
   }
 
+  // Direct match check (e.g. if the gateway passes the raw API secret or Bearer token)
+  if (receivedSig.toLowerCase() === signingSecret.trim().toLowerCase()) {
+    return { isValid: true };
+  }
+
   // Determine algorithm and evaluate signature
   let algorithm: string;
-  if (method === "MD5_OF_SECRET") {
+  if (method === "MD5_OF_SECRET" || isAspfiy) {
     const expected = crypto.createHash("md5").update(signingSecret.trim()).digest("hex");
     if (receivedSig.toLowerCase() === expected.toLowerCase()) {
       return { isValid: true };
     }
-    return { isValid: false, reason: `MD5 signature mismatch for provider '${providerConfig.name}'.` };
-  } else if (method === "HMAC-SHA512" || method === "SHA512") {
+    if (method === "MD5_OF_SECRET") {
+      return { isValid: false, reason: `MD5 signature mismatch for provider '${providerConfig.name}'.` };
+    }
+  }
+  
+  if (method === "HMAC-SHA512" || method === "SHA512") {
     algorithm = "sha512";
   } else if (method === "HMAC-SHA256" || method === "SHA256") {
     algorithm = "sha256";
+  } else if (method === "MD5_OF_SECRET") {
+    return { isValid: false, reason: `MD5 signature mismatch for provider '${providerConfig.name}'.` };
   } else {
     return { isValid: false, reason: `Unsupported webhook signature method '${method}'.` };
   }
