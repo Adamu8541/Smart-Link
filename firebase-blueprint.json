@@ -1,0 +1,275 @@
+{
+  "entities": {
+    "users": {
+      "title": "users",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "uid": { "type": "string" },
+        "fullName": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "role": { "type": "string" },
+        "accountStatus": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" },
+        "lastLogin": { "type": "string" }
+      },
+      "required": ["uid", "fullName", "email", "phone", "role", "accountStatus"]
+    },
+    "wallets": {
+      "title": "wallets",
+      "description": "User core wallet record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "walletId": { "type": "string" },
+        "uid": { "type": "string" },
+        "walletNumber": { "type": "string" },
+        "availableBalance": { "type": "number" },
+        "pendingBalance": { "type": "number" },
+        "reservedBalance": { "type": "number" },
+        "totalBalance": { "type": "number" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["walletId", "uid", "walletNumber", "availableBalance", "pendingBalance", "reservedBalance", "totalBalance", "status"]
+    },
+    "wallet_summary": {
+      "title": "wallet_summary",
+      "description": "Optimized snapshot collection for fast dashboard rendering",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "uid": { "type": "string" },
+        "walletId": { "type": "string" },
+        "currentBalance": { "type": "number" },
+        "totalCredits": { "type": "number" },
+        "totalDebits": { "type": "number" },
+        "lastTransactionDate": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["uid", "walletId", "currentBalance", "totalCredits", "totalDebits"]
+    },
+    "wallet_transactions": {
+      "title": "wallet_transactions",
+      "description": "Stores every financial transaction lifecycle",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "transactionId": { "type": "string" },
+        "walletId": { "type": "string" },
+        "uid": { "type": "string" },
+        "type": { "type": "string" },
+        "amount": { "type": "number" },
+        "fee": { "type": "number" },
+        "netAmount": { "type": "number" },
+        "reference": { "type": "string" },
+        "externalReference": { "type": "string" },
+        "provider": { "type": "string" },
+        "status": { "type": "string" },
+        "description": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "completedAt": { "type": "string" }
+      },
+      "required": ["transactionId", "walletId", "uid", "type", "amount", "fee", "netAmount", "reference", "provider", "status", "description"]
+    },
+    "wallet_ledger": {
+      "title": "wallet_ledger",
+      "description": "The financial source of truth",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "ledgerId": { "type": "string" },
+        "transactionId": { "type": "string" },
+        "walletId": { "type": "string" },
+        "entryType": { "type": "string" },
+        "amount": { "type": "number" },
+        "balanceBefore": { "type": "number" },
+        "balanceAfter": { "type": "number" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["ledgerId", "transactionId", "walletId", "entryType", "amount", "balanceBefore", "balanceAfter"]
+    },
+    "payment_sessions": {
+      "title": "payment_sessions",
+      "description": "Tracks payments before completion",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "sessionId": { "type": "string" },
+        "uid": { "type": "string" },
+        "amount": { "type": "number" },
+        "provider": { "type": "string" },
+        "checkoutUrl": { "type": "string" },
+        "reference": { "type": "string" },
+        "status": { "type": "string" },
+        "expiresAt": { "type": "string" }
+      },
+      "required": ["sessionId", "uid", "amount", "provider", "reference", "status"]
+    },
+    "webhook_events": {
+      "title": "webhook_events",
+      "description": "Stores every webhook received from Squad",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "eventId": { "type": "string" },
+        "provider": { "type": "string" },
+        "eventType": { "type": "string" },
+        "payload": { "type": "object" },
+        "processed": { "type": "boolean" },
+        "processedAt": { "type": "string" }
+      },
+      "required": ["eventId", "provider", "eventType", "payload", "processed"]
+    },
+    "notifications": {
+      "title": "notifications",
+      "description": "In-app notifications",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "notificationId": { "type": "string" },
+        "uid": { "type": "string" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "type": { "type": "string" },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["notificationId", "uid", "title", "message", "type", "read"]
+    },
+    "audit_logs": {
+      "title": "audit_logs",
+      "description": "Security and administrative activities",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "logId": { "type": "string" },
+        "actorUid": { "type": "string" },
+        "action": { "type": "string" },
+        "details": { "type": "string" },
+        "ipAddress": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["logId", "actorUid", "action", "details"]
+    },
+    "app_settings": {
+      "title": "app_settings",
+      "description": "Global application operational settings",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "maintenanceMode": { "type": "boolean" },
+        "minimumFundingAmount": { "type": "number" },
+        "maximumFundingAmount": { "type": "number" },
+        "squadConfig": { "type": "object" },
+        "notificationConfig": { "type": "object" },
+        "systemVersion": { "type": "string" },
+        "featureFlags": { "type": "object" }
+      },
+      "required": ["maintenanceMode", "minimumFundingAmount", "maximumFundingAmount", "systemVersion"]
+    },
+    "legal_acceptances": {
+      "title": "legal_acceptances",
+      "description": "Immutable user legal consent and policy acceptance audit logs",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "documentId": { "type": "string" },
+        "documentTitle": { "type": "string" },
+        "documentVersion": { "type": "string" },
+        "acceptedAt": { "type": "string" },
+        "acceptanceType": { "type": "string" },
+        "workflow": { "type": "string" },
+        "ipAddress": { "type": "string" },
+        "userAgent": { "type": "string" },
+        "platform": { "type": "string" },
+        "metadata": { "type": "object" }
+      },
+      "required": ["userId", "documentId", "documentVersion", "acceptedAt", "acceptanceType", "workflow"]
+    },
+    "legal_policies": {
+      "title": "legal_policies",
+      "description": "Legal document versioning and re-acceptance configuration",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "documentId": { "type": "string" },
+        "documentName": { "type": "string" },
+        "version": { "type": "string" },
+        "effectiveDate": { "type": "string" },
+        "lastUpdated": { "type": "string" },
+        "status": { "type": "string" },
+        "requiresReAcceptance": { "type": "boolean" },
+        "minimumRequiredVersion": { "type": "string" },
+        "category": { "type": "string" },
+        "summary": { "type": "string" }
+      },
+      "required": ["documentId", "documentName", "version", "effectiveDate", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": {
+      "schema": { "$ref": "#/entities/users" },
+      "description": "User main profile document"
+    },
+    "/wallets/{uid}": {
+      "schema": { "$ref": "#/entities/wallets" },
+      "description": "User wallet document"
+    },
+    "/wallet_summary/{uid}": {
+      "schema": { "$ref": "#/entities/wallet_summary" },
+      "description": "User wallet summary snapshot"
+    },
+    "/wallet_transactions/{transactionId}": {
+      "schema": { "$ref": "#/entities/wallet_transactions" },
+      "description": "Financial transaction document"
+    },
+    "/wallet_ledger/{ledgerId}": {
+      "schema": { "$ref": "#/entities/wallet_ledger" },
+      "description": "Immutable balance change ledger entry"
+    },
+    "/payment_sessions/{sessionId}": {
+      "schema": { "$ref": "#/entities/payment_sessions" },
+      "description": "Pending funding payment session"
+    },
+    "/webhook_events/{eventId}": {
+      "schema": { "$ref": "#/entities/webhook_events" },
+      "description": "Squad gateway webhook event log"
+    },
+    "/notifications/{notificationId}": {
+      "schema": { "$ref": "#/entities/notifications" },
+      "description": "User notification document"
+    },
+    "/audit_logs/{logId}": {
+      "schema": { "$ref": "#/entities/audit_logs" },
+      "description": "Administrative and security audit log"
+    },
+    "/app_settings/{settingId}": {
+      "schema": { "$ref": "#/entities/app_settings" },
+      "description": "Global application configuration document"
+    },
+    "/service_pricing/{settingId}": {
+      "schema": { "$ref": "#/entities/app_settings" },
+      "description": "Real-time service rates and fee configuration"
+    },
+    "/legal_acceptances/{acceptanceId}": {
+      "schema": { "$ref": "#/entities/legal_acceptances" },
+      "description": "User legal agreement acceptance audit record"
+    },
+    "/legal_policies/{policyId}": {
+      "schema": { "$ref": "#/entities/legal_policies" },
+      "description": "Legal document versioning configuration"
+    },
+    "/test/{docId}": {
+      "schema": { "$ref": "#/entities/app_settings" },
+      "description": "Health connection probe"
+    }
+  }
+}
