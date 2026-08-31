@@ -24,8 +24,6 @@ import { AutomaticWalletFundingEngine } from "../../src/services/automaticWallet
 import { PaymentVerificationReconciliationEngine } from "../../src/services/paymentVerificationReconciliationEngine";
 import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerGateway";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
-import { AgentHubAdapter } from "../../src/services/providers/agenthubAdapter";
-import { NINTrustAdapter } from "../../src/services/providers/nintrustAdapter";
 import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
 import { syncFromFirestore, syncToFirestore } from "../../src/services/settingsStore";
 import { loadFirestoreDb, syncDbToFirestore, saveDocToFirestore } from "../../src/services/firestoreStore";
@@ -481,7 +479,7 @@ app.get("/api/bills/categories", async (req, res) => {
     {
       id: "WATER",
       name: "Water Utility Bills",
-      description: "Lagos Water Corporation, Abuja Water Board & state water authorities.",
+      description: "Lagos Water Corporation, State Water Board & municipal water authorities.",
       icon: "Droplets",
       estimatedProcessingTime: "< 5 Minutes",
       providerStatus: "ONLINE",
@@ -538,7 +536,7 @@ app.get("/api/bills/providers", async (req, res) => {
       providers = [
         { id: "ikedc", code: "IKEDC", name: "Ikeja Electric (IKEDC)", category, status: "ACTIVE", supportedMeterTypes: ["PREPAID", "POSTPAID"] },
         { id: "ekedc", code: "EKEDC", name: "Eko Electricity (EKEDC)", category, status: "ACTIVE", supportedMeterTypes: ["PREPAID", "POSTPAID"] },
-        { id: "aedc", code: "AEDC", name: "Abuja Electricity (AEDC)", category, status: "ACTIVE", supportedMeterTypes: ["PREPAID", "POSTPAID"] },
+        { id: "aedc", code: "AEDC", name: "Central Electricity (AEDC)", category, status: "ACTIVE", supportedMeterTypes: ["PREPAID", "POSTPAID"] },
         { id: "ibedc", code: "IBEDC", name: "Ibadan Electricity (IBEDC)", category, status: "ACTIVE", supportedMeterTypes: ["PREPAID", "POSTPAID"] },
         { id: "kedco", code: "KEDCO", name: "Kano Electricity (KEDCO)", category, status: "ACTIVE", supportedMeterTypes: ["PREPAID", "POSTPAID"] },
         { id: "eedc", code: "EEDC", name: "Enugu Electricity (EEDC)", category, status: "ACTIVE", supportedMeterTypes: ["PREPAID", "POSTPAID"] },

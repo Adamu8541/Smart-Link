@@ -15,28 +15,28 @@ export const TransactionStatusBadge: React.FC<TransactionStatusProps> = ({
 }) => {
   const normalizedStatus = (status || "").toUpperCase();
 
-  let colorClasses = "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700";
+  let colorClasses = "bg-[#E5E7EB] text-[#4B5563] dark:bg-[#111827] dark:text-[#E5E7EB] border-[#E5E7EB] dark:border-[#4B5563]";
   let label = normalizedStatus;
   let IconComponent = Clock;
 
   switch (normalizedStatus) {
     case "SUCCESS":
-      colorClasses = "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/60";
+      colorClasses = "bg-[#F5F7FA] text-[#0F2D5C] dark:bg-[#0F2D5C]/60 dark:text-[#9CA3AF] border-[#E5E7EB] dark:border-[#0F2D5C]/60";
       label = "Successful";
       IconComponent = CheckCircle2;
       break;
     case "PENDING":
-      colorClasses = "bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400 border-amber-200 dark:border-amber-800/60";
+      colorClasses = "bg-[#F5F7FA] text-[#0F2D5C] dark:bg-[#0F2D5C]/60 dark:text-[#9CA3AF] border-[#E5E7EB] dark:border-[#0F2D5C]/60";
       label = "Pending";
       IconComponent = Clock;
       break;
     case "FAILED":
-      colorClasses = "bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400 border-rose-200 dark:border-rose-800/60";
+      colorClasses = "bg-[#F5F7FA] text-[#0F2D5C] dark:bg-[#0F2D5C]/60 dark:text-[#9CA3AF] border-[#E5E7EB] dark:border-[#0F2D5C]/60";
       label = "Failed";
       IconComponent = AlertCircle;
       break;
     case "REVERSED":
-      colorClasses = "bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800/60";
+      colorClasses = "bg-[#F5F7FA] text-[#0F2D5C] dark:bg-[#0F2D5C]/60 dark:text-[#9CA3AF] border-[#E5E7EB] dark:border-[#0F2D5C]/60";
       label = "Reversed";
       IconComponent = RefreshCw;
       break;

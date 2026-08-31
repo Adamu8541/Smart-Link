@@ -87,14 +87,12 @@ export class LegalConsentService {
       metadata
     };
 
-    // 1. Write to Firestore if configured
+    // 1. Write to Firestore asynchronously if configured (non-blocking)
     if (isFirebaseConfigured && db) {
-      try {
-        const docRef = doc(db, "legal_acceptances", recordId);
-        await setDoc(docRef, record);
-      } catch (fsErr) {
-        console.warn("[LegalConsentService] Client Firestore write error, syncing to backend:", fsErr);
-      }
+      const docRef = doc(db, "legal_acceptances", recordId);
+      setDoc(docRef, record).catch((fsErr) => {
+        console.warn("[LegalConsentService] Client Firestore write note:", fsErr);
+      });
     }
 
     // 2. Write to backend API

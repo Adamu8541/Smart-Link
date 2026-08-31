@@ -495,16 +495,16 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
     <div className="space-y-6" id="admin-notifications-module">
       
       {/* View Header */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
+      <div className="bg-[#111827] border border-[#111827] rounded-2xl p-6 text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
         <div>
           <div className="flex items-center gap-2">
-            <Bell className="w-6 h-6 text-blue-400" />
+            <Bell className="w-6 h-6 text-[#9CA3AF]" />
             <h1 className="text-2xl font-bold tracking-tight">Notification & Announcement System</h1>
-            <span className="px-2.5 py-0.5 bg-blue-600/30 text-blue-400 border border-blue-500/40 text-xs font-bold rounded-full">
+            <span className="px-2.5 py-0.5 bg-[#0F2D5C]/30 text-[#9CA3AF] border border-[#0F2D5C]/40 text-xs font-bold rounded-full">
               Module 9
             </span>
           </div>
-          <p className="text-slate-400 text-xs mt-1">
+          <p className="text-[#9CA3AF] text-xs mt-1">
             Centralized communication hub with master switches for homepage banners, user dashboard alerts, and multi-channel broadcasts.
           </p>
         </div>
@@ -512,7 +512,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
         <div className="flex items-center gap-2 shrink-0 flex-wrap">
           <button
             onClick={() => setActiveTab("CREATE")}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs rounded-xl shadow-lg transition-all flex items-center gap-2 cursor-pointer"
+            className="px-4 py-2 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-semibold text-xs rounded-xl shadow-lg transition-all flex items-center gap-2 cursor-pointer"
           >
             <Send className="w-4 h-4" />
             <span>Send Notification</span>
@@ -534,7 +534,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
               });
               setShowAnnModal(true);
             }}
-            className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs rounded-xl shadow-lg transition-all flex items-center gap-2 cursor-pointer"
+            className="px-4 py-2 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-semibold text-xs rounded-xl shadow-lg transition-all flex items-center gap-2 cursor-pointer"
           >
             <Megaphone className="w-4 h-4" />
             <span>Post Announcement</span>
@@ -543,17 +543,17 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
       </div>
 
       {/* Global Real-time Switchboard & Broadcast Controller */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+      <div className="bg-[#111827]/90 border border-[#111827] rounded-2xl p-5 shadow-lg space-y-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-[#111827] pb-3">
           <div className="flex items-center gap-2">
-            <Radio className="w-5 h-5 text-emerald-400 animate-pulse" />
+            <Radio className="w-5 h-5 text-[#9CA3AF] animate-pulse" />
             <div>
               <h3 className="text-sm font-bold text-white tracking-wide">Live Broadcast Switchboard</h3>
-              <p className="text-[11px] text-slate-400">Instantly switch system-wide announcements and notification pipelines ON/OFF.</p>
+              <p className="text-[11px] text-[#9CA3AF]">Instantly switch system-wide announcements and notification pipelines ON/OFF.</p>
             </div>
           </div>
           {switchFeedback && (
-            <div className="px-3 py-1.5 bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 rounded-lg text-xs font-semibold flex items-center gap-1.5 animate-fadeIn">
+            <div className="px-3 py-1.5 bg-[#0F2D5C]/20 border border-[#0F2D5C]/30 text-[#9CA3AF] rounded-lg text-xs font-semibold flex items-center gap-1.5 animate-fadeIn">
               <Check className="w-3.5 h-3.5" />
               <span>{switchFeedback}</span>
             </div>
@@ -566,12 +566,12 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
           {/* Switch 1: Homepage & Dashboard Announcements */}
           <div className={`p-4 rounded-xl border transition-all ${
             systemSwitches.announcementsEnabled 
-              ? "bg-amber-950/20 border-amber-500/40 text-amber-100" 
-              : "bg-slate-950/60 border-slate-800 text-slate-400"
+              ? "bg-[#0F2D5C]/20 border-[#0F2D5C]/40 text-[#9CA3AF]" 
+              : "bg-[#111827]/60 border-[#111827] text-[#9CA3AF]"
           }`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 font-bold text-xs">
-                <Megaphone className={`w-4 h-4 ${systemSwitches.announcementsEnabled ? "text-amber-400" : "text-slate-500"}`} />
+                <Megaphone className={`w-4 h-4 ${systemSwitches.announcementsEnabled ? "text-[#9CA3AF]" : "text-[#6B7280]"}`} />
                 <span>Homepage Announcements</span>
               </div>
               <button
@@ -579,7 +579,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                 onClick={() => handleToggleSystemSwitch("announcements", systemSwitches.announcementsEnabled)}
                 disabled={toggleLoadingKey === "announcements"}
                 className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                  systemSwitches.announcementsEnabled ? "bg-amber-500" : "bg-slate-700"
+                  systemSwitches.announcementsEnabled ? "bg-[#0F2D5C]" : "bg-[#4B5563]"
                 }`}
                 title="Toggle Homepage Announcements"
               >
@@ -593,27 +593,27 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
             <div className="mt-3 flex items-center justify-between text-[11px]">
               <span className="font-mono">
                 {systemSwitches.announcementsEnabled ? (
-                  <span className="text-amber-400 font-bold flex items-center gap-1">
-                    <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-ping" />
+                  <span className="text-[#9CA3AF] font-bold flex items-center gap-1">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#0F2D5C] animate-ping" />
                     LIVE ON HOMEPAGE ({activeAnnCount} active)
                   </span>
                 ) : (
-                  <span className="text-slate-500 font-semibold">MUTED (Disabled)</span>
+                  <span className="text-[#6B7280] font-semibold">MUTED (Disabled)</span>
                 )}
               </span>
-              <span className="text-[10px] text-slate-500">Public & Dashboard</span>
+              <span className="text-[10px] text-[#6B7280]">Public & Dashboard</span>
             </div>
           </div>
 
           {/* Switch 2: In-App Notification Center */}
           <div className={`p-4 rounded-xl border transition-all ${
             systemSwitches.notificationsEnabled 
-              ? "bg-blue-950/20 border-blue-500/40 text-blue-100" 
-              : "bg-slate-950/60 border-slate-800 text-slate-400"
+              ? "bg-[#0F2D5C]/20 border-[#0F2D5C]/40 text-[#9CA3AF]" 
+              : "bg-[#111827]/60 border-[#111827] text-[#9CA3AF]"
           }`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 font-bold text-xs">
-                <Bell className={`w-4 h-4 ${systemSwitches.notificationsEnabled ? "text-blue-400" : "text-slate-500"}`} />
+                <Bell className={`w-4 h-4 ${systemSwitches.notificationsEnabled ? "text-[#9CA3AF]" : "text-[#6B7280]"}`} />
                 <span>In-App Notifications</span>
               </div>
               <button
@@ -621,7 +621,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                 onClick={() => handleToggleSystemSwitch("notifications", systemSwitches.notificationsEnabled)}
                 disabled={toggleLoadingKey === "notifications"}
                 className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                  systemSwitches.notificationsEnabled ? "bg-blue-600" : "bg-slate-700"
+                  systemSwitches.notificationsEnabled ? "bg-[#0F2D5C]" : "bg-[#4B5563]"
                 }`}
                 title="Toggle In-App Notifications"
               >
@@ -635,24 +635,24 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
             <div className="mt-3 flex items-center justify-between text-[11px]">
               <span className="font-mono">
                 {systemSwitches.notificationsEnabled ? (
-                  <span className="text-blue-400 font-bold">ACTIVE & DISPATCHING</span>
+                  <span className="text-[#9CA3AF] font-bold">ACTIVE & DISPATCHING</span>
                 ) : (
-                  <span className="text-slate-500 font-semibold">PAUSED</span>
+                  <span className="text-[#6B7280] font-semibold">PAUSED</span>
                 )}
               </span>
-              <span className="text-[10px] text-slate-500">User Bell Inbox</span>
+              <span className="text-[10px] text-[#6B7280]">User Bell Inbox</span>
             </div>
           </div>
 
           {/* Switch 3: Email Dispatch Pipeline */}
           <div className={`p-4 rounded-xl border transition-all ${
             systemSwitches.emailEnabled 
-              ? "bg-purple-950/20 border-purple-500/40 text-purple-100" 
-              : "bg-slate-950/60 border-slate-800 text-slate-400"
+              ? "bg-[#0F2D5C]/20 border-[#0F2D5C]/40 text-[#9CA3AF]" 
+              : "bg-[#111827]/60 border-[#111827] text-[#9CA3AF]"
           }`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 font-bold text-xs">
-                <Mail className={`w-4 h-4 ${systemSwitches.emailEnabled ? "text-purple-400" : "text-slate-500"}`} />
+                <Mail className={`w-4 h-4 ${systemSwitches.emailEnabled ? "text-[#9CA3AF]" : "text-[#6B7280]"}`} />
                 <span>Email Gateway</span>
               </div>
               <button
@@ -660,7 +660,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                 onClick={() => handleToggleSystemSwitch("email", systemSwitches.emailEnabled)}
                 disabled={toggleLoadingKey === "email"}
                 className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                  systemSwitches.emailEnabled ? "bg-purple-600" : "bg-slate-700"
+                  systemSwitches.emailEnabled ? "bg-[#0F2D5C]" : "bg-[#4B5563]"
                 }`}
                 title="Toggle Email Dispatch"
               >
@@ -674,24 +674,24 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
             <div className="mt-3 flex items-center justify-between text-[11px]">
               <span className="font-mono">
                 {systemSwitches.emailEnabled ? (
-                  <span className="text-purple-400 font-bold">ONLINE</span>
+                  <span className="text-[#9CA3AF] font-bold">ONLINE</span>
                 ) : (
-                  <span className="text-slate-500 font-semibold">OFFLINE</span>
+                  <span className="text-[#6B7280] font-semibold">OFFLINE</span>
                 )}
               </span>
-              <span className="text-[10px] text-slate-500">SMTP Server</span>
+              <span className="text-[10px] text-[#6B7280]">SMTP Server</span>
             </div>
           </div>
 
           {/* Switch 4: SMS Gateway Gateway */}
           <div className={`p-4 rounded-xl border transition-all ${
             systemSwitches.smsEnabled 
-              ? "bg-emerald-950/20 border-emerald-500/40 text-emerald-100" 
-              : "bg-slate-950/60 border-slate-800 text-slate-400"
+              ? "bg-[#0F2D5C]/20 border-[#0F2D5C]/40 text-[#9CA3AF]" 
+              : "bg-[#111827]/60 border-[#111827] text-[#9CA3AF]"
           }`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 font-bold text-xs">
-                <Smartphone className={`w-4 h-4 ${systemSwitches.smsEnabled ? "text-emerald-400" : "text-slate-500"}`} />
+                <Smartphone className={`w-4 h-4 ${systemSwitches.smsEnabled ? "text-[#9CA3AF]" : "text-[#6B7280]"}`} />
                 <span>SMS Gateway</span>
               </div>
               <button
@@ -699,7 +699,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                 onClick={() => handleToggleSystemSwitch("sms", systemSwitches.smsEnabled)}
                 disabled={toggleLoadingKey === "sms"}
                 className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                  systemSwitches.smsEnabled ? "bg-emerald-600" : "bg-slate-700"
+                  systemSwitches.smsEnabled ? "bg-[#0F2D5C]" : "bg-[#4B5563]"
                 }`}
                 title="Toggle SMS Gateway"
               >
@@ -713,12 +713,12 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
             <div className="mt-3 flex items-center justify-between text-[11px]">
               <span className="font-mono">
                 {systemSwitches.smsEnabled ? (
-                  <span className="text-emerald-400 font-bold">ONLINE</span>
+                  <span className="text-[#9CA3AF] font-bold">ONLINE</span>
                 ) : (
-                  <span className="text-slate-500 font-semibold">OFFLINE</span>
+                  <span className="text-[#6B7280] font-semibold">OFFLINE</span>
                 )}
               </span>
-              <span className="text-[10px] text-slate-500">Telecom API</span>
+              <span className="text-[10px] text-[#6B7280]">Telecom API</span>
             </div>
           </div>
 
@@ -726,11 +726,11 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
       </div>
 
       {/* Navigation Sub-Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-800 overflow-x-auto pb-2">
+      <div className="flex items-center gap-2 border-b border-[#111827] overflow-x-auto pb-2">
         <button
           onClick={() => setActiveTab("OVERVIEW")}
           className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-2 ${
-            activeTab === "OVERVIEW" ? "bg-blue-600 text-white shadow-md" : "text-slate-400 hover:text-white hover:bg-slate-800"
+            activeTab === "OVERVIEW" ? "bg-[#0F2D5C] text-white shadow-md" : "text-[#9CA3AF] hover:text-white hover:bg-[#111827]"
           }`}
         >
           <Layers className="w-4 h-4" />
@@ -739,7 +739,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
         <button
           onClick={() => setActiveTab("ANNOUNCEMENTS")}
           className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-2 ${
-            activeTab === "ANNOUNCEMENTS" ? "bg-amber-600 text-white shadow-md" : "text-slate-400 hover:text-white hover:bg-slate-800"
+            activeTab === "ANNOUNCEMENTS" ? "bg-[#0F2D5C] text-white shadow-md" : "text-[#9CA3AF] hover:text-white hover:bg-[#111827]"
           }`}
         >
           <Megaphone className="w-4 h-4" />
@@ -751,7 +751,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
         <button
           onClick={() => setActiveTab("CREATE")}
           className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-2 ${
-            activeTab === "CREATE" ? "bg-blue-600 text-white shadow-md" : "text-slate-400 hover:text-white hover:bg-slate-800"
+            activeTab === "CREATE" ? "bg-[#0F2D5C] text-white shadow-md" : "text-[#9CA3AF] hover:text-white hover:bg-[#111827]"
           }`}
         >
           <Send className="w-4 h-4" />
@@ -760,7 +760,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
         <button
           onClick={() => setActiveTab("TEMPLATES")}
           className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-2 ${
-            activeTab === "TEMPLATES" ? "bg-blue-600 text-white shadow-md" : "text-slate-400 hover:text-white hover:bg-slate-800"
+            activeTab === "TEMPLATES" ? "bg-[#0F2D5C] text-white shadow-md" : "text-[#9CA3AF] hover:text-white hover:bg-[#111827]"
           }`}
         >
           <FileText className="w-4 h-4" />
@@ -769,7 +769,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
         <button
           onClick={() => setActiveTab("HISTORY")}
           className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-2 ${
-            activeTab === "HISTORY" ? "bg-blue-600 text-white shadow-md" : "text-slate-400 hover:text-white hover:bg-slate-800"
+            activeTab === "HISTORY" ? "bg-[#0F2D5C] text-white shadow-md" : "text-[#9CA3AF] hover:text-white hover:bg-[#111827]"
           }`}
         >
           <History className="w-4 h-4" />
@@ -781,7 +781,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
             handleRunSelfTest();
           }}
           className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-2 ${
-            activeTab === "TEST_SUITE" ? "bg-purple-600 text-white shadow-md" : "text-purple-400 hover:text-purple-300 hover:bg-purple-950/40"
+            activeTab === "TEST_SUITE" ? "bg-[#0F2D5C] text-white shadow-md" : "text-[#9CA3AF] hover:text-[#9CA3AF] hover:bg-[#0F2D5C]/40"
           }`}
         >
           <Sparkles className="w-4 h-4" />
@@ -794,41 +794,41 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
         <div className="space-y-6">
           {/* KPI Widget Cards */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl shadow-lg">
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Sent Today</span>
+            <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl shadow-lg">
+              <span className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider">Sent Today</span>
               <p className="text-2xl font-extrabold text-white mt-1">{dashboardData?.metrics?.notificationsSentToday || 0}</p>
             </div>
-            <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl shadow-lg">
-              <span className="text-xs font-semibold text-blue-400 uppercase tracking-wider">Unread Total</span>
-              <p className="text-2xl font-extrabold text-blue-400 mt-1">{dashboardData?.metrics?.unreadNotifications || 0}</p>
+            <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl shadow-lg">
+              <span className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider">Unread Total</span>
+              <p className="text-2xl font-extrabold text-[#9CA3AF] mt-1">{dashboardData?.metrics?.unreadNotifications || 0}</p>
             </div>
-            <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl shadow-lg">
-              <span className="text-xs font-semibold text-amber-400 uppercase tracking-wider">Scheduled</span>
-              <p className="text-2xl font-extrabold text-amber-400 mt-1">{dashboardData?.metrics?.scheduledNotifications || 0}</p>
+            <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl shadow-lg">
+              <span className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider">Scheduled</span>
+              <p className="text-2xl font-extrabold text-[#9CA3AF] mt-1">{dashboardData?.metrics?.scheduledNotifications || 0}</p>
             </div>
-            <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl shadow-lg">
-              <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">Active Banners</span>
-              <p className="text-2xl font-extrabold text-emerald-400 mt-1">{activeAnnCount}</p>
+            <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl shadow-lg">
+              <span className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider">Active Banners</span>
+              <p className="text-2xl font-extrabold text-[#9CA3AF] mt-1">{activeAnnCount}</p>
             </div>
-            <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl shadow-lg">
-              <span className="text-xs font-semibold text-rose-400 uppercase tracking-wider">Total Dispatches</span>
-              <p className="text-2xl font-extrabold text-rose-400 mt-1">{notifications.length}</p>
+            <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl shadow-lg">
+              <span className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider">Total Dispatches</span>
+              <p className="text-2xl font-extrabold text-[#9CA3AF] mt-1">{notifications.length}</p>
             </div>
           </div>
 
           {/* Quick Announcement Switch List in Overview */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="bg-[#111827] border border-[#111827] rounded-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-[#111827] pb-3">
               <div>
                 <h3 className="font-bold text-white text-base flex items-center gap-2">
-                  <Megaphone className="w-4 h-4 text-amber-400" />
+                  <Megaphone className="w-4 h-4 text-[#9CA3AF]" />
                   <span>Homepage & Dashboard Announcements Switchboard</span>
                 </h3>
-                <p className="text-xs text-slate-400">Toggle active announcements directly from the overview.</p>
+                <p className="text-xs text-[#9CA3AF]">Toggle active announcements directly from the overview.</p>
               </div>
               <button
                 onClick={() => setActiveTab("ANNOUNCEMENTS")}
-                className="text-xs text-blue-400 hover:text-blue-300 font-bold flex items-center gap-1 cursor-pointer"
+                className="text-xs text-[#9CA3AF] hover:text-[#9CA3AF] font-bold flex items-center gap-1 cursor-pointer"
               >
                 <span>Manage All ({announcements.length})</span>
                 <ExternalLink className="w-3.5 h-3.5" />
@@ -841,21 +841,21 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                   key={ann.id}
                   className={`p-4 rounded-xl border flex items-center justify-between gap-3 transition-all ${
                     ann.isActive
-                      ? "bg-slate-950/80 border-amber-500/30"
-                      : "bg-slate-950/40 border-slate-800 opacity-70"
+                      ? "bg-[#111827]/80 border-[#0F2D5C]/30"
+                      : "bg-[#111827]/40 border-[#111827] opacity-70"
                   }`}
                 >
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <span className={`px-2 py-0.5 rounded text-[9px] font-mono uppercase font-bold ${
-                        ann.isActive ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : "bg-slate-800 text-slate-500"
+                        ann.isActive ? "bg-[#0F2D5C]/20 text-[#9CA3AF] border border-[#0F2D5C]/30" : "bg-[#111827] text-[#6B7280]"
                       }`}>
                         {ann.isActive ? "ACTIVE ON HOMEPAGE" : "OFF / MUTED"}
                       </span>
-                      <span className="text-[10px] text-slate-400">{ann.type}</span>
+                      <span className="text-[10px] text-[#9CA3AF]">{ann.type}</span>
                     </div>
                     <h4 className="font-bold text-white text-xs mt-1 truncate">{ann.title}</h4>
-                    <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">{ann.content}</p>
+                    <p className="text-[11px] text-[#9CA3AF] line-clamp-1 mt-0.5">{ann.content}</p>
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0">
@@ -864,8 +864,8 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                       disabled={toggleLoadingKey === `ann_${ann.id}`}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                         ann.isActive
-                          ? "bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs"
-                          : "bg-slate-800 hover:bg-slate-700 text-slate-300"
+                          ? "bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white shadow-xs"
+                          : "bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB]"
                       }`}
                     >
                       <Power className="w-3.5 h-3.5" />
@@ -878,10 +878,10 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
           </div>
 
           {/* Quick Filter & Notification Records Table */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div className="bg-[#111827] border border-[#111827] rounded-2xl p-6 space-y-4">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-[#111827] pb-4">
               <h3 className="font-bold text-white text-lg flex items-center gap-2">
-                <Bell className="w-5 h-5 text-blue-400" />
+                <Bell className="w-5 h-5 text-[#9CA3AF]" />
                 <span>All Notification Dispatches</span>
               </h3>
 
@@ -892,7 +892,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyUp={fetchNotifications}
-                  className="px-3 py-1.5 text-xs bg-slate-950 border border-slate-800 rounded-lg text-white placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="px-3 py-1.5 text-xs bg-[#111827] border border-[#111827] rounded-lg text-white placeholder:text-[#6B7280] focus:outline-none focus:ring-1 focus:ring-[#0F2D5C]"
                 />
 
                 <select
@@ -901,7 +901,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                     setFilterCategory(e.target.value);
                     fetchNotifications();
                   }}
-                  className="px-3 py-1.5 text-xs bg-slate-950 border border-slate-800 rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="px-3 py-1.5 text-xs bg-[#111827] border border-[#111827] rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-[#0F2D5C]"
                 >
                   <option value="ALL">All Categories</option>
                   <option value="System Maintenance">System Maintenance</option>
@@ -918,7 +918,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                     setFilterPriority(e.target.value);
                     fetchNotifications();
                   }}
-                  className="px-3 py-1.5 text-xs bg-slate-950 border border-slate-800 rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="px-3 py-1.5 text-xs bg-[#111827] border border-[#111827] rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-[#0F2D5C]"
                 >
                   <option value="ALL">All Priorities</option>
                   <option value="Critical">Critical</option>
@@ -930,13 +930,13 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
             </div>
 
             {loading ? (
-              <div className="p-8 text-center text-slate-500">Loading notification dispatches...</div>
+              <div className="p-8 text-center text-[#6B7280]">Loading notification dispatches...</div>
             ) : notifications.length === 0 ? (
-              <div className="p-8 text-center text-slate-500">No notifications found matching filter.</div>
+              <div className="p-8 text-center text-[#6B7280]">No notifications found matching filter.</div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs text-slate-300">
-                  <thead className="bg-slate-950/60 text-slate-400 font-mono uppercase tracking-wider border-b border-slate-800">
+                <table className="w-full text-left text-xs text-[#E5E7EB]">
+                  <thead className="bg-[#111827]/60 text-[#9CA3AF] font-mono uppercase tracking-wider border-b border-[#111827]">
                     <tr>
                       <th className="p-3">Title & Summary</th>
                       <th className="p-3">Category</th>
@@ -947,57 +947,57 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                       <th className="p-3">Created / Sent At</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60">
+                  <tbody className="divide-y divide-[#6B7280]">
                     {notifications.map((n) => (
-                      <tr key={n.id} className="hover:bg-slate-800/30 transition-colors">
+                      <tr key={n.id} className="hover:bg-[#111827]/30 transition-colors">
                         <td className="p-3 font-semibold text-white">
                           <div>{n.title}</div>
-                          <div className="text-[11px] text-slate-400 font-normal line-clamp-1 mt-0.5">{n.message}</div>
+                          <div className="text-[11px] text-[#9CA3AF] font-normal line-clamp-1 mt-0.5">{n.message}</div>
                         </td>
                         <td className="p-3">
-                          <span className="px-2 py-0.5 bg-slate-800 text-slate-300 rounded font-mono text-[10px]">
+                          <span className="px-2 py-0.5 bg-[#111827] text-[#E5E7EB] rounded font-mono text-[10px]">
                             {n.category}
                           </span>
                         </td>
                         <td className="p-3">
                           {n.priority === "Critical" ? (
-                            <span className="px-2 py-0.5 bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded font-bold">
+                            <span className="px-2 py-0.5 bg-[#0F2D5C]/20 text-[#9CA3AF] border border-[#0F2D5C]/30 rounded font-bold">
                               CRITICAL
                             </span>
                           ) : n.priority === "High" ? (
-                            <span className="px-2 py-0.5 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded font-bold">
+                            <span className="px-2 py-0.5 bg-[#0F2D5C]/20 text-[#9CA3AF] border border-[#0F2D5C]/30 rounded font-bold">
                               HIGH
                             </span>
                           ) : (
-                            <span className="px-2 py-0.5 bg-slate-800 text-slate-400 rounded">NORMAL</span>
+                            <span className="px-2 py-0.5 bg-[#111827] text-[#9CA3AF] rounded">NORMAL</span>
                           )}
                         </td>
                         <td className="p-3">
                           <div className="flex gap-1 flex-wrap">
                             {n.channels?.map((c: string) => (
-                              <span key={c} className="px-1.5 py-0.2 bg-blue-950 text-blue-300 border border-blue-800 rounded text-[10px]">
+                              <span key={c} className="px-1.5 py-0.2 bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C] rounded text-[10px]">
                                 {c}
                               </span>
                             ))}
                           </div>
                         </td>
-                        <td className="p-3 font-medium text-slate-300">{n.targetAudience}</td>
+                        <td className="p-3 font-medium text-[#E5E7EB]">{n.targetAudience}</td>
                         <td className="p-3">
                           {n.status === "Sent" ? (
-                            <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded font-semibold">
+                            <span className="px-2 py-0.5 bg-[#0F2D5C]/20 text-[#9CA3AF] border border-[#0F2D5C]/30 rounded font-semibold">
                               Sent ({n.deliveredCount})
                             </span>
                           ) : n.status === "Scheduled" ? (
-                            <span className="px-2 py-0.5 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded font-semibold">
+                            <span className="px-2 py-0.5 bg-[#0F2D5C]/20 text-[#9CA3AF] border border-[#0F2D5C]/30 rounded font-semibold">
                               Scheduled
                             </span>
                           ) : (
-                            <span className="px-2 py-0.5 bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded font-semibold">
+                            <span className="px-2 py-0.5 bg-[#0F2D5C]/20 text-[#9CA3AF] border border-[#0F2D5C]/30 rounded font-semibold">
                               {n.status}
                             </span>
                           )}
                         </td>
-                        <td className="p-3 font-mono text-[11px] text-slate-400">
+                        <td className="p-3 font-mono text-[11px] text-[#9CA3AF]">
                           {n.createdAt ? new Date(n.createdAt).toLocaleString() : "—"}
                         </td>
                       </tr>
@@ -1016,10 +1016,10 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <Megaphone className="w-5 h-5 text-amber-400" />
+                <Megaphone className="w-5 h-5 text-[#9CA3AF]" />
                 <span>Homepage & Dashboard Announcement Posts</span>
               </h3>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-[#9CA3AF]">
                 Manage high-visibility banner overlays displayed directly on the public homepage and user dashboards.
               </p>
             </div>
@@ -1043,7 +1043,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                   setShowAnnModal(true);
                 }}
                 id="btn-create-announcement-modal"
-                className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs rounded-xl shadow-lg transition-all flex items-center gap-1.5 cursor-pointer"
+                className="px-4 py-2 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-semibold text-xs rounded-xl shadow-lg transition-all flex items-center gap-1.5 cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 <span>Create Announcement</span>
@@ -1052,14 +1052,14 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
           </div>
 
           {/* Announcement Filters Bar */}
-          <div className="flex items-center justify-between gap-4 bg-slate-900 border border-slate-800 rounded-xl p-3">
+          <div className="flex items-center justify-between gap-4 bg-[#111827] border border-[#111827] rounded-xl p-3">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-slate-400 font-mono">Filter Status:</span>
-              <div className="flex bg-slate-950 p-1 rounded-lg border border-slate-800">
+              <span className="text-xs font-bold text-[#9CA3AF] font-mono">Filter Status:</span>
+              <div className="flex bg-[#111827] p-1 rounded-lg border border-[#111827]">
                 <button
                   onClick={() => setAnnFilterStatus("ALL")}
                   className={`px-3 py-1 text-xs font-bold rounded-md transition-all cursor-pointer ${
-                    annFilterStatus === "ALL" ? "bg-amber-600 text-white" : "text-slate-400 hover:text-white"
+                    annFilterStatus === "ALL" ? "bg-[#0F2D5C] text-white" : "text-[#9CA3AF] hover:text-white"
                   }`}
                 >
                   All ({announcements.length})
@@ -1067,7 +1067,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                 <button
                   onClick={() => setAnnFilterStatus("ACTIVE")}
                   className={`px-3 py-1 text-xs font-bold rounded-md transition-all cursor-pointer ${
-                    annFilterStatus === "ACTIVE" ? "bg-emerald-600 text-white" : "text-slate-400 hover:text-white"
+                    annFilterStatus === "ACTIVE" ? "bg-[#0F2D5C] text-white" : "text-[#9CA3AF] hover:text-white"
                   }`}
                 >
                   Active & Live ({activeAnnCount})
@@ -1075,7 +1075,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                 <button
                   onClick={() => setAnnFilterStatus("INACTIVE")}
                   className={`px-3 py-1 text-xs font-bold rounded-md transition-all cursor-pointer ${
-                    annFilterStatus === "INACTIVE" ? "bg-slate-700 text-white" : "text-slate-400 hover:text-white"
+                    annFilterStatus === "INACTIVE" ? "bg-[#4B5563] text-white" : "text-[#9CA3AF] hover:text-white"
                   }`}
                 >
                   Muted / Off ({inactiveAnnCount})
@@ -1083,21 +1083,21 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
               </div>
             </div>
 
-            <div className="text-xs text-slate-400 font-mono hidden md:block">
+            <div className="text-xs text-[#9CA3AF] font-mono hidden md:block">
               {systemSwitches.announcementsEnabled ? (
-                <span className="text-emerald-400 font-bold">● System Broadcast is ON</span>
+                <span className="text-[#9CA3AF] font-bold">● System Broadcast is ON</span>
               ) : (
-                <span className="text-rose-400 font-bold">○ System Broadcast is MUTED</span>
+                <span className="text-[#9CA3AF] font-bold">○ System Broadcast is MUTED</span>
               )}
             </div>
           </div>
 
           {/* Announcements Grid Cards */}
           {filteredAnnouncements.length === 0 ? (
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center space-y-3">
-              <Megaphone className="w-10 h-10 text-slate-600 mx-auto" />
+            <div className="bg-[#111827] border border-[#111827] rounded-2xl p-12 text-center space-y-3">
+              <Megaphone className="w-10 h-10 text-[#4B5563] mx-auto" />
               <h4 className="text-base font-bold text-white">No Announcements Found</h4>
-              <p className="text-xs text-slate-400 max-w-md mx-auto">
+              <p className="text-xs text-[#9CA3AF] max-w-md mx-auto">
                 No announcement records match the selected filter. Create a new announcement or toggle the filter above.
               </p>
               <button
@@ -1105,7 +1105,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                   setEditingAnnId(null);
                   setShowAnnModal(true);
                 }}
-                className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl cursor-pointer mt-2"
+                className="px-4 py-2 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl cursor-pointer mt-2"
               >
                 Create First Announcement
               </button>
@@ -1116,34 +1116,34 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                 <div
                   key={ann.id}
                   id={`admin-ann-card-${ann.id}`}
-                  className={`bg-slate-900 border rounded-2xl p-5 relative space-y-4 transition-all duration-200 ${
+                  className={`bg-[#111827] border rounded-2xl p-5 relative space-y-4 transition-all duration-200 ${
                     ann.isActive
-                      ? "border-amber-500/40 shadow-lg shadow-amber-500/5"
-                      : "border-slate-800 opacity-75"
+                      ? "border-[#0F2D5C]/40 shadow-lg shadow-none"
+                      : "border-[#111827] opacity-75"
                   }`}
                 >
                   {/* Top Bar with Status and ON/OFF Switch */}
-                  <div className="flex items-start justify-between gap-3 border-b border-slate-800 pb-3">
+                  <div className="flex items-start justify-between gap-3 border-b border-[#111827] pb-3">
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className={`px-2 py-0.5 rounded text-[10px] font-mono uppercase font-extrabold ${
                           ann.bannerStyle === "rose" || ann.priority === "Critical"
-                            ? "bg-rose-500/20 text-rose-400 border border-rose-500/30"
+                            ? "bg-[#0F2D5C]/20 text-[#9CA3AF] border border-[#0F2D5C]/30"
                             : ann.bannerStyle === "emerald"
-                            ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                            ? "bg-[#0F2D5C]/20 text-[#9CA3AF] border border-[#0F2D5C]/30"
                             : ann.bannerStyle === "blue"
-                            ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
-                            : "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                            ? "bg-[#0F2D5C]/20 text-[#9CA3AF] border border-[#0F2D5C]/30"
+                            : "bg-[#0F2D5C]/20 text-[#9CA3AF] border border-[#0F2D5C]/30"
                         }`}>
                           {ann.type}
                         </span>
 
                         <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold flex items-center gap-1 ${
                           ann.isActive
-                            ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                            : "bg-slate-800 text-slate-400"
+                            ? "bg-[#0F2D5C]/20 text-[#9CA3AF] border border-[#0F2D5C]/30"
+                            : "bg-[#111827] text-[#9CA3AF]"
                         }`}>
-                          <span className={`h-1.5 w-1.5 rounded-full ${ann.isActive ? "bg-emerald-400 animate-pulse" : "bg-slate-500"}`} />
+                          <span className={`h-1.5 w-1.5 rounded-full ${ann.isActive ? "bg-[#0F2D5C] animate-pulse" : "bg-[#6B7280]"}`} />
                           {ann.isActive ? "LIVE ON HOMEPAGE" : "OFF / HIDDEN"}
                         </span>
                       </div>
@@ -1159,8 +1159,8 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                         disabled={toggleLoadingKey === `ann_${ann.id}`}
                         className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm ${
                           ann.isActive
-                            ? "bg-emerald-600 hover:bg-emerald-500 text-white"
-                            : "bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700"
+                            ? "bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white"
+                            : "bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] border border-[#4B5563]"
                         }`}
                         title={ann.isActive ? "Click to Turn OFF (Hide from Homepage)" : "Click to Turn ON (Show on Homepage)"}
                       >
@@ -1171,46 +1171,46 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                   </div>
 
                   {/* Body Content */}
-                  <div className="bg-slate-950/70 p-3.5 rounded-xl border border-slate-800/80 text-xs text-slate-300 leading-relaxed font-sans">
+                  <div className="bg-[#111827]/70 p-3.5 rounded-xl border border-[#111827]/80 text-xs text-[#E5E7EB] leading-relaxed font-sans">
                     {ann.content}
                   </div>
 
                   {/* Meta / Details */}
-                  <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-400 pt-1">
+                  <div className="grid grid-cols-2 gap-2 text-[11px] text-[#9CA3AF] pt-1">
                     <div>
-                      <span className="text-slate-500 block text-[10px]">TARGET AUDIENCE</span>
-                      <span className="font-medium text-slate-300">{ann.targetAudience || "All Users"}</span>
+                      <span className="text-[#6B7280] block text-[10px]">TARGET AUDIENCE</span>
+                      <span className="font-medium text-[#E5E7EB]">{ann.targetAudience || "All Users"}</span>
                     </div>
                     <div>
-                      <span className="text-slate-500 block text-[10px]">PRIORITY</span>
-                      <span className={`font-semibold ${ann.priority === "Critical" ? "text-rose-400" : ann.priority === "High" ? "text-amber-400" : "text-slate-300"}`}>
+                      <span className="text-[#6B7280] block text-[10px]">PRIORITY</span>
+                      <span className={`font-semibold ${ann.priority === "Critical" ? "text-[#9CA3AF]" : ann.priority === "High" ? "text-[#9CA3AF]" : "text-[#E5E7EB]"}`}>
                         {ann.priority || "Normal"}
                       </span>
                     </div>
                   </div>
 
                   {/* Bottom Action Controls */}
-                  <div className="flex items-center justify-between pt-3 border-t border-slate-800 text-xs">
+                  <div className="flex items-center justify-between pt-3 border-t border-[#111827] text-xs">
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => setPreviewAnnouncement(ann)}
-                        className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold flex items-center gap-1 cursor-pointer transition-colors"
+                        className="px-2.5 py-1 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] rounded-lg text-xs font-semibold flex items-center gap-1 cursor-pointer transition-colors"
                       >
-                        <Eye className="w-3.5 h-3.5 text-blue-400" />
+                        <Eye className="w-3.5 h-3.5 text-[#9CA3AF]" />
                         <span>Live Preview</span>
                       </button>
                       <button
                         onClick={() => handleOpenEditAnn(ann)}
-                        className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold flex items-center gap-1 cursor-pointer transition-colors"
+                        className="px-2.5 py-1 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] rounded-lg text-xs font-semibold flex items-center gap-1 cursor-pointer transition-colors"
                       >
-                        <Edit className="w-3.5 h-3.5 text-amber-400" />
+                        <Edit className="w-3.5 h-3.5 text-[#9CA3AF]" />
                         <span>Edit</span>
                       </button>
                     </div>
 
                     <button
                       onClick={() => handleDeleteAnnouncement(ann.id)}
-                      className="p-1.5 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 rounded-lg transition-colors cursor-pointer"
+                      className="p-1.5 hover:bg-[#0F2D5C]/20 text-[#9CA3AF] hover:text-[#9CA3AF] rounded-lg transition-colors cursor-pointer"
                       title="Delete Announcement"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -1225,21 +1225,21 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
 
       {/* TAB 3: CREATE & DISPATCH NOTIFICATION */}
       {activeTab === "CREATE" && (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 text-white space-y-6 max-w-4xl">
+        <div className="bg-[#111827] border border-[#111827] rounded-2xl p-6 text-white space-y-6 max-w-4xl">
           <div>
             <h3 className="text-lg font-bold">Create and Dispatch Notification</h3>
-            <p className="text-xs text-slate-400">Broadcast targeted messages to user notifications inbox, email, and SMS channels.</p>
+            <p className="text-xs text-[#9CA3AF]">Broadcast targeted messages to user notifications inbox, email, and SMS channels.</p>
           </div>
 
           {createSuccessMsg && (
-            <div className="p-4 bg-emerald-950/60 border border-emerald-800 text-emerald-200 rounded-xl text-xs flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            <div className="p-4 bg-[#0F2D5C]/60 border border-[#0F2D5C] text-[#9CA3AF] rounded-xl text-xs flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-[#9CA3AF] shrink-0" />
               <span>{createSuccessMsg}</span>
             </div>
           )}
           {createErrorMsg && (
-            <div className="p-4 bg-rose-950/60 border border-rose-800 text-rose-200 rounded-xl text-xs flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+            <div className="p-4 bg-[#0F2D5C]/60 border border-[#0F2D5C] text-[#9CA3AF] rounded-xl text-xs flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-[#9CA3AF] shrink-0" />
               <span>{createErrorMsg}</span>
             </div>
           )}
@@ -1247,11 +1247,11 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
           <form onSubmit={handleCreateSubmit} className="space-y-4">
             {/* Quick Template Selector */}
             <div>
-              <label className="text-xs font-semibold text-slate-300 block mb-1">Pre-filled Template (Optional)</label>
+              <label className="text-xs font-semibold text-[#E5E7EB] block mb-1">Pre-filled Template (Optional)</label>
               <select
                 value={createForm.selectedTemplateId}
                 onChange={(e) => handleTemplateSelect(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-[#111827] border border-[#111827] rounded-xl text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#0F2D5C]"
               >
                 <option value="">-- Select a predefined template --</option>
                 {templates.map((tpl) => (
@@ -1264,23 +1264,23 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1">Notification Title *</label>
+                <label className="text-xs font-semibold text-[#E5E7EB] block mb-1">Notification Title *</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. Wallet Credited: ₦50,000"
                   value={createForm.title}
                   onChange={(e) => setCreateForm({ ...createForm, title: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full px-3 py-2 bg-[#111827] border border-[#111827] rounded-xl text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#0F2D5C]"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1">Category</label>
+                <label className="text-xs font-semibold text-[#E5E7EB] block mb-1">Category</label>
                 <select
                   value={createForm.category}
                   onChange={(e) => setCreateForm({ ...createForm, category: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full px-3 py-2 bg-[#111827] border border-[#111827] rounded-xl text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#0F2D5C]"
                 >
                   <option value="General">General</option>
                   <option value="Wallet Alert">Wallet Alert</option>
@@ -1293,21 +1293,21 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-300 block mb-1">Message Body *</label>
+              <label className="text-xs font-semibold text-[#E5E7EB] block mb-1">Message Body *</label>
               <textarea
                 rows={4}
                 required
                 placeholder="Enter notification text. Supports merge tags: {{user_name}}, {{amount}}, {{balance}}, {{ref}}"
                 value={createForm.message}
                 onChange={(e) => setCreateForm({ ...createForm, message: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-[#111827] border border-[#111827] rounded-xl text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#0F2D5C]"
               />
             </div>
 
             {/* Channels & Priority */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-2">Delivery Channels</label>
+                <label className="text-xs font-semibold text-[#E5E7EB] block mb-2">Delivery Channels</label>
                 <div className="flex gap-2 flex-wrap">
                   {["In-App", "Email", "SMS", "Push Notification"].map((ch) => {
                     const active = createForm.channels.includes(ch);
@@ -1317,7 +1317,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                         key={ch}
                         onClick={() => handleChannelToggle(ch)}
                         className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                          active ? "bg-blue-600 text-white" : "bg-slate-950 text-slate-400 border border-slate-800"
+                          active ? "bg-[#0F2D5C] text-white" : "bg-[#111827] text-[#9CA3AF] border border-[#111827]"
                         }`}
                       >
                         {ch}
@@ -1328,11 +1328,11 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-2">Priority</label>
+                <label className="text-xs font-semibold text-[#E5E7EB] block mb-2">Priority</label>
                 <select
                   value={createForm.priority}
                   onChange={(e) => setCreateForm({ ...createForm, priority: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full px-3 py-2 bg-[#111827] border border-[#111827] rounded-xl text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#0F2D5C]"
                 >
                   <option value="Normal">Normal</option>
                   <option value="High">High</option>
@@ -1345,11 +1345,11 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
             {/* Target Audience & Direct Recipient */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1">Target Audience</label>
+                <label className="text-xs font-semibold text-[#E5E7EB] block mb-1">Target Audience</label>
                 <select
                   value={createForm.targetAudience}
                   onChange={(e) => setCreateForm({ ...createForm, targetAudience: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full px-3 py-2 bg-[#111827] border border-[#111827] rounded-xl text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#0F2D5C]"
                 >
                   <option value="All Users">All Users</option>
                   <option value="Active Users">Active Users</option>
@@ -1360,19 +1360,19 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
 
               {createForm.targetAudience === "Specific User" && (
                 <div>
-                  <label className="text-xs font-semibold text-slate-300 block mb-1">Recipient User Email</label>
+                  <label className="text-xs font-semibold text-[#E5E7EB] block mb-1">Recipient User Email</label>
                   <input
                     type="email"
                     placeholder="user@smartlink.ng"
                     value={createForm.targetEmail}
                     onChange={(e) => setCreateForm({ ...createForm, targetEmail: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="w-full px-3 py-2 bg-[#111827] border border-[#111827] rounded-xl text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#0F2D5C]"
                   />
                 </div>
               )}
             </div>
 
-            <div className="pt-3 border-t border-slate-800 flex justify-end gap-3">
+            <div className="pt-3 border-t border-[#111827] flex justify-end gap-3">
               <button
                 type="button"
                 onClick={() =>
@@ -1389,13 +1389,13 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                     selectedTemplateId: "",
                   })
                 }
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold cursor-pointer"
+                className="px-4 py-2 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] rounded-xl text-xs font-semibold cursor-pointer"
               >
                 Clear Form
               </button>
               <button
                 type="submit"
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg flex items-center gap-2 cursor-pointer"
+                className="px-6 py-2 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white rounded-xl text-xs font-bold transition-all shadow-lg flex items-center gap-2 cursor-pointer"
               >
                 <Send className="w-4 h-4" />
                 <span>Send Dispatch Immediately</span>
@@ -1411,30 +1411,30 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-bold text-white">System Notification Templates</h3>
-              <p className="text-xs text-slate-400">Pre-configured message formats with versioning and merge tags.</p>
+              <p className="text-xs text-[#9CA3AF]">Pre-configured message formats with versioning and merge tags.</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {templates.map((tpl) => (
-              <div key={tpl.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3">
+              <div key={tpl.id} className="bg-[#111827] border border-[#111827] rounded-2xl p-5 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 border border-blue-500/30 text-[10px] font-mono uppercase font-bold rounded">
+                  <span className="px-2 py-0.5 bg-[#0F2D5C]/20 text-[#9CA3AF] border border-[#0F2D5C]/30 text-[10px] font-mono uppercase font-bold rounded">
                     {tpl.category}
                   </span>
-                  <span className="text-[10px] text-slate-500 font-mono">v{tpl.version || 1}.0</span>
+                  <span className="text-[10px] text-[#6B7280] font-mono">v{tpl.version || 1}.0</span>
                 </div>
 
                 <h4 className="font-bold text-white text-sm">{tpl.name}</h4>
-                <div className="text-[11px] text-slate-400 space-y-1 bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-                  <div className="font-semibold text-slate-300">{tpl.subjectTemplate}</div>
-                  <div className="text-slate-400 font-mono text-[10px] line-clamp-2">{tpl.bodyTemplate}</div>
+                <div className="text-[11px] text-[#9CA3AF] space-y-1 bg-[#111827] p-2.5 rounded-xl border border-[#111827]">
+                  <div className="font-semibold text-[#E5E7EB]">{tpl.subjectTemplate}</div>
+                  <div className="text-[#9CA3AF] font-mono text-[10px] line-clamp-2">{tpl.bodyTemplate}</div>
                 </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+                <div className="flex items-center justify-between pt-2 border-t border-[#111827]">
                   <div className="flex gap-1">
                     {tpl.supportedChannels?.map((ch: string) => (
-                      <span key={ch} className="px-1.5 py-0.5 bg-slate-800 text-slate-300 rounded text-[9px]">
+                      <span key={ch} className="px-1.5 py-0.5 bg-[#111827] text-[#E5E7EB] rounded text-[9px]">
                         {ch}
                       </span>
                     ))}
@@ -1451,7 +1451,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                       });
                       setSelectedTemplate(tpl);
                     }}
-                    className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-white transition-colors cursor-pointer"
+                    className="p-1 hover:bg-[#111827] rounded text-[#9CA3AF] hover:text-white transition-colors cursor-pointer"
                   >
                     <Edit className="w-3.5 h-3.5" />
                   </button>
@@ -1468,35 +1468,35 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-bold text-white">Notification History & Compliance Logs</h3>
-              <p className="text-xs text-slate-400">Complete audit trail of system broadcasts, deliveries, and administrator actions.</p>
+              <p className="text-xs text-[#9CA3AF]">Complete audit trail of system broadcasts, deliveries, and administrator actions.</p>
             </div>
             <button
               onClick={handleExportCSV}
-              className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+              className="px-3.5 py-2 bg-[#111827] hover:bg-[#4B5563] text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
             >
-              <Download className="w-3.5 h-3.5 text-blue-400" />
+              <Download className="w-3.5 h-3.5 text-[#9CA3AF]" />
               <span>Export CSV</span>
             </button>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Delivery History */}
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3">
+            <div className="bg-[#111827] border border-[#111827] rounded-2xl p-5 space-y-3">
               <h4 className="font-bold text-white text-sm flex items-center gap-2">
-                <History className="w-4 h-4 text-blue-400" />
+                <History className="w-4 h-4 text-[#9CA3AF]" />
                 <span>Broadcast Dispatch Records ({historyLogs.length})</span>
               </h4>
               <div className="overflow-y-auto max-h-96 space-y-2 pr-1">
                 {historyLogs.map((h, i) => (
-                  <div key={i} className="p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs space-y-1">
+                  <div key={i} className="p-3 bg-[#111827] rounded-xl border border-[#111827] text-xs space-y-1">
                     <div className="flex justify-between items-center">
                       <span className="font-semibold text-white">{h.title}</span>
-                      <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-mono">
+                      <span className="px-1.5 py-0.5 rounded bg-[#0F2D5C]/20 text-[#9CA3AF] text-[10px] font-mono">
                         {h.deliveryStatus}
                       </span>
                     </div>
-                    <p className="text-slate-400 text-[11px]">Audience: {h.audience} | Recipients: {h.recipientCount}</p>
-                    <span className="text-slate-500 text-[10px] font-mono block">
+                    <p className="text-[#9CA3AF] text-[11px]">Audience: {h.audience} | Recipients: {h.recipientCount}</p>
+                    <span className="text-[#6B7280] text-[10px] font-mono block">
                       {h.sentDate ? new Date(h.sentDate).toLocaleString() : "—"}
                     </span>
                   </div>
@@ -1505,22 +1505,22 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
             </div>
 
             {/* Admin Audit Trail */}
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3">
+            <div className="bg-[#111827] border border-[#111827] rounded-2xl p-5 space-y-3">
               <h4 className="font-bold text-white text-sm flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                <ShieldCheck className="w-4 h-4 text-[#9CA3AF]" />
                 <span>Security Audit Trail ({auditLogs.length})</span>
               </h4>
               <div className="overflow-y-auto max-h-96 space-y-2 pr-1">
                 {auditLogs.map((log, i) => (
-                  <div key={i} className="p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs space-y-1">
+                  <div key={i} className="p-3 bg-[#111827] rounded-xl border border-[#111827] text-xs space-y-1">
                     <div className="flex justify-between items-center">
-                      <span className="font-mono text-[11px] text-blue-400 font-bold">{log.action}</span>
-                      <span className="text-[10px] text-slate-500 font-mono">
+                      <span className="font-mono text-[11px] text-[#9CA3AF] font-bold">{log.action}</span>
+                      <span className="text-[10px] text-[#6B7280] font-mono">
                         {log.timestamp ? new Date(log.timestamp).toLocaleTimeString() : "—"}
                       </span>
                     </div>
-                    <p className="text-slate-300 text-[11px]">{log.details}</p>
-                    <span className="text-slate-500 text-[10px]">Actor: {log.adminEmail}</span>
+                    <p className="text-[#E5E7EB] text-[11px]">{log.details}</p>
+                    <span className="text-[#6B7280] text-[10px]">Actor: {log.adminEmail}</span>
                   </div>
                 ))}
               </div>
@@ -1532,14 +1532,14 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
       {/* TAB 6: MODULE 9 AUTOMATED SELF-TEST SUITE */}
       {activeTab === "TEST_SUITE" && (
         <div className="space-y-6">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+          <div className="bg-[#111827] border border-[#111827] rounded-2xl p-6 space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-purple-400" />
+                  <Sparkles className="w-5 h-5 text-[#9CA3AF]" />
                   <span>Module 9 Automated Verification Suite</span>
                 </h3>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-[#9CA3AF]">
                   Comprehensive end-to-end testing of notification storage, homepage announcements, broadcast switches, and template rendering.
                 </p>
               </div>
@@ -1547,7 +1547,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
               <button
                 onClick={handleRunSelfTest}
                 disabled={testRunning}
-                className="px-4 py-2 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-lg transition-all flex items-center gap-2 cursor-pointer"
+                className="px-4 py-2 bg-[#0F2D5C] hover:bg-[#0F2D5C] disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-lg transition-all flex items-center gap-2 cursor-pointer"
               >
                 {testRunning ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
                 <span>{testRunning ? "Running Diagnostics..." : "Execute Test Suite"}</span>
@@ -1555,14 +1555,14 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
             </div>
 
             {testSummary && (
-              <div className="p-4 bg-purple-950/40 border border-purple-800/60 rounded-xl flex items-center justify-between text-xs text-purple-200">
+              <div className="p-4 bg-[#0F2D5C]/40 border border-[#0F2D5C]/60 rounded-xl flex items-center justify-between text-xs text-[#9CA3AF]">
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <CheckCircle2 className="w-4 h-4 text-[#9CA3AF]" />
                   <span>
                     <strong>{testSummary.passed}/{testSummary.total}</strong> Test Assertions Passed ({testSummary.passRate}%)
                   </span>
                 </div>
-                <span className="font-mono text-[11px] text-slate-400">Latency: {testSummary.executionTimeMs}ms</span>
+                <span className="font-mono text-[11px] text-[#9CA3AF]">Latency: {testSummary.executionTimeMs}ms</span>
               </div>
             )}
 
@@ -1570,21 +1570,21 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
               {testResults.map((test, index) => (
                 <div
                   key={index}
-                  className="p-3.5 bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-between text-xs"
+                  className="p-3.5 bg-[#111827] rounded-xl border border-[#111827] flex items-center justify-between text-xs"
                 >
                   <div className="flex items-center gap-3">
                     {test.passed ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-[#9CA3AF] shrink-0" />
                     ) : (
-                      <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                      <XCircle className="w-4 h-4 text-[#9CA3AF] shrink-0" />
                     )}
                     <div>
                       <span className="font-semibold text-white block">{test.name}</span>
-                      <span className="text-[11px] text-slate-400">{test.details}</span>
+                      <span className="text-[11px] text-[#9CA3AF]">{test.details}</span>
                     </div>
                   </div>
                   <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
-                    test.passed ? "bg-emerald-500/20 text-emerald-400" : "bg-rose-500/20 text-rose-400"
+                    test.passed ? "bg-[#0F2D5C]/20 text-[#9CA3AF]" : "bg-[#0F2D5C]/20 text-[#9CA3AF]"
                   }`}>
                     {test.passed ? "PASSED" : "FAILED"}
                   </span>
@@ -1598,10 +1598,10 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
       {/* CREATE & EDIT ANNOUNCEMENT MODAL */}
       {showAnnModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 text-white w-full max-w-lg space-y-4 shadow-2xl animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="bg-[#111827] border border-[#111827] rounded-3xl p-6 text-white w-full max-w-lg space-y-4 shadow-2xl animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-[#111827] pb-3">
               <h3 className="font-bold text-base flex items-center gap-2">
-                <Megaphone className="w-4 h-4 text-amber-400" />
+                <Megaphone className="w-4 h-4 text-[#9CA3AF]" />
                 <span>{editingAnnId ? "Edit Announcement" : "Post Live Announcement"}</span>
               </h3>
               <button
@@ -1609,7 +1609,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                   setShowAnnModal(false);
                   setEditingAnnId(null);
                 }}
-                className="p-1 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white"
+                className="p-1 hover:bg-[#111827] rounded-lg text-[#9CA3AF] hover:text-white"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1617,36 +1617,36 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
 
             <form onSubmit={handleSaveAnnouncement} className="space-y-3.5">
               <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1">Announcement Title *</label>
+                <label className="text-xs font-semibold text-[#E5E7EB] block mb-1">Announcement Title *</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. ⚡ Scheduled System Maintenance"
                   value={annForm.title}
                   onChange={(e) => setAnnForm({ ...annForm, title: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:ring-1 focus:ring-amber-500"
+                  className="w-full px-3 py-2 bg-[#111827] border border-[#111827] rounded-xl text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#0F2D5C]"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1">Banner Content Text *</label>
+                <label className="text-xs font-semibold text-[#E5E7EB] block mb-1">Banner Content Text *</label>
                 <textarea
                   rows={3}
                   required
                   placeholder="Enter high-visibility announcement text visible on homepage and user dashboard..."
                   value={annForm.content}
                   onChange={(e) => setAnnForm({ ...annForm, content: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:ring-1 focus:ring-amber-500"
+                  className="w-full px-3 py-2 bg-[#111827] border border-[#111827] rounded-xl text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#0F2D5C]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-slate-300 block mb-1">Announcement Type</label>
+                  <label className="text-xs font-semibold text-[#E5E7EB] block mb-1">Announcement Type</label>
                   <select
                     value={annForm.type}
                     onChange={(e) => setAnnForm({ ...annForm, type: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:ring-1 focus:ring-amber-500"
+                    className="w-full px-3 py-2 bg-[#111827] border border-[#111827] rounded-xl text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#0F2D5C]"
                   >
                     <option value="System Maintenance">System Maintenance</option>
                     <option value="Service Downtime">Service Downtime</option>
@@ -1658,11 +1658,11 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-slate-300 block mb-1">Color Theme</label>
+                  <label className="text-xs font-semibold text-[#E5E7EB] block mb-1">Color Theme</label>
                   <select
                     value={annForm.bannerStyle}
                     onChange={(e) => setAnnForm({ ...annForm, bannerStyle: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:ring-1 focus:ring-amber-500"
+                    className="w-full px-3 py-2 bg-[#111827] border border-[#111827] rounded-xl text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#0F2D5C]"
                   >
                     <option value="amber">Amber / Warning</option>
                     <option value="rose">Rose / Critical Alert</option>
@@ -1674,39 +1674,39 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-slate-300 block mb-1">Button CTA Text (Optional)</label>
+                  <label className="text-xs font-semibold text-[#E5E7EB] block mb-1">Button CTA Text (Optional)</label>
                   <input
                     type="text"
                     placeholder="e.g. Learn More"
                     value={annForm.actionText}
                     onChange={(e) => setAnnForm({ ...annForm, actionText: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:ring-1 focus:ring-amber-500"
+                    className="w-full px-3 py-2 bg-[#111827] border border-[#111827] rounded-xl text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#0F2D5C]"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-slate-300 block mb-1">Button Action URL</label>
+                  <label className="text-xs font-semibold text-[#E5E7EB] block mb-1">Button Action URL</label>
                   <input
                     type="text"
                     placeholder="e.g. #services-section or /dashboard"
                     value={annForm.actionUrl}
                     onChange={(e) => setAnnForm({ ...annForm, actionUrl: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:ring-1 focus:ring-amber-500"
+                    className="w-full px-3 py-2 bg-[#111827] border border-[#111827] rounded-xl text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#0F2D5C]"
                   />
                 </div>
               </div>
 
               {/* Active Switch in Form */}
-              <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-between">
+              <div className="p-3 bg-[#111827] rounded-xl border border-[#111827] flex items-center justify-between">
                 <div>
                   <span className="text-xs font-bold text-white block">Active on Homepage & Dashboard</span>
-                  <span className="text-[10px] text-slate-400">Broadcast immediately upon saving</span>
+                  <span className="text-[10px] text-[#9CA3AF]">Broadcast immediately upon saving</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setAnnForm({ ...annForm, isActive: !annForm.isActive })}
                   className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                    annForm.isActive ? "bg-emerald-500" : "bg-slate-700"
+                    annForm.isActive ? "bg-[#0F2D5C]" : "bg-[#4B5563]"
                   }`}
                 >
                   <span
@@ -1717,20 +1717,20 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                 </button>
               </div>
 
-              <div className="pt-3 border-t border-slate-800 flex justify-end gap-3">
+              <div className="pt-3 border-t border-[#111827] flex justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => {
                     setShowAnnModal(false);
                     setEditingAnnId(null);
                   }}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold cursor-pointer"
+                  className="px-4 py-2 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] rounded-xl text-xs font-semibold cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg flex items-center gap-1.5 cursor-pointer"
+                  className="px-5 py-2 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white rounded-xl text-xs font-bold transition-all shadow-lg flex items-center gap-1.5 cursor-pointer"
                 >
                   <Megaphone className="w-4 h-4" />
                   <span>{editingAnnId ? "Update Announcement" : "Publish Announcement"}</span>
@@ -1744,41 +1744,41 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
       {/* LIVE PREVIEW MODAL */}
       {previewAnnouncement && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 text-white w-full max-w-2xl space-y-4 shadow-2xl animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="bg-[#111827] border border-[#111827] rounded-3xl p-6 text-white w-full max-w-2xl space-y-4 shadow-2xl animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-[#111827] pb-3">
               <div className="flex items-center gap-2">
-                <Eye className="w-5 h-5 text-blue-400" />
+                <Eye className="w-5 h-5 text-[#9CA3AF]" />
                 <h3 className="font-bold text-base">Homepage Preview Mode</h3>
               </div>
               <button
                 onClick={() => setPreviewAnnouncement(null)}
-                className="p-1 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white"
+                className="p-1 hover:bg-[#111827] rounded-lg text-[#9CA3AF] hover:text-white"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="space-y-2">
-              <span className="text-xs font-semibold text-slate-400">How it appears to visitors on the Homepage & Dashboard:</span>
+              <span className="text-xs font-semibold text-[#9CA3AF]">How it appears to visitors on the Homepage & Dashboard:</span>
               
               {/* Render Preview Banner */}
               <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg ${
                 previewAnnouncement.bannerStyle === "rose" || previewAnnouncement.priority === "Critical"
-                  ? "bg-rose-950/80 border-rose-800 text-rose-200"
+                  ? "bg-[#0F2D5C]/80 border-[#0F2D5C] text-[#9CA3AF]"
                   : previewAnnouncement.bannerStyle === "emerald"
-                  ? "bg-emerald-950/80 border-emerald-800 text-emerald-200"
+                  ? "bg-[#0F2D5C]/80 border-[#0F2D5C] text-[#9CA3AF]"
                   : previewAnnouncement.bannerStyle === "blue"
-                  ? "bg-blue-950/80 border-blue-800 text-blue-200"
-                  : "bg-amber-950/80 border-amber-800 text-amber-200"
+                  ? "bg-[#0F2D5C]/80 border-[#0F2D5C] text-[#9CA3AF]"
+                  : "bg-[#0F2D5C]/80 border-[#0F2D5C] text-[#9CA3AF]"
               }`}>
                 <div className="flex items-start gap-3">
                   <div className="mt-0.5">
                     {previewAnnouncement.priority === "Critical" ? (
-                      <ShieldAlert className="w-5 h-5 text-rose-400 shrink-0" />
+                      <ShieldAlert className="w-5 h-5 text-[#9CA3AF] shrink-0" />
                     ) : previewAnnouncement.bannerStyle === "emerald" ? (
-                      <Sparkles className="w-5 h-5 text-emerald-400 shrink-0" />
+                      <Sparkles className="w-5 h-5 text-[#9CA3AF] shrink-0" />
                     ) : (
-                      <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />
+                      <AlertTriangle className="w-5 h-5 text-[#9CA3AF] shrink-0" />
                     )}
                   </div>
                   <div>
@@ -1788,7 +1788,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                       </span>
                       <h4 className="font-bold text-sm text-white">{previewAnnouncement.title}</h4>
                     </div>
-                    <p className="text-xs text-slate-300 mt-1 leading-relaxed">{previewAnnouncement.content}</p>
+                    <p className="text-xs text-[#E5E7EB] mt-1 leading-relaxed">{previewAnnouncement.content}</p>
                   </div>
                 </div>
 
@@ -1801,10 +1801,10 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
               </div>
             </div>
 
-            <div className="flex justify-end pt-3 border-t border-slate-800">
+            <div className="flex justify-end pt-3 border-t border-[#111827]">
               <button
                 onClick={() => setPreviewAnnouncement(null)}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold cursor-pointer"
+                className="px-4 py-2 bg-[#111827] hover:bg-[#4B5563] text-white rounded-xl text-xs font-semibold cursor-pointer"
               >
                 Close Preview
               </button>
@@ -1816,57 +1816,57 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
       {/* TEMPLATE EDIT MODAL */}
       {selectedTemplate && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 text-white w-full max-w-md space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="bg-[#111827] border border-[#111827] rounded-3xl p-6 text-white w-full max-w-md space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[#111827] pb-3">
               <h3 className="font-bold text-base">Edit Notification Template</h3>
-              <button onClick={() => setSelectedTemplate(null)} className="p-1 hover:bg-slate-800 rounded-lg text-slate-400">
+              <button onClick={() => setSelectedTemplate(null)} className="p-1 hover:bg-[#111827] rounded-lg text-[#9CA3AF]">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <form onSubmit={handleSaveTemplate} className="space-y-3">
               <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1">Template Name</label>
+                <label className="text-xs font-semibold text-[#E5E7EB] block mb-1">Template Name</label>
                 <input
                   type="text"
                   required
                   value={templateForm.name}
                   onChange={(e) => setTemplateForm({ ...templateForm, name: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white"
+                  className="w-full px-3 py-2 bg-[#111827] border border-[#111827] rounded-xl text-xs text-white"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1">Subject Template</label>
+                <label className="text-xs font-semibold text-[#E5E7EB] block mb-1">Subject Template</label>
                 <input
                   type="text"
                   required
                   value={templateForm.subjectTemplate}
                   onChange={(e) => setTemplateForm({ ...templateForm, subjectTemplate: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white"
+                  className="w-full px-3 py-2 bg-[#111827] border border-[#111827] rounded-xl text-xs text-white"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1">Body Template</label>
+                <label className="text-xs font-semibold text-[#E5E7EB] block mb-1">Body Template</label>
                 <textarea
                   rows={3}
                   required
                   value={templateForm.bodyTemplate}
                   onChange={(e) => setTemplateForm({ ...templateForm, bodyTemplate: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white"
+                  className="w-full px-3 py-2 bg-[#111827] border border-[#111827] rounded-xl text-xs text-white"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#111827]">
                 <button
                   type="button"
                   onClick={() => setSelectedTemplate(null)}
-                  className="px-4 py-1.5 bg-slate-800 text-slate-300 text-xs rounded-xl"
+                  className="px-4 py-1.5 bg-[#111827] text-[#E5E7EB] text-xs rounded-xl"
                 >
                   Cancel
                 </button>
-                <button type="submit" className="px-4 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-xl">
+                <button type="submit" className="px-4 py-1.5 bg-[#0F2D5C] text-white text-xs font-bold rounded-xl">
                   Save Template
                 </button>
               </div>

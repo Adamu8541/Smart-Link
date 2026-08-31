@@ -411,24 +411,24 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
   const metrics = dashMetrics?.metrics || {};
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 md:p-8 space-y-6">
+    <div className="bg-[#111827] border border-[#111827] rounded-3xl p-4 md:p-8 space-y-6">
       {/* Header Banner */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-[#111827] pb-5">
         <div className="flex items-center gap-3">
-          <div className="p-3 bg-purple-950/80 border border-purple-800 rounded-2xl text-purple-400">
+          <div className="p-3 bg-[#0F2D5C]/80 border border-[#0F2D5C] rounded-2xl text-[#9CA3AF]">
             <Shield className="h-6 w-6" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400 bg-purple-950/60 px-2 py-0.5 rounded-full border border-purple-800/60">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#9CA3AF] bg-[#0F2D5C]/60 px-2 py-0.5 rounded-full border border-[#0F2D5C]/60">
                 Module 10 • Security Architecture
               </span>
-              <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-800/60 flex items-center gap-1">
+              <span className="text-[10px] font-mono text-[#9CA3AF] bg-[#0F2D5C]/60 px-2 py-0.5 rounded-full border border-[#0F2D5C]/60 flex items-center gap-1">
                 <ShieldCheck className="h-3 w-3" /> RBAC Enforced
               </span>
             </div>
             <h1 className="text-xl md:text-2xl font-bold text-white mt-1">Security Center & System Logs</h1>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-[#9CA3AF] mt-0.5">
               Real-time security telemetry, login history audit, session termination, threat mitigation & tamper-proof audit trail.
             </p>
           </div>
@@ -439,14 +439,14 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
             type="button"
             onClick={fetchAllData}
             disabled={loading}
-            className="py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl flex items-center gap-2 border border-slate-700 cursor-pointer transition"
+            className="py-2 px-3 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] text-xs font-bold rounded-xl flex items-center gap-2 border border-[#4B5563] cursor-pointer transition"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} /> Refresh Telemetry
           </button>
           <button
             type="button"
             onClick={() => onNavigate("/admin/dashboard")}
-            className="py-2 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition border border-slate-700"
+            className="py-2 px-4 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition border border-[#4B5563]"
           >
             <ArrowLeft className="h-3.5 w-3.5" /> Dashboard
           </button>
@@ -455,21 +455,21 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
 
       {/* Notifications / Flash Alerts */}
       {actionSuccess && (
-        <div className="p-4 bg-emerald-950/80 border border-emerald-800/80 rounded-2xl flex items-center gap-3 text-xs text-emerald-300 animate-fadeIn">
-          <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+        <div className="p-4 bg-[#0F2D5C]/80 border border-[#0F2D5C]/80 rounded-2xl flex items-center gap-3 text-xs text-[#9CA3AF] animate-fadeIn">
+          <CheckCircle2 className="h-4 w-4 text-[#9CA3AF] shrink-0" />
           <span>{actionSuccess}</span>
         </div>
       )}
 
       {actionError && (
-        <div className="p-4 bg-rose-950/80 border border-rose-800/80 rounded-2xl flex items-center gap-3 text-xs text-rose-300 animate-fadeIn">
-          <AlertTriangle className="h-4 w-4 text-rose-400 shrink-0" />
+        <div className="p-4 bg-[#0F2D5C]/80 border border-[#0F2D5C]/80 rounded-2xl flex items-center gap-3 text-xs text-[#9CA3AF] animate-fadeIn">
+          <AlertTriangle className="h-4 w-4 text-[#9CA3AF] shrink-0" />
           <span>{actionError}</span>
         </div>
       )}
 
       {/* Navigation Tabs */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-slate-800/80 no-scrollbar">
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-[#111827]/80 no-scrollbar">
         {[
           { id: "OVERVIEW", label: "Security Dashboard", icon: Activity, badge: null, path: "/admin/security" },
           { id: "AUDIT_LOGS", label: "Audit Logs", icon: FileText, badge: auditLogs.length, path: "/admin/security/audit-logs" },
@@ -494,8 +494,8 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
               }}
               className={`py-2.5 px-3.5 rounded-xl text-xs font-bold flex items-center gap-2 whitespace-nowrap transition cursor-pointer ${
                 isActive
-                  ? "bg-purple-600 text-white shadow-lg shadow-purple-950/50"
-                  : "bg-slate-950/60 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800/60"
+                  ? "bg-[#0F2D5C] text-white shadow-lg shadow-none"
+                  : "bg-[#111827]/60 hover:bg-[#111827] text-[#9CA3AF] hover:text-[#E5E7EB] border border-[#111827]/60"
               }`}
             >
               <Icon className="h-3.5 w-3.5" />
@@ -503,7 +503,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
               {tab.badge !== null && tab.badge !== undefined && (
                 <span
                   className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono ${
-                    isActive ? "bg-white/20 text-white" : "bg-slate-800 text-purple-400 border border-slate-700"
+                    isActive ? "bg-white/20 text-white" : "bg-[#111827] text-[#9CA3AF] border border-[#4B5563]"
                   }`}
                 >
                   {tab.badge}
@@ -519,93 +519,93 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
         <div className="space-y-6">
           {/* Top Metric Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
-            <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-2">
-              <div className="flex items-center justify-between text-xs text-slate-400">
+            <div className="bg-[#111827] border border-[#111827] rounded-2xl p-4 space-y-2">
+              <div className="flex items-center justify-between text-xs text-[#9CA3AF]">
                 <span>Failed Logins Today</span>
-                <XCircle className="h-4 w-4 text-rose-400" />
+                <XCircle className="h-4 w-4 text-[#9CA3AF]" />
               </div>
               <div className="text-2xl font-black text-white">{metrics.failedLoginsToday ?? 0}</div>
-              <div className="text-[10px] text-slate-500">Recorded authentication failures</div>
+              <div className="text-[10px] text-[#6B7280]">Recorded authentication failures</div>
             </div>
 
-            <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-2">
-              <div className="flex items-center justify-between text-xs text-slate-400">
+            <div className="bg-[#111827] border border-[#111827] rounded-2xl p-4 space-y-2">
+              <div className="flex items-center justify-between text-xs text-[#9CA3AF]">
                 <span>Successful Logins Today</span>
-                <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                <CheckCircle2 className="h-4 w-4 text-[#9CA3AF]" />
               </div>
               <div className="text-2xl font-black text-white">{metrics.successfulLoginsToday ?? 0}</div>
-              <div className="text-[10px] text-emerald-400">Verified identity sessions</div>
+              <div className="text-[10px] text-[#9CA3AF]">Verified identity sessions</div>
             </div>
 
-            <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-2">
-              <div className="flex items-center justify-between text-xs text-slate-400">
+            <div className="bg-[#111827] border border-[#111827] rounded-2xl p-4 space-y-2">
+              <div className="flex items-center justify-between text-xs text-[#9CA3AF]">
                 <span>Locked Accounts</span>
-                <Lock className="h-4 w-4 text-amber-400" />
+                <Lock className="h-4 w-4 text-[#9CA3AF]" />
               </div>
-              <div className="text-2xl font-black text-amber-400">{metrics.lockedAccounts ?? 0}</div>
-              <div className="text-[10px] text-slate-500">Governance locks triggered</div>
+              <div className="text-2xl font-black text-[#9CA3AF]">{metrics.lockedAccounts ?? 0}</div>
+              <div className="text-[10px] text-[#6B7280]">Governance locks triggered</div>
             </div>
 
-            <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-2">
-              <div className="flex items-center justify-between text-xs text-slate-400">
+            <div className="bg-[#111827] border border-[#111827] rounded-2xl p-4 space-y-2">
+              <div className="flex items-center justify-between text-xs text-[#9CA3AF]">
                 <span>Blocked IPs & Devices</span>
-                <Globe className="h-4 w-4 text-purple-400" />
+                <Globe className="h-4 w-4 text-[#9CA3AF]" />
               </div>
               <div className="text-2xl font-black text-white">
                 {(metrics.blockedIps ?? 0) + (metrics.blockedDevices ?? 0)}
               </div>
-              <div className="text-[10px] text-purple-400">
+              <div className="text-[10px] text-[#9CA3AF]">
                 {metrics.blockedIps ?? 0} IPs • {metrics.blockedDevices ?? 0} Devices
               </div>
             </div>
 
-            <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-2">
-              <div className="flex items-center justify-between text-xs text-slate-400">
+            <div className="bg-[#111827] border border-[#111827] rounded-2xl p-4 space-y-2">
+              <div className="flex items-center justify-between text-xs text-[#9CA3AF]">
                 <span>Active Sessions</span>
-                <Key className="h-4 w-4 text-cyan-400" />
+                <Key className="h-4 w-4 text-[#9CA3AF]" />
               </div>
               <div className="text-2xl font-black text-white">{metrics.activeSessions ?? 0}</div>
-              <div className="text-[10px] text-slate-500">Live tokens monitored</div>
+              <div className="text-[10px] text-[#6B7280]">Live tokens monitored</div>
             </div>
 
-            <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-2">
-              <div className="flex items-center justify-between text-xs text-slate-400">
+            <div className="bg-[#111827] border border-[#111827] rounded-2xl p-4 space-y-2">
+              <div className="flex items-center justify-between text-xs text-[#9CA3AF]">
                 <span>Suspicious Activities</span>
-                <AlertTriangle className="h-4 w-4 text-orange-400" />
+                <AlertTriangle className="h-4 w-4 text-[#9CA3AF]" />
               </div>
-              <div className="text-2xl font-black text-orange-400">{metrics.suspiciousActivities ?? 0}</div>
-              <div className="text-[10px] text-slate-500">Anomaly engine flags</div>
+              <div className="text-2xl font-black text-[#9CA3AF]">{metrics.suspiciousActivities ?? 0}</div>
+              <div className="text-[10px] text-[#6B7280]">Anomaly engine flags</div>
             </div>
 
-            <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-2">
-              <div className="flex items-center justify-between text-xs text-slate-400">
+            <div className="bg-[#111827] border border-[#111827] rounded-2xl p-4 space-y-2">
+              <div className="flex items-center justify-between text-xs text-[#9CA3AF]">
                 <span>Critical Security Alerts</span>
-                <ShieldAlert className="h-4 w-4 text-rose-500 animate-pulse" />
+                <ShieldAlert className="h-4 w-4 text-[#0F2D5C] animate-pulse" />
               </div>
-              <div className="text-2xl font-black text-rose-400">{metrics.criticalSecurityAlerts ?? 0}</div>
-              <div className="text-[10px] text-rose-400 font-bold">Action Required</div>
+              <div className="text-2xl font-black text-[#9CA3AF]">{metrics.criticalSecurityAlerts ?? 0}</div>
+              <div className="text-[10px] text-[#9CA3AF] font-bold">Action Required</div>
             </div>
 
-            <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-2">
-              <div className="flex items-center justify-between text-xs text-slate-400">
+            <div className="bg-[#111827] border border-[#111827] rounded-2xl p-4 space-y-2">
+              <div className="flex items-center justify-between text-xs text-[#9CA3AF]">
                 <span>Audit Logs Ledger</span>
-                <FileText className="h-4 w-4 text-blue-400" />
+                <FileText className="h-4 w-4 text-[#9CA3AF]" />
               </div>
               <div className="text-2xl font-black text-white">{auditLogs.length}</div>
-              <div className="text-[10px] text-emerald-400 font-mono">Immutable Log Integrity</div>
+              <div className="text-[10px] text-[#9CA3AF] font-mono">Immutable Log Integrity</div>
             </div>
           </div>
 
           {/* Graphical Analytics & Distribution */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Login Attempt Trends Bar Visual */}
-            <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 space-y-4">
+            <div className="bg-[#111827] border border-[#111827] rounded-2xl p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                    <Activity className="h-4 w-4 text-purple-400" /> Login Activity Telemetry (24-Hour)
+                    <Activity className="h-4 w-4 text-[#9CA3AF]" /> Login Activity Telemetry (24-Hour)
                   </h3>
-                  <p className="text-[11px] text-slate-400">Hourly breakdown of successful vs failed authentication attempts</p>
+                  <p className="text-[11px] text-[#9CA3AF]">Hourly breakdown of successful vs failed authentication attempts</p>
                 </div>
               </div>
 
@@ -619,16 +619,16 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
                   { hour: "20:00 - 24:00", success: 42, failed: 1, percent: 35 },
                 ].map((item, idx) => (
                   <div key={idx} className="space-y-1">
-                    <div className="flex justify-between text-xs text-slate-300">
-                      <span className="font-mono text-slate-400">{item.hour}</span>
+                    <div className="flex justify-between text-xs text-[#E5E7EB]">
+                      <span className="font-mono text-[#9CA3AF]">{item.hour}</span>
                       <span className="text-[11px]">
-                        <span className="text-emerald-400 font-bold">{item.success} success</span> •{" "}
-                        <span className="text-rose-400 font-bold">{item.failed} failed</span>
+                        <span className="text-[#9CA3AF] font-bold">{item.success} success</span> •{" "}
+                        <span className="text-[#9CA3AF] font-bold">{item.failed} failed</span>
                       </span>
                     </div>
-                    <div className="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden flex">
-                      <div className="bg-emerald-500 h-full transition-all duration-500" style={{ width: `${item.percent}%` }} />
-                      <div className="bg-rose-500 h-full transition-all duration-500" style={{ width: `${item.failed * 4}%` }} />
+                    <div className="w-full bg-[#111827] h-2.5 rounded-full overflow-hidden flex">
+                      <div className="bg-[#0F2D5C] h-full transition-all duration-500" style={{ width: `${item.percent}%` }} />
+                      <div className="bg-[#0F2D5C] h-full transition-all duration-500" style={{ width: `${item.failed * 4}%` }} />
                     </div>
                   </div>
                 ))}
@@ -636,29 +636,29 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
             </div>
 
             {/* Device Distribution */}
-            <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 space-y-4">
+            <div className="bg-[#111827] border border-[#111827] rounded-2xl p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                    <Laptop className="h-4 w-4 text-cyan-400" /> Authenticated Device Distribution
+                    <Laptop className="h-4 w-4 text-[#9CA3AF]" /> Authenticated Device Distribution
                   </h3>
-                  <p className="text-[11px] text-slate-400">Device fingerprints & client environments accessing SmartLink</p>
+                  <p className="text-[11px] text-[#9CA3AF]">Device fingerprints & client environments accessing SmartLink</p>
                 </div>
               </div>
 
               <div className="space-y-3 pt-2">
                 {[
-                  { name: "Desktop Chrome (macOS / Windows)", percent: 48, count: 142, color: "bg-blue-500" },
-                  { name: "Mobile Safari (iPhone / iPad)", percent: 32, count: 95, color: "bg-purple-500" },
-                  { name: "Mobile Chrome (Android)", percent: 15, count: 44, color: "bg-emerald-500" },
-                  { name: "Other Browsers & Tor Proxies", percent: 5, count: 14, color: "bg-rose-500" },
+                  { name: "Desktop Chrome (macOS / Windows)", percent: 48, count: 142, color: "bg-[#0F2D5C]" },
+                  { name: "Mobile Safari (iPhone / iPad)", percent: 32, count: 95, color: "bg-[#0F2D5C]" },
+                  { name: "Mobile Chrome (Android)", percent: 15, count: 44, color: "bg-[#0F2D5C]" },
+                  { name: "Other Browsers & Tor Proxies", percent: 5, count: 14, color: "bg-[#0F2D5C]" },
                 ].map((dev, idx) => (
                   <div key={idx} className="space-y-1">
-                    <div className="flex justify-between text-xs text-slate-300">
+                    <div className="flex justify-between text-xs text-[#E5E7EB]">
                       <span>{dev.name}</span>
-                      <span className="font-mono text-slate-400">{dev.percent}% ({dev.count} sessions)</span>
+                      <span className="font-mono text-[#9CA3AF]">{dev.percent}% ({dev.count} sessions)</span>
                     </div>
-                    <div className="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden">
+                    <div className="w-full bg-[#111827] h-2.5 rounded-full overflow-hidden">
                       <div className={`${dev.color} h-full transition-all duration-500`} style={{ width: `${dev.percent}%` }} />
                     </div>
                   </div>
@@ -668,18 +668,18 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
           </div>
 
           {/* Quick Critical Alerts Table in Overview */}
-          <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 space-y-4">
+          <div className="bg-[#111827] border border-[#111827] rounded-2xl p-5 space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                  <ShieldAlert className="h-4 w-4 text-rose-400" /> Recent Security Alerts & Intrusion Telemetry
+                  <ShieldAlert className="h-4 w-4 text-[#9CA3AF]" /> Recent Security Alerts & Intrusion Telemetry
                 </h3>
-                <p className="text-[11px] text-slate-400">Most recent security incidents flagged by IDS Shield</p>
+                <p className="text-[11px] text-[#9CA3AF]">Most recent security incidents flagged by IDS Shield</p>
               </div>
               <button
                 type="button"
                 onClick={() => setActiveTab("ALERTS")}
-                className="text-xs text-purple-400 hover:text-purple-300 font-bold flex items-center gap-1 cursor-pointer"
+                className="text-xs text-[#9CA3AF] hover:text-[#9CA3AF] font-bold flex items-center gap-1 cursor-pointer"
               >
                 View All Alerts ({securityAlerts.length}) →
               </button>
@@ -688,7 +688,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider text-[10px]">
+                  <tr className="border-b border-[#111827] text-[#9CA3AF] font-semibold uppercase tracking-wider text-[10px]">
                     <th className="py-2.5 px-3">Severity</th>
                     <th className="py-2.5 px-3">Alert Title</th>
                     <th className="py-2.5 px-3">Description</th>
@@ -697,37 +697,37 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
                     <th className="py-2.5 px-3 text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                <tbody className="divide-y divide-[#6B7280] text-[#E5E7EB]">
                   {securityAlerts.slice(0, 4).map((alert, idx) => (
-                    <tr key={alert.id ? `sec-alert-${alert.id}-${idx}` : `sec-alert-${idx}`} className="hover:bg-slate-900/50">
+                    <tr key={alert.id ? `sec-alert-${alert.id}-${idx}` : `sec-alert-${idx}`} className="hover:bg-[#111827]/50">
                       <td className="py-3 px-3">
                         <span
                           className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
                             alert.severity === "Critical"
-                              ? "bg-rose-950 text-rose-400 border border-rose-800"
+                              ? "bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C]"
                               : alert.severity === "High"
-                              ? "bg-orange-950 text-orange-400 border border-orange-800"
+                              ? "bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C]"
                               : alert.severity === "Medium"
-                              ? "bg-amber-950 text-amber-400 border border-amber-800"
-                              : "bg-blue-950 text-blue-400 border border-blue-800"
+                              ? "bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C]"
+                              : "bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C]"
                           }`}
                         >
                           {alert.severity}
                         </span>
                       </td>
                       <td className="py-3 px-3 font-bold text-white">{alert.title}</td>
-                      <td className="py-3 px-3 text-slate-400 max-w-xs truncate">{alert.description}</td>
-                      <td className="py-3 px-3 text-slate-400 font-mono text-[11px]">
+                      <td className="py-3 px-3 text-[#9CA3AF] max-w-xs truncate">{alert.description}</td>
+                      <td className="py-3 px-3 text-[#9CA3AF] font-mono text-[11px]">
                         {new Date(alert.timestamp).toLocaleTimeString()}
                       </td>
                       <td className="py-3 px-3">
                         <span
                           className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
                             alert.status === "Resolved"
-                              ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
+                              ? "bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C]"
                               : alert.status === "Acknowledged"
-                              ? "bg-blue-950 text-blue-400 border border-blue-800"
-                              : "bg-rose-950 text-rose-400 border border-rose-800"
+                              ? "bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C]"
+                              : "bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C]"
                           }`}
                         >
                           {alert.status}
@@ -740,7 +740,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
                             setSelectedAlert(alert);
                             setActiveTab("ALERTS");
                           }}
-                          className="py-1 px-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-bold rounded-lg cursor-pointer"
+                          className="py-1 px-2.5 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] text-[11px] font-bold rounded-lg cursor-pointer"
                         >
                           Details
                         </button>
@@ -757,23 +757,23 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
       {/* SUB-VIEW 2: IMMUTABLE AUDIT LOGS */}
       {activeTab === "AUDIT_LOGS" && (
         <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-950 border border-slate-800 rounded-2xl p-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-[#111827] border border-[#111827] rounded-2xl p-4">
             <div className="flex items-center gap-3 w-full sm:w-auto">
               <div className="relative flex-1 sm:w-72">
-                <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
+                <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-[#9CA3AF]" />
                 <input
                   type="text"
                   placeholder="Search action, user, admin, details..."
                   value={auditSearch}
                   onChange={(e) => setAuditSearch(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                  className="w-full bg-[#111827] border border-[#111827] rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-[#6B7280] focus:outline-none focus:border-[#0F2D5C]"
                 />
               </div>
 
               <select
                 value={auditModuleFilter}
                 onChange={(e) => setAuditModuleFilter(e.target.value)}
-                className="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500"
+                className="bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
               >
                 <option value="ALL">All Modules</option>
                 <option value="Authentication">Authentication</option>
@@ -788,7 +788,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
               <select
                 value={auditSeverityFilter}
                 onChange={(e) => setAuditSeverityFilter(e.target.value)}
-                className="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500"
+                className="bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
               >
                 <option value="ALL">All Severities</option>
                 <option value="Critical">Critical</option>
@@ -801,25 +801,25 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
             <button
               type="button"
               onClick={handleExportAuditCSV}
-              className="py-2 px-3.5 bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer shadow-lg shadow-purple-950/40 transition"
+              className="py-2 px-3.5 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer shadow-lg shadow-none transition"
             >
               <Download className="h-3.5 w-3.5" /> Export Audit CSV
             </button>
           </div>
 
-          <div className="p-3 bg-slate-950/60 border border-slate-800/80 rounded-xl flex items-center gap-2 text-xs text-slate-400">
-            <Lock className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+          <div className="p-3 bg-[#111827]/60 border border-[#111827]/80 rounded-xl flex items-center gap-2 text-xs text-[#9CA3AF]">
+            <Lock className="h-3.5 w-3.5 text-[#9CA3AF] shrink-0" />
             <span>
               <strong>Immutable Audit Safeguard Active:</strong> Audit logs are cryptographically indexed and cannot be edited or deleted by any administrative role.
             </span>
           </div>
 
           {/* Table */}
-          <div className="bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden">
+          <div className="bg-[#111827] border border-[#111827] rounded-2xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider text-[10px] bg-slate-900/60">
+                  <tr className="border-b border-[#111827] text-[#9CA3AF] font-semibold uppercase tracking-wider text-[10px] bg-[#111827]/60">
                     <th className="py-3 px-4">Log ID</th>
                     <th className="py-3 px-4">Action</th>
                     <th className="py-3 px-4">Module</th>
@@ -831,42 +831,42 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
                     <th className="py-3 px-4">Details</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                <tbody className="divide-y divide-[#6B7280] text-[#E5E7EB]">
                   {filteredAuditLogs.map((log, idx) => (
-                    <tr key={log.id ? `audit-row-${log.id}-${idx}` : `audit-row-${idx}`} className="hover:bg-slate-900/50 transition">
-                      <td className="py-3 px-4 font-mono text-[11px] text-purple-400 font-bold">{log.id}</td>
+                    <tr key={log.id ? `audit-row-${log.id}-${idx}` : `audit-row-${idx}`} className="hover:bg-[#111827]/50 transition">
+                      <td className="py-3 px-4 font-mono text-[11px] text-[#9CA3AF] font-bold">{log.id}</td>
                       <td className="py-3 px-4 font-bold text-white">{log.action}</td>
-                      <td className="py-3 px-4 text-slate-400">{log.module || "General"}</td>
-                      <td className="py-3 px-4 text-slate-300">{log.user || "N/A"}</td>
-                      <td className="py-3 px-4 text-emerald-400 font-medium">{log.administrator || "N/A"}</td>
-                      <td className="py-3 px-4 text-slate-400 text-[11px]">
+                      <td className="py-3 px-4 text-[#9CA3AF]">{log.module || "General"}</td>
+                      <td className="py-3 px-4 text-[#E5E7EB]">{log.user || "N/A"}</td>
+                      <td className="py-3 px-4 text-[#9CA3AF] font-medium">{log.administrator || "N/A"}</td>
+                      <td className="py-3 px-4 text-[#9CA3AF] text-[11px]">
                         <div>{log.ipAddress || "N/A"}</div>
-                        <div className="text-[10px] text-slate-500">{log.device || "N/A"}</div>
+                        <div className="text-[10px] text-[#6B7280]">{log.device || "N/A"}</div>
                       </td>
-                      <td className="py-3 px-4 font-mono text-[11px] text-slate-400">
+                      <td className="py-3 px-4 font-mono text-[11px] text-[#9CA3AF]">
                         {new Date(log.timestamp).toLocaleString()}
                       </td>
                       <td className="py-3 px-4">
                         <span
                           className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
                             log.severity === "Critical"
-                              ? "bg-rose-950 text-rose-400 border border-rose-800"
+                              ? "bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C]"
                               : log.severity === "High"
-                              ? "bg-orange-950 text-orange-400 border border-orange-800"
+                              ? "bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C]"
                               : log.severity === "Medium"
-                              ? "bg-amber-950 text-amber-400 border border-amber-800"
-                              : "bg-blue-950 text-blue-400 border border-blue-800"
+                              ? "bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C]"
+                              : "bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C]"
                           }`}
                         >
                           {log.severity || "Low"}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-slate-300 max-w-xs">{log.details}</td>
+                      <td className="py-3 px-4 text-[#E5E7EB] max-w-xs">{log.details}</td>
                     </tr>
                   ))}
                   {filteredAuditLogs.length === 0 && (
                     <tr>
-                      <td colSpan={9} className="py-8 text-center text-slate-500">
+                      <td colSpan={9} className="py-8 text-center text-[#6B7280]">
                         No audit logs matched your search filters.
                       </td>
                     </tr>
@@ -881,23 +881,23 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
       {/* SUB-VIEW 3: LOGIN HISTORY */}
       {activeTab === "LOGIN_HISTORY" && (
         <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-950 border border-slate-800 rounded-2xl p-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-[#111827] border border-[#111827] rounded-2xl p-4">
             <div className="flex items-center gap-3 w-full sm:w-auto">
               <div className="relative flex-1 sm:w-80">
-                <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
+                <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-[#9CA3AF]" />
                 <input
                   type="text"
                   placeholder="Search email, IP address, device, location..."
                   value={loginSearch}
                   onChange={(e) => setLoginSearch(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                  className="w-full bg-[#111827] border border-[#111827] rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-[#6B7280] focus:outline-none focus:border-[#0F2D5C]"
                 />
               </div>
 
               <select
                 value={loginStatusFilter}
                 onChange={(e) => setLoginStatusFilter(e.target.value)}
-                className="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500"
+                className="bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
               >
                 <option value="ALL">All Statuses</option>
                 <option value="Success">Success</option>
@@ -907,11 +907,11 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
             </div>
           </div>
 
-          <div className="bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden">
+          <div className="bg-[#111827] border border-[#111827] rounded-2xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider text-[10px] bg-slate-900/60">
+                  <tr className="border-b border-[#111827] text-[#9CA3AF] font-semibold uppercase tracking-wider text-[10px] bg-[#111827]/60">
                     <th className="py-3 px-4">User Email</th>
                     <th className="py-3 px-4">Status</th>
                     <th className="py-3 px-4">IP Address</th>
@@ -922,42 +922,42 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
                     <th className="py-3 px-4">Failure Reason</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                <tbody className="divide-y divide-[#6B7280] text-[#E5E7EB]">
                   {filteredLoginHistory.map((lh, idx) => (
-                    <tr key={lh.id ? `login-hist-${lh.id}-${idx}` : `login-hist-${idx}`} className="hover:bg-slate-900/50">
+                    <tr key={lh.id ? `login-hist-${lh.id}-${idx}` : `login-hist-${idx}`} className="hover:bg-[#111827]/50">
                       <td className="py-3 px-4 font-bold text-white">{lh.userEmail}</td>
                       <td className="py-3 px-4">
                         <span
                           className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
                             lh.status === "Success"
-                              ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
+                              ? "bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C]"
                               : lh.status === "Failed"
-                              ? "bg-rose-950 text-rose-400 border border-rose-800"
-                              : "bg-amber-950 text-amber-400 border border-amber-800"
+                              ? "bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C]"
+                              : "bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C]"
                           }`}
                         >
                           {lh.status}
                         </span>
                       </td>
-                      <td className="py-3 px-4 font-mono text-slate-300">{lh.ipAddress}</td>
-                      <td className="py-3 px-4 text-slate-300">
+                      <td className="py-3 px-4 font-mono text-[#E5E7EB]">{lh.ipAddress}</td>
+                      <td className="py-3 px-4 text-[#E5E7EB]">
                         <div>{lh.device}</div>
-                        <div className="text-[10px] text-slate-500">{lh.os}</div>
+                        <div className="text-[10px] text-[#6B7280]">{lh.os}</div>
                       </td>
-                      <td className="py-3 px-4 text-slate-400">{lh.browser}</td>
-                      <td className="py-3 px-4 text-slate-300 flex items-center gap-1.5">
-                        <Globe className="h-3 w-3 text-purple-400" />
+                      <td className="py-3 px-4 text-[#9CA3AF]">{lh.browser}</td>
+                      <td className="py-3 px-4 text-[#E5E7EB] flex items-center gap-1.5">
+                        <Globe className="h-3 w-3 text-[#9CA3AF]" />
                         <span>{lh.location || "Unknown"}</span>
                       </td>
-                      <td className="py-3 px-4 font-mono text-[11px] text-slate-400">
+                      <td className="py-3 px-4 font-mono text-[11px] text-[#9CA3AF]">
                         {new Date(lh.loginTime).toLocaleString()}
                       </td>
-                      <td className="py-3 px-4 text-rose-400 max-w-xs">{lh.failureReason || "—"}</td>
+                      <td className="py-3 px-4 text-[#9CA3AF] max-w-xs">{lh.failureReason || "—"}</td>
                     </tr>
                   ))}
                   {filteredLoginHistory.length === 0 && (
                     <tr>
-                      <td colSpan={8} className="py-8 text-center text-slate-500">
+                      <td colSpan={8} className="py-8 text-center text-[#6B7280]">
                         No login history records found matching your filters.
                       </td>
                     </tr>
@@ -972,13 +972,13 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
       {/* SUB-VIEW 4: ACCOUNT GOVERNANCE & LOCKS */}
       {activeTab === "ACCOUNT_LOCKS" && (
         <div className="space-y-4">
-          <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 space-y-4">
+          <div className="bg-[#111827] border border-[#111827] rounded-2xl p-5 space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                  <Lock className="h-4 w-4 text-amber-400" /> Account Governance & Lock Management
+                  <Lock className="h-4 w-4 text-[#9CA3AF]" /> Account Governance & Lock Management
                 </h3>
-                <p className="text-[11px] text-slate-400">
+                <p className="text-[11px] text-[#9CA3AF]">
                   Accounts automatically locked due to excessive login failures or administrative flags
                 </p>
               </div>
@@ -987,7 +987,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider text-[10px] bg-slate-900/60">
+                  <tr className="border-b border-[#111827] text-[#9CA3AF] font-semibold uppercase tracking-wider text-[10px] bg-[#111827]/60">
                     <th className="py-3 px-4">User Account</th>
                     <th className="py-3 px-4">Lock Status</th>
                     <th className="py-3 px-4">Failed Attempts</th>
@@ -996,35 +996,35 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
                     <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                <tbody className="divide-y divide-[#6B7280] text-[#E5E7EB]">
                   {accountLocks.map((lock, idx) => (
-                    <tr key={lock.id ? `lock-row-${lock.id}-${idx}` : `lock-row-${idx}`} className="hover:bg-slate-900/50">
+                    <tr key={lock.id ? `lock-row-${lock.id}-${idx}` : `lock-row-${idx}`} className="hover:bg-[#111827]/50">
                       <td className="py-3.5 px-4 font-bold text-white">
                         <div>{lock.userName || "User Account"}</div>
-                        <div className="text-[11px] font-normal text-slate-400">{lock.userEmail}</div>
+                        <div className="text-[11px] font-normal text-[#9CA3AF]">{lock.userEmail}</div>
                       </td>
                       <td className="py-3.5 px-4">
                         {lock.isLocked ? (
-                          <span className="px-2.5 py-1 bg-rose-950 text-rose-400 border border-rose-800 rounded-lg font-bold text-[10px] flex items-center gap-1 w-max">
+                          <span className="px-2.5 py-1 bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C] rounded-lg font-bold text-[10px] flex items-center gap-1 w-max">
                             <Lock className="h-3 w-3" /> Locked
                           </span>
                         ) : (
-                          <span className="px-2.5 py-1 bg-emerald-950 text-emerald-400 border border-emerald-800 rounded-lg font-bold text-[10px] flex items-center gap-1 w-max">
+                          <span className="px-2.5 py-1 bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C] rounded-lg font-bold text-[10px] flex items-center gap-1 w-max">
                             <Unlock className="h-3 w-3" /> Active
                           </span>
                         )}
                       </td>
-                      <td className="py-3.5 px-4 font-mono font-bold text-rose-400">{lock.failedAttempts}</td>
-                      <td className="py-3.5 px-4 font-mono text-slate-400">
+                      <td className="py-3.5 px-4 font-mono font-bold text-[#9CA3AF]">{lock.failedAttempts}</td>
+                      <td className="py-3.5 px-4 font-mono text-[#9CA3AF]">
                         {new Date(lock.lockedAt).toLocaleString()}
                       </td>
-                      <td className="py-3.5 px-4 text-slate-300 max-w-xs">{lock.reason}</td>
+                      <td className="py-3.5 px-4 text-[#E5E7EB] max-w-xs">{lock.reason}</td>
                       <td className="py-3.5 px-4 text-right space-x-2">
                         {lock.isLocked && (
                           <button
                             type="button"
                             onClick={() => handleAccountLockAction(lock.id, "UNLOCK")}
-                            className="py-1.5 px-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-lg cursor-pointer transition"
+                            className="py-1.5 px-3 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-bold text-xs rounded-lg cursor-pointer transition"
                           >
                             Unlock Account
                           </button>
@@ -1032,14 +1032,14 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
                         <button
                           type="button"
                           onClick={() => handleAccountLockAction(lock.id, "RESET_ATTEMPTS")}
-                          className="py-1.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-lg cursor-pointer transition border border-slate-700"
+                          className="py-1.5 px-3 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] font-bold text-xs rounded-lg cursor-pointer transition border border-[#4B5563]"
                         >
                           Reset Counter
                         </button>
                         <button
                           type="button"
                           onClick={() => handleAccountLockAction(lock.id, "FORCE_PASSWORD_RESET")}
-                          className="py-1.5 px-3 bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs rounded-lg cursor-pointer transition"
+                          className="py-1.5 px-3 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-bold text-xs rounded-lg cursor-pointer transition"
                         >
                           Force Password Reset
                         </button>
@@ -1048,7 +1048,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
                   ))}
                   {accountLocks.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="py-8 text-center text-slate-500">
+                      <td colSpan={6} className="py-8 text-center text-[#6B7280]">
                         No locked user accounts present.
                       </td>
                     </tr>
@@ -1063,27 +1063,27 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
       {/* SUB-VIEW 5: BLOCKED DEVICES */}
       {activeTab === "BLOCKED_DEVICES" && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between bg-slate-950 border border-slate-800 rounded-2xl p-4">
+          <div className="flex items-center justify-between bg-[#111827] border border-[#111827] rounded-2xl p-4">
             <div>
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <Laptop className="h-4 w-4 text-purple-400" /> Blocked Hardware & Device Signatures
+                <Laptop className="h-4 w-4 text-[#9CA3AF]" /> Blocked Hardware & Device Signatures
               </h3>
-              <p className="text-[11px] text-slate-400">Blacklisted device signatures prevented from accessing SmartLink</p>
+              <p className="text-[11px] text-[#9CA3AF]">Blacklisted device signatures prevented from accessing SmartLink</p>
             </div>
             <button
               type="button"
               onClick={() => setShowBlockDeviceModal(true)}
-              className="py-2 px-3.5 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs rounded-xl flex items-center gap-2 cursor-pointer transition"
+              className="py-2 px-3.5 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-bold text-xs rounded-xl flex items-center gap-2 cursor-pointer transition"
             >
               + Block New Device
             </button>
           </div>
 
-          <div className="bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden">
+          <div className="bg-[#111827] border border-[#111827] rounded-2xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider text-[10px] bg-slate-900/60">
+                  <tr className="border-b border-[#111827] text-[#9CA3AF] font-semibold uppercase tracking-wider text-[10px] bg-[#111827]/60">
                     <th className="py-3 px-4">Device ID</th>
                     <th className="py-3 px-4">Device Name</th>
                     <th className="py-3 px-4">Associated User</th>
@@ -1093,22 +1093,22 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
                     <th className="py-3 px-4 text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                <tbody className="divide-y divide-[#6B7280] text-[#E5E7EB]">
                   {blockedDevices.map((dev, idx) => (
-                    <tr key={dev.id ? `dev-row-${dev.id}-${idx}` : `dev-row-${idx}`} className="hover:bg-slate-900/50">
-                      <td className="py-3.5 px-4 font-mono font-bold text-purple-400">{dev.deviceId}</td>
+                    <tr key={dev.id ? `dev-row-${dev.id}-${idx}` : `dev-row-${idx}`} className="hover:bg-[#111827]/50">
+                      <td className="py-3.5 px-4 font-mono font-bold text-[#9CA3AF]">{dev.deviceId}</td>
                       <td className="py-3.5 px-4 font-bold text-white">{dev.deviceName}</td>
-                      <td className="py-3.5 px-4 text-slate-300">{dev.userEmail}</td>
-                      <td className="py-3.5 px-4 font-mono text-slate-400">
+                      <td className="py-3.5 px-4 text-[#E5E7EB]">{dev.userEmail}</td>
+                      <td className="py-3.5 px-4 font-mono text-[#9CA3AF]">
                         {new Date(dev.dateBlocked).toLocaleString()}
                       </td>
-                      <td className="py-3.5 px-4 text-emerald-400">{dev.blockedBy}</td>
-                      <td className="py-3.5 px-4 text-slate-300 max-w-xs">{dev.reason}</td>
+                      <td className="py-3.5 px-4 text-[#9CA3AF]">{dev.blockedBy}</td>
+                      <td className="py-3.5 px-4 text-[#E5E7EB] max-w-xs">{dev.reason}</td>
                       <td className="py-3.5 px-4 text-right">
                         <button
                           type="button"
                           onClick={() => handleUnblockDevice(dev.deviceId)}
-                          className="py-1 px-3 bg-slate-800 hover:bg-slate-700 text-rose-400 hover:text-rose-300 border border-slate-700 font-bold text-xs rounded-lg cursor-pointer"
+                          className="py-1 px-3 bg-[#111827] hover:bg-[#4B5563] text-[#9CA3AF] hover:text-[#9CA3AF] border border-[#4B5563] font-bold text-xs rounded-lg cursor-pointer"
                         >
                           Unblock Device
                         </button>
@@ -1117,7 +1117,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
                   ))}
                   {blockedDevices.length === 0 && (
                     <tr>
-                      <td colSpan={7} className="py-8 text-center text-slate-500">
+                      <td colSpan={7} className="py-8 text-center text-[#6B7280]">
                         No hardware device signatures blacklisted.
                       </td>
                     </tr>
@@ -1132,27 +1132,27 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
       {/* SUB-VIEW 6: BLOCKED IP ADDRESSES */}
       {activeTab === "BLOCKED_IPS" && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between bg-slate-950 border border-slate-800 rounded-2xl p-4">
+          <div className="flex items-center justify-between bg-[#111827] border border-[#111827] rounded-2xl p-4">
             <div>
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <Globe className="h-4 w-4 text-purple-400" /> Blocked IP Address Firewall Table
+                <Globe className="h-4 w-4 text-[#9CA3AF]" /> Blocked IP Address Firewall Table
               </h3>
-              <p className="text-[11px] text-slate-400">Blacklisted IP subnets & Tor exit nodes denied gateway access</p>
+              <p className="text-[11px] text-[#9CA3AF]">Blacklisted IP subnets & Tor exit nodes denied gateway access</p>
             </div>
             <button
               type="button"
               onClick={() => setShowBlockIpModal(true)}
-              className="py-2 px-3.5 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs rounded-xl flex items-center gap-2 cursor-pointer transition"
+              className="py-2 px-3.5 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-bold text-xs rounded-xl flex items-center gap-2 cursor-pointer transition"
             >
               + Block New IP
             </button>
           </div>
 
-          <div className="bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden">
+          <div className="bg-[#111827] border border-[#111827] rounded-2xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider text-[10px] bg-slate-900/60">
+                  <tr className="border-b border-[#111827] text-[#9CA3AF] font-semibold uppercase tracking-wider text-[10px] bg-[#111827]/60">
                     <th className="py-3 px-4">IP Address</th>
                     <th className="py-3 px-4">Country / Subnet</th>
                     <th className="py-3 px-4">Date Blocked</th>
@@ -1161,24 +1161,24 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
                     <th className="py-3 px-4 text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                <tbody className="divide-y divide-[#6B7280] text-[#E5E7EB]">
                   {blockedIps.map((ip, idx) => (
-                    <tr key={ip.id ? `ip-row-${ip.id}-${idx}` : `ip-row-${idx}`} className="hover:bg-slate-900/50">
-                      <td className="py-3.5 px-4 font-mono font-bold text-rose-400">{ip.ipAddress}</td>
+                    <tr key={ip.id ? `ip-row-${ip.id}-${idx}` : `ip-row-${idx}`} className="hover:bg-[#111827]/50">
+                      <td className="py-3.5 px-4 font-mono font-bold text-[#9CA3AF]">{ip.ipAddress}</td>
                       <td className="py-3.5 px-4 font-bold text-white flex items-center gap-1.5">
-                        <Globe className="h-3 w-3 text-purple-400" />
+                        <Globe className="h-3 w-3 text-[#9CA3AF]" />
                         <span>{ip.country}</span>
                       </td>
-                      <td className="py-3.5 px-4 font-mono text-slate-400">
+                      <td className="py-3.5 px-4 font-mono text-[#9CA3AF]">
                         {new Date(ip.dateBlocked).toLocaleString()}
                       </td>
-                      <td className="py-3.5 px-4 text-emerald-400">{ip.blockedBy}</td>
-                      <td className="py-3.5 px-4 text-slate-300 max-w-xs">{ip.reason}</td>
+                      <td className="py-3.5 px-4 text-[#9CA3AF]">{ip.blockedBy}</td>
+                      <td className="py-3.5 px-4 text-[#E5E7EB] max-w-xs">{ip.reason}</td>
                       <td className="py-3.5 px-4 text-right">
                         <button
                           type="button"
                           onClick={() => handleUnblockIp(ip.ipAddress)}
-                          className="py-1 px-3 bg-slate-800 hover:bg-slate-700 text-rose-400 hover:text-rose-300 border border-slate-700 font-bold text-xs rounded-lg cursor-pointer"
+                          className="py-1 px-3 bg-[#111827] hover:bg-[#4B5563] text-[#9CA3AF] hover:text-[#9CA3AF] border border-[#4B5563] font-bold text-xs rounded-lg cursor-pointer"
                         >
                           Unblock IP
                         </button>
@@ -1187,7 +1187,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
                   ))}
                   {blockedIps.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="py-8 text-center text-slate-500">
+                      <td colSpan={6} className="py-8 text-center text-[#6B7280]">
                         No IP addresses blacklisted.
                       </td>
                     </tr>
@@ -1202,13 +1202,13 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
       {/* SUB-VIEW 7: SUSPICIOUS ACTIVITY DETECTOR */}
       {activeTab === "SUSPICIOUS" && (
         <div className="space-y-4">
-          <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 space-y-4">
+          <div className="bg-[#111827] border border-[#111827] rounded-2xl p-5 space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-orange-400" /> Intrusion Detection & Suspicious Activities
+                  <AlertTriangle className="h-4 w-4 text-[#9CA3AF]" /> Intrusion Detection & Suspicious Activities
                 </h3>
-                <p className="text-[11px] text-slate-400">
+                <p className="text-[11px] text-[#9CA3AF]">
                   Automated threat classification based on credential stuffing, rapid API requests & location shifts
                 </p>
               </div>
@@ -1217,7 +1217,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider text-[10px] bg-slate-900/60">
+                  <tr className="border-b border-[#111827] text-[#9CA3AF] font-semibold uppercase tracking-wider text-[10px] bg-[#111827]/60">
                     <th className="py-3 px-4">Severity</th>
                     <th className="py-3 px-4">User Email</th>
                     <th className="py-3 px-4">Anomaly Description</th>
@@ -1227,36 +1227,36 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
                     <th className="py-3 px-4 text-right">Resolution Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                <tbody className="divide-y divide-[#6B7280] text-[#E5E7EB]">
                   {suspiciousActivities.map((act, idx) => (
-                    <tr key={act.id ? `susp-act-${act.id}-${idx}` : `susp-act-${idx}`} className="hover:bg-slate-900/50">
+                    <tr key={act.id ? `susp-act-${act.id}-${idx}` : `susp-act-${idx}`} className="hover:bg-[#111827]/50">
                       <td className="py-3.5 px-4">
                         <span
                           className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
                             act.severity === "Critical"
-                              ? "bg-rose-950 text-rose-400 border border-rose-800"
+                              ? "bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C]"
                               : act.severity === "High"
-                              ? "bg-orange-950 text-orange-400 border border-orange-800"
-                              : "bg-amber-950 text-amber-400 border border-amber-800"
+                              ? "bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C]"
+                              : "bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C]"
                           }`}
                         >
                           {act.severity}
                         </span>
                       </td>
                       <td className="py-3.5 px-4 font-bold text-white">{act.userEmail}</td>
-                      <td className="py-3.5 px-4 text-slate-200 font-medium max-w-sm">{act.description}</td>
-                      <td className="py-3.5 px-4 text-purple-400">{act.detectedBy}</td>
-                      <td className="py-3.5 px-4 font-mono text-slate-400">
+                      <td className="py-3.5 px-4 text-[#E5E7EB] font-medium max-w-sm">{act.description}</td>
+                      <td className="py-3.5 px-4 text-[#9CA3AF]">{act.detectedBy}</td>
+                      <td className="py-3.5 px-4 font-mono text-[#9CA3AF]">
                         {new Date(act.timestamp).toLocaleString()}
                       </td>
                       <td className="py-3.5 px-4">
                         <span
                           className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
                             act.status === "Resolved"
-                              ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
+                              ? "bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C]"
                               : act.status === "Investigating"
-                              ? "bg-blue-950 text-blue-400 border border-blue-800"
-                              : "bg-rose-950 text-rose-400 border border-rose-800"
+                              ? "bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C]"
+                              : "bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C]"
                           }`}
                         >
                           {act.status}
@@ -1268,27 +1268,27 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
                             <button
                               type="button"
                               onClick={() => handleResolveSuspicious(act.id, "Resolved")}
-                              className="py-1 px-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-lg cursor-pointer"
+                              className="py-1 px-3 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-bold text-xs rounded-lg cursor-pointer"
                             >
                               Mark Resolved
                             </button>
                             <button
                               type="button"
                               onClick={() => handleResolveSuspicious(act.id, "Flagged")}
-                              className="py-1 px-3 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 font-bold text-xs rounded-lg cursor-pointer"
+                              className="py-1 px-3 bg-[#111827] hover:bg-[#4B5563] text-[#9CA3AF] border border-[#4B5563] font-bold text-xs rounded-lg cursor-pointer"
                             >
                               Flag Account
                             </button>
                           </>
                         ) : (
-                          <span className="text-[11px] text-slate-500">Resolved by {act.resolvedBy}</span>
+                          <span className="text-[11px] text-[#6B7280]">Resolved by {act.resolvedBy}</span>
                         )}
                       </td>
                     </tr>
                   ))}
                   {suspiciousActivities.length === 0 && (
                     <tr>
-                      <td colSpan={7} className="py-8 text-center text-slate-500">
+                      <td colSpan={7} className="py-8 text-center text-[#6B7280]">
                         No suspicious security activity detected.
                       </td>
                     </tr>
@@ -1303,20 +1303,20 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
       {/* SUB-VIEW 8: ACTIVE SESSIONS */}
       {activeTab === "SESSIONS" && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between bg-slate-950 border border-slate-800 rounded-2xl p-4">
+          <div className="flex items-center justify-between bg-[#111827] border border-[#111827] rounded-2xl p-4">
             <div>
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <Key className="h-4 w-4 text-cyan-400" /> Active User Sessions Monitor
+                <Key className="h-4 w-4 text-[#9CA3AF]" /> Active User Sessions Monitor
               </h3>
-              <p className="text-[11px] text-slate-400">Live active tokens with immediate force-logout and session termination control</p>
+              <p className="text-[11px] text-[#9CA3AF]">Live active tokens with immediate force-logout and session termination control</p>
             </div>
           </div>
 
-          <div className="bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden">
+          <div className="bg-[#111827] border border-[#111827] rounded-2xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider text-[10px] bg-slate-900/60">
+                  <tr className="border-b border-[#111827] text-[#9CA3AF] font-semibold uppercase tracking-wider text-[10px] bg-[#111827]/60">
                     <th className="py-3 px-4">Token / Session ID</th>
                     <th className="py-3 px-4">User Email</th>
                     <th className="py-3 px-4">Device & Browser</th>
@@ -1326,35 +1326,35 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
                     <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                <tbody className="divide-y divide-[#6B7280] text-[#E5E7EB]">
                   {activeSessions.map((sess, idx) => (
-                    <tr key={sess.id ? `sess-row-${sess.id}-${idx}` : `sess-row-${idx}`} className="hover:bg-slate-900/50">
-                      <td className="py-3.5 px-4 font-mono font-bold text-cyan-400">{sess.sessionId}</td>
+                    <tr key={sess.id ? `sess-row-${sess.id}-${idx}` : `sess-row-${idx}`} className="hover:bg-[#111827]/50">
+                      <td className="py-3.5 px-4 font-mono font-bold text-[#9CA3AF]">{sess.sessionId}</td>
                       <td className="py-3.5 px-4 font-bold text-white">{sess.userEmail}</td>
-                      <td className="py-3.5 px-4 text-slate-300">
+                      <td className="py-3.5 px-4 text-[#E5E7EB]">
                         <div>{sess.device}</div>
-                        <div className="text-[10px] text-slate-500">{sess.browser}</div>
+                        <div className="text-[10px] text-[#6B7280]">{sess.browser}</div>
                       </td>
-                      <td className="py-3.5 px-4 font-mono text-slate-300">{sess.ipAddress}</td>
-                      <td className="py-3.5 px-4 text-slate-300 flex items-center gap-1.5">
-                        <Globe className="h-3 w-3 text-purple-400" />
+                      <td className="py-3.5 px-4 font-mono text-[#E5E7EB]">{sess.ipAddress}</td>
+                      <td className="py-3.5 px-4 text-[#E5E7EB] flex items-center gap-1.5">
+                        <Globe className="h-3 w-3 text-[#9CA3AF]" />
                         <span>{sess.location}</span>
                       </td>
-                      <td className="py-3.5 px-4 font-mono text-slate-400">
+                      <td className="py-3.5 px-4 font-mono text-[#9CA3AF]">
                         {new Date(sess.lastActivity).toLocaleTimeString()}
                       </td>
                       <td className="py-3.5 px-4 text-right space-x-2">
                         <button
                           type="button"
                           onClick={() => handleTerminateSession(sess.sessionId)}
-                          className="py-1.5 px-3 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-lg cursor-pointer transition"
+                          className="py-1.5 px-3 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-bold text-xs rounded-lg cursor-pointer transition"
                         >
                           Terminate Session
                         </button>
                         <button
                           type="button"
                           onClick={() => handleTerminateSession(sess.sessionId, sess.userEmail, true)}
-                          className="py-1.5 px-3 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 font-bold text-xs rounded-lg cursor-pointer transition"
+                          className="py-1.5 px-3 bg-[#111827] hover:bg-[#4B5563] text-[#9CA3AF] border border-[#4B5563] font-bold text-xs rounded-lg cursor-pointer transition"
                         >
                           Force Logout User All
                         </button>
@@ -1363,7 +1363,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
                   ))}
                   {activeSessions.length === 0 && (
                     <tr>
-                      <td colSpan={7} className="py-8 text-center text-slate-500">
+                      <td colSpan={7} className="py-8 text-center text-[#6B7280]">
                         No active live sessions tracked.
                       </td>
                     </tr>
@@ -1380,9 +1380,9 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* List */}
-            <div className="md:col-span-2 bg-slate-950 border border-slate-800 rounded-2xl p-5 space-y-4">
+            <div className="md:col-span-2 bg-[#111827] border border-[#111827] rounded-2xl p-5 space-y-4">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <ShieldAlert className="h-4 w-4 text-rose-400" /> System Security Alerts Center
+                <ShieldAlert className="h-4 w-4 text-[#9CA3AF]" /> System Security Alerts Center
               </h3>
 
               <div className="space-y-3">
@@ -1392,8 +1392,8 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
                     onClick={() => setSelectedAlert(alert)}
                     className={`p-4 rounded-xl border transition cursor-pointer ${
                       selectedAlert?.id === alert.id
-                        ? "bg-purple-950/40 border-purple-600"
-                        : "bg-slate-900/60 hover:bg-slate-900 border-slate-800"
+                        ? "bg-[#0F2D5C]/40 border-[#0F2D5C]"
+                        : "bg-[#111827]/60 hover:bg-[#111827] border-[#111827]"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -1402,33 +1402,33 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
                           <span
                             className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
                               alert.severity === "Critical"
-                                ? "bg-rose-950 text-rose-400 border border-rose-800"
+                                ? "bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C]"
                                 : alert.severity === "High"
-                                ? "bg-orange-950 text-orange-400 border border-orange-800"
-                                : "bg-amber-950 text-amber-400 border border-amber-800"
+                                ? "bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C]"
+                                : "bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C]"
                             }`}
                           >
                             {alert.severity}
                           </span>
                           <span className="text-xs font-bold text-white">{alert.title}</span>
                         </div>
-                        <p className="text-xs text-slate-400 mt-1">{alert.description}</p>
+                        <p className="text-xs text-[#9CA3AF] mt-1">{alert.description}</p>
                       </div>
 
                       <span
                         className={`px-2 py-0.5 rounded-md text-[10px] font-bold shrink-0 ${
                           alert.status === "Resolved"
-                            ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
+                            ? "bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C]"
                             : alert.status === "Acknowledged"
-                            ? "bg-blue-950 text-blue-400 border border-blue-800"
-                            : "bg-rose-950 text-rose-400 border border-rose-800"
+                            ? "bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C]"
+                            : "bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C]"
                         }`}
                       >
                         {alert.status}
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between text-[11px] text-slate-500 mt-3 pt-2 border-t border-slate-800/60">
+                    <div className="flex items-center justify-between text-[11px] text-[#6B7280] mt-3 pt-2 border-t border-[#111827]/60">
                       <span>Timestamp: {new Date(alert.timestamp).toLocaleString()}</span>
                       <span>Notes: {(alert.internalNotes || []).length}</span>
                     </div>
@@ -1438,51 +1438,51 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
             </div>
 
             {/* Alert Inspection & Notes Sidebar */}
-            <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 space-y-4">
+            <div className="bg-[#111827] border border-[#111827] rounded-2xl p-5 space-y-4">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <Eye className="h-4 w-4 text-purple-400" /> Alert Details & Action Ledger
+                <Eye className="h-4 w-4 text-[#9CA3AF]" /> Alert Details & Action Ledger
               </h3>
 
               {selectedAlert ? (
-                <div className="space-y-4 text-xs text-slate-300">
-                  <div className="p-3 bg-slate-900 border border-slate-800 rounded-xl space-y-2">
+                <div className="space-y-4 text-xs text-[#E5E7EB]">
+                  <div className="p-3 bg-[#111827] border border-[#111827] rounded-xl space-y-2">
                     <div className="text-sm font-bold text-white">{selectedAlert.title}</div>
-                    <div className="text-slate-400">{selectedAlert.description}</div>
-                    <div className="text-[11px] text-purple-400 font-mono">ID: {selectedAlert.id}</div>
+                    <div className="text-[#9CA3AF]">{selectedAlert.description}</div>
+                    <div className="text-[11px] text-[#9CA3AF] font-mono">ID: {selectedAlert.id}</div>
                   </div>
 
                   <div className="space-y-2">
-                    <div className="font-bold text-slate-400 uppercase text-[10px] tracking-wider">Status Actions</div>
+                    <div className="font-bold text-[#9CA3AF] uppercase text-[10px] tracking-wider">Status Actions</div>
                     <div className="flex gap-2">
                       <button
                         type="button"
                         onClick={() => handleAlertAction(selectedAlert.id, "ACKNOWLEDGE")}
-                        className="py-1.5 px-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg text-xs cursor-pointer flex-1"
+                        className="py-1.5 px-3 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-bold rounded-lg text-xs cursor-pointer flex-1"
                       >
                         Acknowledge
                       </button>
                       <button
                         type="button"
                         onClick={() => handleAlertAction(selectedAlert.id, "RESOLVE")}
-                        className="py-1.5 px-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs cursor-pointer flex-1"
+                        className="py-1.5 px-3 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-bold rounded-lg text-xs cursor-pointer flex-1"
                       >
                         Resolve Alert
                       </button>
                     </div>
                   </div>
 
-                  <div className="space-y-2 pt-2 border-t border-slate-800">
-                    <div className="font-bold text-slate-400 uppercase text-[10px] tracking-wider">Internal Security Notes</div>
+                  <div className="space-y-2 pt-2 border-t border-[#111827]">
+                    <div className="font-bold text-[#9CA3AF] uppercase text-[10px] tracking-wider">Internal Security Notes</div>
                     <div className="space-y-2 max-h-40 overflow-y-auto">
                       {(selectedAlert.internalNotes || []).map((noteRec: any) => (
-                        <div key={noteRec.id} className="p-2 bg-slate-900 rounded-lg text-[11px]">
-                          <div className="text-purple-400 font-bold">{noteRec.author}</div>
-                          <div className="text-slate-300">{noteRec.note}</div>
-                          <div className="text-[9px] text-slate-500">{new Date(noteRec.timestamp).toLocaleString()}</div>
+                        <div key={noteRec.id} className="p-2 bg-[#111827] rounded-lg text-[11px]">
+                          <div className="text-[#9CA3AF] font-bold">{noteRec.author}</div>
+                          <div className="text-[#E5E7EB]">{noteRec.note}</div>
+                          <div className="text-[9px] text-[#6B7280]">{new Date(noteRec.timestamp).toLocaleString()}</div>
                         </div>
                       ))}
                       {(selectedAlert.internalNotes || []).length === 0 && (
-                        <div className="text-[11px] text-slate-500 italic">No notes added yet.</div>
+                        <div className="text-[11px] text-[#6B7280] italic">No notes added yet.</div>
                       )}
                     </div>
 
@@ -1492,12 +1492,12 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
                         placeholder="Add internal investigation note..."
                         value={alertNoteText}
                         onChange={(e) => setAlertNoteText(e.target.value)}
-                        className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                        className="flex-1 bg-[#111827] border border-[#111827] rounded-xl px-3 py-1.5 text-xs text-white placeholder-[#6B7280] focus:outline-none focus:border-[#0F2D5C]"
                       />
                       <button
                         type="button"
                         onClick={() => handleAlertAction(selectedAlert.id, "ADD_NOTE", alertNoteText)}
-                        className="py-1.5 px-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl text-xs cursor-pointer"
+                        className="py-1.5 px-3 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-bold rounded-xl text-xs cursor-pointer"
                       >
                         Add
                       </button>
@@ -1505,7 +1505,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
                   </div>
                 </div>
               ) : (
-                <div className="py-12 text-center text-slate-500 text-xs">
+                <div className="py-12 text-center text-[#6B7280] text-xs">
                   Select a security alert from the list to view investigation details and action controls.
                 </div>
               )}
@@ -1517,13 +1517,13 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
       {/* SUB-VIEW 10: MODULE 10 SELF-TEST SUITE */}
       {activeTab === "TEST_SUITE" && (
         <div className="space-y-4">
-          <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 space-y-4">
+          <div className="bg-[#111827] border border-[#111827] rounded-2xl p-5 space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                  <Play className="h-4 w-4 text-purple-400" /> Module 10 Automated Security Verification Suite
+                  <Play className="h-4 w-4 text-[#9CA3AF]" /> Module 10 Automated Security Verification Suite
                 </h3>
-                <p className="text-[11px] text-slate-400">
+                <p className="text-[11px] text-[#9CA3AF]">
                   Executes 10 comprehensive self-test verification routines covering Audit Logs, Login Recording, Session Force-Logout, IP/Device Blocklists & RBAC Guards
                 </p>
               </div>
@@ -1532,17 +1532,17 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
                 type="button"
                 onClick={handleRunSelfTest}
                 disabled={loading}
-                className="py-2.5 px-5 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs rounded-xl flex items-center gap-2 shadow-lg shadow-purple-950/40 cursor-pointer transition"
+                className="py-2.5 px-5 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-bold text-xs rounded-xl flex items-center gap-2 shadow-lg shadow-none cursor-pointer transition"
               >
                 <Play className="h-4 w-4 fill-current" /> Execute Module 10 Self-Tests
               </button>
             </div>
 
             {testResults && (
-              <div className="space-y-4 border-t border-slate-800 pt-4">
-                <div className="p-4 bg-purple-950/40 border border-purple-800/80 rounded-2xl space-y-2">
-                  <div className="text-sm font-bold text-purple-300">{testResults.summary}</div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono text-slate-300 pt-1">
+              <div className="space-y-4 border-t border-[#111827] pt-4">
+                <div className="p-4 bg-[#0F2D5C]/40 border border-[#0F2D5C]/80 rounded-2xl space-y-2">
+                  <div className="text-sm font-bold text-[#9CA3AF]">{testResults.summary}</div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono text-[#E5E7EB] pt-1">
                     <div>Login Records: {testResults.metrics?.loginHistoryCount}</div>
                     <div>Active Sessions: {testResults.metrics?.activeSessionsCount}</div>
                     <div>Blocked IPs: {testResults.metrics?.blockedIpsCount}</div>
@@ -1552,16 +1552,16 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
 
                 <div className="space-y-2">
                   {(testResults.testResults || []).map((tr: any, idx: number) => (
-                    <div key={idx} className="p-3 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-between text-xs">
+                    <div key={idx} className="p-3 bg-[#111827] border border-[#111827] rounded-xl flex items-center justify-between text-xs">
                       <div className="flex items-center gap-3">
-                        <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                        <CheckCircle2 className="h-4 w-4 text-[#9CA3AF] shrink-0" />
                         <div>
                           <div className="font-bold text-white">{tr.testName}</div>
-                          <div className="text-[11px] text-slate-400">{tr.details}</div>
+                          <div className="text-[11px] text-[#9CA3AF]">{tr.details}</div>
                         </div>
                       </div>
 
-                      <span className="px-2 py-0.5 bg-emerald-950 text-emerald-400 border border-emerald-800 rounded-md font-mono text-[10px] font-bold">
+                      <span className="px-2 py-0.5 bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C] rounded-md font-mono text-[10px] font-bold">
                         {tr.status} ({tr.durationMs}ms)
                       </span>
                     </div>
@@ -1575,16 +1575,16 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
 
       {/* MODAL 1: BLOCK IP ADDRESS */}
       {showBlockIpModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-md w-full space-y-5 animate-fadeIn">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className="fixed inset-0 z-50 bg-[#111827]/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#111827] border border-[#111827] rounded-3xl p-6 max-w-md w-full space-y-5 animate-fadeIn">
+            <div className="flex items-center justify-between border-b border-[#111827] pb-3">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Globe className="h-5 w-5 text-rose-400" /> Block IP Address
+                <Globe className="h-5 w-5 text-[#9CA3AF]" /> Block IP Address
               </h3>
               <button
                 type="button"
                 onClick={() => setShowBlockIpModal(false)}
-                className="text-slate-400 hover:text-white cursor-pointer"
+                className="text-[#9CA3AF] hover:text-white cursor-pointer"
               >
                 ✕
               </button>
@@ -1592,51 +1592,51 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
 
             <form onSubmit={handleBlockIpSubmit} className="space-y-4 text-xs">
               <div className="space-y-1">
-                <label className="text-slate-300 font-semibold">IP Address *</label>
+                <label className="text-[#E5E7EB] font-semibold">IP Address *</label>
                 <input
                   type="text"
                   placeholder="e.g. 185.220.101.5"
                   value={blockIpForm.ipAddress}
                   onChange={(e) => setBlockIpForm({ ...blockIpForm, ipAddress: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                  className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-white placeholder-[#6B7280] focus:outline-none focus:border-[#0F2D5C]"
                   required
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-slate-300 font-semibold">Country / Origin</label>
+                <label className="text-[#E5E7EB] font-semibold">Country / Origin</label>
                 <input
                   type="text"
                   placeholder="e.g. Germany (Tor Proxy)"
                   value={blockIpForm.country}
                   onChange={(e) => setBlockIpForm({ ...blockIpForm, country: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500"
+                  className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#0F2D5C]"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-slate-300 font-semibold">Block Reason *</label>
+                <label className="text-[#E5E7EB] font-semibold">Block Reason *</label>
                 <textarea
                   rows={3}
                   placeholder="Explain why this IP address is being blacklisted..."
                   value={blockIpForm.reason}
                   onChange={(e) => setBlockIpForm({ ...blockIpForm, reason: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                  className="w-full bg-[#111827] border border-[#111827] rounded-xl p-3 text-white placeholder-[#6B7280] focus:outline-none focus:border-[#0F2D5C]"
                   required
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#111827]">
                 <button
                   type="button"
                   onClick={() => setShowBlockIpModal(false)}
-                  className="py-2 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl cursor-pointer"
+                  className="py-2 px-4 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] font-bold rounded-xl cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="py-2 px-4 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl cursor-pointer"
+                  className="py-2 px-4 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-bold rounded-xl cursor-pointer"
                 >
                   Block IP Address
                 </button>
@@ -1648,16 +1648,16 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
 
       {/* MODAL 2: BLOCK HARDWARE DEVICE */}
       {showBlockDeviceModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-md w-full space-y-5 animate-fadeIn">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className="fixed inset-0 z-50 bg-[#111827]/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#111827] border border-[#111827] rounded-3xl p-6 max-w-md w-full space-y-5 animate-fadeIn">
+            <div className="flex items-center justify-between border-b border-[#111827] pb-3">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Laptop className="h-5 w-5 text-rose-400" /> Block Hardware Device Fingerprint
+                <Laptop className="h-5 w-5 text-[#9CA3AF]" /> Block Hardware Device Fingerprint
               </h3>
               <button
                 type="button"
                 onClick={() => setShowBlockDeviceModal(false)}
-                className="text-slate-400 hover:text-white cursor-pointer"
+                className="text-[#9CA3AF] hover:text-white cursor-pointer"
               >
                 ✕
               </button>
@@ -1665,62 +1665,62 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
 
             <form onSubmit={handleBlockDeviceSubmit} className="space-y-4 text-xs">
               <div className="space-y-1">
-                <label className="text-slate-300 font-semibold">Device ID / Fingerprint *</label>
+                <label className="text-[#E5E7EB] font-semibold">Device ID / Fingerprint *</label>
                 <input
                   type="text"
                   placeholder="e.g. DEV_MAC_88419"
                   value={blockDeviceForm.deviceId}
                   onChange={(e) => setBlockDeviceForm({ ...blockDeviceForm, deviceId: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                  className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-white placeholder-[#6B7280] focus:outline-none focus:border-[#0F2D5C]"
                   required
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-slate-300 font-semibold">Device Name</label>
+                <label className="text-[#E5E7EB] font-semibold">Device Name</label>
                 <input
                   type="text"
                   placeholder="e.g. Linux Workstation (Tor Proxy)"
                   value={blockDeviceForm.deviceName}
                   onChange={(e) => setBlockDeviceForm({ ...blockDeviceForm, deviceName: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500"
+                  className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#0F2D5C]"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-slate-300 font-semibold">Associated User Email</label>
+                <label className="text-[#E5E7EB] font-semibold">Associated User Email</label>
                 <input
                   type="email"
                   placeholder="e.g. bad_actor@gmail.com"
                   value={blockDeviceForm.userEmail}
                   onChange={(e) => setBlockDeviceForm({ ...blockDeviceForm, userEmail: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500"
+                  className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#0F2D5C]"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-slate-300 font-semibold">Reason for Device Block *</label>
+                <label className="text-[#E5E7EB] font-semibold">Reason for Device Block *</label>
                 <textarea
                   rows={3}
                   placeholder="Detail the credential stuffing or security violation..."
                   value={blockDeviceForm.reason}
                   onChange={(e) => setBlockDeviceForm({ ...blockDeviceForm, reason: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                  className="w-full bg-[#111827] border border-[#111827] rounded-xl p-3 text-white placeholder-[#6B7280] focus:outline-none focus:border-[#0F2D5C]"
                   required
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#111827]">
                 <button
                   type="button"
                   onClick={() => setShowBlockDeviceModal(false)}
-                  className="py-2 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl cursor-pointer"
+                  className="py-2 px-4 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] font-bold rounded-xl cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="py-2 px-4 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl cursor-pointer"
+                  className="py-2 px-4 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-bold rounded-xl cursor-pointer"
                 >
                   Block Device Signature
                 </button>

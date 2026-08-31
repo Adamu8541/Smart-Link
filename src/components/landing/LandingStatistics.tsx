@@ -52,7 +52,7 @@ export const LandingStatistics: React.FC = () => {
         
         {/* Section Header */}
         <div className="text-center space-y-4 max-w-3xl mx-auto mb-16">
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-blue-50 text-[#0F2D5C] border border-blue-200">
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#F5F7FA] text-[#0F2D5C] border border-[#E5E7EB]">
             <ShieldCheck className="h-3.5 w-3.5 text-[#0F2D5C]" />
             <span>Platform Scale & Reach</span>
           </span>

@@ -2,40 +2,10 @@ import express from "express";
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
-import nodemailer from "nodemailer";
-import { readDB, writeDB, initializeDB, DB_DIR, DB_FILE, UPLOADS_DIR, SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD, hashPassword, safeCompareHash, generateSalt, isMaskedValue } from "../db";
-import { verifyUserOrAdminSession } from "../middleware/auth";
-import { isMaintenanceModeActive, getMaintenanceDetails, getValueByJsonPath, seedModule7SettingsIfEmpty, sanitizePublicSettings } from "../middleware/maintenance";
-import { getAI } from "../services/ai";
-import { 
-  DEFAULT_SERVICES_CATALOG, 
-  seedDefaultServicesCatalogIfEmpty, 
-  seedDefaultUsersIfEmpty, 
-  seedDefaultTransactionsIfEmpty, 
-  recordAdminUserAction, 
-  getOrCreateUserVirtualAccount, 
-  resolveVtuPlanAndPricing 
-} from "../services/sharedHelpers";
-import { ServerWalletEngine } from "../../src/services/serverWalletEngine";
-import { APIProviderManager, DEFAULT_PROVIDERS } from "../../src/services/apiProviderManager";
-import { ProviderExecutor, verifyWebhookSignature } from "../../src/services/providerExecutor";
-import { adminAuthService, ADMIN_ROLES_CONFIG } from "../../src/services/adminAuthService";
-import { AutomaticWalletFundingEngine } from "../../src/services/automaticWalletFundingEngine";
-import { PaymentVerificationReconciliationEngine } from "../../src/services/paymentVerificationReconciliationEngine";
-import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerGateway";
-import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
-import { AgentHubAdapter } from "../../src/services/providers/agenthubAdapter";
-import { NINTrustAdapter } from "../../src/services/providers/nintrustAdapter";
-import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
-import { syncFromFirestore, syncToFirestore } from "../../src/services/settingsStore";
-import { loadFirestoreDb, syncDbToFirestore, saveDocToFirestore } from "../../src/services/firestoreStore";
-import * as usersStore from "../../src/services/usersStore";
-import * as walletsStore from "../../src/services/walletsStore";
-import * as securityStore from "../../src/services/securityStore";
-import * as notificationsStore from "../../src/services/notificationsStore";
-import { getAuth } from "firebase-admin/auth";
+import { readDB, writeDB, DB_DIR, UPLOADS_DIR } from "../db";
+import { verifyUserOrAdminSession, requireAdmin, requireAuth } from "../middleware/auth";
 import { getAdminFirestore } from "../../src/services/firebaseAdmin";
-
+import * as usersStore from "../../src/services/usersStore";
 
 const router = express.Router();
 const app = router;
@@ -47,16 +17,90 @@ if (!fs.existsSync(UPLOADS_DIR)) {
   } catch (e) {}
 }
 
-app.post("/api/storage/upload", async (req, res) => {
-  const { fileName, mimeType, base64Data, category, userId } = req.body;
+// In-Memory Sliding Window Rate Limiter
+const storageRateLimitMap = new Map<string, { count: number; resetAt: number }>();
 
-  if (!base64Data) {
-    return res.status(400).json({ error: "No file data provided" });
+function checkStorageRateLimit(key: string, limit = 20, windowMs = 60000): boolean {
+  const now = Date.now();
+  const entry = storageRateLimitMap.get(key);
+  if (!entry || now > entry.resetAt) {
+    storageRateLimitMap.set(key, { count: 1, resetAt: now + windowMs });
+    return true;
+  }
+  if (entry.count >= limit) {
+    return false;
+  }
+  entry.count++;
+  return true;
+}
+
+// Allowed MIME Types
+const ALLOWED_MIME_TYPES = new Set([
+  "image/png",
+  "image/jpeg",
+  "image/jpg",
+  "image/webp",
+  "image/gif",
+  "image/svg+xml",
+  "application/pdf",
+  "text/plain",
+  "text/csv",
+  "application/json",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/zip",
+  "application/x-zip-compressed",
+]);
+
+const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB limit
+
+/**
+ * 1. Upload File to Cloud Storage
+ * Secured with authentication, forged userId rejection, size/type validation, and rate limiting.
+ */
+app.post("/api/storage/upload", requireAuth, async (req, res) => {
+  const clientIp = (req.headers["x-forwarded-for"] as string) || req.ip || "127.0.0.1";
+  const rateKey = `upload_${clientIp}`;
+
+  if (!checkStorageRateLimit(rateKey, 20, 60000)) {
+    return res.status(429).json({ error: "Upload rate limit exceeded. Please wait a minute before uploading again." });
   }
 
+  const { fileName, mimeType, base64Data, category, userId: targetUserId } = req.body;
+
+  if (!base64Data) {
+    return res.status(400).json({ error: "No file data provided." });
+  }
+
+  const db = readDB();
+
+  // Verify caller session against targetUserId
+  const authCheck = await verifyUserOrAdminSession(req, targetUserId || (req as any).authenticatedUid, db);
+  if (!authCheck.authorized) {
+    return res.status(403).json({ error: authCheck.reason || "Forbidden: Forged userId or unauthorized access." });
+  }
+
+  const effectiveUserId = targetUserId || authCheck.authenticatedUid || "UNKNOWN";
+
+  // Validate file size & type
   try {
     const rawData = base64Data.replace(/^data:([a-zA-Z0-9\/\-+.]+);base64,/, "");
     const buffer = Buffer.from(rawData, "base64");
+
+    if (buffer.length > MAX_FILE_SIZE_BYTES) {
+      return res.status(400).json({ error: `File size (${(buffer.length / (1024 * 1024)).toFixed(2)}MB) exceeds the 10MB limit.` });
+    }
+
+    const cleanMimeType = (mimeType || "application/octet-stream").toLowerCase().trim();
+    if (cleanMimeType.includes("javascript") || cleanMimeType.includes("html") || cleanMimeType.includes("executable") || cleanMimeType.includes("x-sh") || cleanMimeType.includes("x-msdownload")) {
+      return res.status(400).json({ error: "Invalid or dangerous file type detected." });
+    }
+
+    if (!ALLOWED_MIME_TYPES.has(cleanMimeType) && !cleanMimeType.startsWith("image/")) {
+      return res.status(400).json({ error: `File MIME type '${cleanMimeType}' is not supported.` });
+    }
 
     const cleanName = (fileName || "file_" + Date.now()).replace(/[^a-zA-Z0-9.\-_]/g, "_");
     const uniqueId = crypto.randomBytes(8).toString("hex");
@@ -65,17 +109,16 @@ app.post("/api/storage/upload", async (req, res) => {
 
     fs.writeFileSync(filePath, buffer);
 
-    // Save to Firestore cloud_storage_files for persistent storage across container restarts
+    // Save metadata to Firestore cloud_storage_files (without base64 data)
     try {
       const adminDb = getAdminFirestore();
       await adminDb.collection("cloud_storage_files").doc(savedFileName).set({
         savedFileName,
         originalName: fileName || cleanName,
-        mimeType: mimeType || "application/octet-stream",
-        base64Data: rawData,
+        mimeType: cleanMimeType,
         sizeBytes: buffer.length,
         category: category || "GENERAL",
-        userId: userId || "SYSTEM",
+        userId: effectiveUserId,
         createdAt: new Date().toISOString(),
       }, { merge: true });
     } catch (fsErr) {
@@ -84,7 +127,6 @@ app.post("/api/storage/upload", async (req, res) => {
 
     const fileUrl = `/api/storage/file/${savedFileName}`;
 
-    const db = readDB();
     if (!db.files) db.files = [];
 
     const fileRecord = {
@@ -92,98 +134,197 @@ app.post("/api/storage/upload", async (req, res) => {
       originalName: fileName || cleanName,
       savedFileName,
       fileUrl,
-      mimeType: mimeType || "application/octet-stream",
+      mimeType: cleanMimeType,
       sizeBytes: buffer.length,
       category: category || "GENERAL",
-      userId: userId || "SYSTEM",
+      userId: effectiveUserId,
       createdAt: new Date().toISOString(),
     };
 
     db.files.push(fileRecord);
     writeDB(db);
 
-    res.json({
+    return res.json({
       success: true,
       message: "File successfully uploaded to Cloud Storage bucket",
       file: fileRecord,
     });
   } catch (err: any) {
     console.error("Cloud Storage upload failed:", err);
-    res.status(500).json({ error: "Failed to upload file to Cloud Storage." });
+    return res.status(500).json({ error: "Failed to upload file to Cloud Storage." });
   }
 });
 
-// Serve Cloud Storage Files
+/**
+ * 2. Serve Cloud Storage Files
+ * Secured with authentication, path traversal guards, and file ownership or authorized admin permission check.
+ */
 app.get("/api/storage/file/:savedFileName", async (req, res) => {
   const { savedFileName } = req.params;
-  const filePath = path.join(UPLOADS_DIR, savedFileName);
 
-  // 1. Direct local file hit
-  if (fs.existsSync(filePath)) {
-    return res.sendFile(filePath);
+  if (!savedFileName || savedFileName.includes("..") || savedFileName.includes("/") || savedFileName.includes("\\")) {
+    return res.status(400).json({ error: "Invalid file name parameter." });
   }
 
-  // 2. Try loading from Firestore persistent cloud_storage_files
-  try {
-    const adminDb = getAdminFirestore();
-    const docSnap = await adminDb.collection("cloud_storage_files").doc(savedFileName).get();
-    if (docSnap.exists) {
-      const data = docSnap.data();
-      if (data?.base64Data) {
-        const fileBuf = Buffer.from(data.base64Data, "base64");
-        try {
-          fs.writeFileSync(filePath, fileBuf);
-        } catch (e) {}
-        res.setHeader("Content-Type", data.mimeType || "image/png");
-        res.setHeader("Cache-Control", "public, max-age=86400");
-        return res.send(fileBuf);
+  const db = readDB();
+
+  // Find file owner / metadata from db.files or Firestore cloud_storage_files
+  let fileOwnerId = "";
+  let fileMetadata: any = null;
+
+  const fileRecord = (db.files || []).find((f: any) => f.savedFileName === savedFileName);
+  if (fileRecord) {
+    fileOwnerId = fileRecord.userId;
+    fileMetadata = fileRecord;
+  } else {
+    try {
+      const adminDb = getAdminFirestore();
+      const docSnap = await adminDb.collection("cloud_storage_files").doc(savedFileName).get();
+      if (docSnap.exists) {
+        const data = docSnap.data();
+        fileOwnerId = data?.userId || "";
+        fileMetadata = data;
+      }
+    } catch (fsErr: any) {
+      if (!fsErr?.message?.includes("RESOURCE_EXHAUSTED") && fsErr?.code !== 8) {
+        console.warn("[storage.routes] Firestore lookup failed for file metadata:", savedFileName);
       }
     }
-  } catch (fsErr) {
-    console.warn("[storage.routes] Firestore lookup failed for file:", savedFileName, fsErr);
   }
 
-  // 3. Fallback for logo files if not found
-  if (savedFileName.toLowerCase().includes("logo") || savedFileName.toLowerCase().includes("smartlink")) {
+  // Fallback for system logo files
+  const isLogo = savedFileName.toLowerCase().includes("logo") || savedFileName.toLowerCase().includes("smartlink");
+  if (!fileOwnerId && isLogo) {
     const defaultPng = path.join(process.cwd(), "public", "logo.png");
     if (fs.existsSync(defaultPng)) {
+      res.setHeader("Content-Type", "image/png");
+      res.setHeader("Cache-Control", "public, max-age=86400");
       return res.sendFile(defaultPng);
     }
+  }
+
+  // Require authentication and verify file ownership or admin permission
+  if (fileOwnerId) {
+    const authCheck = await verifyUserOrAdminSession(req, fileOwnerId, db);
+    if (!authCheck.authorized) {
+      return res.status(403).json({ error: authCheck.reason || "Forbidden: You do not have permission to access this file." });
+    }
+  } else {
+    const generalAuthCheck = await verifyUserOrAdminSession(req, "", db);
+    if (!generalAuthCheck.authorized) {
+      return res.status(403).json({ error: generalAuthCheck.reason || "Forbidden: Access denied to unverified file." });
+    }
+  }
+
+  const filePath = path.join(UPLOADS_DIR, savedFileName);
+
+  // Serve from object storage / local uploads directory
+  if (fs.existsSync(filePath)) {
+    if (fileMetadata?.mimeType) {
+      res.setHeader("Content-Type", fileMetadata.mimeType);
+    }
+    return res.sendFile(filePath);
   }
 
   return res.status(404).json({ error: "File not found in Cloud Storage." });
 });
 
-// List Files in Cloud Storage
+/**
+ * 3. List Files in Cloud Storage
+ * Secured with authentication & ownership check.
+ * Non-admin users see only their own files. Admins see all files.
+ */
 app.get("/api/storage/list", async (req, res) => {
   const db = readDB();
-  res.json({ files: db.files || [] });
+  const targetUserId = (req.query.userId as string) || "";
+
+  // Verify user session
+  const authCheck = await verifyUserOrAdminSession(req, targetUserId, db);
+  if (!authCheck.authorized) {
+    return res.status(401).json({ error: authCheck.reason || "Authentication required to list stored files." });
+  }
+
+  const authenticatedUid = authCheck.authenticatedUid;
+
+  const allFiles = db.files || [];
+
+  if (authCheck.isAdmin) {
+    if (targetUserId) {
+      return res.json({ files: allFiles.filter((f: any) => f.userId === targetUserId) });
+    }
+    return res.json({ files: allFiles });
+  }
+
+  const callerUid = authCheck.authenticatedUid;
+  if (!callerUid) {
+    return res.status(401).json({ error: "Authentication required." });
+  }
+
+  // Non-admin user: filter to user's files only
+  const userFiles = allFiles.filter((f: any) => f.userId === callerUid || f.userId === "SYSTEM");
+  return res.json({ files: userFiles });
 });
 
-// Delete File from Cloud Storage
+/**
+ * 4. Delete File from Cloud Storage
+ * Secured with authentication & ownership check. Users can delete only their own files.
+ */
 app.delete("/api/storage/file/:savedFileName", async (req, res) => {
   const { savedFileName } = req.params;
-  const filePath = path.join(UPLOADS_DIR, savedFileName);
 
+  if (!savedFileName || savedFileName.includes("..") || savedFileName.includes("/") || savedFileName.includes("\\")) {
+    return res.status(400).json({ error: "Invalid file name parameter." });
+  }
+
+  const db = readDB();
+  const fileRecord = (db.files || []).find((f: any) => f.savedFileName === savedFileName);
+
+  const fileOwnerId = fileRecord ? fileRecord.userId : "";
+
+  // Require session authentication
+  const authCheck = await verifyUserOrAdminSession(req, fileOwnerId || "UNKNOWN", db);
+  if (!authCheck.authorized && fileOwnerId) {
+    return res.status(403).json({ error: authCheck.reason || "Forbidden: You do not own this file." });
+  }
+
+  if (!authCheck.authorized && !fileOwnerId) {
+    // File not found in db or caller not authenticated
+    return res.status(404).json({ error: "File record not found or access denied." });
+  }
+
+  // Delete local file
+  const filePath = path.join(UPLOADS_DIR, savedFileName);
   if (fs.existsSync(filePath)) {
     try {
       fs.unlinkSync(filePath);
     } catch (e) {
-      console.error("Failed to delete file from disk", e);
+      console.error("Failed to delete file from disk:", e);
     }
   }
 
-  const db = readDB();
+  // Delete from Firestore
+  try {
+    const adminDb = getAdminFirestore();
+    await adminDb.collection("cloud_storage_files").doc(savedFileName).delete();
+  } catch (fsErr) {
+    console.warn("Failed to delete file document from Firestore:", fsErr);
+  }
+
+  // Delete from DB
   if (db.files) {
     db.files = db.files.filter((f: any) => f.savedFileName !== savedFileName);
     writeDB(db);
   }
 
-  res.json({ success: true, message: "File removed from Cloud Storage" });
+  return res.json({ success: true, message: "File removed from Cloud Storage" });
 });
 
-// 9.2 Serverless Cloud Functions Execution
-app.post("/api/functions/execute", async (req, res) => {
+/**
+ * 5. Serverless Cloud Functions Execution
+ * Secured for Admin authorization only.
+ */
+app.post("/api/functions/execute", requireAdmin, async (req, res) => {
+  const db = readDB();
   const { functionName, payload } = req.body;
 
   if (!functionName) {
@@ -196,7 +337,7 @@ app.post("/api/functions/execute", async (req, res) => {
   try {
     switch (functionName) {
       case "sendEmailNotification": {
-        const { to, subject, message } = payload || {};
+        const { to, subject } = payload || {};
         result = {
           status: "SENT",
           recipient: to || "user@smartlink.com",
@@ -207,7 +348,6 @@ app.post("/api/functions/execute", async (req, res) => {
       }
 
       case "generateMonthlyReport": {
-        const db = readDB();
         const users = await usersStore.getAllUsers();
         const totalRevenue = (db.transactions || [])
           .filter((t: any) => t.status === "SUCCESS")
@@ -223,7 +363,6 @@ app.post("/api/functions/execute", async (req, res) => {
       }
 
       case "syncWalletLedger": {
-        const db = readDB();
         const users = await usersStore.getAllUsers();
         const usersCount = (users || []).length;
         result = {
@@ -236,7 +375,6 @@ app.post("/api/functions/execute", async (req, res) => {
       }
 
       case "triggerBackup": {
-        const db = readDB();
         const backupFileName = `db_backup_${Date.now()}.json`;
         const backupPath = path.join(DB_DIR, backupFileName);
         fs.writeFileSync(backupPath, JSON.stringify(db, null, 2), "utf8");
@@ -261,7 +399,7 @@ app.post("/api/functions/execute", async (req, res) => {
     }
 
     const durationMs = Date.now() - startTime;
-    res.json({
+    return res.json({
       success: true,
       functionName,
       executionTimeMs: durationMs,
@@ -269,13 +407,15 @@ app.post("/api/functions/execute", async (req, res) => {
     });
   } catch (err: any) {
     console.error(`Cloud Function ${functionName} failed:`, err);
-    res.status(500).json({ error: `Cloud Function ${functionName} execution failed.` });
+    return res.status(500).json({ error: `Cloud Function ${functionName} execution failed.` });
   }
 });
 
-// List Available Cloud Functions
-app.get("/api/functions/list", async (req, res) => {
-  res.json({
+/**
+ * 6. List Available Cloud Functions
+ */
+app.get("/api/functions/list", requireAdmin, async (req, res) => {
+  return res.json({
     functions: [
       { name: "sendEmailNotification", description: "Trigger transactional email / SMS alerts", status: "ONLINE" },
       { name: "generateMonthlyReport", description: "Generate automated financial & platform analytics report", status: "ONLINE" },
@@ -284,7 +424,5 @@ app.get("/api/functions/list", async (req, res) => {
     ],
   });
 });
-
-
 
 export default router;

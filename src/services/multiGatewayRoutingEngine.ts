@@ -2,7 +2,7 @@
  * SmartLink Multi-Gateway Routing & Failover Engine
  *
  * Implements intelligent multi-gateway execution, circuit breaking,
- * automatic failover across NINTrust, AgentHub, Aspfiy, and institutional gateways,
+ * automatic failover across Aspfiy, VerifyNG, and institutional gateways,
  * live health monitoring, and background verification reconciliation.
  */
 
@@ -14,9 +14,10 @@ import {
   RoutingStrategyType,
 } from "../types/provider";
 import { getAdapterForProvider, getAdapterById } from "./providerGateway";
-import { AgentHubAdapter } from "./providers/agenthubAdapter";
-import { NINTrustAdapter } from "./providers/nintrustAdapter";
 import { AspfiyAdapter } from "./providers/aspfiyAdapter";
+import { LumiIDAdapter } from "./providers/lumiidAdapter";
+import { NinBvnPortalAdapter } from "./providers/ninBvnPortalAdapter";
+import { VerifyNGAdapter } from "./providers/verifyNgAdapter";
 
 export interface MultiGatewayExecutionParams {
   service: string; // NIN, BVN, PHONE, CAC, TIN, etc.
@@ -47,7 +48,7 @@ export interface MultiGatewayExecutionResult {
 
 export class MultiGatewayRoutingEngine {
   /**
-   * Default service routing rules matching Agenthub.ng and NINTrust.com.ng ecosystem
+   * Default service routing rules matching Aspfiy and VerifyNG ecosystem
    */
   public static getDefaultRoutingRules(): GatewayRoutingRule[] {
     const now = new Date().toISOString();
@@ -57,14 +58,14 @@ export class MultiGatewayRoutingEngine {
         service: "NIN",
         serviceName: "NIN Identity Verification",
         strategy: "PRIORITY_ORDER",
-        primaryProviderId: "nintrust",
-        primaryProviderName: "NINTrust Federal Gateway",
-        secondaryProviderId: "agenthub",
-        secondaryProviderName: "AgentHub Identity Gateway",
-        tertiaryProviderId: "aspfiy",
-        tertiaryProviderName: "Aspfiy Payment Gateway",
+        primaryProviderId: "aspfiy",
+        primaryProviderName: "Aspfiy Payment Gateway",
+        secondaryProviderId: "verifyng",
+        secondaryProviderName: "VerifyNG Gateway",
+        tertiaryProviderId: "lumiid",
+        tertiaryProviderName: "LumiID Gateway",
         fallbackProviderId: "nimc_direct",
-        fallbackProviderName: "NIMC Direct Core",
+        fallbackProviderName: "NIN API Gateway",
         timeoutMs: 6000,
         maxRetries: 2,
         autoFailover: true,
@@ -78,14 +79,14 @@ export class MultiGatewayRoutingEngine {
         service: "BVN",
         serviceName: "BVN Banking Verification",
         strategy: "PRIORITY_ORDER",
-        primaryProviderId: "agenthub",
-        primaryProviderName: "AgentHub Identity Gateway",
-        secondaryProviderId: "nintrust",
-        secondaryProviderName: "NINTrust Federal Gateway",
-        tertiaryProviderId: "aspfiy",
-        tertiaryProviderName: "Aspfiy Payment Gateway",
+        primaryProviderId: "aspfiy",
+        primaryProviderName: "Aspfiy Payment Gateway",
+        secondaryProviderId: "ninbvnportal",
+        secondaryProviderName: "NIN BVN Portal",
+        tertiaryProviderId: "lumiid",
+        tertiaryProviderName: "LumiID Gateway",
         fallbackProviderId: "nibss_direct",
-        fallbackProviderName: "NIBSS Central Switch",
+        fallbackProviderName: "BVN Gateway",
         timeoutMs: 6000,
         maxRetries: 2,
         autoFailover: true,
@@ -99,12 +100,12 @@ export class MultiGatewayRoutingEngine {
         service: "PHONE",
         serviceName: "Phone Number Identity Lookup",
         strategy: "PRIORITY_ORDER",
-        primaryProviderId: "agenthub",
-        primaryProviderName: "AgentHub Identity Gateway",
-        secondaryProviderId: "nintrust",
-        secondaryProviderName: "NINTrust Federal Gateway",
-        tertiaryProviderId: "aspfiy",
-        tertiaryProviderName: "Aspfiy Payment Gateway",
+        primaryProviderId: "aspfiy",
+        primaryProviderName: "Aspfiy Payment Gateway",
+        secondaryProviderId: "lumiid",
+        secondaryProviderName: "LumiID Gateway",
+        tertiaryProviderId: "verifyng",
+        tertiaryProviderName: "VerifyNG Gateway",
         fallbackProviderId: "ncc_direct",
         fallbackProviderName: "NCC Telco Registry",
         timeoutMs: 5000,
@@ -120,10 +121,10 @@ export class MultiGatewayRoutingEngine {
         service: "CAC",
         serviceName: "CAC Corporate Registration Verification",
         strategy: "PRIORITY_ORDER",
-        primaryProviderId: "agenthub",
-        primaryProviderName: "AgentHub Identity Gateway",
-        secondaryProviderId: "aspfiy",
-        secondaryProviderName: "Aspfiy Payment Gateway",
+        primaryProviderId: "aspfiy",
+        primaryProviderName: "Aspfiy Payment Gateway",
+        secondaryProviderId: "lumiid",
+        secondaryProviderName: "LumiID Gateway",
         fallbackProviderId: "cac_direct",
         fallbackProviderName: "CAC Enterprise Portal",
         timeoutMs: 7000,
@@ -139,12 +140,12 @@ export class MultiGatewayRoutingEngine {
         service: "TIN",
         serviceName: "TIN Tax Identification Lookup",
         strategy: "PRIORITY_ORDER",
-        primaryProviderId: "agenthub",
-        primaryProviderName: "AgentHub Identity Gateway",
-        secondaryProviderId: "aspfiy",
-        secondaryProviderName: "Aspfiy Payment Gateway",
+        primaryProviderId: "aspfiy",
+        primaryProviderName: "Aspfiy Payment Gateway",
+        secondaryProviderId: "lumiid",
+        secondaryProviderName: "LumiID Gateway",
         fallbackProviderId: "firs_direct",
-        fallbackProviderName: "FIRS Tax Portal Engine",
+        fallbackProviderName: "TIN Gateway Engine",
         timeoutMs: 6000,
         maxRetries: 2,
         autoFailover: true,
@@ -158,10 +159,10 @@ export class MultiGatewayRoutingEngine {
         service: "DRIVER_LICENSE",
         serviceName: "Driver License Validation",
         strategy: "PRIORITY_ORDER",
-        primaryProviderId: "agenthub",
-        primaryProviderName: "AgentHub Identity Gateway",
-        secondaryProviderId: "nintrust",
-        secondaryProviderName: "NINTrust Federal Gateway",
+        primaryProviderId: "verifyng",
+        primaryProviderName: "VerifyNG Gateway",
+        secondaryProviderId: "lumiid",
+        secondaryProviderName: "LumiID Gateway",
         fallbackProviderId: "frsc_direct",
         fallbackProviderName: "FRSC National Licensing Engine",
         timeoutMs: 6000,
@@ -177,10 +178,10 @@ export class MultiGatewayRoutingEngine {
         service: "PASSPORT",
         serviceName: "International Passport Verification",
         strategy: "PRIORITY_ORDER",
-        primaryProviderId: "agenthub",
-        primaryProviderName: "AgentHub Identity Gateway",
-        secondaryProviderId: "nintrust",
-        secondaryProviderName: "NINTrust Federal Gateway",
+        primaryProviderId: "verifyng",
+        primaryProviderName: "VerifyNG Gateway",
+        secondaryProviderId: "lumiid",
+        secondaryProviderName: "LumiID Gateway",
         fallbackProviderId: "nis_direct",
         fallbackProviderName: "NIS Immigration Gateway",
         timeoutMs: 7000,
@@ -196,10 +197,10 @@ export class MultiGatewayRoutingEngine {
         service: "VOTER_CARD",
         serviceName: "Voter Card (VIN) Verification",
         strategy: "PRIORITY_ORDER",
-        primaryProviderId: "agenthub",
-        primaryProviderName: "AgentHub Identity Gateway",
-        secondaryProviderId: "nintrust",
-        secondaryProviderName: "NINTrust Federal Gateway",
+        primaryProviderId: "verifyng",
+        primaryProviderName: "VerifyNG Gateway",
+        secondaryProviderId: "lumiid",
+        secondaryProviderName: "LumiID Gateway",
         fallbackProviderId: "inec_direct",
         fallbackProviderName: "INEC Electoral Portal",
         timeoutMs: 6000,
@@ -215,10 +216,10 @@ export class MultiGatewayRoutingEngine {
         service: "EMAIL",
         serviceName: "Email Security & Fraud Verification",
         strategy: "PRIORITY_ORDER",
-        primaryProviderId: "agenthub",
-        primaryProviderName: "AgentHub Identity Gateway",
-        secondaryProviderId: "smartlink_fraud",
-        secondaryProviderName: "SmartLink Anti-Fraud Gateway",
+        primaryProviderId: "smartlink_fraud",
+        primaryProviderName: "SmartLink Anti-Fraud Gateway",
+        secondaryProviderId: "verifyng",
+        secondaryProviderName: "VerifyNG Gateway",
         timeoutMs: 4000,
         maxRetries: 2,
         autoFailover: true,
@@ -255,12 +256,12 @@ export class MultiGatewayRoutingEngine {
       service: sType,
       serviceName: `${sType} Verification`,
       strategy: "PRIORITY_ORDER",
-      primaryProviderId: "nintrust",
-      primaryProviderName: "NINTrust Federal Gateway",
-      secondaryProviderId: "agenthub",
-      secondaryProviderName: "AgentHub Identity Gateway",
-      tertiaryProviderId: "aspfiy",
-      tertiaryProviderName: "Aspfiy Gateway",
+      primaryProviderId: "aspfiy",
+      primaryProviderName: "Aspfiy Gateway",
+      secondaryProviderId: "verifyng",
+      secondaryProviderName: "VerifyNG Gateway",
+      tertiaryProviderId: "lumiid",
+      tertiaryProviderName: "LumiID Gateway",
       timeoutMs: 6000,
       maxRetries: 2,
       autoFailover: true,
@@ -277,42 +278,6 @@ export class MultiGatewayRoutingEngine {
   public static getGatewayHealthMetrics(db: any): GatewayHealthMetric[] {
     if (!db.gateway_health_metrics || !Array.isArray(db.gateway_health_metrics) || db.gateway_health_metrics.length === 0) {
       db.gateway_health_metrics = [
-        {
-          providerId: "nintrust",
-          providerName: "NINTrust Federal Gateway (nintrust.com.ng)",
-          category: "IDENTITY_API",
-          baseUrl: "https://api.nintrust.com.ng/v1",
-          status: "ONLINE",
-          uptimePercentage: 99.94,
-          avgLatencyMs: 240,
-          totalQueries: 14820,
-          successfulQueries: 14782,
-          failedQueries: 38,
-          failoverTriggeredCount: 4,
-          consecutiveFailures: 0,
-          circuitBreakerTripped: false,
-          lastPingAt: new Date().toISOString(),
-          lastPingStatus: "SUCCESS",
-          lastPingLatencyMs: 185,
-        },
-        {
-          providerId: "agenthub",
-          providerName: "AgentHub Identity Gateway (agenthub.ng)",
-          category: "IDENTITY_API",
-          baseUrl: "https://api.agenthub.ng/api/v1",
-          status: "ONLINE",
-          uptimePercentage: 99.88,
-          avgLatencyMs: 265,
-          totalQueries: 18940,
-          successfulQueries: 18885,
-          failedQueries: 55,
-          failoverTriggeredCount: 7,
-          consecutiveFailures: 0,
-          circuitBreakerTripped: false,
-          lastPingAt: new Date().toISOString(),
-          lastPingStatus: "SUCCESS",
-          lastPingLatencyMs: 210,
-        },
         {
           providerId: "aspfiy",
           providerName: "Aspfiy Payment Gateway",
@@ -333,7 +298,7 @@ export class MultiGatewayRoutingEngine {
         },
         {
           providerId: "nimc_direct",
-          providerName: "NIMC Federal Gateway Direct",
+          providerName: "NIN Verification Gateway",
           category: "IDENTITY_API",
           baseUrl: "https://nimc.gov.ng/api",
           status: "ONLINE",
@@ -351,7 +316,7 @@ export class MultiGatewayRoutingEngine {
         },
         {
           providerId: "nibss_direct",
-          providerName: "NIBSS Central Switch",
+          providerName: "BVN Gateway",
           category: "IDENTITY_API",
           baseUrl: "https://nibss-plc.com.ng/api",
           status: "ONLINE",
@@ -384,17 +349,15 @@ export class MultiGatewayRoutingEngine {
 
     let adapter = getAdapterById(cleanId);
     if (!adapter) {
-      if (cleanId.includes("agenthub")) adapter = new AgentHubAdapter();
-      else if (cleanId.includes("nintrust")) adapter = new NINTrustAdapter();
-      else adapter = new AspfiyAdapter();
+      adapter = new AspfiyAdapter();
     }
 
     const providerRow = (db.api_providers || []).find((p: any) =>
       p.id?.toLowerCase() === cleanId || p.name?.toLowerCase().includes(cleanId)
     ) || {
       id: cleanId,
-      name: cleanId === "nintrust" ? "NINTrust Federal Gateway" : cleanId === "agenthub" ? "AgentHub Identity Gateway" : "Aspfiy Gateway",
-      baseUrl: cleanId === "nintrust" ? "https://api.nintrust.com.ng/v1" : cleanId === "agenthub" ? "https://api.agenthub.ng/api/v1" : "https://api-v1.aspfiy.com",
+      name: "Aspfiy Gateway",
+      baseUrl: "https://api-v1.aspfiy.com",
       environment: "SANDBOX",
     };
 
@@ -448,7 +411,7 @@ export class MultiGatewayRoutingEngine {
     if (params.preferredProviderId) {
       providerChain.push({
         id: params.preferredProviderId,
-        name: params.preferredProviderId === "nintrust" ? "NINTrust Federal Gateway" : "AgentHub Identity Gateway",
+        name: params.preferredProviderId === "aspfiy" ? "Aspfiy Payment Gateway" : params.preferredProviderId === "verifyng" ? "VerifyNG Gateway" : "LumiID Gateway",
       });
     }
 
@@ -467,8 +430,8 @@ export class MultiGatewayRoutingEngine {
 
     if (providerChain.length === 0) {
       providerChain.push(
-        { id: "nintrust", name: "NINTrust Federal Gateway" },
-        { id: "agenthub", name: "AgentHub Identity Gateway" }
+        { id: "aspfiy", name: "Aspfiy Payment Gateway" },
+        { id: "verifyng", name: "VerifyNG Gateway" }
       );
     }
 
@@ -602,17 +565,22 @@ export class MultiGatewayRoutingEngine {
   ): Promise<{ success: boolean; providerReference?: string; transactionId?: string; data?: any; error?: string; responseTimeMs: number; statusCode?: number }> {
     const key = providerKey.toLowerCase().trim();
 
-    if (key.includes("agenthub")) {
-      const adapter = new AgentHubAdapter();
+    if (key.includes("lumiid")) {
+      const adapter = new LumiIDAdapter();
       return adapter.verifyIdentity(serviceType, targetId, extraData, config);
-    } else if (key.includes("nintrust")) {
-      const adapter = new NINTrustAdapter();
+    } else if (key.includes("ninbvnportal") || key.includes("nin bvn portal")) {
+      const adapter = new NinBvnPortalAdapter();
+      return adapter.verifyIdentity(serviceType, targetId, extraData, config);
+    } else if (key.includes("verifyng") || key.includes("verify-ng") || key.includes("edirect")) {
+      const adapter = new VerifyNGAdapter();
       return adapter.verifyIdentity(serviceType, targetId, extraData, config);
     }
 
-    // Default High-Fidelity Simulator for Core Gateways
-    const nintrustAdapter = new NINTrustAdapter();
-    return nintrustAdapter.verifyIdentity(serviceType, targetId, extraData, config);
+    return {
+      success: false,
+      error: `No identity verification adapter is configured for provider "${providerKey}".`,
+      responseTimeMs: 0,
+    };
   }
 
   /**

@@ -179,7 +179,7 @@ export default function HeroSection({ onGetStarted }: HeroSectionProps) {
       <section id="solutions-section" className="py-20 bg-[#F5F7FA] border-b border-[#E5E7EB]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto space-y-4">
-            <span className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-semibold bg-blue-100 text-[#0F2D5C] border border-blue-200">
+            <span className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-semibold bg-[#F5F7FA] text-[#0F2D5C] border border-[#E5E7EB]">
               Our Core Services
             </span>
             <h2 className="text-3xl sm:text-4.5xl font-bold text-[#111827] tracking-tight">
@@ -199,7 +199,7 @@ export default function HeroSection({ onGetStarted }: HeroSectionProps) {
                   <ShieldCheck className="h-6 w-6" />
                 </div>
                 <div className="space-y-2">
-                  <span className="text-[10px] uppercase tracking-wider font-bold text-[#0F2D5C] bg-blue-50 px-2.5 py-1 rounded-full">KYC Verification</span>
+                  <span className="text-[10px] uppercase tracking-wider font-bold text-[#0F2D5C] bg-[#F5F7FA] px-2.5 py-1 rounded-full">KYC Verification</span>
                   <h3 className="font-bold text-lg text-[#111827] tracking-tight">Identity & Verification</h3>
                 </div>
                 <p className="text-xs text-[#4B5563] leading-relaxed">
@@ -220,7 +220,7 @@ export default function HeroSection({ onGetStarted }: HeroSectionProps) {
                   <Cpu className="h-6 w-6" />
                 </div>
                 <div className="space-y-2">
-                  <span className="text-[10px] uppercase tracking-wider font-bold text-[#0F2D5C] bg-blue-50 px-2.5 py-1 rounded-full">CAC Services</span>
+                  <span className="text-[10px] uppercase tracking-wider font-bold text-[#0F2D5C] bg-[#F5F7FA] px-2.5 py-1 rounded-full">CAC Services</span>
                   <h3 className="font-bold text-lg text-[#111827] tracking-tight">Business Registration</h3>
                 </div>
                 <p className="text-xs text-[#4B5563] leading-relaxed">
@@ -241,7 +241,7 @@ export default function HeroSection({ onGetStarted }: HeroSectionProps) {
                   <Wallet className="h-6 w-6" />
                 </div>
                 <div className="space-y-2">
-                  <span className="text-[10px] uppercase tracking-wider font-bold text-[#0F2D5C] bg-blue-50 px-2.5 py-1 rounded-full">VTU & Bills</span>
+                  <span className="text-[10px] uppercase tracking-wider font-bold text-[#0F2D5C] bg-[#F5F7FA] px-2.5 py-1 rounded-full">VTU & Bills</span>
                   <h3 className="font-bold text-lg text-[#111827] tracking-tight">Airtime, Data & Bills</h3>
                 </div>
                 <p className="text-xs text-[#4B5563] leading-relaxed">
@@ -262,7 +262,7 @@ export default function HeroSection({ onGetStarted }: HeroSectionProps) {
                   <BookOpen className="h-6 w-6" />
                 </div>
                 <div className="space-y-2">
-                  <span className="text-[10px] uppercase tracking-wider font-bold text-[#0F2D5C] bg-blue-50 px-2.5 py-1 rounded-full">Education Pins</span>
+                  <span className="text-[10px] uppercase tracking-wider font-bold text-[#0F2D5C] bg-[#F5F7FA] px-2.5 py-1 rounded-full">Education Pins</span>
                   <h3 className="font-bold text-lg text-[#111827] tracking-tight">School Pins & Tokens</h3>
                 </div>
                 <p className="text-xs text-[#4B5563] leading-relaxed">
@@ -280,33 +280,67 @@ export default function HeroSection({ onGetStarted }: HeroSectionProps) {
       </section>
 
       {/* 3. ABOUT US SECTION */}
-      <section id="about-section" className="py-24 bg-[#F5F7FA] border-b border-[#E5E7EB] relative overflow-hidden">
+      <section id="about-section" className="py-24 bg-white border-b border-[#E5E7EB] relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="max-w-3xl mx-auto text-center space-y-8">
+          <div className="max-w-4xl mx-auto text-center space-y-8">
             <div className="space-y-4">
-              <span className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-semibold bg-blue-100 text-[#0F2D5C] border border-blue-200">
-                Who We Are
+              <span className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-semibold bg-[#F5F7FA] text-[#0F2D5C] border border-[#E5E7EB]">
+                About SmartLink NG
               </span>
               <h2 className="text-3xl sm:text-4.5xl font-bold text-[#111827] tracking-tight leading-tight">
-                Making digital services <span className="text-[#0F2D5C]">simple and safe</span> for everyone
+                Nigeria's Premier Digital Verification & <span className="text-[#0F2D5C]">Technology Infrastructure Gateway</span>
               </h2>
             </div>
 
-            <div className="space-y-5 text-sm sm:text-base text-[#4B5563] leading-relaxed">
+            <div className="space-y-5 text-sm sm:text-base text-[#4B5563] leading-relaxed text-left sm:text-center">
               <p>
-                Smart Link is a certified technology company. We help business owners, students, and sub-agents perform registrations, 
-                verify national identity cards, and process payments without any of the usual stress or complexity.
+                <strong>SmartLink NG</strong> (SmartLink Digital Technologies & Enterprise) is an indigenous, certified technology platform headquartered in Nigeria. We specialize in building robust, secure, and lightning-fast digital infrastructure that bridges the gap between citizens, businesses, sub-agents, and authorized government verification channels.
               </p>
               <p>
-                By partnering with official government channels and highly secure payment systems, we guarantee that 
-                your data is completely protected and your transactions are completed in seconds.
+                Our platform empowers thousands of entrepreneurs, cybercafes, SME owners, and corporate partners across all 36 states of the Federation to seamlessly process National Identification Number (NIN) slips, Corporate Affairs Commission (CAC) business registrations, educational pins (WAEC, NECO, JAMB), and instant VTU utility services (Airtime, Data, Electricity, and Cable TV subscriptions) with 99.9% uptime.
               </p>
+              <p>
+                Driven by uncompromising security standards, SmartLink NG utilizes bank-grade 256-bit SSL encryption, real-time automated wallet funding, and direct API routing to ensure that every lookup and transaction is instantaneous, transparent, and fully protected.
+              </p>
+            </div>
+
+            {/* Core Pillars Grid */}
+            <div className="grid sm:grid-cols-3 gap-6 pt-6 text-left">
+              <div className="p-6 rounded-2xl bg-[#F5F7FA] border border-[#E5E7EB] space-y-3">
+                <div className="h-10 w-10 rounded-xl bg-[#0F2D5C] text-white flex items-center justify-center font-bold text-sm">
+                  01
+                </div>
+                <h3 className="font-bold text-sm text-[#111827]">Authorized Compliance</h3>
+                <p className="text-xs text-[#4B5563] leading-relaxed">
+                  Direct alignment with official regulatory standards, ensuring compliance and data integrity across all verification services.
+                </p>
+              </div>
+
+              <div className="p-6 rounded-2xl bg-[#F5F7FA] border border-[#E5E7EB] space-y-3">
+                <div className="h-10 w-10 rounded-xl bg-[#0F2D5C] text-white flex items-center justify-center font-bold text-sm">
+                  02
+                </div>
+                <h3 className="font-bold text-sm text-[#111827]">Instant Dispatch</h3>
+                <p className="text-xs text-[#4B5563] leading-relaxed">
+                  Automated processing engine delivering verified slips, tokens, and utility top-ups in under 3 seconds.
+                </p>
+              </div>
+
+              <div className="p-6 rounded-2xl bg-[#F5F7FA] border border-[#E5E7EB] space-y-3">
+                <div className="h-10 w-10 rounded-xl bg-[#0F2D5C] text-white flex items-center justify-center font-bold text-sm">
+                  03
+                </div>
+                <h3 className="font-bold text-sm text-[#111827]">Agent Empowerment</h3>
+                <p className="text-xs text-[#4B5563] leading-relaxed">
+                  Lucrative sub-agent tiers, automated commission tracking, and robust API developer integrations for modern businesses.
+                </p>
+              </div>
             </div>
 
             {/* Stylish Stats Cards */}
             <div className="grid grid-cols-2 gap-4 pt-4 max-w-xl mx-auto text-left">
-              <div className="p-5 rounded-2xl bg-white border border-[#E5E7EB] shadow-[0_4px_12px_rgba(15,23,42,0.06)] flex items-center gap-4">
-                <div className="h-10 w-10 rounded-xl bg-blue-50 text-[#0F2D5C] flex items-center justify-center border border-blue-100 shrink-0">
+              <div className="p-5 rounded-2xl bg-[#F5F7FA] border border-[#E5E7EB] shadow-[0_4px_12px_rgba(15,23,42,0.06)] flex items-center gap-4">
+                <div className="h-10 w-10 rounded-xl bg-white text-[#0F2D5C] flex items-center justify-center border border-[#E5E7EB] shrink-0">
                   <CheckCircle2 className="h-5 w-5" />
                 </div>
                 <div>
@@ -315,8 +349,8 @@ export default function HeroSection({ onGetStarted }: HeroSectionProps) {
                 </div>
               </div>
 
-              <div className="p-5 rounded-2xl bg-white border border-[#E5E7EB] shadow-[0_4px_12px_rgba(15,23,42,0.06)] flex items-center gap-4">
-                <div className="h-10 w-10 rounded-xl bg-blue-50 text-[#0F2D5C] flex items-center justify-center border border-blue-100 shrink-0">
+              <div className="p-5 rounded-2xl bg-[#F5F7FA] border border-[#E5E7EB] shadow-[0_4px_12px_rgba(15,23,42,0.06)] flex items-center gap-4">
+                <div className="h-10 w-10 rounded-xl bg-white text-[#0F2D5C] flex items-center justify-center border border-[#E5E7EB] shrink-0">
                   <Activity className="h-5 w-5" />
                 </div>
                 <div>
@@ -325,503 +359,100 @@ export default function HeroSection({ onGetStarted }: HeroSectionProps) {
                 </div>
               </div>
             </div>
-
-            {/* Right Column: High-Fidelity Interactive Smartphone App Mockup */}
-            <div className="hidden">
-              {/* Outer phone case/bezel shadow wrapper */}
-              <div className="relative w-full max-w-[340px] aspect-[9/18.5] bg-slate-950 dark:bg-slate-900 rounded-[48px] p-3.5 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.4)] dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)] border border-slate-800/80 dark:border-slate-700/60 transition-all duration-500 hover:scale-[1.02] group/phone">
-                
-                {/* Outer status glows */}
-                <div className="absolute -inset-1 rounded-[50px] bg-gradient-to-tr from-blue-500/20 to-indigo-500/20 opacity-0 group-hover/phone:opacity-100 blur-md transition-opacity duration-700 pointer-events-none"></div>
-
-                {/* Speaker pill notch */}
-                <div className="absolute top-5 left-1/2 -translate-x-1/2 w-28 h-5.5 bg-black rounded-full z-30 flex items-center justify-between px-3.5 shadow-inner">
-                  <div className="h-1.5 w-1.5 rounded-full bg-slate-800/80"></div>
-                  <div className="h-1 w-8 rounded-full bg-slate-900/60"></div>
-                  <div className="relative flex h-1.5 w-1.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-500"></span>
-                  </div>
-                </div>
-
-                {/* Inner Screen Container */}
-                <div className="relative h-full w-full bg-[#050711] rounded-[36px] overflow-hidden flex flex-col justify-between border border-slate-900/40 select-none">
-                  
-                  {/* Status Bar */}
-                  <div className="pt-8 px-5 pb-2 flex justify-between items-center text-white/90 text-[10px] font-semibold z-20">
-                    <span className="font-mono tracking-tight text-slate-300">08:45 AM</span>
-                    <div className="flex items-center gap-1.5 text-slate-400">
-                      <Wifi className="h-3 w-3" />
-                      <span className="text-[8px] font-bold uppercase tracking-wider text-emerald-400 font-mono">5G LTE</span>
-                      <div className="h-3.5 w-6 border border-slate-600 rounded-sm p-0.5 flex items-center">
-                        <div className="h-full w-4/5 bg-emerald-500 rounded-2xs"></div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Dynamic Mobile App Viewport */}
-                  <div className="flex-1 px-4.5 pb-2 pt-1.5 overflow-hidden flex flex-col justify-between text-left">
-                    
-                    {/* Viewport Header */}
-                    <div className="flex justify-between items-center mb-3">
-                      <div>
-                        <p className="text-[9px] font-extrabold text-blue-500 dark:text-blue-400 uppercase tracking-widest leading-none mb-0.5">SMART LINK HUB</p>
-                        <h4 className="text-xs font-black text-white tracking-tight">Digital Gateway App</h4>
-                      </div>
-                      <div className="relative h-7 w-7 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-300">
-                        <Bell className="h-3.5 w-3.5 text-slate-300" />
-                        <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse"></span>
-                      </div>
-                    </div>
-
-                    {/* View 1: Wallet Dashboard ("wallet") */}
-                    {activeMobileTab === "wallet" && (
-                      <div className="flex-1 flex flex-col justify-between space-y-3">
-                        {/* Elegant Credit Card Wallet */}
-                        <div className="relative p-4 rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-indigo-800 text-white shadow-lg overflow-hidden flex flex-col justify-between aspect-[1.6/1]">
-                          {/* Background design elements */}
-                          <div className="absolute -bottom-6 -right-6 h-20 w-20 bg-white/5 rounded-full blur-xl"></div>
-                          <div className="absolute top-0 right-0 h-16 w-16 bg-blue-400/15 rounded-full blur-xl"></div>
-                          
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="text-[8px] uppercase tracking-widest text-blue-100 font-medium">Smart Link Ledger</p>
-                              <h5 className="text-[10px] font-bold text-slate-200">Adamu Muhammad</h5>
-                            </div>
-                            <div className="flex h-5 w-8 rounded-md bg-white/10 backdrop-blur-xs border border-white/10 items-center justify-center">
-                              <Wallet className="h-3 w-3 text-blue-200" />
-                            </div>
-                          </div>
-
-                          <div className="my-1.5">
-                            <p className="text-[8px] text-blue-200/90 leading-none">Wallet Balance</p>
-                            <h3 className="text-base font-black tracking-tight mt-0.5 font-mono">₦240,500.00</h3>
-                          </div>
-
-                          <div className="flex justify-between items-center text-[8px] font-mono text-blue-200/80">
-                            <span>SL-4920-192-PRO</span>
-                            <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.2 rounded-md font-bold uppercase text-[7px]">Active Agent</span>
-                          </div>
-                        </div>
-
-                        {/* Fast Quick Actions */}
-                        <div className="grid grid-cols-2 gap-2">
-                          <button onClick={onGetStarted} className="py-2 px-2.5 rounded-xl bg-[#101430] border border-blue-500/20 text-white flex items-center justify-between hover:bg-[#151a3d] transition-colors cursor-pointer text-left">
-                            <div>
-                              <p className="text-[8px] font-extrabold uppercase text-blue-400">Withdraw</p>
-                              <p className="text-[9px] text-slate-400 font-light">Instant Cash</p>
-                            </div>
-                            <ArrowUpRight className="h-3.5 w-3.5 text-blue-400" />
-                          </button>
-                          
-                          <button onClick={onGetStarted} className="py-2 px-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex items-center justify-between shadow-xs cursor-pointer text-left">
-                            <div>
-                              <p className="text-[8px] font-bold uppercase text-blue-100">Add Funds</p>
-                              <p className="text-[9px] text-blue-200 font-light">Auto Deposit</p>
-                            </div>
-                            <Plus className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-
-                        {/* Recent Transactions Feed */}
-                        <div className="space-y-1.5 flex-1 overflow-hidden">
-                          <p className="text-[8px] font-extrabold uppercase tracking-wider text-slate-500">Live Commission Feed</p>
-                          <div className="space-y-1.5 max-h-[110px] overflow-y-auto">
-                            
-                            <div className="p-2 rounded-xl bg-slate-900/40 border border-slate-900/60 flex items-center justify-between text-[10px]">
-                              <div className="flex items-center gap-2">
-                                <div className="h-6 w-6 rounded-lg bg-purple-500/10 flex items-center justify-center border border-purple-500/20">
-                                  <Cpu className="h-3.5 w-3.5 text-purple-400" />
-                                </div>
-                                <div>
-                                  <p className="font-bold text-slate-200">CAC filing: Approved</p>
-                                  <p className="text-[8px] text-slate-500">1m ago • Batch #9028</p>
-                                </div>
-                              </div>
-                              <span className="font-bold text-emerald-400 font-mono">+₦4,500.00</span>
-                            </div>
-
-                            <div className="p-2 rounded-xl bg-slate-900/40 border border-slate-900/60 flex items-center justify-between text-[10px]">
-                              <div className="flex items-center gap-2">
-                                <div className="h-6 w-6 rounded-lg bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
-                                  <Wallet className="h-3.5 w-3.5 text-emerald-400" />
-                                </div>
-                                <div>
-                                  <p className="font-bold text-slate-200">Glo VTU Airtime</p>
-                                  <p className="text-[8px] text-slate-500">4m ago • Commission saved</p>
-                                </div>
-                              </div>
-                              <span className="font-bold text-emerald-400 font-mono">+₦120.00</span>
-                            </div>
-
-                            <div className="p-2 rounded-xl bg-slate-900/40 border border-slate-900/60 flex items-center justify-between text-[10px]">
-                              <div className="flex items-center gap-2">
-                                <div className="h-6 w-6 rounded-lg bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
-                                  <BookOpen className="h-3.5 w-3.5 text-amber-400" />
-                                </div>
-                                <div>
-                                  <p className="font-bold text-slate-200">WAEC PIN Generation</p>
-                                  <p className="text-[8px] text-slate-500">12m ago • Instant issue</p>
-                                </div>
-                              </div>
-                              <span className="font-bold text-emerald-400 font-mono">+₦350.00</span>
-                            </div>
-
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* View 2: Security, BVN & NIN scanner ("verify") */}
-                    {activeMobileTab === "verify" && (
-                      <div className="flex-1 flex flex-col justify-between space-y-3">
-                        <div className="p-3 bg-blue-950/20 border border-blue-500/20 rounded-2xl">
-                          <p className="text-[8px] font-bold text-blue-400 uppercase tracking-wider mb-0.5">Biometric Identity Verification</p>
-                          <p className="text-[10px] text-slate-400 leading-relaxed font-light">Query federal NIMC databases and secure immediate NIN biometric approvals.</p>
-                        </div>
-
-                        {/* Scanner stage */}
-                        <div className="flex-1 flex flex-col items-center justify-center bg-[#070b1b] rounded-2xl border border-slate-900/80 p-4 relative overflow-hidden min-h-[140px]">
-                          {/* Animated radar rings when scanning */}
-                          {isFingerprintScanning && (
-                            <>
-                              <div className="absolute inset-0 bg-blue-500/5 animate-pulse"></div>
-                              <div className="absolute h-28 w-28 rounded-full border border-blue-500/30 animate-ping"></div>
-                              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent animate-bounce"></div>
-                            </>
-                          )}
-
-                          {!isFingerprintScanning && !fingerprintScanComplete ? (
-                            <button
-                              onClick={triggerFingerprintScan}
-                              className="h-16 w-16 rounded-full bg-slate-900 hover:bg-slate-850 border border-slate-800 flex items-center justify-center shadow-lg transition-all cursor-pointer group/scan"
-                            >
-                              <Fingerprint className="h-8 w-8 text-blue-500 group-hover/scan:scale-110 transition-transform" />
-                            </button>
-                          ) : isFingerprintScanning ? (
-                            <div className="flex flex-col items-center space-y-2">
-                              <Fingerprint className="h-10 w-10 text-blue-400 animate-pulse" />
-                              <p className="text-[9px] font-mono text-blue-300 animate-pulse uppercase tracking-widest">Scanning Biometrics...</p>
-                            </div>
-                          ) : (
-                            <div className="flex flex-col items-center space-y-2 text-center animate-scale-up">
-                              <div className="h-9 w-9 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
-                                <Check className="h-5 w-5 text-emerald-400" />
-                              </div>
-                              <div>
-                                <p className="text-[10px] font-bold text-white leading-none">KYC DATABASE MATCHED</p>
-                                <p className="text-[8px] font-mono text-slate-400 mt-1">NIN Verified • Jane Adewale</p>
-                              </div>
-                            </div>
-                          )}
-
-                          <div className="absolute bottom-2.5 text-[8px] text-slate-500 font-mono">
-                            {!isFingerprintScanning && !fingerprintScanComplete && "Tap sensor to initiate check"}
-                            {isFingerprintScanning && "NIMC Gateway: Secure Connection Active"}
-                            {fingerprintScanComplete && "Transaction Catalogued Successfully"}
-                          </div>
-                        </div>
-
-                        <button
-                          onClick={triggerFingerprintScan}
-                          disabled={isFingerprintScanning}
-                          className="w-full py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl text-[10px] uppercase tracking-wider flex items-center justify-center gap-1 cursor-pointer"
-                        >
-                          {fingerprintScanComplete ? "Verify Another Identity" : "Scan Fingerprint"}
-                        </button>
-                      </div>
-                    )}
-
-                    {/* View 3: CAC Filing tracker ("cac") */}
-                    {activeMobileTab === "cac" && (
-                      <div className="flex-1 flex flex-col justify-between space-y-3">
-                        <div className="p-3 bg-purple-950/20 border border-purple-500/20 rounded-2xl flex justify-between items-center">
-                          <div>
-                            <p className="text-[8px] font-bold text-purple-400 uppercase tracking-wider">CAC Portal Pipeline</p>
-                            <p className="text-[10px] text-slate-400">Smart Link Filing tracking terminal</p>
-                          </div>
-                          <span className="text-[8px] bg-purple-500/25 text-purple-300 font-mono px-1.5 py-0.5 rounded-md border border-purple-500/40">RC: 94829</span>
-                        </div>
-
-                        {/* Pipeline workflow pipeline */}
-                        <div className="flex-1 bg-slate-900/30 rounded-2xl border border-slate-900/80 p-3.5 space-y-3 flex flex-col justify-between">
-                          
-                          <div className="space-y-2.5">
-                            {/* Step 1 */}
-                            <div className="flex items-start gap-2.5">
-                              <div className="mt-0.5 h-3.5 w-3.5 rounded-full bg-emerald-500/20 border border-emerald-400/50 flex items-center justify-center text-emerald-400">
-                                <Check className="h-2 w-2" />
-                              </div>
-                              <div>
-                                <p className="text-[9px] font-extrabold text-white leading-none">Name Inquiry Reserved</p>
-                                <p className="text-[8px] text-slate-400">Smart Link Computer Services LTD (Approved)</p>
-                              </div>
-                            </div>
-
-                            {/* Step 2 */}
-                            <div className="flex items-start gap-2.5">
-                              <div className={`mt-0.5 h-3.5 w-3.5 rounded-full flex items-center justify-center ${
-                                cacFilingStep >= 2 
-                                  ? "bg-emerald-500/20 border border-emerald-400/50 text-emerald-400" 
-                                  : "bg-slate-950 border border-slate-800 text-slate-500"
-                              }`}>
-                                {cacFilingStep >= 2 ? <Check className="h-2 w-2" /> : <span className="text-[7px] font-mono">2</span>}
-                              </div>
-                              <div>
-                                <p className="text-[9px] font-extrabold text-white leading-none">Document Stamp Duty Filed</p>
-                                <p className="text-[8px] text-slate-400">Legal affidavits and registration payments completed</p>
-                              </div>
-                            </div>
-
-                            {/* Step 3 */}
-                            <div className="flex items-start gap-2.5">
-                              <div className={`mt-0.5 h-3.5 w-3.5 rounded-full flex items-center justify-center ${
-                                cacFilingStep >= 3 
-                                  ? "bg-emerald-500/20 border border-emerald-400/50 text-emerald-400" 
-                                  : "bg-slate-950 border border-slate-800 text-slate-500"
-                              }`}>
-                                {cacFilingStep >= 3 ? <Check className="h-2 w-2" /> : <span className="text-[7px] font-mono">3</span>}
-                              </div>
-                              <div>
-                                <p className="text-[9px] font-extrabold text-white leading-none">Commission Audit Logged</p>
-                                <p className="text-[8px] text-slate-400">Agent escrow fee catalogued on Smart Link ledger</p>
-                              </div>
-                            </div>
-
-                            {/* Step 4 */}
-                            <div className="flex items-start gap-2.5">
-                              <div className="mt-0.5 h-3.5 w-3.5 rounded-full bg-amber-500/20 border border-amber-400/50 flex items-center justify-center text-amber-400 animate-pulse">
-                                <span className="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
-                              </div>
-                              <div>
-                                <p className="text-[9px] font-extrabold text-amber-400 leading-none">Final Certificate Dispatch</p>
-                                <p className="text-[8px] text-slate-400">Estimated duration: Within 24-48 business hours</p>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="flex justify-between items-center pt-2 border-t border-slate-950/40 text-[8px] text-slate-500">
-                            <span>Status: Pending Signature</span>
-                            <button 
-                              onClick={() => setCacFilingStep(cacFilingStep === 2 ? 3 : 2)} 
-                              className="text-purple-400 font-bold hover:underline cursor-pointer"
-                            >
-                              Simulate Next Stage
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* View 4: VTU Hub ("vtu") */}
-                    {activeMobileTab === "vtu" && (
-                      <div className="flex-1 flex flex-col justify-between space-y-3">
-                        <div className="p-3 bg-emerald-950/20 border border-emerald-500/20 rounded-2xl">
-                          <p className="text-[8px] font-bold text-emerald-400 uppercase tracking-wider mb-0.5">Automated Airtime Dispatch</p>
-                          <p className="text-[10px] text-slate-400">Super-fast topups with immediate agent commission gains.</p>
-                        </div>
-
-                        {vtuPurchaseStatus === "idle" && (
-                          <div className="space-y-2.5 flex-1 flex flex-col justify-between">
-                            {/* Carrier Selector */}
-                            <div className="grid grid-cols-4 gap-1.5">
-                              {/* MTN */}
-                              <button
-                                onClick={() => setSelectedCarrier("mtn")}
-                                className={`p-1.5 rounded-lg border text-center transition-all cursor-pointer ${
-                                  selectedCarrier === "mtn"
-                                    ? "bg-amber-400/20 border-amber-400 text-amber-400 font-extrabold shadow-xs"
-                                    : "bg-slate-900/60 border-slate-900 text-slate-400 hover:text-slate-200"
-                                }`}
-                              >
-                                <span className="text-[8px] block font-bold">MTN</span>
-                                <span className="text-[6px] font-mono block opacity-80">4% Off</span>
-                              </button>
-
-                              {/* Airtel */}
-                              <button
-                                onClick={() => setSelectedCarrier("airtel")}
-                                className={`p-1.5 rounded-lg border text-center transition-all cursor-pointer ${
-                                  selectedCarrier === "airtel"
-                                    ? "bg-rose-600/20 border-rose-500 text-rose-500 font-extrabold shadow-xs"
-                                    : "bg-slate-900/60 border-slate-900 text-slate-400 hover:text-slate-200"
-                                }`}
-                              >
-                                <span className="text-[8px] block font-bold">Airtel</span>
-                                <span className="text-[6px] font-mono block opacity-80">3% Off</span>
-                              </button>
-
-                              {/* Glo */}
-                              <button
-                                onClick={() => setSelectedCarrier("glo")}
-                                className={`p-1.5 rounded-lg border text-center transition-all cursor-pointer ${
-                                  selectedCarrier === "glo"
-                                    ? "bg-emerald-500/20 border-emerald-400 text-emerald-400 font-extrabold shadow-xs"
-                                    : "bg-slate-900/60 border-slate-900 text-slate-400 hover:text-slate-200"
-                                }`}
-                              >
-                                <span className="text-[8px] block font-bold">Glo</span>
-                                <span className="text-[6px] font-mono block opacity-80">5% Off</span>
-                              </button>
-
-                              {/* 9mobile */}
-                              <button
-                                onClick={() => setSelectedCarrier("9mobile")}
-                                className={`p-1.5 rounded-lg border text-center transition-all cursor-pointer ${
-                                  selectedCarrier === "9mobile"
-                                    ? "bg-teal-500/20 border-teal-400 text-teal-400 font-extrabold shadow-xs"
-                                    : "bg-slate-900/60 border-slate-900 text-slate-400 hover:text-slate-200"
-                                }`}
-                              >
-                                <span className="text-[8px] block font-bold">9mobile</span>
-                                <span className="text-[6px] font-mono block opacity-80">4% Off</span>
-                              </button>
-                            </div>
-
-                            {/* Phone Input */}
-                            <div className="space-y-1">
-                              <label className="text-[8px] font-extrabold uppercase tracking-wider text-slate-500 block">Recipient Phone</label>
-                              <input
-                                type="text"
-                                value={vtuPhoneNumber}
-                                onChange={(e) => setVtuPhoneNumber(e.target.value)}
-                                placeholder="e.g., 08085490982"
-                                className="w-full px-3 py-1.5 rounded-lg border border-slate-900 bg-slate-950 text-white placeholder:text-slate-600 text-[11px] focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                              />
-                            </div>
-
-                            {/* CTA Action */}
-                            <button
-                              onClick={handleVtuPurchase}
-                              disabled={!vtuPhoneNumber}
-                              className="w-full py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold rounded-xl text-[10px] uppercase tracking-wider flex items-center justify-center gap-1 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                            >
-                              Dispatch Airtime
-                            </button>
-                          </div>
-                        )}
-
-                        {vtuPurchaseStatus === "loading" && (
-                          <div className="flex-1 flex flex-col items-center justify-center py-6 text-center space-y-3 bg-[#070b1b] rounded-2xl border border-slate-900/80">
-                            <div className="h-8 w-8 rounded-full border-2 border-slate-800 border-t-emerald-500 animate-spin"></div>
-                            <div>
-                              <p className="text-[10px] font-bold text-slate-200 animate-pulse uppercase">Connecting Telecom Switching Node</p>
-                              <p className="text-[8px] text-slate-500 font-mono mt-0.5">Authorizing instant wallet charge...</p>
-                            </div>
-                          </div>
-                        )}
-
-                        {vtuPurchaseStatus === "success" && (
-                          <div className="flex-1 flex flex-col justify-between space-y-3 bg-[#070b1b] rounded-2xl border border-slate-900/80 p-3.5 text-center animate-scale-up">
-                            <div className="space-y-1">
-                              <div className="mx-auto h-7 w-7 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
-                                <Check className="h-4 w-4" />
-                              </div>
-                              <p className="text-[10px] font-bold text-white uppercase mt-1">RECHARGE DISPATCHED!</p>
-                              <p className="text-[8px] text-slate-400">₦2,000 Airtime credited to {vtuPhoneNumber}</p>
-                              <p className="text-[8px] font-bold text-emerald-400 font-mono">+₦80.00 Saved in Commissions</p>
-                            </div>
-
-                            <button
-                              onClick={resetVtu}
-                              className="w-full py-2 bg-slate-900 hover:bg-slate-850 text-white font-bold rounded-xl text-[9px] uppercase tracking-wider transition-all cursor-pointer"
-                            >
-                              Purchase Another Topup
-                            </button>
-                          </div>
-                        )}
-
-                      </div>
-                    )}
-
-                  </div>
-
-                  {/* Device Bottom Tab Navigation Bar */}
-                  <div className="px-3.5 pb-5 pt-3.5 bg-[#03050c] border-t border-slate-950/80 flex justify-between items-center z-20">
-                    <button
-                      onClick={() => setActiveMobileTab("wallet")}
-                      className={`flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
-                        activeMobileTab === "wallet" ? "text-blue-500 scale-105" : "text-slate-500 hover:text-slate-400"
-                      }`}
-                    >
-                      <Wallet className="h-4.5 w-4.5" />
-                      <span className="text-[8px] font-extrabold tracking-tight">Ledger</span>
-                    </button>
-
-                    <button
-                      onClick={() => setActiveMobileTab("verify")}
-                      className={`flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
-                        activeMobileTab === "verify" ? "text-blue-500 scale-105" : "text-slate-500 hover:text-slate-400"
-                      }`}
-                    >
-                      <Fingerprint className="h-4.5 w-4.5" />
-                      <span className="text-[8px] font-extrabold tracking-tight">Verify</span>
-                    </button>
-
-                    <button
-                      onClick={() => setActiveMobileTab("cac")}
-                      className={`flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
-                        activeMobileTab === "cac" ? "text-blue-500 scale-105" : "text-slate-500 hover:text-slate-400"
-                      }`}
-                    >
-                      <Cpu className="h-4.5 w-4.5" />
-                      <span className="text-[8px] font-extrabold tracking-tight">CAC tracker</span>
-                    </button>
-
-                    <button
-                      onClick={() => setActiveMobileTab("vtu")}
-                      className={`flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
-                        activeMobileTab === "vtu" ? "text-blue-500 scale-105" : "text-slate-500 hover:text-slate-400"
-                      }`}
-                    >
-                      <Zap className="h-4.5 w-4.5" />
-                      <span className="text-[8px] font-extrabold tracking-tight">VTU Hub</span>
-                    </button>
-                  </div>
-
-                </div>
-              </div>
-            </div>
-
           </div>
         </div>
       </section>
 
       {/* 4. CONTACT SECTION */}
-      <section id="contact-section" className="py-20 bg-[#F5F7FA]">
+      <section id="contact-section" className="py-24 bg-[#F5F7FA]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-3 gap-12 text-left">
-            <div className="lg:col-span-1 space-y-6">
-              <span className="text-xs font-bold uppercase tracking-widest text-[#0F2D5C]">Connect With Us</span>
-              <h2 className="text-2xl sm:text-3.5xl font-bold text-[#111827] tracking-tight leading-none">
-                Start a Secure Partnership
-              </h2>
-              <p className="text-xs sm:text-sm text-[#4B5563] leading-relaxed">
-                Have questions about custom API lookups, agency roles, or enterprise billing integrations? Reach out to our Abuja main hub.
-              </p>
+          <div className="max-w-3xl mx-auto text-center space-y-4 mb-16">
+            <span className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white text-[#0F2D5C] border border-[#E5E7EB]">
+              Get In Touch
+            </span>
+            <h2 className="text-3xl sm:text-4.5xl font-bold text-[#111827] tracking-tight leading-tight">
+              We Are Here to Support <span className="text-[#0F2D5C]">Your Success</span>
+            </h2>
+            <p className="text-xs sm:text-sm text-[#4B5563] max-w-2xl mx-auto">
+              Have questions about agency accounts, corporate API integrations, wallet funding, or verification support? Connect with our dedicated support desk instantly.
+            </p>
+          </div>
 
-              <div className="space-y-4 pt-2">
-                <div className="flex items-center gap-3 text-[#4B5563]">
-                  <div className="h-8 w-8 rounded bg-white border border-[#E5E7EB] flex items-center justify-center text-[#0F2D5C] shadow-2xs">
-                    <Mail className="h-4 w-4" />
+          <div className="grid lg:grid-cols-3 gap-12 text-left">
+            {/* Contact Information Cards */}
+            <div className="lg:col-span-1 space-y-6">
+              <div className="bg-white p-6 rounded-2xl border border-[#E5E7EB] shadow-[0_4px_12px_rgba(15,23,42,0.06)] space-y-6">
+                <h3 className="text-base font-bold text-[#111827] border-b border-[#E5E7EB] pb-3">
+                  SmartLink NG Official Contacts
+                </h3>
+
+                <div className="space-y-4">
+                  {/* Email */}
+                  <div className="flex items-start gap-3.5">
+                    <div className="h-10 w-10 rounded-xl bg-[#F5F7FA] border border-[#E5E7EB] flex items-center justify-center text-[#0F2D5C] shrink-0 mt-0.5">
+                      <Mail className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-bold uppercase text-[#6B7280] tracking-wider">Email Address</div>
+                      <a href="mailto:Smartlinkcomputerbusiness@gmail.com" className="text-xs font-bold text-[#0F2D5C] hover:underline break-all">
+                        Smartlinkcomputerbusiness@gmail.com
+                      </a>
+                    </div>
                   </div>
-                  <span className="text-xs font-medium">Smartlinkcomputerbusiness@gmail.com</span>
-                </div>
-                <div className="flex items-center gap-3 text-[#4B5563]">
-                  <div className="h-8 w-8 rounded bg-white border border-[#E5E7EB] flex items-center justify-center text-[#0F2D5C] shadow-2xs">
-                    <Phone className="h-4 w-4" />
+
+                  {/* Phone / Message Number */}
+                  <div className="flex items-start gap-3.5">
+                    <div className="h-10 w-10 rounded-xl bg-[#F5F7FA] border border-[#E5E7EB] flex items-center justify-center text-[#0F2D5C] shrink-0 mt-0.5">
+                      <Phone className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-bold uppercase text-[#6B7280] tracking-wider">Phone & Message Hotline</div>
+                      <a href="tel:+2348085490982" className="text-xs font-bold text-[#111827] hover:text-[#0F2D5C]">
+                        +234 808 549 0982
+                      </a>
+                      <div className="text-[11px] text-[#6B7280] font-medium">Active for Calls & SMS Messages</div>
+                    </div>
                   </div>
-                  <span className="text-xs font-medium">+2348085490982</span>
-                </div>
-                <div className="flex items-center gap-3 text-[#4B5563]">
-                  <div className="h-8 w-8 rounded bg-white border border-[#E5E7EB] flex items-center justify-center text-[#0F2D5C] shadow-2xs font-bold text-[10px]">
-                    WA
+
+                  {/* Secondary Hotline */}
+                  <div className="flex items-start gap-3.5">
+                    <div className="h-10 w-10 rounded-xl bg-[#F5F7FA] border border-[#E5E7EB] flex items-center justify-center text-[#0F2D5C] shrink-0 mt-0.5">
+                      <Phone className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-bold uppercase text-[#6B7280] tracking-wider">Secondary Support Line</div>
+                      <a href="tel:+2349047738212" className="text-xs font-bold text-[#111827] hover:text-[#0F2D5C]">
+                        +234 904 773 8212
+                      </a>
+                    </div>
                   </div>
-                  <span className="text-xs font-medium">WhatsApp: 09047738212</span>
+
+                  {/* WhatsApp Support */}
+                  <div className="flex items-start gap-3.5 pt-2">
+                    <a
+                      href="https://wa.me/2348085490982?text=Hello%20SmartLink%20Support%2C%20I%20need%20assistance."
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full py-3 px-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+                    >
+                      <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+                      </svg>
+                      Chat on WhatsApp (08085490982)
+                    </a>
+                  </div>
+
+                  {/* Office Hub */}
+                  <div className="pt-2 border-t border-[#E5E7EB] text-xs text-[#6B7280] space-y-1">
+                    <span className="font-bold text-[#111827]">Headquarters Hub:</span>
+                    <div>Central Business District, Federal Capital Territory, Nigeria.</div>
+                    <div className="text-[11px] text-[#0F2D5C] font-semibold pt-1">Hours: Mon - Sat (8:00 AM - 8:00 PM WAT)</div>
+                  </div>
                 </div>
               </div>
             </div>
 
+            {/* Contact Form */}
             <div className="lg:col-span-2 bg-white p-8 rounded-2xl border border-[#E5E7EB] shadow-[0_4px_12px_rgba(15,23,42,0.06)]">
               <form onSubmit={handleContactSubmit} className="grid sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
@@ -861,8 +492,8 @@ export default function HeroSection({ onGetStarted }: HeroSectionProps) {
                 {submitStatus && (
                   <div className={`sm:col-span-2 p-3.5 rounded-xl text-xs font-medium border ${
                     submitStatus === "success" 
-                      ? "bg-emerald-50 text-emerald-800 border-emerald-200" 
-                      : "bg-red-50 text-red-800 border-red-200"
+                      ? "bg-[#F5F7FA] text-[#0F2D5C] border-[#E5E7EB]" 
+                      : "bg-[#F5F7FA] text-[#4B5563] border-[#E5E7EB]"
                   }`}>
                     {statusMessage}
                   </div>

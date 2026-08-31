@@ -4,7 +4,7 @@ import fs from "fs";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 import { readDB, writeDB, initializeDB, DB_DIR, DB_FILE, UPLOADS_DIR, SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD, hashPassword, safeCompareHash, generateSalt, isMaskedValue } from "../db";
-import { verifyUserOrAdminSession } from "../middleware/auth";
+import { verifyUserOrAdminSession, requireAdmin } from "../middleware/auth";
 import { isMaintenanceModeActive, getMaintenanceDetails, getValueByJsonPath, seedModule7SettingsIfEmpty, sanitizePublicSettings } from "../middleware/maintenance";
 import { getAI } from "../services/ai";
 import { 
@@ -24,8 +24,6 @@ import { AutomaticWalletFundingEngine } from "../../src/services/automaticWallet
 import { PaymentVerificationReconciliationEngine } from "../../src/services/paymentVerificationReconciliationEngine";
 import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerGateway";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
-import { AgentHubAdapter } from "../../src/services/providers/agenthubAdapter";
-import { NINTrustAdapter } from "../../src/services/providers/nintrustAdapter";
 import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
 import { syncFromFirestore, syncToFirestore } from "../../src/services/settingsStore";
 import { loadFirestoreDb, syncDbToFirestore, saveDocToFirestore } from "../../src/services/firestoreStore";
@@ -40,8 +38,8 @@ import { getAdminFirestore } from "../../src/services/firebaseAdmin";
 const router = express.Router();
 const app = router;
 
-app.get("/api/wallet/balance/:userId", async (req, res) => {
-  const { userId } = req.params;
+app.get(["/api/wallet/balance", "/api/wallet/balance/:userId"], async (req, res) => {
+  const userId = req.params.userId || (req.query.userId as string) || (req.query.uid as string) || "";
   const db = readDB();
 
   const authCheck = await verifyUserOrAdminSession(req, userId, db);
@@ -49,7 +47,12 @@ app.get("/api/wallet/balance/:userId", async (req, res) => {
     return res.status(403).json({ error: authCheck.reason || "Forbidden" });
   }
 
-  const balanceInfo = await ServerWalletEngine.getWalletBalance(db, userId);
+  const effectiveUid = userId || authCheck.authenticatedUid;
+  if (!effectiveUid) {
+    return res.status(400).json({ error: "User identification required to retrieve wallet balance." });
+  }
+
+  const balanceInfo = await ServerWalletEngine.getWalletBalance(db, effectiveUid);
 
   if ("error" in balanceInfo && balanceInfo.error) {
     return res.status(404).json(balanceInfo);
@@ -72,28 +75,98 @@ app.post("/api/wallet/validate", async (req, res) => {
 
 app.post("/api/wallet/credit", async (req, res) => {
   const { userId, amount, serviceName, provider, description, reference, fee, recipientDetails } = req.body;
+  if (!userId || typeof userId !== "string" || !userId.trim()) {
+    return res.status(400).json({ error: "Missing required parameter: userId" });
+  }
+  const cleanUserId = userId.trim();
   const db = readDB();
 
+  // 1. Strict Authentication & Admin/Internal Authorization
+  const authCheck = await verifyUserOrAdminSession(req, cleanUserId, db);
+
+  let isAuthorizedAdmin = authCheck.authorized && Boolean(authCheck.isAdmin);
+
+  const internalSecret =
+    (req.headers["x-internal-secret"] as string) ||
+    (req.headers["x-server-secret"] as string) ||
+    (req.headers["x-webhook-secret"] as string);
+
+  const validSecrets = [
+    process.env.INTERNAL_API_SECRET,
+    process.env.WEBHOOK_SECRET,
+    process.env.ADMIN_SECRET,
+  ].filter((s): s is string => Boolean(s && typeof s === "string" && s.trim().length > 0));
+
+  const isInternalOperation = Boolean(internalSecret && validSecrets.includes(internalSecret.trim()));
+
+  if (!isAuthorizedAdmin && !isInternalOperation) {
+    if (!authCheck.authorized) {
+      return res.status(401).json({ error: "Authentication required." });
+    }
+    return res.status(403).json({
+      error: "Forbidden: Direct client wallet crediting is disabled. Wallet credits must originate from verified payment webhooks or authorized administrative operations.",
+    });
+  }
+
+  // 2. Target User Validation
+  const targetUser = await usersStore.getUserById(cleanUserId);
+  if (!targetUser) {
+    return res.status(404).json({ error: "Target user account not found." });
+  }
+
+  // 3. Amount Validation
+  const parsedAmount = typeof amount === "number" ? amount : parseFloat(String(amount));
+  if (isNaN(parsedAmount) || !isFinite(parsedAmount) || parsedAmount <= 0) {
+    return res.status(400).json({ error: "Invalid credit amount specified. Amount must be a positive number greater than zero." });
+  }
+  if (parsedAmount > 50000000) {
+    return res.status(400).json({ error: "Credit amount exceeds maximum allowed single transaction limit." });
+  }
+
+  // 4. Reference Validation & Duplicate Pre-Check
+  if (!reference || typeof reference !== "string" || reference.trim().length < 3) {
+    return res.status(400).json({ error: "Missing or invalid transaction reference. A unique reference string (at least 3 characters) is required." });
+  }
+  const cleanReference = reference.trim();
+
+  if (Array.isArray(db.transactions)) {
+    const existingTx = db.transactions.find(
+      (t: any) => t && (t.reference === cleanReference || t.paymentReference === cleanReference)
+    );
+    if (existingTx) {
+      return res.status(409).json({ error: `Duplicate transaction reference detected: '${cleanReference}' has already been processed.` });
+    }
+  }
+
+  // 5. Execute Wallet Credit
   try {
     const result = await ServerWalletEngine.creditWallet(db, {
-      userId,
-      amount,
-      serviceName: serviceName || "Wallet Top-up",
-      provider,
-      description,
-      reference,
-      fee,
-      recipientDetails,
+      userId: targetUser.uid || targetUser.id || cleanUserId,
+      amount: parsedAmount,
+      serviceName: typeof serviceName === "string" && serviceName.trim() ? serviceName.trim() : "Wallet Credit",
+      provider: typeof provider === "string" && provider.trim() ? provider.trim() : "System/Admin",
+      description: typeof description === "string" && description.trim() ? description.trim() : `Wallet credited with ₦${parsedAmount.toLocaleString()}`,
+      reference: cleanReference,
+      fee: typeof fee === "number" && fee >= 0 ? fee : 0,
+      recipientDetails: recipientDetails ? String(recipientDetails).trim() : undefined,
     });
-    res.json(result);
+    return res.json(result);
   } catch (err: any) {
-    res.status(400).json({ error: err.message || "Credit operation failed" });
+    return res.status(400).json({ error: err.message || "Credit operation failed" });
   }
 });
 
 app.post("/api/wallet/debit", async (req, res) => {
   const { userId, amount, serviceName, provider, description, reference, fee, recipientDetails, type } = req.body;
+  if (!userId) {
+    return res.status(400).json({ error: "Missing required parameter: userId" });
+  }
   const db = readDB();
+
+  const authCheck = await verifyUserOrAdminSession(req, userId, db);
+  if (!authCheck.authorized) {
+    return res.status(authCheck.reason?.includes("Authentication required") ? 401 : 403).json({ error: authCheck.reason || "Forbidden" });
+  }
 
   try {
     const result = await ServerWalletEngine.debitWallet(db, {
@@ -115,7 +188,15 @@ app.post("/api/wallet/debit", async (req, res) => {
 
 app.post("/api/wallet/hold", async (req, res) => {
   const { userId, amount, serviceName, provider, description, reference } = req.body;
+  if (!userId) {
+    return res.status(400).json({ error: "Missing required parameter: userId" });
+  }
   const db = readDB();
+
+  const authCheck = await verifyUserOrAdminSession(req, userId, db);
+  if (!authCheck.authorized) {
+    return res.status(authCheck.reason?.includes("Authentication required") ? 401 : 403).json({ error: authCheck.reason || "Forbidden" });
+  }
 
   try {
     const result = await ServerWalletEngine.holdWalletBalance(db, {
@@ -134,7 +215,15 @@ app.post("/api/wallet/hold", async (req, res) => {
 
 app.post("/api/wallet/release-hold", async (req, res) => {
   const { userId, reference, transactionId, commitDebit } = req.body;
+  if (!userId) {
+    return res.status(400).json({ error: "Missing required parameter: userId" });
+  }
   const db = readDB();
+
+  const authCheck = await verifyUserOrAdminSession(req, userId, db);
+  if (!authCheck.authorized) {
+    return res.status(authCheck.reason?.includes("Authentication required") ? 401 : 403).json({ error: authCheck.reason || "Forbidden" });
+  }
 
   try {
     const result = await ServerWalletEngine.releaseHeldBalance(db, {
@@ -151,7 +240,15 @@ app.post("/api/wallet/release-hold", async (req, res) => {
 
 app.post("/api/wallet/reverse", async (req, res) => {
   const { userId, transactionId, reason } = req.body;
+  if (!userId) {
+    return res.status(400).json({ error: "Missing required parameter: userId" });
+  }
   const db = readDB();
+
+  const authCheck = await verifyUserOrAdminSession(req, userId, db);
+  if (!authCheck.authorized) {
+    return res.status(authCheck.reason?.includes("Authentication required") ? 401 : 403).json({ error: authCheck.reason || "Forbidden" });
+  }
 
   try {
     const result = await ServerWalletEngine.reverseTransaction(db, {
@@ -207,17 +304,12 @@ app.get("/api/wallet/transactions/:userId", async (req, res) => {
 
 
 
-app.post("/api/admin/wallets/adjust", async (req, res) => {
+app.post("/api/admin/wallets/adjust", requireAdmin, async (req, res) => {
   const { userId, amount, actionType, reason, reference } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
   const db = readDB();
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ error: "Unauthorized admin access." });
-  }
-  const admin = val.session;
-  const adminUid = admin.uid;
+  const admin = (req as any).admin;
+  const adminUid = (req as any).authenticatedUid;
   const isAuthorized = admin.role === "SUPER_ADMIN" || admin.role === "ADMIN" || admin.permissions?.includes("manage_wallets");
   
   if (!isAuthorized) {
@@ -297,96 +389,7 @@ app.post("/api/admin/wallets/adjust", async (req, res) => {
   }
 });
 
-// Wallet & Payment Simulation (Paystack, Flutterwave, Monnify, Bank Transfer)
-app.post("/api/wallet/fund", async (req, res) => {
-  const { userId, amount, gateway, ref } = req.body;
-  const db = readDB();
 
-  const user = await usersStore.getUserById(userId);
-  if (!user) return res.status(404).json({ error: "User not found" });
-
-  const amt = parseFloat(amount);
-  if (isNaN(amt) || amt <= 0) return res.status(400).json({ error: "Invalid amount" });
-
-  const fee = gateway === "Bank Transfer" ? 0.0 : Math.round(amt * 0.015 * 100) / 100;
-
-  try {
-    const result = await ServerWalletEngine.creditWallet(db, {
-      userId,
-      amount: amt,
-      serviceName: "Wallet Funding",
-      provider: gateway || "Online Transfer",
-      description: `Wallet top-up via ${gateway || "Online Transfer"}`,
-      reference: ref,
-      fee,
-    });
-    const updatedUser = await usersStore.updateUser(userId, { walletBalance: result.wallet.currentBalance });
-    writeDB(db);
-    res.json({ user: updatedUser || user, transaction: result.transaction });
-  } catch (err: any) {
-    res.status(400).json({ error: err.message || "Wallet funding failed" });
-  }
-});
-
-// Send/Transfer Funds to another wallet
-app.post("/api/wallet/transfer", async (req, res) => {
-  const { fromUserId, recipientEmail, amount } = req.body;
-  const db = readDB();
-
-  const sender = await usersStore.getUserById(fromUserId);
-  const receiver = await usersStore.getUserByEmail(recipientEmail);
-
-  if (!sender) return res.status(404).json({ error: "Sender not found" });
-  if (!receiver) return res.status(404).json({ error: "Recipient email not registered on Smart Link" });
-
-  if (fromUserId === receiver.uid) {
-    return res.status(400).json({ error: "Cannot transfer money to yourself" });
-  }
-
-  const amt = parseFloat(amount);
-  if (isNaN(amt) || amt <= 0) return res.status(400).json({ error: "Invalid amount" });
-
-  const ref = "SML-TRF-" + Math.floor(100000 + Math.random() * 900000);
-
-  try {
-    // Debit sender
-    const debitRes = await ServerWalletEngine.debitWallet(db, {
-      userId: fromUserId,
-      amount: amt,
-      serviceName: "Wallet Transfer",
-      provider: "SmartLink P2P Engine",
-      description: `Wallet Transfer to ${receiver.fullName}`,
-      reference: ref,
-      recipientDetails: recipientEmail,
-      type: "VENDOR_PAYOUT",
-    });
-
-    // Credit recipient
-    const creditRes = await ServerWalletEngine.creditWallet(db, {
-      userId: receiver.uid,
-      amount: amt,
-      serviceName: "Wallet Transfer",
-      provider: "SmartLink P2P Engine",
-      description: `Wallet Transfer received from ${sender.fullName}`,
-      reference: ref,
-      recipientDetails: sender.email,
-      type: "WALLET_FUNDING",
-    });
-
-    await usersStore.updateUser(fromUserId, { walletBalance: debitRes.wallet.currentBalance });
-    await usersStore.updateUser(receiver.uid, { walletBalance: creditRes.wallet.currentBalance });
-
-    writeDB(db);
-
-    res.json({
-      success: true,
-      senderBalance: debitRes.wallet.currentBalance,
-      transaction: debitRes.transaction,
-    });
-  } catch (err: any) {
-    res.status(400).json({ error: err.message || "Wallet transfer failed" });
-  }
-});
 
 // List Transactions
 app.get("/api/transactions/:userId", async (req, res) => {
@@ -430,19 +433,111 @@ app.get("/api/admin/stats", async (req, res) => {
   });
 });
 
-// Admin Remove/Reset All Wallets
-app.post("/api/admin/remove-all-wallets", async (req, res) => {
+// Admin Remove/Reset All Wallets - Secured for SUPER_ADMIN with destructive wallet permission
+app.post("/api/admin/remove-all-wallets", requireAdmin, async (req, res) => {
   const db = readDB();
-  
+
+  const admin = (req as any).admin;
+  const adminUid = (req as any).authenticatedUid;
+  const { role, email: adminEmail } = admin;
+
+  // 2. Reject ADMIN, SUB_ADMIN, and non-SUPER_ADMIN users
+  if (role !== "SUPER_ADMIN") {
+    if (!db.auditLogs) db.auditLogs = [];
+    db.auditLogs.unshift({
+      id: "audit_" + Date.now(),
+      adminUid,
+      adminEmail,
+      action: "UNAUTHORIZED_REMOVE_ALL_WALLETS_ATTEMPT",
+      reason: req.body?.reason || req.query?.reason || "Attempted destructive wallet reset without SUPER_ADMIN role.",
+      details: `Forbidden: User role ${role} attempted to invoke remove-all-wallets.`,
+      status: "FAILURE",
+      timestamp: new Date().toISOString()
+    });
+    writeDB(db);
+
+    return res.status(403).json({
+      success: false,
+      error: `Forbidden: Only verified SUPER_ADMIN accounts are authorized to perform wallet reset. Role '${role}' is rejected.`
+    });
+  }
+
+  // 3. Require explicit destructive wallet permission
+  const hasDestructivePermission =
+    adminAuthService.hasPermission(admin, "MANAGE_DESTRUCTIVE_WALLETS") ||
+    adminAuthService.hasPermission(admin, "REMOVE_ALL_WALLETS") ||
+    adminAuthService.hasPermission(admin, "DESTRUCTIVE_WALLET_MANAGEMENT") ||
+    adminAuthService.hasPermission(admin, "MANAGE_WALLET") ||
+    (Array.isArray(admin.permissions) && (admin.permissions.includes("*") || admin.permissions.includes("MANAGE_DESTRUCTIVE_WALLETS") || admin.permissions.includes("REMOVE_ALL_WALLETS") || admin.permissions.includes("DESTRUCTIVE_WALLET_MANAGEMENT") || admin.permissions.includes("MANAGE_WALLET")));
+
+  if (!hasDestructivePermission) {
+    if (!db.auditLogs) db.auditLogs = [];
+    db.auditLogs.unshift({
+      id: "audit_" + Date.now(),
+      adminUid,
+      adminEmail,
+      action: "PERMISSION_DENIED_REMOVE_ALL_WALLETS",
+      reason: req.body?.reason || req.query?.reason || "Attempted destructive wallet reset without explicit permission.",
+      details: "Forbidden: Missing explicit destructive-wallet permission.",
+      status: "FAILURE",
+      timestamp: new Date().toISOString()
+    });
+    writeDB(db);
+
+    return res.status(403).json({
+      success: false,
+      error: "Forbidden: Explicit destructive-wallet permission is required to remove all wallets."
+    });
+  }
+
+  // 4. Authorized Execution & Audit Log
+  const reason = String(req.body?.reason || req.query?.reason || req.body?.details || "Administrative wallet reset and balance purge requested by Super Admin.").trim();
+  const timestamp = new Date().toISOString();
+
   const allUsers = await usersStore.getAllUsers();
   for (const u of allUsers) {
-    await usersStore.updateUser(u.uid, { walletBalance: 0 });
+    if (u.uid || u.id) {
+      await usersStore.updateUser(u.uid || u.id!, { walletBalance: 0 });
+    }
   }
-  
+
   await walletsStore.deleteAllWallets();
 
+  // Create Audit Log containing admin UID, timestamp, action, and reason
+  if (!db.auditLogs) db.auditLogs = [];
+  const auditEntry = {
+    id: "audit_" + Date.now(),
+    adminUid,
+    adminEmail,
+    action: "REMOVE_ALL_WALLETS",
+    reason,
+    details: `SUPER_ADMIN (${adminUid}) purged all user wallets and reset all wallet balances to ₦0.00. Reason: ${reason}`,
+    status: "SUCCESS",
+    timestamp
+  };
+  db.auditLogs.unshift(auditEntry);
+
+  if (!db.admin_activity_logs) db.admin_activity_logs = [];
+  db.admin_activity_logs.unshift({
+    id: "ADM_LOG_" + Date.now(),
+    logId: "ADM_LOG_" + Date.now(),
+    adminUid,
+    adminEmail,
+    adminRole: role,
+    action: "REMOVE_ALL_WALLETS",
+    route: "/api/admin/remove-all-wallets",
+    details: `Purged all user wallets and reset wallet balances to ₦0.00. Reason: ${reason}`,
+    status: "SUCCESS",
+    timestamp
+  });
+
   writeDB(db);
-  res.json({ success: true, message: "All user wallets and balances have been removed and reset to ₦0.00." });
+
+  return res.json({
+    success: true,
+    message: "All user wallets and balances have been removed and reset to ₦0.00.",
+    auditLog: auditEntry
+  });
 });
 
 // --- PUBLIC SITE SETTINGS & PRICES ---
@@ -453,46 +548,80 @@ app.post("/api/admin/remove-all-wallets", async (req, res) => {
 // ==========================================
 
 // Generic Virtual Account & Payment Gateway Webhook Handlers
-app.post("/api/virtual-account/create", async (req, res) => {
-  const { userId, userEmail, userName } = req.body;
-  if (!userId) {
-    return res.status(400).json({ error: "Missing required parameter: userId" });
-  }
-
-  const result = await getOrCreateUserVirtualAccount(userId, { email: userEmail, fullName: userName });
-  if (!result.success) {
-    return res.status(result.code === "NO_ACTIVE_PROVIDER" ? 400 : 502).json(result);
-  }
-
-  return res.json({
-    success: true,
-    isDuplicatePrevented: !!result.isExisting,
-    message: result.isExisting ? "Existing virtual account retrieved." : "Virtual account created successfully.",
-    virtualAccount: result.virtualAccount,
-    account: result.account,
-  });
-});
-
-app.get("/api/virtual-account/:userId", async (req, res) => {
-  const { userId } = req.params;
-  const result = await getOrCreateUserVirtualAccount(userId);
-  if (!result.success) {
-    return res.status(404).json({ success: false, message: result.error || "No virtual account found for user" });
-  }
-
-  return res.json({
-    success: true,
-    virtualAccount: result.virtualAccount,
-    account: result.account
-  });
-});
+// Virtual account endpoints are handled in virtualAccount.routes.ts with authentication and validation
 
 app.post("/api/receipt/email", async (req, res) => {
-  const { receiptId, email } = req.body;
-  res.json({
-    success: true,
-    message: `Digital payment receipt #${receiptId || "generated"} sent to ${email || "user"}.`,
-  });
+  const { receiptId, email, transactionId, amount, serviceName, date, reference } = req.body;
+  const targetEmail = email || req.body?.recipientEmail;
+
+  if (!targetEmail) {
+    return res.status(400).json({
+      success: false,
+      error: "Missing required recipient email address."
+    });
+  }
+
+  const db = readDB();
+  const smtpConfig = db.system_settings?.email || {};
+  const smtpHost = process.env.SMTP_HOST || smtpConfig.smtpHost;
+  const smtpPort = Number(process.env.SMTP_PORT || smtpConfig.smtpPort || 587);
+  const smtpUser = process.env.SMTP_USER || smtpConfig.smtpUsername;
+  const smtpPass = process.env.SMTP_PASS || process.env.SMTP_PASSWORD;
+
+  if (!smtpHost || !smtpUser || !smtpPass) {
+    return res.status(501).json({
+      success: false,
+      error: "501 Not Implemented: Active SMTP email service credentials are not configured on this server. No receipt email was sent."
+    });
+  }
+
+  try {
+    const transporter = nodemailer.createTransport({
+      host: smtpHost,
+      port: smtpPort,
+      secure: smtpPort === 465,
+      auth: { user: smtpUser, pass: smtpPass },
+    });
+
+    const appName = db.system_settings?.general?.appName || "SmartLink Digital";
+    const subject = `Payment Receipt #${receiptId || reference || Date.now()} - ${serviceName || "Transaction"}`;
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+        <h2 style="color: #0f172a; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">${appName} Payment Receipt</h2>
+        <p>Dear Customer,</p>
+        <p>Thank you for your transaction. Below is your official payment receipt details:</p>
+        <table style="width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 15px;">
+          <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 8px; font-weight: bold; color: #475569;">Receipt ID:</td><td style="padding: 8px; color: #0f172a;">${receiptId || reference || "N/A"}</td></tr>
+          <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 8px; font-weight: bold; color: #475569;">Service:</td><td style="padding: 8px; color: #0f172a;">${serviceName || "Digital Service"}</td></tr>
+          <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 8px; font-weight: bold; color: #475569;">Amount:</td><td style="padding: 8px; color: #0f172a; font-weight: bold; color: #16a34a;">₦${Number(amount || 0).toLocaleString()}</td></tr>
+          <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 8px; font-weight: bold; color: #475569;">Reference:</td><td style="padding: 8px; color: #0f172a;">${reference || receiptId || "N/A"}</td></tr>
+          <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 8px; font-weight: bold; color: #475569;">Date:</td><td style="padding: 8px; color: #0f172a;">${date || new Date().toLocaleString()}</td></tr>
+        </table>
+        <p style="color: #64748b; font-size: 13px; margin-top: 20px;">If you have any questions or require support, please contact our help desk.</p>
+        <p style="color: #0f172a; font-weight: bold; margin-top: 10px;">Regards,<br/>${appName} Team</p>
+      </div>
+    `;
+
+    const info = await transporter.sendMail({
+      from: `"${smtpConfig.senderName || appName}" <${smtpConfig.replyToAddress || smtpUser}>`,
+      to: targetEmail,
+      subject,
+      html: htmlContent,
+    });
+
+    return res.json({
+      success: true,
+      message: `Digital payment receipt successfully accepted and delivered via live SMTP to ${targetEmail}.`,
+      messageId: info.messageId,
+      recipientEmail: targetEmail
+    });
+  } catch (err: any) {
+    console.error("[ReceiptEmail] SMTP dispatch error:", err);
+    return res.status(502).json({
+      success: false,
+      error: `Failed to dispatch receipt email via SMTP: ${err.message || "Connection error"}`
+    });
+  }
 });
 
 // Generic Payment Gateway Verification & Self-Test
@@ -526,16 +655,11 @@ app.get("/api/gateway/verify-transaction/:paymentReference", async (req, res) =>
 
 
 // 1. GET /api/admin/wallets — Query Wallet Directory & Metrics
-app.get("/api/admin/wallets", async (req, res) => {
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
+app.get("/api/admin/wallets", requireAdmin, async (req, res) => {
   const db = readDB();
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
-
-  const check = adminAuthService.checkRoutePermission(val.session, "/admin/wallet");
+  const admin = (req as any).admin;
+  const check = adminAuthService.checkRoutePermission(admin, "/admin/wallet");
   if (!check.allowed) {
     return res.status(403).json({ success: false, message: check.reason });
   }
@@ -579,15 +703,9 @@ app.get("/api/admin/wallets", async (req, res) => {
 });
 
 // 2. GET /api/admin/wallets/:userId — Deep Wallet Details & Ledgers
-app.get("/api/admin/wallets/:userId", async (req, res) => {
+app.get("/api/admin/wallets/:userId", requireAdmin, async (req, res) => {
   const { userId } = req.params;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
   const db = readDB();
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
 
   seedDefaultTransactionsIfEmpty(db);
 
@@ -636,18 +754,14 @@ app.get("/api/admin/wallets/:userId", async (req, res) => {
 });
 
 // 3. POST /api/admin/wallets/:userId/credit — Manual Credit Wallet
-app.post("/api/admin/wallets/:userId/credit", async (req, res) => {
+app.post("/api/admin/wallets/:userId/credit", requireAdmin, async (req, res) => {
   const { userId } = req.params;
   const { amount, reason, reference } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
+  const admin = (req as any).admin;
 
-  if (!adminAuthService.hasPermission(val.session, "MANAGE_WALLET") && !adminAuthService.hasPermission(val.session, "MANAGE_USERS")) {
+  if (!adminAuthService.hasPermission(admin, "MANAGE_WALLET") && !adminAuthService.hasPermission(admin, "MANAGE_USERS")) {
     return res.status(403).json({ success: false, message: "Permission Denied: MANAGE_WALLET required." });
   }
 
@@ -710,8 +824,8 @@ app.post("/api/admin/wallets/:userId/credit", async (req, res) => {
   const adjRecord = {
     id: `ADJ_${Date.now()}`,
     userId: user.uid,
-    adminUid: val.session.uid,
-    adminEmail: val.session.email,
+    adminUid: admin.uid,
+    adminEmail: admin.email,
     type: "CREDIT",
     amount: numAmount,
     previousBalance,
@@ -725,8 +839,8 @@ app.post("/api/admin/wallets/:userId/credit", async (req, res) => {
   if (!db.wallet_admin_actions) db.wallet_admin_actions = [];
   const actRecord = {
     id: `WACT_${Date.now()}`,
-    adminUid: val.session.uid,
-    adminEmail: val.session.email,
+    adminUid: admin.uid,
+    adminEmail: admin.email,
     targetUserId: user.uid,
     action: "CREDIT_WALLET",
     amount: numAmount,
@@ -740,8 +854,8 @@ app.post("/api/admin/wallets/:userId/credit", async (req, res) => {
 
   // Mirror into admin_user_actions
   recordAdminUserAction(db, {
-    adminUid: val.session.uid,
-    adminEmail: val.session.email,
+    adminUid: admin.uid,
+    adminEmail: admin.email,
     targetUserId: user.uid,
     action: "CREDIT_WALLET",
     details: `Manual Credit of ₦${numAmount.toLocaleString()} to ${user.email}. Previous: ₦${previousBalance.toLocaleString()}, New: ₦${newBalance.toLocaleString()}. Reason: ${reason}`,
@@ -776,18 +890,14 @@ app.post("/api/admin/wallets/:userId/credit", async (req, res) => {
 });
 
 // 4. POST /api/admin/wallets/:userId/debit — Manual Debit Wallet
-app.post("/api/admin/wallets/:userId/debit", async (req, res) => {
+app.post("/api/admin/wallets/:userId/debit", requireAdmin, async (req, res) => {
   const { userId } = req.params;
   const { amount, reason, reference } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
+  const admin = (req as any).admin;
 
-  if (!adminAuthService.hasPermission(val.session, "MANAGE_WALLET") && !adminAuthService.hasPermission(val.session, "MANAGE_USERS")) {
+  if (!adminAuthService.hasPermission(admin, "MANAGE_WALLET") && !adminAuthService.hasPermission(admin, "MANAGE_USERS")) {
     return res.status(403).json({ success: false, message: "Permission Denied: MANAGE_WALLET required." });
   }
 
@@ -863,8 +973,8 @@ app.post("/api/admin/wallets/:userId/debit", async (req, res) => {
   const adjRecord = {
     id: `ADJ_${Date.now()}`,
     userId: user.uid,
-    adminUid: val.session.uid,
-    adminEmail: val.session.email,
+    adminUid: admin.uid,
+    adminEmail: admin.email,
     type: "DEBIT",
     amount: numAmount,
     previousBalance,
@@ -878,8 +988,8 @@ app.post("/api/admin/wallets/:userId/debit", async (req, res) => {
   if (!db.wallet_admin_actions) db.wallet_admin_actions = [];
   const actRecord = {
     id: `WACT_${Date.now()}`,
-    adminUid: val.session.uid,
-    adminEmail: val.session.email,
+    adminUid: admin.uid,
+    adminEmail: admin.email,
     targetUserId: user.uid,
     action: "DEBIT_WALLET",
     amount: numAmount,
@@ -892,8 +1002,8 @@ app.post("/api/admin/wallets/:userId/debit", async (req, res) => {
   db.wallet_admin_actions.unshift(actRecord);
 
   recordAdminUserAction(db, {
-    adminUid: val.session.uid,
-    adminEmail: val.session.email,
+    adminUid: admin.uid,
+    adminEmail: admin.email,
     targetUserId: user.uid,
     action: "DEBIT_WALLET",
     details: `Manual Debit of ₦${numAmount.toLocaleString()} from ${user.email}. Previous: ₦${previousBalance.toLocaleString()}, New: ₦${newBalance.toLocaleString()}. Reason: ${reason}`,
@@ -928,18 +1038,14 @@ app.post("/api/admin/wallets/:userId/debit", async (req, res) => {
 });
 
 // 5. POST /api/admin/wallets/:userId/status — Freeze / Unfreeze / Lock / Unlock Wallet
-app.post("/api/admin/wallets/:userId/status", async (req, res) => {
+app.post("/api/admin/wallets/:userId/status", requireAdmin, async (req, res) => {
   const { userId } = req.params;
   const { status, reason } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
+  const admin = (req as any).admin;
 
-  if (!adminAuthService.hasPermission(val.session, "MANAGE_WALLET") && !adminAuthService.hasPermission(val.session, "MANAGE_USERS")) {
+  if (!adminAuthService.hasPermission(admin, "MANAGE_WALLET") && !adminAuthService.hasPermission(admin, "MANAGE_USERS")) {
     return res.status(403).json({ success: false, message: "Permission Denied: MANAGE_WALLET required." });
   }
 
@@ -963,8 +1069,8 @@ app.post("/api/admin/wallets/:userId/status", async (req, res) => {
   if (!db.wallet_admin_actions) db.wallet_admin_actions = [];
   const actRecord = {
     id: `WACT_${Date.now()}`,
-    adminUid: val.session.uid,
-    adminEmail: val.session.email,
+    adminUid: admin.uid,
+    adminEmail: admin.email,
     targetUserId: user.uid,
     action: `SET_WALLET_STATUS_${status}`,
     previousStatus,
@@ -975,8 +1081,8 @@ app.post("/api/admin/wallets/:userId/status", async (req, res) => {
   db.wallet_admin_actions.unshift(actRecord);
 
   recordAdminUserAction(db, {
-    adminUid: val.session.uid,
-    adminEmail: val.session.email,
+    adminUid: admin.uid,
+    adminEmail: admin.email,
     targetUserId: user.uid,
     action: `SET_WALLET_STATUS_${status}`,
     details: `Changed wallet status for ${user.email} from [${previousStatus}] to [${status}]. Reason: ${reason}`,
@@ -1008,15 +1114,11 @@ app.post("/api/admin/wallets/:userId/status", async (req, res) => {
 });
 
 // 6. GET /api/admin/wallets/:userId/history — Transaction History Querying
-app.get("/api/admin/wallets/:userId/history", async (req, res) => {
+app.get("/api/admin/wallets/:userId/history", requireAdmin, async (req, res) => {
   const { userId } = req.params;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
   const db = readDB();
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
+  const admin = (req as any).admin;
 
   const user = await usersStore.getUserById(userId);
   if (!user) {

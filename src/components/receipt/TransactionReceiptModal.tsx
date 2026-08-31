@@ -101,131 +101,131 @@ export const TransactionReceiptModal: React.FC<TransactionReceiptModalProps> = (
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111827]/60 backdrop-blur-sm animate-in fade-in duration-200">
       <div
         className={`relative w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden border ${
           isDarkMode
-            ? "bg-slate-900 border-slate-800 text-slate-100"
-            : "bg-white border-slate-200 text-slate-900"
+            ? "bg-[#111827] border-[#111827] text-[#E5E7EB]"
+            : "bg-white border-[#E5E7EB] text-[#111827]"
         } print:border-none print:shadow-none print:w-full print:max-w-none print:absolute print:inset-0`}
       >
         {/* Printable Receipt Container */}
         <div id="printable-receipt" className="p-6 sm:p-8 space-y-6">
           {/* Header Branding */}
-          <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
+          <div className="flex items-center justify-between pb-4 border-b border-[#E5E7EB] dark:border-[#111827]">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-xl shadow-md shadow-blue-500/20">
+              <div className="w-10 h-10 rounded-xl bg-[#0F2D5C] text-white flex items-center justify-center font-black text-xl shadow-md shadow-blue-500/20">
                 SL
               </div>
               <div>
-                <h3 className="font-bold text-lg text-slate-900 dark:text-white leading-tight">
+                <h3 className="font-bold text-lg text-[#111827] dark:text-white leading-tight">
                   SmartLink Digital
                 </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
+                <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">
                   Official Financial Transaction Receipt
                 </p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors print:hidden"
+              className="p-2 rounded-lg text-[#9CA3AF] hover:text-[#4B5563] dark:hover:text-[#E5E7EB] hover:bg-[#E5E7EB] dark:hover:bg-[#111827] transition-colors print:hidden"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
           {/* Status Badge & Amount */}
-          <div className="text-center py-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800/80">
+          <div className="text-center py-3 bg-[#F5F7FA] dark:bg-[#111827]/50 rounded-xl border border-[#E5E7EB] dark:border-[#111827]/80">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold mb-2">
               {status === "SUCCESSFUL" && (
-                <span className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-400 px-3 py-1 rounded-full flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                <span className="bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/70 dark:text-[#9CA3AF] px-3 py-1 rounded-full flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#0F2D5C] dark:text-[#9CA3AF]" />
                   Transaction Successful
                 </span>
               )}
               {status === "PENDING" && (
-                <span className="bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-400 px-3 py-1 rounded-full flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                <span className="bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/70 dark:text-[#9CA3AF] px-3 py-1 rounded-full flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5 text-[#0F2D5C] dark:text-[#9CA3AF]" />
                   Processing Transaction
                 </span>
               )}
               {status === "FAILED" && (
-                <span className="bg-rose-100 text-rose-800 dark:bg-rose-950/70 dark:text-rose-400 px-3 py-1 rounded-full flex items-center gap-1">
-                  <XCircle className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+                <span className="bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/70 dark:text-[#9CA3AF] px-3 py-1 rounded-full flex items-center gap-1">
+                  <XCircle className="w-3.5 h-3.5 text-[#0F2D5C] dark:text-[#9CA3AF]" />
                   Transaction Failed
                 </span>
               )}
               {status === "REFUNDED" && (
-                <span className="bg-purple-100 text-purple-800 dark:bg-purple-950/70 dark:text-purple-400 px-3 py-1 rounded-full flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                <span className="bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/70 dark:text-[#9CA3AF] px-3 py-1 rounded-full flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#0F2D5C] dark:text-[#9CA3AF]" />
                   Refunded to Wallet
                 </span>
               )}
             </div>
 
-            <div className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+            <div className="text-3xl font-black text-[#111827] dark:text-white tracking-tight">
               ₦{totalAmount.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-1">
               {title}
             </p>
           </div>
 
           {/* Details Table */}
           <div className="space-y-2.5 text-xs">
-            <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
-              <span className="text-slate-500 dark:text-slate-400">SmartLink Ref:</span>
-              <span className="font-semibold font-mono text-slate-900 dark:text-slate-200 flex items-center gap-1">
+            <div className="flex justify-between py-1.5 border-b border-[#E5E7EB] dark:border-[#111827]">
+              <span className="text-[#6B7280] dark:text-[#9CA3AF]">SmartLink Ref:</span>
+              <span className="font-semibold font-mono text-[#111827] dark:text-[#E5E7EB] flex items-center gap-1">
                 {ref}
                 <button
                   onClick={handleCopyRef}
-                  className="text-slate-400 hover:text-blue-600 transition-colors print:hidden"
+                  className="text-[#9CA3AF] hover:text-[#0F2D5C] transition-colors print:hidden"
                   title="Copy Reference"
                 >
-                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                  {copied ? <Check className="w-3.5 h-3.5 text-[#0F2D5C]" /> : <Copy className="w-3.5 h-3.5" />}
                 </button>
               </span>
             </div>
 
-            <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
-              <span className="text-slate-500 dark:text-slate-400">Provider Ref:</span>
-              <span className="font-mono text-slate-700 dark:text-slate-300">{providerRef}</span>
+            <div className="flex justify-between py-1.5 border-b border-[#E5E7EB] dark:border-[#111827]">
+              <span className="text-[#6B7280] dark:text-[#9CA3AF]">Provider Ref:</span>
+              <span className="font-mono text-[#4B5563] dark:text-[#E5E7EB]">{providerRef}</span>
             </div>
 
-            <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
-              <span className="text-slate-500 dark:text-slate-400">Payer Name:</span>
-              <span className="font-medium text-slate-900 dark:text-slate-200">{userName}</span>
+            <div className="flex justify-between py-1.5 border-b border-[#E5E7EB] dark:border-[#111827]">
+              <span className="text-[#6B7280] dark:text-[#9CA3AF]">Payer Name:</span>
+              <span className="font-medium text-[#111827] dark:text-[#E5E7EB]">{userName}</span>
             </div>
 
-            <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
-              <span className="text-slate-500 dark:text-slate-400">Recipient / Beneficiary:</span>
-              <span className="font-medium text-slate-900 dark:text-slate-200">{recipient}</span>
+            <div className="flex justify-between py-1.5 border-b border-[#E5E7EB] dark:border-[#111827]">
+              <span className="text-[#6B7280] dark:text-[#9CA3AF]">Recipient / Beneficiary:</span>
+              <span className="font-medium text-[#111827] dark:text-[#E5E7EB]">{recipient}</span>
             </div>
 
-            <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
-              <span className="text-slate-500 dark:text-slate-400">Date & Time:</span>
-              <span className="text-slate-700 dark:text-slate-300">{formattedDate}</span>
+            <div className="flex justify-between py-1.5 border-b border-[#E5E7EB] dark:border-[#111827]">
+              <span className="text-[#6B7280] dark:text-[#9CA3AF]">Date & Time:</span>
+              <span className="text-[#4B5563] dark:text-[#E5E7EB]">{formattedDate}</span>
             </div>
 
-            <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
-              <span className="text-slate-500 dark:text-slate-400">Payment Channel:</span>
-              <span className="font-medium text-slate-900 dark:text-slate-200">{paymentMethod}</span>
+            <div className="flex justify-between py-1.5 border-b border-[#E5E7EB] dark:border-[#111827]">
+              <span className="text-[#6B7280] dark:text-[#9CA3AF]">Payment Channel:</span>
+              <span className="font-medium text-[#111827] dark:text-[#E5E7EB]">{paymentMethod}</span>
             </div>
 
-            <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
-              <span className="text-slate-500 dark:text-slate-400">Service Base Cost:</span>
-              <span className="text-slate-700 dark:text-slate-300">₦{amount.toLocaleString()}</span>
+            <div className="flex justify-between py-1.5 border-b border-[#E5E7EB] dark:border-[#111827]">
+              <span className="text-[#6B7280] dark:text-[#9CA3AF]">Service Base Cost:</span>
+              <span className="text-[#4B5563] dark:text-[#E5E7EB]">₦{amount.toLocaleString()}</span>
             </div>
 
-            <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
-              <span className="text-slate-500 dark:text-slate-400">Service Fee / Charge:</span>
-              <span className="text-slate-700 dark:text-slate-300">₦{charge.toLocaleString()}</span>
+            <div className="flex justify-between py-1.5 border-b border-[#E5E7EB] dark:border-[#111827]">
+              <span className="text-[#6B7280] dark:text-[#9CA3AF]">Service Fee / Charge:</span>
+              <span className="text-[#4B5563] dark:text-[#E5E7EB]">₦{charge.toLocaleString()}</span>
             </div>
 
             {balanceBefore !== undefined && balanceAfter !== undefined && (
-              <div className="flex justify-between py-1.5 bg-slate-50 dark:bg-slate-800/40 px-3 rounded-lg mt-2">
-                <span className="text-slate-500 dark:text-slate-400">Wallet Balance (Before / After):</span>
-                <span className="font-medium text-slate-800 dark:text-slate-200">
+              <div className="flex justify-between py-1.5 bg-[#F5F7FA] dark:bg-[#111827]/40 px-3 rounded-lg mt-2">
+                <span className="text-[#6B7280] dark:text-[#9CA3AF]">Wallet Balance (Before / After):</span>
+                <span className="font-medium text-[#111827] dark:text-[#E5E7EB]">
                   ₦{balanceBefore.toLocaleString()} ➔ ₦{balanceAfter.toLocaleString()}
                 </span>
               </div>
@@ -233,17 +233,17 @@ export const TransactionReceiptModal: React.FC<TransactionReceiptModalProps> = (
           </div>
 
           {/* Footer Security Seal */}
-          <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/60 dark:border-slate-800">
+          <div className="flex items-center justify-between p-4 bg-[#F5F7FA] dark:bg-[#111827]/60 rounded-xl border border-[#E5E7EB]/60 dark:border-[#111827]">
             <div className="space-y-1 text-left">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 dark:text-white">
-                <ShieldCheck className="w-4 h-4 text-emerald-500" />
+              <div className="flex items-center gap-1.5 text-xs font-bold text-[#111827] dark:text-white">
+                <ShieldCheck className="w-4 h-4 text-[#0F2D5C]" />
                 Verified Digital Receipt
               </div>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+              <p className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF]">
                 Official transaction record verified on SmartLink core network.
               </p>
             </div>
-            <div className="px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono text-[11px] font-bold">
+            <div className="px-3 py-1.5 rounded-lg bg-[#0F2D5C]/10 text-[#0F2D5C] dark:text-[#9CA3AF] font-mono text-[11px] font-bold">
               VERIFIED
             </div>
           </div>
@@ -251,15 +251,15 @@ export const TransactionReceiptModal: React.FC<TransactionReceiptModalProps> = (
 
         {/* Modal Actions Footer */}
         {emailStatus && (
-          <div className="px-4 py-2 bg-blue-50 dark:bg-blue-950/70 border-t border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300 text-xs font-semibold text-center">
+          <div className="px-4 py-2 bg-[#F5F7FA] dark:bg-[#0F2D5C]/70 border-t border-[#E5E7EB] dark:border-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF] text-xs font-semibold text-center">
             {emailStatus}
           </div>
         )}
-        <div className="p-4 bg-slate-50 dark:bg-slate-900/90 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 print:hidden">
+        <div className="p-4 bg-[#F5F7FA] dark:bg-[#111827]/90 border-t border-[#E5E7EB] dark:border-[#111827] flex items-center justify-between gap-3 print:hidden">
           <div className="flex items-center gap-2">
             <button
               onClick={handlePrint}
-              className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-1.5 transition-colors shadow-sm"
+              className="px-3.5 py-2 rounded-xl bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#4B5563] text-[#4B5563] dark:text-[#E5E7EB] text-xs font-semibold hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563] flex items-center gap-1.5 transition-colors shadow-sm"
             >
               <Printer className="w-3.5 h-3.5" />
               Print / PDF
@@ -267,14 +267,14 @@ export const TransactionReceiptModal: React.FC<TransactionReceiptModalProps> = (
             <button
               onClick={handleEmailReceipt}
               disabled={sendingEmail}
-              className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-1.5 transition-colors shadow-sm disabled:opacity-50"
+              className="px-3.5 py-2 rounded-xl bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#4B5563] text-[#4B5563] dark:text-[#E5E7EB] text-xs font-semibold hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563] flex items-center gap-1.5 transition-colors shadow-sm disabled:opacity-50"
             >
-              <Mail className="w-3.5 h-3.5 text-blue-600" />
+              <Mail className="w-3.5 h-3.5 text-[#0F2D5C]" />
               {sendingEmail ? "Sending..." : "Email"}
             </button>
             <button
               onClick={handleShare}
-              className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-1.5 transition-colors shadow-sm"
+              className="px-3.5 py-2 rounded-xl bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#4B5563] text-[#4B5563] dark:text-[#E5E7EB] text-xs font-semibold hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563] flex items-center gap-1.5 transition-colors shadow-sm"
             >
               <Share2 className="w-3.5 h-3.5" />
               {copied ? "Copied Link!" : "Share"}
@@ -282,7 +282,7 @@ export const TransactionReceiptModal: React.FC<TransactionReceiptModalProps> = (
           </div>
           <button
             onClick={onClose}
-            className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-md shadow-blue-500/20 transition-all"
+            className="px-5 py-2 rounded-xl bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-semibold shadow-md shadow-blue-500/20 transition-all"
           >
             Close Receipt
           </button>

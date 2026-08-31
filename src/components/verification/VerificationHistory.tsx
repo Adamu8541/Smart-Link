@@ -74,12 +74,12 @@ export const VerificationHistory: React.FC<VerificationHistoryProps> = ({
       {/* Header & Filter Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400">
+          <div className="p-2 rounded-xl bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF]">
             <History className="h-4 w-4" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white">Verification History Log</h3>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+            <h3 className="text-sm font-bold text-[#111827] dark:text-white">Verification History Log</h3>
+            <p className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF]">
               History log of identity, corporate, and credential verification checks
             </p>
           </div>
@@ -88,13 +88,13 @@ export const VerificationHistory: React.FC<VerificationHistoryProps> = ({
         {/* Search */}
         <div className="flex items-center gap-2">
           <div className="relative flex-1 sm:w-56">
-            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
+            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[#9CA3AF]" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search reference or ID..."
-              className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 text-slate-900 dark:text-white"
+              className="w-full pl-8 pr-3 py-1.5 text-xs bg-[#F5F7FA] dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#4B5563] rounded-xl focus:outline-hidden focus:ring-2 focus:ring-[#0F2D5C]/20 text-[#111827] dark:text-white"
             />
           </div>
         </div>
@@ -109,8 +109,8 @@ export const VerificationHistory: React.FC<VerificationHistoryProps> = ({
             onClick={() => setSelectedServiceFilter(svc)}
             className={`px-3 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
               selectedServiceFilter === svc
-                ? "bg-blue-600 text-white shadow-xs"
-                : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                ? "bg-[#0F2D5C] text-white shadow-xs"
+                : "bg-[#E5E7EB] dark:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563]"
             }`}
           >
             {svc === "ALL" ? "All History" : svc}
@@ -124,17 +124,17 @@ export const VerificationHistory: React.FC<VerificationHistoryProps> = ({
           {[1, 2, 3].map((n) => (
             <div
               key={n}
-              className="h-16 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse"
+              className="h-16 rounded-xl bg-[#E5E7EB] dark:bg-[#111827] animate-pulse"
             />
           ))}
         </div>
       ) : filteredItems.length === 0 ? (
-        <div className="p-8 text-center bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 space-y-2">
-          <FileText className="h-8 w-8 text-slate-400 mx-auto" />
-          <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+        <div className="p-8 text-center bg-[#F5F7FA] dark:bg-[#111827]/40 rounded-2xl border border-dashed border-[#E5E7EB] dark:border-[#111827] space-y-2">
+          <FileText className="h-8 w-8 text-[#9CA3AF] mx-auto" />
+          <p className="text-xs font-semibold text-[#4B5563] dark:text-[#E5E7EB]">
             No verification history found
           </p>
-          <p className="text-[11px] text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
+          <p className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF] max-w-xs mx-auto">
             {searchQuery || selectedServiceFilter !== "ALL"
               ? "Try adjusting your search query or filter settings."
               : "Your official verification activity will appear here once you perform a NIN, BVN, or corporate check."}
@@ -145,22 +145,22 @@ export const VerificationHistory: React.FC<VerificationHistoryProps> = ({
           {filteredItems.map((item) => (
             <div
               key={item.id}
-              className="p-3.5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-xl hover:border-blue-500/40 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+              className="p-3.5 bg-white dark:bg-[#111827] border border-[#E5E7EB]/80 dark:border-[#111827] rounded-xl hover:border-[#0F2D5C]/40 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
             >
               <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 shrink-0">
+                <div className="p-2.5 rounded-xl bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] shrink-0">
                   <ShieldCheck className="h-5 w-5" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-slate-900 dark:text-white">
+                    <span className="font-bold text-[#111827] dark:text-white">
                       {item.serviceTitle}
                     </span>
-                    <span className="font-mono text-[10px] bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md font-bold text-slate-600 dark:text-slate-400">
+                    <span className="font-mono text-[10px] bg-[#E5E7EB] dark:bg-[#111827] px-2 py-0.5 rounded-md font-bold text-[#4B5563] dark:text-[#9CA3AF]">
                       ID: {item.maskedId}
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-2 mt-0.5">
+                  <p className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF] flex items-center gap-2 mt-0.5">
                     <span>{item.providerName}</span>
                     <span>•</span>
                     <span className="font-mono">#{item.reference}</span>
@@ -168,12 +168,12 @@ export const VerificationHistory: React.FC<VerificationHistoryProps> = ({
                 </div>
               </div>
 
-              <div className="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-0 border-slate-100 dark:border-slate-800">
+              <div className="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-0 border-[#E5E7EB] dark:border-[#111827]">
                 <div className="text-left sm:text-right">
-                  <span className="font-mono font-bold text-slate-900 dark:text-white">
+                  <span className="font-mono font-bold text-[#111827] dark:text-white">
                     ₦{item.fee.toLocaleString()}
                   </span>
-                  <p className="text-[10px] text-slate-400">
+                  <p className="text-[10px] text-[#9CA3AF]">
                     {new Date(item.createdAt).toLocaleDateString()}
                   </p>
                 </div>
@@ -182,7 +182,7 @@ export const VerificationHistory: React.FC<VerificationHistoryProps> = ({
                   <button
                     type="button"
                     onClick={() => setSelectedReceiptItem(item)}
-                    className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
+                    className="p-2 rounded-lg bg-[#E5E7EB] dark:bg-[#111827] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563] text-[#4B5563] dark:text-[#E5E7EB] transition-colors cursor-pointer"
                     title="View Receipt"
                   >
                     <FileText className="h-3.5 w-3.5" />
@@ -192,7 +192,7 @@ export const VerificationHistory: React.FC<VerificationHistoryProps> = ({
                     <button
                       type="button"
                       onClick={() => onRepeatVerification(item.service, item.verifiedId)}
-                      className="px-2.5 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900 text-blue-600 dark:text-blue-400 font-semibold text-[11px] transition-colors cursor-pointer flex items-center gap-1"
+                      className="px-2.5 py-1.5 rounded-lg bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 hover:bg-[#E5E7EB] dark:hover:bg-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF] font-semibold text-[11px] transition-colors cursor-pointer flex items-center gap-1"
                     >
                       <RefreshCw className="h-3 w-3" />
                       <span>Repeat</span>

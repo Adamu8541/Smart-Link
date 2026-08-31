@@ -149,9 +149,9 @@ export const NigerianCoatOfArmsSvg: React.FC<{ className?: string; size?: number
 );
 
 /**
- * Official NIMC Logo Vector Component
+ * Official NIN Logo Vector Component
  */
-export const NimcOfficialLogoSvg: React.FC<{ className?: string; size?: number }> = ({
+export const NinOfficialLogoSvg: React.FC<{ className?: string; size?: number }> = ({
   className = "w-14 h-14",
   size = 56,
 }) => (
@@ -173,7 +173,7 @@ export const NimcOfficialLogoSvg: React.FC<{ className?: string; size?: number }
     />
     <circle cx="80" cy="18" r="7" fill="#008751" />
     <circle cx="60" cy="60" r="5" fill="#008751" />
-    {/* NIMC Wordmark */}
+    {/* NIN Wordmark */}
     <text
       x="80"
       y="84"
@@ -184,7 +184,7 @@ export const NimcOfficialLogoSvg: React.FC<{ className?: string; size?: number }
       fill="#008751"
       letterSpacing="-1"
     >
-      NIMC
+      NIN
     </text>
   </svg>
 );

@@ -112,6 +112,9 @@ export function sanitizePublicSettings(db: any, maintenanceDetails?: any) {
   const resolvedLogoUrl = rawLogo || "/logo.png";
   return {
     success: true,
+    priceMatrix: db.priceMatrix || {},
+    servicesCatalog: db.servicesCatalog || [],
+    systemSettings: db.system_settings || db.systemSettings || {},
     settings: {
       appName: branding.appName || sysGeneral.platformName || "SmartLink Digital",
       tagline: branding.tagline || "Enterprise Digital & Identity Services Platform",

@@ -236,6 +236,7 @@ export function ProviderDetailDrawer({
           privateKey,
           merchantId,
           clientId,
+          appId: clientId,
           clientSecret,
           businessId,
           timeout: timeoutMs,
@@ -367,15 +368,15 @@ export function ProviderDetailDrawer({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-slate-950/80 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-50 flex justify-end bg-[#111827]/80 backdrop-blur-sm animate-fade-in">
       <div
-        className="w-full max-w-4xl bg-slate-900 border-l border-slate-800 h-full flex flex-col shadow-2xl overflow-hidden animate-slide-left"
+        className="w-full max-w-4xl bg-[#111827] border-l border-[#111827] h-full flex flex-col shadow-2xl overflow-hidden animate-slide-left"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Drawer Header */}
-        <div className="p-6 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+        <div className="p-6 bg-[#111827] border-b border-[#111827] flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-blue-950/80 border border-blue-800/80 rounded-2xl text-blue-400 font-black text-lg flex items-center justify-center h-12 w-12 overflow-hidden">
+            <div className="p-3 bg-[#0F2D5C]/80 border border-[#0F2D5C]/80 rounded-2xl text-[#9CA3AF] font-black text-lg flex items-center justify-center h-12 w-12 overflow-hidden">
               {logoUrl ? (
                 <img src={logoUrl} alt={name} className="h-full w-full object-contain" />
               ) : (
@@ -384,21 +385,21 @@ export function ProviderDetailDrawer({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider">
+                <span className="text-xs font-mono font-bold text-[#9CA3AF] uppercase tracking-wider">
                   {category || "API PROVIDER"}
                 </span>
                 {isDefault && (
-                  <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-950 text-amber-400 border border-amber-800 flex items-center gap-1">
+                  <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C] flex items-center gap-1">
                     <Check className="h-3 w-3" /> DEFAULT PROVIDER
                   </span>
                 )}
                 <span
                   className={`px-2 py-0.5 text-[10px] font-bold rounded-full border ${
                     environment === "Production"
-                      ? "bg-emerald-950 text-emerald-400 border-emerald-800"
+                      ? "bg-[#0F2D5C] text-[#9CA3AF] border-[#0F2D5C]"
                       : environment === "Sandbox"
-                      ? "bg-amber-950 text-amber-400 border-amber-800"
-                      : "bg-purple-950 text-purple-400 border-purple-800"
+                      ? "bg-[#0F2D5C] text-[#9CA3AF] border-[#0F2D5C]"
+                      : "bg-[#0F2D5C] text-[#9CA3AF] border-[#0F2D5C]"
                   }`}
                 >
                   {environment}
@@ -415,7 +416,7 @@ export function ProviderDetailDrawer({
               <button
                 type="button"
                 onClick={handleSetDefault}
-                className="py-1.5 px-3 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-800/60 text-amber-400 font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
+                className="py-1.5 px-3 bg-[#0F2D5C]/10 hover:bg-[#0F2D5C]/20 border border-[#0F2D5C]/60 text-[#9CA3AF] font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
               >
                 <Check className="h-3.5 w-3.5" />
                 <span>Set Default</span>
@@ -424,7 +425,7 @@ export function ProviderDetailDrawer({
             <button
               type="button"
               onClick={handleDeleteProvider}
-              className="py-1.5 px-3 bg-rose-950/40 hover:bg-rose-900/60 border border-rose-800/60 text-rose-400 font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
+              className="py-1.5 px-3 bg-[#0F2D5C]/40 hover:bg-[#0F2D5C]/60 border border-[#0F2D5C]/60 text-[#9CA3AF] font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
             >
               <Trash2 className="h-3.5 w-3.5" />
               <span>Delete</span>
@@ -432,7 +433,7 @@ export function ProviderDetailDrawer({
             <button
               type="button"
               onClick={onClose}
-              className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-xl transition-all cursor-pointer ml-2"
+              className="p-2 bg-[#111827] hover:bg-[#4B5563] text-[#9CA3AF] hover:text-white rounded-xl transition-all cursor-pointer ml-2"
             >
               <X className="h-5 w-5" />
             </button>
@@ -440,7 +441,7 @@ export function ProviderDetailDrawer({
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex items-center gap-1 px-6 pt-3 bg-slate-950/60 border-b border-slate-800 overflow-x-auto">
+        <div className="flex items-center gap-1 px-6 pt-3 bg-[#111827]/60 border-b border-[#111827] overflow-x-auto">
           {[
             { id: "overview", label: "Overview", icon: Activity },
             { id: "general", label: "General", icon: FileText },
@@ -459,8 +460,8 @@ export function ProviderDetailDrawer({
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`py-2.5 px-3.5 text-xs font-bold border-b-2 flex items-center gap-1.5 cursor-pointer whitespace-nowrap transition-all ${
                   activeTab === tab.id
-                    ? "border-blue-500 text-blue-400"
-                    : "border-transparent text-slate-400 hover:text-white"
+                    ? "border-[#0F2D5C] text-[#9CA3AF]"
+                    : "border-transparent text-[#9CA3AF] hover:text-white"
                 }`}
               >
                 <Icon className="h-3.5 w-3.5" />
@@ -476,19 +477,19 @@ export function ProviderDetailDrawer({
             <div
               className={`p-4 rounded-2xl border text-xs font-medium flex items-center justify-between ${
                 toast.type === "success"
-                  ? "bg-emerald-950/80 border-emerald-800 text-emerald-300"
-                  : "bg-rose-950/80 border-rose-800 text-rose-300"
+                  ? "bg-[#0F2D5C]/80 border-[#0F2D5C] text-[#9CA3AF]"
+                  : "bg-[#0F2D5C]/80 border-[#0F2D5C] text-[#9CA3AF]"
               }`}
             >
               <span>{toast.message}</span>
-              <button onClick={() => setToast(null)} className="text-slate-400 hover:text-white">✕</button>
+              <button onClick={() => setToast(null)} className="text-[#9CA3AF] hover:text-white">✕</button>
             </div>
           )}
 
           {loading ? (
             <div className="py-20 text-center space-y-3">
-              <RefreshCw className="h-8 w-8 text-blue-400 animate-spin mx-auto" />
-              <p className="text-xs text-slate-400 font-mono">Loading API provider details...</p>
+              <RefreshCw className="h-8 w-8 text-[#9CA3AF] animate-spin mx-auto" />
+              <p className="text-xs text-[#9CA3AF] font-mono">Loading API provider details...</p>
             </div>
           ) : (
             <form onSubmit={handleSaveConfig} className="space-y-6">
@@ -496,42 +497,42 @@ export function ProviderDetailDrawer({
               {activeTab === "overview" && (
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Health Status</span>
+                    <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl">
+                      <span className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider block">Health Status</span>
                       <div className="flex items-center gap-2 mt-1.5">
-                        <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span className="h-2.5 w-2.5 rounded-full bg-[#0F2D5C] animate-pulse"></span>
                         <span className="font-bold text-white text-base">{providerData?.healthStatus || "ONLINE"}</span>
                       </div>
-                      <span className="text-[10px] text-slate-500 mt-1 block">Status: {status}</span>
+                      <span className="text-[10px] text-[#6B7280] mt-1 block">Status: {status}</span>
                     </div>
 
-                    <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Success Rate</span>
-                      <div className="font-black text-emerald-400 text-xl mt-1">{providerData?.successRate || 99.5}%</div>
-                      <span className="text-[10px] text-slate-500 mt-1 block">Operational SLA</span>
+                    <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl">
+                      <span className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider block">Success Rate</span>
+                      <div className="font-black text-[#9CA3AF] text-xl mt-1">{providerData?.successRate || 99.5}%</div>
+                      <span className="text-[10px] text-[#6B7280] mt-1 block">Operational SLA</span>
                     </div>
 
-                    <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Avg Latency</span>
-                      <div className="font-black text-blue-400 text-xl mt-1">{providerData?.avgResponseTimeMs || providerData?.avgResponseTime || 180} ms</div>
-                      <span className="text-[10px] text-slate-500 mt-1 block">Roundtrip Ping</span>
+                    <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl">
+                      <span className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider block">Avg Latency</span>
+                      <div className="font-black text-[#9CA3AF] text-xl mt-1">{providerData?.avgResponseTimeMs || providerData?.avgResponseTime || 180} ms</div>
+                      <span className="text-[10px] text-[#6B7280] mt-1 block">Roundtrip Ping</span>
                     </div>
                   </div>
 
-                  <div className="p-5 bg-slate-950/80 border border-slate-800 rounded-2xl space-y-4">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-blue-400" />
+                  <div className="p-5 bg-[#111827]/80 border border-[#111827] rounded-2xl space-y-4">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-[#9CA3AF] flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-[#9CA3AF]" />
                       <span>General & Base Config</span>
                     </h3>
-                    <p className="text-xs text-slate-300 leading-relaxed">{description || "No description specified."}</p>
-                    <div className="grid grid-cols-2 gap-4 pt-2 border-t border-slate-800/80 text-xs font-mono">
+                    <p className="text-xs text-[#E5E7EB] leading-relaxed">{description || "No description specified."}</p>
+                    <div className="grid grid-cols-2 gap-4 pt-2 border-t border-[#111827]/80 text-xs font-mono">
                       <div>
-                        <span className="text-slate-500 block text-[10px] font-sans font-bold uppercase">Base URL</span>
-                        <span className="text-blue-400 font-bold">{baseUrl || "Not configured"}</span>
+                        <span className="text-[#6B7280] block text-[10px] font-sans font-bold uppercase">Base URL</span>
+                        <span className="text-[#9CA3AF] font-bold">{baseUrl || "Not configured"}</span>
                       </div>
                       <div>
-                        <span className="text-slate-500 block text-[10px] font-sans font-bold uppercase">Category</span>
-                        <span className="text-slate-200">{category}</span>
+                        <span className="text-[#6B7280] block text-[10px] font-sans font-bold uppercase">Category</span>
+                        <span className="text-[#E5E7EB]">{category}</span>
                       </div>
                     </div>
                   </div>
@@ -540,32 +541,32 @@ export function ProviderDetailDrawer({
 
               {/* TAB 2: GENERAL */}
               {activeTab === "general" && (
-                <div className="space-y-4 p-5 bg-slate-950 border border-slate-800 rounded-2xl">
-                  <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-blue-400" />
+                <div className="space-y-4 p-5 bg-[#111827] border border-[#111827] rounded-2xl">
+                  <h3 className="text-xs font-bold text-[#E5E7EB] uppercase tracking-wider flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-[#9CA3AF]" />
                     <span>General Information</span>
                   </h3>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Provider Name *</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Provider Name *</label>
                       <input
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         required
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Provider Category / Type</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Provider Category / Type</label>
                       <select
                         value={category}
                         onChange={(e) => {
                           setCategory(e.target.value);
                           setProviderType(e.target.value);
                         }}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
                       >
                         <option value="PAYMENT_GATEWAY">PAYMENT_GATEWAY</option>
                         <option value="WALLET_ENGINE">WALLET_ENGINE</option>
@@ -580,34 +581,34 @@ export function ProviderDetailDrawer({
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Description</label>
+                    <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Description</label>
                     <textarea
                       rows={3}
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500"
+                      className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
                       placeholder="Brief description of this API integration..."
                     />
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Logo URL</label>
+                    <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Logo URL</label>
                     <input
                       type="text"
                       value={logoUrl}
                       onChange={(e) => setLogoUrl(e.target.value)}
                       placeholder="https://example.com/logo.png"
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-blue-500"
+                      className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4 pt-2">
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Status</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Status</label>
                       <select
                         value={status}
                         onChange={(e) => setStatus(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
                       >
                         <option value="ENABLED">ENABLED (Active)</option>
                         <option value="DISABLED">DISABLED (Inactive)</option>
@@ -615,11 +616,11 @@ export function ProviderDetailDrawer({
                     </div>
 
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Environment</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Environment</label>
                       <select
                         value={environment}
                         onChange={(e) => setEnvironment(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
                       >
                         <option value="Production">Production</option>
                         <option value="Sandbox">Sandbox</option>
@@ -632,115 +633,116 @@ export function ProviderDetailDrawer({
 
               {/* TAB 3: API CREDENTIALS */}
               {activeTab === "api" && (
-                <div className="space-y-4 p-5 bg-slate-950 border border-slate-800 rounded-2xl">
-                  <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-                    <Key className="h-4 w-4 text-emerald-400" />
+                <div className="space-y-4 p-5 bg-[#111827] border border-[#111827] rounded-2xl">
+                  <h3 className="text-xs font-bold text-[#E5E7EB] uppercase tracking-wider flex items-center gap-2">
+                    <Key className="h-4 w-4 text-[#9CA3AF]" />
                     <span>API Credentials & Endpoints</span>
                   </h3>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Base URL *</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Base URL *</label>
                       <input
                         type="text"
                         value={baseUrl}
                         onChange={(e) => setBaseUrl(e.target.value)}
                         required
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-blue-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">API Version</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">API Version</label>
                       <input
                         type="text"
                         value={apiVersion}
                         onChange={(e) => setApiVersion(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-blue-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">API Key</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">API Key</label>
                       <input
                         type="password"
                         value={apiKey}
                         onChange={(e) => setApiKey(e.target.value)}
                         placeholder="••••••••"
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-blue-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Secret Key</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Secret Key</label>
                       <input
                         type="password"
                         value={secretKey}
                         onChange={(e) => setSecretKey(e.target.value)}
                         placeholder="••••••••"
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-blue-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Public Key</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Public Key</label>
                       <input
                         type="text"
                         value={publicKey}
                         onChange={(e) => setPublicKey(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-blue-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Private Key</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Private Key</label>
                       <input
                         type="password"
                         value={privateKey}
                         onChange={(e) => setPrivateKey(e.target.value)}
                         placeholder="••••••••"
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-blue-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Merchant ID</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Merchant ID</label>
                       <input
                         type="text"
                         value={merchantId}
                         onChange={(e) => setMerchantId(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-blue-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Client ID</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Client ID / App ID</label>
                       <input
                         type="text"
                         value={clientId}
                         onChange={(e) => setClientId(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-blue-500"
+                        placeholder="e.g. LumiID App ID"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Client Secret</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Client Secret</label>
                       <input
                         type="password"
                         value={clientSecret}
                         onChange={(e) => setClientSecret(e.target.value)}
                         placeholder="••••••••"
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-blue-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Business ID</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Business ID</label>
                       <input
                         type="text"
                         value={businessId}
                         onChange={(e) => setBusinessId(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-blue-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                   </div>
@@ -749,47 +751,47 @@ export function ProviderDetailDrawer({
 
               {/* TAB 4: WEBHOOK & URLS */}
               {activeTab === "webhook" && (
-                <div className="space-y-4 p-5 bg-slate-950 border border-slate-800 rounded-2xl">
-                  <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-                    <Webhook className="h-4 w-4 text-purple-400" />
+                <div className="space-y-4 p-5 bg-[#111827] border border-[#111827] rounded-2xl">
+                  <h3 className="text-xs font-bold text-[#E5E7EB] uppercase tracking-wider flex items-center gap-2">
+                    <Webhook className="h-4 w-4 text-[#9CA3AF]" />
                     <span>Webhook & Redirect URLs</span>
                   </h3>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Webhook Endpoint URL</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Webhook Endpoint URL</label>
                       <input
                         type="text"
                         value={webhookUrl}
                         onChange={(e) => setWebhookUrl(e.target.value)}
                         placeholder="https://api.smartlink.com/api/webhooks/..."
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-purple-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Webhook Secret / General Secret</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Webhook Secret / General Secret</label>
                       <input
                         type="password"
                         value={webhookSecret}
                         onChange={(e) => setWebhookSecret(e.target.value)}
                         placeholder="••••••••"
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-purple-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                   </div>
 
                   {/* Webhook Signature Security Section */}
-                  <div className="p-3 bg-slate-900/80 border border-slate-800 rounded-xl space-y-3">
-                    <div className="text-[11px] font-semibold text-purple-300 uppercase tracking-wide">
+                  <div className="p-3 bg-[#111827]/80 border border-[#111827] rounded-xl space-y-3">
+                    <div className="text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wide">
                       Webhook Signature Security Configuration
                     </div>
                     <div className="grid grid-cols-3 gap-3">
                       <div>
-                        <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Signature Method</label>
+                        <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Signature Method</label>
                         <select
                           value={webhookSignatureMethod}
                           onChange={(e: any) => setWebhookSignatureMethod(e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-purple-500"
+                          className="w-full bg-[#111827] border border-[#111827] rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
                         >
                           <option value="MD5_OF_SECRET">MD5 (Secret Key)</option>
                           <option value="HMAC-SHA512">HMAC-SHA512</option>
@@ -798,23 +800,23 @@ export function ProviderDetailDrawer({
                         </select>
                       </div>
                       <div>
-                        <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Signature Header Name</label>
+                        <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Signature Header Name</label>
                         <input
                           type="text"
                           value={webhookSignatureHeaderName}
                           onChange={(e) => setWebhookSignatureHeaderName(e.target.value)}
                           placeholder="e.g. x-signature"
-                          className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-purple-500"
+                          className="w-full bg-[#111827] border border-[#111827] rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Webhook Signing Secret</label>
+                        <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Webhook Signing Secret</label>
                         <input
                           type="password"
                           value={webhookSigningSecret}
                           onChange={(e) => setWebhookSigningSecret(e.target.value)}
                           placeholder="••••••••"
-                          className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-purple-500"
+                          className="w-full bg-[#111827] border border-[#111827] rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                         />
                       </div>
                     </div>
@@ -822,51 +824,51 @@ export function ProviderDetailDrawer({
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Callback URL</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Callback URL</label>
                       <input
                         type="text"
                         value={callbackUrl}
                         onChange={(e) => setCallbackUrl(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-purple-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Redirect URL</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Redirect URL</label>
                       <input
                         type="text"
                         value={redirectUrl}
                         onChange={(e) => setRedirectUrl(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-purple-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Success URL</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Success URL</label>
                       <input
                         type="text"
                         value={successUrl}
                         onChange={(e) => setSuccessUrl(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-purple-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Failed URL</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Failed URL</label>
                       <input
                         type="text"
                         value={failedUrl}
                         onChange={(e) => setFailedUrl(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-purple-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Cancel URL</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Cancel URL</label>
                       <input
                         type="text"
                         value={cancelUrl}
                         onChange={(e) => setCancelUrl(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-purple-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                   </div>
@@ -875,66 +877,66 @@ export function ProviderDetailDrawer({
 
               {/* TAB 5: SECURITY KEYS */}
               {activeTab === "security" && (
-                <div className="space-y-4 p-5 bg-slate-950 border border-slate-800 rounded-2xl">
-                  <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-                    <Lock className="h-4 w-4 text-amber-400" />
+                <div className="space-y-4 p-5 bg-[#111827] border border-[#111827] rounded-2xl">
+                  <h3 className="text-xs font-bold text-[#E5E7EB] uppercase tracking-wider flex items-center gap-2">
+                    <Lock className="h-4 w-4 text-[#9CA3AF]" />
                     <span>Encryption & Security Keys</span>
                   </h3>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Encryption Key</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Encryption Key</label>
                       <input
                         type="password"
                         value={encryptionKey}
                         onChange={(e) => setEncryptionKey(e.target.value)}
                         placeholder="••••••••"
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-amber-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Signature Key</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Signature Key</label>
                       <input
                         type="password"
                         value={signatureKey}
                         onChange={(e) => setSignatureKey(e.target.value)}
                         placeholder="••••••••"
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-amber-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">RSA Public Key</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">RSA Public Key</label>
                       <textarea
                         rows={2}
                         value={rsaPublicKey}
                         onChange={(e) => setRsaPublicKey(e.target.value)}
                         placeholder="-----BEGIN PUBLIC KEY-----"
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-amber-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">RSA Private Key</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">RSA Private Key</label>
                       <textarea
                         rows={2}
                         value={rsaPrivateKey}
                         onChange={(e) => setRsaPrivateKey(e.target.value)}
                         placeholder="••••••••"
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-amber-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">HMAC Secret</label>
+                    <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">HMAC Secret</label>
                     <input
                       type="password"
                       value={hmacSecret}
                       onChange={(e) => setHmacSecret(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-amber-500"
+                      className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                     />
                   </div>
                 </div>
@@ -942,9 +944,9 @@ export function ProviderDetailDrawer({
 
               {/* TAB 6: FEATURES */}
               {activeTab === "features" && (
-                <div className="space-y-4 p-5 bg-slate-950 border border-slate-800 rounded-2xl">
-                  <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-                    <Sliders className="h-4 w-4 text-blue-400" />
+                <div className="space-y-4 p-5 bg-[#111827] border border-[#111827] rounded-2xl">
+                  <h3 className="text-xs font-bold text-[#E5E7EB] uppercase tracking-wider flex items-center gap-2">
+                    <Sliders className="h-4 w-4 text-[#9CA3AF]" />
                     <span>Feature Enable/Disable Toggles</span>
                   </h3>
 
@@ -964,15 +966,15 @@ export function ProviderDetailDrawer({
                         onClick={() => f.set(!f.state)}
                         className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
                           f.state
-                            ? "bg-slate-900 border-blue-800/80 text-white"
-                            : "bg-slate-950 border-slate-800/80 text-slate-500 opacity-60"
+                            ? "bg-[#111827] border-[#0F2D5C]/80 text-white"
+                            : "bg-[#111827] border-[#111827]/80 text-[#6B7280] opacity-60"
                         }`}
                       >
                         <span className="text-xs font-bold">{f.label}</span>
                         {f.state ? (
-                          <ToggleRight className="h-5 w-5 text-blue-400" />
+                          <ToggleRight className="h-5 w-5 text-[#9CA3AF]" />
                         ) : (
-                          <ToggleLeft className="h-5 w-5 text-slate-600" />
+                          <ToggleLeft className="h-5 w-5 text-[#4B5563]" />
                         )}
                       </div>
                     ))}
@@ -983,15 +985,15 @@ export function ProviderDetailDrawer({
               {/* TAB 7: TEST CONNECTION */}
               {activeTab === "test" && (
                 <div className="space-y-6">
-                  <div className="p-5 bg-slate-950 border border-slate-800 rounded-2xl space-y-3">
+                  <div className="p-5 bg-[#111827] border border-[#111827] rounded-2xl space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-amber-950 border border-amber-800 rounded-xl text-amber-400">
+                        <div className="p-2.5 bg-[#0F2D5C] border border-[#0F2D5C] rounded-xl text-[#9CA3AF]">
                           <Zap className="h-5 w-5" />
                         </div>
                         <div>
                           <h3 className="text-sm font-bold text-white">Live Connection Ping Tester</h3>
-                          <p className="text-xs text-slate-400">Ping provider API endpoint to verify latency and auth status.</p>
+                          <p className="text-xs text-[#9CA3AF]">Ping provider API endpoint to verify latency and auth status.</p>
                         </div>
                       </div>
 
@@ -999,7 +1001,7 @@ export function ProviderDetailDrawer({
                         type="button"
                         onClick={handleTestConnection}
                         disabled={testingConnection}
-                        className="py-2.5 px-5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-lg shadow-amber-500/20"
+                        className="py-2.5 px-5 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-[#111827] font-black text-xs rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-lg shadow-none"
                       >
                         {testingConnection ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
                         <span>{testingConnection ? "Pinging..." : "Run Connection Test"}</span>
@@ -1008,14 +1010,14 @@ export function ProviderDetailDrawer({
                   </div>
 
                   {testResult && (
-                    <div className="p-5 bg-slate-950 border border-slate-800 rounded-2xl space-y-4 animate-fade-in">
-                      <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Test Execution Result</span>
+                    <div className="p-5 bg-[#111827] border border-[#111827] rounded-2xl space-y-4 animate-fade-in">
+                      <div className="flex items-center justify-between border-b border-[#111827] pb-3">
+                        <span className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wider">Test Execution Result</span>
                         <span
                           className={`px-2.5 py-1 text-xs font-bold rounded-full border ${
                             testResult.status === "ONLINE"
-                              ? "bg-emerald-950 text-emerald-400 border-emerald-800"
-                              : "bg-rose-950 text-rose-400 border-rose-800"
+                              ? "bg-[#0F2D5C] text-[#9CA3AF] border-[#0F2D5C]"
+                              : "bg-[#0F2D5C] text-[#9CA3AF] border-[#0F2D5C]"
                           }`}
                         >
                           {testResult.status}
@@ -1024,16 +1026,16 @@ export function ProviderDetailDrawer({
 
                       <div className="grid grid-cols-2 gap-4 font-mono text-xs">
                         <div>
-                          <span className="text-slate-500 block text-[10px] uppercase font-bold">Latency</span>
-                          <span className="text-blue-400 font-bold">{testResult.latencyMs} ms</span>
+                          <span className="text-[#6B7280] block text-[10px] uppercase font-bold">Latency</span>
+                          <span className="text-[#9CA3AF] font-bold">{testResult.latencyMs} ms</span>
                         </div>
                         <div>
-                          <span className="text-slate-500 block text-[10px] uppercase font-bold">Environment</span>
+                          <span className="text-[#6B7280] block text-[10px] uppercase font-bold">Environment</span>
                           <span className="text-white">{testResult.environmentTested}</span>
                         </div>
                         <div className="col-span-2">
-                          <span className="text-slate-500 block text-[10px] uppercase font-bold">Tested Endpoint</span>
-                          <span className="text-slate-300">{testResult.baseUrlTested}</span>
+                          <span className="text-[#6B7280] block text-[10px] uppercase font-bold">Tested Endpoint</span>
+                          <span className="text-[#E5E7EB]">{testResult.baseUrlTested}</span>
                         </div>
                       </div>
                     </div>
@@ -1045,23 +1047,23 @@ export function ProviderDetailDrawer({
               {activeTab === "logs" && (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Health & Connection Activity Logs</h3>
-                    <span className="text-xs text-slate-500 font-mono">{logs.length} Log Entries</span>
+                    <h3 className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wider">Health & Connection Activity Logs</h3>
+                    <span className="text-xs text-[#6B7280] font-mono">{logs.length} Log Entries</span>
                   </div>
 
                   {logs.length === 0 ? (
-                    <div className="p-8 text-center border border-dashed border-slate-800 rounded-2xl text-slate-500 text-xs">
+                    <div className="p-8 text-center border border-dashed border-[#111827] rounded-2xl text-[#6B7280] text-xs">
                       No logs recorded yet for this provider.
                     </div>
                   ) : (
                     <div className="space-y-2 font-mono text-xs">
                       {logs.map((log: any) => (
-                        <div key={log.id} className="p-3 bg-slate-950 border border-slate-800/80 rounded-xl space-y-1">
+                        <div key={log.id} className="p-3 bg-[#111827] border border-[#111827]/80 rounded-xl space-y-1">
                           <div className="flex items-center justify-between">
-                            <span className="text-blue-400 font-bold">{log.action}</span>
-                            <span className="text-slate-500 text-[10px]">{new Date(log.timestamp).toLocaleString()}</span>
+                            <span className="text-[#9CA3AF] font-bold">{log.action}</span>
+                            <span className="text-[#6B7280] text-[10px]">{new Date(log.timestamp).toLocaleString()}</span>
                           </div>
-                          <p className="text-slate-300 text-[11px]">{log.details}</p>
+                          <p className="text-[#E5E7EB] text-[11px]">{log.details}</p>
                         </div>
                       ))}
                     </div>
@@ -1069,11 +1071,11 @@ export function ProviderDetailDrawer({
                 </div>
               )}
 
-              <div className="pt-4 border-t border-slate-800 flex items-center justify-between">
+              <div className="pt-4 border-t border-[#111827] flex items-center justify-between">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="py-2.5 px-5 bg-slate-900 hover:bg-slate-800 text-slate-400 font-bold text-xs rounded-xl"
+                  className="py-2.5 px-5 bg-[#111827] hover:bg-[#111827] text-[#9CA3AF] font-bold text-xs rounded-xl"
                 >
                   Cancel
                 </button>
@@ -1081,7 +1083,7 @@ export function ProviderDetailDrawer({
                 <button
                   type="submit"
                   disabled={savingConfig}
-                  className="py-2.5 px-6 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold text-xs rounded-xl flex items-center gap-2 cursor-pointer shadow-lg shadow-blue-600/20"
+                  className="py-2.5 px-6 bg-[#0F2D5C] hover:bg-[#0F2D5C] disabled:opacity-50 text-white font-bold text-xs rounded-xl flex items-center gap-2 cursor-pointer shadow-lg shadow-none"
                 >
                   {savingConfig ? <RefreshCw className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
                   <span>{savingConfig ? "Saving..." : "Save All Changes"}</span>

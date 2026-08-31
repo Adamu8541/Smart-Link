@@ -8,29 +8,29 @@ import { Shield, Activity, Lock } from "lucide-react";
 
 export default function AdminFooter() {
   return (
-    <footer className="mt-auto border-t border-[#E5EAF0] bg-white py-4 px-4 md:px-8 text-[11px] text-[#667085] flex flex-col md:flex-row items-center justify-between gap-3">
+    <footer className="mt-auto border-t border-[#0F2D5C] bg-white py-4 px-4 md:px-8 text-[11px] text-[#0F2D5C] flex flex-col md:flex-row items-center justify-between gap-3">
       <div className="flex flex-wrap items-center gap-4">
-        <div className="flex items-center gap-1.5 text-[#0B1F3A] font-semibold">
-          <Shield className="h-3.5 w-3.5 text-[#0066FF]" />
+        <div className="flex items-center gap-1.5 text-[#0F2D5C] font-semibold">
+          <Shield className="h-3.5 w-3.5 text-[#0F2D5C]" />
           <span>SmartLink Admin Portal</span>
         </div>
 
-        <span className="hidden md:inline text-[#E5EAF0]">•</span>
+        <span className="hidden md:inline text-[#0F2D5C]">•</span>
 
         <div className="flex items-center gap-1.5">
-          <Activity className="h-3.5 w-3.5 text-[#12B76A]" />
-          <span>Firestore Status: <strong className="text-[#12B76A] font-mono">100% Synced</strong></span>
+          <Activity className="h-3.5 w-3.5 text-[#0F2D5C]" />
+          <span>Sync Status: <strong className="text-[#0F2D5C] font-mono">100% Operational</strong></span>
         </div>
 
-        <span className="hidden md:inline text-[#E5EAF0]">•</span>
+        <span className="hidden md:inline text-[#0F2D5C]">•</span>
 
         <div className="flex items-center gap-1.5">
-          <Lock className="h-3.5 w-3.5 text-[#0066FF]" />
-          <span>RBAC Security: <strong className="text-[#101828] font-mono">Enforced</strong></span>
+          <Lock className="h-3.5 w-3.5 text-[#0F2D5C]" />
+          <span>RBAC Security: <strong className="text-[#0F2D5C] font-mono">Enforced</strong></span>
         </div>
       </div>
 
-      <div className="text-[#667085] font-mono text-[10px]">
+      <div className="text-[#0F2D5C] font-mono text-[10px]">
         © 2026 SmartLink Technologies Ltd. All rights reserved.
       </div>
     </footer>

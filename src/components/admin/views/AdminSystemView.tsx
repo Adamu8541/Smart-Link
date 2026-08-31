@@ -1,6 +1,6 @@
 /**
  * SmartLink Admin Panel — System Health & Live Audit Logs View
- * Live Server Telemetry, Firestore Diagnostics & Homepage Theme Matching
+ * Live Server Telemetry, Cloud Database Diagnostics & Homepage Theme Matching
  */
 
 import React, { useState, useEffect } from "react";
@@ -95,11 +95,11 @@ export function AdminSystemView({ session, onNavigate }: AdminSystemViewProps) {
       {/* Top Header Card */}
       <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6 md:p-8 shadow-[0_4px_12px_rgba(15,23,42,0.06)] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-blue-50 border border-blue-100 rounded-2xl text-[#0F2D5C]">
+          <div className="p-3 bg-[#F5F7FA] border border-[#E5E7EB] rounded-2xl text-[#0F2D5C]">
             <Server className="h-7 w-7" />
           </div>
           <div>
-            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-blue-50 text-[#0F2D5C] text-xs font-semibold mb-1">
+            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-[#F5F7FA] text-[#0F2D5C] text-xs font-semibold mb-1">
               <ShieldCheck className="h-3.5 w-3.5" />
               <span>Core Infrastructure & Diagnostics</span>
             </div>
@@ -107,7 +107,7 @@ export function AdminSystemView({ session, onNavigate }: AdminSystemViewProps) {
               System Health & Diagnostics Center
             </h1>
             <p className="text-xs md:text-sm text-[#4B5563] mt-0.5">
-              Live server performance metrics, Firestore database connection health, memory allocations, and audit stream.
+              Live server performance metrics, Cloud database connection health, memory allocations, and audit stream.
             </p>
           </div>
         </div>
@@ -129,9 +129,9 @@ export function AdminSystemView({ session, onNavigate }: AdminSystemViewProps) {
         <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-[0_4px_12px_rgba(15,23,42,0.06)] space-y-1">
           <div className="flex items-center justify-between text-[#4B5563]">
             <span className="text-xs font-semibold">Node.js Server Status</span>
-            <Activity className="h-4 w-4 text-emerald-600 animate-pulse" />
+            <Activity className="h-4 w-4 text-[#0F2D5C] animate-pulse" />
           </div>
-          <p className="text-2xl font-bold text-emerald-600">
+          <p className="text-2xl font-bold text-[#0F2D5C]">
             {health?.status || "HEALTHY"}
           </p>
           <span className="text-[11px] text-[#4B5563]">
@@ -141,13 +141,13 @@ export function AdminSystemView({ session, onNavigate }: AdminSystemViewProps) {
 
         <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-[0_4px_12px_rgba(15,23,42,0.06)] space-y-1">
           <div className="flex items-center justify-between text-[#4B5563]">
-            <span className="text-xs font-semibold">Firestore Database</span>
+            <span className="text-xs font-semibold">Cloud Database</span>
             <Database className="h-4 w-4 text-[#0F2D5C]" />
           </div>
           <p className="text-2xl font-bold text-[#0F2D5C]">
             {health?.firestoreStatus || "CONNECTED"}
           </p>
-          <span className="text-[11px] text-emerald-600 font-medium">Single source of truth</span>
+          <span className="text-[11px] text-[#0F2D5C] font-medium">Single source of truth</span>
         </div>
 
         <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-[0_4px_12px_rgba(15,23,42,0.06)] space-y-1">
@@ -166,12 +166,12 @@ export function AdminSystemView({ session, onNavigate }: AdminSystemViewProps) {
         <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-[0_4px_12px_rgba(15,23,42,0.06)] space-y-1">
           <div className="flex items-center justify-between text-[#4B5563]">
             <span className="text-xs font-semibold">Gateway Ping Latency</span>
-            <Zap className="h-4 w-4 text-amber-600" />
+            <Zap className="h-4 w-4 text-[#0F2D5C]" />
           </div>
           <p className="text-2xl font-bold text-[#111827]">
             {health?.apiGatewayLatencyMs || 85} ms
           </p>
-          <span className="text-[11px] text-emerald-600 font-medium">Sub-100ms ultra low latency</span>
+          <span className="text-[11px] text-[#0F2D5C] font-medium">Sub-100ms ultra low latency</span>
         </div>
       </div>
 
@@ -179,7 +179,7 @@ export function AdminSystemView({ session, onNavigate }: AdminSystemViewProps) {
       <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-[0_4px_12px_rgba(15,23,42,0.06)] space-y-4">
         <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#0F2D5C]">
           <Layers className="h-4 w-4" />
-          <span>Live Firestore Database Collection Records</span>
+          <span>Live Cloud Database Collection Records</span>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -224,7 +224,7 @@ export function AdminSystemView({ session, onNavigate }: AdminSystemViewProps) {
           {loading && logs.length === 0 ? (
             <div className="py-8 text-center text-xs text-[#4B5563]">
               <RefreshCw className="h-5 w-5 animate-spin mx-auto text-[#0F2D5C] mb-1" />
-              <span>Fetching audit events from Firestore...</span>
+              <span>Fetching audit events from Cloud Database...</span>
             </div>
           ) : logs.length === 0 ? (
             <div className="py-8 text-center text-xs text-[#4B5563]">
@@ -235,7 +235,7 @@ export function AdminSystemView({ session, onNavigate }: AdminSystemViewProps) {
               <div key={log.id ? `syslog-${log.id}-${index}` : `syslog-${index}`} className="p-4 hover:bg-[#F9FAFB] transition-colors text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded-full bg-blue-50 text-[#0F2D5C] border border-blue-200 font-mono text-[10px] font-bold">
+                    <span className="px-2 py-0.5 rounded-full bg-[#F5F7FA] text-[#0F2D5C] border border-[#E5E7EB] font-mono text-[10px] font-bold">
                       {log.action}
                     </span>
                     <span className="text-[#111827] font-medium">{log.details}</span>

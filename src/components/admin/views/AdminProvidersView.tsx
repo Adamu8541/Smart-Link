@@ -270,6 +270,7 @@ export function AdminProvidersView() {
           privateKey: addPrivateKey,
           merchantId: addMerchantId,
           clientId: addClientId,
+          appId: addClientId,
           clientSecret: addClientSecret,
           businessId: addBusinessId,
           webhookUrl: addWebhookUrl,
@@ -342,20 +343,20 @@ export function AdminProvidersView() {
   ];
 
   return (
-    <div className="p-6 md:p-8 space-y-8 bg-slate-950 min-h-screen text-slate-100 font-sans">
+    <div className="p-6 md:p-8 space-y-8 bg-[#111827] min-h-screen text-[#E5E7EB] font-sans">
       {/* Header Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#111827] pb-6">
         <div>
-          <div className="flex items-center gap-2 text-xs font-mono font-bold text-blue-400 mb-1">
+          <div className="flex items-center gap-2 text-xs font-mono font-bold text-[#9CA3AF] mb-1">
             <span>ADMINISTRATIVE CONTROL</span>
             <span>/</span>
-            <span className="text-slate-400">MODULE 6</span>
+            <span className="text-[#9CA3AF]">MODULE 6</span>
           </div>
           <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight flex items-center gap-3">
-            <Server className="h-8 w-8 text-blue-500" />
+            <Server className="h-8 w-8 text-[#0F2D5C]" />
             <span>API Provider Management</span>
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-[#9CA3AF] mt-1">
             Dynamic provider manager for Payment Gateways, Wallet Engines, Identity APIs, VTU & Utilities.
           </p>
         </div>
@@ -363,7 +364,7 @@ export function AdminProvidersView() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="py-2.5 px-4 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl flex items-center gap-2 shadow-lg shadow-blue-600/20 transition-all cursor-pointer"
+            className="py-2.5 px-4 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-bold text-xs rounded-xl flex items-center gap-2 shadow-lg shadow-none transition-all cursor-pointer"
           >
             <Plus className="h-4 w-4" />
             <span>Add Provider</span>
@@ -372,87 +373,87 @@ export function AdminProvidersView() {
           <button
             onClick={fetchProviders}
             disabled={loading}
-            className="py-2.5 px-4 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-bold text-xs rounded-xl flex items-center gap-2 transition-all cursor-pointer"
+            className="py-2.5 px-4 bg-[#111827] hover:bg-[#111827] border border-[#111827] text-[#E5E7EB] font-bold text-xs rounded-xl flex items-center gap-2 transition-all cursor-pointer"
           >
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-blue-400" : ""}`} />
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-[#9CA3AF]" : ""}`} />
             <span>Refresh</span>
           </button>
         </div>
       </div>
 
       {toast && (
-        <div className="p-4 bg-slate-900 border border-blue-800/80 text-blue-300 text-xs font-medium rounded-2xl flex items-center justify-between shadow-lg">
+        <div className="p-4 bg-[#111827] border border-[#0F2D5C]/80 text-[#9CA3AF] text-xs font-medium rounded-2xl flex items-center justify-between shadow-lg">
           <span>{toast}</span>
-          <button onClick={() => setToast(null)} className="text-slate-400 hover:text-white">✕</button>
+          <button onClick={() => setToast(null)} className="text-[#9CA3AF] hover:text-white">✕</button>
         </div>
       )}
 
       {/* Dashboard KPI Widgets Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl space-y-2">
-          <div className="flex items-center justify-between text-slate-400 text-[10px] font-bold uppercase tracking-wider">
+        <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl space-y-2">
+          <div className="flex items-center justify-between text-[#9CA3AF] text-[10px] font-bold uppercase tracking-wider">
             <span>Active Providers</span>
-            <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+            <CheckCircle2 className="h-4 w-4 text-[#9CA3AF]" />
           </div>
           <div className="text-2xl font-black text-white">{metrics?.activeProviders ?? "--"}</div>
-          <span className="text-[10px] text-emerald-400 font-medium">Online & Enabled</span>
+          <span className="text-[10px] text-[#9CA3AF] font-medium">Online & Enabled</span>
         </div>
 
-        <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl space-y-2">
-          <div className="flex items-center justify-between text-slate-400 text-[10px] font-bold uppercase tracking-wider">
+        <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl space-y-2">
+          <div className="flex items-center justify-between text-[#9CA3AF] text-[10px] font-bold uppercase tracking-wider">
             <span>Offline / Degraded</span>
-            <XCircle className="h-4 w-4 text-rose-400" />
+            <XCircle className="h-4 w-4 text-[#9CA3AF]" />
           </div>
-          <div className="text-2xl font-black text-rose-400">{metrics?.offlineProviders ?? "--"}</div>
-          <span className="text-[10px] text-slate-500 font-medium font-mono">Requires Attention</span>
+          <div className="text-2xl font-black text-[#9CA3AF]">{metrics?.offlineProviders ?? "--"}</div>
+          <span className="text-[10px] text-[#6B7280] font-medium font-mono">Requires Attention</span>
         </div>
 
-        <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl space-y-2">
-          <div className="flex items-center justify-between text-slate-400 text-[10px] font-bold uppercase tracking-wider">
+        <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl space-y-2">
+          <div className="flex items-center justify-between text-[#9CA3AF] text-[10px] font-bold uppercase tracking-wider">
             <span>Avg Response Time</span>
-            <Zap className="h-4 w-4 text-amber-400" />
+            <Zap className="h-4 w-4 text-[#9CA3AF]" />
           </div>
-          <div className="text-2xl font-black text-blue-400 font-mono">
+          <div className="text-2xl font-black text-[#9CA3AF] font-mono">
             {metrics?.avgResponseTimeMs ? `${metrics.avgResponseTimeMs} ms` : "--"}
           </div>
-          <span className="text-[10px] text-slate-400 font-medium">Roundtrip Latency</span>
+          <span className="text-[10px] text-[#9CA3AF] font-medium">Roundtrip Latency</span>
         </div>
 
-        <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl space-y-2">
-          <div className="flex items-center justify-between text-slate-400 text-[10px] font-bold uppercase tracking-wider">
+        <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl space-y-2">
+          <div className="flex items-center justify-between text-[#9CA3AF] text-[10px] font-bold uppercase tracking-wider">
             <span>Success Rate</span>
-            <Activity className="h-4 w-4 text-emerald-400" />
+            <Activity className="h-4 w-4 text-[#9CA3AF]" />
           </div>
-          <div className="text-2xl font-black text-emerald-400 font-mono">
+          <div className="text-2xl font-black text-[#9CA3AF] font-mono">
             {metrics?.overallSuccessRate ? `${metrics.overallSuccessRate}%` : "--"}
           </div>
-          <span className="text-[10px] text-slate-500 font-medium">Systemwide SLA</span>
+          <span className="text-[10px] text-[#6B7280] font-medium">Systemwide SLA</span>
         </div>
 
-        <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl space-y-2">
-          <div className="flex items-center justify-between text-slate-400 text-[10px] font-bold uppercase tracking-wider">
+        <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl space-y-2">
+          <div className="flex items-center justify-between text-[#9CA3AF] text-[10px] font-bold uppercase tracking-wider">
             <span>Failovers Today</span>
-            <ArrowRightLeft className="h-4 w-4 text-purple-400" />
+            <ArrowRightLeft className="h-4 w-4 text-[#9CA3AF]" />
           </div>
-          <div className="text-2xl font-black text-purple-400 font-mono">{metrics?.failoversToday ?? 0}</div>
-          <span className="text-[10px] text-slate-400 font-medium">Auto-Switch Triggers</span>
+          <div className="text-2xl font-black text-[#9CA3AF] font-mono">{metrics?.failoversToday ?? 0}</div>
+          <span className="text-[10px] text-[#9CA3AF] font-medium">Auto-Switch Triggers</span>
         </div>
 
-        <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl space-y-2">
-          <div className="flex items-center justify-between text-slate-400 text-[10px] font-bold uppercase tracking-wider">
+        <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl space-y-2">
+          <div className="flex items-center justify-between text-[#9CA3AF] text-[10px] font-bold uppercase tracking-wider">
             <span>Registered Providers</span>
-            <Database className="h-4 w-4 text-slate-400" />
+            <Database className="h-4 w-4 text-[#9CA3AF]" />
           </div>
-          <div className="text-2xl font-black text-slate-200">{metrics?.totalProviders ?? "--"}</div>
-          <span className="text-[10px] text-slate-500 font-medium">Total Integrations</span>
+          <div className="text-2xl font-black text-[#E5E7EB]">{metrics?.totalProviders ?? "--"}</div>
+          <span className="text-[10px] text-[#6B7280] font-medium">Total Integrations</span>
         </div>
       </div>
 
       {/* Filter Toolbar */}
-      <div className="p-5 bg-slate-900 border border-slate-800 rounded-3xl space-y-4">
+      <div className="p-5 bg-[#111827] border border-[#111827] rounded-3xl space-y-4">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="relative w-full md:w-96">
-            <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-500" />
+            <Search className="absolute left-3.5 top-3 h-4 w-4 text-[#6B7280]" />
             <input
               type="text"
               placeholder="Search provider name, base URL, description..."
@@ -461,7 +462,7 @@ export function AdminProvidersView() {
                 setSearch(e.target.value);
                 setPagination((p) => ({ ...p, pageNum: 1 }));
               }}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+              className="w-full bg-[#111827] border border-[#111827] rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-[#6B7280] focus:outline-none focus:border-[#0F2D5C]"
             />
           </div>
 
@@ -472,7 +473,7 @@ export function AdminProvidersView() {
                 setEnvironment(e.target.value);
                 setPagination((p) => ({ ...p, pageNum: 1 }));
               }}
-              className="bg-slate-950 border border-slate-800 text-xs font-bold text-slate-300 rounded-xl px-3 py-2.5 focus:outline-none focus:border-blue-500 cursor-pointer"
+              className="bg-[#111827] border border-[#111827] text-xs font-bold text-[#E5E7EB] rounded-xl px-3 py-2.5 focus:outline-none focus:border-[#0F2D5C] cursor-pointer"
             >
               <option value="ALL">All Environments</option>
               <option value="Production">Production</option>
@@ -486,7 +487,7 @@ export function AdminProvidersView() {
                 setHealthStatus(e.target.value);
                 setPagination((p) => ({ ...p, pageNum: 1 }));
               }}
-              className="bg-slate-950 border border-slate-800 text-xs font-bold text-slate-300 rounded-xl px-3 py-2.5 focus:outline-none focus:border-blue-500 cursor-pointer"
+              className="bg-[#111827] border border-[#111827] text-xs font-bold text-[#E5E7EB] rounded-xl px-3 py-2.5 focus:outline-none focus:border-[#0F2D5C] cursor-pointer"
             >
               <option value="ALL">All Health Statuses</option>
               <option value="ONLINE">ONLINE</option>
@@ -500,7 +501,7 @@ export function AdminProvidersView() {
                 setStatus(e.target.value);
                 setPagination((p) => ({ ...p, pageNum: 1 }));
               }}
-              className="bg-slate-950 border border-slate-800 text-xs font-bold text-slate-300 rounded-xl px-3 py-2.5 focus:outline-none focus:border-blue-500 cursor-pointer"
+              className="bg-[#111827] border border-[#111827] text-xs font-bold text-[#E5E7EB] rounded-xl px-3 py-2.5 focus:outline-none focus:border-[#0F2D5C] cursor-pointer"
             >
               <option value="ALL">All Statuses</option>
               <option value="ENABLED">ENABLED</option>
@@ -510,8 +511,8 @@ export function AdminProvidersView() {
         </div>
 
         {/* Category Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto pt-2 border-t border-slate-800/80">
-          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider shrink-0 mr-1">Categories:</span>
+        <div className="flex items-center gap-2 overflow-x-auto pt-2 border-t border-[#111827]/80">
+          <span className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider shrink-0 mr-1">Categories:</span>
           {categoriesList.map((cat) => (
             <button
               key={cat}
@@ -521,8 +522,8 @@ export function AdminProvidersView() {
               }}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer ${
                 category === cat
-                  ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
-                  : "bg-slate-950 text-slate-400 hover:text-white hover:bg-slate-800"
+                  ? "bg-[#0F2D5C] text-white shadow-lg shadow-none"
+                  : "bg-[#111827] text-[#9CA3AF] hover:text-white hover:bg-[#111827]"
               }`}
             >
               {cat}
@@ -532,11 +533,11 @@ export function AdminProvidersView() {
       </div>
 
       {/* Main Providers Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-xl">
+      <div className="bg-[#111827] border border-[#111827] rounded-3xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-slate-950/80 border-b border-slate-800 text-slate-400 uppercase font-bold text-[10px] tracking-wider">
+              <tr className="bg-[#111827]/80 border-b border-[#111827] text-[#9CA3AF] uppercase font-bold text-[10px] tracking-wider">
                 <th className="py-4 px-6">Provider Name</th>
                 <th className="py-4 px-4">Category</th>
                 <th className="py-4 px-4">Environment</th>
@@ -546,17 +547,17 @@ export function AdminProvidersView() {
                 <th className="py-4 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 font-sans">
+            <tbody className="divide-y divide-[#6B7280] font-sans">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-500">
-                    <RefreshCw className="h-6 w-6 animate-spin text-blue-400 mx-auto mb-2" />
+                  <td colSpan={7} className="py-12 text-center text-[#6B7280]">
+                    <RefreshCw className="h-6 w-6 animate-spin text-[#9CA3AF] mx-auto mb-2" />
                     <span>Loading API providers directory...</span>
                   </td>
                 </tr>
               ) : providers.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-500">
+                  <td colSpan={7} className="py-12 text-center text-[#6B7280]">
                     No providers matched your filter criteria.
                   </td>
                 </tr>
@@ -564,10 +565,10 @@ export function AdminProvidersView() {
                 providers.map((p) => {
                   const isEnabled = p.enabled || p.isActive || p.status === "ENABLED";
                   return (
-                    <tr key={p.id} className="hover:bg-slate-800/40 transition-colors">
+                    <tr key={p.id} className="hover:bg-[#111827]/40 transition-colors">
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-3">
-                          <div className="p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-blue-400 font-black text-xs shrink-0 flex items-center justify-center h-9 w-9 overflow-hidden">
+                          <div className="p-2.5 bg-[#111827] border border-[#111827] rounded-xl text-[#9CA3AF] font-black text-xs shrink-0 flex items-center justify-center h-9 w-9 overflow-hidden">
                             {p.logoUrl ? (
                               <img src={p.logoUrl} alt={p.name} className="h-full w-full object-contain" />
                             ) : (
@@ -578,16 +579,16 @@ export function AdminProvidersView() {
                             <span className="font-bold text-white text-sm flex items-center gap-2">
                               <span>{p.name}</span>
                               {p.isDefault && (
-                                <span className="px-1.5 py-0.5 bg-amber-950 text-amber-400 border border-amber-800 text-[9px] font-bold rounded">DEFAULT</span>
+                                <span className="px-1.5 py-0.5 bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C] text-[9px] font-bold rounded">DEFAULT</span>
                               )}
                             </span>
-                            <span className="text-[11px] text-slate-400 font-mono line-clamp-1">{p.baseUrl}</span>
+                            <span className="text-[11px] text-[#9CA3AF] font-mono line-clamp-1">{p.baseUrl}</span>
                           </div>
                         </div>
                       </td>
 
-                      <td className="py-4 px-4 font-medium text-slate-300">
-                        <span className="px-2.5 py-1 bg-slate-950 border border-slate-800 rounded-lg text-slate-300 text-[11px] font-semibold">
+                      <td className="py-4 px-4 font-medium text-[#E5E7EB]">
+                        <span className="px-2.5 py-1 bg-[#111827] border border-[#111827] rounded-lg text-[#E5E7EB] text-[11px] font-semibold">
                           {p.category || p.providerType}
                         </span>
                       </td>
@@ -596,10 +597,10 @@ export function AdminProvidersView() {
                         <span
                           className={`px-2.5 py-1 text-[10px] font-bold rounded-full border ${
                             p.environment === "Production"
-                              ? "bg-emerald-950 text-emerald-400 border-emerald-800"
+                              ? "bg-[#0F2D5C] text-[#9CA3AF] border-[#0F2D5C]"
                               : p.environment === "Sandbox"
-                              ? "bg-amber-950 text-amber-400 border-amber-800"
-                              : "bg-purple-950 text-purple-400 border-purple-800"
+                              ? "bg-[#0F2D5C] text-[#9CA3AF] border-[#0F2D5C]"
+                              : "bg-[#0F2D5C] text-[#9CA3AF] border-[#0F2D5C]"
                           }`}
                         >
                           {p.environment || "Production"}
@@ -615,12 +616,12 @@ export function AdminProvidersView() {
                             className="cursor-pointer"
                           >
                             {isEnabled ? (
-                              <ToggleRight className="h-6 w-6 text-emerald-400" />
+                              <ToggleRight className="h-6 w-6 text-[#9CA3AF]" />
                             ) : (
-                              <ToggleLeft className="h-6 w-6 text-slate-600" />
+                              <ToggleLeft className="h-6 w-6 text-[#4B5563]" />
                             )}
                           </button>
-                          <span className={`font-bold text-xs ${isEnabled ? "text-emerald-400" : "text-slate-500"}`}>
+                          <span className={`font-bold text-xs ${isEnabled ? "text-[#9CA3AF]" : "text-[#6B7280]"}`}>
                             {isEnabled ? "ACTIVE" : "INACTIVE"}
                           </span>
                         </div>
@@ -628,21 +629,21 @@ export function AdminProvidersView() {
 
                       <td className="py-4 px-4">
                         {p.isDefault ? (
-                          <span className="text-amber-400 font-bold text-xs flex items-center gap-1">
+                          <span className="text-[#9CA3AF] font-bold text-xs flex items-center gap-1">
                             <Check className="h-4 w-4" /> Default
                           </span>
                         ) : (
                           <button
                             type="button"
                             onClick={() => handleSetDefault(p)}
-                            className="py-1 px-2.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white rounded-lg text-[10px] font-bold cursor-pointer"
+                            className="py-1 px-2.5 bg-[#111827] hover:bg-[#111827] border border-[#111827] text-[#9CA3AF] hover:text-white rounded-lg text-[10px] font-bold cursor-pointer"
                           >
                             Set Default
                           </button>
                         )}
                       </td>
 
-                      <td className="py-4 px-4 font-mono font-bold text-blue-400">
+                      <td className="py-4 px-4 font-mono font-bold text-[#9CA3AF]">
                         {p.avgResponseTimeMs || p.avgResponseTime || 180} ms
                       </td>
 
@@ -652,7 +653,7 @@ export function AdminProvidersView() {
                             type="button"
                             onClick={() => handleTestConnection(p.id)}
                             title="Test Connection Ping"
-                            className="p-1.5 bg-amber-950/40 hover:bg-amber-900/60 border border-amber-800/60 text-amber-400 rounded-lg cursor-pointer transition-all"
+                            className="p-1.5 bg-[#0F2D5C]/40 hover:bg-[#0F2D5C]/60 border border-[#0F2D5C]/60 text-[#9CA3AF] rounded-lg cursor-pointer transition-all"
                           >
                             <Zap className="h-3.5 w-3.5" />
                           </button>
@@ -660,7 +661,7 @@ export function AdminProvidersView() {
                           <button
                             type="button"
                             onClick={() => handleOpenDrawer(p.id)}
-                            className="py-1.5 px-3 bg-blue-600/20 hover:bg-blue-600 border border-blue-800 text-blue-400 hover:text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
+                            className="py-1.5 px-3 bg-[#0F2D5C]/20 hover:bg-[#0F2D5C] border border-[#0F2D5C] text-[#9CA3AF] hover:text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
                           >
                             <Settings className="h-3.5 w-3.5" />
                             <span>Manage</span>
@@ -670,7 +671,7 @@ export function AdminProvidersView() {
                             type="button"
                             onClick={() => handleDeleteProvider(p)}
                             title="Delete Provider"
-                            className="p-1.5 bg-rose-950/40 hover:bg-rose-900/60 border border-rose-800/60 text-rose-400 rounded-lg cursor-pointer transition-all"
+                            className="p-1.5 bg-[#0F2D5C]/40 hover:bg-[#0F2D5C]/60 border border-[#0F2D5C]/60 text-[#9CA3AF] rounded-lg cursor-pointer transition-all"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
@@ -685,8 +686,8 @@ export function AdminProvidersView() {
         </div>
 
         {/* Pagination */}
-        <div className="p-4 bg-slate-950 border-t border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4 text-xs">
-          <div className="text-slate-400">
+        <div className="p-4 bg-[#111827] border-t border-[#111827] flex flex-col md:flex-row items-center justify-between gap-4 text-xs">
+          <div className="text-[#9CA3AF]">
             Showing <span className="font-bold text-white">{providers.length}</span> of{" "}
             <span className="font-bold text-white">{pagination.totalRecords}</span> providers
           </div>
@@ -695,19 +696,19 @@ export function AdminProvidersView() {
             <button
               disabled={pagination.pageNum <= 1}
               onClick={() => setPagination((p) => ({ ...p, pageNum: p.pageNum - 1 }))}
-              className="p-2 bg-slate-900 border border-slate-800 rounded-xl text-slate-400 hover:text-white disabled:opacity-40 cursor-pointer"
+              className="p-2 bg-[#111827] border border-[#111827] rounded-xl text-[#9CA3AF] hover:text-white disabled:opacity-40 cursor-pointer"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
 
-            <span className="px-3 py-1 bg-slate-900 border border-slate-800 rounded-xl font-mono text-white">
+            <span className="px-3 py-1 bg-[#111827] border border-[#111827] rounded-xl font-mono text-white">
               Page {pagination.pageNum} of {pagination.totalPages}
             </span>
 
             <button
               disabled={pagination.pageNum >= pagination.totalPages}
               onClick={() => setPagination((p) => ({ ...p, pageNum: p.pageNum + 1 }))}
-              className="p-2 bg-slate-900 border border-slate-800 rounded-xl text-slate-400 hover:text-white disabled:opacity-40 cursor-pointer"
+              className="p-2 bg-[#111827] border border-[#111827] rounded-xl text-[#9CA3AF] hover:text-white disabled:opacity-40 cursor-pointer"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
@@ -725,29 +726,29 @@ export function AdminProvidersView() {
 
       {/* ADD PROVIDER MODAL */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-3xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-6 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111827]/80 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-3xl bg-[#111827] border border-[#111827] rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-6 bg-[#111827] border-b border-[#111827] flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-blue-950 border border-blue-800 rounded-2xl text-blue-400">
+                <div className="p-2.5 bg-[#0F2D5C] border border-[#0F2D5C] rounded-2xl text-[#9CA3AF]">
                   <Plus className="h-5 w-5" />
                 </div>
                 <div>
                   <h2 className="text-lg font-black text-white">Add New Dynamic Provider</h2>
-                  <p className="text-xs text-slate-400">Configure credentials, webhooks, security keys & features for a custom provider.</p>
+                  <p className="text-xs text-[#9CA3AF]">Configure credentials, webhooks, security keys & features for a custom provider.</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsAddModalOpen(false)}
-                className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-xl cursor-pointer"
+                className="p-2 bg-[#111827] hover:bg-[#4B5563] text-[#9CA3AF] hover:text-white rounded-xl cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             {/* Modal Tabs */}
-            <div className="flex items-center gap-1 px-6 pt-3 bg-slate-950/60 border-b border-slate-800 overflow-x-auto">
+            <div className="flex items-center gap-1 px-6 pt-3 bg-[#111827]/60 border-b border-[#111827] overflow-x-auto">
               {[
                 { id: "general", label: "General", icon: FileText },
                 { id: "api", label: "API Credentials", icon: Key },
@@ -764,8 +765,8 @@ export function AdminProvidersView() {
                     onClick={() => setAddFormTab(tab.id as any)}
                     className={`py-2 px-3 text-xs font-bold border-b-2 flex items-center gap-1.5 cursor-pointer whitespace-nowrap transition-all ${
                       addFormTab === tab.id
-                        ? "border-blue-500 text-blue-400"
-                        : "border-transparent text-slate-400 hover:text-white"
+                        ? "border-[#0F2D5C] text-[#9CA3AF]"
+                        : "border-transparent text-[#9CA3AF] hover:text-white"
                     }`}
                   >
                     <Icon className="h-3.5 w-3.5" />
@@ -781,22 +782,22 @@ export function AdminProvidersView() {
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Provider Name *</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Provider Name *</label>
                       <input
                         type="text"
                         value={addName}
                         onChange={(e) => setAddName(e.target.value)}
                         placeholder="e.g. Aspfiy Merchant Services"
                         required
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Provider Type / Category</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Provider Type / Category</label>
                       <select
                         value={addCategory}
                         onChange={(e) => setAddCategory(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
                       >
                         <option value="PAYMENT_GATEWAY">PAYMENT_GATEWAY</option>
                         <option value="WALLET_ENGINE">WALLET_ENGINE</option>
@@ -811,24 +812,24 @@ export function AdminProvidersView() {
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Description</label>
+                    <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Description</label>
                     <textarea
                       rows={3}
                       value={addDescription}
                       onChange={(e) => setAddDescription(e.target.value)}
                       placeholder="Brief provider description..."
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500"
+                      className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
                     />
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Logo URL</label>
+                    <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Logo URL</label>
                     <input
                       type="text"
                       value={addLogoUrl}
                       onChange={(e) => setAddLogoUrl(e.target.value)}
                       placeholder="https://example.com/logo.png"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-blue-500"
+                      className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                     />
                   </div>
                 </div>
@@ -839,113 +840,113 @@ export function AdminProvidersView() {
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Base URL *</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Base URL *</label>
                       <input
                         type="text"
                         value={addBaseUrl}
                         onChange={(e) => setAddBaseUrl(e.target.value)}
                         placeholder="https://api.provider.com/v1"
                         required
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-blue-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">API Version</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">API Version</label>
                       <input
                         type="text"
                         value={addApiVersion}
                         onChange={(e) => setAddApiVersion(e.target.value)}
                         placeholder="v1.0"
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-blue-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">API Key</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">API Key</label>
                       <input
                         type="password"
                         value={addApiKey}
                         onChange={(e) => setAddApiKey(e.target.value)}
                         placeholder="API Key"
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-blue-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Secret Key</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Secret Key</label>
                       <input
                         type="password"
                         value={addSecretKey}
                         onChange={(e) => setAddSecretKey(e.target.value)}
                         placeholder="Secret Key"
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-blue-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Public Key</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Public Key</label>
                       <input
                         type="text"
                         value={addPublicKey}
                         onChange={(e) => setAddPublicKey(e.target.value)}
                         placeholder="Public Key"
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-blue-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Private Key</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Private Key</label>
                       <input
                         type="password"
                         value={addPrivateKey}
                         onChange={(e) => setAddPrivateKey(e.target.value)}
                         placeholder="Private Key"
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-blue-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Merchant ID</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Merchant ID</label>
                       <input
                         type="text"
                         value={addMerchantId}
                         onChange={(e) => setAddMerchantId(e.target.value)}
                         placeholder="Merchant ID"
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-blue-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Client ID</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Client ID / App ID</label>
                       <input
                         type="text"
                         value={addClientId}
                         onChange={(e) => setAddClientId(e.target.value)}
-                        placeholder="Client ID"
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-blue-500"
+                        placeholder="e.g. LumiID App ID"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Client Secret</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Client Secret</label>
                       <input
                         type="password"
                         value={addClientSecret}
                         onChange={(e) => setAddClientSecret(e.target.value)}
                         placeholder="Client Secret"
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-blue-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Business ID</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Business ID</label>
                       <input
                         type="text"
                         value={addBusinessId}
                         onChange={(e) => setAddBusinessId(e.target.value)}
                         placeholder="Business ID"
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-blue-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                   </div>
@@ -957,74 +958,74 @@ export function AdminProvidersView() {
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Webhook URL</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Webhook URL</label>
                       <input
                         type="text"
                         value={addWebhookUrl}
                         onChange={(e) => setAddWebhookUrl(e.target.value)}
                         placeholder="https://example.com/api/webhooks/..."
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-purple-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Webhook Secret</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Webhook Secret</label>
                       <input
                         type="password"
                         value={addWebhookSecret}
                         onChange={(e) => setAddWebhookSecret(e.target.value)}
                         placeholder="Webhook Signing Secret"
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-purple-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Callback URL</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Callback URL</label>
                       <input
                         type="text"
                         value={addCallbackUrl}
                         onChange={(e) => setAddCallbackUrl(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-purple-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Redirect URL</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Redirect URL</label>
                       <input
                         type="text"
                         value={addRedirectUrl}
                         onChange={(e) => setAddRedirectUrl(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-purple-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Success URL</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Success URL</label>
                       <input
                         type="text"
                         value={addSuccessUrl}
                         onChange={(e) => setAddSuccessUrl(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-purple-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Failed URL</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Failed URL</label>
                       <input
                         type="text"
                         value={addFailedUrl}
                         onChange={(e) => setAddFailedUrl(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-purple-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Cancel URL</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Cancel URL</label>
                       <input
                         type="text"
                         value={addCancelUrl}
                         onChange={(e) => setAddCancelUrl(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-purple-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                   </div>
@@ -1036,55 +1037,55 @@ export function AdminProvidersView() {
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Encryption Key</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Encryption Key</label>
                       <input
                         type="password"
                         value={addEncryptionKey}
                         onChange={(e) => setAddEncryptionKey(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-amber-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Signature Key</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Signature Key</label>
                       <input
                         type="password"
                         value={addSignatureKey}
                         onChange={(e) => setAddSignatureKey(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-amber-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">RSA Public Key</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">RSA Public Key</label>
                       <textarea
                         rows={2}
                         value={addRsaPublicKey}
                         onChange={(e) => setAddRsaPublicKey(e.target.value)}
                         placeholder="-----BEGIN PUBLIC KEY-----"
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-amber-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">RSA Private Key</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">RSA Private Key</label>
                       <textarea
                         rows={2}
                         value={addRsaPrivateKey}
                         onChange={(e) => setAddRsaPrivateKey(e.target.value)}
                         placeholder="••••••••"
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-amber-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">HMAC Secret</label>
+                    <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">HMAC Secret</label>
                     <input
                       type="password"
                       value={addHmacSecret}
                       onChange={(e) => setAddHmacSecret(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-amber-500"
+                      className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#0F2D5C]"
                     />
                   </div>
                 </div>
@@ -1093,7 +1094,7 @@ export function AdminProvidersView() {
               {/* TAB 5: FEATURES */}
               {addFormTab === "features" && (
                 <div className="space-y-4">
-                  <span className="text-xs font-bold text-slate-300 uppercase tracking-wider block">Supported Methods & Feature Toggles</span>
+                  <span className="text-xs font-bold text-[#E5E7EB] uppercase tracking-wider block">Supported Methods & Feature Toggles</span>
 
                   <div className="grid grid-cols-2 gap-3">
                     {[
@@ -1110,11 +1111,11 @@ export function AdminProvidersView() {
                         key={i}
                         onClick={() => f.set(!f.state)}
                         className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
-                          f.state ? "bg-slate-950 border-blue-800 text-white" : "bg-slate-950 border-slate-800 text-slate-500 opacity-60"
+                          f.state ? "bg-[#111827] border-[#0F2D5C] text-white" : "bg-[#111827] border-[#111827] text-[#6B7280] opacity-60"
                         }`}
                       >
                         <span className="text-xs font-bold">{f.label}</span>
-                        {f.state ? <ToggleRight className="h-5 w-5 text-blue-400" /> : <ToggleLeft className="h-5 w-5 text-slate-600" />}
+                        {f.state ? <ToggleRight className="h-5 w-5 text-[#9CA3AF]" /> : <ToggleLeft className="h-5 w-5 text-[#4B5563]" />}
                       </div>
                     ))}
                   </div>
@@ -1126,11 +1127,11 @@ export function AdminProvidersView() {
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Initial Status</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Initial Status</label>
                       <select
                         value={addStatus}
                         onChange={(e) => setAddStatus(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
                       >
                         <option value="ENABLED">ENABLED (Active)</option>
                         <option value="DISABLED">DISABLED (Inactive)</option>
@@ -1138,11 +1139,11 @@ export function AdminProvidersView() {
                     </div>
 
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Target Environment</label>
+                      <label className="text-[10px] font-bold uppercase text-[#9CA3AF] block mb-1">Target Environment</label>
                       <select
                         value={addEnvironment}
                         onChange={(e) => setAddEnvironment(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500"
+                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
                       >
                         <option value="Production">Production</option>
                         <option value="Sandbox">Sandbox</option>
@@ -1151,16 +1152,16 @@ export function AdminProvidersView() {
                     </div>
                   </div>
 
-                  <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl flex items-center justify-between">
+                  <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl flex items-center justify-between">
                     <div>
                       <span className="text-xs font-bold text-white block">Set as Default Provider</span>
-                      <span className="text-[11px] text-slate-400 block">Make this provider the active default for {addCategory}.</span>
+                      <span className="text-[11px] text-[#9CA3AF] block">Make this provider the active default for {addCategory}.</span>
                     </div>
                     <button
                       type="button"
                       onClick={() => setAddIsDefault(!addIsDefault)}
                       className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                        addIsDefault ? "bg-amber-500 text-slate-950" : "bg-slate-900 text-slate-400"
+                        addIsDefault ? "bg-[#0F2D5C] text-[#111827]" : "bg-[#111827] text-[#9CA3AF]"
                       }`}
                     >
                       {addIsDefault ? "YES (Default)" : "NO"}
@@ -1169,11 +1170,11 @@ export function AdminProvidersView() {
                 </div>
               )}
 
-              <div className="pt-4 border-t border-slate-800 flex items-center justify-between">
+              <div className="pt-4 border-t border-[#111827] flex items-center justify-between">
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="py-2.5 px-5 bg-slate-950 hover:bg-slate-800 text-slate-400 font-bold text-xs rounded-xl"
+                  className="py-2.5 px-5 bg-[#111827] hover:bg-[#111827] text-[#9CA3AF] font-bold text-xs rounded-xl"
                 >
                   Cancel
                 </button>
@@ -1181,7 +1182,7 @@ export function AdminProvidersView() {
                 <button
                   type="submit"
                   disabled={submittingAdd}
-                  className="py-2.5 px-6 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold text-xs rounded-xl flex items-center gap-2 cursor-pointer shadow-lg shadow-blue-600/20"
+                  className="py-2.5 px-6 bg-[#0F2D5C] hover:bg-[#0F2D5C] disabled:opacity-50 text-white font-bold text-xs rounded-xl flex items-center gap-2 cursor-pointer shadow-lg shadow-none"
                 >
                   {submittingAdd ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
                   <span>{submittingAdd ? "Creating Provider..." : "Save & Register Provider"}</span>

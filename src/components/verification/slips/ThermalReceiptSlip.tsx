@@ -19,7 +19,12 @@ export const ThermalReceiptSlip: React.FC<ThermalReceiptSlipProps> = ({
   const maxWidthClass = paperWidth === "58mm" ? "max-w-[240px]" : "max-w-[320px]";
 
   useEffect(() => {
-    const qrTarget = qrVerificationUrl || `https://smartlinkdigital.ng/verify/slip/${slip.qrVerificationToken}`;
+    // Generate QR using cryptographically signed payload from server
+    // Fallback to verification URL if signed content is not present (legacy records)
+    const qrTarget = slip.signedQrContent || qrVerificationUrl;
+
+    if (!qrTarget) return;
+
     QRCode.toDataURL(qrTarget, {
       width: 180,
       margin: 0,
@@ -28,7 +33,7 @@ export const ThermalReceiptSlip: React.FC<ThermalReceiptSlipProps> = ({
     })
       .then((url) => setQrDataUrl(url))
       .catch((err) => console.error("Thermal QR Error:", err));
-  }, [qrVerificationUrl, slip.qrVerificationToken]);
+  }, [qrVerificationUrl, slip.signedQrContent, slip.qrVerificationToken]);
 
   return (
     <div
@@ -70,11 +75,11 @@ export const ThermalReceiptSlip: React.FC<ThermalReceiptSlipProps> = ({
       {/* Verified Record Body */}
       <div className="py-2 border-b border-dashed border-black space-y-1.5 text-[11px]">
         <div>
-          <span className="block text-[10px] text-slate-600">ID NUMBER:</span>
+          <span className="block text-[10px] text-[#4B5563]">ID NUMBER:</span>
           <span className="font-bold text-sm tracking-wider block">{identificationNumber}</span>
         </div>
         <div>
-          <span className="block text-[10px] text-slate-600">NAME:</span>
+          <span className="block text-[10px] text-[#4B5563]">NAME:</span>
           <span className="font-bold uppercase block">{holderData.fullName || "RECORD CONFIRMED"}</span>
         </div>
         {holderData.dateOfBirth && (
@@ -105,7 +110,7 @@ export const ThermalReceiptSlip: React.FC<ThermalReceiptSlipProps> = ({
           </div>
         )}
         <span className="text-[9px] block">SCAN TO VERIFY AUTHENTICITY</span>
-        <span className="text-[8px] text-slate-600 block break-all font-mono">
+        <span className="text-[8px] text-[#4B5563] block break-all font-mono">
           TOKEN: {slip.qrVerificationToken.substring(0, 16)}...
         </span>
       </div>

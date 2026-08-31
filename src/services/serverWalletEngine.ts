@@ -6,6 +6,7 @@
 import { walletsStore, WalletDbRecord } from "./walletsStore";
 import * as usersStore from "./usersStore";
 import { saveDocToFirestore } from "./firestoreStore";
+import { getAdminFirestore } from "./firebaseAdmin";
 
 export type { WalletDbRecord };
 
@@ -94,7 +95,7 @@ export class ServerWalletEngine {
       // Keep user.walletBalance synchronized
       if (user && user.walletBalance !== wallet.balance) {
         user.walletBalance = wallet.balance;
-        usersStore.updateUser(userId, { walletBalance: wallet.balance }).catch(() => {});
+        await usersStore.updateUser(userId, { walletBalance: wallet.balance }).catch(() => {});
       }
     }
 
@@ -221,90 +222,208 @@ export class ServerWalletEngine {
       throw new Error("Invalid credit amount. Amount must be a positive number greater than zero.");
     }
 
-    // Check for duplicate transaction processing / double credit
     const ref = reference || idempotencyKey || "SML-CRD-" + Math.floor(100000 + Math.random() * 900000);
-    const allTxs = (db.transactions || []).concat(db.wallet_transactions || []);
-    const existingTx = allTxs.find((t: any) => (t.reference && t.reference === ref) || (idempotencyKey && t.idempotencyKey === idempotencyKey));
-
-    if (existingTx) {
-      throw new Error(`Duplicate transaction reference detected (${ref}). Credit operation already processed.`);
-    }
-
-    const validation = await this.validateWallet(db, userId, 0); // Check user & wallet existence
-    if (!validation.wallet) {
-      throw new Error(validation.error || "Wallet not found for crediting.");
-    }
-
-    const user = (await usersStore.getUserById(userId)) || (db?.users ? db.users.find((u: any) => u.uid === userId) : null);
-
-    let balanceBefore = validation.wallet.balance;
-    const updatedWallet = await walletsStore.updateWalletAtomic(userId, (current) => {
-      balanceBefore = current.balance;
-      const newBal = current.balance + amt;
-      return {
-        balance: newBal,
-        currentBalance: newBal,
-        totalCredits: (current.totalCredits || 0) + amt,
-      };
-    });
-
-    const wallet = updatedWallet || validation.wallet;
+    const txId = "tx_" + Math.random().toString(36).substring(2, 9);
     const now = new Date().toISOString();
 
-    // Sync user.walletBalance
-    if (user) {
-      user.walletBalance = wallet.balance;
+    const fsDb = getAdminFirestore();
+    let walletResult: WalletDbRecord;
+    let txResult: WalletTxRecord;
+
+    if (fsDb) {
+      // Execute as one atomic Firestore Transaction
+      await fsDb.runTransaction(async (transaction) => {
+        // 1. Uniqueness check / Idempotency key lookup
+        const idempotencyRef = fsDb.collection("idempotency_keys").doc(ref);
+        const idempotencySnap = await transaction.get(idempotencyRef);
+        if (idempotencySnap.exists) {
+          throw new Error(`Duplicate transaction reference detected (${ref}). Credit operation already processed.`);
+        }
+
+        // 2. Fetch user to verify they exist and get email
+        const userRef = fsDb.collection("users").doc(userId);
+        const userSnap = await transaction.get(userRef);
+        if (!userSnap.exists) {
+          throw new Error("User account not found.");
+        }
+        const userData = userSnap.data() || {};
+        if (userData.status === "SUSPENDED" || userData.status === "LOCKED") {
+          throw new Error("User account is suspended or locked. Transaction denied.");
+        }
+
+        // 3. Fetch wallet to modify
+        const walletRef = fsDb.collection("wallets").doc(userId);
+        const walletSnap = await transaction.get(walletRef);
+        
+        let currentWallet: WalletDbRecord;
+        if (!walletSnap.exists) {
+          const initialBal = typeof userData.walletBalance === "number" && !isNaN(userData.walletBalance) ? userData.walletBalance : 0.0;
+          currentWallet = {
+            userId,
+            walletId: `wal_${userId}`,
+            balance: initialBal,
+            currentBalance: initialBal,
+            heldBalance: 0.0,
+            totalCredits: initialBal,
+            totalDebits: 0.0,
+            status: "ACTIVE",
+            walletStatus: "ACTIVE",
+            currency: "NGN",
+            updatedAt: now,
+            lastUpdated: now,
+            createdAt: userData.createdAt || now,
+          };
+        } else {
+          currentWallet = walletSnap.data() as WalletDbRecord;
+        }
+
+        // Keep status server-governed only
+        if (currentWallet.status !== "ACTIVE" || currentWallet.walletStatus !== "ACTIVE") {
+          throw new Error("Wallet is currently suspended or locked. Transaction denied.");
+        }
+
+        const balanceBefore = currentWallet.balance || 0;
+        const newBalance = balanceBefore + amt;
+
+        // Construct updated wallet object
+        const updatedWallet: WalletDbRecord = {
+          ...currentWallet,
+          balance: newBalance,
+          currentBalance: newBalance,
+          totalCredits: (currentWallet.totalCredits || 0) + amt,
+          updatedAt: now,
+          lastUpdated: now,
+        };
+
+        // Construct transaction record
+        const tx: WalletTxRecord = {
+          id: txId,
+          transactionId: txId,
+          reference: ref,
+          userId,
+          userEmail: userData.email || "",
+          serviceName: serviceName || "Wallet Top-up",
+          amount: amt,
+          currency: "NGN",
+          fee,
+          walletBalanceBefore: balanceBefore,
+          walletBalanceAfter: newBalance,
+          status: "SUCCESS",
+          provider,
+          description: description || `Wallet Credited ₦${amt.toLocaleString("en-NG", { minimumFractionDigits: 2 })} via ${serviceName}`,
+          createdAt: now,
+          updatedAt: now,
+          recipientDetails,
+          type: type || "WALLET_FUNDING",
+          idempotencyKey,
+        };
+
+        // 4. Perform atomic writes
+        transaction.set(idempotencyRef, { processedAt: now, userId, amount: amt, txId });
+        transaction.set(walletRef, JSON.parse(JSON.stringify(updatedWallet)), { merge: true });
+        transaction.set(userRef, { walletBalance: newBalance }, { merge: true });
+        
+        const txRef = fsDb.collection("transactions").doc(txId);
+        transaction.set(txRef, JSON.parse(JSON.stringify(tx)));
+
+        walletResult = updatedWallet;
+        txResult = tx;
+      });
+    } else {
+      // Local fallback for memory DB environment (just in case)
+      const allTxs = (db.transactions || []).concat(db.wallet_transactions || []);
+      const existingTx = allTxs.find((t: any) => (t.reference && t.reference === ref) || (idempotencyKey && t.idempotencyKey === idempotencyKey));
+      if (existingTx) {
+        throw new Error(`Duplicate transaction reference detected (${ref}). Credit operation already processed.`);
+      }
+
+      const user = (await usersStore.getUserById(userId)) || (db?.users ? db.users.find((u: any) => u.uid === userId) : null);
+      const wallet = await this.getOrCreateWallet(db, userId);
+      if (!wallet) throw new Error("Wallet not found.");
+      if (wallet.status !== "ACTIVE") throw new Error("Wallet is suspended or locked.");
+
+      const balanceBefore = wallet.balance;
+      const newBal = wallet.balance + amt;
+
+      wallet.balance = newBal;
+      wallet.currentBalance = newBal;
+      wallet.totalCredits = (wallet.totalCredits || 0) + amt;
+      wallet.updatedAt = now;
+
+      if (user) {
+        user.walletBalance = newBal;
+      }
+
+      txResult = {
+        id: txId,
+        transactionId: txId,
+        reference: ref,
+        userId,
+        userEmail: user?.email || "",
+        serviceName: serviceName || "Wallet Top-up",
+        amount: amt,
+        currency: "NGN",
+        fee,
+        walletBalanceBefore: balanceBefore,
+        walletBalanceAfter: newBal,
+        status: "SUCCESS",
+        provider,
+        description: description || `Wallet Credited ₦${amt.toLocaleString("en-NG", { minimumFractionDigits: 2 })} via ${serviceName}`,
+        createdAt: now,
+        updatedAt: now,
+        recipientDetails,
+        type: type || "WALLET_FUNDING",
+        idempotencyKey,
+      };
+
+      walletResult = wallet;
     }
-    await usersStore.updateUser(userId, { walletBalance: wallet.balance }).catch(() => {});
 
-    const txId = "tx_" + Math.random().toString(36).substring(2, 9);
+    // Sync to in-memory/JSON DB to prevent split-brain state
+    if (db) {
+      if (!db.transactions) db.transactions = [];
+      if (!db.transactions.some((t: any) => t.id === txId)) {
+        db.transactions.push(txResult);
+      }
+      if (!db.wallet_transactions) db.wallet_transactions = [];
+      if (!db.wallet_transactions.some((t: any) => t.id === txId)) {
+        db.wallet_transactions.push(txResult);
+      }
 
-    const tx: WalletTxRecord = {
-      id: txId,
-      transactionId: txId,
-      reference: ref,
-      userId,
-      userEmail: user?.email || "",
-      serviceName: serviceName || "Wallet Top-up",
-      amount: amt,
-      currency: "NGN",
-      fee,
-      walletBalanceBefore: balanceBefore,
-      walletBalanceAfter: wallet.balance,
-      status: "SUCCESS",
-      provider,
-      description: description || `Wallet Credited ₦${amt.toLocaleString("en-NG", { minimumFractionDigits: 2 })} via ${serviceName}`,
-      createdAt: now,
-      updatedAt: now,
-      recipientDetails,
-      type: type || "WALLET_FUNDING",
-      idempotencyKey,
-    };
-
-    if (!db.transactions) db.transactions = [];
-    db.transactions.push(tx);
-
-    if (!db.wallet_transactions) db.wallet_transactions = [];
-    db.wallet_transactions.push(tx);
-
-    saveDocToFirestore("transactions", tx.id, tx).catch(() => {});
+      // Sync wallet inside local db
+      if (db.wallets) {
+        const idx = db.wallets.findIndex((w: any) => w.userId === userId);
+        if (idx !== -1) {
+          db.wallets[idx] = { ...db.wallets[idx], ...walletResult };
+        } else {
+          db.wallets.push(walletResult);
+        }
+      }
+      // Sync user inside local db
+      if (db.users) {
+        const uIdx = db.users.findIndex((u: any) => u.uid === userId);
+        if (uIdx !== -1) {
+          db.users[uIdx].walletBalance = walletResult.balance;
+        }
+      }
+    }
 
     return {
       success: true,
       wallet: {
-        userId: wallet.userId,
-        walletId: wallet.walletId,
-        balance: wallet.balance,
-        currentBalance: wallet.balance,
-        heldBalance: wallet.heldBalance || 0.0,
+        userId: walletResult.userId,
+        walletId: walletResult.walletId,
+        balance: walletResult.balance,
+        currentBalance: walletResult.balance,
+        heldBalance: walletResult.heldBalance || 0.0,
         currency: "NGN",
-        status: wallet.status,
-        walletStatus: wallet.status,
-        createdAt: wallet.createdAt,
-        updatedAt: wallet.updatedAt,
-        lastUpdated: wallet.updatedAt,
+        status: walletResult.status,
+        walletStatus: walletResult.status,
+        createdAt: walletResult.createdAt,
+        updatedAt: walletResult.updatedAt,
+        lastUpdated: walletResult.updatedAt,
       },
-      transaction: tx,
+      transaction: txResult,
     };
   }
 
@@ -352,99 +471,210 @@ export class ServerWalletEngine {
       throw new Error("Invalid debit amount. Amount must be a positive number greater than zero.");
     }
 
-    // Check for duplicate transaction processing / double debit
     const ref = reference || idempotencyKey || "SML-DBT-" + Math.floor(100000 + Math.random() * 900000);
-    const allTxs = (db.transactions || []).concat(db.wallet_transactions || []);
-    const existingTx = allTxs.find((t: any) => (t.reference && t.reference === ref) || (idempotencyKey && t.idempotencyKey === idempotencyKey));
+    const txId = "tx_" + Math.random().toString(36).substring(2, 9);
+    const now = new Date().toISOString();
 
-    if (existingTx) {
-      throw new Error(`Duplicate transaction reference detected (${ref}). Debit operation already processed.`);
-    }
+    const fsDb = getAdminFirestore();
+    let walletResult: WalletDbRecord;
+    let txResult: WalletTxRecord;
 
-    const validation = await this.validateWallet(db, userId, amt);
-    if (!validation.valid || !validation.wallet) {
-      throw new Error(validation.error || "Wallet validation failed for debit.");
-    }
+    if (fsDb) {
+      await fsDb.runTransaction(async (transaction) => {
+        // 1. Uniqueness check / Idempotency key lookup
+        const idempotencyRef = fsDb.collection("idempotency_keys").doc(ref);
+        const idempotencySnap = await transaction.get(idempotencyRef);
+        if (idempotencySnap.exists) {
+          throw new Error(`Duplicate transaction reference detected (${ref}). Debit operation already processed.`);
+        }
 
-    const user = (await usersStore.getUserById(userId)) || (db?.users ? db.users.find((u: any) => u.uid === userId) : null);
+        // 2. Fetch user to verify status
+        const userRef = fsDb.collection("users").doc(userId);
+        const userSnap = await transaction.get(userRef);
+        if (!userSnap.exists) {
+          throw new Error("User account not found.");
+        }
+        const userData = userSnap.data() || {};
+        if (userData.status === "SUSPENDED" || userData.status === "LOCKED") {
+          throw new Error("User account is suspended or locked. Transaction denied.");
+        }
 
-    let balanceBefore = validation.wallet.balance;
-    const updatedWallet = await walletsStore.updateWalletAtomic(userId, (current) => {
-      const available = current.balance - (current.heldBalance || 0);
+        // 3. Fetch wallet to verify balance & status
+        const walletRef = fsDb.collection("wallets").doc(userId);
+        const walletSnap = await transaction.get(walletRef);
+        if (!walletSnap.exists) {
+          throw new Error("Wallet account not found.");
+        }
+
+        const currentWallet = walletSnap.data() as WalletDbRecord;
+        if (currentWallet.status !== "ACTIVE" || currentWallet.walletStatus !== "ACTIVE") {
+          throw new Error("Wallet is currently suspended or locked. Transaction denied.");
+        }
+
+        const balanceBefore = currentWallet.balance || 0;
+        const held = currentWallet.heldBalance || 0;
+        const available = balanceBefore - held;
+
+        if (available < amt) {
+          throw new Error(`Insufficient wallet balance. Available: ₦${available.toLocaleString("en-NG", { minimumFractionDigits: 2 })}, Requested Debit: ₦${amt.toLocaleString("en-NG", { minimumFractionDigits: 2 })}.`);
+        }
+
+        const newBalance = balanceBefore - amt;
+
+        // Construct updated wallet
+        const updatedWallet: WalletDbRecord = {
+          ...currentWallet,
+          balance: newBalance,
+          currentBalance: newBalance,
+          totalDebits: (currentWallet.totalDebits || 0) + amt,
+          updatedAt: now,
+          lastUpdated: now,
+        };
+
+        // Construct transaction record
+        const tx: WalletTxRecord = {
+          id: txId,
+          transactionId: txId,
+          reference: ref,
+          userId,
+          userEmail: userData.email || "",
+          serviceName: serviceName || "Service Payment",
+          amount: amt,
+          currency: "NGN",
+          fee,
+          walletBalanceBefore: balanceBefore,
+          walletBalanceAfter: newBalance,
+          status: "SUCCESS",
+          provider,
+          description: description || `Payment for ${serviceName}`,
+          createdAt: now,
+          updatedAt: now,
+          recipientDetails,
+          type: type || "SERVICE_PAYMENT",
+          idempotencyKey,
+          providerReference,
+          rawResponse,
+          token,
+          units,
+          pins,
+        };
+
+        // 4. Write atomically inside transaction
+        transaction.set(idempotencyRef, { processedAt: now, userId, amount: amt, txId });
+        transaction.set(walletRef, JSON.parse(JSON.stringify(updatedWallet)), { merge: true });
+        transaction.set(userRef, { walletBalance: newBalance }, { merge: true });
+
+        const txRef = fsDb.collection("transactions").doc(txId);
+        transaction.set(txRef, JSON.parse(JSON.stringify(tx)));
+
+        walletResult = updatedWallet;
+        txResult = tx;
+      });
+    } else {
+      // Local fallback for memory DB environment
+      const allTxs = (db.transactions || []).concat(db.wallet_transactions || []);
+      const existingTx = allTxs.find((t: any) => (t.reference && t.reference === ref) || (idempotencyKey && t.idempotencyKey === idempotencyKey));
+      if (existingTx) {
+        throw new Error(`Duplicate transaction reference detected (${ref}). Debit operation already processed.`);
+      }
+
+      const user = (await usersStore.getUserById(userId)) || (db?.users ? db.users.find((u: any) => u.uid === userId) : null);
+      const wallet = await this.getOrCreateWallet(db, userId);
+      if (!wallet) throw new Error("Wallet not found.");
+      if (wallet.status !== "ACTIVE") throw new Error("Wallet is suspended or locked.");
+
+      const balanceBefore = wallet.balance;
+      const held = wallet.heldBalance || 0;
+      const available = balanceBefore - held;
       if (available < amt) {
         throw new Error(`Insufficient wallet balance. Available: ₦${available.toLocaleString("en-NG", { minimumFractionDigits: 2 })}, Requested Debit: ₦${amt.toLocaleString("en-NG", { minimumFractionDigits: 2 })}.`);
       }
-      balanceBefore = current.balance;
-      const newBal = current.balance - amt;
-      return {
-        balance: newBal,
-        currentBalance: newBal,
-        totalDebits: (current.totalDebits || 0) + amt,
+
+      const newBal = wallet.balance - amt;
+      wallet.balance = newBal;
+      wallet.currentBalance = newBal;
+      wallet.totalDebits = (wallet.totalDebits || 0) + amt;
+      wallet.updatedAt = now;
+
+      if (user) {
+        user.walletBalance = newBal;
+      }
+
+      txResult = {
+        id: txId,
+        transactionId: txId,
+        reference: ref,
+        userId,
+        userEmail: user?.email || "",
+        serviceName: serviceName || "Service Payment",
+        amount: amt,
+        currency: "NGN",
+        fee,
+        walletBalanceBefore: balanceBefore,
+        walletBalanceAfter: newBal,
+        status: "SUCCESS",
+        provider,
+        description: description || `Payment for ${serviceName}`,
+        createdAt: now,
+        updatedAt: now,
+        recipientDetails,
+        type: type || "SERVICE_PAYMENT",
+        idempotencyKey,
+        providerReference,
+        rawResponse,
+        token,
+        units,
+        pins,
       };
-    });
 
-    const wallet = updatedWallet || validation.wallet;
-    const now = new Date().toISOString();
-
-    // Sync user.walletBalance
-    if (user) {
-      user.walletBalance = wallet.balance;
+      walletResult = wallet;
     }
-    await usersStore.updateUser(userId, { walletBalance: wallet.balance }).catch(() => {});
 
-    const txId = "tx_" + Math.random().toString(36).substring(2, 9);
+    // Sync to local memory DB
+    if (db) {
+      if (!db.transactions) db.transactions = [];
+      if (!db.transactions.some((t: any) => t.id === txId)) {
+        db.transactions.push(txResult);
+      }
+      if (!db.wallet_transactions) db.wallet_transactions = [];
+      if (!db.wallet_transactions.some((t: any) => t.id === txId)) {
+        db.wallet_transactions.push(txResult);
+      }
 
-    const tx: WalletTxRecord = {
-      id: txId,
-      transactionId: txId,
-      reference: ref,
-      userId,
-      userEmail: user?.email || "",
-      serviceName: serviceName || "Service Payment",
-      amount: amt,
-      currency: "NGN",
-      fee,
-      walletBalanceBefore: balanceBefore,
-      walletBalanceAfter: wallet.balance,
-      status: "SUCCESS",
-      provider,
-      description: description || `Payment for ${serviceName}`,
-      createdAt: now,
-      updatedAt: now,
-      recipientDetails,
-      type: type || "SERVICE_PAYMENT",
-      idempotencyKey,
-      providerReference,
-      rawResponse,
-      token,
-      units,
-      pins,
-    };
-
-    if (!db.transactions) db.transactions = [];
-    db.transactions.push(tx);
-
-    if (!db.wallet_transactions) db.wallet_transactions = [];
-    db.wallet_transactions.push(tx);
-
-    saveDocToFirestore("transactions", tx.id, tx).catch(() => {});
+      // Sync wallet
+      if (db.wallets) {
+        const idx = db.wallets.findIndex((w: any) => w.userId === userId);
+        if (idx !== -1) {
+          db.wallets[idx] = { ...db.wallets[idx], ...walletResult };
+        } else {
+          db.wallets.push(walletResult);
+        }
+      }
+      // Sync user
+      if (db.users) {
+        const uIdx = db.users.findIndex((u: any) => u.uid === userId);
+        if (uIdx !== -1) {
+          db.users[uIdx].walletBalance = walletResult.balance;
+        }
+      }
+    }
 
     return {
       success: true,
       wallet: {
-        userId: wallet.userId,
-        walletId: wallet.walletId,
-        balance: wallet.balance,
-        currentBalance: wallet.balance,
-        heldBalance: wallet.heldBalance || 0.0,
+        userId: walletResult.userId,
+        walletId: walletResult.walletId,
+        balance: walletResult.balance,
+        currentBalance: walletResult.balance,
+        heldBalance: walletResult.heldBalance || 0.0,
         currency: "NGN",
-        status: wallet.status,
-        walletStatus: wallet.status,
-        createdAt: wallet.createdAt,
-        updatedAt: wallet.updatedAt,
-        lastUpdated: wallet.updatedAt,
+        status: walletResult.status,
+        walletStatus: walletResult.status,
+        createdAt: walletResult.createdAt,
+        updatedAt: walletResult.updatedAt,
+        lastUpdated: walletResult.updatedAt,
       },
-      transaction: tx,
+      transaction: txResult,
     };
   }
 
@@ -460,51 +690,143 @@ export class ServerWalletEngine {
     description?: string;
   }) {
     const { userId, amount, serviceName, reference, provider = "SmartLink Escrow Engine", description } = params;
-
-    const validation = await this.validateWallet(db, userId, amount);
-    if (!validation.valid || !validation.wallet) {
-      throw new Error(validation.error || "Wallet validation failed for hold");
+    const amt = parseFloat(String(amount));
+    if (isNaN(amt) || !isFinite(amt) || amt <= 0) {
+      throw new Error("Invalid hold amount.");
     }
 
-    const user = (await usersStore.getUserById(userId)) || (db?.users ? db.users.find((u: any) => u.uid === userId) : null);
-    const amt = parseFloat(String(amount));
-
-    let balanceBefore = validation.wallet.currentBalance;
-    const updatedWallet = await walletsStore.updateWalletAtomic(userId, (current) => {
-      balanceBefore = current.currentBalance;
-      return {
-        heldBalance: (current.heldBalance || 0) + amt,
-      };
-    });
-
-    const wallet = updatedWallet || validation.wallet;
     const ref = reference || "SML-HLD-" + Math.floor(100000 + Math.random() * 900000);
     const txId = "tx_" + Math.random().toString(36).substring(2, 9);
     const now = new Date().toISOString();
 
-    const tx: WalletTxRecord = {
-      id: txId,
-      transactionId: txId,
-      reference: ref,
-      userId,
-      userEmail: user?.email || "",
-      serviceName,
-      amount: amt,
-      walletBalanceBefore: balanceBefore,
-      walletBalanceAfter: balanceBefore, // Net balance unchanged until commit
-      status: "PENDING",
-      provider,
-      description: description || `Held ₦${amt.toLocaleString()} for ${serviceName}`,
-      createdAt: now,
-      updatedAt: now,
-    };
+    const fsDb = getAdminFirestore();
+    let walletResult: WalletDbRecord;
+    let txResult: WalletTxRecord;
 
-    if (!db.transactions) db.transactions = [];
-    db.transactions.push(tx);
+    if (fsDb) {
+      await fsDb.runTransaction(async (transaction) => {
+        // Uniqueness check / Idempotency
+        const idempotencyRef = fsDb.collection("idempotency_keys").doc(ref);
+        const idempotencySnap = await transaction.get(idempotencyRef);
+        if (idempotencySnap.exists) {
+          throw new Error(`Duplicate hold reference detected (${ref}).`);
+        }
+
+        const userRef = fsDb.collection("users").doc(userId);
+        const userSnap = await transaction.get(userRef);
+        if (!userSnap.exists) {
+          throw new Error("User account not found.");
+        }
+        const userData = userSnap.data() || {};
+        if (userData.status === "SUSPENDED" || userData.status === "LOCKED") {
+          throw new Error("User account is suspended or locked. Hold denied.");
+        }
+
+        const walletRef = fsDb.collection("wallets").doc(userId);
+        const walletSnap = await transaction.get(walletRef);
+        if (!walletSnap.exists) {
+          throw new Error("Wallet not found.");
+        }
+
+        const currentWallet = walletSnap.data() as WalletDbRecord;
+        if (currentWallet.status !== "ACTIVE" || currentWallet.walletStatus !== "ACTIVE") {
+          throw new Error("Wallet is suspended or locked. Hold denied.");
+        }
+
+        const balanceBefore = currentWallet.balance || 0;
+        const held = currentWallet.heldBalance || 0;
+        const available = balanceBefore - held;
+
+        if (available < amt) {
+          throw new Error(`Insufficient wallet balance. Available: ₦${available.toLocaleString("en-NG", { minimumFractionDigits: 2 })}, Required Hold: ₦${amt.toLocaleString("en-NG", { minimumFractionDigits: 2 })}.`);
+        }
+
+        const updatedWallet: WalletDbRecord = {
+          ...currentWallet,
+          heldBalance: held + amt,
+          updatedAt: now,
+          lastUpdated: now,
+        };
+
+        const tx: WalletTxRecord = {
+          id: txId,
+          transactionId: txId,
+          reference: ref,
+          userId,
+          userEmail: userData.email || "",
+          serviceName,
+          amount: amt,
+          walletBalanceBefore: balanceBefore,
+          walletBalanceAfter: balanceBefore,
+          status: "PENDING",
+          provider,
+          description: description || `Held ₦${amt.toLocaleString()} for ${serviceName}`,
+          createdAt: now,
+          updatedAt: now,
+        };
+
+        transaction.set(idempotencyRef, { processedAt: now, userId, amount: amt, txId });
+        transaction.set(walletRef, JSON.parse(JSON.stringify(updatedWallet)), { merge: true });
+        
+        const txRef = fsDb.collection("transactions").doc(txId);
+        transaction.set(txRef, JSON.parse(JSON.stringify(tx)));
+
+        walletResult = updatedWallet;
+        txResult = tx;
+      });
+    } else {
+      // Local memory fallback
+      const user = (await usersStore.getUserById(userId)) || (db?.users ? db.users.find((u: any) => u.uid === userId) : null);
+      const wallet = await this.getOrCreateWallet(db, userId);
+      if (!wallet) throw new Error("Wallet not found");
+
+      const balanceBefore = wallet.balance;
+      const held = wallet.heldBalance || 0;
+      const available = balanceBefore - held;
+      if (available < amt) {
+        throw new Error(`Insufficient wallet balance. Available: ₦${available.toLocaleString("en-NG", { minimumFractionDigits: 2 })}, Required Hold: ₦${amt.toLocaleString("en-NG", { minimumFractionDigits: 2 })}.`);
+      }
+
+      wallet.heldBalance = held + amt;
+      wallet.updatedAt = now;
+
+      txResult = {
+        id: txId,
+        transactionId: txId,
+        reference: ref,
+        userId,
+        userEmail: user?.email || "",
+        serviceName,
+        amount: amt,
+        walletBalanceBefore: balanceBefore,
+        walletBalanceAfter: balanceBefore,
+        status: "PENDING",
+        provider,
+        description: description || `Held ₦${amt.toLocaleString()} for ${serviceName}`,
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      walletResult = wallet;
+    }
+
+    // Sync to in-memory/JSON DB to prevent split-brain state
+    if (db) {
+      if (!db.transactions) db.transactions = [];
+      if (!db.transactions.some((t: any) => t.id === txId)) {
+        db.transactions.push(txResult);
+      }
+      if (db.wallets) {
+        const wIdx = db.wallets.findIndex((w: any) => w.userId === userId);
+        if (wIdx !== -1) {
+          db.wallets[wIdx] = { ...db.wallets[wIdx], ...walletResult };
+        }
+      }
+    }
 
     return {
-      wallet,
-      transaction: tx,
+      wallet: walletResult,
+      transaction: txResult,
     };
   }
 
@@ -518,58 +840,154 @@ export class ServerWalletEngine {
     commitDebit: boolean;
   }) {
     const { userId, reference, transactionId, commitDebit } = params;
+    const now = new Date().toISOString();
 
-    const wallet = await this.getOrCreateWallet(db, userId);
-    if (!wallet) throw new Error("Wallet not found");
+    const fsDb = getAdminFirestore();
+    let walletResult: WalletDbRecord;
+    let txResult: WalletTxRecord;
 
-    if (!db.transactions) db.transactions = [];
-    const txIndex = db.transactions.findIndex(
-      (t: any) => (transactionId && (t.transactionId === transactionId || t.id === transactionId)) ||
-                  (reference && t.reference === reference)
-    );
+    if (fsDb) {
+      await fsDb.runTransaction(async (transaction) => {
+        // 1. Resolve transaction ID / reference
+        let txId = transactionId;
+        if (!txId && reference) {
+          const localTx = db.transactions?.find((t: any) => t.reference === reference);
+          if (localTx) {
+            txId = localTx.id || localTx.transactionId;
+          }
+        }
 
-    if (txIndex === -1) throw new Error("Held transaction record not found");
+        if (!txId) {
+          throw new Error("Transaction ID or Reference is required to release hold");
+        }
 
-    const tx = db.transactions[txIndex];
-    const amt = tx.amount;
+        const txRef = fsDb.collection("transactions").doc(txId);
+        const txSnap = await transaction.get(txRef);
+        if (!txSnap.exists) {
+          throw new Error("Held transaction record not found in Firestore");
+        }
 
-    let balanceBefore = wallet.balance;
-    const updatedWallet = await walletsStore.updateWalletAtomic(userId, (current) => {
-      balanceBefore = current.balance;
-      const newHeld = Math.max(0, (current.heldBalance || 0) - amt);
-      if (commitDebit) {
-        const newBal = current.balance - amt;
-        return {
-          heldBalance: newHeld,
-          balance: newBal,
-          currentBalance: newBal,
-          totalDebits: (current.totalDebits || 0) + amt,
+        const tx = txSnap.data() as WalletTxRecord;
+        if (tx.status !== "PENDING") {
+          throw new Error("Transaction hold already released or processed");
+        }
+
+        const amt = tx.amount;
+
+        const walletRef = fsDb.collection("wallets").doc(userId);
+        const walletSnap = await transaction.get(walletRef);
+        if (!walletSnap.exists) {
+          throw new Error("Wallet not found");
+        }
+
+        const currentWallet = walletSnap.data() as WalletDbRecord;
+        const balanceBefore = currentWallet.balance || 0;
+        const newHeld = Math.max(0, (currentWallet.heldBalance || 0) - amt);
+
+        let updatedWallet: WalletDbRecord;
+        const updatedTx: WalletTxRecord = {
+          ...tx,
+          status: commitDebit ? "SUCCESS" : "FAILED",
+          updatedAt: now,
         };
-      }
-      return {
-        heldBalance: newHeld,
-      };
-    });
 
-    const finalWallet = updatedWallet || wallet;
+        if (commitDebit) {
+          const newBal = balanceBefore - amt;
+          updatedWallet = {
+            ...currentWallet,
+            heldBalance: newHeld,
+            balance: newBal,
+            currentBalance: newBal,
+            totalDebits: (currentWallet.totalDebits || 0) + amt,
+            updatedAt: now,
+            lastUpdated: now,
+          };
+          updatedTx.walletBalanceBefore = balanceBefore;
+          updatedTx.walletBalanceAfter = newBal;
+          
+          const userRef = fsDb.collection("users").doc(userId);
+          transaction.set(userRef, { walletBalance: newBal }, { merge: true });
+        } else {
+          updatedWallet = {
+            ...currentWallet,
+            heldBalance: newHeld,
+            updatedAt: now,
+            lastUpdated: now,
+          };
+        }
 
-    if (commitDebit) {
-      const user = (await usersStore.getUserById(userId)) || (db?.users ? db.users.find((u: any) => u.uid === userId) : null);
-      if (user) user.walletBalance = finalWallet.balance;
-      await usersStore.updateUser(userId, { walletBalance: finalWallet.balance }).catch(() => {});
+        transaction.set(walletRef, JSON.parse(JSON.stringify(updatedWallet)), { merge: true });
+        transaction.set(txRef, JSON.parse(JSON.stringify(updatedTx)), { merge: true });
 
-      tx.status = "SUCCESS";
-      tx.walletBalanceBefore = balanceBefore;
-      tx.walletBalanceAfter = finalWallet.balance;
+        walletResult = updatedWallet;
+        txResult = updatedTx;
+      });
     } else {
-      tx.status = "FAILED";
+      // Local fallback
+      const wallet = await this.getOrCreateWallet(db, userId);
+      if (!wallet) throw new Error("Wallet not found");
+
+      if (!db.transactions) db.transactions = [];
+      const txIndex = db.transactions.findIndex(
+        (t: any) => (transactionId && (t.transactionId === transactionId || t.id === transactionId)) ||
+                    (reference && t.reference === reference)
+      );
+
+      if (txIndex === -1) throw new Error("Held transaction record not found");
+
+      const tx = db.transactions[txIndex];
+      const amt = tx.amount;
+      const balanceBefore = wallet.balance;
+      const newHeld = Math.max(0, (wallet.heldBalance || 0) - amt);
+
+      if (commitDebit) {
+        const newBal = wallet.balance - amt;
+        wallet.heldBalance = newHeld;
+        wallet.balance = newBal;
+        wallet.currentBalance = newBal;
+        wallet.totalDebits = (wallet.totalDebits || 0) + amt;
+        wallet.updatedAt = now;
+
+        const user = (await usersStore.getUserById(userId)) || (db?.users ? db.users.find((u: any) => u.uid === userId) : null);
+        if (user) user.walletBalance = newBal;
+
+        tx.status = "SUCCESS";
+        tx.walletBalanceBefore = balanceBefore;
+        tx.walletBalanceAfter = newBal;
+      } else {
+        wallet.heldBalance = newHeld;
+        tx.status = "FAILED";
+      }
+
+      tx.updatedAt = now;
+      walletResult = wallet;
+      txResult = tx;
     }
 
-    tx.updatedAt = new Date().toISOString();
+    // Sync to in-memory/JSON DB to prevent split-brain state
+    if (db) {
+      if (!db.transactions) db.transactions = [];
+      const idx = db.transactions.findIndex((t: any) => t.id === txResult.id || t.transactionId === txResult.transactionId);
+      if (idx !== -1) {
+        db.transactions[idx] = { ...db.transactions[idx], ...txResult };
+      }
+      if (db.wallets) {
+        const wIdx = db.wallets.findIndex((w: any) => w.userId === userId);
+        if (wIdx !== -1) {
+          db.wallets[wIdx] = { ...db.wallets[wIdx], ...walletResult };
+        }
+      }
+      if (db.users && commitDebit) {
+        const uIdx = db.users.findIndex((u: any) => u.uid === userId);
+        if (uIdx !== -1) {
+          db.users[uIdx].walletBalance = walletResult.balance;
+        }
+      }
+    }
 
     return {
-      wallet: finalWallet,
-      transaction: tx,
+      wallet: walletResult,
+      transaction: txResult,
     };
   }
 
@@ -582,70 +1000,192 @@ export class ServerWalletEngine {
     reason?: string;
   }) {
     const { userId, transactionId, reason } = params;
-
-    const wallet = await this.getOrCreateWallet(db, userId);
-    if (!wallet) throw new Error("Wallet not found");
-
-    if (!db.transactions) db.transactions = [];
-    const txIndex = db.transactions.findIndex(
-      (t: any) => (t.transactionId === transactionId || t.id === transactionId) && t.userId === userId
-    );
-
-    if (txIndex === -1) throw new Error("Transaction record not found for reversal");
-
-    const origTx = db.transactions[txIndex];
-    if (origTx.status === "REVERSED") {
-      throw new Error("Transaction has already been reversed");
-    }
-
-    const amt = origTx.amount;
-    let balanceBefore = wallet.balance;
-
-    const updatedWallet = await walletsStore.updateWalletAtomic(userId, (current) => {
-      balanceBefore = current.balance;
-      const newBal = current.balance + amt;
-      return {
-        balance: newBal,
-        currentBalance: newBal,
-        totalDebits: Math.max(0, (current.totalDebits || 0) - amt),
-      };
-    });
-
-    const finalWallet = updatedWallet || wallet;
-    const user = (await usersStore.getUserById(userId)) || (db?.users ? db.users.find((u: any) => u.uid === userId) : null);
-    if (user) user.walletBalance = finalWallet.balance;
-    await usersStore.updateUser(userId, { walletBalance: finalWallet.balance }).catch(() => {});
-
-    origTx.status = "REVERSED";
-    origTx.updatedAt = new Date().toISOString();
-
-    const revRef = "SML-REV-" + Math.floor(100000 + Math.random() * 900000);
-    const revId = "tx_rev_" + Math.random().toString(36).substring(2, 9);
     const now = new Date().toISOString();
 
-    const revTx: WalletTxRecord = {
-      id: revId,
-      transactionId: revId,
-      reference: revRef,
-      userId,
-      userEmail: user?.email || "",
-      serviceName: `Reversal: ${origTx.serviceName || origTx.description}`,
-      amount: amt,
-      walletBalanceBefore: balanceBefore,
-      walletBalanceAfter: finalWallet.currentBalance,
-      status: "SUCCESS",
-      provider: "SmartLink Refund Engine",
-      description: `Reversal for Tx #${origTx.reference}. Reason: ${reason || "Service reversal"}`,
-      createdAt: now,
-      updatedAt: now,
-    };
+    const fsDb = getAdminFirestore();
+    let walletResult: WalletDbRecord;
+    let origTxResult: WalletTxRecord;
+    let revTxResult: WalletTxRecord;
 
-    db.transactions.push(revTx);
+    if (fsDb) {
+      await fsDb.runTransaction(async (transaction) => {
+        // 1. Fetch original transaction document to reverse
+        const txRef = fsDb.collection("transactions").doc(transactionId);
+        const txSnap = await transaction.get(txRef);
+        if (!txSnap.exists) {
+          throw new Error("Transaction record not found for reversal");
+        }
+
+        const origTx = txSnap.data() as WalletTxRecord;
+        if (origTx.userId !== userId) {
+          throw new Error("Unauthorized: Transaction does not belong to user.");
+        }
+        if (origTx.status === "REVERSED") {
+          throw new Error("Transaction has already been reversed");
+        }
+
+        const amt = origTx.amount;
+
+        // 2. Uniqueness check for the reversal transaction to prevent duplicate reversal execution
+        const revRef = "SML-REV-" + transactionId;
+        const idempotencyRef = fsDb.collection("idempotency_keys").doc(revRef);
+        const idempotencySnap = await transaction.get(idempotencyRef);
+        if (idempotencySnap.exists) {
+          throw new Error(`Duplicate transaction reversal detected. Reversal already processed.`);
+        }
+
+        // 3. Fetch wallet to modify
+        const walletRef = fsDb.collection("wallets").doc(userId);
+        const walletSnap = await transaction.get(walletRef);
+        if (!walletSnap.exists) {
+          throw new Error("Wallet not found");
+        }
+
+        const currentWallet = walletSnap.data() as WalletDbRecord;
+        const balanceBefore = currentWallet.balance || 0;
+        const newBalance = balanceBefore + amt;
+
+        // Construct updated wallet
+        const updatedWallet: WalletDbRecord = {
+          ...currentWallet,
+          balance: newBalance,
+          currentBalance: newBalance,
+          totalDebits: Math.max(0, (currentWallet.totalDebits || 0) - amt),
+          updatedAt: now,
+          lastUpdated: now,
+        };
+
+        // Update original transaction status to REVERSED
+        const updatedOrigTx: WalletTxRecord = {
+          ...origTx,
+          status: "REVERSED",
+          updatedAt: now,
+        };
+
+        const revId = "tx_rev_" + Math.random().toString(36).substring(2, 9);
+        const revTx: WalletTxRecord = {
+          id: revId,
+          transactionId: revId,
+          reference: revRef,
+          userId,
+          userEmail: origTx.userEmail || "",
+          serviceName: `Reversal: ${origTx.serviceName || origTx.description}`,
+          amount: amt,
+          walletBalanceBefore: balanceBefore,
+          walletBalanceAfter: newBalance,
+          status: "SUCCESS",
+          provider: "SmartLink Refund Engine",
+          description: `Reversal for Tx #${origTx.reference}. Reason: ${reason || "Service reversal"}`,
+          createdAt: now,
+          updatedAt: now,
+        };
+
+        // 4. Perform atomic writes
+        transaction.set(idempotencyRef, { processedAt: now, userId, amount: amt, txId: revId });
+        transaction.set(walletRef, JSON.parse(JSON.stringify(updatedWallet)), { merge: true });
+        transaction.set(txRef, JSON.parse(JSON.stringify(updatedOrigTx)), { merge: true });
+        
+        const userRef = fsDb.collection("users").doc(userId);
+        transaction.set(userRef, { walletBalance: newBalance }, { merge: true });
+
+        const revTxRef = fsDb.collection("transactions").doc(revId);
+        transaction.set(revTxRef, JSON.parse(JSON.stringify(revTx)));
+
+        walletResult = updatedWallet;
+        origTxResult = updatedOrigTx;
+        revTxResult = revTx;
+      });
+    } else {
+      // Local fallback for memory DB environment
+      const wallet = await this.getOrCreateWallet(db, userId);
+      if (!wallet) throw new Error("Wallet not found");
+
+      if (!db.transactions) db.transactions = [];
+      const txIndex = db.transactions.findIndex(
+        (t: any) => (t.transactionId === transactionId || t.id === transactionId) && t.userId === userId
+      );
+
+      if (txIndex === -1) throw new Error("Transaction record not found for reversal");
+
+      const origTx = db.transactions[txIndex];
+      if (origTx.status === "REVERSED") {
+        throw new Error("Transaction has already been reversed");
+      }
+
+      const amt = origTx.amount;
+      const balanceBefore = wallet.balance;
+      const newBal = wallet.balance + amt;
+
+      wallet.balance = newBal;
+      wallet.currentBalance = newBal;
+      wallet.totalDebits = Math.max(0, (wallet.totalDebits || 0) - amt);
+      wallet.updatedAt = now;
+
+      const user = (await usersStore.getUserById(userId)) || (db?.users ? db.users.find((u: any) => u.uid === userId) : null);
+      if (user) user.walletBalance = newBal;
+
+      origTx.status = "REVERSED";
+      origTx.updatedAt = now;
+
+      const revRef = "SML-REV-" + transactionId;
+      const revId = "tx_rev_" + Math.random().toString(36).substring(2, 9);
+
+      revTxResult = {
+        id: revId,
+        transactionId: revId,
+        reference: revRef,
+        userId,
+        userEmail: user?.email || "",
+        serviceName: `Reversal: ${origTx.serviceName || origTx.description}`,
+        amount: amt,
+        walletBalanceBefore: balanceBefore,
+        walletBalanceAfter: newBal,
+        status: "SUCCESS",
+        provider: "SmartLink Refund Engine",
+        description: `Reversal for Tx #${origTx.reference}. Reason: ${reason || "Service reversal"}`,
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      walletResult = wallet;
+      origTxResult = origTx;
+    }
+
+    // Sync to in-memory/JSON DB to prevent split-brain state
+    if (db) {
+      if (!db.transactions) db.transactions = [];
+      
+      // Update original transaction in local list
+      const idx = db.transactions.findIndex((t: any) => t.id === transactionId || t.transactionId === transactionId);
+      if (idx !== -1) {
+        db.transactions[idx] = { ...db.transactions[idx], ...origTxResult };
+      }
+
+      // Add reversal transaction
+      if (!db.transactions.some((t: any) => t.id === revTxResult.id)) {
+        db.transactions.push(revTxResult);
+      }
+
+      // Sync wallet inside local db
+      if (db.wallets) {
+        const wIdx = db.wallets.findIndex((w: any) => w.userId === userId);
+        if (wIdx !== -1) {
+          db.wallets[wIdx] = { ...db.wallets[wIdx], ...walletResult };
+        }
+      }
+      // Sync user inside local db
+      if (db.users) {
+        const uIdx = db.users.findIndex((u: any) => u.uid === userId);
+        if (uIdx !== -1) {
+          db.users[uIdx].walletBalance = walletResult.balance;
+        }
+      }
+    }
 
     return {
-      wallet: finalWallet,
-      originalTransaction: origTx,
-      reversalTransaction: revTx,
+      wallet: walletResult,
+      originalTransaction: origTxResult,
+      reversalTransaction: revTxResult,
     };
   }
 

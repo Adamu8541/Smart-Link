@@ -1,6 +1,6 @@
 /**
  * SmartLink Admin Panel — Sub-Route Views
- * Clean re-exports of Firestore-backed Admin Views
+ * Clean re-exports of Database-backed Admin Views
  */
 
 export { AdminRefundsView } from "./AdminRefundsView";

@@ -24,8 +24,6 @@ import { AutomaticWalletFundingEngine } from "../../src/services/automaticWallet
 import { PaymentVerificationReconciliationEngine } from "../../src/services/paymentVerificationReconciliationEngine";
 import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerGateway";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
-import { AgentHubAdapter } from "../../src/services/providers/agenthubAdapter";
-import { NINTrustAdapter } from "../../src/services/providers/nintrustAdapter";
 import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
 import { syncFromFirestore, syncToFirestore } from "../../src/services/settingsStore";
 import { loadFirestoreDb, syncDbToFirestore, saveDocToFirestore } from "../../src/services/firestoreStore";

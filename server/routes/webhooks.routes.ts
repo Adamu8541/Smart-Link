@@ -4,7 +4,7 @@ import fs from "fs";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 import { readDB, writeDB, initializeDB, DB_DIR, DB_FILE, UPLOADS_DIR, SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD, hashPassword, safeCompareHash, generateSalt, isMaskedValue } from "../db";
-import { verifyUserOrAdminSession } from "../middleware/auth";
+import { verifyUserOrAdminSession, requireAdmin } from "../middleware/auth";
 import { isMaintenanceModeActive, getMaintenanceDetails, getValueByJsonPath, seedModule7SettingsIfEmpty, sanitizePublicSettings } from "../middleware/maintenance";
 import { getAI } from "../services/ai";
 import { 
@@ -24,8 +24,6 @@ import { AutomaticWalletFundingEngine } from "../../src/services/automaticWallet
 import { PaymentVerificationReconciliationEngine } from "../../src/services/paymentVerificationReconciliationEngine";
 import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerGateway";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
-import { AgentHubAdapter } from "../../src/services/providers/agenthubAdapter";
-import { NINTrustAdapter } from "../../src/services/providers/nintrustAdapter";
 import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
 import { syncFromFirestore, syncToFirestore } from "../../src/services/settingsStore";
 import { loadFirestoreDb, syncDbToFirestore, saveDocToFirestore } from "../../src/services/firestoreStore";
@@ -208,14 +206,14 @@ app.post(
 );
 
 // Admin Unmatched Payments Review Endpoint
-app.get("/api/admin/unmatched-payments", async (req, res) => {
+app.get("/api/admin/unmatched-payments", requireAdmin, async (req, res) => {
   const db = readDB();
   if (!db.unmatched_payments) db.unmatched_payments = [];
   res.json({ success: true, unmatchedPayments: db.unmatched_payments });
 });
 
 // Admin All Reconciliations Endpoint for Super Admin Review
-app.get("/api/admin/reconciliations", async (req, res) => {
+app.get("/api/admin/reconciliations", requireAdmin, async (req, res) => {
   const db = readDB();
   const filters = {
     status: req.query.status as string,
@@ -251,7 +249,7 @@ app.post("/api/reconciliation/verify", async (req, res) => {
 // ==========================================
 
 // 1. Get All Webhooks & Webhook Logs
-app.get("/api/admin/webhooks", async (req, res) => {
+app.get("/api/admin/webhooks", requireAdmin, async (req, res) => {
   const db = readDB();
   if (!db.webhooks) db.webhooks = [];
   if (!db.webhookLogs) db.webhookLogs = [];
@@ -263,17 +261,12 @@ app.get("/api/admin/webhooks", async (req, res) => {
 });
 
 // 2. Add New Webhook
-app.post("/api/admin/webhooks", async (req, res) => {
+app.post("/api/admin/webhooks", requireAdmin, async (req, res) => {
   const { name, provider, eventType, url, secretToken, signatureHeader, httpMethod, retryCount, retryInterval, status, notes } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
   const db = readDB();
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Admin credentials required." });
-  }
-  const adminUser = val.session;
-  const adminUid = adminUser.uid;
+  const adminUser = (req as any).admin;
+  const adminUid = (req as any).authenticatedUid;
   if (adminUser.role !== "SUPER_ADMIN" && adminUser.role !== "ADMIN") {
     return res.status(403).json({ success: false, message: "Unauthorized: Only Super Admin can manage webhooks." });
   }
@@ -333,18 +326,13 @@ app.post("/api/admin/webhooks", async (req, res) => {
 });
 
 // 3. Edit Webhook
-app.put("/api/admin/webhooks/:id", async (req, res) => {
+app.put("/api/admin/webhooks/:id", requireAdmin, async (req, res) => {
   const { id } = req.params;
   const { name, provider, eventType, url, secretToken, signatureHeader, httpMethod, retryCount, retryInterval, status, notes } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
   const db = readDB();
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Admin credentials required." });
-  }
-  const adminUser = val.session;
-  const adminUid = adminUser.uid;
+  const adminUser = (req as any).admin;
+  const adminUid = (req as any).authenticatedUid;
   if (adminUser.role !== "SUPER_ADMIN" && adminUser.role !== "ADMIN") {
     return res.status(403).json({ success: false, message: "Unauthorized: Only Super Admin can edit webhooks." });
   }
@@ -401,17 +389,12 @@ app.put("/api/admin/webhooks/:id", async (req, res) => {
 });
 
 // 4. Delete Webhook
-app.delete("/api/admin/webhooks/:id", async (req, res) => {
+app.delete("/api/admin/webhooks/:id", requireAdmin, async (req, res) => {
   const { id } = req.params;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
   const db = readDB();
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Admin credentials required." });
-  }
-  const adminUser = val.session;
-  const adminUid = adminUser.uid;
+  const adminUser = (req as any).admin;
+  const adminUid = (req as any).authenticatedUid;
   if (adminUser.role !== "SUPER_ADMIN" && adminUser.role !== "ADMIN") {
     return res.status(403).json({ success: false, message: "Unauthorized: Only Super Admin can delete webhooks." });
   }
@@ -439,17 +422,12 @@ app.delete("/api/admin/webhooks/:id", async (req, res) => {
 });
 
 // 5. Toggle Webhook Status (Enable/Disable)
-app.patch("/api/admin/webhooks/:id/toggle-status", async (req, res) => {
+app.patch("/api/admin/webhooks/:id/toggle-status", requireAdmin, async (req, res) => {
   const { id } = req.params;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
   const db = readDB();
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Admin credentials required." });
-  }
-  const adminUser = val.session;
-  const adminUid = adminUser.uid;
+  const adminUser = (req as any).admin;
+  const adminUid = (req as any).authenticatedUid;
   if (adminUser.role !== "SUPER_ADMIN" && adminUser.role !== "ADMIN") {
     return res.status(403).json({ success: false, message: "Unauthorized: Only Super Admin can toggle webhook status." });
   }
@@ -483,23 +461,13 @@ app.patch("/api/admin/webhooks/:id/toggle-status", async (req, res) => {
 });
 
 // 6. Test Webhook Endpoint
-app.post("/api/admin/webhooks/:id/test", async (req, res) => {
+app.post("/api/admin/webhooks/:id/test", requireAdmin, async (req, res) => {
   const { id } = req.params;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
   const startTime = Date.now();
   const db = readDB();
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({
-      success: false,
-      resultStatus: "Unauthorized",
-      statusCode: 401,
-      message: "Admin credentials required."
-    });
-  }
-  const adminUser = val.session;
-  const adminUid = adminUser.uid;
+  const adminUser = (req as any).admin;
+  const adminUid = (req as any).authenticatedUid;
   if (adminUser.role !== "SUPER_ADMIN" && adminUser.role !== "ADMIN") {
     return res.status(403).json({
       success: false,
@@ -718,16 +686,58 @@ app.post("/api/provider/execute", async (req, res) => {
   }
 
   const selectedProvider = availableProviders[0];
-  const responseTime = Math.max(150, Date.now() - startTime + Math.floor(Math.random() * 100));
+
+  // Execute real provider call instead of constructing a hardcoded success response
+  const execResult = await ProviderExecutor.executeProviderCall(db, {
+    category: category || "GENERIC",
+    providerName: selectedProvider.name,
+    providerCode: selectedProvider.id,
+    userId: stdReq.userId,
+    amount: requestData?.amount ? Number(requestData.amount) : 0,
+    customerId: requestData?.customerId || requestData?.phoneNumber || "",
+    smartlinkReference: stdReq.transactionId,
+    extraData: requestData || {},
+  });
+
+  const responseTime = Date.now() - startTime;
+
+  if (!execResult.success) {
+    const errResp = APIProviderManager.buildStandardResponse({
+      success: false,
+      statusCode: execResult.statusCode || 502,
+      message: execResult.error || execResult.message || `Provider execution failed via ${selectedProvider.name}`,
+      provider: selectedProvider.name,
+      responseTime,
+      error: execResult.error || "PROVIDER_EXECUTION_FAILED"
+    });
+
+    const logItem = {
+      id: "log_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
+      providerName: selectedProvider.name,
+      service: serviceName || "GENERIC_SERVICE",
+      requestTime: stdReq.requestTimestamp,
+      responseTime,
+      status: "FAILED",
+      transactionId: stdReq.transactionId,
+      userId: stdReq.userId,
+      statusCode: execResult.statusCode || 502
+    };
+
+    if (!db.providerLogs) db.providerLogs = [];
+    db.providerLogs.unshift(logItem);
+    writeDB(db);
+
+    return res.status(execResult.statusCode || 502).json(errResp);
+  }
 
   const stdResp = APIProviderManager.buildStandardResponse({
     success: true,
     statusCode: 200,
-    message: `Request processed successfully via ${selectedProvider.name}`,
+    message: execResult.message || `Request processed successfully via ${selectedProvider.name}`,
     provider: selectedProvider.name,
     smartlinkReference: stdReq.transactionId,
-    providerReference: `REF-${selectedProvider.id.toUpperCase()}-${Date.now()}`,
-    data: { ...requestData, processedBy: selectedProvider.id, timestamp: new Date().toISOString() },
+    providerReference: execResult.providerReference || execResult.transactionId || `REF-${selectedProvider.id.toUpperCase()}-${Date.now()}`,
+    data: execResult.rawResponse || { ...requestData, processedBy: selectedProvider.id, timestamp: new Date().toISOString() },
     responseTime
   });
 

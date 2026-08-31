@@ -4,7 +4,7 @@ import fs from "fs";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 import { readDB, writeDB, initializeDB, DB_DIR, DB_FILE, UPLOADS_DIR, SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD, hashPassword, safeCompareHash, generateSalt, isMaskedValue } from "../db";
-import { verifyUserOrAdminSession } from "../middleware/auth";
+import { verifyUserOrAdminSession, requireAdmin } from "../middleware/auth";
 import { isMaintenanceModeActive, getMaintenanceDetails, getValueByJsonPath, seedModule7SettingsIfEmpty, sanitizePublicSettings } from "../middleware/maintenance";
 import { getAI } from "../services/ai";
 import { 
@@ -24,8 +24,6 @@ import { AutomaticWalletFundingEngine } from "../../src/services/automaticWallet
 import { PaymentVerificationReconciliationEngine } from "../../src/services/paymentVerificationReconciliationEngine";
 import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerGateway";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
-import { AgentHubAdapter } from "../../src/services/providers/agenthubAdapter";
-import { NINTrustAdapter } from "../../src/services/providers/nintrustAdapter";
 import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
 import { syncFromFirestore, syncToFirestore } from "../../src/services/settingsStore";
 import { loadFirestoreDb, syncDbToFirestore, saveDocToFirestore } from "../../src/services/firestoreStore";
@@ -45,7 +43,7 @@ const app = router;
 // ==========================================
 
 // Get Admin Notifications
-app.get("/api/admin/layout/notifications", async (req, res) => {
+app.get("/api/admin/layout/notifications", requireAdmin, async (req, res) => {
   const db = readDB();
   const notifications = db.adminNotifications || [
     {
@@ -84,7 +82,7 @@ app.get("/api/admin/layout/notifications", async (req, res) => {
 });
 
 // Mark All Admin Notifications as Read
-app.post("/api/admin/layout/notifications/read-all", async (req, res) => {
+app.post("/api/admin/layout/notifications/read-all", requireAdmin, async (req, res) => {
   const db = readDB();
   if (db.adminNotifications) {
     db.adminNotifications = db.adminNotifications.map((n: any) => ({ ...n, read: true }));
@@ -94,7 +92,7 @@ app.post("/api/admin/layout/notifications/read-all", async (req, res) => {
 });
 
 // Get System Announcements
-app.get("/api/admin/layout/announcements", async (req, res) => {
+app.get("/api/admin/layout/announcements", requireAdmin, async (req, res) => {
   const announcements = [
     {
       id: "ANC_201",
@@ -119,7 +117,7 @@ app.get("/api/admin/layout/announcements", async (req, res) => {
 });
 
 // Get/Save Admin Preferences
-app.get("/api/admin/layout/preferences", async (req, res) => {
+app.get("/api/admin/layout/preferences", requireAdmin, async (req, res) => {
   const db = readDB();
   const prefs = db.adminPreferences || {
     theme: "dark",
@@ -130,7 +128,7 @@ app.get("/api/admin/layout/preferences", async (req, res) => {
   res.json({ success: true, preferences: prefs });
 });
 
-app.post("/api/admin/layout/preferences", async (req, res) => {
+app.post("/api/admin/layout/preferences", requireAdmin, async (req, res) => {
   const db = readDB();
   db.adminPreferences = { ...(db.adminPreferences || {}), ...req.body };
   writeDB(db);
@@ -138,7 +136,7 @@ app.post("/api/admin/layout/preferences", async (req, res) => {
 });
 
 // Run Automated Self-Test Suite for Module 2 Layout & Navigation
-app.post("/api/admin/module2/test", async (req, res) => {
+app.post("/api/admin/module2/test", requireAdmin, async (req, res) => {
   const startTime = Date.now();
   const results = [];
 
@@ -273,15 +271,10 @@ app.post("/api/admin/module2/test", async (req, res) => {
 // =========================================================================
 
 // 1. GET /api/admin/settings - Retrieve Full Settings Bundle
-app.get("/api/admin/settings", async (req, res) => {
-  const sessionToken = (req.headers["x-admin-token"] as string);
+app.get("/api/admin/settings", requireAdmin, async (req, res) => {
   const db = readDB();
   await syncFromFirestore(db);
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
 
   seedModule7SettingsIfEmpty(db);
 
@@ -306,16 +299,10 @@ app.get("/api/admin/settings", async (req, res) => {
 });
 
 // 2. GET /api/admin/settings/:category - Retrieve Category Specific Settings
-app.get("/api/admin/settings/:category", async (req, res) => {
+app.get("/api/admin/settings/:category", requireAdmin, async (req, res) => {
   const { category } = req.params;
-  const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
   await syncFromFirestore(db);
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
 
   seedModule7SettingsIfEmpty(db);
 
@@ -332,19 +319,15 @@ app.get("/api/admin/settings/:category", async (req, res) => {
 });
 
 // 3. PUT /api/admin/settings/:category - Update Category Settings
-app.put("/api/admin/settings/:category", async (req, res) => {
+app.put("/api/admin/settings/:category", requireAdmin, async (req, res) => {
   const { category } = req.params;
   const updates = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
   await syncFromFirestore(db);
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
+  const admin = (req as any).admin;
 
-  if (!adminAuthService.hasPermission(val.session, "MANAGE_SYSTEM_SETTINGS")) {
+  if (!adminAuthService.hasPermission(admin, "MANAGE_SYSTEM_SETTINGS")) {
     return res.status(403).json({ success: false, message: "Permission Denied: MANAGE_SYSTEM_SETTINGS required." });
   }
 
@@ -355,7 +338,7 @@ app.put("/api/admin/settings/:category", async (req, res) => {
     db.branding_settings = {
       ...(db.branding_settings || {}),
       ...updates,
-      updatedBy: val.session.email,
+      updatedBy: admin.email,
       updatedAt: now,
       versionNumber: ((db.branding_settings?.versionNumber || 0) + 1),
     };
@@ -363,7 +346,7 @@ app.put("/api/admin/settings/:category", async (req, res) => {
     db.maintenance_settings = {
       ...(db.maintenance_settings || {}),
       ...updates,
-      updatedBy: val.session.email,
+      updatedBy: admin.email,
       updatedAt: now,
     };
     if (db.site_settings) {
@@ -375,7 +358,7 @@ app.put("/api/admin/settings/:category", async (req, res) => {
     db.system_settings[category] = {
       ...(db.system_settings[category] || {}),
       ...updates,
-      updatedBy: val.session.email,
+      updatedBy: admin.email,
       updatedAt: now,
       versionNumber: ((db.system_settings[category]?.versionNumber || 0) + 1),
     };
@@ -385,8 +368,8 @@ app.put("/api/admin/settings/:category", async (req, res) => {
   db.settings_audit_logs.unshift({
     id: `SETTING_AUDIT_${Date.now()}`,
     category,
-    adminEmail: val.session.email,
-    adminName: val.session.email,
+    adminEmail: admin.email,
+    adminName: admin.email,
     action: "UPDATE_SETTINGS",
     changes: updates,
     timestamp: now,
@@ -404,18 +387,14 @@ app.put("/api/admin/settings/:category", async (req, res) => {
 });
 
 // 4. POST /api/admin/settings/reset/:category - Reset Category to Defaults
-app.post("/api/admin/settings/reset/:category", async (req, res) => {
+app.post("/api/admin/settings/reset/:category", requireAdmin, async (req, res) => {
   const { category } = req.params;
-  const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
   await syncFromFirestore(db);
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
+  const admin = (req as any).admin;
 
-  if (!adminAuthService.hasPermission(val.session, "MANAGE_SYSTEM_SETTINGS")) {
+  if (!adminAuthService.hasPermission(admin, "MANAGE_SYSTEM_SETTINGS")) {
     return res.status(403).json({ success: false, message: "Permission Denied: MANAGE_SYSTEM_SETTINGS required." });
   }
 
@@ -436,31 +415,19 @@ app.post("/api/admin/settings/reset/:category", async (req, res) => {
 });
 
 // 5. GET /api/admin/settings/audit-logs - Settings Audit Trail
-app.get("/api/admin/settings/audit-logs", async (req, res) => {
-  const sessionToken = (req.headers["x-admin-token"] as string);
+app.get("/api/admin/settings/audit-logs", requireAdmin, async (req, res) => {
   const db = readDB();
   await syncFromFirestore(db);
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
 
   const logs = (db.settings_audit_logs || []).slice(0, 100);
   return res.json({ success: true, logs });
 });
 
 // 6. POST /api/admin/settings/test-email - Test SMTP Dispatch
-app.post("/api/admin/settings/test-email", async (req, res) => {
+app.post("/api/admin/settings/test-email", requireAdmin, async (req, res) => {
   const { testEmail, recipientEmail } = req.body;
   const target = testEmail || recipientEmail;
-  const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
 
   if (!target) {
     return res.status(400).json({ success: false, message: "Recipient email address is required." });
@@ -475,16 +442,11 @@ app.post("/api/admin/settings/test-email", async (req, res) => {
 });
 
 // 7. POST /api/admin/settings/test-sms - Test SMS Dispatch
-app.post("/api/admin/settings/test-sms", async (req, res) => {
+app.post("/api/admin/settings/test-sms", requireAdmin, async (req, res) => {
   const { testPhone, phone, phoneNumber } = req.body;
   const target = testPhone || phone || phoneNumber;
-  const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
 
   if (!target) {
     return res.status(400).json({ success: false, message: "Recipient phone number is required." });
@@ -499,19 +461,15 @@ app.post("/api/admin/settings/test-sms", async (req, res) => {
 });
 
 // 8. GET /api/admin/settings/export - Export Settings JSON Bundle
-app.get("/api/admin/settings/export", async (req, res) => {
-  const sessionToken = (req.headers["x-admin-token"] as string);
+app.get("/api/admin/settings/export", requireAdmin, async (req, res) => {
   const db = readDB();
   await syncFromFirestore(db);
+  const admin = (req as any).admin;
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
 
   const exportData = {
     exportedAt: new Date().toISOString(),
-    exportedBy: val.session.email,
+    exportedBy: admin.email,
     branding: db.branding_settings || {},
     system: db.system_settings || {},
     maintenance: getMaintenanceDetails(db),
@@ -523,18 +481,13 @@ app.get("/api/admin/settings/export", async (req, res) => {
 });
 
 // 9. POST /api/admin/settings/import - Import Settings JSON Bundle
-app.post("/api/admin/settings/import", async (req, res) => {
+app.post("/api/admin/settings/import", requireAdmin, async (req, res) => {
   const { settingsData } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
   await syncFromFirestore(db);
+  const admin = (req as any).admin;
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
-
-  if (!adminAuthService.hasPermission(val.session, "MANAGE_SYSTEM_SETTINGS")) {
+  if (!adminAuthService.hasPermission(admin, "MANAGE_SYSTEM_SETTINGS")) {
     return res.status(403).json({ success: false, message: "Permission Denied: MANAGE_SYSTEM_SETTINGS required." });
   }
 
@@ -553,15 +506,10 @@ app.post("/api/admin/settings/import", async (req, res) => {
 });
 
 // 10. POST /api/admin/module7/test - Module 7 Self-Test Diagnostic
-app.post("/api/admin/module7/test", async (req, res) => {
-  const sessionToken = (req.headers["x-admin-token"] as string);
+app.post("/api/admin/module7/test", requireAdmin, async (req, res) => {
   const db = readDB();
   await syncFromFirestore(db);
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
 
   seedModule7SettingsIfEmpty(db);
 

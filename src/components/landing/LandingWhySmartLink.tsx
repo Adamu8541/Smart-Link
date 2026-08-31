@@ -40,7 +40,7 @@ export const LandingWhySmartLink: React.FC = () => {
     {
       id: "real-time-results",
       name: "Real-Time Results",
-      description: "Direct real-time connections with NIMC, NIBSS, CAC, and FIRS databases ensure 100% verified accuracy.",
+      description: "Real-time third-party API gateway connections for identity lookups ensure 100% verified accuracy.",
       icon: Activity,
       stats: "100% Verified Accuracy",
     },
@@ -60,7 +60,7 @@ export const LandingWhySmartLink: React.FC = () => {
         
         {/* Section Title */}
         <div className="text-center space-y-4 max-w-3xl mx-auto mb-16">
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-blue-50 text-[#0F2D5C] border border-blue-200">
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#F5F7FA] text-[#0F2D5C] border border-[#E5E7EB]">
             Why Choose SmartLink
           </span>
           <h2 className="text-3xl sm:text-4.5xl font-bold text-[#111827] tracking-tight">

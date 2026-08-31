@@ -62,22 +62,22 @@ export function UserAnnouncementBanner({ variant = "dashboard", className = "", 
 
   const getStyleClasses = (style: string, priority: string) => {
     if (priority === "Critical" || style === "rose") {
-      return "bg-rose-50 dark:bg-rose-950/80 border-rose-200 dark:border-rose-800 text-rose-900 dark:text-rose-100 shadow-rose-500/5";
+      return "bg-[#F5F7FA] dark:bg-[#0F2D5C]/80 border-[#E5E7EB] dark:border-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF] shadow-rose-500/5";
     }
     if (style === "amber" || priority === "High") {
-      return "bg-amber-50 dark:bg-amber-950/80 border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-100 shadow-amber-500/5";
+      return "bg-[#F5F7FA] dark:bg-[#0F2D5C]/80 border-[#E5E7EB] dark:border-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF] shadow-amber-500/5";
     }
     if (style === "emerald") {
-      return "bg-emerald-50 dark:bg-emerald-950/80 border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-100 shadow-emerald-500/5";
+      return "bg-[#F5F7FA] dark:bg-[#0F2D5C]/80 border-[#E5E7EB] dark:border-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF] shadow-emerald-500/5";
     }
-    return "bg-blue-50 dark:bg-blue-950/80 border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-100 shadow-blue-500/5";
+    return "bg-[#F5F7FA] dark:bg-[#0F2D5C]/80 border-[#E5E7EB] dark:border-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF] shadow-blue-500/5";
   };
 
   const getIcon = (type: string, priority: string) => {
-    if (type === "Security Alert" || priority === "Critical") return <ShieldAlert className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0" />;
-    if (type === "System Maintenance" || type === "Service Downtime" || priority === "High") return <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />;
-    if (type === "New Service Available" || type === "Promotional Campaign") return <Sparkles className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />;
-    return <Megaphone className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0" />;
+    if (type === "Security Alert" || priority === "Critical") return <ShieldAlert className="w-5 h-5 text-[#0F2D5C] dark:text-[#9CA3AF] shrink-0" />;
+    if (type === "System Maintenance" || type === "Service Downtime" || priority === "High") return <AlertTriangle className="w-5 h-5 text-[#0F2D5C] dark:text-[#9CA3AF] shrink-0" />;
+    if (type === "New Service Available" || type === "Promotional Campaign") return <Sparkles className="w-5 h-5 text-[#0F2D5C] dark:text-[#9CA3AF] shrink-0" />;
+    return <Megaphone className="w-5 h-5 text-[#0F2D5C] dark:text-[#9CA3AF] shrink-0" />;
   };
 
   const handleActionClick = (url?: string) => {
@@ -113,11 +113,11 @@ export function UserAnnouncementBanner({ variant = "dashboard", className = "", 
                   <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white dark:bg-black/50 border border-black/10 dark:border-white/20 shadow-2xs font-mono">
                     {ann.type || "Live Notice"}
                   </span>
-                  <span className="font-bold text-xs sm:text-sm tracking-tight text-slate-900 dark:text-white">
+                  <span className="font-bold text-xs sm:text-sm tracking-tight text-[#111827] dark:text-white">
                     {ann.title}
                   </span>
                 </div>
-                <p className="text-xs text-slate-700 dark:text-slate-300 mt-0.5 line-clamp-2 leading-relaxed">
+                <p className="text-xs text-[#4B5563] dark:text-[#E5E7EB] mt-0.5 line-clamp-2 leading-relaxed">
                   {ann.content}
                 </p>
               </div>
@@ -127,7 +127,7 @@ export function UserAnnouncementBanner({ variant = "dashboard", className = "", 
               {ann.actionText && (
                 <button
                   onClick={() => handleActionClick(ann.actionUrl || "/")}
-                  className="px-3.5 py-1.5 bg-slate-900 hover:bg-black text-white dark:bg-white dark:hover:bg-slate-100 dark:text-slate-900 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1 cursor-pointer shrink-0"
+                  className="px-3.5 py-1.5 bg-[#111827] hover:bg-black text-white dark:bg-white dark:hover:bg-[#E5E7EB] dark:text-[#111827] rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1 cursor-pointer shrink-0"
                 >
                   <span>{ann.actionText}</span>
                   <ChevronRight className="w-3.5 h-3.5" />
@@ -135,7 +135,7 @@ export function UserAnnouncementBanner({ variant = "dashboard", className = "", 
               )}
               <button
                 onClick={() => handleDismiss(ann.id)}
-                className="p-1.5 hover:bg-black/10 dark:hover:bg-white/10 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer"
+                className="p-1.5 hover:bg-black/10 dark:hover:bg-white/10 rounded-xl text-[#6B7280] hover:text-[#111827] dark:text-[#9CA3AF] dark:hover:text-white transition-colors cursor-pointer"
                 title="Dismiss announcement"
               >
                 <X className="w-4 h-4" />
@@ -165,17 +165,17 @@ export function UserAnnouncementBanner({ variant = "dashboard", className = "", 
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h4 className="font-bold text-sm tracking-tight text-slate-900 dark:text-white">{ann.title}</h4>
+                <h4 className="font-bold text-sm tracking-tight text-[#111827] dark:text-white">{ann.title}</h4>
                 <span className="text-[10px] uppercase font-mono px-2.5 py-0.5 rounded-full bg-white/90 dark:bg-black/50 border border-black/10 dark:border-white/10 font-extrabold">
                   {ann.type}
                 </span>
                 {ann.priority === "Critical" && (
-                  <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-rose-600 text-white font-black animate-pulse">
+                  <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-[#0F2D5C] text-white font-black animate-pulse">
                     CRITICAL
                   </span>
                 )}
               </div>
-              <p className="text-xs text-slate-700 dark:text-slate-300 mt-1.5 leading-relaxed">{ann.content}</p>
+              <p className="text-xs text-[#4B5563] dark:text-[#E5E7EB] mt-1.5 leading-relaxed">{ann.content}</p>
             </div>
           </div>
 
@@ -183,7 +183,7 @@ export function UserAnnouncementBanner({ variant = "dashboard", className = "", 
             {ann.actionText && (
               <button
                 onClick={() => handleActionClick(ann.actionUrl || "/")}
-                className="px-3.5 py-2 bg-slate-900 hover:bg-black text-white dark:bg-white dark:hover:bg-slate-100 dark:text-slate-900 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+                className="px-3.5 py-2 bg-[#111827] hover:bg-black text-white dark:bg-white dark:hover:bg-[#E5E7EB] dark:text-[#111827] rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
               >
                 <span>{ann.actionText}</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -191,7 +191,7 @@ export function UserAnnouncementBanner({ variant = "dashboard", className = "", 
             )}
             <button
               onClick={() => handleDismiss(ann.id)}
-              className="p-2 hover:bg-black/10 dark:hover:bg-white/10 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer"
+              className="p-2 hover:bg-black/10 dark:hover:bg-white/10 rounded-xl text-[#6B7280] hover:text-[#111827] dark:text-[#9CA3AF] dark:hover:text-white transition-colors cursor-pointer"
               title="Dismiss announcement"
             >
               <X className="w-4 h-4" />

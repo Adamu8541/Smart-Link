@@ -380,7 +380,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
   });
 
   return (
-    <div id="api-response-mapper-page" className="p-4 md:p-8 space-y-6 max-w-[1600px] mx-auto text-slate-100">
+    <div id="api-response-mapper-page" className="p-4 md:p-8 space-y-6 max-w-[1600px] mx-auto text-[#E5E7EB]">
       {/* Toast Notification */}
       <AnimatePresence>
         {toastMessage && (
@@ -390,8 +390,8 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
             exit={{ opacity: 0, y: -20 }}
             className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border ${
               toastMessage.type === "success"
-                ? "bg-emerald-950/90 text-emerald-300 border-emerald-800"
-                : "bg-rose-950/90 text-rose-300 border-rose-800"
+                ? "bg-[#0F2D5C]/90 text-[#9CA3AF] border-[#0F2D5C]"
+                : "bg-[#0F2D5C]/90 text-[#9CA3AF] border-[#0F2D5C]"
             }`}
           >
             {toastMessage.type === "success" ? <CheckCircle2 className="h-5 w-5 shrink-0" /> : <AlertTriangle className="h-5 w-5 shrink-0" />}
@@ -401,15 +401,15 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
       </AnimatePresence>
 
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-[#111827] border border-[#111827] rounded-3xl p-6 shadow-xl">
         <div className="space-y-1">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-purple-600/20 border border-purple-500/30 rounded-2xl text-purple-400">
+            <div className="p-3 bg-[#0F2D5C]/20 border border-[#0F2D5C]/30 rounded-2xl text-[#9CA3AF]">
               <ArrowRightLeft className="h-6 w-6" />
             </div>
             <div>
               <h1 className="text-2xl font-bold text-white tracking-tight">API Response Mapper</h1>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-[#9CA3AF]">
                 Map provider-specific JSON API responses into Smart Link's standardized internal response structure without source code modifications.
               </p>
             </div>
@@ -420,7 +420,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
           <button
             type="button"
             onClick={() => { fetchMappings(); fetchLogs(); }}
-            className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white font-medium text-xs flex items-center gap-2 transition cursor-pointer"
+            className="px-4 py-2.5 rounded-xl bg-[#111827] hover:bg-[#4B5563] border border-[#4B5563] text-[#E5E7EB] hover:text-white font-medium text-xs flex items-center gap-2 transition cursor-pointer"
           >
             <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
             Refresh
@@ -429,16 +429,16 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
           <button
             type="button"
             onClick={() => setIsLogsOpen(true)}
-            className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white font-medium text-xs flex items-center gap-2 transition cursor-pointer"
+            className="px-4 py-2.5 rounded-xl bg-[#111827] hover:bg-[#4B5563] border border-[#4B5563] text-[#E5E7EB] hover:text-white font-medium text-xs flex items-center gap-2 transition cursor-pointer"
           >
-            <FileText className="h-4 w-4 text-purple-400" />
+            <FileText className="h-4 w-4 text-[#9CA3AF]" />
             Test Logs ({logs.length})
           </button>
 
           <button
             type="button"
             onClick={handleCreateNew}
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-xs flex items-center gap-2 shadow-lg shadow-purple-600/20 transition cursor-pointer"
+            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0F2D5C] to-[#0F2D5C] hover:from-[#0F2D5C] hover:to-[#0F2D5C] text-white font-semibold text-xs flex items-center gap-2 shadow-lg shadow-none transition cursor-pointer"
           >
             <Plus className="h-4 w-4" />
             Add Response Mapping
@@ -449,13 +449,13 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
       {/* Filter Bar */}
       <div className="grid md:grid-cols-12 gap-4 items-center">
         <div className="md:col-span-6 relative">
-          <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-500" />
+          <Search className="absolute left-3.5 top-3 h-4 w-4 text-[#6B7280]" />
           <input
             type="text"
             placeholder="Search mapping name, provider, or endpoint URL..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-900 border border-slate-800 rounded-2xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition"
+            className="w-full bg-[#111827] border border-[#111827] rounded-2xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#0F2D5C] transition"
           />
         </div>
 
@@ -463,7 +463,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
           <select
             value={selectedProvider}
             onChange={(e) => setSelectedProvider(e.target.value)}
-            className="w-full bg-slate-900 border border-slate-800 rounded-2xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500 transition"
+            className="w-full bg-[#111827] border border-[#111827] rounded-2xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C] transition"
           >
             <option value="ALL">All Providers ({mappings.length})</option>
             {PROVIDER_OPTIONS.map((p) => (
@@ -476,7 +476,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full bg-slate-900 border border-slate-800 rounded-2xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500 transition"
+            className="w-full bg-[#111827] border border-[#111827] rounded-2xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C] transition"
           >
             <option value="ALL">All Statuses</option>
             <option value="ENABLED">Enabled Only</option>
@@ -486,18 +486,18 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
       </div>
 
       {/* Mappings Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-xl">
+      <div className="bg-[#111827] border border-[#111827] rounded-3xl overflow-hidden shadow-xl">
         {isLoading ? (
           <div className="p-12 text-center space-y-3">
-            <RefreshCw className="h-8 w-8 text-purple-500 animate-spin mx-auto" />
-            <p className="text-sm text-slate-400">Loading API response mappings...</p>
+            <RefreshCw className="h-8 w-8 text-[#0F2D5C] animate-spin mx-auto" />
+            <p className="text-sm text-[#9CA3AF]">Loading API response mappings...</p>
           </div>
         ) : filteredMappings.length === 0 ? (
           <div className="p-12 text-center space-y-4">
-            <GitCompare className="h-12 w-12 text-slate-700 mx-auto" />
+            <GitCompare className="h-12 w-12 text-[#4B5563] mx-auto" />
             <div className="space-y-1">
               <h3 className="text-base font-semibold text-white">No Response Mappings Found</h3>
-              <p className="text-xs text-slate-400 max-w-md mx-auto">
+              <p className="text-xs text-[#9CA3AF] max-w-md mx-auto">
                 {searchQuery || selectedProvider !== "ALL" || statusFilter !== "ALL"
                   ? "No response mappings match your filter parameters."
                   : "Create your first API response mapping to automatically parse payment provider responses."}
@@ -506,7 +506,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
             <button
               type="button"
               onClick={handleCreateNew}
-              className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-medium text-xs inline-flex items-center gap-2 transition cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-medium text-xs inline-flex items-center gap-2 transition cursor-pointer"
             >
               <Plus className="h-4 w-4" />
               Create Mapping Template
@@ -515,7 +515,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-950/60 text-slate-400 border-b border-slate-800">
+              <thead className="bg-[#111827]/60 text-[#9CA3AF] border-b border-[#111827]">
                 <tr>
                   <th className="px-6 py-4 font-semibold uppercase tracking-wider">Provider / Mapping Name</th>
                   <th className="px-6 py-4 font-semibold uppercase tracking-wider">Key Status & Ref Paths</th>
@@ -524,45 +524,45 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                   <th className="px-6 py-4 font-semibold uppercase tracking-wider text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 text-slate-300">
+              <tbody className="divide-y divide-[#6B7280] text-[#E5E7EB]">
                 {filteredMappings.map((m) => (
-                  <tr key={m.id} className="hover:bg-slate-800/30 transition">
+                  <tr key={m.id} className="hover:bg-[#111827]/30 transition">
                     {/* Provider & Mapping Name */}
                     <td className="px-6 py-4">
                       <div className="space-y-1">
-                        <span className="px-2 py-0.5 rounded-md bg-purple-950/80 border border-purple-800/60 text-purple-300 font-mono text-[10px] font-semibold">
+                        <span className="px-2 py-0.5 rounded-md bg-[#0F2D5C]/80 border border-[#0F2D5C]/60 text-[#9CA3AF] font-mono text-[10px] font-semibold">
                           {m.provider}
                         </span>
                         <p className="font-bold text-white text-sm">{m.mappingName}</p>
-                        {m.endpoint && <p className="text-[10px] font-mono text-slate-500 truncate max-w-xs">{m.endpoint}</p>}
+                        {m.endpoint && <p className="text-[10px] font-mono text-[#6B7280] truncate max-w-xs">{m.endpoint}</p>}
                       </div>
                     </td>
 
                     {/* Key Status & Ref Paths */}
                     <td className="px-6 py-4">
-                      <div className="space-y-1 text-[11px] font-mono text-slate-300">
+                      <div className="space-y-1 text-[11px] font-mono text-[#E5E7EB]">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-slate-500">Status Path:</span>
-                          <span className="text-emerald-400 font-bold">{m.responseStatusPath || "(not set)"}</span>
-                          {m.successValue && <span className="text-slate-500">={`"${m.successValue}"`}</span>}
+                          <span className="text-[#6B7280]">Status Path:</span>
+                          <span className="text-[#9CA3AF] font-bold">{m.responseStatusPath || "(not set)"}</span>
+                          {m.successValue && <span className="text-[#6B7280]">={`"${m.successValue}"`}</span>}
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <span className="text-slate-500">Ref Path:</span>
-                          <span className="text-blue-400">{m.transactionRefPath || "(not set)"}</span>
+                          <span className="text-[#6B7280]">Ref Path:</span>
+                          <span className="text-[#9CA3AF]">{m.transactionRefPath || "(not set)"}</span>
                         </div>
                       </div>
                     </td>
 
                     {/* Amount & Customer Paths */}
                     <td className="px-6 py-4">
-                      <div className="space-y-1 text-[11px] font-mono text-slate-300">
+                      <div className="space-y-1 text-[11px] font-mono text-[#E5E7EB]">
                         <div>
-                          <span className="text-slate-500">Amount:</span>{" "}
-                          <span className="text-amber-300">{m.amountPath || "(not set)"}</span>
+                          <span className="text-[#6B7280]">Amount:</span>{" "}
+                          <span className="text-[#9CA3AF]">{m.amountPath || "(not set)"}</span>
                         </div>
                         <div>
-                          <span className="text-slate-500">Customer:</span>{" "}
-                          <span className="text-indigo-300">{m.customerNamePath || "(not set)"}</span>
+                          <span className="text-[#6B7280]">Customer:</span>{" "}
+                          <span className="text-[#9CA3AF]">{m.customerNamePath || "(not set)"}</span>
                         </div>
                       </div>
                     </td>
@@ -574,11 +574,11 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                         onClick={(e) => handleToggleStatus(m.id, e)}
                         className={`px-3 py-1 rounded-full font-semibold text-[10px] border transition cursor-pointer inline-flex items-center gap-1.5 ${
                           m.status === "ENABLED"
-                            ? "bg-emerald-950/80 text-emerald-300 border-emerald-800 hover:bg-emerald-900"
-                            : "bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700"
+                            ? "bg-[#0F2D5C]/80 text-[#9CA3AF] border-[#0F2D5C] hover:bg-[#0F2D5C]"
+                            : "bg-[#111827] text-[#9CA3AF] border-[#4B5563] hover:bg-[#4B5563]"
                         }`}
                       >
-                        <span className={`h-1.5 w-1.5 rounded-full ${m.status === "ENABLED" ? "bg-emerald-400 animate-pulse" : "bg-slate-500"}`} />
+                        <span className={`h-1.5 w-1.5 rounded-full ${m.status === "ENABLED" ? "bg-[#0F2D5C] animate-pulse" : "bg-[#6B7280]"}`} />
                         {m.status}
                       </button>
                     </td>
@@ -589,7 +589,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                         <button
                           type="button"
                           onClick={() => handleRunTest(m)}
-                          className="p-2 rounded-xl bg-purple-950/80 hover:bg-purple-900 border border-purple-800/80 text-purple-300 hover:text-white transition cursor-pointer"
+                          className="p-2 rounded-xl bg-[#0F2D5C]/80 hover:bg-[#0F2D5C] border border-[#0F2D5C]/80 text-[#9CA3AF] hover:text-white transition cursor-pointer"
                           title="Test Mapping with JSON"
                         >
                           <Play className="h-3.5 w-3.5 fill-current" />
@@ -598,7 +598,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                         <button
                           type="button"
                           onClick={(e) => handleDuplicate(m.id, e)}
-                          className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
+                          className="p-2 rounded-xl bg-[#111827] hover:bg-[#4B5563] border border-[#4B5563] text-[#E5E7EB] hover:text-white transition cursor-pointer"
                           title="Duplicate Mapping"
                         >
                           <CopyPlus className="h-3.5 w-3.5" />
@@ -607,7 +607,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                         <button
                           type="button"
                           onClick={() => handleEdit(m)}
-                          className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
+                          className="p-2 rounded-xl bg-[#111827] hover:bg-[#4B5563] border border-[#4B5563] text-[#E5E7EB] hover:text-white transition cursor-pointer"
                           title="Edit Configuration"
                         >
                           <Edit3 className="h-3.5 w-3.5" />
@@ -616,7 +616,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                         <button
                           type="button"
                           onClick={() => handleDelete(m.id, m.mappingName)}
-                          className="p-2 rounded-xl bg-rose-950/50 hover:bg-rose-900/80 border border-rose-900/80 text-rose-400 hover:text-rose-200 transition cursor-pointer"
+                          className="p-2 rounded-xl bg-[#0F2D5C]/50 hover:bg-[#0F2D5C]/80 border border-[#0F2D5C]/80 text-[#9CA3AF] hover:text-[#9CA3AF] transition cursor-pointer"
                           title="Delete Mapping"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -639,19 +639,19 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-5xl bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl my-8 space-y-6 max-h-[92vh] overflow-y-auto text-xs"
+              className="w-full max-w-5xl bg-[#111827] border border-[#111827] rounded-3xl p-6 md:p-8 shadow-2xl my-8 space-y-6 max-h-[92vh] overflow-y-auto text-xs"
             >
               {/* Modal Header */}
-              <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div className="flex items-center justify-between border-b border-[#111827] pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-purple-600/20 border border-purple-500/30 rounded-xl text-purple-400">
+                  <div className="p-2.5 bg-[#0F2D5C]/20 border border-[#0F2D5C]/30 rounded-xl text-[#9CA3AF]">
                     <ArrowRightLeft className="h-5 w-5" />
                   </div>
                   <div>
                     <h2 className="text-lg font-bold text-white">
                       {activeMapping.id ? "Edit API Response Mapping" : "Create New API Response Mapping"}
                     </h2>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-[#9CA3AF]">
                       Configure dynamic JSON paths to map external provider fields to Smart Link standard outputs.
                     </p>
                   </div>
@@ -660,7 +660,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                 <button
                   type="button"
                   onClick={() => setIsEditorOpen(false)}
-                  className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition cursor-pointer"
+                  className="p-2 rounded-xl bg-[#111827] hover:bg-[#4B5563] text-[#9CA3AF] hover:text-white transition cursor-pointer"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -669,14 +669,14 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
               {/* General Metadata */}
               <div className="grid md:grid-cols-3 gap-4">
                 <div className="space-y-1.5 md:col-span-1">
-                  <label className="font-semibold text-slate-300">Payment Provider</label>
+                  <label className="font-semibold text-[#E5E7EB]">Payment Provider</label>
                   <input
                     type="text"
                     list="provider-suggestions"
                     value={activeMapping.provider || ""}
                     onChange={(e) => setActiveMapping({ ...activeMapping, provider: e.target.value })}
                     placeholder="e.g. Aspfiy, Paystack"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-purple-500"
+                    className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-[#0F2D5C]"
                   />
                   <datalist id="provider-suggestions">
                     {PROVIDER_OPTIONS.map((p) => (
@@ -686,22 +686,22 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                 </div>
 
                 <div className="space-y-1.5 md:col-span-1">
-                  <label className="font-semibold text-slate-300">Mapping Name *</label>
+                  <label className="font-semibold text-[#E5E7EB]">Mapping Name *</label>
                   <input
                     type="text"
                     value={activeMapping.mappingName || ""}
                     onChange={(e) => setActiveMapping({ ...activeMapping, mappingName: e.target.value })}
                     placeholder="e.g. Paystack Account Resolve Mapping"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-purple-500"
+                    className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-[#0F2D5C]"
                   />
                 </div>
 
                 <div className="space-y-1.5 md:col-span-1">
-                  <label className="font-semibold text-slate-300">Status</label>
+                  <label className="font-semibold text-[#E5E7EB]">Status</label>
                   <select
                     value={activeMapping.status || "ENABLED"}
                     onChange={(e) => setActiveMapping({ ...activeMapping, status: e.target.value as any })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-purple-500"
+                    className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-[#0F2D5C]"
                   >
                     <option value="ENABLED">ENABLED</option>
                     <option value="DISABLED">DISABLED</option>
@@ -709,162 +709,162 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                 </div>
 
                 <div className="space-y-1.5 md:col-span-3">
-                  <label className="font-semibold text-slate-300">Endpoint URL (Optional Reference)</label>
+                  <label className="font-semibold text-[#E5E7EB]">Endpoint URL (Optional Reference)</label>
                   <input
                     type="text"
                     value={activeMapping.endpoint || ""}
                     onChange={(e) => setActiveMapping({ ...activeMapping, endpoint: e.target.value })}
                     placeholder="e.g. https://api.paystack.co/bank/resolve"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white font-mono focus:outline-none focus:border-purple-500"
+                    className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-white font-mono focus:outline-none focus:border-[#0F2D5C]"
                   />
                 </div>
               </div>
 
               {/* JSON Path Configurations */}
-              <div className="space-y-4 pt-4 border-t border-slate-800">
+              <div className="space-y-4 pt-4 border-t border-[#111827]">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                    <Code className="h-4 w-4 text-purple-400" />
+                    <Code className="h-4 w-4 text-[#9CA3AF]" />
                     Internal Smart Link Response Mapping Paths (Dot Notation)
                   </h3>
-                  <span className="text-[11px] text-slate-500 italic">Example: data.reference or responseBody.fee</span>
+                  <span className="text-[11px] text-[#6B7280] italic">Example: data.reference or responseBody.fee</span>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
                   {/* Status & Validation */}
-                  <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800/80 space-y-3">
-                    <h4 className="font-bold text-slate-200 text-[11px] uppercase tracking-wider text-purple-400">1. Transaction Status Mapping</h4>
+                  <div className="p-4 bg-[#111827]/60 rounded-2xl border border-[#111827]/80 space-y-3">
+                    <h4 className="font-bold text-[#E5E7EB] text-[11px] uppercase tracking-wider text-[#9CA3AF]">1. Transaction Status Mapping</h4>
                     <div className="space-y-2">
                       <div>
-                        <label className="text-[11px] text-slate-400">Response Status Path</label>
+                        <label className="text-[11px] text-[#9CA3AF]">Response Status Path</label>
                         <input
                           type="text"
                           value={activeMapping.responseStatusPath || ""}
                           onChange={(e) => setActiveMapping({ ...activeMapping, responseStatusPath: e.target.value })}
                           placeholder="e.g. status or requestSuccessful"
-                          className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-emerald-400 font-mono focus:outline-none focus:border-purple-500"
+                          className="w-full bg-[#111827] border border-[#111827] rounded-lg px-3 py-1.5 text-xs text-[#9CA3AF] font-mono focus:outline-none focus:border-[#0F2D5C]"
                         />
                       </div>
                       <div>
-                        <label className="text-[11px] text-slate-400">Success Match Value (Expected for Success)</label>
+                        <label className="text-[11px] text-[#9CA3AF]">Success Match Value (Expected for Success)</label>
                         <input
                           type="text"
                           value={activeMapping.successValue || ""}
                           onChange={(e) => setActiveMapping({ ...activeMapping, successValue: e.target.value })}
                           placeholder="e.g. true or 0 or success or SUCCESSFUL"
-                          className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-purple-500"
+                          className="w-full bg-[#111827] border border-[#111827] rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-[#0F2D5C]"
                         />
                       </div>
                     </div>
                   </div>
 
                   {/* Transaction Identifiers */}
-                  <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800/80 space-y-3">
-                    <h4 className="font-bold text-slate-200 text-[11px] uppercase tracking-wider text-blue-400">2. Transaction Identifiers</h4>
+                  <div className="p-4 bg-[#111827]/60 rounded-2xl border border-[#111827]/80 space-y-3">
+                    <h4 className="font-bold text-[#E5E7EB] text-[11px] uppercase tracking-wider text-[#9CA3AF]">2. Transaction Identifiers</h4>
                     <div className="space-y-2">
                       <div>
-                        <label className="text-[11px] text-slate-400">Transaction ID Path</label>
+                        <label className="text-[11px] text-[#9CA3AF]">Transaction ID Path</label>
                         <input
                           type="text"
                           value={activeMapping.transactionIdPath || ""}
                           onChange={(e) => setActiveMapping({ ...activeMapping, transactionIdPath: e.target.value })}
                           placeholder="e.g. data.id or responseBody.paymentReference"
-                          className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-purple-500"
+                          className="w-full bg-[#111827] border border-[#111827] rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-[#0F2D5C]"
                         />
                       </div>
                       <div>
-                        <label className="text-[11px] text-slate-400">Transaction Reference Path</label>
+                        <label className="text-[11px] text-[#9CA3AF]">Transaction Reference Path</label>
                         <input
                           type="text"
                           value={activeMapping.transactionRefPath || ""}
                           onChange={(e) => setActiveMapping({ ...activeMapping, transactionRefPath: e.target.value })}
                           placeholder="e.g. data.reference or responseBody.transactionReference"
-                          className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-purple-500"
+                          className="w-full bg-[#111827] border border-[#111827] rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-[#0F2D5C]"
                         />
                       </div>
                     </div>
                   </div>
 
                   {/* Financial Fields */}
-                  <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800/80 space-y-3">
-                    <h4 className="font-bold text-slate-200 text-[11px] uppercase tracking-wider text-amber-400">3. Financial Values</h4>
+                  <div className="p-4 bg-[#111827]/60 rounded-2xl border border-[#111827]/80 space-y-3">
+                    <h4 className="font-bold text-[#E5E7EB] text-[11px] uppercase tracking-wider text-[#9CA3AF]">3. Financial Values</h4>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="text-[11px] text-slate-400">Amount Path</label>
+                        <label className="text-[11px] text-[#9CA3AF]">Amount Path</label>
                         <input
                           type="text"
                           value={activeMapping.amountPath || ""}
                           onChange={(e) => setActiveMapping({ ...activeMapping, amountPath: e.target.value })}
                           placeholder="e.g. data.amount"
-                          className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-amber-300 font-mono focus:outline-none focus:border-purple-500"
+                          className="w-full bg-[#111827] border border-[#111827] rounded-lg px-3 py-1.5 text-xs text-[#9CA3AF] font-mono focus:outline-none focus:border-[#0F2D5C]"
                         />
                       </div>
                       <div>
-                        <label className="text-[11px] text-slate-400">Currency Path</label>
+                        <label className="text-[11px] text-[#9CA3AF]">Currency Path</label>
                         <input
                           type="text"
                           value={activeMapping.currencyPath || ""}
                           onChange={(e) => setActiveMapping({ ...activeMapping, currencyPath: e.target.value })}
                           placeholder="e.g. data.currency"
-                          className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-purple-500"
+                          className="w-full bg-[#111827] border border-[#111827] rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-[#0F2D5C]"
                         />
                       </div>
                       <div>
-                        <label className="text-[11px] text-slate-400">Charges / Fee Path</label>
+                        <label className="text-[11px] text-[#9CA3AF]">Charges / Fee Path</label>
                         <input
                           type="text"
                           value={activeMapping.chargesPath || ""}
                           onChange={(e) => setActiveMapping({ ...activeMapping, chargesPath: e.target.value })}
                           placeholder="e.g. responseBody.fee"
-                          className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-purple-500"
+                          className="w-full bg-[#111827] border border-[#111827] rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-[#0F2D5C]"
                         />
                       </div>
                       <div>
-                        <label className="text-[11px] text-slate-400">Wallet Balance Path</label>
+                        <label className="text-[11px] text-[#9CA3AF]">Wallet Balance Path</label>
                         <input
                           type="text"
                           value={activeMapping.walletBalancePath || ""}
                           onChange={(e) => setActiveMapping({ ...activeMapping, walletBalancePath: e.target.value })}
                           placeholder="e.g. data.balance"
-                          className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-purple-500"
+                          className="w-full bg-[#111827] border border-[#111827] rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-[#0F2D5C]"
                         />
                       </div>
                     </div>
                   </div>
 
                   {/* Customer Information */}
-                  <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800/80 space-y-3">
-                    <h4 className="font-bold text-slate-200 text-[11px] uppercase tracking-wider text-indigo-400">4. Customer Details</h4>
+                  <div className="p-4 bg-[#111827]/60 rounded-2xl border border-[#111827]/80 space-y-3">
+                    <h4 className="font-bold text-[#E5E7EB] text-[11px] uppercase tracking-wider text-[#9CA3AF]">4. Customer Details</h4>
                     <div className="space-y-2">
                       <div>
-                        <label className="text-[11px] text-slate-400">Customer Name Path</label>
+                        <label className="text-[11px] text-[#9CA3AF]">Customer Name Path</label>
                         <input
                           type="text"
                           value={activeMapping.customerNamePath || ""}
                           onChange={(e) => setActiveMapping({ ...activeMapping, customerNamePath: e.target.value })}
                           placeholder="e.g. data.customer.name"
-                          className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-purple-500"
+                          className="w-full bg-[#111827] border border-[#111827] rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-[#0F2D5C]"
                         />
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <label className="text-[11px] text-slate-400">Email Path</label>
+                          <label className="text-[11px] text-[#9CA3AF]">Email Path</label>
                           <input
                             type="text"
                             value={activeMapping.customerEmailPath || ""}
                             onChange={(e) => setActiveMapping({ ...activeMapping, customerEmailPath: e.target.value })}
                             placeholder="e.g. data.customer.email"
-                            className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-purple-500"
+                            className="w-full bg-[#111827] border border-[#111827] rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-[#0F2D5C]"
                           />
                         </div>
                         <div>
-                          <label className="text-[11px] text-slate-400">Phone Path</label>
+                          <label className="text-[11px] text-[#9CA3AF]">Phone Path</label>
                           <input
                             type="text"
                             value={activeMapping.customerPhonePath || ""}
                             onChange={(e) => setActiveMapping({ ...activeMapping, customerPhonePath: e.target.value })}
                             placeholder="e.g. data.customer.phone"
-                            className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-purple-500"
+                            className="w-full bg-[#111827] border border-[#111827] rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-[#0F2D5C]"
                           />
                         </div>
                       </div>
@@ -872,50 +872,50 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                   </div>
 
                   {/* Bank & Account Details */}
-                  <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800/80 space-y-3">
-                    <h4 className="font-bold text-slate-200 text-[11px] uppercase tracking-wider text-teal-400">5. Bank & Account Information</h4>
+                  <div className="p-4 bg-[#111827]/60 rounded-2xl border border-[#111827]/80 space-y-3">
+                    <h4 className="font-bold text-[#E5E7EB] text-[11px] uppercase tracking-wider text-[#9CA3AF]">5. Bank & Account Information</h4>
                     <div className="space-y-2">
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <label className="text-[11px] text-slate-400">Account Number Path</label>
+                          <label className="text-[11px] text-[#9CA3AF]">Account Number Path</label>
                           <input
                             type="text"
                             value={activeMapping.accountNumberPath || ""}
                             onChange={(e) => setActiveMapping({ ...activeMapping, accountNumberPath: e.target.value })}
                             placeholder="e.g. data.account_number"
-                            className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-purple-500"
+                            className="w-full bg-[#111827] border border-[#111827] rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-[#0F2D5C]"
                           />
                         </div>
                         <div>
-                          <label className="text-[11px] text-slate-400">Account Name Path</label>
+                          <label className="text-[11px] text-[#9CA3AF]">Account Name Path</label>
                           <input
                             type="text"
                             value={activeMapping.accountNamePath || ""}
                             onChange={(e) => setActiveMapping({ ...activeMapping, accountNamePath: e.target.value })}
                             placeholder="e.g. data.account_name"
-                            className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-purple-500"
+                            className="w-full bg-[#111827] border border-[#111827] rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-[#0F2D5C]"
                           />
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <label className="text-[11px] text-slate-400">Bank Name Path</label>
+                          <label className="text-[11px] text-[#9CA3AF]">Bank Name Path</label>
                           <input
                             type="text"
                             value={activeMapping.bankNamePath || ""}
                             onChange={(e) => setActiveMapping({ ...activeMapping, bankNamePath: e.target.value })}
                             placeholder="e.g. data.bank_name"
-                            className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-purple-500"
+                            className="w-full bg-[#111827] border border-[#111827] rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-[#0F2D5C]"
                           />
                         </div>
                         <div>
-                          <label className="text-[11px] text-slate-400">Session ID Path</label>
+                          <label className="text-[11px] text-[#9CA3AF]">Session ID Path</label>
                           <input
                             type="text"
                             value={activeMapping.sessionIdPath || ""}
                             onChange={(e) => setActiveMapping({ ...activeMapping, sessionIdPath: e.target.value })}
                             placeholder="e.g. data.session_id"
-                            className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-purple-500"
+                            className="w-full bg-[#111827] border border-[#111827] rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-[#0F2D5C]"
                           />
                         </div>
                       </div>
@@ -923,49 +923,49 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                   </div>
 
                   {/* Messages & Error Codes */}
-                  <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800/80 space-y-3">
-                    <h4 className="font-bold text-slate-200 text-[11px] uppercase tracking-wider text-rose-400">6. Messages, Errors & Raw JSON</h4>
+                  <div className="p-4 bg-[#111827]/60 rounded-2xl border border-[#111827]/80 space-y-3">
+                    <h4 className="font-bold text-[#E5E7EB] text-[11px] uppercase tracking-wider text-[#9CA3AF]">6. Messages, Errors & Raw JSON</h4>
                     <div className="space-y-2">
                       <div>
-                        <label className="text-[11px] text-slate-400">Message Path</label>
+                        <label className="text-[11px] text-[#9CA3AF]">Message Path</label>
                         <input
                           type="text"
                           value={activeMapping.messagePath || ""}
                           onChange={(e) => setActiveMapping({ ...activeMapping, messagePath: e.target.value })}
                           placeholder="e.g. message or responseMessage"
-                          className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-purple-500"
+                          className="w-full bg-[#111827] border border-[#111827] rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-[#0F2D5C]"
                         />
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <label className="text-[11px] text-slate-400">Error Code Path</label>
+                          <label className="text-[11px] text-[#9CA3AF]">Error Code Path</label>
                           <input
                             type="text"
                             value={activeMapping.errorCodePath || ""}
                             onChange={(e) => setActiveMapping({ ...activeMapping, errorCodePath: e.target.value })}
                             placeholder="e.g. error.code"
-                            className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-purple-500"
+                            className="w-full bg-[#111827] border border-[#111827] rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-[#0F2D5C]"
                           />
                         </div>
                         <div>
-                          <label className="text-[11px] text-slate-400">Error Message Path</label>
+                          <label className="text-[11px] text-[#9CA3AF]">Error Message Path</label>
                           <input
                             type="text"
                             value={activeMapping.errorMessagePath || ""}
                             onChange={(e) => setActiveMapping({ ...activeMapping, errorMessagePath: e.target.value })}
                             placeholder="e.g. error.message"
-                            className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-purple-500"
+                            className="w-full bg-[#111827] border border-[#111827] rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-[#0F2D5C]"
                           />
                         </div>
                       </div>
                       <div>
-                        <label className="text-[11px] text-slate-400">Raw JSON Subset Path (Optional)</label>
+                        <label className="text-[11px] text-[#9CA3AF]">Raw JSON Subset Path (Optional)</label>
                         <input
                           type="text"
                           value={activeMapping.rawJsonPath || ""}
                           onChange={(e) => setActiveMapping({ ...activeMapping, rawJsonPath: e.target.value })}
                           placeholder="e.g. data (leave blank for entire JSON)"
-                          className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-purple-500"
+                          className="w-full bg-[#111827] border border-[#111827] rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-[#0F2D5C]"
                         />
                       </div>
                     </div>
@@ -974,23 +974,23 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
               </div>
 
               {/* Notes */}
-              <div className="space-y-1.5 pt-2 border-t border-slate-800">
-                <label className="font-semibold text-slate-300">Administrator Notes</label>
+              <div className="space-y-1.5 pt-2 border-t border-[#111827]">
+                <label className="font-semibold text-[#E5E7EB]">Administrator Notes</label>
                 <textarea
                   rows={2}
                   value={activeMapping.notes || ""}
                   onChange={(e) => setActiveMapping({ ...activeMapping, notes: e.target.value })}
                   placeholder="Optional documentation notes regarding this provider response structure..."
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-300 focus:outline-none focus:border-purple-500"
+                  className="w-full bg-[#111827] border border-[#111827] rounded-xl p-3 text-xs text-[#E5E7EB] focus:outline-none focus:border-[#0F2D5C]"
                 />
               </div>
 
               {/* Modal Actions */}
-              <div className="flex items-center justify-between pt-4 border-t border-slate-800">
+              <div className="flex items-center justify-between pt-4 border-t border-[#111827]">
                 <button
                   type="button"
                   onClick={() => handleRunTest()}
-                  className="px-4 py-2.5 rounded-xl bg-purple-950/80 border border-purple-800 text-purple-300 hover:text-white font-medium text-xs flex items-center gap-2 cursor-pointer transition"
+                  className="px-4 py-2.5 rounded-xl bg-[#0F2D5C]/80 border border-[#0F2D5C] text-[#9CA3AF] hover:text-white font-medium text-xs flex items-center gap-2 cursor-pointer transition"
                 >
                   <Play className="h-4 w-4 fill-current" />
                   Test Mapping
@@ -1000,14 +1000,14 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                   <button
                     type="button"
                     onClick={() => setIsEditorOpen(false)}
-                    className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs cursor-pointer transition"
+                    className="px-4 py-2.5 rounded-xl bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] font-medium text-xs cursor-pointer transition"
                   >
                     Cancel
                   </button>
                   <button
                     type="button"
                     onClick={handleSaveMapping}
-                    className="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs shadow-lg shadow-purple-600/30 cursor-pointer transition"
+                    className="px-6 py-2.5 rounded-xl bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-semibold text-xs shadow-lg shadow-none cursor-pointer transition"
                   >
                     Save Mapping
                   </button>
@@ -1026,16 +1026,16 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl space-y-6 max-h-[92vh] overflow-y-auto"
+              className="w-full max-w-4xl bg-[#111827] border border-[#111827] rounded-3xl p-6 md:p-8 shadow-2xl space-y-6 max-h-[92vh] overflow-y-auto"
             >
-              <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div className="flex items-center justify-between border-b border-[#111827] pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-purple-600/20 border border-purple-500/30 rounded-xl text-purple-400">
+                  <div className="p-2.5 bg-[#0F2D5C]/20 border border-[#0F2D5C]/30 rounded-xl text-[#9CA3AF]">
                     <Play className="h-5 w-5 fill-current" />
                   </div>
                   <div>
                     <h2 className="text-lg font-bold text-white">Test API Response Mapping</h2>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-[#9CA3AF]">
                       Paste sample provider JSON to preview mapped internal standard outputs, missing fields, and invalid JSON paths.
                     </p>
                   </div>
@@ -1044,7 +1044,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                 <button
                   type="button"
                   onClick={() => setIsTestRunnerOpen(false)}
-                  className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition cursor-pointer"
+                  className="p-2 rounded-xl bg-[#111827] hover:bg-[#4B5563] text-[#9CA3AF] hover:text-white transition cursor-pointer"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -1053,15 +1053,15 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
               {/* Sample Templates Quick Load */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="font-bold text-xs text-slate-300">Paste Sample Provider JSON Payload</label>
+                  <label className="font-bold text-xs text-[#E5E7EB]">Paste Sample Provider JSON Payload</label>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] text-slate-500">Load Template:</span>
+                    <span className="text-[10px] text-[#6B7280]">Load Template:</span>
                     {Object.keys(SAMPLE_JSON_TEMPLATES).map((tplKey) => (
                       <button
                         key={tplKey}
                         type="button"
                         onClick={() => setSampleInputJson(SAMPLE_JSON_TEMPLATES[tplKey])}
-                        className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-[10px] text-purple-300 font-medium transition cursor-pointer"
+                        className="px-2 py-1 rounded bg-[#111827] hover:bg-[#4B5563] text-[10px] text-[#9CA3AF] font-medium transition cursor-pointer"
                       >
                         {tplKey}
                       </button>
@@ -1074,7 +1074,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                   value={sampleInputJson}
                   onChange={(e) => setSampleInputJson(e.target.value)}
                   placeholder="Paste JSON response body here..."
-                  className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-4 text-xs font-mono text-purple-300 focus:outline-none focus:border-purple-500"
+                  className="w-full bg-[#111827] border border-[#111827] rounded-2xl p-4 text-xs font-mono text-[#9CA3AF] focus:outline-none focus:border-[#0F2D5C]"
                 />
 
                 <div className="flex justify-end">
@@ -1082,7 +1082,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                     type="button"
                     onClick={() => handleRunTest()}
                     disabled={isTesting}
-                    className="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs flex items-center gap-2 shadow-lg shadow-purple-600/20 transition cursor-pointer disabled:opacity-50"
+                    className="px-5 py-2 rounded-xl bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-semibold text-xs flex items-center gap-2 shadow-lg shadow-none transition cursor-pointer disabled:opacity-50"
                   >
                     <RefreshCw className={`h-4 w-4 ${isTesting ? "animate-spin" : ""}`} />
                     {isTesting ? "Evaluating..." : "Run Test Evaluation"}
@@ -1093,11 +1093,11 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
               {/* Test Results Section */}
               {isTesting ? (
                 <div className="p-10 text-center space-y-3">
-                  <RefreshCw className="h-8 w-8 text-purple-500 animate-spin mx-auto" />
-                  <p className="text-xs text-slate-400">Parsing JSON and evaluating response mapping paths...</p>
+                  <RefreshCw className="h-8 w-8 text-[#0F2D5C] animate-spin mx-auto" />
+                  <p className="text-xs text-[#9CA3AF]">Parsing JSON and evaluating response mapping paths...</p>
                 </div>
               ) : testError ? (
-                <div className="p-5 bg-rose-950/50 border border-rose-900/80 rounded-2xl space-y-2 text-rose-300 text-xs">
+                <div className="p-5 bg-[#0F2D5C]/50 border border-[#0F2D5C]/80 rounded-2xl space-y-2 text-[#9CA3AF] text-xs">
                   <div className="flex items-center gap-2 font-bold text-sm">
                     <AlertTriangle className="h-5 w-5" />
                     <span>Mapping Evaluation Error</span>
@@ -1105,18 +1105,18 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                   <p className="font-mono">{testError}</p>
                 </div>
               ) : testResult ? (
-                <div className="space-y-6 pt-4 border-t border-slate-800">
+                <div className="space-y-6 pt-4 border-t border-[#111827]">
                   {/* Test Result Header */}
-                  <div className="flex flex-wrap items-center justify-between gap-4 bg-slate-950 p-4 rounded-2xl border border-slate-800">
+                  <div className="flex flex-wrap items-center justify-between gap-4 bg-[#111827] p-4 rounded-2xl border border-[#111827]">
                     <div className="flex items-center gap-3">
-                      <span className="text-xs font-semibold text-slate-400">Mapping Test Result:</span>
+                      <span className="text-xs font-semibold text-[#9CA3AF]">Mapping Test Result:</span>
                       <span
                         className={`px-3 py-1 rounded-full font-extrabold text-xs border ${
                           testResult.testResult === "SUCCESS"
-                            ? "bg-emerald-950 text-emerald-300 border-emerald-800"
+                            ? "bg-[#0F2D5C] text-[#9CA3AF] border-[#0F2D5C]"
                             : testResult.testResult === "PARTIAL"
-                            ? "bg-amber-950 text-amber-300 border-amber-800"
-                            : "bg-rose-950 text-rose-300 border-rose-800"
+                            ? "bg-[#0F2D5C] text-[#9CA3AF] border-[#0F2D5C]"
+                            : "bg-[#0F2D5C] text-[#9CA3AF] border-[#0F2D5C]"
                         }`}
                       >
                         {testResult.testResult}
@@ -1124,26 +1124,26 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                     </div>
 
                     <div className="flex items-center gap-3 text-xs">
-                      <span className="text-slate-400">
-                        Invalid Paths: <strong className="text-rose-400">{testResult.invalidPaths?.length || 0}</strong>
+                      <span className="text-[#9CA3AF]">
+                        Invalid Paths: <strong className="text-[#9CA3AF]">{testResult.invalidPaths?.length || 0}</strong>
                       </span>
-                      <span className="text-slate-400">
-                        Unmapped Fields: <strong className="text-amber-400">{testResult.missingFields?.length || 0}</strong>
+                      <span className="text-[#9CA3AF]">
+                        Unmapped Fields: <strong className="text-[#9CA3AF]">{testResult.missingFields?.length || 0}</strong>
                       </span>
                     </div>
                   </div>
 
                   {/* Warnings for Invalid Paths */}
                   {testResult.invalidPaths && testResult.invalidPaths.length > 0 && (
-                    <div className="p-4 bg-rose-950/40 border border-rose-900/60 rounded-2xl space-y-2">
-                      <div className="flex items-center gap-2 text-rose-300 font-bold text-xs">
+                    <div className="p-4 bg-[#0F2D5C]/40 border border-[#0F2D5C]/60 rounded-2xl space-y-2">
+                      <div className="flex items-center gap-2 text-[#9CA3AF] font-bold text-xs">
                         <XCircle className="h-4 w-4" />
                         <span>Invalid / Unresolved JSON Paths ({testResult.invalidPaths.length})</span>
                       </div>
-                      <p className="text-[11px] text-slate-400">The following configured paths returned <code className="text-rose-400 font-mono">undefined</code> against the sample JSON:</p>
+                      <p className="text-[11px] text-[#9CA3AF]">The following configured paths returned <code className="text-[#9CA3AF] font-mono">undefined</code> against the sample JSON:</p>
                       <div className="flex flex-wrap gap-2 pt-1">
                         {testResult.invalidPaths.map((ip: string, idx: number) => (
-                          <span key={idx} className="px-2.5 py-1 rounded-lg bg-rose-950 text-rose-300 font-mono text-[10px] border border-rose-800">
+                          <span key={idx} className="px-2.5 py-1 rounded-lg bg-[#0F2D5C] text-[#9CA3AF] font-mono text-[10px] border border-[#0F2D5C]">
                             {ip}
                           </span>
                         ))}
@@ -1155,29 +1155,29 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <h3 className="font-bold text-xs text-white flex items-center gap-2">
-                        <Sparkles className="h-4 w-4 text-emerald-400" />
+                        <Sparkles className="h-4 w-4 text-[#9CA3AF]" />
                         Final Internal Smart Link Standardized Output
                       </h3>
                       <button
                         type="button"
                         onClick={() => handleCopyText(JSON.stringify(testResult.parsedOutput, null, 2), "parsedOutput")}
-                        className="text-[11px] text-purple-400 hover:underline flex items-center gap-1 cursor-pointer"
+                        className="text-[11px] text-[#9CA3AF] hover:underline flex items-center gap-1 cursor-pointer"
                       >
                         {copiedKey === "parsedOutput" ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                         Copy Output JSON
                       </button>
                     </div>
 
-                    <div className="grid md:grid-cols-2 gap-3 text-xs font-mono bg-slate-950 p-4 rounded-2xl border border-slate-800">
+                    <div className="grid md:grid-cols-2 gap-3 text-xs font-mono bg-[#111827] p-4 rounded-2xl border border-[#111827]">
                       {testResult.parsedOutput && Object.keys(testResult.parsedOutput).map((key) => {
                         const val = testResult.parsedOutput[key];
                         return (
-                          <div key={key} className="p-2.5 bg-slate-900/80 rounded-xl border border-slate-800 flex flex-col justify-between">
-                            <span className="text-[10px] text-slate-500 uppercase tracking-wider font-sans font-semibold">{key}</span>
+                          <div key={key} className="p-2.5 bg-[#111827]/80 rounded-xl border border-[#111827] flex flex-col justify-between">
+                            <span className="text-[10px] text-[#6B7280] uppercase tracking-wider font-sans font-semibold">{key}</span>
                             <span className={`font-bold truncate mt-1 ${
                               key === "status"
-                                ? val === "SUCCESS" ? "text-emerald-400" : "text-rose-400"
-                                : val !== null && val !== undefined ? "text-slate-100" : "text-slate-600 italic"
+                                ? val === "SUCCESS" ? "text-[#9CA3AF]" : "text-[#9CA3AF]"
+                                : val !== null && val !== undefined ? "text-[#E5E7EB]" : "text-[#4B5563] italic"
                             }`}>
                               {val === null || val === undefined ? "null" : typeof val === "object" ? JSON.stringify(val) : String(val)}
                             </span>
@@ -1189,19 +1189,19 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
 
                   {/* Original Input JSON */}
                   <div className="space-y-2">
-                    <label className="font-bold text-xs text-slate-300">Original Provider JSON</label>
-                    <pre className="p-4 bg-slate-950 border border-slate-800 rounded-2xl text-[11px] text-slate-300 font-mono overflow-x-auto max-h-48">
+                    <label className="font-bold text-xs text-[#E5E7EB]">Original Provider JSON</label>
+                    <pre className="p-4 bg-[#111827] border border-[#111827] rounded-2xl text-[11px] text-[#E5E7EB] font-mono overflow-x-auto max-h-48">
                       {JSON.stringify(testResult.originalJson || {}, null, 2)}
                     </pre>
                   </div>
                 </div>
               ) : null}
 
-              <div className="flex justify-end pt-4 border-t border-slate-800">
+              <div className="flex justify-end pt-4 border-t border-[#111827]">
                 <button
                   type="button"
                   onClick={() => setIsTestRunnerOpen(false)}
-                  className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-medium text-xs transition cursor-pointer"
+                  className="px-5 py-2.5 rounded-xl bg-[#111827] hover:bg-[#4B5563] text-white font-medium text-xs transition cursor-pointer"
                 >
                   Close
                 </button>
@@ -1219,37 +1219,37 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-5xl bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto"
+              className="w-full max-w-5xl bg-[#111827] border border-[#111827] rounded-3xl p-6 md:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto"
             >
-              <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div className="flex items-center justify-between border-b border-[#111827] pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-purple-600/20 border border-purple-500/30 rounded-xl text-purple-400">
+                  <div className="p-2.5 bg-[#0F2D5C]/20 border border-[#0F2D5C]/30 rounded-xl text-[#9CA3AF]">
                     <FileText className="h-5 w-5" />
                   </div>
                   <div>
                     <h2 className="text-lg font-bold text-white">API Response Mapping Test Logs</h2>
-                    <p className="text-xs text-slate-400">Historical records of response mapping tests and validation results.</p>
+                    <p className="text-xs text-[#9CA3AF]">Historical records of response mapping tests and validation results.</p>
                   </div>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => setIsLogsOpen(false)}
-                  className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition cursor-pointer"
+                  className="p-2 rounded-xl bg-[#111827] hover:bg-[#4B5563] text-[#9CA3AF] hover:text-white transition cursor-pointer"
                 >
                   <X className="h-5 w-5" />
                 </button>
               </div>
 
               {logs.length === 0 ? (
-                <div className="p-12 text-center text-slate-400 space-y-2">
-                  <FileText className="h-10 w-10 mx-auto text-slate-700" />
+                <div className="p-12 text-center text-[#9CA3AF] space-y-2">
+                  <FileText className="h-10 w-10 mx-auto text-[#4B5563]" />
                   <p className="text-xs">No response mapping test logs recorded yet.</p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-950/60 text-slate-400 border-b border-slate-800">
+                    <thead className="bg-[#111827]/60 text-[#9CA3AF] border-b border-[#111827]">
                       <tr>
                         <th className="px-4 py-3 font-semibold uppercase">Mapping / Provider</th>
                         <th className="px-4 py-3 font-semibold uppercase">Test Result</th>
@@ -1257,30 +1257,30 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                         <th className="px-4 py-3 font-semibold uppercase">Date & Time</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                    <tbody className="divide-y divide-[#6B7280] text-[#E5E7EB]">
                       {logs.map((log) => (
-                        <tr key={log.id} className="hover:bg-slate-800/30">
+                        <tr key={log.id} className="hover:bg-[#111827]/30">
                           <td className="px-4 py-3">
                             <div>
                               <p className="font-bold text-white">{log.mappingName}</p>
-                              <p className="text-[10px] font-mono text-purple-400">{log.provider}</p>
+                              <p className="text-[10px] font-mono text-[#9CA3AF]">{log.provider}</p>
                             </div>
                           </td>
                           <td className="px-4 py-3">
                             <span
                               className={`px-2.5 py-0.5 rounded-full font-bold text-[10px] border ${
                                 log.testResult === "SUCCESS"
-                                  ? "bg-emerald-950 text-emerald-300 border-emerald-800"
+                                  ? "bg-[#0F2D5C] text-[#9CA3AF] border-[#0F2D5C]"
                                   : log.testResult === "PARTIAL"
-                                  ? "bg-amber-950 text-amber-300 border-amber-800"
-                                  : "bg-rose-950 text-rose-300 border-rose-800"
+                                  ? "bg-[#0F2D5C] text-[#9CA3AF] border-[#0F2D5C]"
+                                  : "bg-[#0F2D5C] text-[#9CA3AF] border-[#0F2D5C]"
                               }`}
                             >
                               {log.testResult}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-slate-300">{log.testedBy}</td>
-                          <td className="px-4 py-3 text-slate-400 font-mono text-[11px]">{log.date} {log.time}</td>
+                          <td className="px-4 py-3 text-[#E5E7EB]">{log.testedBy}</td>
+                          <td className="px-4 py-3 text-[#9CA3AF] font-mono text-[11px]">{log.date} {log.time}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -1288,11 +1288,11 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                 </div>
               )}
 
-              <div className="flex justify-end pt-4 border-t border-slate-800">
+              <div className="flex justify-end pt-4 border-t border-[#111827]">
                 <button
                   type="button"
                   onClick={() => setIsLogsOpen(false)}
-                  className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-medium text-xs transition cursor-pointer"
+                  className="px-5 py-2.5 rounded-xl bg-[#111827] hover:bg-[#4B5563] text-white font-medium text-xs transition cursor-pointer"
                 >
                   Close
                 </button>

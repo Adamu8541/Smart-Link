@@ -102,37 +102,37 @@ export function UserExportModal({ isOpen, onClose, usersToExport, activeFilterSu
   const totalWalletSum = usersToExport.reduce((acc, u) => acc + (u.walletBalance || 0), 0);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs font-sans">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111827]/80 backdrop-blur-xs font-sans">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl relative"
+        className="w-full max-w-lg bg-[#111827] border border-[#111827] rounded-3xl p-6 shadow-2xl relative"
       >
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-5 right-5 p-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white cursor-pointer"
+          className="absolute top-5 right-5 p-1.5 rounded-xl bg-[#111827] text-[#9CA3AF] hover:text-white cursor-pointer"
         >
           <X className="h-4 w-4" />
         </button>
 
-        <div className="flex items-center gap-3 border-b border-slate-800 pb-4 mb-5">
-          <div className="p-3 bg-emerald-950 border border-emerald-800 rounded-2xl text-emerald-400">
+        <div className="flex items-center gap-3 border-b border-[#111827] pb-4 mb-5">
+          <div className="p-3 bg-[#0F2D5C] border border-[#0F2D5C] rounded-2xl text-[#9CA3AF]">
             <Download className="h-5 w-5" />
           </div>
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Export & Compliance Engine</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#9CA3AF]">Export & Compliance Engine</span>
             <h3 className="text-base font-bold text-white">Export Users Directory Data</h3>
-            <p className="text-xs text-slate-400">Exporting <strong className="text-emerald-400 font-bold">{usersToExport.length} user records</strong> based on active filter set.</p>
+            <p className="text-xs text-[#9CA3AF]">Exporting <strong className="text-[#9CA3AF] font-bold">{usersToExport.length} user records</strong> based on active filter set.</p>
           </div>
         </div>
 
         {/* Filter Specs */}
-        <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-300 mb-5 space-y-1">
-          <p className="font-bold text-slate-400 text-[10px] uppercase tracking-wider">Active Export Scope:</p>
+        <div className="p-3 bg-[#111827] border border-[#111827] rounded-xl text-xs text-[#E5E7EB] mb-5 space-y-1">
+          <p className="font-bold text-[#9CA3AF] text-[10px] uppercase tracking-wider">Active Export Scope:</p>
           <p className="font-medium text-white">{activeFilterSummary || "All Active User Records"}</p>
-          <p className="text-slate-400 text-[11px]">Total Combined Wallet Balance: <strong className="text-emerald-400">₦{totalWalletSum.toLocaleString("en-NG", { minimumFractionDigits: 2 })}</strong></p>
+          <p className="text-[#9CA3AF] text-[11px]">Total Combined Wallet Balance: <strong className="text-[#9CA3AF]">₦{totalWalletSum.toLocaleString("en-NG", { minimumFractionDigits: 2 })}</strong></p>
         </div>
 
         {/* Export Options */}
@@ -140,60 +140,60 @@ export function UserExportModal({ isOpen, onClose, usersToExport, activeFilterSu
           <button
             type="button"
             onClick={handleExportCSV}
-            className="w-full p-4 bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-emerald-600 rounded-2xl flex items-center justify-between text-left transition-all cursor-pointer group"
+            className="w-full p-4 bg-[#111827] hover:bg-[#111827] border border-[#111827] hover:border-[#0F2D5C] rounded-2xl flex items-center justify-between text-left transition-all cursor-pointer group"
           >
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-emerald-950 border border-emerald-800 rounded-xl text-emerald-400 group-hover:scale-105 transition-transform">
+              <div className="p-2.5 bg-[#0F2D5C] border border-[#0F2D5C] rounded-xl text-[#9CA3AF] group-hover:scale-105 transition-transform">
                 <FileText className="h-5 w-5" />
               </div>
               <div>
                 <p className="font-bold text-white text-sm">Download Standard CSV (.csv)</p>
-                <p className="text-slate-400 text-[11px]">Raw comma-separated dataset for database import or custom script processing.</p>
+                <p className="text-[#9CA3AF] text-[11px]">Raw comma-separated dataset for database import or custom script processing.</p>
               </div>
             </div>
-            <Download className="h-4 w-4 text-emerald-400" />
+            <Download className="h-4 w-4 text-[#9CA3AF]" />
           </button>
 
           <button
             type="button"
             onClick={handleExportExcel}
-            className="w-full p-4 bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-blue-600 rounded-2xl flex items-center justify-between text-left transition-all cursor-pointer group"
+            className="w-full p-4 bg-[#111827] hover:bg-[#111827] border border-[#111827] hover:border-[#0F2D5C] rounded-2xl flex items-center justify-between text-left transition-all cursor-pointer group"
           >
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-blue-950 border border-blue-800 rounded-xl text-blue-400 group-hover:scale-105 transition-transform">
+              <div className="p-2.5 bg-[#0F2D5C] border border-[#0F2D5C] rounded-xl text-[#9CA3AF] group-hover:scale-105 transition-transform">
                 <FileSpreadsheet className="h-5 w-5" />
               </div>
               <div>
                 <p className="font-bold text-white text-sm">Download Microsoft Excel (.xls)</p>
-                <p className="text-slate-400 text-[11px]">Tab-delimited spreadsheet pre-formatted for Excel & financial audit tools.</p>
+                <p className="text-[#9CA3AF] text-[11px]">Tab-delimited spreadsheet pre-formatted for Excel & financial audit tools.</p>
               </div>
             </div>
-            <Download className="h-4 w-4 text-blue-400" />
+            <Download className="h-4 w-4 text-[#9CA3AF]" />
           </button>
 
           <button
             type="button"
             onClick={handlePrintPDF}
-            className="w-full p-4 bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-purple-600 rounded-2xl flex items-center justify-between text-left transition-all cursor-pointer group"
+            className="w-full p-4 bg-[#111827] hover:bg-[#111827] border border-[#111827] hover:border-[#0F2D5C] rounded-2xl flex items-center justify-between text-left transition-all cursor-pointer group"
           >
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-purple-950 border border-purple-800 rounded-xl text-purple-400 group-hover:scale-105 transition-transform">
+              <div className="p-2.5 bg-[#0F2D5C] border border-[#0F2D5C] rounded-xl text-[#9CA3AF] group-hover:scale-105 transition-transform">
                 <Printer className="h-5 w-5" />
               </div>
               <div>
                 <p className="font-bold text-white text-sm">Printable Audit PDF Document</p>
-                <p className="text-slate-400 text-[11px]">Formatted printable executive summary report with seal and signature block.</p>
+                <p className="text-[#9CA3AF] text-[11px]">Formatted printable executive summary report with seal and signature block.</p>
               </div>
             </div>
-            <Printer className="h-4 w-4 text-purple-400" />
+            <Printer className="h-4 w-4 text-[#9CA3AF]" />
           </button>
         </div>
 
-        <div className="pt-3 border-t border-slate-800 flex justify-end">
+        <div className="pt-3 border-t border-[#111827] flex justify-end">
           <button
             type="button"
             onClick={onClose}
-            className="py-2.5 px-5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs cursor-pointer"
+            className="py-2.5 px-5 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] font-bold rounded-xl text-xs cursor-pointer"
           >
             Close
           </button>

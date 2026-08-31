@@ -16,12 +16,12 @@ export const DEFAULT_LEGAL_POLICY_VERSIONS: LegalPolicyVersion[] = [
     id: "privacy-policy",
     documentId: "privacy-policy",
     documentName: "Privacy Policy",
-    version: "2.3.0",
-    effectiveDate: "January 15, 2024",
-    lastUpdated: "August 28, 2026",
+    version: "2.4.0",
+    effectiveDate: "June 12, 2024",
+    lastUpdated: "April 18, 2026",
     status: "ACTIVE",
     requiresReAcceptance: true,
-    minimumRequiredVersion: "2.3.0",
+    minimumRequiredVersion: "2.4.0",
     category: "LEGAL",
     summary: "NDPA 2023 compliant data processing, storage, and privacy rights framework."
   },
@@ -29,12 +29,12 @@ export const DEFAULT_LEGAL_POLICY_VERSIONS: LegalPolicyVersion[] = [
     id: "terms-of-service",
     documentId: "terms-of-service",
     documentName: "Terms of Service",
-    version: "2.4.0",
-    effectiveDate: "January 15, 2024",
-    lastUpdated: "August 28, 2026",
+    version: "3.1.2",
+    effectiveDate: "September 10, 2025",
+    lastUpdated: "July 05, 2026",
     status: "ACTIVE",
     requiresReAcceptance: true,
-    minimumRequiredVersion: "2.4.0",
+    minimumRequiredVersion: "3.1.2",
     category: "LEGAL",
     summary: "Core binding user agreement, liability, arbitration, and service utilization terms."
   },
@@ -42,12 +42,12 @@ export const DEFAULT_LEGAL_POLICY_VERSIONS: LegalPolicyVersion[] = [
     id: "refund-policy",
     documentId: "refund-policy",
     documentName: "Refund & Cancellation Policy",
-    version: "2.0.0",
-    effectiveDate: "January 15, 2024",
-    lastUpdated: "August 28, 2026",
+    version: "2.0.1",
+    effectiveDate: "February 15, 2024",
+    lastUpdated: "March 22, 2025",
     status: "ACTIVE",
     requiresReAcceptance: false,
-    minimumRequiredVersion: "2.0.0",
+    minimumRequiredVersion: "2.0.1",
     category: "PAYMENTS_WALLET",
     summary: "Conditions for automated reversal, wallet credit, and failed transaction refunds."
   },
@@ -55,12 +55,12 @@ export const DEFAULT_LEGAL_POLICY_VERSIONS: LegalPolicyVersion[] = [
     id: "wallet-terms",
     documentId: "wallet-terms",
     documentName: "Wallet Terms & Conditions",
-    version: "1.8.0",
-    effectiveDate: "January 15, 2024",
-    lastUpdated: "August 28, 2026",
+    version: "1.8.5",
+    effectiveDate: "November 01, 2024",
+    lastUpdated: "January 20, 2026",
     status: "ACTIVE",
     requiresReAcceptance: true,
-    minimumRequiredVersion: "1.8.0",
+    minimumRequiredVersion: "1.8.5",
     category: "PAYMENTS_WALLET",
     summary: "Stored-value digital wallet management, automated funding, and settlement rules."
   },
@@ -69,8 +69,8 @@ export const DEFAULT_LEGAL_POLICY_VERSIONS: LegalPolicyVersion[] = [
     documentId: "payment-terms",
     documentName: "Payment Terms",
     version: "2.1.0",
-    effectiveDate: "January 15, 2024",
-    lastUpdated: "August 28, 2026",
+    effectiveDate: "May 20, 2024",
+    lastUpdated: "October 14, 2025",
     status: "ACTIVE",
     requiresReAcceptance: false,
     minimumRequiredVersion: "2.1.0",
@@ -81,12 +81,12 @@ export const DEFAULT_LEGAL_POLICY_VERSIONS: LegalPolicyVersion[] = [
     id: "cookie-policy",
     documentId: "cookie-policy",
     documentName: "Cookie Policy",
-    version: "1.4.0",
+    version: "1.2.0",
     effectiveDate: "January 15, 2024",
-    lastUpdated: "August 28, 2026",
+    lastUpdated: "January 15, 2024",
     status: "ACTIVE",
     requiresReAcceptance: false,
-    minimumRequiredVersion: "1.4.0",
+    minimumRequiredVersion: "1.2.0",
     category: "SECURITY_USE",
     summary: "Details of essential session cookies and performance telemetry."
   },
@@ -94,12 +94,12 @@ export const DEFAULT_LEGAL_POLICY_VERSIONS: LegalPolicyVersion[] = [
     id: "kyc-notice",
     documentId: "kyc-notice",
     documentName: "Identity Verification & KYC Notice",
-    version: "2.2.0",
-    effectiveDate: "January 15, 2024",
-    lastUpdated: "August 28, 2026",
+    version: "2.3.4",
+    effectiveDate: "January 10, 2025",
+    lastUpdated: "May 12, 2026",
     status: "ACTIVE",
     requiresReAcceptance: true,
-    minimumRequiredVersion: "2.2.0",
+    minimumRequiredVersion: "2.3.4",
     category: "DATA_VERIFICATION",
     summary: "Explicit consent warranties for authorized NIMC, NIBSS, CAC, and TIN lookups."
   },
@@ -108,8 +108,8 @@ export const DEFAULT_LEGAL_POLICY_VERSIONS: LegalPolicyVersion[] = [
     documentId: "acceptable-use",
     documentName: "Acceptable Use & Fraud Prevention Policy",
     version: "1.9.0",
-    effectiveDate: "January 15, 2024",
-    lastUpdated: "August 28, 2026",
+    effectiveDate: "August 15, 2024",
+    lastUpdated: "September 01, 2025",
     status: "ACTIVE",
     requiresReAcceptance: false,
     minimumRequiredVersion: "1.9.0",
@@ -121,8 +121,8 @@ export const DEFAULT_LEGAL_POLICY_VERSIONS: LegalPolicyVersion[] = [
     documentId: "data-protection",
     documentName: "Data Protection & User Rights",
     version: "2.0.0",
-    effectiveDate: "January 15, 2024",
-    lastUpdated: "August 28, 2026",
+    effectiveDate: "June 12, 2024",
+    lastUpdated: "November 10, 2024",
     status: "ACTIVE",
     requiresReAcceptance: false,
     minimumRequiredVersion: "2.0.0",
@@ -133,12 +133,12 @@ export const DEFAULT_LEGAL_POLICY_VERSIONS: LegalPolicyVersion[] = [
     id: "disclaimer",
     documentId: "disclaimer",
     documentName: "Third-Party & Government Disclaimer",
-    version: "1.7.0",
+    version: "1.5.0",
     effectiveDate: "January 15, 2024",
-    lastUpdated: "August 28, 2026",
+    lastUpdated: "February 18, 2024",
     status: "ACTIVE",
     requiresReAcceptance: false,
-    minimumRequiredVersion: "1.7.0",
+    minimumRequiredVersion: "1.5.0",
     category: "LEGAL",
     summary: "Independent enterprise declaration regarding NIMC, NIBSS, CAC, and CBN."
   }
@@ -150,6 +150,35 @@ function getPolicies(): LegalPolicyVersion[] {
   if (!db.legalPolicies || !Array.isArray(db.legalPolicies) || db.legalPolicies.length === 0) {
     db.legalPolicies = DEFAULT_LEGAL_POLICY_VERSIONS;
     writeDB(db);
+  } else {
+    // Sync pre-existing DB cache with new independent metadata
+    let updated = false;
+    db.legalPolicies = db.legalPolicies.map((existing: any) => {
+      const match = DEFAULT_LEGAL_POLICY_VERSIONS.find(
+        (d) => d.id === existing.id || d.documentId === existing.documentId
+      );
+      if (match) {
+        if (
+          existing.version !== match.version ||
+          existing.effectiveDate !== match.effectiveDate ||
+          existing.lastUpdated !== match.lastUpdated
+        ) {
+          updated = true;
+          return {
+            ...existing,
+            version: match.version,
+            effectiveDate: match.effectiveDate,
+            lastUpdated: match.lastUpdated,
+            minimumRequiredVersion: match.minimumRequiredVersion,
+            requiresReAcceptance: match.requiresReAcceptance
+          };
+        }
+      }
+      return existing;
+    });
+    if (updated) {
+      writeDB(db);
+    }
   }
   return db.legalPolicies;
 }

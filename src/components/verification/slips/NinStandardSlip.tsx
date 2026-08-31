@@ -1,18 +1,18 @@
 import React, { useEffect, useState } from "react";
 import QRCode from "qrcode";
-import { NigerianCoatOfArmsSvg, NimcOfficialLogoSvg } from "./SlipSecurityAssets";
+import { NigerianCoatOfArmsSvg, NinOfficialLogoSvg } from "./SlipSecurityAssets";
 import { GeneratedSlipRecord } from "../../../types/verification";
 import { normalizePhotoUrl } from "../../../services/slipOptionsConfig";
 
-interface NimcStandardSlipProps {
+interface NinStandardSlipProps {
   slip: GeneratedSlipRecord;
   id?: string;
 }
 
-export const NimcStandardSlip: React.FC<NimcStandardSlipProps> = ({ slip, id = "nimc-standard-slip" }) => {
+export const NinStandardSlip: React.FC<NinStandardSlipProps> = ({ slip, id = "nimc-standard-slip" }) => {
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
   const [imgError, setImgError] = useState(false);
-  const { holderData, identificationNumber, trackingId, qrVerificationUrl } = slip;
+  const { holderData, identificationNumber, trackingId, qrVerificationUrl, signedQrContent } = slip;
 
   const realTrackingId = trackingId || holderData.trackingId || `20TO${identificationNumber.substring(0, 4)}000008J`;
   const surname = (holderData.surname || holderData.fullName?.split(" ")[0] || "HOLDER").toUpperCase();
@@ -25,8 +25,12 @@ export const NimcStandardSlip: React.FC<NimcStandardSlipProps> = ({ slip, id = "
   const photo = normalizePhotoUrl(holderData.photoUrl || "");
 
   useEffect(() => {
-    // Generate high resolution scannable 2D QR barcode
-    const qrTarget = qrVerificationUrl || `https://smartlinkdigital.ng/verify/slip/${slip.qrVerificationToken}`;
+    // Generate QR using cryptographically signed payload from server
+    // Fallback to verification URL if signed content is not present (legacy records)
+    const qrTarget = signedQrContent || qrVerificationUrl;
+
+    if (!qrTarget) return;
+
     QRCode.toDataURL(qrTarget, {
       width: 250,
       margin: 1,
@@ -38,7 +42,7 @@ export const NimcStandardSlip: React.FC<NimcStandardSlipProps> = ({ slip, id = "
     })
       .then((url) => setQrDataUrl(url))
       .catch((err) => console.error("QR Code Generation Error:", err));
-  }, [qrVerificationUrl, slip.qrVerificationToken]);
+  }, [qrVerificationUrl, signedQrContent, slip.qrVerificationToken]);
 
   return (
     <div
@@ -66,9 +70,9 @@ export const NimcStandardSlip: React.FC<NimcStandardSlipProps> = ({ slip, id = "
           </h3>
         </div>
 
-        {/* Right: NIMC Green Logo */}
+        {/* Right: NIN Green Logo */}
         <div className="flex-shrink-0 w-16 sm:w-20 flex justify-center">
-          <NimcOfficialLogoSvg size={68} />
+          <NinOfficialLogoSvg size={68} />
         </div>
       </div>
 
@@ -100,14 +104,14 @@ export const NimcStandardSlip: React.FC<NimcStandardSlipProps> = ({ slip, id = "
                 {address}
               </p>
             </div>
-            <div className="pt-2 text-[10px] sm:text-[11px] font-bold text-slate-700 uppercase">
+            <div className="pt-2 text-[10px] sm:text-[11px] font-bold text-[#4B5563] uppercase">
               {lga && <div>{lga}</div>}
               {state && <div>{state}</div>}
             </div>
           </div>
 
           {/* Photo Box col */}
-          <div className="col-span-3 p-1.5 flex flex-col items-center justify-center bg-slate-50 relative overflow-hidden">
+          <div className="col-span-3 p-1.5 flex flex-col items-center justify-center bg-[#F5F7FA] relative overflow-hidden">
             {photo && !imgError ? (
               <div className="relative w-24 h-28 sm:w-28 sm:h-32 border border-black overflow-hidden bg-white shadow-xs">
                 <img
@@ -125,7 +129,7 @@ export const NimcStandardSlip: React.FC<NimcStandardSlipProps> = ({ slip, id = "
                 </div>
               </div>
             ) : (
-              <div className="w-24 h-28 sm:w-28 sm:h-32 border border-black flex flex-col items-center justify-center bg-slate-200 text-slate-500 text-[10px] p-2 text-center">
+              <div className="w-24 h-28 sm:w-28 sm:h-32 border border-black flex flex-col items-center justify-center bg-[#E5E7EB] text-[#6B7280] text-[10px] p-2 text-center">
                 <span className="font-bold">PASSPORT PHOTO</span>
                 <span className="font-mono text-[9px] mt-1">{identificationNumber}</span>
               </div>
@@ -150,21 +154,21 @@ export const NimcStandardSlip: React.FC<NimcStandardSlipProps> = ({ slip, id = "
           </div>
 
           {/* QR Code Validation Box spanning right cols */}
-          <div className="col-span-6 p-2 flex items-center justify-between gap-2 bg-slate-50/60">
+          <div className="col-span-6 p-2 flex items-center justify-between gap-2 bg-[#F5F7FA]/60">
             <div className="space-y-0.5">
-              <span className="font-bold text-[10px] sm:text-[11px] uppercase tracking-wider text-emerald-900 block">
+              <span className="font-bold text-[10px] sm:text-[11px] uppercase tracking-wider text-[#0F2D5C] block">
                 Official Validation QR
               </span>
-              <span className="text-[9px] sm:text-[10px] text-slate-600 block">
+              <span className="text-[9px] sm:text-[10px] text-[#4B5563] block">
                 Scan to confirm authenticity on SmartLink Digital
               </span>
-              <span className="font-mono text-[8px] text-slate-500 block">
+              <span className="font-mono text-[8px] text-[#6B7280] block">
                 TOKEN: {slip.qrVerificationToken.substring(0, 16)}...
               </span>
             </div>
             {qrDataUrl && (
               <div className="w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0 border border-black p-0.5 bg-white">
-                <img src={qrDataUrl} alt="NIMC Slip Verification QR" className="w-full h-full object-contain" />
+                <img src={qrDataUrl} alt="NIN Slip Verification QR" className="w-full h-full object-contain" />
               </div>
             )}
           </div>
@@ -172,7 +176,7 @@ export const NimcStandardSlip: React.FC<NimcStandardSlipProps> = ({ slip, id = "
 
         {/* Row 3: Middle Name & Gender */}
         <div className="grid grid-cols-12">
-          <div className="col-span-3 border-r border-black p-2 bg-slate-50/30">
+          <div className="col-span-3 border-r border-black p-2 bg-[#F5F7FA]/30">
             {/* Empty matching original layout */}
           </div>
 
@@ -202,7 +206,7 @@ export const NimcStandardSlip: React.FC<NimcStandardSlipProps> = ({ slip, id = "
         <p className="text-[11px] sm:text-xs font-bold text-black">
           Note: The <span className="italic font-black">National Identification Number (NIN) is your identity.</span> It is confidential and may only be released for legitimate transactions.
         </p>
-        <p className="text-[10px] sm:text-[11px] text-slate-800">
+        <p className="text-[10px] sm:text-[11px] text-[#111827]">
           You will be notified when your National Identity Card is ready (for any enquiries please contact)
         </p>
       </div>
@@ -212,28 +216,28 @@ export const NimcStandardSlip: React.FC<NimcStandardSlipProps> = ({ slip, id = "
         {/* Box 1: Email */}
         <div className="p-2.5 border-r border-b md:border-b-0 border-black flex flex-col items-center justify-center text-center space-y-1">
           <span className="text-base">📧</span>
-          <span className="font-bold text-blue-900 break-all">helpdesk@nimc.gov.ng</span>
+          <span className="font-bold text-[#0F2D5C] break-all">helpdesk@nimc.gov.ng</span>
         </div>
 
         {/* Box 2: Website */}
         <div className="p-2.5 border-r md:border-r border-b md:border-b-0 border-black flex flex-col items-center justify-center text-center space-y-1">
           <span className="text-base">🌐</span>
-          <span className="font-bold text-blue-900">www.nimc.gov.ng</span>
+          <span className="font-bold text-[#0F2D5C]">www.nimc.gov.ng</span>
         </div>
 
         {/* Box 3: Phone Helpdesk */}
         <div className="p-2.5 border-r border-black flex flex-col items-center justify-center text-center space-y-0.5">
           <span className="text-base">📞</span>
-          <span className="font-black text-black">0700-CALL-NIMC</span>
-          <span className="font-mono text-[9px] text-slate-700">(0700-2255-646)</span>
+          <span className="font-black text-black">0700-CALL-NIN</span>
+          <span className="font-mono text-[9px] text-[#4B5563]">(0700-2255-646)</span>
         </div>
 
         {/* Box 4: Address */}
         <div className="p-2.5 flex flex-col items-center justify-center text-center space-y-0.5">
           <span className="text-base">🏛️</span>
           <span className="font-black text-black text-[10px] leading-tight">National Identity Management Commission</span>
-          <span className="text-[9px] text-slate-700 leading-tight">
-            11, Sokode Crescent, Off Dalaba Street, Zone 5 Wuse, Abuja Nigeria
+          <span className="text-[9px] text-[#4B5563] leading-tight">
+            11, Sokode Crescent, Off Dalaba Street, Zone 5 Wuse, Federal Capital Territory, Nigeria
           </span>
         </div>
       </div>

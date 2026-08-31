@@ -76,7 +76,7 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
       },
       "contactPoint": {
         "@type": "ContactPoint",
-        "telephone": "+2348085490982",
+        "telephone": "+234 808 549 0982",
         "contactType": "customer service",
         "email": "Smartlinkcomputerbusiness@gmail.com",
         "availableLanguage": ["English", "Hausa", "Yoruba", "Igbo"]

@@ -18,7 +18,7 @@ To ensure maintainability, high testability, and clean separation of concerns, t
                   ┌─────────────────────────────────────────┐
                   │            Business Services            │
                   │   (Wallet Ledger, Squad Integration,    │
-                  │    Internal Transfers, Audit Engine)    │
+                  │    Audit Engine)    │
                   └────────────────────┬────────────────────┘
                                        │
                                        ▼
@@ -116,7 +116,6 @@ The system uses an abstract provider interface allowing Squad (and future gatewa
 - **GET `/api/wallet`**: Fetches the authenticated user's wallet details (`availableBalance`, `totalBalance`, `status`, `walletNumber`).
 - **GET `/api/wallet/summary`**: Returns snapshot statistics (`currentBalance`, `totalCredits`, `totalDebits`, `lastTransactionDate`).
 - **GET `/api/wallet/transactions`**: Fetches paginated, filterable transaction history (`type`, `status`, `dateRange`).
-- **POST `/api/wallet/transfer`**: Performs an atomic internal peer-to-peer transfer between Smart Link users.
 
 ### 2. Squad Payment & Webhook APIs
 - **POST `/api/payments/initiate`**: Validates input, creates a `payment_sessions` record, and returns Squad checkout URL.

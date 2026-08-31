@@ -6,6 +6,7 @@
 import React from "react";
 import {
   Fingerprint,
+  Users,
   ShieldCheck,
   UserCheck,
   FileCheck,
@@ -43,13 +44,22 @@ export const LandingServicesPreview: React.FC<LandingServicesPreviewProps> = ({
 }) => {
   const services: ServiceCardItem[] = [
     {
+      id: "id_nin_demography",
+      name: "NIN Demography",
+      category: "Identity",
+      description: "Match demographic details (First Name, Last Name, Gender & Date of Birth) and generate authentic NIMC slips.",
+      icon: Users,
+      badge: "NIMC Registry",
+      color: "bg-[#F5F7FA] text-[#0F2D5C] border-[#E5E7EB]",
+    },
+    {
       id: "nin-verification",
       name: "NIN Verification",
       category: "Identity",
       description: "Instant National Identity Number lookup, vNIN validation, demographic matching, and printable official slips.",
       icon: Fingerprint,
       badge: "Instant API",
-      color: "bg-blue-50 text-[#0F2D5C] border-blue-100",
+      color: "bg-[#F5F7FA] text-[#0F2D5C] border-[#E5E7EB]",
     },
     {
       id: "bvn-verification",
@@ -58,16 +68,7 @@ export const LandingServicesPreview: React.FC<LandingServicesPreviewProps> = ({
       description: "Secure Bank Verification Number matching, date of birth validation, and photo identity confirmation via NIBSS.",
       icon: ShieldCheck,
       badge: "Bank Grade",
-      color: "bg-blue-50 text-[#0F2D5C] border-blue-100",
-    },
-    {
-      id: "name-verification",
-      name: "Name Verification",
-      category: "Identity",
-      description: "Real-time bank account name match, NUBAN verification, and identity fraud prevention across 50+ Nigerian banks.",
-      icon: UserCheck,
-      badge: "NUBAN Lookup",
-      color: "bg-blue-50 text-[#0F2D5C] border-blue-100",
+      color: "bg-[#F5F7FA] text-[#0F2D5C] border-[#E5E7EB]",
     },
     {
       id: "tin-verification",
@@ -76,7 +77,7 @@ export const LandingServicesPreview: React.FC<LandingServicesPreviewProps> = ({
       description: "Validate Tax Identification Numbers directly with Federal Inland Revenue Service (FIRS) and State tax boards.",
       icon: FileCheck,
       badge: "FIRS Direct",
-      color: "bg-blue-50 text-[#0F2D5C] border-blue-100",
+      color: "bg-[#F5F7FA] text-[#0F2D5C] border-[#E5E7EB]",
     },
     {
       id: "cac-verification",
@@ -85,7 +86,7 @@ export const LandingServicesPreview: React.FC<LandingServicesPreviewProps> = ({
       description: "Corporate Affairs Commission RC number search, business name status, director verification, and incorporation filings.",
       icon: Building2,
       badge: "CAC Certified",
-      color: "bg-blue-50 text-[#0F2D5C] border-blue-100",
+      color: "bg-[#F5F7FA] text-[#0F2D5C] border-[#E5E7EB]",
     },
     {
       id: "wallet-funding",
@@ -94,7 +95,7 @@ export const LandingServicesPreview: React.FC<LandingServicesPreviewProps> = ({
       description: "Automated dedicated virtual bank account creation, instant top-ups via debit cards, USSD, and bank transfers.",
       icon: Wallet,
       badge: "Auto-Credit",
-      color: "bg-blue-50 text-[#0F2D5C] border-blue-100",
+      color: "bg-[#F5F7FA] text-[#0F2D5C] border-[#E5E7EB]",
     },
     {
       id: "airtime",
@@ -103,7 +104,7 @@ export const LandingServicesPreview: React.FC<LandingServicesPreviewProps> = ({
       description: "Automated Virtual Top-Up airtime recharge across MTN, Airtel, Glo, and 9mobile networks with agent commission discounts.",
       icon: Smartphone,
       badge: "Instant Top-Up",
-      color: "bg-blue-50 text-[#0F2D5C] border-blue-100",
+      color: "bg-[#F5F7FA] text-[#0F2D5C] border-[#E5E7EB]",
     },
     {
       id: "data",
@@ -112,7 +113,7 @@ export const LandingServicesPreview: React.FC<LandingServicesPreviewProps> = ({
       description: "High-speed SME, Direct, and Gift data bundles delivered instantly with unbeatably cheap wholesale prices.",
       icon: Wifi,
       badge: "SME & Direct",
-      color: "bg-blue-50 text-[#0F2D5C] border-blue-100",
+      color: "bg-[#F5F7FA] text-[#0F2D5C] border-[#E5E7EB]",
     },
     {
       id: "electricity",
@@ -121,7 +122,7 @@ export const LandingServicesPreview: React.FC<LandingServicesPreviewProps> = ({
       description: "Instant prepaid meter token generation and postpaid bill settlement for IKEDC, EKEDC, KEDCO, AEDC, PHED & more.",
       icon: Zap,
       badge: "Instant Token",
-      color: "bg-blue-50 text-[#0F2D5C] border-blue-100",
+      color: "bg-[#F5F7FA] text-[#0F2D5C] border-[#E5E7EB]",
     },
     {
       id: "cable-tv",
@@ -130,7 +131,7 @@ export const LandingServicesPreview: React.FC<LandingServicesPreviewProps> = ({
       description: "Fast subscription renewals for DStv, GOtv, and StarTimes with customer name validation prior to payment.",
       icon: Tv,
       badge: "Zero Fee",
-      color: "bg-blue-50 text-[#0F2D5C] border-blue-100",
+      color: "bg-[#F5F7FA] text-[#0F2D5C] border-[#E5E7EB]",
     },
     {
       id: "waec-neco",
@@ -139,7 +140,7 @@ export const LandingServicesPreview: React.FC<LandingServicesPreviewProps> = ({
       description: "Instant PIN and serial number dispatch for WAEC result checkers, NECO tokens, and JAMB UTME registration e-pins.",
       icon: GraduationCap,
       badge: "Direct Dispatch",
-      color: "bg-blue-50 text-[#0F2D5C] border-blue-100",
+      color: "bg-[#F5F7FA] text-[#0F2D5C] border-[#E5E7EB]",
     },
     {
       id: "more-services",
@@ -148,7 +149,7 @@ export const LandingServicesPreview: React.FC<LandingServicesPreviewProps> = ({
       description: "Drivers license verification, international passport check, newspaper change of name publications, and ICT solutions.",
       icon: Grid,
       badge: "Expanded Suite",
-      color: "bg-blue-50 text-[#0F2D5C] border-blue-100",
+      color: "bg-[#F5F7FA] text-[#0F2D5C] border-[#E5E7EB]",
     },
   ];
 
@@ -159,7 +160,7 @@ export const LandingServicesPreview: React.FC<LandingServicesPreviewProps> = ({
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
           <div className="space-y-3 max-w-2xl">
-            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-blue-50 text-[#0F2D5C] border border-blue-200">
+            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#F5F7FA] text-[#0F2D5C] border border-[#E5E7EB]">
               Complete Service Ecosystem
             </span>
             <h2 className="text-3xl sm:text-4.5xl font-bold text-[#111827] tracking-tight">

@@ -24,8 +24,6 @@ import { AutomaticWalletFundingEngine } from "../../src/services/automaticWallet
 import { PaymentVerificationReconciliationEngine } from "../../src/services/paymentVerificationReconciliationEngine";
 import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerGateway";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
-import { AgentHubAdapter } from "../../src/services/providers/agenthubAdapter";
-import { NINTrustAdapter } from "../../src/services/providers/nintrustAdapter";
 import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
 import { syncFromFirestore, syncToFirestore } from "../../src/services/settingsStore";
 import { loadFirestoreDb, syncDbToFirestore, saveDocToFirestore } from "../../src/services/firestoreStore";
@@ -42,7 +40,7 @@ const app = router;
 
 app.post("/api/admin/settings", async (req, res) => {
   const { settings } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
+  const sessionToken = (req.headers["x-admin-token"] as string) ;
   const db = readDB();
 
   const val = await adminAuthService.validateSession(db, sessionToken || "");
@@ -78,7 +76,7 @@ app.get("/api/site/prices", async (req, res) => {
 
 app.post("/api/admin/prices", async (req, res) => {
   const { priceMatrix } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
+  const sessionToken = (req.headers["x-admin-token"] as string) ;
   const db = readDB();
 
   const val = await adminAuthService.validateSession(db, sessionToken || "");
@@ -230,7 +228,7 @@ app.get("/api/services", async (req, res) => {
 // 2. POST /api/admin/services - Add New Service
 app.post("/api/admin/services", async (req, res) => {
   const { service } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
+  const sessionToken = (req.headers["x-admin-token"] as string) ;
   const db = readDB();
   await syncFromFirestore(db);
 
@@ -291,7 +289,7 @@ app.post("/api/admin/services", async (req, res) => {
 app.put("/api/admin/services/:id", async (req, res) => {
   const { id } = req.params;
   const { service } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
+  const sessionToken = (req.headers["x-admin-token"] as string) ;
   const db = readDB();
   await syncFromFirestore(db);
 
@@ -341,7 +339,7 @@ app.put("/api/admin/services/:id", async (req, res) => {
 // 4. DELETE /api/admin/services/:id - Delete Service
 app.delete("/api/admin/services/:id", async (req, res) => {
   const { id } = req.params;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
+  const sessionToken = (req.headers["x-admin-token"] as string) ;
   const db = readDB();
   await syncFromFirestore(db);
 
@@ -380,7 +378,7 @@ app.delete("/api/admin/services/:id", async (req, res) => {
 app.post("/api/admin/services/:id/toggle", async (req, res) => {
   const { id } = req.params;
   const { isActive } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
+  const sessionToken = (req.headers["x-admin-token"] as string) ;
   const db = readDB();
   await syncFromFirestore(db);
 
@@ -424,7 +422,7 @@ app.post("/api/admin/services/:id/toggle", async (req, res) => {
 // 6. POST /api/admin/services/reorder - Reorder Services
 app.post("/api/admin/services/reorder", async (req, res) => {
   const { orders } = req.body; // orders: Array<{ id: string, displayOrder: number }>
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
+  const sessionToken = (req.headers["x-admin-token"] as string) ;
   const db = readDB();
   await syncFromFirestore(db);
 
@@ -470,7 +468,7 @@ app.post("/api/admin/services/reorder", async (req, res) => {
 app.post("/api/admin/services/:id/pricing", async (req, res) => {
   const { id } = req.params;
   const { costPrice, sellingFee, serviceCharge, commissionRate } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
+  const sessionToken = (req.headers["x-admin-token"] as string) ;
   const db = readDB();
   await syncFromFirestore(db);
 
@@ -512,85 +510,7 @@ app.post("/api/admin/services/:id/pricing", async (req, res) => {
 
 
 
-app.get("/api/marketplace/services", async (req, res) => {
-  const db = readDB();
-  res.json({ services: db.vendorServices.filter((s: any) => s.isActive) });
-});
-
-app.post("/api/marketplace/services", async (req, res) => {
-  const { vendorId, vendorName, title, description, category, price, commissionPercent, deliveryTime } = req.body;
-  const db = readDB();
-
-  const serviceId = "srv_" + Math.random().toString(36).substring(2, 9);
-  const newService = {
-    id: serviceId,
-    vendorId,
-    vendorName,
-    title,
-    description,
-    category,
-    price: parseFloat(price),
-    commissionPercent: parseInt(commissionPercent) || 10,
-    deliveryTime,
-    isActive: true,
-    createdAt: new Date().toISOString(),
-  };
-
-  if (!db.vendorServices) db.vendorServices = [];
-  db.vendorServices.push(newService);
-  writeDB(db);
-
-  res.json({ success: true, service: newService });
-});
-
-// Buy a Service from another vendor (commission payouts!)
-app.post("/api/marketplace/buy", async (req, res) => {
-  const { userId, serviceId } = req.body;
-  const db = readDB();
-
-  const service = (db.vendorServices || []).find((s: any) => s.id === serviceId);
-  if (!service) return res.status(404).json({ error: "Marketplace service not found" });
-
-  const vendor = await usersStore.getUserById(service.vendorId);
-  if (!vendor) return res.status(404).json({ error: "Vendor account no longer active" });
-
-  const price = service.price;
-  const reference = "SML-MKT-" + Math.floor(100000 + Math.random() * 900000);
-
-  try {
-    // Debit Buyer
-    const debitRes = await ServerWalletEngine.debitWallet(db, {
-      userId,
-      amount: price,
-      serviceName: `Vendor Service: ${service.title}`,
-      provider: service.vendorName,
-      description: `Purchased Vendor Service: "${service.title}"`,
-      reference,
-      recipientDetails: service.vendorName,
-      type: "VENDOR_PAYOUT",
-    });
-
-    // Calculate commission
-    const commission = Math.round((price * (service.commissionPercent / 100)) * 100) / 100;
-    const vendorPayout = price - commission;
-
-    // Credit Vendor
-    await ServerWalletEngine.creditWallet(db, {
-      userId: service.vendorId,
-      amount: vendorPayout,
-      serviceName: `Vendor Sale Payout`,
-      provider: "SmartLink Marketplace Engine",
-      description: `Payout for service sale: "${service.title}" (Less ${service.commissionPercent}% platform commission)`,
-      reference: "PAY-" + reference,
-      type: "VENDOR_PAYOUT",
-    });
-
-    writeDB(db);
-    res.json({ success: true, service, balance: debitRes.wallet.currentBalance });
-  } catch (err: any) {
-    res.status(400).json({ error: err.message || "Marketplace service purchase failed" });
-  }
-});
+// Marketplace routes are handled in marketplace.routes.ts with authentication and validation
 
 // 7.5 Contact Admin Form Submission
 app.post("/api/contact/submit", async (req, res) => {

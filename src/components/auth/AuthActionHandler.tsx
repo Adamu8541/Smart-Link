@@ -95,28 +95,28 @@ export const AuthActionHandler: React.FC<AuthActionHandlerProps> = ({
 
   if (mode === "recoverEmail") {
     return (
-      <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-center items-center p-4 relative font-sans">
+      <div className="min-h-screen bg-[#F5F7FA] text-[#111827] flex flex-col justify-center items-center p-4 relative font-sans">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-md bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-8 text-center space-y-4 shadow-xl shadow-slate-200/70"
+          className="w-full max-w-md bg-white border border-[#E5E7EB]/90 rounded-2xl p-6 sm:p-8 text-center space-y-4 shadow-xl shadow-none"
         >
-          <h2 className="text-lg font-bold text-slate-900">Email Recovery Action</h2>
-          <p className="text-xs text-slate-600 leading-relaxed">
+          <h2 className="text-lg font-bold text-[#111827]">Email Recovery Action</h2>
+          <p className="text-xs text-[#4B5563] leading-relaxed">
             You are attempting to restore a previous email address associated with your Smart Link account.
           </p>
           <div className="pt-2 flex flex-col gap-2">
             <button
               type="button"
               onClick={onNavigateToLogin}
-              className="w-full py-3 px-4 bg-slate-950 hover:bg-slate-900 active:scale-98 text-white font-semibold text-xs rounded-xl transition-all shadow-md shadow-slate-950/20 cursor-pointer"
+              className="w-full py-3 px-4 bg-[#111827] hover:bg-[#111827] active:scale-98 text-white font-semibold text-xs rounded-xl transition-all shadow-md shadow-none cursor-pointer"
             >
               Sign In to Your Account
             </button>
             <button
               type="button"
               onClick={onNavigateHome}
-              className="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition-colors cursor-pointer"
+              className="w-full py-2.5 px-4 bg-[#E5E7EB] hover:bg-[#E5E7EB] text-[#4B5563] font-semibold text-xs rounded-xl transition-colors cursor-pointer"
             >
               Return Home
             </button>

@@ -125,7 +125,7 @@ export const VerificationEngine: React.FC<VerificationEngineProps> = ({
       userId,
       serviceType: selectedService.id,
       primaryInput,
-      additionalFields,
+      additionalFields: { ...additionalFields, consent: userConsent },
       onProgressUpdate: (step) => setCurrentStep(step),
     });
 
@@ -155,9 +155,9 @@ export const VerificationEngine: React.FC<VerificationEngineProps> = ({
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xl overflow-hidden max-w-2xl mx-auto">
+    <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl shadow-xl overflow-hidden max-w-2xl mx-auto">
       {/* Top Header Bar */}
-      <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/30">
+      <div className="p-4 sm:p-5 border-b border-[#E5E7EB] dark:border-[#111827] flex items-center justify-between bg-[#F5F7FA]/50 dark:bg-[#111827]/30">
         <div className="flex items-center gap-3">
           {viewMode !== "SERVICE_SELECT" && !initialServiceType && (
             <button
@@ -167,21 +167,21 @@ export const VerificationEngine: React.FC<VerificationEngineProps> = ({
                 else if (viewMode === "CONFIRMATION") setViewMode("FORM_INPUT");
                 else handleReset();
               }}
-              className="p-1.5 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 transition-colors cursor-pointer"
+              className="p-1.5 rounded-xl hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563] text-[#6B7280] transition-colors cursor-pointer"
             >
               <ArrowLeft className="h-4 w-4" />
             </button>
           )}
 
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-blue-600 text-white shadow-xs">
+            <div className="p-2 rounded-xl bg-[#0F2D5C] text-white shadow-xs">
               <ShieldCheck className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+              <h2 className="text-sm font-bold text-[#111827] dark:text-white flex items-center gap-1.5">
                 <span>{selectedService ? selectedService.title : "SmartLink Central Verification Engine"}</span>
               </h2>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+              <p className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF]">
                 {selectedService ? selectedService.subtitle : "Select an official service gateway"}
               </p>
             </div>
@@ -189,8 +189,8 @@ export const VerificationEngine: React.FC<VerificationEngineProps> = ({
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 rounded-xl font-mono text-xs font-bold text-emerald-700 dark:text-emerald-300">
-            <Wallet className="h-3.5 w-3.5 text-emerald-500" />
+          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 border border-[#E5E7EB] dark:border-[#0F2D5C] rounded-xl font-mono text-xs font-bold text-[#0F2D5C] dark:text-[#9CA3AF]">
+            <Wallet className="h-3.5 w-3.5 text-[#0F2D5C]" />
             <span>₦{userBalance.toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
           </div>
 
@@ -198,7 +198,7 @@ export const VerificationEngine: React.FC<VerificationEngineProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+              className="p-1.5 rounded-xl hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563] text-[#9CA3AF] hover:text-[#4B5563] dark:hover:text-[#E5E7EB] transition-colors cursor-pointer"
             >
               <X className="h-5 w-5" />
             </button>
@@ -217,18 +217,18 @@ export const VerificationEngine: React.FC<VerificationEngineProps> = ({
         {viewMode === "FORM_INPUT" && selectedService && (
           <div className="space-y-6 max-w-lg mx-auto animate-fade-in">
             {/* Service Summary Card */}
-            <div className="p-4 bg-blue-50/60 dark:bg-blue-950/40 rounded-2xl border border-blue-100 dark:border-blue-900/40 flex items-center justify-between">
+            <div className="p-4 bg-[#F5F7FA]/60 dark:bg-[#0F2D5C]/40 rounded-2xl border border-[#E5E7EB] dark:border-[#0F2D5C]/40 flex items-center justify-between">
               <div className="space-y-0.5">
-                <span className="text-[10px] uppercase font-bold text-blue-600 dark:text-blue-400 tracking-wider">
+                <span className="text-[10px] uppercase font-bold text-[#0F2D5C] dark:text-[#9CA3AF] tracking-wider">
                   {selectedService.category} GATEWAY
                 </span>
-                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                <p className="text-xs font-semibold text-[#4B5563] dark:text-[#E5E7EB]">
                   {selectedService.providerName}
                 </p>
               </div>
 
               <div className="text-right">
-                <span className="font-mono text-xs font-extrabold text-blue-600 dark:text-blue-400 bg-white dark:bg-slate-900 px-2.5 py-1 rounded-lg border border-blue-200 dark:border-blue-800">
+                <span className="font-mono text-xs font-extrabold text-[#0F2D5C] dark:text-[#9CA3AF] bg-white dark:bg-[#111827] px-2.5 py-1 rounded-lg border border-[#E5E7EB] dark:border-[#0F2D5C]">
                   Fee: ₦{selectedService.fee.toLocaleString()}
                 </span>
               </div>
@@ -237,8 +237,8 @@ export const VerificationEngine: React.FC<VerificationEngineProps> = ({
             {/* Input Field */}
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
-                  {selectedService.primaryInputLabel} <span className="text-rose-500">*</span>
+                <label className="block text-xs font-bold text-[#111827] dark:text-[#E5E7EB]">
+                  {selectedService.primaryInputLabel} <span className="text-[#0F2D5C]">*</span>
                 </label>
                 <input
                   type={selectedService.inputType}
@@ -248,14 +248,14 @@ export const VerificationEngine: React.FC<VerificationEngineProps> = ({
                     if (inputError) setInputError(null);
                   }}
                   placeholder={selectedService.primaryInputPlaceholder}
-                  className={`w-full px-4 py-3 text-sm bg-slate-50 dark:bg-slate-800 border rounded-2xl focus:outline-hidden focus:ring-2 transition-all font-mono text-slate-900 dark:text-white ${
+                  className={`w-full px-4 py-3 text-sm bg-[#F5F7FA] dark:bg-[#111827] border rounded-2xl focus:outline-hidden focus:ring-2 transition-all font-mono text-[#111827] dark:text-white ${
                     inputError
-                      ? "border-rose-500 ring-rose-500/20"
-                      : "border-slate-200 dark:border-slate-700 focus:ring-blue-500/20"
+                      ? "border-[#0F2D5C] ring-[#0F2D5C]/20"
+                      : "border-[#E5E7EB] dark:border-[#4B5563] focus:ring-[#0F2D5C]/20"
                   }`}
                 />
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                  <Info className="h-3 w-3 text-blue-500 shrink-0" />
+                <p className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF] flex items-center gap-1">
+                  <Info className="h-3 w-3 text-[#0F2D5C] shrink-0" />
                   <span>{selectedService.primaryInputHelp}</span>
                 </p>
               </div>
@@ -263,8 +263,8 @@ export const VerificationEngine: React.FC<VerificationEngineProps> = ({
               {/* Additional Fields if any */}
               {selectedService.additionalFields?.map((field) => (
                 <div key={field.name} className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
-                    {field.label} {field.required && <span className="text-rose-500">*</span>}
+                  <label className="block text-xs font-bold text-[#111827] dark:text-[#E5E7EB]">
+                    {field.label} {field.required && <span className="text-[#0F2D5C]">*</span>}
                   </label>
                   {field.type === "select" ? (
                     <select
@@ -275,7 +275,7 @@ export const VerificationEngine: React.FC<VerificationEngineProps> = ({
                           [field.name]: e.target.value,
                         })
                       }
-                      className="w-full px-4 py-3 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 text-slate-900 dark:text-white"
+                      className="w-full px-4 py-3 text-xs bg-[#F5F7FA] dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#4B5563] rounded-2xl focus:outline-hidden focus:ring-2 focus:ring-[#0F2D5C]/20 text-[#111827] dark:text-white"
                     >
                       <option value="">{field.placeholder}</option>
                       {field.options?.map((opt) => (
@@ -295,14 +295,14 @@ export const VerificationEngine: React.FC<VerificationEngineProps> = ({
                         })
                       }
                       placeholder={field.placeholder}
-                      className="w-full px-4 py-3 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 text-slate-900 dark:text-white"
+                      className="w-full px-4 py-3 text-xs bg-[#F5F7FA] dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#4B5563] rounded-2xl focus:outline-hidden focus:ring-2 focus:ring-[#0F2D5C]/20 text-[#111827] dark:text-white"
                     />
                   )}
                 </div>
               ))}
 
               {/* User Consent Checkbox */}
-              <div className="flex items-start gap-3 p-3.5 bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 rounded-2xl">
+              <div className="flex items-start gap-3 p-3.5 bg-[#F5F7FA] dark:bg-[#111827]/40 border border-[#E5E7EB] dark:border-[#4B5563] rounded-2xl">
                 <input
                   type="checkbox"
                   id="userConsentCheckbox"
@@ -311,17 +311,17 @@ export const VerificationEngine: React.FC<VerificationEngineProps> = ({
                     setUserConsent(e.target.checked);
                     if (inputError) setInputError(null);
                   }}
-                  className="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer shrink-0"
+                  className="mt-0.5 h-4 w-4 rounded border-[#E5E7EB] text-[#0F2D5C] focus:ring-[#0F2D5C] cursor-pointer shrink-0"
                 />
-                <label htmlFor="userConsentCheckbox" className="text-xs text-slate-600 dark:text-slate-300 cursor-pointer leading-tight">
-                  I confirm that I have consent from the identity owner to verify this <span className="font-bold text-slate-800 dark:text-slate-100">{selectedService.id}</span> for legitimate KYC verification purposes in accordance with NIMC & NDPR guidelines.
+                <label htmlFor="userConsentCheckbox" className="text-xs text-[#4B5563] dark:text-[#E5E7EB] cursor-pointer leading-tight">
+                  I confirm that I have consent from the identity owner to verify this <span className="font-bold text-[#111827] dark:text-[#E5E7EB]">{selectedService.id}</span> for legitimate KYC verification purposes in accordance with NIMC & NDPR guidelines.
                 </label>
               </div>
 
               {/* Error Callout */}
               {inputError && (
-                <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 rounded-xl flex items-center gap-2 text-xs text-rose-700 dark:text-rose-300">
-                  <AlertCircle className="h-4 w-4 shrink-0 text-rose-500" />
+                <div className="p-3 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border border-[#E5E7EB] dark:border-[#0F2D5C]/60 rounded-xl flex items-center gap-2 text-xs text-[#0F2D5C] dark:text-[#9CA3AF]">
+                  <AlertCircle className="h-4 w-4 shrink-0 text-[#0F2D5C]" />
                   <span>{inputError}</span>
                 </div>
               )}
@@ -333,7 +333,7 @@ export const VerificationEngine: React.FC<VerificationEngineProps> = ({
                 <button
                   type="button"
                   onClick={() => setViewMode("SERVICE_SELECT")}
-                  className="py-3 px-5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-2xl text-xs transition-colors cursor-pointer"
+                  className="py-3 px-5 bg-[#E5E7EB] dark:bg-[#111827] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563] text-[#4B5563] dark:text-[#E5E7EB] font-semibold rounded-2xl text-xs transition-colors cursor-pointer"
                 >
                   Change Service
                 </button>
@@ -342,7 +342,7 @@ export const VerificationEngine: React.FC<VerificationEngineProps> = ({
               <button
                 type="button"
                 onClick={handleProceedToConfirmation}
-                className="flex-1 py-3 px-6 bg-blue-600 hover:bg-blue-700 active:scale-98 text-white font-semibold rounded-2xl text-xs transition-all shadow-md shadow-blue-600/20 cursor-pointer flex items-center justify-center gap-2"
+                className="flex-1 py-3 px-6 bg-[#0F2D5C] hover:bg-[#0F2D5C] active:scale-98 text-white font-semibold rounded-2xl text-xs transition-all shadow-md shadow-blue-600/20 cursor-pointer flex items-center justify-center gap-2"
               >
                 <Lock className="h-3.5 w-3.5" />
                 <span>Verify & Proceed (₦{selectedService.fee.toLocaleString()})</span>

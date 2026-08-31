@@ -3,7 +3,7 @@ import path from "path";
 import fs from "fs";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
-import { readDB, writeDB, initializeDB, DB_DIR, DB_FILE, UPLOADS_DIR, SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD, hashPassword, safeCompareHash, generateSalt, isMaskedValue } from "../db";
+import { readDB, writeDB, initializeDB, DB_DIR, DB_FILE, UPLOADS_DIR, SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD, hashPassword, verifyPassword, safeCompareHash, generateSalt, isMaskedValue } from "../db";
 import { verifyUserOrAdminSession } from "../middleware/auth";
 import { isMaintenanceModeActive, getMaintenanceDetails, getValueByJsonPath, seedModule7SettingsIfEmpty, sanitizePublicSettings } from "../middleware/maintenance";
 import { getAI } from "../services/ai";
@@ -24,8 +24,6 @@ import { AutomaticWalletFundingEngine } from "../../src/services/automaticWallet
 import { PaymentVerificationReconciliationEngine } from "../../src/services/paymentVerificationReconciliationEngine";
 import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerGateway";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
-import { AgentHubAdapter } from "../../src/services/providers/agenthubAdapter";
-import { NINTrustAdapter } from "../../src/services/providers/nintrustAdapter";
 import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
 import { syncFromFirestore, syncToFirestore } from "../../src/services/settingsStore";
 import { loadFirestoreDb, syncDbToFirestore, saveDocToFirestore } from "../../src/services/firestoreStore";
@@ -150,8 +148,8 @@ app.post("/api/auth/login", async (req, res) => {
       if (password !== SUPER_ADMIN_PASSWORD) {
         return res.status(401).json({ error: "incorrect password, try forgot password instead" });
       }
-      const saSalt = generateSalt();
-      const saHash = hashPassword(password, saSalt);
+      const saHash = hashPassword(password);
+      const saSalt = "";
       user = await usersStore.createUser({
         uid: "usr_sa_primary",
         email: lowerEmail,
@@ -167,15 +165,19 @@ app.post("/api/auth/login", async (req, res) => {
         createdAt: new Date().toISOString(),
       });
     } else {
-      const isMatch = !!(user.salt && user.passwordHash && safeCompareHash(hashPassword(password, user.salt), user.passwordHash));
-      if (!isMatch) {
+      const vResult = verifyPassword(password, user.passwordHash || "", user.salt);
+      if (!vResult.match) {
         return res.status(401).json({ error: "incorrect password, try forgot password instead" });
       }
-      user = await usersStore.updateUser(user.id || user.uid || "usr_sa_primary", {
+      const updateData: any = {
         role: "SUPER_ADMIN",
         isVerified: true,
         status: "ACTIVE",
-      });
+      };
+      if (vResult.needsUpgrade) {
+        updateData.passwordHash = hashPassword(password);
+      }
+      user = await usersStore.updateUser(user.id || user.uid || "usr_sa_primary", updateData);
     }
 
     if (!user) {
@@ -190,10 +192,15 @@ app.post("/api/auth/login", async (req, res) => {
     return res.status(404).json({ error: "check email and try again or sign up if not register before." });
   }
 
-  // Validate hashed password safely against timing side-channel attacks
-  const isMatch = !!(user.salt && user.passwordHash && safeCompareHash(hashPassword(password, user.salt), user.passwordHash));
-  if (!isMatch) {
+  // Validate hashed password securely with auto-upgrade support
+  const vResult = verifyPassword(password, user.passwordHash || "", user.salt);
+  if (!vResult.match) {
     return res.status(401).json({ error: "incorrect password, try forgot password instead" });
+  }
+
+  if (vResult.needsUpgrade) {
+    const newHash = hashPassword(password);
+    await usersStore.updateUser(user.id || user.uid || "", { passwordHash: newHash });
   }
 
   // Auto verify if needed
@@ -293,9 +300,9 @@ app.post("/api/auth/register", async (req, res) => {
     }
   }
 
-  // Hash password securely
-  const userSalt = generateSalt();
-  const userHash = hashPassword(password, userSalt);
+  // Hash password securely with bcrypt
+  const userHash = hashPassword(password);
+  const userSalt = "";
 
   const newUser = {
     id: firebaseUid,
@@ -502,8 +509,8 @@ app.post("/api/auth/reset-password", async (req, res) => {
     return res.status(400).json({ error: "The reset token is invalid, used, or has expired. Please request a new reset link." });
   }
 
-  const newSalt = generateSalt();
-  const newHash = hashPassword(password, newSalt);
+  const newHash = hashPassword(password);
+  const newSalt = "";
 
   await usersStore.updateUser(user.id || user.uid || "", {
     passwordHash: newHash,
@@ -516,12 +523,17 @@ app.post("/api/auth/reset-password", async (req, res) => {
 });
 
 app.get("/api/auth/profile", async (req, res) => {
-  const { uid } = req.query;
+  let uid = (req.query.uid as string) || (req.query.userId as string) || "";
+  const authCheck = await verifyUserOrAdminSession(req, uid);
+  
+  if (!uid && authCheck.authorized && authCheck.authenticatedUid) {
+    uid = authCheck.authenticatedUid;
+  }
+
   if (!uid) {
     return res.status(400).json({ error: "User ID is required" });
   }
 
-  const authCheck = await verifyUserOrAdminSession(req, uid as string);
   if (!authCheck.authorized) {
     return res.status(403).json({ error: authCheck.reason || "Forbidden" });
   }
@@ -592,7 +604,7 @@ app.put("/api/users/:uid", async (req, res) => {
 app.put("/api/admin/users/:uid/role", async (req, res) => {
   const { uid } = req.params;
   const { role, customClaims } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
+  const sessionToken = (req.headers["x-admin-token"] as string) ;
   const db = readDB();
 
   const val = await adminAuthService.validateSession(db, sessionToken || "");
@@ -703,7 +715,7 @@ app.get("/api/admin/users/:uid/login-history", async (req, res) => {
 // Set Custom Claims for user (Super Admin Endpoint)
 app.post("/api/auth/set-custom-claims", async (req, res) => {
   const { targetUid, claims } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
+  const sessionToken = (req.headers["x-admin-token"] as string) ;
   const db = readDB();
 
   const val = await adminAuthService.validateSession(db, sessionToken || "");

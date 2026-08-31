@@ -19,10 +19,10 @@ export const RequireAuth: React.FC<BaseGuardProps> = ({ currentUser, children, f
   if (!currentUser) {
     return (
       fallback || (
-        <div className="p-8 text-center bg-rose-50 dark:bg-rose-950/40 rounded-3xl border border-rose-200 dark:border-rose-900/60 my-6">
-          <Lock className="h-10 w-10 text-rose-500 mx-auto mb-3" />
-          <h3 className="text-base font-bold text-rose-900 dark:text-rose-200">Authentication Required</h3>
-          <p className="text-xs text-rose-700 dark:text-rose-300 mt-1 max-w-md mx-auto">
+        <div className="p-8 text-center bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 rounded-3xl border border-[#E5E7EB] dark:border-[#0F2D5C]/60 my-6">
+          <Lock className="h-10 w-10 text-[#0F2D5C] mx-auto mb-3" />
+          <h3 className="text-base font-bold text-[#0F2D5C] dark:text-[#9CA3AF]">Authentication Required</h3>
+          <p className="text-xs text-[#0F2D5C] dark:text-[#9CA3AF] mt-1 max-w-md mx-auto">
             You must be logged into your SmartLink account to access this section.
           </p>
         </div>
@@ -42,12 +42,12 @@ export const RequireVerifiedEmail: React.FC<BaseGuardProps & { onResendEmail?: (
   if (!currentUser.isVerified) {
     return (
       fallback || (
-        <div className="p-6 bg-amber-50 dark:bg-amber-950/40 rounded-3xl border border-amber-200 dark:border-amber-900/60 text-amber-900 dark:text-amber-200 flex flex-col sm:flex-row items-center justify-between gap-4 my-4 shadow-sm">
+        <div className="p-6 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 rounded-3xl border border-[#E5E7EB] dark:border-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] flex flex-col sm:flex-row items-center justify-between gap-4 my-4 shadow-sm">
           <div className="flex items-center gap-3">
-            <Mail className="h-6 w-6 text-amber-600 dark:text-amber-400 shrink-0" />
+            <Mail className="h-6 w-6 text-[#0F2D5C] dark:text-[#9CA3AF] shrink-0" />
             <div>
               <h4 className="text-sm font-bold">Email Verification Required</h4>
-              <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5">
+              <p className="text-xs text-[#0F2D5C] dark:text-[#9CA3AF] mt-0.5">
                 Please verify your email address (<strong>{currentUser.email}</strong>) to access high-security verification services.
               </p>
             </div>
@@ -55,7 +55,7 @@ export const RequireVerifiedEmail: React.FC<BaseGuardProps & { onResendEmail?: (
           {onResendEmail && (
             <button
               onClick={onResendEmail}
-              className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl transition-all shadow-sm shrink-0 cursor-pointer"
+              className="px-4 py-2 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl transition-all shadow-sm shrink-0 cursor-pointer"
             >
               Resend Verification Email
             </button>
@@ -72,10 +72,10 @@ export const RequireAdmin: React.FC<BaseGuardProps> = ({ currentUser, claims, ch
   if (!perms.canAccessAdmin) {
     return (
       fallback || (
-        <div className="p-8 text-center bg-slate-100 dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 my-8">
-          <ShieldAlert className="h-12 w-12 text-slate-400 mx-auto mb-3" />
-          <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">Access Restricted</h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-md mx-auto">
+        <div className="p-8 text-center bg-[#E5E7EB] dark:bg-[#111827] rounded-3xl border border-[#E5E7EB] dark:border-[#111827] my-8">
+          <ShieldAlert className="h-12 w-12 text-[#9CA3AF] mx-auto mb-3" />
+          <h3 className="text-lg font-bold text-[#111827] dark:text-[#E5E7EB]">Access Restricted</h3>
+          <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-1 max-w-md mx-auto">
             This administrative area requires Admin privileges. Custom Claim or Admin Role assignment required.
           </p>
         </div>
@@ -90,10 +90,10 @@ export const RequireSuperAdmin: React.FC<BaseGuardProps> = ({ currentUser, claim
   if (!perms.canAccessSuperAdmin) {
     return (
       fallback || (
-        <div className="p-8 text-center bg-slate-900 text-white rounded-3xl border border-slate-800 my-8">
-          <ShieldAlert className="h-12 w-12 text-indigo-400 mx-auto mb-3" />
+        <div className="p-8 text-center bg-[#111827] text-white rounded-3xl border border-[#111827] my-8">
+          <ShieldAlert className="h-12 w-12 text-[#9CA3AF] mx-auto mb-3" />
           <h3 className="text-lg font-bold">Super Admin Privilege Required</h3>
-          <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
+          <p className="text-xs text-[#9CA3AF] mt-1 max-w-md mx-auto">
             Only designated Super Administrators can perform role updates or system-wide security configurations.
           </p>
         </div>
@@ -108,9 +108,9 @@ export const RequireFinance: React.FC<BaseGuardProps> = ({ currentUser, claims, 
   if (!perms.canAccessFinance) {
     return (
       fallback || (
-        <div className="p-6 text-center bg-slate-100 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
-          <ShieldAlert className="h-8 w-8 text-amber-500 mx-auto mb-2" />
-          <p className="text-xs font-bold text-slate-700 dark:text-slate-300">Finance Officer permissions required.</p>
+        <div className="p-6 text-center bg-[#E5E7EB] dark:bg-[#111827] rounded-2xl border border-[#E5E7EB] dark:border-[#111827]">
+          <ShieldAlert className="h-8 w-8 text-[#0F2D5C] mx-auto mb-2" />
+          <p className="text-xs font-bold text-[#4B5563] dark:text-[#E5E7EB]">Finance Officer permissions required.</p>
         </div>
       )
     );
@@ -123,9 +123,9 @@ export const RequireSupport: React.FC<BaseGuardProps> = ({ currentUser, claims, 
   if (!perms.canAccessSupport) {
     return (
       fallback || (
-        <div className="p-6 text-center bg-slate-100 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
-          <ShieldAlert className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-          <p className="text-xs font-bold text-slate-700 dark:text-slate-300">Support Agent permissions required.</p>
+        <div className="p-6 text-center bg-[#E5E7EB] dark:bg-[#111827] rounded-2xl border border-[#E5E7EB] dark:border-[#111827]">
+          <ShieldAlert className="h-8 w-8 text-[#0F2D5C] mx-auto mb-2" />
+          <p className="text-xs font-bold text-[#4B5563] dark:text-[#E5E7EB]">Support Agent permissions required.</p>
         </div>
       )
     );

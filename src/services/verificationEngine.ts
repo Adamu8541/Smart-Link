@@ -20,18 +20,33 @@ import { WalletService } from "./walletService";
 
 export const VERIFICATION_SERVICES: VerificationServiceConfig[] = [
   {
+    id: "NIN_DEMOGRAPHY",
+    title: "NIN Demography Verification",
+    subtitle: "NIMC Demographics Gateway",
+    description: "Verify identity records via official NIMC demographic details (First Name, Last Name, Gender & Date of Birth).",
+    icon: "Users",
+    category: "IDENTITY",
+    fee: 600,
+    providerName: "NIMC Demographic Registry",
+    primaryInputLabel: "Demographics Search",
+    primaryInputPlaceholder: "Search by Name, Gender & DOB",
+    primaryInputName: "demographics",
+    primaryInputHelp: "Match demographic details with NIMC database.",
+    inputType: "text",
+  },
+  {
     id: "NIN",
     title: "NIN Identity Verification",
-    subtitle: "NIMC Primary Gateway",
-    description: "Verify full official NIMC identification profiles using 11-digit NIN.",
+    subtitle: "NIN Gateway API",
+    description: "Verify NIN profiles via third-party gateways using 11-digit NIN.",
     icon: "Fingerprint",
     category: "IDENTITY",
     fee: 500,
-    providerName: "NIMC Federal Gateway",
+    providerName: "NIN Validation Gateway",
     primaryInputLabel: "National Identification Number (NIN)",
     primaryInputPlaceholder: "e.g. 12345678901",
     primaryInputName: "nin",
-    primaryInputHelp: "Enter the 11-digit NIN displayed on NIMC slip or card.",
+    primaryInputHelp: "Enter the 11-digit NIN.",
     inputType: "text",
     additionalFields: [
       {
@@ -46,12 +61,12 @@ export const VERIFICATION_SERVICES: VerificationServiceConfig[] = [
   {
     id: "BVN",
     title: "BVN Banking Verification",
-    subtitle: "CBN / NIBSS Central Switch",
+    subtitle: "CBN / BVN Gateway",
     description: "Validate Bank Verification Number records with Central Bank of Nigeria database.",
     icon: "ShieldCheck",
     category: "IDENTITY",
     fee: 500,
-    providerName: "NIBSS Central Switch",
+    providerName: "BVN Gateway",
     primaryInputLabel: "Bank Verification Number (BVN)",
     primaryInputPlaceholder: "e.g. 22233344455",
     primaryInputName: "bvn",
@@ -66,6 +81,21 @@ export const VERIFICATION_SERVICES: VerificationServiceConfig[] = [
         required: false,
       },
     ],
+  },
+  {
+    id: "NIN_PHONE",
+    title: "NIN With Phone Number",
+    subtitle: "NIMC Phone Lookup Gateway",
+    description: "Verify NIN records using candidate's 11-digit registered phone number.",
+    icon: "Phone",
+    category: "IDENTITY",
+    fee: 500,
+    providerName: "NIMC Phone Registry Gateway",
+    primaryInputLabel: "Phone Number",
+    primaryInputPlaceholder: "e.g. 08012345678",
+    primaryInputName: "phoneNumber",
+    primaryInputHelp: "Enter 11-digit phone number starting with 0.",
+    inputType: "text",
   },
   {
     id: "PHONE",
@@ -100,7 +130,7 @@ export const VERIFICATION_SERVICES: VerificationServiceConfig[] = [
   {
     id: "CAC",
     title: "CAC Enterprise Status Verification",
-    subtitle: "Corporate Affairs Commission Abuja",
+    subtitle: "Corporate Affairs Commission National Portal",
     description: "Verify business status, RC/BN registration, classification, and incorporation date.",
     icon: "Building2",
     category: "CORPORATE",
@@ -120,7 +150,7 @@ export const VERIFICATION_SERVICES: VerificationServiceConfig[] = [
     icon: "FileCheck2",
     category: "TAX",
     fee: 500,
-    providerName: "FIRS Tax Portal Engine",
+    providerName: "TIN Gateway Engine",
     primaryInputLabel: "Tax Identification Number (TIN)",
     primaryInputPlaceholder: "e.g. 12345678-0001",
     primaryInputName: "tin",
@@ -219,7 +249,7 @@ export class VerificationEngine {
     userId: string;
     serviceType: VerificationType;
     primaryInput: string;
-    additionalFields?: Record<string, string>;
+    additionalFields?: Record<string, any>;
     slipType?: SlipFormatType;
     customFee?: number;
     autoEmailToRegistered?: boolean;

@@ -37,7 +37,7 @@ import {
 } from "./components/admin/views/AdminPlaceholderViews";
 import { AdminSession, getStoredAdminSession, clearAdminSession } from "./services/adminAuthTypes";
 import { UserProfile, UserRole } from "./types";
-import logoImg from "./assets/images/logo.png";
+const logoImg = "/logo.png";
 import { motion, AnimatePresence } from "motion/react";
 import { Sparkles, ArrowRight, ArrowLeft, ShieldCheck, Mail, Lock, Phone, Tag, UserRound, Check, Eye, EyeOff, AlertCircle, RefreshCw, CheckCircle2, LogOut, X, FileCheck } from "lucide-react";
 import { SmartLinkLogoMark } from "./components/ui/SmartLinkLogoMark";
@@ -48,7 +48,7 @@ import { ForgotPasswordView } from "./components/auth/ForgotPasswordView";
 import { ResetPasswordView } from "./components/auth/ResetPasswordView";
 import { VerifyEmailView } from "./components/auth/VerifyEmailView";
 import { AuthActionHandler } from "./components/auth/AuthActionHandler";
-import { PublicSlipVerificationView } from "./components/verification/slips/PublicSlipVerificationView";
+
 import { useSiteConfig } from "./context/SiteConfigContext";
 import { MaintenanceScreen } from "./components/maintenance/MaintenanceScreen";
 import {
@@ -140,63 +140,72 @@ const getPasswordStrength = (password: string): PasswordStrength => {
   if (checks.hasSpecial) score += 1;
 
   let label = "Very Weak";
-  let colorClass = "bg-red-500";
-  let textColorClass = "text-red-500";
+  let colorClass = "bg-[#0F2D5C]";
+  let textColorClass = "text-[#0F2D5C]";
 
   if (score === 1) {
     label = "Weak";
-    colorClass = "bg-red-400";
-    textColorClass = "text-red-400";
+    colorClass = "bg-[#0F2D5C]/60";
+    textColorClass = "text-[#0F2D5C]/60";
   } else if (score === 2) {
     label = "Fair";
-    colorClass = "bg-amber-500";
-    textColorClass = "text-amber-500";
+    colorClass = "bg-[#17407E]/70";
+    textColorClass = "text-[#17407E]/70";
   } else if (score === 3) {
     label = "Strong";
-    colorClass = "bg-teal-500";
-    textColorClass = "text-teal-500";
+    colorClass = "bg-[#17407E]";
+    textColorClass = "text-[#17407E]";
   } else if (score === 4) {
     label = "Very Strong";
-    colorClass = "bg-emerald-500";
-    textColorClass = "text-emerald-500";
+    colorClass = "bg-[#0F2D5C]";
+    textColorClass = "text-[#0F2D5C]";
   }
 
   return { score, label, colorClass, textColorClass, checks };
 };
 
 async function getAuthHeaders(): Promise<Record<string, string>> {
-  const user = auth.currentUser;
-  if (!user) {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (auth.authStateReady) {
     try {
-      const stored = localStorage.getItem("smart_link_user");
-      if (stored) {
-        const u = JSON.parse(stored);
-        if (u?.uid) {
-          return {
-            "Content-Type": "application/json",
-            "x-user-id": u.uid,
-            "x-user-email": u.email || "",
-          };
-        }
-      }
+      await auth.authStateReady();
     } catch {}
-    return { "Content-Type": "application/json" };
   }
+  const user = auth.currentUser;
+  if (user) {
+    try {
+      const idToken = await user.getIdToken();
+      headers["Authorization"] = `Bearer ${idToken}`;
+      return headers;
+    } catch {}
+  }
+
+  // Check admin session token
   try {
-    const idToken = await user.getIdToken();
-    return {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${idToken}`,
-      "x-user-id": user.uid,
-      "x-user-email": user.email || "",
-    };
-  } catch {
-    return {
-      "Content-Type": "application/json",
-      "x-user-id": user.uid,
-      "x-user-email": user.email || "",
-    };
-  }
+    const adminSessionRaw = sessionStorage.getItem("smart_link_admin_session");
+    if (adminSessionRaw) {
+      const adminSession = JSON.parse(adminSessionRaw);
+      if (adminSession?.sessionToken) {
+        headers["Authorization"] = `Bearer ${adminSession.sessionToken}`;
+        headers["x-admin-token"] = adminSession.sessionToken;
+        return headers;
+      }
+    }
+  } catch {}
+
+  // Check user session in localStorage
+  try {
+    const userRaw = localStorage.getItem("smart_link_user");
+    if (userRaw) {
+      const u = JSON.parse(userRaw);
+      if (u?.sessionToken || u?.token || u?.idToken) {
+        headers["Authorization"] = `Bearer ${u.sessionToken || u.token || u.idToken}`;
+        return headers;
+      }
+    }
+  } catch {}
+
+  return headers;
 }
 
 export default function App() {
@@ -241,8 +250,18 @@ export default function App() {
   const [quickLegalModalDocId, setQuickLegalModalDocId] = useState<string | null>(null);
 
   const [currentView, setCurrentView] = useState<string>(() => {
+    const storedUser = localStorage.getItem("smart_link_user");
+    const hasUser = Boolean(storedUser);
+    const hasAdmin = Boolean(getStoredAdminSession());
+
     const path = window.location.pathname;
     const params = new URLSearchParams(window.location.search);
+
+    const unauthPaths = ["/", "/home", "/admin/login", "/forgot-password", "/reset-password", "/verify-email"];
+    if ((hasUser || hasAdmin) && (unauthPaths.includes(path) || path === "")) {
+      return hasAdmin ? "ADMIN_DASHBOARD" : "DASHBOARD";
+    }
+
     if (path.startsWith("/verify/slip/") || path === "/validate-slip" || params.get("slipToken")) {
       return "VERIFY_SLIP";
     }
@@ -425,6 +444,23 @@ export default function App() {
     if (maintenanceActive && !adminSessionRef.current && !view.startsWith("ADMIN_")) {
       return;
     }
+    const userIsSignedIn = Boolean(currentUserRef.current);
+    const adminIsSignedIn = Boolean(adminSessionRef.current);
+    const unauthenticatedViews = [
+      "HOME",
+      "ADMIN_LOGIN",
+      "FORGOT_PASSWORD",
+      "RESET_PASSWORD",
+      "VERIFY_EMAIL",
+      "AUTH_ACTION",
+    ];
+
+    if ((userIsSignedIn || adminIsSignedIn) && unauthenticatedViews.includes(view)) {
+      pendingNavigationRef.current = view;
+      setShowLogoutModal(true);
+      return;
+    }
+
     setCurrentView(view);
     const targetRoute = viewToRouteMap[view] || (view === "DASHBOARD" ? "/dashboard" : "/");
     try {
@@ -466,6 +502,7 @@ export default function App() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [regEmail, setRegEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
+  const [regConfirmPassword, setRegConfirmPassword] = useState("");
   const [regFullName, setRegFullName] = useState("");
   const [regPhoneNumber, setRegPhoneNumber] = useState("");
   const [regRole, setRegRole] = useState<UserRole>(UserRole.CUSTOMER);
@@ -486,6 +523,7 @@ export default function App() {
   const [newPassword, setNewPassword] = useState("");
   const [showAuthPassword, setShowAuthPassword] = useState(false);
   const [showRegPassword, setShowRegPassword] = useState(false);
+  const [showRegConfirmPassword, setShowRegConfirmPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [recoverySuccessMessage, setRecoverySuccessMessage] = useState<string | null>(null);
 
@@ -498,13 +536,6 @@ export default function App() {
 
   useEffect(() => {
     const keepServerWarm = async () => {
-      try {
-        await fetch("https://onrender.com", {
-          method: "GET",
-          mode: "no-cors",
-          cache: "no-cache",
-        });
-      } catch {}
       try {
         await fetch("/api/health", {
           method: "GET",
@@ -848,46 +879,54 @@ export default function App() {
             };
           }
 
-          // 2. Ensure Firestore users document is merged
-          try {
-            await setDoc(
-              doc(db, "users", fbUser.uid),
-              {
-                uid: fbUser.uid,
-                email: email,
-                fullName: fullName,
-                phoneNumber: phone || userObj.phoneNumber || "",
-                isVerified: true,
-                role: userObj.role || "CUSTOMER",
-                walletBalance: userObj.walletBalance ?? 0.0,
-                referralCode: userObj.referralCode || "SL" + Math.floor(1000 + Math.random() * 9000),
-                updatedAt: new Date().toISOString(),
-              },
-              { merge: true }
-            );
-          } catch (fsErr) {
+          // 2. Ensure Firestore users document is merged (non-blocking async)
+          setDoc(
+            doc(db, "users", fbUser.uid),
+            {
+              uid: fbUser.uid,
+              email: email,
+              fullName: fullName,
+              phoneNumber: phone || userObj.phoneNumber || "",
+              isVerified: true,
+              role: userObj.role || "CUSTOMER",
+              walletBalance: userObj.walletBalance ?? 0.0,
+              referralCode: userObj.referralCode || "SL" + Math.floor(1000 + Math.random() * 9000),
+              updatedAt: new Date().toISOString(),
+            },
+            { merge: true }
+          ).catch((fsErr) => {
             console.warn("[onAuthStateChanged] Firestore sync note:", fsErr);
-          }
+          });
 
           setCurrentUser(userObj);
           localStorage.setItem("smart_link_user", JSON.stringify(userObj));
 
-          // Check if any platform policies have updated since user last accepted
-          try {
-            const pending = await legalConsentService.checkPendingReAcceptances(fbUser.uid);
-            if (pending && pending.length > 0) {
-              setPendingReAcceptancePolicies(pending);
-              setShowReAcceptanceModal(true);
-            }
-          } catch (pendingErr) {
-            console.warn("Check pending policy updates note:", pendingErr);
-          }
-
-          // If on home/auth pages, route directly to DASHBOARD
+          // Ensure authenticated users are directed to DASHBOARD
+          const currentViewName = currentViewRef.current;
           const currentPath = window.location.pathname;
-          if (currentPath === "/dashboard" || currentPath === "/login" || currentPath === "/register") {
+          if (
+            currentViewName === "DASHBOARD" ||
+            currentViewName === "HOME" ||
+            currentViewName === "LOGIN" ||
+            currentViewName === "REGISTER" ||
+            currentPath === "/" ||
+            currentPath === "/dashboard"
+          ) {
             navigateToView("DASHBOARD");
           }
+
+          // Check if any platform policies have updated since user last accepted (non-blocking)
+          legalConsentService
+            .checkPendingReAcceptances(fbUser.uid)
+            .then((pending) => {
+              if (pending && pending.length > 0) {
+                setPendingReAcceptancePolicies(pending);
+                setShowReAcceptanceModal(true);
+              }
+            })
+            .catch((pendingErr) => {
+              console.warn("Check pending policy updates note:", pendingErr);
+            });
         } catch (e) {
           console.warn("[onAuthStateChanged] Error syncing auth user:", e);
         }
@@ -930,7 +969,7 @@ export default function App() {
                   setIsVerifyingEmail(false);
                   setVerificationEmail("");
                   setToast({
-                    message: "Email successfully verified via Firebase! Welcome to Smart Link Nigeria.",
+                    message: "Email successfully verified! Welcome to Smart Link Nigeria.",
                     type: "success"
                   });
                   return;
@@ -973,15 +1012,22 @@ export default function App() {
 
   // Load profile details from server
   const fetchUserProfile = async (uid: string) => {
+    if (!uid) return;
     try {
       const headers = await getAuthHeaders();
-      const res = await fetch(`/api/auth/profile?uid=${uid}`, { headers });
-      const data = await res.json();
-      if (res.ok && data?.user) {
-        setCurrentUser(data.user);
+      const res = await fetch(`/api/auth/profile?uid=${encodeURIComponent(uid)}`, { headers });
+      const contentType = res.headers.get("content-type") || "";
+      if (contentType.includes("application/json")) {
+        const data = await res.json();
+        if (res.ok && data?.user) {
+          setCurrentUser(data.user);
+          try {
+            localStorage.setItem("smart_link_user", JSON.stringify(data.user));
+          } catch {}
+        }
       }
     } catch (err) {
-      console.error("Error loading user profile", err);
+      console.warn("Notice loading user profile:", err);
     }
   };
 
@@ -1041,19 +1087,19 @@ export default function App() {
     if (!currentUser?.uid) return;
 
     let consecutiveFailures = 0;
-    const maxConsecutiveFailures = 3;
+    const maxConsecutiveFailures = 5;
 
     const interval = setInterval(async () => {
       if (consecutiveFailures >= maxConsecutiveFailures) {
         clearInterval(interval);
-        console.warn("[App poller] Paused background profile polling due to consecutive authentication or network errors.");
         return;
       }
 
       try {
         const headers = await getAuthHeaders();
-        const res = await fetch(`/api/auth/profile?uid=${currentUser.uid}`, { headers });
-        if (res.ok) {
+        const res = await fetch(`/api/auth/profile?uid=${encodeURIComponent(currentUser.uid)}`, { headers });
+        const contentType = res.headers.get("content-type") || "";
+        if (res.ok && contentType.includes("application/json")) {
           consecutiveFailures = 0;
           const data = await res.json();
           if (data?.user) {
@@ -1076,14 +1122,12 @@ export default function App() {
         } else {
           consecutiveFailures++;
           if (consecutiveFailures >= maxConsecutiveFailures) {
-            console.warn(`[App poller] Background poller encountered status ${res.status}. Stopping polling interval.`);
             clearInterval(interval);
           }
         }
       } catch (err) {
         consecutiveFailures++;
         if (consecutiveFailures >= maxConsecutiveFailures) {
-          console.warn("[App poller] Background poller encountered consecutive network failures. Stopping polling interval.", err);
           clearInterval(interval);
         }
       }
@@ -1109,50 +1153,91 @@ export default function App() {
     setAuthSuccessState(null);
 
     try {
-      // Direct Firebase Authentication sign-in - strictly authenticated, no bypass
-      const userCredential = await signInWithEmailAndPassword(auth, cleanEmail, authPassword);
-      const user = userCredential.user;
+      let user: any = null;
+      let loginUser: any = null;
 
-      if (!user) {
-        throw new Error("Unable to authenticate with Firebase Authentication.");
+      if (isFirebaseConfigured) {
+        try {
+          // Direct Firebase Authentication sign-in - strictly authenticated, no bypass
+          const userCredential = await signInWithEmailAndPassword(auth, cleanEmail, authPassword);
+          const fbUser = userCredential.user;
+
+          if (fbUser) {
+            user = {
+              uid: fbUser.uid,
+              email: fbUser.email || cleanEmail,
+              displayName: fbUser.displayName,
+              emailVerified: fbUser.emailVerified,
+            };
+
+            // Sync and retrieve the user profile from server
+            const syncResult = await safeFetchJson("/api/auth/sync-firebase-user", {
+              method: "POST",
+              body: JSON.stringify({
+                uid: fbUser.uid,
+                email: fbUser.email || cleanEmail,
+                isVerified: fbUser.emailVerified || true,
+              }),
+            });
+            loginUser = syncResult.data?.user;
+          }
+        } catch (fbLoginErr: any) {
+          const isNetworkOrConfigErr = 
+            fbLoginErr?.code === "auth/network-request-failed" ||
+            fbLoginErr?.code === "auth/invalid-api-key" ||
+            String(fbLoginErr?.message || "").toLowerCase().includes("network-request-failed") ||
+            String(fbLoginErr?.message || "").toLowerCase().includes("invalid-api-key");
+
+          if (!isNetworkOrConfigErr) {
+            // Real auth error (like incorrect password), throw to fail directly
+            throw fbLoginErr;
+          }
+          console.log("[Login fallback] Firebase client sign-in encountered network or config error, falling back to secure server auth.");
+        }
       }
 
-      // Sync and retrieve the user profile from server
-      const syncResult = await safeFetchJson("/api/auth/sync-firebase-user", {
-        method: "POST",
-        body: JSON.stringify({
-          uid: user.uid,
-          email: user.email || cleanEmail,
-          isVerified: user.emailVerified || true,
-        }),
-      });
+      // If client auth was bypassed or failed due to network-request-failed, login via Express server
+      if (!loginUser) {
+        const loginRes = await safeFetchJson("/api/auth/login", {
+          method: "POST",
+          body: JSON.stringify({
+            email: cleanEmail,
+            password: authPassword,
+          }),
+        });
 
-      const loginUser = syncResult.data?.user || {
-        uid: user.uid,
-        email: user.email || cleanEmail,
-        fullName: user.displayName || user.email?.split("@")[0] || "Member",
-        phoneNumber: "",
-        role: UserRole.CUSTOMER,
-        walletBalance: 0.0,
-        referralCode: "SL" + Math.floor(1000 + Math.random() * 9000),
-        isVerified: true,
-        createdAt: new Date().toISOString(),
-      };
+        if (!loginRes.ok || !loginRes.data?.user) {
+          throw new Error(loginRes.error || "Authentication failed.");
+        }
+
+        loginUser = loginRes.data.user;
+        user = {
+          uid: loginUser.uid || loginUser.id,
+          email: loginUser.email,
+          displayName: loginUser.fullName,
+        };
+      }
 
       if (
         loginUser?.status === "SUSPENDED" ||
         loginUser?.status === "INACTIVE" ||
         loginUser?.status === "BLOCKED"
       ) {
-        await signOut(auth);
+        if (isFirebaseConfigured) {
+          try {
+            await signOut(auth);
+          } catch {
+            // ignore
+          }
+        }
         throw new Error(
           "Your account has been strictly blocked or suspended by security administration. Access to the dashboard is denied."
         );
       }
 
-      // Update Firestore user document
-      try {
-        await setDoc(
+      // Update Firestore user document (non-blocking async)
+      if (isFirebaseConfigured && user?.uid) {
+        setDoc(
           doc(db, "users", user.uid),
           {
             uid: user.uid,
@@ -1161,9 +1246,9 @@ export default function App() {
             updatedAt: new Date().toISOString(),
           },
           { merge: true }
-        );
-      } catch (fsErr) {
-        console.warn("Firestore profile sync on login note:", fsErr);
+        ).catch((fsErr) => {
+          console.log("Firestore profile sync on login note:", fsErr);
+        });
       }
 
       // Persist in localStorage
@@ -1178,7 +1263,7 @@ export default function App() {
       setAuthPassword("");
       setAuthSuccessState(null);
       setToast({
-        message: "Successfully authenticated via Firebase! Welcome to your Smart Link Nigeria portal.",
+        message: "Successfully authenticated! Welcome to your Smart Link Nigeria portal.",
         type: "success",
       });
     } catch (err: any) {
@@ -1211,6 +1296,12 @@ export default function App() {
     if (!regPassword || regPassword.length < 6) {
       soundFx.playErrorSound();
       setAuthError("Password is too weak. Please choose a password with at least 6 characters.");
+      return;
+    }
+
+    if (regPassword !== regConfirmPassword) {
+      soundFx.playErrorSound();
+      setAuthError("Passwords do not match. Please ensure both password entries are identical.");
       return;
     }
 
@@ -1281,9 +1372,9 @@ export default function App() {
           createdAt: new Date().toISOString(),
         };
 
-        // Write user profile to Firestore
-        try {
-          await setDoc(
+        // Write user profile to Firestore (non-blocking async)
+        if (isFirebaseConfigured && fbUser?.uid) {
+          setDoc(
             doc(db, "users", fbUser.uid),
             {
               uid: fbUser.uid,
@@ -1298,9 +1389,9 @@ export default function App() {
               updatedAt: new Date().toISOString(),
             },
             { merge: true }
-          );
-        } catch (fsErr) {
-          console.warn("Firestore user profile initialization note:", fsErr);
+          ).catch((fsErr) => {
+            console.warn("Firestore user profile initialization note:", fsErr);
+          });
         }
       } catch (fbCreateErr: any) {
         // If client SDK creation reports email already in use, fail immediately with exact error
@@ -1338,24 +1429,31 @@ export default function App() {
         activeUser = apiRes.data.user;
         firebaseUid = activeUser.uid;
 
-        // Sign in on Firebase Auth client
-        try {
-          await signInWithEmailAndPassword(auth, cleanEmail, regPassword);
-        } catch (signInErr) {
-          console.warn("Client sign-in after server creation note:", signInErr);
+        // Sign in on Firebase Auth client if fully configured
+        if (isFirebaseConfigured) {
+          try {
+            await signInWithEmailAndPassword(auth, cleanEmail, regPassword);
+          } catch (signInErr) {
+            console.log("Client sign-in after server creation note (handled):", signInErr);
+          }
+        } else {
+          console.log("Skipped client sign-in after server creation: Firebase is not configured.");
         }
       }
 
-      // Record immutable NDPR legal agreement acceptance
+      // Record immutable NDPR legal agreement batch acceptance
       try {
-        await legalConsentService.recordAcceptance({
+        await legalConsentService.recordBatchAcceptances({
           userId: firebaseUid || activeUser.uid,
           userEmail: cleanEmail,
-          documentId: "terms-of-service",
-          documentVersion: "2.4.0",
-          scope: "ACCOUNT_REGISTRATION",
-          agreementType: "TERMS_OF_SERVICE",
-          status: "ACCEPTED",
+          acceptances: [
+            { documentId: "terms-of-service", documentTitle: "Terms of Service", documentVersion: "2.4.0" },
+            { documentId: "privacy-policy", documentTitle: "Privacy Policy", documentVersion: "2.4.0" },
+            { documentId: "wallet-terms", documentTitle: "Wallet Terms", documentVersion: "2.0.0" },
+            { documentId: "kyc-notice", documentTitle: "KYC Policy", documentVersion: "2.0.0" },
+          ],
+          acceptanceType: "REGISTRATION_SIGNUP",
+          workflow: "NEW_USER_REGISTRATION",
           metadata: {
             fullName: regFullName.trim(),
             phoneNumber: cleanPhone,
@@ -1390,7 +1488,7 @@ export default function App() {
       setIsVerifyingEmail(false);
       setAuthSuccessState(null);
       setToast({
-        message: "Account created successfully through Firebase Authentication! Welcome to Smart Link Nigeria.",
+        message: "Account created successfully! Welcome to Smart Link Nigeria.",
         type: "success",
       });
     } catch (err: any) {
@@ -1490,7 +1588,7 @@ export default function App() {
 
       soundFx.playSuccessSound();
       setToast({
-        message: "A fresh Firebase verification email has been sent! Check your inbox and Spam folder.",
+        message: "A fresh verification email has been sent! Check your inbox and Spam folder.",
         type: "success"
       });
     } catch (err: any) {
@@ -1619,7 +1717,7 @@ export default function App() {
   const isTokenValid = isHex && isCorrectLength;
 
   return (
-    <div className={`min-h-screen bg-slate-50 transition-colors duration-300 ${isDarkMode ? "dark-theme-active" : ""} ${!currentUser ? "flex flex-col bg-white" : "flex flex-col lg:flex-row"}`}>
+    <div className={`min-h-screen bg-[#F5F7FA] transition-colors duration-300 ${isDarkMode ? "dark-theme-active" : ""} ${!currentUser ? "flex flex-col bg-white" : "flex flex-col lg:flex-row"}`}>
       {/* Full-screen non-interactive loading overlay */}
       {authLoading && (
         <div className="fixed inset-0 z-[9999] bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center gap-4">
@@ -1638,20 +1736,14 @@ export default function App() {
             transition={{ type: "spring", stiffness: 350, damping: 25 }}
             className="fixed top-5 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4 pointer-events-none"
           >
-            <div className={`pointer-events-auto flex items-start gap-3 p-4 rounded-xl border shadow-xl backdrop-blur-md text-xs font-medium ${
-              toast.type === "success"
-                ? "bg-emerald-950/95 border-emerald-500/30 text-emerald-100"
-                : toast.type === "error"
-                ? "bg-rose-950/95 border-rose-500/30 text-rose-100"
-                : "bg-slate-900/95 border-indigo-500/30 text-indigo-100"
-            }`}>
+            <div className="pointer-events-auto flex items-start gap-3 p-4 rounded-xl border border-[#E5E7EB] bg-[#111827]/95 shadow-xl backdrop-blur-md text-xs font-medium text-white">
               <div className="mt-0.5">
                 {toast.type === "success" ? (
-                  <Check className="h-4 w-4 text-emerald-400 shrink-0" />
+                  <Check className="h-4 w-4 text-[#FFFFFF] shrink-0" />
                 ) : toast.type === "error" ? (
-                  <AlertCircle className="h-4 w-4 text-rose-400 shrink-0" />
+                  <AlertCircle className="h-4 w-4 text-[#9CA3AF] shrink-0" />
                 ) : (
-                  <SmartLinkLogoMark size="xs" color="#818CF8" animating={true} />
+                  <SmartLinkLogoMark size="xs" color="#FFFFFF" animating={true} />
                 )}
               </div>
               <div className="flex-1 text-left">
@@ -1699,6 +1791,7 @@ export default function App() {
           isDarkMode={isDarkMode}
           onToggleDarkMode={handleToggleDarkMode}
           onSelectService={setSelectedService}
+          onRefreshUser={fetchUserProfile}
           onSetAuthStates={({ isRegistering, isResetPassword }) => {
             setIsRegistering(isRegistering);
             setIsResetPassword(isResetPassword);
@@ -1710,7 +1803,7 @@ export default function App() {
 
       {/* Top Header for Logged-Out Public Homepage */}
       {!currentUser && !["HOME", "FORGOT_PASSWORD", "RESET_PASSWORD", "VERIFY_EMAIL", "AUTH_ACTION", "ADMIN_LOGIN", "ADMIN_DASHBOARD"].includes(currentView) && (
-        <header className="w-full bg-white border-b border-slate-100 py-4 px-6 md:px-12 sticky top-0 z-50 shadow-xs">
+        <header className="w-full bg-white border-b border-[#E5E7EB] py-4 px-6 md:px-12 sticky top-0 z-50 shadow-xs">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             {/* Logo */}
             <div className="flex items-center cursor-pointer" onClick={() => navigateToView("HOME")}>
@@ -1733,7 +1826,7 @@ export default function App() {
                   }, 100);
                 }}
                 className={`text-xs font-bold transition-colors cursor-pointer bg-transparent border-none ${
-                  currentView === "HOME" ? "text-slate-500 hover:text-blue-600" : "text-slate-500 hover:text-blue-600"
+                  currentView === "HOME" ? "text-[#4B5563] hover:text-[#0F2D5C]" : "text-[#4B5563] hover:text-[#0F2D5C]"
                 }`}
               >
                 Solutions
@@ -1744,12 +1837,12 @@ export default function App() {
                     setShowServicesSummaryDropdown(!showServicesSummaryDropdown);
                   }}
                   className={`text-xs font-bold transition-colors cursor-pointer bg-transparent border-none flex items-center gap-1.5 ${
-                    currentView === "SERVICES" || showServicesSummaryDropdown ? "text-blue-600" : "text-slate-500 hover:text-blue-600"
+                    currentView === "SERVICES" || showServicesSummaryDropdown ? "text-[#0F2D5C]" : "text-[#4B5563] hover:text-[#0F2D5C]"
                   }`}
                 >
                   <span>Services</span>
                   <svg
-                    className={`h-3 w-3 transition-transform duration-200 ${showServicesSummaryDropdown ? "rotate-180 text-blue-600" : "text-slate-400"}`}
+                    className={`h-3 w-3 transition-transform duration-200 ${showServicesSummaryDropdown ? "rotate-180 text-[#0F2D5C]" : "text-[#9CA3AF]"}`}
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 20 20"
                     fill="currentColor"
@@ -1769,9 +1862,9 @@ export default function App() {
                       className="fixed inset-0 z-40 cursor-default" 
                       onClick={() => setShowServicesSummaryDropdown(false)}
                     />
-                    <div className="absolute left-1/2 -translate-x-1/2 mt-3 w-[460px] bg-white border border-slate-200/80 rounded-2xl shadow-xl p-5 z-50 text-left">
-                      <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
-                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 font-mono">
+                    <div className="absolute left-1/2 -translate-x-1/2 mt-3 w-[460px] bg-white border border-[#E5E7EB]/80 rounded-2xl shadow-xl p-5 z-50 text-left">
+                      <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3 mb-3">
+                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#9CA3AF] font-mono">
                           Smart Link Nigeria Services Summary
                         </span>
                         {currentUser ? (
@@ -1780,7 +1873,7 @@ export default function App() {
                               navigateToView("SERVICES");
                               setShowServicesSummaryDropdown(false);
                             }}
-                            className="text-[10px] font-bold text-blue-600 hover:underline bg-transparent border-none cursor-pointer"
+                            className="text-[10px] font-bold text-[#0F2D5C] hover:underline bg-transparent border-none cursor-pointer"
                           >
                             View Full Portal
                           </button>
@@ -1790,7 +1883,7 @@ export default function App() {
                               navigateToView("DASHBOARD");
                               setShowServicesSummaryDropdown(false);
                             }}
-                            className="text-[10px] font-bold text-blue-600 hover:underline bg-transparent border-none cursor-pointer"
+                            className="text-[10px] font-bold text-[#0F2D5C] hover:underline bg-transparent border-none cursor-pointer"
                           >
                             Sign In / Login
                           </button>
@@ -1799,55 +1892,55 @@ export default function App() {
 
                       <div className="grid grid-cols-2 gap-3 max-h-[360px] overflow-y-auto pr-1">
                         {/* 1. Identity & KYC */}
-                        <div className="p-3 bg-blue-50/40 rounded-xl border border-blue-100/30 space-y-1 hover:bg-blue-50 transition-colors">
-                          <span className="text-[11px] font-black text-blue-700 block">Identity & KYC</span>
-                          <p className="text-[10px] text-slate-500 leading-normal">
+                        <div className="p-3 bg-[#F5F7FA] rounded-xl border border-[#E5E7EB] space-y-1 hover:bg-[#E5E7EB] transition-colors">
+                          <span className="text-[11px] font-black text-[#0F2D5C] block">Identity & KYC</span>
+                          <p className="text-[10px] text-[#4B5563] leading-normal">
                             NIN verification/validation, VNIN slips, and instant secure BVN lookup.
                           </p>
                         </div>
 
                         {/* 2. CAC Registration */}
-                        <div className="p-3 bg-indigo-50/40 rounded-xl border border-indigo-100/30 space-y-1 hover:bg-indigo-50 transition-colors">
-                          <span className="text-[11px] font-black text-indigo-700 block">Corporate Registry (CAC)</span>
-                          <p className="text-[10px] text-slate-500 leading-normal">
+                        <div className="p-3 bg-[#F5F7FA] rounded-xl border border-[#E5E7EB] space-y-1 hover:bg-[#E5E7EB] transition-colors">
+                          <span className="text-[11px] font-black text-[#0F2D5C] block">Corporate Registry (CAC)</span>
+                          <p className="text-[10px] text-[#4B5563] leading-normal">
                             Incorporate Business Names, Private Limited Companies, and NGO status.
                           </p>
                         </div>
 
                         {/* 3. Education Scratch Cards */}
-                        <div className="p-3 bg-amber-50/40 rounded-xl border border-amber-100/30 space-y-1 hover:bg-amber-50 transition-colors">
-                          <span className="text-[11px] font-black text-amber-700 block">Education Portal</span>
-                          <p className="text-[10px] text-slate-500 leading-normal">
+                        <div className="p-3 bg-[#F5F7FA] rounded-xl border border-[#E5E7EB] space-y-1 hover:bg-[#E5E7EB] transition-colors">
+                          <span className="text-[11px] font-black text-[#0F2D5C] block">Education Portal</span>
+                          <p className="text-[10px] text-[#4B5563] leading-normal">
                             Official printable result checker scratch cards for WAEC, NECO, & JAMB.
                           </p>
                         </div>
 
                         {/* 4. Telecom & VTU */}
-                        <div className="p-3 bg-emerald-50/40 rounded-xl border border-emerald-100/30 space-y-1 hover:bg-emerald-50 transition-colors">
-                          <span className="text-[11px] font-black text-emerald-700 block">Telecom & VTU</span>
-                          <p className="text-[10px] text-slate-500 leading-normal">
+                        <div className="p-3 bg-[#F5F7FA] rounded-xl border border-[#E5E7EB] space-y-1 hover:bg-[#E5E7EB] transition-colors">
+                          <span className="text-[11px] font-black text-[#0F2D5C] block">Telecom & VTU</span>
+                          <p className="text-[10px] text-[#4B5563] leading-normal">
                             Instant airtime dispatch, highly discounted internet data, and TV subs.
                           </p>
                         </div>
 
                         {/* 5. Government Portals */}
-                        <div className="p-3 bg-rose-50/40 rounded-xl border border-rose-100/30 space-y-1 hover:bg-rose-50 transition-colors">
-                          <span className="text-[11px] font-black text-rose-700 block">Government Gateway</span>
-                          <p className="text-[10px] text-slate-500 leading-normal">
+                        <div className="p-3 bg-[#F5F7FA] rounded-xl border border-[#E5E7EB] space-y-1 hover:bg-[#E5E7EB] transition-colors">
+                          <span className="text-[11px] font-black text-[#0F2D5C] block">Government Gateway</span>
+                          <p className="text-[10px] text-[#4B5563] leading-normal">
                             FRSC drivers licenses, international passports, and corporate filings.
                           </p>
                         </div>
 
                         {/* 6. ICT & Business Branding */}
-                        <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/40 space-y-1 hover:bg-slate-100 transition-colors">
-                          <span className="text-[11px] font-black text-slate-700 block">ICT & Branding</span>
-                          <p className="text-[10px] text-slate-500 leading-normal">
+                        <div className="p-3 bg-[#F5F7FA] rounded-xl border border-[#E5E7EB] space-y-1 hover:bg-[#E5E7EB] transition-colors">
+                          <span className="text-[11px] font-black text-[#0F2D5C] block">ICT & Branding</span>
+                          <p className="text-[10px] text-[#4B5563] leading-normal">
                             Web development, computer maintenance/repairs, and brand design.
                           </p>
                         </div>
                       </div>
 
-                      <div className="mt-4 pt-3.5 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400">
+                      <div className="mt-4 pt-3.5 border-t border-[#E5E7EB] flex items-center justify-between text-[10px] text-[#9CA3AF]">
                         <span>Need full portal access? Sign in to your node.</span>
                         <button
                           onClick={() => {
@@ -1855,7 +1948,7 @@ export default function App() {
                             setIsRegistering(false);
                             setShowServicesSummaryDropdown(false);
                           }}
-                          className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors cursor-pointer text-[10px]"
+                          className="px-3 py-1 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold rounded-lg transition-colors cursor-pointer text-[10px]"
                         >
                           Secure Sign In
                         </button>
@@ -1871,7 +1964,7 @@ export default function App() {
                     document.getElementById("about-section")?.scrollIntoView({ behavior: "smooth" });
                   }, 100);
                 }}
-                className="text-xs font-bold text-slate-500 hover:text-blue-600 transition-colors cursor-pointer bg-transparent border-none"
+                className="text-xs font-bold text-[#4B5563] hover:text-[#0F2D5C] transition-colors cursor-pointer bg-transparent border-none"
               >
                 About Us
               </button>
@@ -1882,7 +1975,7 @@ export default function App() {
                     document.getElementById("contact-section")?.scrollIntoView({ behavior: "smooth" });
                   }, 100);
                 }}
-                className="text-xs font-bold text-slate-500 hover:text-blue-600 transition-colors cursor-pointer bg-transparent border-none"
+                className="text-xs font-bold text-[#4B5563] hover:text-[#0F2D5C] transition-colors cursor-pointer bg-transparent border-none"
               >
                 Contact
               </button>
@@ -1897,7 +1990,7 @@ export default function App() {
                   setIsResetPassword(false);
                   setAuthError(null);
                 }}
-                className="px-6 py-2.5 bg-black hover:bg-slate-900 text-white font-bold rounded-full text-xs shadow-md transition-all cursor-pointer"
+                className="px-6 py-2.5 bg-[#082051] hover:bg-[#06183e] text-white font-bold rounded-full text-xs shadow-md transition-all cursor-pointer"
               >
                 Client Login
               </button>
@@ -1911,7 +2004,7 @@ export default function App() {
         <div className="w-full">
           {siteSettings?.showAnnouncement && siteSettings?.announcementText && currentView !== "HOME" && (
             <div className="bg-[#0F2D5C] text-white px-4 py-2.5 text-xs font-semibold text-center flex items-center justify-center gap-2 shadow-xs border-b border-white/10">
-              <Sparkles className="h-4 w-4 shrink-0 text-amber-300 animate-pulse" />
+              <Sparkles className="h-4 w-4 shrink-0 text-[#E5E7EB] animate-pulse" />
               <span>{siteSettings.announcementText}</span>
             </div>
           )}
@@ -1967,13 +2060,13 @@ export default function App() {
               <ServicesGrid onSelectService={setSelectedService} />
             ) : (
               <div className="max-w-md mx-auto my-16 px-4">
-                <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm text-center space-y-6">
-                  <div className="h-12 w-12 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center mx-auto text-rose-500">
+                <div className="bg-white border border-[#E5E7EB] rounded-2xl p-8 shadow-sm text-center space-y-6">
+                  <div className="h-12 w-12 rounded-full bg-[#F5F7FA] border border-[#E5E7EB] flex items-center justify-center mx-auto text-[#0F2D5C]">
                     <Lock className="h-5 w-5" />
                   </div>
                   <div className="space-y-1">
-                    <h3 className="text-base font-black text-slate-900">Portal Authentication Required</h3>
-                    <p className="text-xs text-slate-500 leading-relaxed max-w-xs mx-auto">
+                    <h3 className="text-base font-black text-[#111827]">Portal Authentication Required</h3>
+                    <p className="text-xs text-[#4B5563] leading-relaxed max-w-xs mx-auto">
                       All government portal integrations, VTU services, and scratch card dispatch pipelines require an active authenticated user profile.
                     </p>
                   </div>
@@ -1984,7 +2077,7 @@ export default function App() {
                         setIsRegistering(false);
                         setAuthError(null);
                       }}
-                      className="w-full py-2.5 bg-slate-900 text-white hover:bg-blue-600 hover:text-white font-bold rounded-lg text-xs transition-all cursor-pointer shadow-xs"
+                      className="w-full py-2.5 bg-[#111827] text-white hover:bg-[#0F2D5C] hover:text-white font-bold rounded-lg text-xs transition-all cursor-pointer shadow-xs"
                     >
                       Authenticate Now
                     </button>
@@ -1996,7 +2089,7 @@ export default function App() {
 
           {/* Admin Login View */}
           {currentView === "ADMIN_LOGIN" && (
-            <div className="w-full bg-slate-950 min-h-[calc(100vh-75px)] flex flex-col items-center justify-center p-4 md:p-8">
+            <div className="w-full bg-[#111827] min-h-[calc(100vh-75px)] flex flex-col items-center justify-center p-4 md:p-8">
               <AdminLogin
                 onLoginSuccess={(session) => {
                   setAdminSession(session);
@@ -2008,7 +2101,7 @@ export default function App() {
 
           {/* Admin Protected Views wrapped in AdminGuard & AdminDashboardLayout */}
           {currentView.startsWith("ADMIN_") && currentView !== "ADMIN_LOGIN" && (
-            <div className="w-full bg-slate-950 min-h-screen">
+            <div className="w-full bg-[#111827] min-h-screen">
               <AdminGuard
                 currentRoute={viewToRouteMap[currentView] || "/admin/dashboard"}
                 adminSession={adminSession}
@@ -2317,13 +2410,6 @@ export default function App() {
             />
           )}
 
-          {currentView === "VERIFY_SLIP" && (
-            <PublicSlipVerificationView
-              token={slipValidationToken}
-              onBackHome={() => navigateToView("HOME")}
-            />
-          )}
-
           {/* Legal & Compliance Center View */}
           {currentView === "LEGAL_CENTER" && (
             <LegalCenter
@@ -2350,12 +2436,12 @@ export default function App() {
 
           {/* Secure Node Manual Login / Register Form */}
           {currentView === "DASHBOARD" && !currentUser && (
-            <div className="w-full bg-[#f8f9fc] min-h-[calc(100vh-75px)] flex flex-col items-center justify-center py-16 px-4">
-              <div className="w-full max-w-[460px] bg-white border border-slate-100 rounded-[28px] p-8 md:p-10 shadow-[0_10px_30px_rgba(0,0,0,0.03)] text-left overflow-hidden transition-all duration-300">
+            <div className="w-full bg-[#F5F7FA] min-h-[calc(100vh-75px)] flex flex-col items-center justify-center py-16 px-4">
+              <div className="w-full max-w-[460px] bg-white border border-[#E5E7EB] rounded-[28px] p-8 md:p-10 shadow-[0_10px_30px_rgba(0,0,0,0.03)] text-left overflow-hidden transition-all duration-300">
                 <button
                   type="button"
                   onClick={() => navigateToView("HOME")}
-                  className="mb-4 inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors cursor-pointer"
+                  className="mb-4 inline-flex items-center gap-1.5 text-xs font-semibold text-[#6B7280] hover:text-[#111827] transition-colors cursor-pointer"
                 >
                   <ArrowLeft className="h-3.5 w-3.5" />
                   Back to Home
@@ -2381,29 +2467,29 @@ export default function App() {
                       className="space-y-6"
                     >
                       <div className="text-center space-y-1.5">
-                        <div className="h-14 w-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto border border-blue-100 shadow-xs">
+                        <div className="h-14 w-14 rounded-2xl bg-[#F5F7FA] text-[#0F2D5C] flex items-center justify-center mx-auto border border-[#E5E7EB] shadow-xs">
                           <Mail className="h-7 w-7" />
                         </div>
-                        <h2 className="text-xl font-bold text-slate-900 tracking-tight">Check Your Email Inbox</h2>
-                        <p className="text-xs text-slate-500 font-medium leading-relaxed max-w-sm mx-auto">
-                          We have sent a secure verification link via Firebase Authentication to <strong className="text-slate-800">{verificationEmail}</strong>.
+                        <h2 className="text-xl font-bold text-[#111827] tracking-tight">Check Your Email Inbox</h2>
+                        <p className="text-xs text-[#4B5563] font-medium leading-relaxed max-w-sm mx-auto">
+                          We have sent a secure verification link to <strong className="text-[#111827]">{verificationEmail}</strong>.
                         </p>
                       </div>
 
                       {authError && (
-                        <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-xl font-medium animate-fadeIn leading-relaxed flex items-start gap-2">
-                          <AlertCircle className="h-4 w-4 shrink-0 text-rose-600 mt-0.5" />
+                        <div className="p-3.5 bg-[#F5F7FA] border border-[#E5E7EB] text-[#111827] text-xs rounded-xl font-medium animate-fadeIn leading-relaxed flex items-start gap-2">
+                          <AlertCircle className="h-4 w-4 shrink-0 text-[#6B7280] mt-0.5" />
                           <div>{authError}</div>
                         </div>
                       )}
 
-                      <div className="p-4 bg-blue-50/70 border border-blue-100 rounded-2xl text-left space-y-2 shadow-xs">
-                        <div className="flex items-center gap-2 text-blue-900 font-bold text-xs">
-                          <span className="h-2 w-2 rounded-full bg-blue-500 animate-ping"></span>
-                          Firebase Verification Dispatched
+                      <div className="p-4 bg-[#F5F7FA] border border-[#E5E7EB] rounded-2xl text-left space-y-2 shadow-xs">
+                        <div className="flex items-center gap-2 text-[#0F2D5C] font-bold text-xs">
+                          <span className="h-2 w-2 rounded-full bg-[#0F2D5C] animate-ping"></span>
+                          Verification Dispatched
                         </div>
-                        <p className="text-[11px] leading-relaxed text-blue-800 font-normal">
-                          Check your email inbox and <strong className="font-semibold text-blue-900">Spam or Junk folder</strong> for the Firebase verification link.
+                        <p className="text-[11px] leading-relaxed text-[#4B5563] font-normal">
+                          Check your email inbox and <strong className="font-semibold text-[#111827]">Spam or Junk folder</strong> for the verification link.
                         </p>
                       </div>
 
@@ -2412,7 +2498,7 @@ export default function App() {
                           type="button"
                           onClick={() => handleCheckVerificationStatus()}
                           disabled={authLoading}
-                          className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-blue-500/10 disabled:opacity-50"
+                          className="w-full py-3.5 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold rounded-xl text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-slate-500/10 disabled:opacity-50"
                         >
                           {authLoading ? (
                             <>
@@ -2435,7 +2521,7 @@ export default function App() {
                             setVerificationEmail("");
                             setAuthError(null);
                           }}
-                          className="text-xs text-slate-500 hover:text-blue-600 font-semibold hover:underline cursor-pointer focus:outline-none"
+                          className="text-xs text-[#4B5563] hover:text-[#0F2D5C] font-semibold hover:underline cursor-pointer focus:outline-none"
                         >
                           ← Back to Secure Login
                         </button>
@@ -2451,21 +2537,21 @@ export default function App() {
                       className="space-y-6"
                     >
                       <div className="text-center space-y-1">
-                        <div className="h-12 w-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto border border-blue-100">
+                        <div className="h-12 w-12 rounded-full bg-[#F5F7FA] text-[#0F2D5C] flex items-center justify-center mx-auto border border-[#E5E7EB]">
                           <ShieldCheck className="h-6 w-6" />
                         </div>
-                        <h2 className="text-xl font-bold text-slate-900 tracking-tight">Security Reset Portal</h2>
-                        <p className="text-xs text-slate-500 font-medium">Enter your secure reset token to update password</p>
+                        <h2 className="text-xl font-bold text-[#111827] tracking-tight">Security Reset Portal</h2>
+                        <p className="text-xs text-[#4B5563] font-medium">Enter your secure reset token to update password</p>
                       </div>
 
                       {authError && (
-                        <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded font-medium animate-fadeIn">
+                        <div className="p-3 bg-[#F5F7FA] border border-[#E5E7EB] text-[#111827] text-xs rounded font-medium animate-fadeIn">
                           {authError}
                         </div>
                       )}
 
                       {recoverySuccessMessage && (
-                        <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded font-medium animate-fadeIn">
+                        <div className="p-3 bg-[#F5F7FA] border border-[#E5E7EB] text-[#111827] text-xs rounded font-medium animate-fadeIn">
                           {recoverySuccessMessage}
                         </div>
                       )}
@@ -2473,12 +2559,12 @@ export default function App() {
                       <form onSubmit={handleResetPassword} className="space-y-4">
                         <div className="space-y-1.5 text-left">
                           <div className="flex justify-between items-center">
-                            <label className="text-xs font-semibold text-slate-800">
+                            <label className="text-xs font-semibold text-[#4B5563]">
                               Security Reset Token
                             </label>
                             {recoveryToken && (
                               <span className={`text-[10px] font-bold ${
-                                isTokenValid ? "text-emerald-600 animate-fadeIn" : !isHex ? "text-rose-500 animate-fadeIn" : "text-amber-500 animate-fadeIn"
+                                isTokenValid ? "text-[#0F2D5C] animate-fadeIn" : !isHex ? "text-[#6B7280] animate-fadeIn" : "text-[#6B7280] animate-fadeIn"
                               }`}>
                                 {isTokenValid ? "✓ Valid format" : !isHex ? "✗ Non-hex characters" : `⚠ Partial (${recoveryToken.length}/40)`}
                               </span>
@@ -2493,20 +2579,20 @@ export default function App() {
                             className={`w-full px-4 py-3 border rounded-xl text-sm outline-none transition-all font-mono tracking-wider bg-white ${
                               recoveryToken
                                 ? isTokenValid
-                                  ? "border-emerald-500 focus:ring-4 focus:ring-emerald-100 bg-emerald-50/10"
+                                  ? "border-[#0F2D5C] focus:ring-4 focus:ring-[#E5E7EB] bg-[#F5F7FA]/10"
                                   : !isHex
-                                  ? "border-rose-500 focus:ring-4 focus:ring-rose-100 bg-rose-50/10"
-                                  : "border-amber-500 focus:ring-4 focus:ring-amber-100 bg-amber-50/10"
-                                : "border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                                  ? "border-[#9CA3AF] focus:ring-4 focus:ring-[#E5E7EB] bg-[#F5F7FA]/10"
+                                  : "border-[#9CA3AF] focus:ring-4 focus:ring-[#E5E7EB] bg-[#F5F7FA]/10"
+                                : "border-[#E5E7EB] focus:border-[#0F2D5C] focus:ring-4 focus:ring-[#E5E7EB]"
                             }`}
                           />
                           {recoveryToken && isTokenValid && (
-                            <p className="text-[10px] text-emerald-600 font-semibold animate-fadeIn mt-1">
+                            <p className="text-[10px] text-[#0F2D5C] font-semibold animate-fadeIn mt-1">
                               ✓ Secure reset token format is verified and ready for database handshake.
                             </p>
                           )}
                           {recoveryToken && !isTokenValid && (
-                            <p className={`text-[10px] font-semibold animate-fadeIn mt-1 ${!isHex ? "text-rose-500" : "text-amber-600"}`}>
+                            <p className="text-[10px] font-semibold animate-fadeIn mt-1 text-[#6B7280]">
                               {!isHex
                                 ? "Token can only contain hexadecimal characters (0-9, a-f)."
                                 : `The secure hex token must be exactly 40 characters long. Current: ${recoveryToken.length} characters.`}
@@ -2516,7 +2602,7 @@ export default function App() {
 
                         <div className="space-y-1.5 text-left">
                           <div className="flex justify-between items-center">
-                            <label className="text-xs font-semibold text-slate-800">
+                            <label className="text-xs font-semibold text-[#4B5563]">
                               New Access Password
                             </label>
                             {newPassword && (() => {
@@ -2538,15 +2624,15 @@ export default function App() {
                               className={`w-full pl-4 pr-12 py-3 border rounded-xl text-sm outline-none transition-all bg-white ${
                                 newPassword
                                   ? newPassword.length >= 6
-                                    ? "border-emerald-500 focus:ring-4 focus:ring-emerald-100 bg-emerald-50/10"
-                                    : "border-rose-500 focus:ring-4 focus:ring-rose-100 bg-rose-50/10"
-                                  : "border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                                    ? "border-[#0F2D5C] focus:ring-4 focus:ring-[#E5E7EB] bg-[#F5F7FA]/10"
+                                    : "border-[#9CA3AF] focus:ring-4 focus:ring-[#E5E7EB] bg-[#F5F7FA]/10"
+                                  : "border-[#E5E7EB] focus:border-[#0F2D5C] focus:ring-4 focus:ring-[#E5E7EB]"
                               }`}
                             />
                             <button
                               type="button"
                               onClick={() => setShowNewPassword(!showNewPassword)}
-                              className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none transition-colors"
+                              className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#6B7280] focus:outline-none transition-colors"
                               aria-label={showNewPassword ? "Hide password" : "Show password"}
                             >
                               {showNewPassword ? (
@@ -2560,8 +2646,8 @@ export default function App() {
                           {newPassword && (() => {
                             const strength = getPasswordStrength(newPassword);
                             return (
-                              <div className="mt-2.5 space-y-2 p-3 rounded-xl bg-slate-50 border border-slate-100 animate-fadeIn text-left">
-                                <div className="flex items-center justify-between text-[10px] font-bold text-slate-500">
+                              <div className="mt-2.5 space-y-2 p-3 rounded-xl bg-[#F5F7FA] border border-[#E5E7EB] animate-fadeIn text-left">
+                                <div className="flex items-center justify-between text-[10px] font-bold text-[#6B7280]">
                                   <span>Password Strength</span>
                                   <span className={`font-bold ${strength.textColorClass}`}>{strength.label}</span>
                                 </div>
@@ -2571,61 +2657,61 @@ export default function App() {
                                     <div
                                       key={index}
                                       className={`h-full rounded-full flex-1 transition-all duration-300 ${
-                                        index <= strength.score ? strength.colorClass : "bg-slate-200"
+                                        index <= strength.score ? strength.colorClass : "bg-[#E5E7EB]"
                                       }`}
                                     />
                                   ))}
                                 </div>
 
-                                <div className="pt-2 space-y-1 text-[10px] border-t border-slate-100">
+                                <div className="pt-2 space-y-1 text-[10px] border-t border-[#E5E7EB]">
                                   <div className="flex items-center gap-1.5">
                                     {strength.checks.hasMinLength ? (
-                                      <Check className="h-3 w-3 text-emerald-500 shrink-0" />
+                                      <Check className="h-3 w-3 text-[#0F2D5C] shrink-0" />
                                     ) : (
-                                      <div className="h-3 w-3 rounded-full border border-slate-300 flex items-center justify-center shrink-0">
-                                        <span className="w-1 h-1 bg-slate-300 rounded-full" />
+                                      <div className="h-3 w-3 rounded-full border border-[#E5E7EB] flex items-center justify-center shrink-0">
+                                        <span className="w-1 h-1 bg-[#E5E7EB] rounded-full" />
                                       </div>
                                     )}
-                                    <span className={strength.checks.hasMinLength ? "text-slate-700 font-semibold" : "text-slate-400"}>
+                                    <span className={strength.checks.hasMinLength ? "text-[#4B5563] font-semibold" : "text-[#9CA3AF]"}>
                                       At least 6 characters (Required)
                                     </span>
                                   </div>
 
                                   <div className="flex items-center gap-1.5">
                                     {strength.checks.hasLengthEight ? (
-                                      <Check className="h-3 w-3 text-emerald-500 shrink-0" />
+                                      <Check className="h-3 w-3 text-[#0F2D5C] shrink-0" />
                                     ) : (
-                                      <div className="h-3 w-3 rounded-full border border-slate-300 flex items-center justify-center shrink-0">
-                                        <span className="w-1 h-1 bg-slate-300 rounded-full" />
+                                      <div className="h-3 w-3 rounded-full border border-[#E5E7EB] flex items-center justify-center shrink-0">
+                                        <span className="w-1 h-1 bg-[#E5E7EB] rounded-full" />
                                       </div>
                                     )}
-                                    <span className={strength.checks.hasLengthEight ? "text-slate-700 font-semibold" : "text-slate-400"}>
+                                    <span className={strength.checks.hasLengthEight ? "text-[#4B5563] font-semibold" : "text-[#9CA3AF]"}>
                                       At least 8 characters (Recommended)
                                     </span>
                                   </div>
 
                                   <div className="flex items-center gap-1.5">
                                     {strength.checks.hasDigit ? (
-                                      <Check className="h-3 w-3 text-emerald-500 shrink-0" />
+                                      <Check className="h-3 w-3 text-[#0F2D5C] shrink-0" />
                                     ) : (
-                                      <div className="h-3 w-3 rounded-full border border-slate-300 flex items-center justify-center shrink-0">
-                                        <span className="w-1 h-1 bg-slate-300 rounded-full" />
+                                      <div className="h-3 w-3 rounded-full border border-[#E5E7EB] flex items-center justify-center shrink-0">
+                                        <span className="w-1 h-1 bg-[#E5E7EB] rounded-full" />
                                       </div>
                                     )}
-                                    <span className={strength.checks.hasDigit ? "text-slate-700 font-semibold" : "text-slate-400"}>
+                                    <span className={strength.checks.hasDigit ? "text-[#4B5563] font-semibold" : "text-[#9CA3AF]"}>
                                       Contains a number (0-9)
                                     </span>
                                   </div>
 
                                   <div className="flex items-center gap-1.5">
                                     {strength.checks.hasSpecial ? (
-                                      <Check className="h-3 w-3 text-emerald-500 shrink-0" />
+                                      <Check className="h-3 w-3 text-[#0F2D5C] shrink-0" />
                                     ) : (
-                                      <div className="h-3 w-3 rounded-full border border-slate-300 flex items-center justify-center shrink-0">
-                                        <span className="w-1 h-1 bg-slate-300 rounded-full" />
+                                      <div className="h-3 w-3 rounded-full border border-[#E5E7EB] flex items-center justify-center shrink-0">
+                                        <span className="w-1 h-1 bg-[#E5E7EB] rounded-full" />
                                       </div>
                                     )}
-                                    <span className={strength.checks.hasSpecial ? "text-slate-700 font-semibold" : "text-slate-400"}>
+                                    <span className={strength.checks.hasSpecial ? "text-[#4B5563] font-semibold" : "text-[#9CA3AF]"}>
                                       Contains a special character (e.g. !@#$)
                                     </span>
                                   </div>
@@ -2634,12 +2720,12 @@ export default function App() {
                             );
                           })()}
                           {newPassword && newPassword.length >= 6 && (
-                            <p className="text-[10px] text-emerald-600 font-semibold animate-fadeIn mt-1">
+                            <p className="text-[10px] text-[#0F2D5C] font-semibold animate-fadeIn mt-1">
                               ✓ New password meets the minimum length requirement.
                             </p>
                           )}
                           {newPassword && newPassword.length < 6 && (
-                            <p className="text-[10px] text-rose-500 font-semibold animate-fadeIn mt-1">
+                            <p className="text-[10px] text-[#0F2D5C] font-semibold animate-fadeIn mt-1">
                               ✗ Password is too short. It must be at least 6 characters.
                             </p>
                           )}
@@ -2648,7 +2734,7 @@ export default function App() {
                         <button
                           type="submit"
                           disabled={authLoading}
-                          className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-blue-500/10"
+                          className="w-full py-3.5 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold rounded-xl text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-[#0F2D5C]/10"
                         >
                           {authLoading ? (
                             <>
@@ -2669,7 +2755,7 @@ export default function App() {
                             setAuthError(null);
                             setRecoverySuccessMessage(null);
                           }}
-                          className="text-xs text-blue-600 hover:text-blue-700 font-bold hover:underline cursor-pointer focus:outline-none"
+                          className="text-xs text-[#0F2D5C] hover:text-[#17407E] font-bold hover:underline cursor-pointer focus:outline-none"
                         >
                           ← Back to Secure Login
                         </button>
@@ -2697,35 +2783,35 @@ export default function App() {
                       </div>
 
                       {authError && (
-                        <div role="alert" aria-live="polite" className="p-3.5 bg-red-50 border border-red-200 text-red-800 text-xs rounded-xl font-medium flex items-start gap-2.5 animate-fadeIn text-left">
-                          <AlertCircle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
+                        <div role="alert" aria-live="polite" className="p-3.5 bg-[#F5F7FA] border border-[#E5E7EB] text-[#111827] text-xs rounded-xl font-medium flex items-start gap-2.5 animate-fadeIn text-left">
+                          <AlertCircle className="h-4 w-4 text-[#0F2D5C] shrink-0 mt-0.5" />
                           <div className="flex-1 leading-relaxed">
                             <div>{authError}</div>
                             {(authError.includes("sign up if not register before") || authError.includes("check email and try again") || authError.includes("register please") || authError.includes("sign up")) && (
-                              <div className="mt-2 pt-2 border-t border-red-200/80 flex items-center justify-between">
-                                <span className="text-[11px] text-red-700 font-normal">Need an account?</span>
+                              <div className="mt-2 pt-2 border-t border-[#E5E7EB]/80 flex items-center justify-between">
+                                <span className="text-[11px] text-[#4B5563] font-normal">Need an account?</span>
                                 <button
                                   type="button"
                                   onClick={() => {
                                     setIsRegistering(true);
                                     setAuthError(null);
                                   }}
-                                  className="text-xs font-bold text-red-900 hover:text-red-950 underline flex items-center gap-1 cursor-pointer bg-transparent border-none p-0 focus:outline-none"
+                                  className="text-xs font-bold text-[#0F2D5C] hover:text-[#17407E] underline flex items-center gap-1 cursor-pointer bg-transparent border-none p-0 focus:outline-none"
                                 >
                                   Sign up / Register now →
                                 </button>
                               </div>
                             )}
                             {(authError.includes("try forgot password instead") || authError.includes("incorrect password") || authError.includes("forgot password")) && (
-                              <div className="mt-2 pt-2 border-t border-red-200/80 flex items-center justify-between">
-                                <span className="text-[11px] text-red-700 font-normal">Forgotten your password?</span>
+                              <div className="mt-2 pt-2 border-t border-[#E5E7EB]/80 flex items-center justify-between">
+                                <span className="text-[11px] text-[#4B5563] font-normal">Forgotten your password?</span>
                                 <button
                                   type="button"
                                   onClick={() => {
                                     setCurrentView("FORGOT_PASSWORD");
                                     setAuthError(null);
                                   }}
-                                  className="text-xs font-bold text-red-900 hover:text-red-950 underline flex items-center gap-1 cursor-pointer bg-transparent border-none p-0 focus:outline-none"
+                                  className="text-xs font-bold text-[#0F2D5C] hover:text-[#17407E] underline flex items-center gap-1 cursor-pointer bg-transparent border-none p-0 focus:outline-none"
                                 >
                                   Forgot password? Reset here →
                                 </button>
@@ -2750,7 +2836,7 @@ export default function App() {
                             placeholder="name@company.com"
                             aria-invalid={!!authError}
                             className={`w-full px-4 py-3 border border-[#E5E7EB] rounded-xl text-sm outline-none transition-all placeholder-[#9CA3AF] text-[#111827] bg-white focus:border-[#0F2D5C] focus:ring-2 focus:ring-[#0F2D5C]/15 disabled:bg-[#F5F7FA] disabled:text-[#6B7280] ${
-                              authError ? "border-red-300 focus:border-red-500 focus:ring-red-100" : ""
+                              authError ? "border-[#E5E7EB] focus:border-[#0F2D5C] focus:ring-[#E5E7EB]" : ""
                             }`}
                           />
                         </div>
@@ -2770,7 +2856,7 @@ export default function App() {
                               placeholder="••••••••"
                               aria-invalid={!!authError}
                               className={`w-full pl-4 pr-12 py-3 border border-[#E5E7EB] rounded-xl text-sm outline-none transition-all placeholder-[#9CA3AF] text-[#111827] bg-white focus:border-[#0F2D5C] focus:ring-2 focus:ring-[#0F2D5C]/15 disabled:bg-[#F5F7FA] disabled:text-[#6B7280] ${
-                                authError ? "border-red-300 focus:border-red-500 focus:ring-red-100" : ""
+                                authError ? "border-[#E5E7EB] focus:border-[#0F2D5C] focus:ring-[#E5E7EB]" : ""
                               }`}
                             />
                             <button
@@ -2794,7 +2880,7 @@ export default function App() {
                             <input
                               id="remember-me"
                               type="checkbox"
-                              className="h-4 w-4 rounded border-gray-300 text-black accent-black focus:ring-black cursor-pointer"
+                              className="h-4 w-4 rounded border-[#E5E7EB] text-[#0F2D5C] accent-[#0F2D5C] focus:ring-[#0F2D5C] cursor-pointer"
                               defaultChecked
                             />
                             <label htmlFor="remember-me" className="text-xs text-[#6B7280] font-medium select-none cursor-pointer">
@@ -2821,8 +2907,8 @@ export default function App() {
                           disabled={authLoading || authSuccessState !== null}
                           className={`w-full py-3.5 text-white font-bold rounded-xl text-sm tracking-wider uppercase transition-all cursor-pointer flex items-center justify-center gap-2 mt-4 shadow-sm focus:outline-none ${
                             authSuccessState === "login"
-                              ? "bg-emerald-600 hover:bg-emerald-600"
-                              : "bg-[#111827] hover:bg-black active:scale-98 disabled:opacity-60 disabled:cursor-not-allowed"
+                              ? "bg-[#0F2D5C] hover:bg-[#17407E]"
+                              : "bg-[#082051] hover:bg-[#06183e] active:scale-98 disabled:opacity-60 disabled:cursor-not-allowed"
                           }`}
                         >
                           {authSuccessState === "login" ? (
@@ -2840,12 +2926,12 @@ export default function App() {
                           )}
                         </button>
 
-                        <div className="pt-2 text-[11px] text-slate-400 text-center">
+                        <div className="pt-2 text-[11px] text-[#9CA3AF] text-center">
                           NDPR Compliant &bull;{" "}
                           <button
                             type="button"
                             onClick={() => setQuickLegalModalDocId("privacy-policy")}
-                            className="text-slate-600 hover:text-blue-600 font-medium hover:underline bg-transparent border-none p-0 inline cursor-pointer"
+                            className="text-[#4B5563] hover:text-[#0F2D5C] font-medium hover:underline bg-transparent border-none p-0 inline cursor-pointer"
                           >
                             Privacy
                           </button>{" "}
@@ -2853,7 +2939,7 @@ export default function App() {
                           <button
                             type="button"
                             onClick={() => setQuickLegalModalDocId("terms-of-service")}
-                            className="text-slate-600 hover:text-blue-600 font-medium hover:underline bg-transparent border-none p-0 inline cursor-pointer"
+                            className="text-[#4B5563] hover:text-[#0F2D5C] font-medium hover:underline bg-transparent border-none p-0 inline cursor-pointer"
                           >
                             Terms
                           </button>
@@ -2871,7 +2957,7 @@ export default function App() {
                               setAuthError(null);
                               setRecoverySuccessMessage(null);
                             }}
-                            className="text-blue-600 hover:text-blue-700 font-bold hover:underline cursor-pointer bg-transparent border-none p-0 focus:outline-none"
+                            className="text-[#0F2D5C] hover:text-[#17407E] font-bold hover:underline cursor-pointer bg-transparent border-none p-0 focus:outline-none"
                           >
                             Sign up
                           </button>
@@ -2894,18 +2980,18 @@ export default function App() {
                         </span>
 
                         <div className="text-center space-y-1">
-                          <h2 className="text-xl font-bold text-slate-900 tracking-tight">Create Secure Account</h2>
+                          <h2 className="text-xl font-bold text-[#111827] tracking-tight">Create Secure Account</h2>
                         </div>
                       </div>
 
                       {authError && (
-                        <div role="alert" aria-live="polite" className="p-3.5 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-xl font-medium flex items-start gap-2.5 animate-fadeIn text-left">
-                          <AlertCircle className="h-4 w-4 text-rose-500 shrink-0 mt-0.5" />
+                        <div role="alert" aria-live="polite" className="p-3.5 bg-[#F5F7FA] border border-[#E5E7EB] text-[#111827] text-xs rounded-xl font-medium flex items-start gap-2.5 animate-fadeIn text-left">
+                          <AlertCircle className="h-4 w-4 text-[#0F2D5C] shrink-0 mt-0.5" />
                           <div className="flex-1 leading-relaxed">
                             <div>{authError}</div>
                             {authError.toLowerCase().includes("email exist") && (
-                              <div className="mt-2 pt-2 border-t border-rose-200/80 flex items-center justify-between">
-                                <span className="text-[11px] text-rose-700 font-normal">Already have an account?</span>
+                              <div className="mt-2 pt-2 border-t border-[#E5E7EB]/80 flex items-center justify-between">
+                                <span className="text-[11px] text-[#4B5563] font-normal">Already have an account?</span>
                                 <button
                                   type="button"
                                   onClick={() => {
@@ -2913,7 +2999,7 @@ export default function App() {
                                     setAuthEmail(regEmail);
                                     setAuthError(null);
                                   }}
-                                  className="text-xs font-bold text-rose-900 hover:text-rose-950 underline flex items-center gap-1 cursor-pointer bg-transparent border-none p-0 focus:outline-none"
+                                  className="text-xs font-bold text-[#0F2D5C] hover:text-[#17407E] underline flex items-center gap-1 cursor-pointer bg-transparent border-none p-0 focus:outline-none"
                                 >
                                   Sign In now →
                                 </button>
@@ -2926,11 +3012,11 @@ export default function App() {
                       <form onSubmit={handleRegister} className="space-y-4">
                         <div className="space-y-1.5 text-left">
                           <div className="flex justify-between items-center">
-                            <label className="text-xs font-semibold text-slate-800">
+                            <label className="text-xs font-semibold text-[#111827]">
                               Full Name
                             </label>
                             {regFullName && (
-                              <span className={`text-[10px] font-bold ${regFullName.trim().length > 0 ? "text-emerald-600 animate-fadeIn" : "text-rose-500 animate-fadeIn"}`}>
+                              <span className={`text-[10px] font-bold ${regFullName.trim().length > 0 ? "text-[#0F2D5C] animate-fadeIn" : "text-[#0F2D5C] animate-fadeIn"}`}>
                                 {regFullName.trim().length > 0 ? "✓ Name present" : "✗ Cannot be empty"}
                               </span>
                             )}
@@ -2944,25 +3030,25 @@ export default function App() {
                             className={`w-full px-4 py-3 border rounded-xl text-sm outline-none transition-all bg-white ${
                               regFullName
                                 ? regFullName.trim().length > 0
-                                  ? "border-emerald-500 focus:ring-4 focus:ring-emerald-100 bg-emerald-50/10"
-                                  : "border-rose-500 focus:ring-4 focus:ring-rose-100 bg-rose-50/10"
-                                : "border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                                  ? "border-[#0F2D5C] focus:ring-4 focus:ring-[#E5E7EB] bg-[#F5F7FA]"
+                                  : "border-[#0F2D5C] focus:ring-4 focus:ring-[#E5E7EB] bg-[#F5F7FA]"
+                                : "border-[#E5E7EB] focus:border-[#0F2D5C] focus:ring-4 focus:ring-[#E5E7EB]"
                             }`}
                           />
                           {regFullName && regFullName.trim().length === 0 && (
-                            <p className="text-[10px] text-rose-500 font-semibold animate-fadeIn">Name cannot consist of empty spaces only.</p>
+                            <p className="text-[10px] text-[#0F2D5C] font-semibold animate-fadeIn">Name cannot consist of empty spaces only.</p>
                           )}
                         </div>
 
                         <div className="space-y-1.5 text-left">
                           <div className="flex justify-between items-center">
-                            <label className="text-xs font-semibold text-slate-800">
+                            <label className="text-xs font-semibold text-[#111827]">
                               Email
                             </label>
                             {regEmail && (() => {
                               const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(regEmail);
                               return (
-                                <span className={`text-[10px] font-bold ${isValid ? "text-emerald-600 animate-fadeIn" : "text-amber-500 animate-fadeIn"}`}>
+                                <span className={`text-[10px] font-bold ${isValid ? "text-[#0F2D5C] animate-fadeIn" : "text-[#0F2D5C] animate-fadeIn"}`}>
                                   {isValid ? "✓ Valid format" : "⚠ Invalid format"}
                                 </span>
                               );
@@ -2977,18 +3063,18 @@ export default function App() {
                             className={`w-full px-4 py-3 border rounded-xl text-sm outline-none transition-all bg-white ${
                               regEmail
                                 ? /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(regEmail)
-                                  ? "border-emerald-500 focus:ring-4 focus:ring-emerald-100 bg-emerald-50/10"
-                                  : "border-amber-500 focus:ring-4 focus:ring-amber-100 bg-amber-50/10"
-                                : "border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                                  ? "border-[#0F2D5C] focus:ring-4 focus:ring-[#E5E7EB] bg-[#F5F7FA]"
+                                  : "border-[#0F2D5C] focus:ring-4 focus:ring-[#E5E7EB] bg-[#F5F7FA]"
+                                : "border-[#E5E7EB] focus:border-[#0F2D5C] focus:ring-4 focus:ring-[#E5E7EB]"
                             }`}
                           />
                           {regEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(regEmail) && (
-                            <p className="text-[10px] text-amber-600 font-semibold animate-fadeIn">Please enter a valid format (e.g., mail@domain.com).</p>
+                            <p className="text-[10px] text-[#0F2D5C] font-semibold animate-fadeIn">Please enter a valid format (e.g., mail@domain.com).</p>
                           )}
                         </div>
 
                         <div className="space-y-1.5 text-left">
-                          <label className="text-xs font-semibold text-slate-800">
+                          <label className="text-xs font-semibold text-[#111827]">
                             Password
                           </label>
                           <div className="relative">
@@ -3001,15 +3087,15 @@ export default function App() {
                               className={`w-full pl-4 pr-12 py-3 border rounded-xl text-sm outline-none transition-all bg-white ${
                                 regPassword
                                   ? regPassword.length >= 6
-                                    ? "border-emerald-500 focus:ring-4 focus:ring-emerald-100 bg-emerald-50/10"
-                                    : "border-rose-500 focus:ring-4 focus:ring-rose-100 bg-rose-50/10"
-                                  : "border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                                    ? "border-[#0F2D5C] focus:ring-4 focus:ring-[#E5E7EB] bg-[#F5F7FA]"
+                                    : "border-[#0F2D5C] focus:ring-4 focus:ring-[#E5E7EB] bg-[#F5F7FA]"
+                                  : "border-[#E5E7EB] focus:border-[#0F2D5C] focus:ring-4 focus:ring-[#E5E7EB]"
                               }`}
                             />
                             <button
                               type="button"
                               onClick={() => setShowRegPassword(!showRegPassword)}
-                              className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none transition-colors"
+                              className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#4B5563] focus:outline-none transition-colors"
                               aria-label={showRegPassword ? "Hide password" : "Show password"}
                             >
                               {showRegPassword ? (
@@ -3023,8 +3109,8 @@ export default function App() {
                           {regPassword && (() => {
                             const strength = getPasswordStrength(regPassword);
                             return (
-                              <div className="mt-2.5 space-y-2 p-3 rounded-xl bg-slate-50 border border-slate-100 animate-fadeIn text-left">
-                                <div className="flex items-center justify-between text-[10px] font-bold text-slate-500">
+                              <div className="mt-2.5 space-y-2 p-3 rounded-xl bg-[#F5F7FA] border border-[#E5E7EB] animate-fadeIn text-left">
+                                <div className="flex items-center justify-between text-[10px] font-bold text-[#6B7280]">
                                   <span>Password Strength</span>
                                   <span className={`font-bold ${strength.textColorClass}`}>{strength.label}</span>
                                 </div>
@@ -3034,61 +3120,61 @@ export default function App() {
                                     <div
                                       key={index}
                                       className={`h-full rounded-full flex-1 transition-all duration-300 ${
-                                        index <= strength.score ? strength.colorClass : "bg-slate-200"
+                                        index <= strength.score ? strength.colorClass : "bg-[#E5E7EB]"
                                       }`}
                                     />
                                   ))}
                                 </div>
 
-                                <div className="pt-2 space-y-1 text-[10px] border-t border-slate-100">
+                                <div className="pt-2 space-y-1 text-[10px] border-t border-[#E5E7EB]">
                                   <div className="flex items-center gap-1.5">
                                     {strength.checks.hasMinLength ? (
-                                      <Check className="h-3 w-3 text-emerald-500 shrink-0" />
+                                      <Check className="h-3 w-3 text-[#0F2D5C] shrink-0" />
                                     ) : (
-                                      <div className="h-3 w-3 rounded-full border border-slate-300 flex items-center justify-center shrink-0">
-                                        <span className="w-1 h-1 bg-slate-300 rounded-full" />
+                                      <div className="h-3 w-3 rounded-full border border-[#E5E7EB] flex items-center justify-center shrink-0">
+                                        <span className="w-1 h-1 bg-[#E5E7EB] rounded-full" />
                                       </div>
                                     )}
-                                    <span className={strength.checks.hasMinLength ? "text-slate-700 font-semibold" : "text-slate-400"}>
+                                    <span className={strength.checks.hasMinLength ? "text-[#4B5563] font-semibold" : "text-[#9CA3AF]"}>
                                       At least 6 characters (Required)
                                     </span>
                                   </div>
 
                                   <div className="flex items-center gap-1.5">
                                     {strength.checks.hasLengthEight ? (
-                                      <Check className="h-3 w-3 text-emerald-500 shrink-0" />
+                                      <Check className="h-3 w-3 text-[#0F2D5C] shrink-0" />
                                     ) : (
-                                      <div className="h-3 w-3 rounded-full border border-slate-300 flex items-center justify-center shrink-0">
-                                        <span className="w-1 h-1 bg-slate-300 rounded-full" />
+                                      <div className="h-3 w-3 rounded-full border border-[#E5E7EB] flex items-center justify-center shrink-0">
+                                        <span className="w-1 h-1 bg-[#E5E7EB] rounded-full" />
                                       </div>
                                     )}
-                                    <span className={strength.checks.hasLengthEight ? "text-slate-700 font-semibold" : "text-slate-400"}>
+                                    <span className={strength.checks.hasLengthEight ? "text-[#4B5563] font-semibold" : "text-[#9CA3AF]"}>
                                       At least 8 characters (Recommended)
                                     </span>
                                   </div>
 
                                   <div className="flex items-center gap-1.5">
                                     {strength.checks.hasDigit ? (
-                                      <Check className="h-3 w-3 text-emerald-500 shrink-0" />
+                                      <Check className="h-3 w-3 text-[#0F2D5C] shrink-0" />
                                     ) : (
-                                      <div className="h-3 w-3 rounded-full border border-slate-300 flex items-center justify-center shrink-0">
-                                        <span className="w-1 h-1 bg-slate-300 rounded-full" />
+                                      <div className="h-3 w-3 rounded-full border border-[#E5E7EB] flex items-center justify-center shrink-0">
+                                        <span className="w-1 h-1 bg-[#E5E7EB] rounded-full" />
                                       </div>
                                     )}
-                                    <span className={strength.checks.hasDigit ? "text-slate-700 font-semibold" : "text-slate-400"}>
+                                    <span className={strength.checks.hasDigit ? "text-[#4B5563] font-semibold" : "text-[#9CA3AF]"}>
                                       Contains a number (0-9)
                                     </span>
                                   </div>
 
                                   <div className="flex items-center gap-1.5">
                                     {strength.checks.hasSpecial ? (
-                                      <Check className="h-3 w-3 text-emerald-500 shrink-0" />
+                                      <Check className="h-3 w-3 text-[#0F2D5C] shrink-0" />
                                     ) : (
-                                      <div className="h-3 w-3 rounded-full border border-slate-300 flex items-center justify-center shrink-0">
-                                        <span className="w-1 h-1 bg-slate-300 rounded-full" />
+                                      <div className="h-3 w-3 rounded-full border border-[#E5E7EB] flex items-center justify-center shrink-0">
+                                        <span className="w-1 h-1 bg-[#E5E7EB] rounded-full" />
                                       </div>
                                     )}
-                                    <span className={strength.checks.hasSpecial ? "text-slate-700 font-semibold" : "text-slate-400"}>
+                                    <span className={strength.checks.hasSpecial ? "text-[#4B5563] font-semibold" : "text-[#9CA3AF]"}>
                                       Contains a special character (e.g. !@#$)
                                     </span>
                                   </div>
@@ -3098,15 +3184,58 @@ export default function App() {
                           })()}
                         </div>
 
+
+
                         <div className="space-y-1.5 text-left">
                           <div className="flex justify-between items-center">
-                            <label className="text-xs font-semibold text-slate-800">
+                            <label className="text-xs font-semibold text-[#111827]">
+                              Confirm Password
+                            </label>
+                            {regConfirmPassword && (
+                              <span className={`text-[10px] font-bold ${regPassword === regConfirmPassword ? "text-[#0F2D5C]" : "text-amber-600"}`}>
+                                {regPassword === regConfirmPassword ? "✓ Passwords match" : "✗ Passwords do not match"}
+                              </span>
+                            )}
+                          </div>
+                          <div className="relative">
+                            <input
+                              type={showRegConfirmPassword ? "text" : "password"}
+                              required
+                              value={regConfirmPassword}
+                              onChange={(e) => setRegConfirmPassword(e.target.value)}
+                              placeholder="Re-enter your password"
+                              className={`w-full pl-4 pr-12 py-3 border rounded-xl text-sm outline-none transition-all bg-white ${
+                                regConfirmPassword
+                                  ? regPassword === regConfirmPassword
+                                    ? "border-[#0F2D5C] focus:ring-4 focus:ring-[#E5E7EB] bg-[#F5F7FA]"
+                                    : "border-amber-400 focus:ring-4 focus:ring-amber-100 bg-amber-50/30"
+                                  : "border-[#E5E7EB] focus:border-[#0F2D5C] focus:ring-4 focus:ring-[#E5E7EB]"
+                              }`}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowRegConfirmPassword(!showRegConfirmPassword)}
+                              className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#4B5563] focus:outline-none transition-colors"
+                              aria-label={showRegConfirmPassword ? "Hide password" : "Show password"}
+                            >
+                              {showRegConfirmPassword ? (
+                                <EyeOff className="h-5 w-5" />
+                              ) : (
+                                <Eye className="h-5 w-5" />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="space-y-1.5 text-left">
+                          <div className="flex justify-between items-center">
+                            <label className="text-xs font-semibold text-[#111827]">
                               Phone Number
                             </label>
                             {regPhoneNumber && (() => {
                               const isValid = /^0\d{10}$/.test(regPhoneNumber);
                               return (
-                                <span className={`text-[10px] font-bold ${isValid ? "text-emerald-600 animate-fadeIn" : "text-rose-500 animate-fadeIn"}`}>
+                                <span className={`text-[10px] font-bold ${isValid ? "text-[#0F2D5C] animate-fadeIn" : "text-[#0F2D5C] animate-fadeIn"}`}>
                                   {isValid ? "✓ Valid 11 digits" : !regPhoneNumber.startsWith("0") ? "✗ Must start with 0" : regPhoneNumber.length !== 11 ? `✗ ${regPhoneNumber.length}/11 digits` : "✗ Numbers only"}
                                 </span>
                               );
@@ -3124,14 +3253,14 @@ export default function App() {
                                 ? (() => {
                                     const isValid = /^0\d{10}$/.test(regPhoneNumber);
                                     return isValid
-                                      ? "border-emerald-500 focus:ring-4 focus:ring-emerald-100 bg-emerald-50/10"
-                                      : "border-rose-500 focus:ring-4 focus:ring-rose-100 bg-rose-50/10";
+                                      ? "border-[#0F2D5C] focus:ring-4 focus:ring-[#E5E7EB] bg-[#F5F7FA]"
+                                      : "border-[#0F2D5C] focus:ring-4 focus:ring-[#E5E7EB] bg-[#F5F7FA]";
                                   })()
-                                : "border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                                : "border-[#E5E7EB] focus:border-[#0F2D5C] focus:ring-4 focus:ring-[#E5E7EB]"
                             }`}
                           />
                           {regPhoneNumber && !/^0\d{10}$/.test(regPhoneNumber) && (
-                            <p className="text-[10px] text-rose-500 font-semibold animate-fadeIn">
+                            <p className="text-[10px] text-[#0F2D5C] font-semibold animate-fadeIn">
                               Phone number must be exactly 11 digits and must start with 0.
                             </p>
                           )}
@@ -3162,8 +3291,8 @@ export default function App() {
                           disabled={authLoading || authSuccessState !== null}
                           className={`w-full py-3.5 text-white font-bold rounded-xl text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md mt-4 focus:ring-4 focus:outline-none ${
                             authSuccessState === "register"
-                              ? "bg-emerald-600 hover:bg-emerald-600 shadow-emerald-500/20 focus:ring-emerald-100"
-                              : "bg-[#111827] hover:bg-black active:scale-98 shadow-sm focus:ring-slate-100 disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100"
+                              ? "bg-[#0F2D5C] hover:bg-[#17407E] focus:ring-[#E5E7EB]"
+                              : "bg-[#082051] hover:bg-[#06183e] active:scale-98 shadow-sm focus:ring-[#E5E7EB] disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100"
                           }`}
                         >
                           {authSuccessState === "register" ? (
@@ -3182,12 +3311,12 @@ export default function App() {
                         </button>
 
                         {/* Legal terms agreement notice */}
-                        <div className="pt-3 text-[11px] text-slate-500 leading-relaxed text-center">
+                        <div className="pt-3 text-[11px] text-[#6B7280] leading-relaxed text-center">
                           By creating an account, you agree to SmartLink NG&apos;s{" "}
                           <button
                             type="button"
                             onClick={() => setQuickLegalModalDocId("terms-of-service")}
-                            className="text-blue-600 font-semibold hover:underline bg-transparent border-none p-0 inline cursor-pointer"
+                            className="text-[#0F2D5C] font-semibold hover:underline bg-transparent border-none p-0 inline cursor-pointer"
                           >
                             Terms of Service
                           </button>
@@ -3195,7 +3324,7 @@ export default function App() {
                           <button
                             type="button"
                             onClick={() => setQuickLegalModalDocId("privacy-policy")}
-                            className="text-blue-600 font-semibold hover:underline bg-transparent border-none p-0 inline cursor-pointer"
+                            className="text-[#0F2D5C] font-semibold hover:underline bg-transparent border-none p-0 inline cursor-pointer"
                           >
                             Privacy Policy
                           </button>
@@ -3203,7 +3332,7 @@ export default function App() {
                           <button
                             type="button"
                             onClick={() => setQuickLegalModalDocId("kyc-notice")}
-                            className="text-blue-600 font-semibold hover:underline bg-transparent border-none p-0 inline cursor-pointer"
+                            className="text-[#0F2D5C] font-semibold hover:underline bg-transparent border-none p-0 inline cursor-pointer"
                           >
                             KYC Policy
                           </button>
@@ -3221,7 +3350,7 @@ export default function App() {
                               setAuthError(null);
                               setRecoverySuccessMessage(null);
                             }}
-                            className="text-blue-600 hover:text-blue-700 font-bold hover:underline cursor-pointer bg-transparent border-none p-0 focus:outline-none"
+                            className="text-[#0F2D5C] hover:text-[#17407E] font-bold hover:underline cursor-pointer bg-transparent border-none p-0 focus:outline-none"
                           >
                             Sign In
                           </button>
@@ -3254,7 +3383,7 @@ export default function App() {
                   <p className="text-[11px] text-[#4B5563] font-normal leading-relaxed">
                     Smart Link Nigeria Computer is a premier technology enterprise and authorized service channel in Nigeria, providing professional CAC business registrations, reliable biometrics identity solutions, WAEC/JAMB scratch card distributions, and comprehensive enterprise ICT solutions.
                   </p>
-                  <p className="text-[10px] text-slate-500 font-mono">RC: 9347502 &bull; BN Registered</p>
+                  <p className="text-[10px] text-[#6B7280] font-mono">RC: 9347502 &bull; BN Registered</p>
                 </div>
 
                 {/* Quick Navigation */}
@@ -3264,7 +3393,7 @@ export default function App() {
                     <li>
                       <button
                         onClick={() => navigateToView("HOME")}
-                        className="text-slate-600 hover:text-blue-600 transition-colors bg-transparent border-none p-0 cursor-pointer"
+                        className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors bg-transparent border-none p-0 cursor-pointer"
                       >
                         Home Page
                       </button>
@@ -3272,7 +3401,7 @@ export default function App() {
                     <li>
                       <button
                         onClick={() => navigateToView(currentUser ? "SERVICES" : "HOME")}
-                        className="text-slate-600 hover:text-blue-600 transition-colors bg-transparent border-none p-0 cursor-pointer"
+                        className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors bg-transparent border-none p-0 cursor-pointer"
                       >
                         Digital Services
                       </button>
@@ -3280,7 +3409,7 @@ export default function App() {
                     <li>
                       <button
                         onClick={() => navigateToView("DASHBOARD")}
-                        className="text-slate-600 hover:text-blue-600 transition-colors bg-transparent border-none p-0 cursor-pointer"
+                        className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors bg-transparent border-none p-0 cursor-pointer"
                       >
                         {currentUser ? "User Dashboard" : "Client Portal"}
                       </button>
@@ -3288,7 +3417,7 @@ export default function App() {
                     <li>
                       <button
                         onClick={() => navigateToLegal()}
-                        className="text-blue-600 font-bold hover:underline transition-colors bg-transparent border-none p-0 cursor-pointer"
+                        className="text-[#0F2D5C] font-bold hover:underline transition-colors bg-transparent border-none p-0 cursor-pointer"
                       >
                         Legal & Compliance Hub
                       </button>
@@ -3303,7 +3432,7 @@ export default function App() {
                     <li>
                       <button
                         onClick={() => navigateToLegal("privacy-policy")}
-                        className="text-slate-600 hover:text-blue-600 transition-colors bg-transparent border-none p-0 cursor-pointer"
+                        className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors bg-transparent border-none p-0 cursor-pointer"
                       >
                         Privacy Policy
                       </button>
@@ -3311,7 +3440,7 @@ export default function App() {
                     <li>
                       <button
                         onClick={() => navigateToLegal("terms-of-service")}
-                        className="text-slate-600 hover:text-blue-600 transition-colors bg-transparent border-none p-0 cursor-pointer"
+                        className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors bg-transparent border-none p-0 cursor-pointer"
                       >
                         Terms of Service
                       </button>
@@ -3319,7 +3448,7 @@ export default function App() {
                     <li>
                       <button
                         onClick={() => navigateToLegal("refund-policy")}
-                        className="text-slate-600 hover:text-blue-600 transition-colors bg-transparent border-none p-0 cursor-pointer"
+                        className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors bg-transparent border-none p-0 cursor-pointer"
                       >
                         Refund & Cancellation
                       </button>
@@ -3327,7 +3456,7 @@ export default function App() {
                     <li>
                       <button
                         onClick={() => navigateToLegal("wallet-terms")}
-                        className="text-slate-600 hover:text-blue-600 transition-colors bg-transparent border-none p-0 cursor-pointer"
+                        className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors bg-transparent border-none p-0 cursor-pointer"
                       >
                         Wallet Terms & Conditions
                       </button>
@@ -3335,7 +3464,7 @@ export default function App() {
                     <li>
                       <button
                         onClick={() => navigateToLegal("payment-terms")}
-                        className="text-slate-600 hover:text-blue-600 transition-colors bg-transparent border-none p-0 cursor-pointer"
+                        className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors bg-transparent border-none p-0 cursor-pointer"
                       >
                         Payment Terms
                       </button>
@@ -3343,7 +3472,7 @@ export default function App() {
                     <li>
                       <button
                         onClick={() => navigateToLegal("kyc-notice")}
-                        className="text-slate-600 hover:text-blue-600 transition-colors bg-transparent border-none p-0 cursor-pointer"
+                        className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors bg-transparent border-none p-0 cursor-pointer"
                       >
                         KYC & Identity Notice
                       </button>
@@ -3351,7 +3480,7 @@ export default function App() {
                     <li>
                       <button
                         onClick={() => navigateToLegal("data-protection")}
-                        className="text-slate-600 hover:text-blue-600 transition-colors bg-transparent border-none p-0 cursor-pointer"
+                        className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors bg-transparent border-none p-0 cursor-pointer"
                       >
                         NDPR Data Protection
                       </button>
@@ -3359,7 +3488,7 @@ export default function App() {
                     <li>
                       <button
                         onClick={() => navigateToLegal("disclaimer")}
-                        className="text-slate-600 hover:text-blue-600 transition-colors bg-transparent border-none p-0 cursor-pointer"
+                        className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors bg-transparent border-none p-0 cursor-pointer"
                       >
                         Third-Party Disclaimer
                       </button>
@@ -3372,14 +3501,14 @@ export default function App() {
                   <p className="text-[10px] font-bold uppercase tracking-wider text-[#111827]">Support & Inquiries</p>
                   <p className="text-[11px] text-[#4B5563] leading-relaxed">
                     <strong>Email:</strong> Smartlinkcomputerbusiness@gmail.com<br />
-                    <strong>Tel:</strong> +2348085490982<br />
-                    <strong>WhatsApp:</strong> 09047738212<br />
+                    <strong>Tel:</strong> +234 808 549 0982<br />
+                    <strong>WhatsApp:</strong> +234 904 773 8212<br />
                     <strong>Hours:</strong> Mon – Sat: 8:00 AM – 6:00 PM WAT
                   </p>
                   <div className="pt-2">
                     <button
                       onClick={() => navigateToLegal("acceptable-use")}
-                      className="text-[11px] text-slate-500 hover:text-slate-800 transition-colors bg-transparent border-none p-0 cursor-pointer underline"
+                      className="text-[11px] text-[#6B7280] hover:text-[#111827] transition-colors bg-transparent border-none p-0 cursor-pointer underline"
                     >
                       Report Fraud / Abuse &rarr;
                     </button>
@@ -3388,39 +3517,39 @@ export default function App() {
               </div>
 
               <div className="border-t border-[#E5E7EB] pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] text-[#6B7280]">
-                <p>© {new Date().getFullYear()} Smart Link Nigeria Computer. All rights reserved. RC 9347502.</p>
+                <p>© {new Date().getFullYear()} Smart Link Computer Business (RC 9347502). All rights reserved.</p>
                 <div className="flex flex-wrap items-center gap-4">
                   <button
                     onClick={() => navigateToLegal("terms-of-service")}
-                    className="text-slate-500 hover:text-blue-600 transition-colors bg-transparent border-none p-0 cursor-pointer"
+                    className="text-[#6B7280] hover:text-[#0F2D5C] transition-colors bg-transparent border-none p-0 cursor-pointer"
                   >
                     Terms
                   </button>
                   <span>&bull;</span>
                   <button
                     onClick={() => navigateToLegal("privacy-policy")}
-                    className="text-slate-500 hover:text-blue-600 transition-colors bg-transparent border-none p-0 cursor-pointer"
+                    className="text-[#6B7280] hover:text-[#0F2D5C] transition-colors bg-transparent border-none p-0 cursor-pointer"
                   >
                     Privacy
                   </button>
                   <span>&bull;</span>
                   <button
                     onClick={() => navigateToLegal("cookie-policy")}
-                    className="text-slate-500 hover:text-blue-600 transition-colors bg-transparent border-none p-0 cursor-pointer"
+                    className="text-[#6B7280] hover:text-[#0F2D5C] transition-colors bg-transparent border-none p-0 cursor-pointer"
                   >
                     Cookies
                   </button>
                   <span>&bull;</span>
                   <button
                     onClick={() => navigateToLegal("disclaimer")}
-                    className="text-slate-500 hover:text-blue-600 transition-colors bg-transparent border-none p-0 cursor-pointer"
+                    className="text-[#6B7280] hover:text-[#0F2D5C] transition-colors bg-transparent border-none p-0 cursor-pointer"
                   >
                     Disclaimers
                   </button>
                   <span>&bull;</span>
                   <button
                     onClick={() => navigateToLegal()}
-                    className="text-blue-600 font-bold hover:underline transition-colors bg-transparent border-none p-0 cursor-pointer"
+                    className="text-[#0F2D5C] font-bold hover:underline transition-colors bg-transparent border-none p-0 cursor-pointer"
                   >
                     All Policies
                   </button>
@@ -3496,32 +3625,32 @@ export default function App() {
       {/* Logout Confirmation Modal */}
       <AnimatePresence>
         {showLogoutModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111827]/60 backdrop-blur-xs">
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
               transition={{ duration: 0.2 }}
-              className="w-full max-w-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-2xl space-y-5 text-center relative overflow-hidden"
+              className="w-full max-w-sm bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#E5E7EB] rounded-2xl p-6 shadow-2xl space-y-5 text-center relative overflow-hidden"
             >
               <button
                 type="button"
                 onClick={cancelLogout}
-                className="absolute top-4 right-4 p-1 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                className="absolute top-4 right-4 p-1 rounded-full text-[#9CA3AF] hover:text-[#4B5563] dark:hover:text-[#E5E7EB] hover:bg-[#E5E7EB] dark:hover:bg-[#111827] transition-colors cursor-pointer"
                 aria-label="Close modal"
               >
                 <X className="h-4 w-4" />
               </button>
 
-              <div className="mx-auto w-12 h-12 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center shadow-xs">
+              <div className="mx-auto w-12 h-12 rounded-full bg-[#E5E7EB] dark:bg-[#111827]/60 text-[#0F2D5C] dark:text-[#E5E7EB] flex items-center justify-center shadow-xs">
                 <LogOut className="h-6 w-6 ml-0.5" />
               </div>
 
               <div className="space-y-1.5">
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                <h3 className="text-base font-bold text-[#111827] dark:text-white">
                   Confirm Sign Out
                 </h3>
-                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                <p className="text-xs text-[#4B5563] dark:text-[#6B7280] leading-relaxed">
                   You are currently signed in. Navigating back or exiting will sign you out of your account session. Are you sure you want to sign out?
                 </p>
               </div>
@@ -3530,14 +3659,14 @@ export default function App() {
                 <button
                   type="button"
                   onClick={cancelLogout}
-                  className="flex-1 py-2.5 px-4 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-xs transition-colors cursor-pointer"
+                  className="flex-1 py-2.5 px-4 bg-[#E5E7EB] dark:bg-[#111827] hover:bg-[#E5E7EB] dark:hover:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB] font-semibold rounded-xl text-xs transition-colors cursor-pointer"
                 >
                   Stay Signed In
                 </button>
                 <button
                   type="button"
                   onClick={confirmLogout}
-                  className="flex-1 py-2.5 px-4 bg-rose-600 hover:bg-rose-700 active:scale-98 text-white font-semibold rounded-xl text-xs transition-all shadow-md shadow-rose-600/20 cursor-pointer flex items-center justify-center gap-1.5"
+                  className="flex-1 py-2.5 px-4 bg-[#0F2D5C] hover:bg-[#17407E] active:scale-98 text-white font-semibold rounded-xl text-xs transition-all shadow-md shadow-[#0F2D5C]/20 cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   <LogOut className="h-3.5 w-3.5" />
                   Sign Out

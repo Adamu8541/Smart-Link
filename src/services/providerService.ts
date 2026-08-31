@@ -12,20 +12,47 @@ import { auth } from "../firebase";
 
 export async function getAuthHeaders(userId?: string): Promise<Record<string, string>> {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (auth.authStateReady) {
+    try {
+      await auth.authStateReady();
+    } catch {}
+  }
   const user = auth.currentUser;
   if (user) {
     try {
       const idToken = await user.getIdToken();
       headers["Authorization"] = `Bearer ${idToken}`;
-      headers["x-user-id"] = user.uid;
-      if (user.email) headers["x-user-email"] = user.email;
+      return headers;
     } catch {
       // ignore
     }
   }
-  if (userId) {
-    headers["x-user-id"] = userId;
-  }
+
+  // Check admin session token
+  try {
+    const adminSessionRaw = sessionStorage.getItem("smart_link_admin_session");
+    if (adminSessionRaw) {
+      const adminSession = JSON.parse(adminSessionRaw);
+      if (adminSession?.sessionToken) {
+        headers["Authorization"] = `Bearer ${adminSession.sessionToken}`;
+        headers["x-admin-token"] = adminSession.sessionToken;
+        return headers;
+      }
+    }
+  } catch {}
+
+  // Check user session
+  try {
+    const userRaw = localStorage.getItem("smart_link_user");
+    if (userRaw) {
+      const u = JSON.parse(userRaw);
+      if (u?.sessionToken || u?.token || u?.idToken) {
+        headers["Authorization"] = `Bearer ${u.sessionToken || u.token || u.idToken}`;
+        return headers;
+      }
+    }
+  } catch {}
+
   return headers;
 }
 
@@ -57,7 +84,6 @@ export interface ProviderResponse<T = any> {
   fundingMethods?: any[];
   reference?: string;
   verified?: boolean;
-  transferId?: string;
   amount?: number;
   transactions?: any[];
   deposits?: any[];
@@ -225,35 +251,6 @@ export class ProviderService {
     try {
       const headers = await getAuthHeaders();
       const res = await fetch(`/api/wallet/verify-payment?reference=${encodeURIComponent(paymentReference)}`, { headers });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        return {
-          success: false,
-          error: data.error || "No active payment provider configured.",
-          code: data.code || "NO_ACTIVE_PROVIDER",
-        };
-      }
-      return data;
-    } catch (err: any) {
-      return {
-        success: false,
-        error: "No active payment provider configured.",
-        code: "NO_ACTIVE_PROVIDER",
-      };
-    }
-  }
-
-  /**
-   * Transfers Module - Process transfer using Active provider.
-   */
-  static async processTransfer(transferData: any): Promise<ProviderResponse> {
-    try {
-      const headers = await getAuthHeaders();
-      const res = await fetch("/api/wallet/transfers", {
-        method: "POST",
-        headers,
-        body: JSON.stringify(transferData),
-      });
       const data = await res.json();
       if (!res.ok || !data.success) {
         return {

@@ -132,17 +132,39 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
 
   // Refresh User Profile & Wallet Balance
   const fetchLatestBalance = async () => {
+    if (isRefreshing) return;
     setIsRefreshing(true);
+    const uid = currentUser?.uid || (currentUser as any)?.id;
+    if (!uid) {
+      setIsRefreshing(false);
+      return;
+    }
     try {
-      const headers = await getAuthHeaders();
-      const res = await fetch(`/api/auth/profile?uid=${currentUser.uid}`, { headers });
-      const data = await res.json();
-      if (res.ok && data.user) {
-        setWalletBalance(data.user.walletBalance || 0);
-        onBalanceUpdate();
+      const headers = await getAuthHeaders(uid);
+      // Fetch from the secure authoritative balance endpoint directly
+      const res = await fetch(`/api/wallet/balance/${encodeURIComponent(uid)}`, { headers });
+      const contentType = res.headers.get("content-type") || "";
+      if (contentType.includes("application/json")) {
+        const data = await res.json();
+        if (res.ok && data?.wallet) {
+          setWalletBalance(data.wallet.balance || 0);
+          onBalanceUpdate();
+          return;
+        }
+      }
+      
+      // Fallback to profile
+      const profileRes = await fetch(`/api/auth/profile?uid=${encodeURIComponent(uid)}`, { headers });
+      const profileType = profileRes.headers.get("content-type") || "";
+      if (profileType.includes("application/json")) {
+        const profileData = await profileRes.json();
+        if (profileRes.ok && profileData.user) {
+          setWalletBalance(profileData.user.walletBalance || 0);
+          onBalanceUpdate();
+        }
       }
     } catch (err) {
-      console.error("Error refreshing wallet balance:", err);
+      console.warn("Notice refreshing wallet balance:", err);
     } finally {
       setTimeout(() => setIsRefreshing(false), 500);
     }
@@ -528,25 +550,25 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
             <div className="flex items-center gap-2">
               <button
                 onClick={onBackToDashboard}
-                className="text-xs text-blue-300 hover:text-white font-bold flex items-center gap-1 bg-white/10 px-3 py-1.5 rounded-lg backdrop-blur-xs transition-colors cursor-pointer"
+                className="text-xs text-[#9CA3AF] hover:text-white font-bold flex items-center gap-1 bg-white/10 px-3 py-1.5 rounded-lg backdrop-blur-xs transition-colors cursor-pointer"
               >
                 ← Back to Portal
               </button>
-              <span className="text-xs font-bold text-emerald-400 bg-emerald-500/20 px-2.5 py-1 rounded-full border border-emerald-500/30 flex items-center gap-1">
+              <span className="text-xs font-bold text-[#9CA3AF] bg-[#0F2D5C]/20 px-2.5 py-1 rounded-full border border-[#0F2D5C]/30 flex items-center gap-1">
                 <ShieldCheck className="h-3.5 w-3.5" /> Encrypted Financial Engine
               </span>
             </div>
             <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white">Wallet Funding Portal</h1>
-            <p className="text-xs text-slate-300 max-w-xl leading-relaxed">
+            <p className="text-xs text-[#E5E7EB] max-w-xl leading-relaxed">
               Instantly fund your SmartLink wallet via Virtual Bank Accounts, Dynamic Bank Transfers, or Debit Cards.
             </p>
           </div>
 
           {/* Balance Card */}
           <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl p-5 shrink-0 min-w-[280px]">
-            <div className="flex items-center justify-between text-xs text-slate-300 font-medium pb-2 border-b border-white/10">
+            <div className="flex items-center justify-between text-xs text-[#E5E7EB] font-medium pb-2 border-b border-white/10">
               <span className="flex items-center gap-1.5">
-                <WalletIcon className="h-4 w-4 text-blue-400" /> Total Available Balance
+                <WalletIcon className="h-4 w-4 text-[#9CA3AF]" /> Total Available Balance
               </span>
               <button
                 onClick={() => setShowBalance(!showBalance)}
@@ -573,8 +595,8 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
               </button>
             </div>
 
-            <div className="mt-3 pt-2 border-t border-white/10 flex items-center justify-between text-[11px] text-slate-300">
-              <span>Account Status: <strong className="text-emerald-400 font-bold">VERIFIED</strong></span>
+            <div className="mt-3 pt-2 border-t border-white/10 flex items-center justify-between text-[11px] text-[#E5E7EB]">
+              <span>Account Status: <strong className="text-[#9CA3AF] font-bold">VERIFIED</strong></span>
               <span>Currency: <strong className="text-white font-mono font-bold">NGN (₦)</strong></span>
             </div>
           </div>
@@ -585,13 +607,13 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
       {webhookMessage && (
         <div className={`p-4 rounded-2xl border text-xs font-semibold flex items-center justify-between animate-fadeIn ${
           webhookMessage.includes("✅")
-            ? "bg-emerald-50 border-emerald-200 text-emerald-800"
-            : "bg-rose-50 border-rose-200 text-rose-800"
+            ? "bg-[#F5F7FA] border-[#E5E7EB] text-[#0F2D5C]"
+            : "bg-[#F5F7FA] border-[#E5E7EB] text-[#0F2D5C]"
         }`}>
           <span>{webhookMessage}</span>
           <button
             onClick={() => setWebhookMessage(null)}
-            className="text-slate-500 hover:text-slate-800 font-bold cursor-pointer underline text-[11px]"
+            className="text-[#6B7280] hover:text-[#111827] font-bold cursor-pointer underline text-[11px]"
           >
             Dismiss
           </button>
@@ -600,17 +622,17 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
 
       {/* Active Provider Error Banner */}
       {!loadingProvider && !activeProvider && (
-        <div className="p-5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-2xl text-rose-800 dark:text-rose-300 font-bold text-sm flex items-center justify-between gap-3 animate-fadeIn">
+        <div className="p-5 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border border-[#E5E7EB] dark:border-[#0F2D5C] rounded-2xl text-[#0F2D5C] dark:text-[#9CA3AF] font-bold text-sm flex items-center justify-between gap-3 animate-fadeIn">
           <div className="flex items-center gap-3">
-            <AlertCircle className="h-6 w-6 text-rose-600 shrink-0" />
+            <AlertCircle className="h-6 w-6 text-[#0F2D5C] shrink-0" />
             <div>
               <div className="font-extrabold text-sm">Payment Engine Status</div>
-              <div className="text-xs text-rose-600 dark:text-rose-400 font-medium">{providerError || "No active payment provider configured."}</div>
+              <div className="text-xs text-[#0F2D5C] dark:text-[#9CA3AF] font-medium">{providerError || "No active payment provider configured."}</div>
             </div>
           </div>
           <button
             onClick={loadActiveProvider}
-            className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold transition-all cursor-pointer shrink-0"
+            className="px-3 py-1.5 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white rounded-lg text-xs font-bold transition-all cursor-pointer shrink-0"
           >
             Retry Engine
           </button>
@@ -619,12 +641,12 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
 
       {/* Active Provider Status Badge */}
       {activeProvider && (
-        <div className="p-3.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 rounded-2xl flex items-center justify-between text-xs font-semibold text-emerald-800 dark:text-emerald-300">
+        <div className="p-3.5 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border border-[#E5E7EB] dark:border-[#0F2D5C]/60 rounded-2xl flex items-center justify-between text-xs font-semibold text-[#0F2D5C] dark:text-[#9CA3AF]">
           <div className="flex items-center gap-2">
-            <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-            <span>Active Payment Provider: <strong className="font-black text-slate-900 dark:text-white uppercase">{activeProvider.name}</strong></span>
+            <ShieldCheck className="h-4 w-4 text-[#0F2D5C] dark:text-[#9CA3AF]" />
+            <span>Active Payment Provider: <strong className="font-black text-[#111827] dark:text-white uppercase">{activeProvider.name}</strong></span>
           </div>
-          <span className="text-[10px] font-mono bg-emerald-200/60 dark:bg-emerald-900/60 text-emerald-900 dark:text-emerald-200 px-2 py-0.5 rounded-full font-bold">
+          <span className="text-[10px] font-mono bg-[#E5E7EB]/60 dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] px-2 py-0.5 rounded-full font-bold">
             DYNAMIC ENGINE ACTIVE
           </span>
         </div>
@@ -642,20 +664,9 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
         >
           <Building2 className="h-4 w-4" />
           <span>Virtual Bank Account</span>
-          <span className="text-[10px] bg-blue-100 text-[#0F2D5C] px-1.5 py-0.5 rounded font-mono font-bold">Instant Bank</span>
+          <span className="text-[10px] bg-[#E5E7EB] text-[#0F2D5C] px-1.5 py-0.5 rounded font-mono font-bold">Instant Bank</span>
         </button>
 
-        <button
-          onClick={() => setActiveTab("BANK_TRANSFER")}
-          className={`flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-xs transition-all whitespace-nowrap cursor-pointer border ${
-            activeTab === "BANK_TRANSFER"
-              ? "bg-[#0F2D5C] text-white border-[#0F2D5C] shadow-xs"
-              : "bg-white text-[#4B5563] border-[#E5E7EB] hover:border-[#0F2D5C]"
-          }`}
-        >
-          <ArrowUpRight className="h-4 w-4" />
-          <span>Dynamic Bank Transfer</span>
-        </button>
 
         <button
           onClick={() => setActiveTab("CARD")}
@@ -675,26 +686,26 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
             className={`flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-xs transition-all whitespace-nowrap cursor-pointer border ${
               activeTab === "ADMIN_CREDIT"
                 ? "bg-[#0F2D5C] text-white border-[#0F2D5C] shadow-xs"
-                : "bg-amber-50 text-amber-900 border-amber-200 hover:border-amber-500"
+                : "bg-[#F5F7FA] text-[#0F2D5C] border-[#E5E7EB] hover:border-[#0F2D5C]"
             }`}
           >
             <ShieldCheck className="h-4 w-4" />
             <span>Admin Manual Credit</span>
-            <span className="text-[10px] bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded font-mono font-bold">STAFF</span>
+            <span className="text-[10px] bg-[#E5E7EB] text-[#0F2D5C] px-1.5 py-0.5 rounded font-mono font-bold">STAFF</span>
           </button>
         )}
       </div>
 
       {/* Tab 1: Virtual Bank Account */}
       {activeTab === "VIRTUAL_ACCOUNT" && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 space-y-6 shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
+        <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl p-6 md:p-8 space-y-6 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E5E7EB] dark:border-[#111827] pb-5">
             <div>
               <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded-full bg-blue-500 animate-pulse"></span>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Virtual Bank Account</h3>
+                <span className="h-3 w-3 rounded-full bg-[#0F2D5C] animate-pulse"></span>
+                <h3 className="text-lg font-bold text-[#111827] dark:text-white">Virtual Bank Account</h3>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-1">
                 Dedicated commercial bank account reserved permanently for your wallet.
               </p>
             </div>
@@ -703,36 +714,36 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
           {loadingReserved ? (
             <div className="py-12 text-center space-y-3 flex flex-col items-center">
               <SmartLinkLogoMark size="lg" animating={true} />
-              <p className="text-xs text-slate-500 font-medium">Retrieving Virtual Bank Account details...</p>
+              <p className="text-xs text-[#6B7280] font-medium">Retrieving Virtual Bank Account details...</p>
             </div>
           ) : reservedAccount ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="md:col-span-2 bg-gradient-to-br from-blue-950 via-slate-900 to-indigo-950 rounded-2xl p-6 text-white space-y-6 shadow-xl relative overflow-hidden border border-blue-500/30">
+              <div className="md:col-span-2 bg-gradient-to-br from-[#0F2D5C] via-[#111827] to-[#0F2D5C] rounded-2xl p-6 text-white space-y-6 shadow-xl relative overflow-hidden border border-[#0F2D5C]/30">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="h-10 w-10 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center font-black text-blue-300 text-lg">
+                    <div className="h-10 w-10 rounded-xl bg-[#0F2D5C]/20 border border-[#E5E7EB]/30 flex items-center justify-center font-black text-[#9CA3AF] text-lg">
                       VA
                     </div>
                     <div>
                       <h4 className="font-bold text-sm text-white">Payment Gateway Account</h4>
-                      <p className="text-[10px] text-blue-300 font-mono">Bank Transfer Gateway</p>
+                      <p className="text-[10px] text-[#9CA3AF] font-mono">Bank Transfer Gateway</p>
                     </div>
                   </div>
-                  <span className="text-[10px] uppercase tracking-wider font-bold text-blue-400 bg-blue-500/20 border border-blue-500/30 px-2.5 py-1 rounded-full">
+                  <span className="text-[10px] uppercase tracking-wider font-bold text-[#9CA3AF] bg-[#0F2D5C]/20 border border-[#0F2D5C]/30 px-2.5 py-1 rounded-full">
                     Active Reserved Account
                   </span>
                 </div>
 
                 <div className="space-y-4 pt-2">
                   <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/15">
-                    <span className="text-[10px] text-slate-300 uppercase tracking-wider font-semibold">Account Number</span>
+                    <span className="text-[10px] text-[#E5E7EB] uppercase tracking-wider font-semibold">Account Number</span>
                     <div className="flex items-center justify-between mt-1">
-                      <span className="text-2xl md:text-3xl font-mono font-black tracking-wider text-blue-300">
+                      <span className="text-2xl md:text-3xl font-mono font-black tracking-wider text-[#9CA3AF]">
                         {reservedAccount.accountNumber}
                       </span>
                       <button
                         onClick={() => copyToClipboard(reservedAccount.accountNumber, "reservedNum")}
-                        className="p-2.5 bg-blue-500 hover:bg-blue-400 text-slate-950 font-bold rounded-xl transition-all cursor-pointer flex items-center gap-1 text-xs"
+                        className="p-2.5 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-[#111827] font-bold rounded-xl transition-all cursor-pointer flex items-center gap-1 text-xs"
                       >
                         {copiedField === "reservedNum" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                         <span>{copiedField === "reservedNum" ? "Copied" : "Copy"}</span>
@@ -742,50 +753,50 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
 
                   <div className="grid grid-cols-2 gap-4 text-xs">
                     <div>
-                      <span className="text-[10px] text-slate-400 uppercase">Account Name</span>
+                      <span className="text-[10px] text-[#9CA3AF] uppercase">Account Name</span>
                       <p className="font-bold text-white mt-0.5">{reservedAccount.accountName}</p>
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-400 uppercase">Bank Name</span>
+                      <span className="text-[10px] text-[#9CA3AF] uppercase">Bank Name</span>
                       <p className="font-bold text-white mt-0.5">{reservedAccount.bankName}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-3 border-t border-white/10 text-[11px] text-slate-300">
+                <div className="flex items-center justify-between pt-3 border-t border-white/10 text-[11px] text-[#E5E7EB]">
                   <button
                     onClick={() => openQrModal(reservedAccount.accountNumber, reservedAccount.bankName, reservedAccount.accountName)}
-                    className="inline-flex items-center gap-1.5 text-blue-300 hover:text-white font-bold cursor-pointer"
+                    className="inline-flex items-center gap-1.5 text-[#9CA3AF] hover:text-white font-bold cursor-pointer"
                   >
                     <QrCode className="h-4 w-4" /> Show QR Code
                   </button>
-                  <span className="text-[10px] text-blue-400 font-mono">Reference: {reservedAccount.reference || "RESERVED"}</span>
+                  <span className="text-[10px] text-[#9CA3AF] font-mono">Reference: {reservedAccount.reference || "RESERVED"}</span>
                 </div>
               </div>
 
-              <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-4 text-xs">
-                <h4 className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                  <ShieldCheck className="h-4 w-4 text-blue-600" /> Gateway Integration
+              <div className="bg-[#F5F7FA] dark:bg-[#111827]/50 rounded-2xl p-5 border border-[#E5E7EB] dark:border-[#111827] space-y-4 text-xs">
+                <h4 className="font-bold text-[#111827] dark:text-white flex items-center gap-1.5">
+                  <ShieldCheck className="h-4 w-4 text-[#0F2D5C]" /> Gateway Integration
                 </h4>
-                <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
+                <p className="text-[#4B5563] dark:text-[#E5E7EB] leading-relaxed">
                   Reserved Accounts are monitored 24/7 by automated banking webhooks. Any transfer to this account immediately triggers the SmartLink Wallet Engine.
                 </p>
-                <div className="p-3 bg-blue-50 dark:bg-blue-950/30 rounded-xl border border-blue-200 dark:border-blue-800 text-[11px] text-blue-900 dark:text-blue-200 font-medium">
+                <div className="p-3 bg-[#F5F7FA] dark:bg-[#0F2D5C]/30 rounded-xl border border-[#E5E7EB] dark:border-[#0F2D5C] text-[11px] text-[#0F2D5C] dark:text-[#9CA3AF] font-medium">
                   💡 Zero minimum funding limit. All incoming transfers are credited instantly.
                 </div>
               </div>
             </div>
           ) : (
-            <div className="text-center py-12 space-y-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700">
-              <Building2 className="h-12 w-12 text-slate-400 mx-auto" />
+            <div className="text-center py-12 space-y-4 bg-[#F5F7FA] dark:bg-[#111827]/30 rounded-2xl border border-dashed border-[#E5E7EB] dark:border-[#4B5563]">
+              <Building2 className="h-12 w-12 text-[#9CA3AF] mx-auto" />
               <div className="max-w-md mx-auto space-y-1">
-                <h4 className="font-bold text-slate-900 dark:text-white">No Reserved Account Allocated</h4>
-                <p className="text-xs text-slate-500">Allocate your dedicated Reserved Account to receive transfers from any bank.</p>
+                <h4 className="font-bold text-[#111827] dark:text-white">No Reserved Account Allocated</h4>
+                <p className="text-xs text-[#6B7280]">Allocate your dedicated Reserved Account to receive transfers from any bank.</p>
               </div>
               <button
                 onClick={handleGenerateReservedAccount}
                 disabled={loadingReserved}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition-all shadow-md shadow-blue-600/20 cursor-pointer disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-bold text-xs transition-all shadow-md shadow-blue-600/20 cursor-pointer disabled:opacity-50"
               >
                 <Plus className="h-4 w-4" /> Allocate Account
               </button>
@@ -794,122 +805,20 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
         </div>
       )}
 
-      {/* Tab 3: Dynamic Bank Transfer */}
-      {activeTab === "BANK_TRANSFER" && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 space-y-6 shadow-sm">
-          <div>
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Dynamic Bank Transfer Allocation</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              Specify your intended funding amount to allocate a session-based dynamic account number with reference matching.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-                  Target Amount to Fund (NGN)
-                </label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">₦</span>
-                  <input
-                    type="number"
-                    value={transferAmount}
-                    onChange={(e) => setTransferAmount(e.target.value)}
-                    placeholder="e.g. 5000"
-                    className="w-full pl-9 pr-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none transition-all bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-2">
-                {["1000", "2000", "5000", "10000", "20000"].map((amt) => (
-                  <button
-                    key={amt}
-                    type="button"
-                    onClick={() => setTransferAmount(amt)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                      transferAmount === amt
-                        ? "bg-indigo-600 text-white"
-                        : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200"
-                    }`}
-                  >
-                    ₦{parseInt(amt).toLocaleString()}
-                  </button>
-                ))}
-              </div>
-
-              <button
-                onClick={handleGenerateDynamicBank}
-                disabled={loadingDynamicBank}
-                className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-indigo-600/20 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {loadingDynamicBank ? (
-                  <>
-                    <SmartLinkLogoMark size="xs" color="#FFFFFF" animating={true} /> Allocating Account...
-                  </>
-                ) : (
-                  <>
-                    <ArrowUpRight className="h-4 w-4" /> Allocate Transfer Account
-                  </>
-                )}
-              </button>
-            </div>
-
-            {dynamicBankInfo && (
-              <div className="bg-indigo-950 text-white rounded-2xl p-6 space-y-4 border border-indigo-800 shadow-xl animate-fadeIn">
-                <div className="flex items-center justify-between border-b border-indigo-800 pb-3">
-                  <span className="text-xs font-bold text-indigo-300">Session Allocated Transfer Account</span>
-                  <span className="text-[10px] bg-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded">
-                    Active Session
-                  </span>
-                </div>
-
-                <div className="space-y-3 font-mono text-sm">
-                  <div>
-                    <span className="text-[10px] text-slate-400 uppercase font-sans">Bank Name</span>
-                    <p className="font-bold text-white text-base">{dynamicBankInfo.bankName}</p>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-slate-400 uppercase font-sans">Account Number</span>
-                    <div className="flex items-center justify-between">
-                      <p className="font-bold text-indigo-300 text-xl">{dynamicBankInfo.accountNumber}</p>
-                      <button
-                        onClick={() => copyToClipboard(dynamicBankInfo.accountNumber, "dynNum")}
-                        className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white text-xs rounded font-sans cursor-pointer"
-                      >
-                        {copiedField === "dynNum" ? "Copied" : "Copy"}
-                      </button>
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-slate-400 uppercase font-sans">Account Name</span>
-                    <p className="font-bold text-white">{dynamicBankInfo.accountName}</p>
-                  </div>
-                </div>
-
-                <div className="pt-2 border-t border-indigo-800 text-[11px] text-indigo-200 font-sans">
-                  ⚠️ Transfer exactly <strong>₦{parseFloat(transferAmount).toLocaleString()}</strong> to ensure automated matching.
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* Tab 4: Card Payment */}
       {activeTab === "CARD" && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 space-y-6 shadow-sm">
+        <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl p-6 md:p-8 space-y-6 shadow-sm">
           <div>
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Debit / Credit Card Payment Gateway</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            <h3 className="text-lg font-bold text-[#111827] dark:text-white">Debit / Credit Card Payment Gateway</h3>
+            <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-1">
               Securely fund your wallet using Visa, Mastercard, Verve, or Interswitch cards with 3D Secure OTP authorization.
             </p>
           </div>
 
           {cardError && (
-            <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-xl font-medium animate-fadeIn flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
+            <div className="p-3.5 bg-[#F5F7FA] border border-[#E5E7EB] text-[#0F2D5C] text-xs rounded-xl font-medium animate-fadeIn flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 shrink-0 text-[#0F2D5C]" />
               <span>{cardError}</span>
             </div>
           )}
@@ -917,34 +826,34 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
           <form onSubmit={handleInitiateCardPayment} className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-800 dark:text-slate-200">Amount to Fund (NGN)</label>
+                <label className="text-xs font-semibold text-[#111827] dark:text-[#E5E7EB]">Amount to Fund (NGN)</label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">₦</span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-[#9CA3AF] text-sm">₦</span>
                   <input
                     type="number"
                     required
                     value={cardAmount}
                     onChange={(e) => setCardAmount(e.target.value)}
                     placeholder="2000"
-                    className="w-full pl-9 pr-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none transition-all bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-purple-500 focus:ring-4 focus:ring-purple-100"
+                    className="w-full pl-9 pr-4 py-3 border border-[#E5E7EB] dark:border-[#4B5563] rounded-xl text-sm outline-none transition-all bg-white dark:bg-[#111827] text-[#111827] dark:text-white focus:border-[#0F2D5C] focus:ring-4 focus:ring-[#F5F7FA]"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-800 dark:text-slate-200">Cardholder Full Name</label>
+                <label className="text-xs font-semibold text-[#111827] dark:text-[#E5E7EB]">Cardholder Full Name</label>
                 <input
                   type="text"
                   required
                   value={cardName}
                   onChange={(e) => setCardName(e.target.value)}
                   placeholder="e.g. Abubakar Muhammad"
-                  className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none transition-all bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-purple-500 focus:ring-4 focus:ring-purple-100"
+                  className="w-full px-4 py-3 border border-[#E5E7EB] dark:border-[#4B5563] rounded-xl text-sm outline-none transition-all bg-white dark:bg-[#111827] text-[#111827] dark:text-white focus:border-[#0F2D5C] focus:ring-4 focus:ring-[#F5F7FA]"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-800 dark:text-slate-200">Card Number</label>
+                <label className="text-xs font-semibold text-[#111827] dark:text-[#E5E7EB]">Card Number</label>
                 <div className="relative">
                   <input
                     type="text"
@@ -953,15 +862,15 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
                     value={cardNumber}
                     onChange={(e) => setCardNumber(e.target.value.replace(/\D/g, "").replace(/(.{4})/g, "$1 ").trim())}
                     placeholder="5399 0000 0000 0000"
-                    className="w-full pl-4 pr-12 py-3 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none transition-all font-mono bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-purple-500 focus:ring-4 focus:ring-purple-100"
+                    className="w-full pl-4 pr-12 py-3 border border-[#E5E7EB] dark:border-[#4B5563] rounded-xl text-sm outline-none transition-all font-mono bg-white dark:bg-[#111827] text-[#111827] dark:text-white focus:border-[#0F2D5C] focus:ring-4 focus:ring-[#F5F7FA]"
                   />
-                  <CreditCard className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                  <CreditCard className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#9CA3AF]" />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-800 dark:text-slate-200">Expiry Date</label>
+                  <label className="text-xs font-semibold text-[#111827] dark:text-[#E5E7EB]">Expiry Date</label>
                   <input
                     type="text"
                     required
@@ -973,12 +882,12 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
                       setCardExpiry(val);
                     }}
                     placeholder="MM/YY"
-                    className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none transition-all font-mono bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-purple-500 focus:ring-4 focus:ring-purple-100"
+                    className="w-full px-4 py-3 border border-[#E5E7EB] dark:border-[#4B5563] rounded-xl text-sm outline-none transition-all font-mono bg-white dark:bg-[#111827] text-[#111827] dark:text-white focus:border-[#0F2D5C] focus:ring-4 focus:ring-[#F5F7FA]"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-800 dark:text-slate-200">CVV / CVC</label>
+                  <label className="text-xs font-semibold text-[#111827] dark:text-[#E5E7EB]">CVV / CVC</label>
                   <input
                     type="password"
                     required
@@ -986,7 +895,7 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
                     value={cardCvv}
                     onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, ""))}
                     placeholder="123"
-                    className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none transition-all font-mono bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-purple-500 focus:ring-4 focus:ring-purple-100"
+                    className="w-full px-4 py-3 border border-[#E5E7EB] dark:border-[#4B5563] rounded-xl text-sm outline-none transition-all font-mono bg-white dark:bg-[#111827] text-[#111827] dark:text-white focus:border-[#0F2D5C] focus:ring-4 focus:ring-[#F5F7FA]"
                   />
                 </div>
               </div>
@@ -1003,7 +912,7 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
 
               <button
                 type="submit"
-                className="w-full py-3.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-purple-600/20 cursor-pointer flex items-center justify-center gap-2"
+                className="w-full py-3.5 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-purple-600/20 cursor-pointer flex items-center justify-center gap-2"
               >
                 <Lock className="h-4 w-4" />
                 <span>Pay ₦{parseFloat(cardAmount || "0").toLocaleString("en-NG", { minimumFractionDigits: 2 })} Now</span>
@@ -1012,23 +921,23 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
 
             {/* Visual Card Preview */}
             <div className="hidden md:flex flex-col justify-center items-center">
-              <div className="w-full max-w-sm h-52 rounded-2xl bg-gradient-to-tr from-slate-900 via-purple-950 to-slate-900 p-6 text-white shadow-2xl relative overflow-hidden border border-purple-500/30 flex flex-col justify-between">
+              <div className="w-full max-w-sm h-52 rounded-2xl bg-gradient-to-tr from-[#111827] via-[#0F2D5C] to-[#111827] p-6 text-white shadow-2xl relative overflow-hidden border border-[#0F2D5C]/30 flex flex-col justify-between">
                 <div className="flex items-center justify-between">
-                  <span className="font-black text-sm tracking-wider text-purple-300">SMARTLINK CARD</span>
-                  <div className="h-7 w-10 bg-amber-400/80 rounded-md border border-amber-300/40" />
+                  <span className="font-black text-sm tracking-wider text-[#9CA3AF]">SMARTLINK CARD</span>
+                  <div className="h-7 w-10 bg-[#0F2D5C]/80 rounded-md border border-[#E5E7EB]/40" />
                 </div>
 
-                <div className="font-mono text-lg tracking-widest text-purple-200">
+                <div className="font-mono text-lg tracking-widest text-[#9CA3AF]">
                   {cardNumber || "•••• •••• •••• ••••"}
                 </div>
 
                 <div className="flex items-center justify-between text-xs">
                   <div>
-                    <span className="text-[9px] uppercase text-slate-400">Cardholder</span>
+                    <span className="text-[9px] uppercase text-[#9CA3AF]">Cardholder</span>
                     <p className="font-bold text-white uppercase truncate max-w-[160px]">{cardName || "YOUR NAME"}</p>
                   </div>
                   <div>
-                    <span className="text-[9px] uppercase text-slate-400">Expires</span>
+                    <span className="text-[9px] uppercase text-[#9CA3AF]">Expires</span>
                     <p className="font-bold font-mono text-white">{cardExpiry || "MM/YY"}</p>
                   </div>
                 </div>
@@ -1040,27 +949,27 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
 
       {/* Tab 5: Admin Manual Credit */}
       {isAdmin && activeTab === "ADMIN_CREDIT" && (
-        <div className="bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-3xl p-6 md:p-8 space-y-6 shadow-sm">
+        <div className="bg-[#F5F7FA]/50 dark:bg-[#0F2D5C]/20 border border-[#E5E7EB] dark:border-[#0F2D5C] rounded-3xl p-6 md:p-8 space-y-6 shadow-sm">
           <div>
             <div className="flex items-center gap-2">
-              <ShieldCheck className="h-5 w-5 text-amber-600" />
-              <h3 className="text-lg font-bold text-amber-900 dark:text-amber-200">Admin Manual Ledger Adjustment</h3>
+              <ShieldCheck className="h-5 w-5 text-[#0F2D5C]" />
+              <h3 className="text-lg font-bold text-[#0F2D5C] dark:text-[#9CA3AF]">Admin Manual Ledger Adjustment</h3>
             </div>
-            <p className="text-xs text-amber-800/80 dark:text-amber-300/80 mt-1">
+            <p className="text-xs text-[#0F2D5C]/80 dark:text-[#9CA3AF]/80 mt-1">
               Directly credit or debit a customer wallet with full audit logging, receipt generation, and real-time notification dispatch.
             </p>
           </div>
 
           {adminSuccessMsg && (
-            <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl font-semibold flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+            <div className="p-4 bg-[#F5F7FA] border border-[#E5E7EB] text-[#0F2D5C] text-xs rounded-xl font-semibold flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 text-[#0F2D5C] shrink-0" />
               <span>{adminSuccessMsg}</span>
             </div>
           )}
 
           {adminErrorMsg && (
-            <div className="p-4 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-xl font-semibold flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 text-rose-600 shrink-0" />
+            <div className="p-4 bg-[#F5F7FA] border border-[#E5E7EB] text-[#0F2D5C] text-xs rounded-xl font-semibold flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 text-[#0F2D5C] shrink-0" />
               <span>{adminErrorMsg}</span>
             </div>
           )}
@@ -1068,11 +977,11 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
           <form onSubmit={handleAdminManualCredit} className="space-y-4 max-w-xl">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-800 dark:text-slate-200">Adjustment Mode</label>
+                <label className="text-xs font-semibold text-[#111827] dark:text-[#E5E7EB]">Adjustment Mode</label>
                 <select
                   value={manualAction}
                   onChange={(e) => setManualAction(e.target.value as "CREDIT" | "DEBIT")}
-                  className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold"
+                  className="w-full px-4 py-3 border border-[#E5E7EB] dark:border-[#4B5563] rounded-xl text-sm outline-none bg-white dark:bg-[#111827] text-[#111827] dark:text-white font-bold"
                 >
                   <option value="CREDIT">➕ Credit Wallet (Deposit)</option>
                   <option value="DEBIT">➖ Debit Wallet (Charge)</option>
@@ -1080,46 +989,46 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-800 dark:text-slate-200">Amount (NGN)</label>
+                <label className="text-xs font-semibold text-[#111827] dark:text-[#E5E7EB]">Amount (NGN)</label>
                 <input
                   type="number"
                   required
                   value={manualAmount}
                   onChange={(e) => setManualAmount(e.target.value)}
                   placeholder="e.g. 10000"
-                  className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none font-mono bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                  className="w-full px-4 py-3 border border-[#E5E7EB] dark:border-[#4B5563] rounded-xl text-sm outline-none font-mono bg-white dark:bg-[#111827] text-[#111827] dark:text-white"
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-800 dark:text-slate-200">Target User Email address or UID</label>
+              <label className="text-xs font-semibold text-[#111827] dark:text-[#E5E7EB]">Target User Email address or UID</label>
               <input
                 type="text"
                 required
                 value={targetEmailOrUid}
                 onChange={(e) => setTargetEmailOrUid(e.target.value)}
                 placeholder="e.g. client@company.com or UID"
-                className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                className="w-full px-4 py-3 border border-[#E5E7EB] dark:border-[#4B5563] rounded-xl text-sm outline-none bg-white dark:bg-[#111827] text-[#111827] dark:text-white"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-800 dark:text-slate-200">Audit Reason / Authorization Note</label>
+              <label className="text-xs font-semibold text-[#111827] dark:text-[#E5E7EB]">Audit Reason / Authorization Note</label>
               <textarea
                 required
                 rows={2}
                 value={manualReason}
                 onChange={(e) => setManualReason(e.target.value)}
                 placeholder="Specify reason for audit logs e.g. 'Bank transfer verification approved by finance desk'"
-                className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                className="w-full px-4 py-3 border border-[#E5E7EB] dark:border-[#4B5563] rounded-xl text-sm outline-none bg-white dark:bg-[#111827] text-[#111827] dark:text-white"
               />
             </div>
 
             <button
               type="submit"
               disabled={isAdminProcessing}
-              className="py-3 px-6 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs transition-all cursor-pointer shadow-md shadow-amber-600/20 disabled:opacity-50 flex items-center gap-2"
+              className="py-3 px-6 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-bold rounded-xl text-xs transition-all cursor-pointer shadow-md shadow-amber-600/20 disabled:opacity-50 flex items-center gap-2"
             >
               {isAdminProcessing ? (
                 <>
@@ -1136,33 +1045,33 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
       )}
 
       {/* Funding History & Receipts Section */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 space-y-6 shadow-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
+      <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl p-6 md:p-8 space-y-6 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E5E7EB] dark:border-[#111827] pb-5">
           <div>
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <History className="h-5 w-5 text-blue-600" /> Wallet Funding Audit Log & Receipts
+            <h3 className="text-lg font-bold text-[#111827] dark:text-white flex items-center gap-2">
+              <History className="h-5 w-5 text-[#0F2D5C]" /> Wallet Funding Audit Log & Receipts
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-0.5">
               Comprehensive chronological log of all wallet credits, webhooks, and generated payment receipts.
             </p>
           </div>
 
           <div className="flex items-center gap-3">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#9CA3AF]" />
               <input
                 type="text"
                 value={searchHistory}
                 onChange={(e) => setSearchHistory(e.target.value)}
                 placeholder="Search reference..."
-                className="pl-8 pr-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white outline-none"
+                className="pl-8 pr-3 py-1.5 border border-[#E5E7EB] dark:border-[#4B5563] rounded-xl text-xs bg-[#F5F7FA] dark:bg-[#111827] text-[#111827] dark:text-white outline-none"
               />
             </div>
 
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white font-medium outline-none"
+              className="px-3 py-1.5 border border-[#E5E7EB] dark:border-[#4B5563] rounded-xl text-xs bg-[#F5F7FA] dark:bg-[#111827] text-[#111827] dark:text-white font-medium outline-none"
             >
               <option value="ALL">All Status</option>
               <option value="SUCCESS">SUCCESSFUL</option>
@@ -1173,20 +1082,20 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
         </div>
 
         {loadingHistory ? (
-          <div className="py-12 text-center text-slate-500 text-xs flex flex-col items-center gap-2">
+          <div className="py-12 text-center text-[#6B7280] text-xs flex flex-col items-center gap-2">
             <SmartLinkLogoMark size="md" animating={true} />
             Loading funding audit history...
           </div>
         ) : filteredHistory.length === 0 ? (
-          <div className="py-12 text-center text-slate-400 text-xs space-y-2">
-            <FileText className="h-8 w-8 mx-auto text-slate-300" />
+          <div className="py-12 text-center text-[#9CA3AF] text-xs space-y-2">
+            <FileText className="h-8 w-8 mx-auto text-[#E5E7EB]" />
             <p>No wallet funding records match your search criteria.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-400 font-semibold uppercase tracking-wider text-[10px]">
+                <tr className="border-b border-[#E5E7EB] dark:border-[#111827] text-[#9CA3AF] font-semibold uppercase tracking-wider text-[10px]">
                   <th className="py-3 px-4">Date & Time</th>
                   <th className="py-3 px-4">Provider / Method</th>
                   <th className="py-3 px-4">Reference</th>
@@ -1197,27 +1106,27 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {filteredHistory.map((item, idx) => (
-                  <tr key={item.id || idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
-                    <td className="py-3.5 px-4 font-mono text-slate-600 dark:text-slate-300">
+                  <tr key={item.id || idx} className="hover:bg-[#F5F7FA]/50 dark:hover:bg-[#111827]/50 transition-colors">
+                    <td className="py-3.5 px-4 font-mono text-[#4B5563] dark:text-[#E5E7EB]">
                       {new Date(item.createdAt || item.timestamp || Date.now()).toLocaleString("en-NG", {
                         dateStyle: "medium",
                         timeStyle: "short",
                       })}
                     </td>
-                    <td className="py-3.5 px-4 font-bold text-slate-900 dark:text-white">
+                    <td className="py-3.5 px-4 font-bold text-[#111827] dark:text-white">
                       {item.gateway || item.provider || "SmartLink Gateway"}
                     </td>
-                    <td className="py-3.5 px-4 font-mono text-slate-500 dark:text-slate-400">
+                    <td className="py-3.5 px-4 font-mono text-[#6B7280] dark:text-[#9CA3AF]">
                       {item.smartlinkReference || item.reference || "N/A"}
                     </td>
-                    <td className="py-3.5 px-4 font-bold font-mono text-emerald-600 dark:text-emerald-400">
+                    <td className="py-3.5 px-4 font-bold font-mono text-[#0F2D5C] dark:text-[#9CA3AF]">
                       +₦{(item.amount || 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}
                     </td>
                     <td className="py-3.5 px-4">
                       <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${
                         item.status === "SUCCESS" || item.status === "SUCCESSFUL"
-                          ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
-                          : "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
+                          ? "bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/60 dark:text-[#9CA3AF]"
+                          : "bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/60 dark:text-[#9CA3AF]"
                       }`}>
                         {item.status || "SUCCESSFUL"}
                       </span>
@@ -1225,7 +1134,7 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
                     <td className="py-3.5 px-4 text-right">
                       <button
                         onClick={() => setSelectedReceipt(item)}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-blue-950/40 text-blue-600 dark:text-blue-400 font-bold rounded-lg transition-all cursor-pointer text-[11px]"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#E5E7EB] hover:bg-[#F5F7FA] dark:bg-[#111827] dark:hover:bg-[#0F2D5C]/40 text-[#0F2D5C] dark:text-[#9CA3AF] font-bold rounded-lg transition-all cursor-pointer text-[11px]"
                       >
                         <FileText className="h-3.5 w-3.5" /> View Receipt
                       </button>
@@ -1240,46 +1149,46 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
 
       {/* 3D Secure OTP Modal for Card Payment */}
       {show3DSModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 max-w-md w-full space-y-6 shadow-2xl relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111827]/70 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl p-6 md:p-8 max-w-md w-full space-y-6 shadow-2xl relative">
             <button
               onClick={() => setShow3DSModal(false)}
-              className="absolute right-4 top-4 p-2 text-slate-400 hover:text-slate-600 rounded-full cursor-pointer"
+              className="absolute right-4 top-4 p-2 text-[#9CA3AF] hover:text-[#4B5563] rounded-full cursor-pointer"
             >
               <X className="h-5 w-5" />
             </button>
 
             <div className="text-center space-y-2">
-              <div className="h-12 w-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center mx-auto font-black border border-purple-100">
+              <div className="h-12 w-12 rounded-2xl bg-[#F5F7FA] text-[#0F2D5C] flex items-center justify-center mx-auto font-black border border-[#E5E7EB]">
                 3DS
               </div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">3D Secure OTP Authorization</h3>
-              <p className="text-xs text-slate-500">
+              <h3 className="text-lg font-bold text-[#111827] dark:text-white">3D Secure OTP Authorization</h3>
+              <p className="text-xs text-[#6B7280]">
                 Enter the One-Time Password (OTP) sent by your card issuer to authorize ₦
                 {parseFloat(cardAmount || "0").toLocaleString("en-NG", { minimumFractionDigits: 2 })}.
               </p>
             </div>
 
-            <div className="p-3 bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded-xl text-xs text-purple-900 dark:text-purple-200 text-center font-mono">
+            <div className="p-3 bg-[#F5F7FA] dark:bg-[#0F2D5C]/30 border border-[#E5E7EB] dark:border-[#0F2D5C] rounded-xl text-xs text-[#0F2D5C] dark:text-[#9CA3AF] text-center font-mono">
               💡 Test Sandbox OTP Code: <strong>123456</strong>
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-800 dark:text-slate-200">6-Digit OTP Code</label>
+              <label className="text-xs font-semibold text-[#111827] dark:text-[#E5E7EB]">6-Digit OTP Code</label>
               <input
                 type="text"
                 maxLength={6}
                 value={otpCode}
                 onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
                 placeholder="123456"
-                className="w-full text-center tracking-[0.5em] font-mono text-xl py-3 border border-slate-200 dark:border-slate-700 rounded-xl outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-purple-500"
+                className="w-full text-center tracking-[0.5em] font-mono text-xl py-3 border border-[#E5E7EB] dark:border-[#4B5563] rounded-xl outline-none bg-white dark:bg-[#111827] text-[#111827] dark:text-white focus:border-[#0F2D5C]"
               />
             </div>
 
             <button
               onClick={handleVerify3DSOTP}
               disabled={isCardProcessing}
-              className="w-full py-3.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-sm transition-all cursor-pointer shadow-md shadow-purple-600/20 disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full py-3.5 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-bold rounded-xl text-sm transition-all cursor-pointer shadow-md shadow-purple-600/20 disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {isCardProcessing ? (
                 <>
@@ -1297,27 +1206,27 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
 
       {/* QR Code Modal */}
       {showQrModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111827]/70 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl relative">
             <button
               onClick={() => setShowQrModal(false)}
-              className="absolute right-4 top-4 p-2 text-slate-400 hover:text-slate-600 rounded-full cursor-pointer"
+              className="absolute right-4 top-4 p-2 text-[#9CA3AF] hover:text-[#4B5563] rounded-full cursor-pointer"
             >
               <X className="h-5 w-5" />
             </button>
 
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">Scan Bank QR Code</h3>
-            <p className="text-xs text-slate-500">{qrAccountTitle}</p>
+            <h3 className="text-base font-bold text-[#111827] dark:text-white">Scan Bank QR Code</h3>
+            <p className="text-xs text-[#6B7280]">{qrAccountTitle}</p>
 
             {qrCodeDataUrl && (
-              <div className="p-4 bg-white rounded-2xl border border-slate-200 inline-block mx-auto shadow-inner">
+              <div className="p-4 bg-white rounded-2xl border border-[#E5E7EB] inline-block mx-auto shadow-inner">
                 <img src={qrCodeDataUrl} alt="Bank QR" className="w-48 h-48 object-contain" />
               </div>
             )}
 
             <button
               onClick={() => setShowQrModal(false)}
-              className="w-full py-2.5 bg-slate-900 text-white font-bold rounded-xl text-xs cursor-pointer"
+              className="w-full py-2.5 bg-[#111827] text-white font-bold rounded-xl text-xs cursor-pointer"
             >
               Close QR Code
             </button>
@@ -1327,60 +1236,60 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
 
       {/* Official Receipt Modal */}
       {selectedReceipt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-xs animate-fadeIn overflow-y-auto">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 max-w-xl w-full my-8 space-y-6 shadow-2xl relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111827]/75 backdrop-blur-xs animate-fadeIn overflow-y-auto">
+          <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl p-6 md:p-8 max-w-xl w-full my-8 space-y-6 shadow-2xl relative">
             <button
               onClick={() => setSelectedReceipt(null)}
-              className="absolute right-4 top-4 p-2 text-slate-400 hover:text-slate-600 rounded-full cursor-pointer"
+              className="absolute right-4 top-4 p-2 text-[#9CA3AF] hover:text-[#4B5563] rounded-full cursor-pointer"
             >
               <X className="h-5 w-5" />
             </button>
 
             {/* Receipt Header */}
-            <div className="border-b border-slate-100 dark:border-slate-800 pb-5 text-center space-y-2">
-              <div className="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 px-3 py-1 rounded-full text-blue-700 dark:text-blue-300 text-xs font-bold">
-                <ShieldCheck className="h-4 w-4 text-blue-600" /> SmartLink Official Wallet Receipt
+            <div className="border-b border-[#E5E7EB] dark:border-[#111827] pb-5 text-center space-y-2">
+              <div className="inline-flex items-center gap-2 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border border-[#E5E7EB] dark:border-[#0F2D5C] px-3 py-1 rounded-full text-[#0F2D5C] dark:text-[#9CA3AF] text-xs font-bold">
+                <ShieldCheck className="h-4 w-4 text-[#0F2D5C]" /> SmartLink Official Wallet Receipt
               </div>
-              <h2 className="text-2xl font-black text-slate-900 dark:text-white">₦{(selectedReceipt.amount || 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</h2>
-              <p className="text-xs text-slate-500 font-mono">Reference: {selectedReceipt.smartlinkReference || selectedReceipt.reference || "N/A"}</p>
+              <h2 className="text-2xl font-black text-[#111827] dark:text-white">₦{(selectedReceipt.amount || 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</h2>
+              <p className="text-xs text-[#6B7280] font-mono">Reference: {selectedReceipt.smartlinkReference || selectedReceipt.reference || "N/A"}</p>
             </div>
 
             {/* Details Grid */}
-            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-3 text-xs">
-              <div className="flex justify-between py-1.5 border-b border-slate-200/60 dark:border-slate-700">
-                <span className="text-slate-500">Customer Name</span>
-                <span className="font-bold text-slate-900 dark:text-white">{currentUser.fullName}</span>
+            <div className="bg-[#F5F7FA] dark:bg-[#111827]/50 rounded-2xl p-5 border border-[#E5E7EB] dark:border-[#111827] space-y-3 text-xs">
+              <div className="flex justify-between py-1.5 border-b border-[#E5E7EB]/60 dark:border-[#4B5563]">
+                <span className="text-[#6B7280]">Customer Name</span>
+                <span className="font-bold text-[#111827] dark:text-white">{currentUser.fullName}</span>
               </div>
-              <div className="flex justify-between py-1.5 border-b border-slate-200/60 dark:border-slate-700">
-                <span className="text-slate-500">Payment Gateway</span>
-                <span className="font-bold text-slate-900 dark:text-white">{selectedReceipt.gateway || selectedReceipt.provider || "SmartLink Gateway"}</span>
+              <div className="flex justify-between py-1.5 border-b border-[#E5E7EB]/60 dark:border-[#4B5563]">
+                <span className="text-[#6B7280]">Payment Gateway</span>
+                <span className="font-bold text-[#111827] dark:text-white">{selectedReceipt.gateway || selectedReceipt.provider || "SmartLink Gateway"}</span>
               </div>
-              <div className="flex justify-between py-1.5 border-b border-slate-200/60 dark:border-slate-700">
-                <span className="text-slate-500">Date & Time</span>
-                <span className="font-mono text-slate-800 dark:text-slate-200">
+              <div className="flex justify-between py-1.5 border-b border-[#E5E7EB]/60 dark:border-[#4B5563]">
+                <span className="text-[#6B7280]">Date & Time</span>
+                <span className="font-mono text-[#111827] dark:text-[#E5E7EB]">
                   {new Date(selectedReceipt.createdAt || selectedReceipt.timestamp || Date.now()).toLocaleString("en-NG")}
                 </span>
               </div>
-              <div className="flex justify-between py-1.5 border-b border-slate-200/60 dark:border-slate-700">
-                <span className="text-slate-500">Status</span>
-                <span className="font-bold text-emerald-600 dark:text-emerald-400 uppercase">{selectedReceipt.status || "SUCCESSFUL"}</span>
+              <div className="flex justify-between py-1.5 border-b border-[#E5E7EB]/60 dark:border-[#4B5563]">
+                <span className="text-[#6B7280]">Status</span>
+                <span className="font-bold text-[#0F2D5C] dark:text-[#9CA3AF] uppercase">{selectedReceipt.status || "SUCCESSFUL"}</span>
               </div>
               <div className="flex justify-between py-1.5">
-                <span className="text-slate-500">Receipt No</span>
-                <span className="font-mono text-slate-800 dark:text-slate-200">{selectedReceipt.receiptId || selectedReceipt.id || "REC-" + Date.now()}</span>
+                <span className="text-[#6B7280]">Receipt No</span>
+                <span className="font-mono text-[#111827] dark:text-[#E5E7EB]">{selectedReceipt.receiptId || selectedReceipt.id || "REC-" + Date.now()}</span>
               </div>
             </div>
 
             <div className="flex gap-3">
               <button
                 onClick={() => downloadReceiptPDF(selectedReceipt)}
-                className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition-all shadow-md shadow-blue-600/20 cursor-pointer flex items-center justify-center gap-2"
+                className="flex-1 py-3 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-bold rounded-xl text-xs transition-all shadow-md shadow-blue-600/20 cursor-pointer flex items-center justify-center gap-2"
               >
                 <Download className="h-4 w-4" /> Download PDF Receipt
               </button>
               <button
                 onClick={() => window.print()}
-                className="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl text-xs transition-colors cursor-pointer flex items-center gap-1.5"
+                className="px-4 py-3 bg-[#E5E7EB] hover:bg-[#E5E7EB] text-[#111827] font-bold rounded-xl text-xs transition-colors cursor-pointer flex items-center gap-1.5"
               >
                 <Printer className="h-4 w-4" /> Print
               </button>

@@ -4,7 +4,7 @@
  */
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
-import defaultLogoImg from "../assets/images/logo.png";
+const defaultLogoImg = "/logo.png";
 
 export interface BrandingConfig {
   siteName?: string;
@@ -90,16 +90,16 @@ const DEFAULT_CONFIG: SiteConfig = {
     primaryColor: "#0F2D5C",
     secondaryColor: "#17407E",
     accentColor: "#2563EB",
-    headerAnnouncementText: "Federal NIMC & BVN Database Synchronized • Live SLA: 99.98%",
+    headerAnnouncementText: "NIN & BVN Gateway Synchronized • Live SLA: 99.98%",
     showHeaderAnnouncement: true,
   },
   general: {
     platformName: "SmartLink Enterprise",
     companyName: "Smart Link Computer Business Solutions Ltd",
-    companyAddress: "Abuja, Nigeria",
+    companyAddress: "Federal Capital Territory, Nigeria",
     supportEmail: "support@smartlinkng.com.ng",
     supportPhone: "+234 808 549 0982",
-    whatsappNumber: "+234 808 549 0982",
+    whatsappNumber: "+234 904 773 8212",
     websiteUrl: "https://smartlinkng.com.ng",
     currency: "NGN (₦)",
   },

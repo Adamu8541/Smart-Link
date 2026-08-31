@@ -1,6 +1,6 @@
 /**
  * SmartLink Admin Panel — Reports & Financial Settlements View
- * Live Firestore Aggregation & Homepage Theme Matching
+ * Live Cloud Database Aggregation & Homepage Theme Matching
  */
 
 import React, { useState, useEffect } from "react";
@@ -111,11 +111,11 @@ export function AdminReportsView({ session, onNavigate }: AdminReportsViewProps)
       {/* Top Header Card */}
       <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6 md:p-8 shadow-[0_4px_12px_rgba(15,23,42,0.06)] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-blue-50 border border-blue-100 rounded-2xl text-[#0F2D5C]">
+          <div className="p-3 bg-[#F5F7FA] border border-[#E5E7EB] rounded-2xl text-[#0F2D5C]">
             <BarChart3 className="h-7 w-7" />
           </div>
           <div>
-            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-blue-50 text-[#0F2D5C] text-xs font-semibold mb-1">
+            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-[#F5F7FA] text-[#0F2D5C] text-xs font-semibold mb-1">
               <ShieldCheck className="h-3.5 w-3.5" />
               <span>Financial Settlement & Analytics</span>
             </div>
@@ -123,7 +123,7 @@ export function AdminReportsView({ session, onNavigate }: AdminReportsViewProps)
               Reports & Financial Settlement Ledger
             </h1>
             <p className="text-xs md:text-sm text-[#4B5563] mt-0.5">
-              Live transaction volume audits, service reconciliation summaries, and financial statement exports powered by Firestore.
+              Live transaction volume audits, service reconciliation summaries, and financial statement exports powered by our database.
             </p>
           </div>
         </div>
@@ -150,20 +150,20 @@ export function AdminReportsView({ session, onNavigate }: AdminReportsViewProps)
 
         <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-[0_4px_12px_rgba(15,23,42,0.06)] space-y-1">
           <span className="text-xs font-semibold text-[#4B5563]">Successful Settlements</span>
-          <p className="text-2xl font-bold text-emerald-600">₦{metrics.successfulVolume.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-[#0F2D5C]">₦{metrics.successfulVolume.toLocaleString()}</p>
           <span className="text-[11px] text-[#4B5563]">Completed & delivered value</span>
         </div>
 
         <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-[0_4px_12px_rgba(15,23,42,0.06)] space-y-1">
           <span className="text-xs font-semibold text-[#4B5563]">Platform Fee Revenue</span>
           <p className="text-2xl font-bold text-[#0F2D5C]">₦{metrics.feeRevenue.toLocaleString()}</p>
-          <span className="text-[11px] text-emerald-600 font-medium">Service charges & margins</span>
+          <span className="text-[11px] text-[#0F2D5C] font-medium">Service charges & margins</span>
         </div>
 
         <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-[0_4px_12px_rgba(15,23,42,0.06)] space-y-1">
           <span className="text-xs font-semibold text-[#4B5563]">Total Audit Count</span>
           <p className="text-2xl font-bold text-[#111827]">{metrics.totalTransactions.toLocaleString()}</p>
-          <span className="text-[11px] text-[#4B5563]">Logged Firestore transactions</span>
+          <span className="text-[11px] text-[#4B5563]">Logged system database transactions</span>
         </div>
       </div>
 
@@ -197,7 +197,7 @@ export function AdminReportsView({ session, onNavigate }: AdminReportsViewProps)
                 <div className="space-y-1 max-w-xl">
                   <div className="flex items-center gap-2">
                     <h3 className="font-bold text-sm text-[#111827]">{report.title}</h3>
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold">
+                    <span className="px-2 py-0.5 rounded-full bg-[#F5F7FA] text-[#0F2D5C] border border-[#E5E7EB] text-[10px] font-bold">
                       {report.status}
                     </span>
                   </div>
@@ -211,7 +211,7 @@ export function AdminReportsView({ session, onNavigate }: AdminReportsViewProps)
                     </span>
                     <span>•</span>
                     <span>
-                      Settled: <strong className="text-emerald-700">₦{report.successfulVolume.toLocaleString()}</strong>
+                      Settled: <strong className="text-[#0F2D5C]">₦{report.successfulVolume.toLocaleString()}</strong>
                     </span>
                     <span>•</span>
                     <span>

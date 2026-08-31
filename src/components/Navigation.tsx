@@ -40,11 +40,12 @@ import {
   Search,
   Briefcase,
   GraduationCap,
-  Scale
+  Scale,
+  Phone
 } from "lucide-react";
 import { UserProfile, UserRole } from "../types";
 import { SMART_LINK_SERVICES } from "./ServicesGrid";
-import defaultLogoImg from "../assets/images/logo.png";
+const defaultLogoImg = "/logo.png";
 import { useSiteConfig } from "../context/SiteConfigContext";
 
 interface NavigationProps {
@@ -56,6 +57,7 @@ interface NavigationProps {
   onToggleDarkMode: () => void;
   onSelectService?: (service: any) => void;
   onSetAuthStates?: (states: { isRegistering: boolean; isResetPassword: boolean }) => void;
+  onRefreshUser?: (uid: string) => Promise<void>;
 }
 
 interface NavigationItem {
@@ -80,11 +82,25 @@ export default function Navigation({
   isDarkMode,
   onToggleDarkMode,
   onSelectService,
-  onSetAuthStates
+  onSetAuthStates,
+  onRefreshUser
 }: NavigationProps) {
   const { logoUrl, siteName } = useSiteConfig();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeTabVal, setActiveTabVal] = useState("OVERVIEW");
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefreshBalance = async () => {
+    if (!currentUser?.uid || isRefreshing || !onRefreshUser) return;
+    setIsRefreshing(true);
+    try {
+      await onRefreshUser(currentUser.uid);
+    } catch (err) {
+      console.error("Error refreshing navigation balance:", err);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   // Keep track of the local dashboard tab state for active highlight sync
   useEffect(() => {
@@ -128,7 +144,9 @@ export default function Navigation({
     {
       title: "IDENTITY VERIFICATION",
       items: [
+        { id: "SRV_nin_demo", label: "NIN Demography", icon: Users, viewId: "DASHBOARD", serviceId: "id_nin_demography" },
         { id: "SRV_nin_ver", label: "NIN Verification", icon: Fingerprint, viewId: "DASHBOARD", serviceId: "id_nin_ver" },
+        { id: "SRV_nin_phone", label: "NIN With Phone Number", icon: Phone, viewId: "DASHBOARD", serviceId: "id_nin_phone" },
         { id: "SRV_nin_val", label: "NIN Validation", icon: CheckSquare, viewId: "DASHBOARD", serviceId: "id_nin_val" },
         { id: "SRV_vnin_slip", label: "VNIN Slip", icon: FileText, viewId: "DASHBOARD", serviceId: "id_vnin_slip" },
         { id: "SRV_nin_pers", label: "NIN Personalization", icon: User, viewId: "DASHBOARD", serviceId: "id_nin_pers" },
@@ -144,7 +162,7 @@ export default function Navigation({
         { id: "SRV_vnin_nibss", label: "VNIN to NIBSS", icon: RefreshCw, viewId: "DASHBOARD", serviceId: "id_vnin_to_nibss" },
         { id: "SRV_bvn_user", label: "BVN User", icon: User, viewId: "DASHBOARD", serviceId: "id_bvn_user" },
         { id: "SRV_bvn_mod", label: "BVN Modification", icon: Edit3, viewId: "DASHBOARD", serviceId: "id_bvn_modification" },
-        { id: "SRV_premium_slip", label: "Premium Slip", icon: Lock, viewId: "DASHBOARD", serviceId: "id_premium_slip" },
+        { id: "SRV_premium_slip", label: "BVN Slip Print", icon: Lock, viewId: "DASHBOARD", serviceId: "id_premium_slip" },
         { id: "SRV_bvn_retrieval", label: "BVN Retrieval", icon: Search, viewId: "DASHBOARD", serviceId: "id_bvn_retrieval" },
       ]
     },
@@ -257,7 +275,7 @@ export default function Navigation({
           <img
             src={logoUrl}
             alt={siteName}
-            className="h-10 sm:h-12 w-auto max-w-[150px] object-contain rounded-lg bg-white p-1 shadow-sm border border-slate-200"
+            className="h-10 sm:h-12 w-auto max-w-[150px] object-contain rounded-lg bg-white p-1 shadow-sm border border-[#E5E7EB]"
             referrerPolicy="no-referrer"
             onError={(e: any) => { e.currentTarget.src = defaultLogoImg; }}
           />
@@ -268,7 +286,7 @@ export default function Navigation({
       {mobileMenuOpen && (
         <div 
           onClick={() => setMobileMenuOpen(false)}
-          className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-30 lg:hidden flex justify-start animate-fadeIn"
+          className="fixed inset-0 bg-[#111827]/60 backdrop-blur-xs z-30 lg:hidden flex justify-start animate-fadeIn"
         >
           <div 
             onClick={(e) => e.stopPropagation()}
@@ -288,20 +306,33 @@ export default function Navigation({
 
               {/* Profile Block */}
               {currentUser ? (
-                <div className="p-3 rounded-lg bg-slate-950/40 border border-slate-800/60 text-left space-y-1">
-                  <div className="text-[9px] text-slate-400 font-semibold font-mono">AUTHORIZED PARTNER</div>
-                  <h3 className="font-bold text-xs truncate text-slate-200">{currentUser.fullName}</h3>
-                  <div className="flex justify-between items-center text-[10px] font-mono text-slate-400 pt-1">
-                    <span>₦{currentUser.walletBalance.toLocaleString()}</span>
-                    <span className="px-1 py-0.2 rounded bg-slate-800 text-[8px] font-bold text-slate-400 uppercase">
+                <div className="p-3 rounded-lg bg-[#111827]/40 border border-[#111827]/60 text-left space-y-1">
+                  <div className="text-[9px] text-[#9CA3AF] font-semibold font-mono">AUTHORIZED PARTNER</div>
+                  <h3 className="font-bold text-xs truncate text-[#E5E7EB]">{currentUser.fullName}</h3>
+                  <div className="flex justify-between items-center text-[10px] font-mono text-[#9CA3AF] pt-1">
+                    <div className="flex items-center gap-1.5">
+                      <span>₦{currentUser.walletBalance.toLocaleString()}</span>
+                      {onRefreshUser && (
+                        <button
+                          onClick={handleRefreshBalance}
+                          disabled={isRefreshing}
+                          title="Refresh balance"
+                          id="btn-nav-desktop-refresh"
+                          className="p-1 hover:bg-[#111827]/80 rounded hover:text-white transition-colors cursor-pointer disabled:opacity-40"
+                        >
+                          <RefreshCw className={`h-2.5 w-2.5 ${isRefreshing ? "animate-spin text-[#9CA3AF]" : ""}`} />
+                        </button>
+                      )}
+                    </div>
+                    <span className="px-1 py-0.2 rounded bg-[#111827] text-[8px] font-bold text-[#9CA3AF] uppercase">
                       {currentUser.role}
                     </span>
                   </div>
                 </div>
               ) : (
-                <div className="p-3 rounded-lg bg-slate-950/40 border border-slate-800/60 text-left">
-                  <span className="text-[9px] text-slate-400 font-mono">SECURE GATEWAY NODE</span>
-                  <p className="text-[10px] text-slate-500 font-light mt-1">Authenticate to begin processing identity logs.</p>
+                <div className="p-3 rounded-lg bg-[#111827]/40 border border-[#111827]/60 text-left">
+                  <span className="text-[9px] text-[#9CA3AF] font-mono">SECURE GATEWAY NODE</span>
+                  <p className="text-[10px] text-[#6B7280] font-light mt-1">Authenticate to begin processing identity logs.</p>
                 </div>
               )}
 
@@ -309,24 +340,35 @@ export default function Navigation({
               <nav className="flex flex-col gap-4 text-left overflow-y-auto max-h-[calc(100vh-240px)] pr-1 scrollbar-none">
                 {menuGroups.map((group) => (
                   <div key={group.title} className="space-y-1">
-                    <div className="px-3 py-1 text-[9px] font-extrabold text-slate-500 font-sans tracking-wider uppercase">
+                    <div className="px-3 py-1 text-[9px] font-extrabold text-[#6B7280] font-sans tracking-wider uppercase">
                       {group.title}
                     </div>
                     <div className="flex flex-col gap-0.5">
                       {group.items.map((item) => {
                         const Icon = item.icon;
                         const active = isItemActive(item);
+                        const getRealIconColor = (title: string) => {
+                          if (title === "MAIN") return "text-blue-400";
+                          if (title === "IDENTITY VERIFICATION") return "text-indigo-400";
+                          if (title === "BANKING & BVN") return "text-emerald-400";
+                          if (title === "CORPORATE FILINGS") return "text-cyan-400";
+                          if (title === "EDUCATION") return "text-amber-400";
+                          if (title === "LEGAL & COMPLIANCE") return "text-teal-400";
+                          if (title === "ADMIN & GOVERNANCE") return "text-rose-400";
+                          return "text-blue-400";
+                        };
+                        const realColor = getRealIconColor(group.title);
                         return (
                           <button
                             key={item.id}
                             onClick={() => handleItemClick(item)}
                             className={`flex items-center gap-3 px-3 py-2 rounded-lg text-[11px] font-bold transition-all ${
                               active
-                                ? "bg-blue-600/15 text-blue-400 border-l-2 border-blue-500 pl-2.5"
-                                : "text-slate-400 hover:bg-slate-850 hover:text-slate-100"
+                                ? "bg-[#0F2D5C]/15 text-white border-l-2 border-[#0F2D5C] pl-2.5"
+                                : "text-[#9CA3AF] hover:bg-[#111827] hover:text-[#FFFFFF]"
                             }`}
                           >
-                            <Icon className={`h-4 w-4 ${active ? "text-blue-400" : "text-slate-500"}`} />
+                            <Icon className={`h-4 w-4 ${active ? "text-white" : realColor}`} />
                             {item.label}
                           </button>
                         );
@@ -338,17 +380,17 @@ export default function Navigation({
             </div>
 
             {/* Logout and Dark mode */}
-            <div className="pt-4 border-t border-slate-800 space-y-2 mt-auto shrink-0">
+            <div className="pt-4 border-t border-[#111827] space-y-2 mt-auto shrink-0">
               <button
                 type="button"
                 onClick={onToggleDarkMode}
-                className="w-full py-2 bg-slate-950/50 hover:bg-slate-850 text-slate-300 border border-slate-800 rounded text-[11px] font-bold transition-all flex items-center justify-between px-3 cursor-pointer"
+                className="w-full py-2 bg-[#111827]/50 hover:bg-[#6B7280] text-[#E5E7EB] border border-[#111827] rounded text-[11px] font-bold transition-all flex items-center justify-between px-3 cursor-pointer"
               >
                 <span className="flex items-center gap-2">
-                  {isDarkMode ? <Sun className="h-3.5 w-3.5 text-amber-400" /> : <Moon className="h-3.5 w-3.5 text-blue-400" />}
+                  {isDarkMode ? <Sun className="h-3.5 w-3.5 text-[#9CA3AF]" /> : <Moon className="h-3.5 w-3.5 text-[#9CA3AF]" />}
                   {isDarkMode ? "Light Mode" : "Dark Mode"}
                 </span>
-                <span className={`h-4 w-7 rounded-full p-0.5 transition-colors duration-200 ${isDarkMode ? "bg-blue-600" : "bg-slate-700"} flex items-center`}>
+                <span className={`h-4 w-7 rounded-full p-0.5 transition-colors duration-200 ${isDarkMode ? "bg-[#0F2D5C]" : "bg-[#4B5563]"} flex items-center`}>
                   <span className={`h-3 w-3 rounded-full bg-white transition-transform duration-200 transform ${isDarkMode ? "translate-x-3" : "translate-x-0"}`}></span>
                 </span>
               </button>
@@ -359,7 +401,7 @@ export default function Navigation({
                     onLogout();
                     setMobileMenuOpen(false);
                   }}
-                  className="w-full py-2 bg-slate-850 hover:bg-rose-950/40 hover:text-rose-400 text-slate-400 border border-slate-800 rounded text-[11px] font-bold transition-all flex items-center justify-center gap-2"
+                  className="w-full py-2 bg-[#6B7280] hover:bg-[#0F2D5C]/40 hover:text-[#9CA3AF] text-[#9CA3AF] border border-[#111827] rounded text-[11px] font-bold transition-all flex items-center justify-center gap-2"
                 >
                   <LogOut className="h-4 w-4" />
                   Sign Out / Exit
@@ -387,17 +429,30 @@ export default function Navigation({
           {/* Profile Card */}
           {currentUser && (
             <div className="p-3.5 rounded-xl bg-[#17407E]/60 border border-white/10 text-left space-y-2 animate-fadeIn">
-              <div className="flex justify-between items-center text-[9px] text-blue-200 font-mono font-bold tracking-wider">
+              <div className="flex justify-between items-center text-[9px] text-[#9CA3AF] font-mono font-bold tracking-wider">
                 <span>AUTHORIZED PARTNER</span>
-                <span className="inline-block h-1.5 w-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
+                <span className="inline-block h-1.5 w-1.5 bg-[#0F2D5C] rounded-full animate-pulse"></span>
               </div>
               <div>
                 <h3 className="font-bold text-xs text-white truncate">{currentUser.fullName}</h3>
-                <p className="text-[10px] text-blue-200 font-mono truncate mt-0.5">{currentUser.email}</p>
+                <p className="text-[10px] text-[#9CA3AF] font-mono truncate mt-0.5">{currentUser.email}</p>
               </div>
               <div className="flex justify-between items-center pt-2 border-t border-white/10">
-                <span className="text-[11px] font-bold font-mono text-emerald-300">₦{currentUser.walletBalance.toLocaleString()}</span>
-                <span className="px-2 py-0.5 rounded bg-white/10 text-[8px] font-mono font-bold text-blue-100 uppercase">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] font-bold font-mono text-[#9CA3AF]">₦{currentUser.walletBalance.toLocaleString()}</span>
+                  {onRefreshUser && (
+                    <button
+                      onClick={handleRefreshBalance}
+                      disabled={isRefreshing}
+                      title="Refresh balance"
+                      id="btn-nav-sidebar-refresh"
+                      className="p-1 hover:bg-white/10 rounded text-[#9CA3AF] hover:text-[#0F2D5C] transition-colors cursor-pointer disabled:opacity-40"
+                    >
+                      <RefreshCw className={`h-2.5 w-2.5 ${isRefreshing ? "animate-spin text-[#9CA3AF]" : ""}`} />
+                    </button>
+                  )}
+                </div>
+                <span className="px-2 py-0.5 rounded bg-white/10 text-[8px] font-mono font-bold text-[#9CA3AF] uppercase">
                   {currentUser.role}
                 </span>
               </div>
@@ -408,13 +463,24 @@ export default function Navigation({
           <nav className="flex-1 overflow-y-auto pr-1 flex flex-col gap-4 text-left scrollbar-thin max-h-[calc(100vh-280px)]">
             {menuGroups.map((group) => (
               <div key={group.title} className="space-y-1.5">
-                <div className="px-3 text-[9px] font-bold text-blue-200/70 font-sans tracking-wider uppercase">
+                <div className="px-3 text-[9px] font-bold text-[#9CA3AF]/70 font-sans tracking-wider uppercase">
                   {group.title}
                 </div>
                 <div className="flex flex-col gap-0.5">
                   {group.items.map((item) => {
                     const Icon = item.icon;
                     const active = isItemActive(item);
+                    const getRealIconColor = (title: string) => {
+                      if (title === "MAIN") return "text-blue-400";
+                      if (title === "IDENTITY VERIFICATION") return "text-indigo-400";
+                      if (title === "BANKING & BVN") return "text-emerald-400";
+                      if (title === "CORPORATE FILINGS") return "text-cyan-400";
+                      if (title === "EDUCATION") return "text-amber-400";
+                      if (title === "LEGAL & COMPLIANCE") return "text-teal-400";
+                      if (title === "ADMIN & GOVERNANCE") return "text-rose-400";
+                      return "text-blue-400";
+                    };
+                    const realColor = getRealIconColor(group.title);
                     return (
                       <button
                         key={item.id}
@@ -422,11 +488,11 @@ export default function Navigation({
                         id={`btn-nav-desktop-${item.id}`}
                         className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all relative group ${
                           active
-                            ? "bg-[#17407E] text-white border-l-4 border-blue-400 shadow-xs"
-                            : "text-blue-100/80 hover:bg-white/10 hover:text-white"
+                            ? "bg-[#17407E] text-white border-l-4 border-[#E5E7EB] shadow-xs"
+                            : "text-[#9CA3AF]/80 hover:bg-white/10 hover:text-white"
                         }`}
                       >
-                        <Icon className={`h-4.5 w-4.5 transition-colors ${active ? "text-white" : "text-blue-200/70 group-hover:text-white"}`} />
+                        <Icon className={`h-4.5 w-4.5 transition-colors ${active ? "text-white" : realColor}`} />
                         {item.label}
                       </button>
                     );
@@ -443,13 +509,13 @@ export default function Navigation({
           <button
             type="button"
             onClick={onToggleDarkMode}
-            className="w-full py-2 bg-white/5 hover:bg-white/10 text-blue-100 border border-white/10 rounded-xl text-xs font-semibold transition-all flex items-center justify-between px-3 cursor-pointer"
+            className="w-full py-2 bg-white/5 hover:bg-white/10 text-[#9CA3AF] border border-white/10 rounded-xl text-xs font-semibold transition-all flex items-center justify-between px-3 cursor-pointer"
           >
             <span className="flex items-center gap-2 font-mono text-[11px]">
-              {isDarkMode ? <Sun className="h-3.5 w-3.5 text-amber-300" /> : <Moon className="h-3.5 w-3.5 text-blue-300" />}
+              {isDarkMode ? <Sun className="h-3.5 w-3.5 text-[#9CA3AF]" /> : <Moon className="h-3.5 w-3.5 text-[#9CA3AF]" />}
               {isDarkMode ? "Light Mode" : "Dark Mode"}
             </span>
-            <span className={`h-4 w-7 rounded-full p-0.5 transition-colors duration-200 ${isDarkMode ? "bg-blue-500" : "bg-white/20"} flex items-center`}>
+            <span className={`h-4 w-7 rounded-full p-0.5 transition-colors duration-200 ${isDarkMode ? "bg-[#0F2D5C]" : "bg-white/20"} flex items-center`}>
               <span className={`h-3 w-3 rounded-full bg-white transition-transform duration-200 transform ${isDarkMode ? "translate-x-3" : "translate-x-0"}`}></span>
             </span>
           </button>
@@ -458,7 +524,7 @@ export default function Navigation({
             <button
               onClick={onLogout}
               id="btn-sign-out"
-              className="w-full py-2 bg-white/5 hover:bg-rose-500/20 hover:text-rose-200 text-blue-200 border border-white/10 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2"
+              className="w-full py-2 bg-white/5 hover:bg-[#0F2D5C]/20 hover:text-[#9CA3AF] text-[#9CA3AF] border border-white/10 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2"
             >
               <LogOut className="h-3.5 w-3.5" />
               Sign Out / Exit

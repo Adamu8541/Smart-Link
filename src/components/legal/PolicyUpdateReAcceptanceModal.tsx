@@ -95,28 +95,28 @@ export function PolicyUpdateReAcceptanceModal({
   const allSelected = acceptedPolicyIds.length === pendingPolicies.length;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs animate-fadeIn">
-      <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 text-left space-y-5 animate-scaleUp">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[#111827]/80 backdrop-blur-xs animate-fadeIn">
+      <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-[#E5E7EB] text-left space-y-5 animate-scaleUp">
         {/* Header */}
         <div className="flex items-start gap-3.5">
-          <div className="h-11 w-11 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+          <div className="h-11 w-11 rounded-xl bg-[#F5F7FA] border border-[#E5E7EB] flex items-center justify-center text-[#0F2D5C] shrink-0">
             <ShieldAlert className="h-6 w-6" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-lg font-bold text-slate-900">Important Policy Updates</h3>
-              <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+              <h3 className="text-lg font-bold text-[#111827]">Important Policy Updates</h3>
+              <span className="text-[10px] font-bold uppercase tracking-wider bg-[#E5E7EB] text-[#0F2D5C] px-2 py-0.5 rounded-full">
                 Action Required
               </span>
             </div>
-            <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+            <p className="text-xs text-[#6B7280] mt-1 leading-relaxed">
               We have updated our platform terms to maintain regulatory compliance with NDPA 2023 and enhanced consumer protections. Please review and acknowledge the updated policies below.
             </p>
           </div>
         </div>
 
         {error && (
-          <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-xl font-medium">
+          <div className="p-3 bg-[#F5F7FA] border border-[#E5E7EB] text-[#0F2D5C] text-xs rounded-xl font-medium">
             {error}
           </div>
         )}
@@ -129,7 +129,7 @@ export function PolicyUpdateReAcceptanceModal({
               <div
                 key={policy.documentId}
                 className={`p-3.5 rounded-xl border transition-all ${
-                  isChecked ? "bg-blue-50/50 border-blue-200" : "bg-slate-50 border-slate-200"
+                  isChecked ? "bg-[#F5F7FA]/50 border-[#E5E7EB]" : "bg-[#F5F7FA] border-[#E5E7EB]"
                 }`}
               >
                 <div className="flex items-start justify-between gap-2">
@@ -138,16 +138,16 @@ export function PolicyUpdateReAcceptanceModal({
                       type="checkbox"
                       checked={isChecked}
                       onChange={() => togglePolicyAcceptance(policy.documentId)}
-                      className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 rounded border-slate-300 cursor-pointer shrink-0"
+                      className="mt-1 h-4 w-4 text-[#0F2D5C] focus:ring-[#0F2D5C] rounded border-[#E5E7EB] cursor-pointer shrink-0"
                     />
                     <div>
-                      <div className="text-xs font-bold text-slate-800 flex items-center gap-2">
+                      <div className="text-xs font-bold text-[#111827] flex items-center gap-2">
                         <span>{policy.documentName}</span>
-                        <span className="text-[10px] font-semibold text-slate-500 bg-white border border-slate-200 px-1.5 py-0.5 rounded">
+                        <span className="text-[10px] font-semibold text-[#6B7280] bg-white border border-[#E5E7EB] px-1.5 py-0.5 rounded">
                           v{policy.version}
                         </span>
                       </div>
-                      <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-2">
+                      <p className="text-[11px] text-[#6B7280] mt-0.5 line-clamp-2">
                         {policy.summary}
                       </p>
                     </div>
@@ -156,7 +156,7 @@ export function PolicyUpdateReAcceptanceModal({
                   <button
                     type="button"
                     onClick={() => onOpenDocumentView(policy.documentId)}
-                    className="text-[11px] font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1 shrink-0 p-1 rounded hover:bg-blue-100/50 focus:outline-none cursor-pointer"
+                    className="text-[11px] font-semibold text-[#0F2D5C] hover:text-[#0F2D5C] flex items-center gap-1 shrink-0 p-1 rounded hover:bg-[#E5E7EB]/50 focus:outline-none cursor-pointer"
                     title="Read full document"
                   >
                     <span>Read</span>
@@ -169,15 +169,15 @@ export function PolicyUpdateReAcceptanceModal({
         </div>
 
         {/* Select all bar */}
-        <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-100">
+        <div className="flex items-center justify-between text-xs pt-1 border-t border-[#E5E7EB]">
           <button
             type="button"
             onClick={handleSelectAll}
-            className="text-blue-600 font-semibold hover:underline cursor-pointer"
+            className="text-[#0F2D5C] font-semibold hover:underline cursor-pointer"
           >
             {allSelected ? "Deselect All" : "Select All Policies"}
           </button>
-          <span className="text-slate-400 text-[11px]">
+          <span className="text-[#9CA3AF] text-[11px]">
             {acceptedPolicyIds.length} of {pendingPolicies.length} selected
           </span>
         </div>
@@ -188,7 +188,7 @@ export function PolicyUpdateReAcceptanceModal({
             type="button"
             disabled={!allSelected || loading}
             onClick={handleConfirmReAcceptance}
-            className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold rounded-xl text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-blue-500/10 disabled:cursor-not-allowed"
+            className="w-full py-3 bg-[#0F2D5C] hover:bg-[#0F2D5C] disabled:opacity-50 text-white font-bold rounded-xl text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-blue-500/10 disabled:cursor-not-allowed"
           >
             {loading ? (
               <span>Recording Agreement...</span>

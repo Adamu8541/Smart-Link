@@ -192,7 +192,7 @@ export default function UserManagementAdmin({
       {toast && (
         <div
           className={`fixed top-6 right-6 z-50 px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 text-xs font-bold text-white transition-all ${
-            toast.type === "success" ? "bg-emerald-600" : "bg-rose-600"
+            toast.type === "success" ? "bg-[#0F2D5C]" : "bg-[#0F2D5C]"
           }`}
         >
           {toast.type === "success" ? <CheckCircle2 className="h-5 w-5" /> : <AlertTriangle className="h-5 w-5" />}
@@ -201,21 +201,21 @@ export default function UserManagementAdmin({
       )}
 
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-6 text-white shadow-lg border border-indigo-900/40">
+      <div className="bg-gradient-to-r from-[#111827] via-[#0F2D5C] to-[#111827] rounded-3xl p-6 text-white shadow-lg border border-[#0F2D5C]/40">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-indigo-500/30 text-indigo-300 border border-indigo-400/30 font-mono">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-[#0F2D5C]/30 text-[#9CA3AF] border border-[#E5E7EB]/30 font-mono">
                 RBAC ACCESS CONTROL
               </span>
-              <span className="text-xs text-slate-400 font-mono">FIREBASE CUSTOM CLAIMS</span>
+              <span className="text-xs text-[#9CA3AF] font-mono">SECURE CUSTOM CLAIMS</span>
             </div>
             <h2 className="text-xl md:text-2xl font-black text-white tracking-tight flex items-center gap-2">
-              <Users className="h-6 w-6 text-indigo-400" />
+              <Users className="h-6 w-6 text-[#9CA3AF]" />
               User & Access Management
             </h2>
-            <p className="text-xs text-slate-300 max-w-2xl mt-1">
-              Control user accounts, assign Firebase Custom Claims, enforce account status (Active / Suspended), send password resets, and review security login history.
+            <p className="text-xs text-[#E5E7EB] max-w-2xl mt-1">
+              Control user accounts, assign secure custom claims, enforce account status (Active / Suspended), send password resets, and review security login history.
             </p>
           </div>
 
@@ -232,24 +232,24 @@ export default function UserManagementAdmin({
         {/* Stats bar */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-5 border-t border-white/10">
           <div className="bg-white/5 rounded-2xl p-3 border border-white/10">
-            <div className="text-[10px] font-bold text-slate-400 uppercase">Total Users</div>
+            <div className="text-[10px] font-bold text-[#9CA3AF] uppercase">Total Users</div>
             <div className="text-xl font-black text-white mt-0.5">{users.length}</div>
           </div>
           <div className="bg-white/5 rounded-2xl p-3 border border-white/10">
-            <div className="text-[10px] font-bold text-emerald-400 uppercase">Active Accounts</div>
-            <div className="text-xl font-black text-emerald-400 mt-0.5">
+            <div className="text-[10px] font-bold text-[#9CA3AF] uppercase">Active Accounts</div>
+            <div className="text-xl font-black text-[#9CA3AF] mt-0.5">
               {users.filter((u) => u.status !== "SUSPENDED").length}
             </div>
           </div>
           <div className="bg-white/5 rounded-2xl p-3 border border-white/10">
-            <div className="text-[10px] font-bold text-amber-300 uppercase">Admins & Staff</div>
-            <div className="text-xl font-black text-amber-200 mt-0.5">
+            <div className="text-[10px] font-bold text-[#9CA3AF] uppercase">Admins & Staff</div>
+            <div className="text-xl font-black text-[#9CA3AF] mt-0.5">
               {users.filter((u) => u.role === UserRole.ADMIN || u.role === UserRole.SUPER_ADMIN || u.role === UserRole.STAFF).length}
             </div>
           </div>
           <div className="bg-white/5 rounded-2xl p-3 border border-white/10">
-            <div className="text-[10px] font-bold text-rose-300 uppercase">Suspended</div>
-            <div className="text-xl font-black text-rose-300 mt-0.5">
+            <div className="text-[10px] font-bold text-[#9CA3AF] uppercase">Suspended</div>
+            <div className="text-xl font-black text-[#9CA3AF] mt-0.5">
               {users.filter((u) => u.status === "SUSPENDED").length}
             </div>
           </div>
@@ -257,15 +257,15 @@ export default function UserManagementAdmin({
       </div>
 
       {/* Filters bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white dark:bg-[#111827] p-4 rounded-2xl border border-[#E5E7EB] dark:border-[#111827] shadow-sm">
         <div className="relative flex-1 w-full sm:w-auto">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-[#9CA3AF]" />
           <input
             type="text"
             placeholder="Search by user name, email, or phone..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-white"
+            className="w-full pl-9 pr-3 py-2 bg-[#F5F7FA] dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#4B5563] rounded-xl text-xs focus:ring-2 focus:ring-[#0F2D5C] text-[#111827] dark:text-white"
           />
         </div>
 
@@ -273,7 +273,7 @@ export default function UserManagementAdmin({
           <select
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
-            className="px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-300"
+            className="px-3 py-2 bg-[#F5F7FA] dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#4B5563] rounded-xl text-xs font-medium text-[#4B5563] dark:text-[#E5E7EB]"
           >
             <option value="ALL">All Roles</option>
             <option value={UserRole.CUSTOMER}>Customer</option>
@@ -287,7 +287,7 @@ export default function UserManagementAdmin({
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-300"
+            className="px-3 py-2 bg-[#F5F7FA] dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#4B5563] rounded-xl text-xs font-medium text-[#4B5563] dark:text-[#E5E7EB]"
           >
             <option value="ALL">All Statuses</option>
             <option value="ACTIVE">Active</option>
@@ -297,10 +297,10 @@ export default function UserManagementAdmin({
       </div>
 
       {/* Directory Table */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+      <div className="bg-white dark:bg-[#111827] rounded-2xl border border-[#E5E7EB] dark:border-[#111827] overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300">
-            <thead className="bg-slate-100 dark:bg-slate-800/60 text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">
+          <table className="w-full text-left text-xs text-[#4B5563] dark:text-[#E5E7EB]">
+            <thead className="bg-[#E5E7EB] dark:bg-[#111827]/60 text-[10px] uppercase font-bold text-[#6B7280] dark:text-[#9CA3AF]">
               <tr>
                 <th className="p-3">User</th>
                 <th className="p-3">Role & Claims</th>
@@ -310,24 +310,24 @@ export default function UserManagementAdmin({
                 <th className="p-3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            <tbody className="divide-y divide-[#6B7280] dark:divide-[#6B7280]">
               {filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-6 text-center text-slate-400 text-xs">
+                  <td colSpan={6} className="p-6 text-center text-[#9CA3AF] text-xs">
                     No users found matching your search parameters.
                   </td>
                 </tr>
               ) : (
                 filteredUsers.map((u) => (
-                  <tr key={u.uid} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                  <tr key={u.uid} className="hover:bg-[#F5F7FA] dark:hover:bg-[#111827]/40">
                     <td className="p-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-black flex items-center justify-center text-sm border border-indigo-200 dark:border-indigo-800">
+                        <div className="w-9 h-9 rounded-full bg-[#E5E7EB] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] font-black flex items-center justify-center text-sm border border-[#E5E7EB] dark:border-[#0F2D5C]">
                           {u.fullName ? u.fullName.charAt(0).toUpperCase() : "U"}
                         </div>
                         <div>
-                          <div className="font-bold text-slate-900 dark:text-white leading-tight">{u.fullName}</div>
-                          <div className="text-[11px] text-slate-400 font-mono">{u.email}</div>
+                          <div className="font-bold text-[#111827] dark:text-white leading-tight">{u.fullName}</div>
+                          <div className="text-[11px] text-[#9CA3AF] font-mono">{u.email}</div>
                         </div>
                       </div>
                     </td>
@@ -335,41 +335,41 @@ export default function UserManagementAdmin({
                       <span
                         className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase font-mono ${
                           u.role === UserRole.SUPER_ADMIN
-                            ? "bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300 border border-purple-300"
+                            ? "bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C] dark:text-[#9CA3AF] border border-[#E5E7EB]"
                             : u.role === UserRole.ADMIN
-                            ? "bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-300"
+                            ? "bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C] dark:text-[#9CA3AF] border border-[#E5E7EB]"
                             : u.role === UserRole.FINANCE_OFFICER
-                            ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-300"
-                            : "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300"
+                            ? "bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C] dark:text-[#9CA3AF] border border-[#E5E7EB]"
+                            : "bg-[#E5E7EB] text-[#111827] dark:bg-[#111827] dark:text-[#E5E7EB]"
                         }`}
                       >
                         <Shield className="h-3 w-3" />
                         {u.role || "CUSTOMER"}
                       </span>
                     </td>
-                    <td className="p-3 font-extrabold text-slate-900 dark:text-white font-mono">
+                    <td className="p-3 font-extrabold text-[#111827] dark:text-white font-mono">
                       ₦{(u.walletBalance || 0).toLocaleString()}
                     </td>
                     <td className="p-3">
                       {u.isVerified ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-                          <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C] dark:text-[#9CA3AF]">
+                          <CheckCircle2 className="h-3 w-3 text-[#0F2D5C]" />
                           VERIFIED
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-[#E5E7EB] text-[#4B5563] dark:bg-[#111827] dark:text-[#9CA3AF]">
                           UNVERIFIED
                         </span>
                       )}
                     </td>
                     <td className="p-3">
                       {u.status === "SUSPENDED" ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C] dark:text-[#9CA3AF]">
                           <UserX className="h-3 w-3" />
                           SUSPENDED
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C] dark:text-[#9CA3AF]">
                           <UserCheck className="h-3 w-3" />
                           ACTIVE
                         </span>
@@ -380,21 +380,21 @@ export default function UserManagementAdmin({
                         <button
                           onClick={() => handleFetchUserHistory(u)}
                           title="View Login History"
-                          className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-all cursor-pointer"
+                          className="p-1.5 rounded-lg bg-[#E5E7EB] hover:bg-[#E5E7EB] dark:bg-[#111827] dark:hover:bg-[#4B5563] text-[#4B5563] dark:text-[#E5E7EB] transition-all cursor-pointer"
                         >
                           <Clock className="h-3.5 w-3.5" />
                         </button>
                         <button
                           onClick={() => handleTriggerPasswordReset(u)}
                           title="Trigger Password Reset Email"
-                          className="p-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-900/60 text-amber-700 dark:text-amber-300 transition-all cursor-pointer"
+                          className="p-1.5 rounded-lg bg-[#F5F7FA] hover:bg-[#E5E7EB] dark:bg-[#0F2D5C]/40 dark:hover:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] transition-all cursor-pointer"
                         >
                           <Key className="h-3.5 w-3.5" />
                         </button>
                         <button
                           onClick={() => handleOpenRoleModal(u)}
                           title="Modify Role & Claims"
-                          className="p-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 transition-all cursor-pointer"
+                          className="p-1.5 rounded-lg bg-[#F5F7FA] hover:bg-[#E5E7EB] dark:bg-[#0F2D5C]/40 dark:hover:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] transition-all cursor-pointer"
                         >
                           <Sliders className="h-3.5 w-3.5" />
                         </button>
@@ -403,8 +403,8 @@ export default function UserManagementAdmin({
                           title={u.status === "SUSPENDED" ? "Activate User" : "Suspend User"}
                           className={`p-1.5 rounded-lg transition-all cursor-pointer ${
                             u.status === "SUSPENDED"
-                              ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300"
-                              : "bg-rose-50 text-rose-700 hover:bg-rose-100 dark:bg-rose-950/40 dark:text-rose-300"
+                              ? "bg-[#F5F7FA] text-[#0F2D5C] hover:bg-[#E5E7EB] dark:bg-[#0F2D5C]/40 dark:text-[#9CA3AF]"
+                              : "bg-[#F5F7FA] text-[#0F2D5C] hover:bg-[#E5E7EB] dark:bg-[#0F2D5C]/40 dark:text-[#9CA3AF]"
                           }`}
                         >
                           {u.status === "SUSPENDED" ? <Unlock className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
@@ -421,16 +421,16 @@ export default function UserManagementAdmin({
 
       {/* MODAL: EDIT ROLE & CUSTOM CLAIMS */}
       {editingRoleUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
-          <div className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-2xl my-8">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-4">
-              <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <ShieldCheck className="h-5 w-5 text-indigo-500" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
+          <div className="w-full max-w-lg bg-white dark:bg-[#111827] rounded-3xl p-6 border border-[#E5E7EB] dark:border-[#111827] shadow-2xl my-8">
+            <div className="flex items-center justify-between pb-4 border-b border-[#E5E7EB] dark:border-[#111827] mb-4">
+              <h3 className="text-base font-bold text-[#111827] dark:text-white flex items-center gap-2">
+                <ShieldCheck className="h-5 w-5 text-[#0F2D5C]" />
                 Edit Access Rights for {editingRoleUser.fullName}
               </h3>
               <button
                 onClick={() => setEditingRoleUser(null)}
-                className="text-slate-400 hover:text-slate-600 text-sm font-bold p-1 cursor-pointer"
+                className="text-[#9CA3AF] hover:text-[#4B5563] text-sm font-bold p-1 cursor-pointer"
               >
                 ✕
               </button>
@@ -438,11 +438,11 @@ export default function UserManagementAdmin({
 
             <form onSubmit={handleSaveRoleAndClaims} className="space-y-4 text-xs">
               <div>
-                <label className="block text-slate-500 dark:text-slate-400 font-bold mb-1">Assigned User Role</label>
+                <label className="block text-[#6B7280] dark:text-[#9CA3AF] font-bold mb-1">Assigned User Role</label>
                 <select
                   value={newRole}
                   onChange={(e) => setNewRole(e.target.value as UserRole)}
-                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white"
+                  className="w-full p-2.5 bg-[#F5F7FA] dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#4B5563] rounded-xl font-bold text-[#111827] dark:text-white"
                 >
                   <option value={UserRole.CUSTOMER}>Customer (Standard User)</option>
                   <option value={UserRole.STAFF}>Staff Member</option>
@@ -457,77 +457,77 @@ export default function UserManagementAdmin({
                 </select>
               </div>
 
-              {/* Firebase Custom Claims checkboxes */}
-              <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2">
-                <h4 className="font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-1.5">
-                  <Award className="h-4 w-4 text-indigo-500" />
-                  Firebase Custom Claims Assignment
+              {/* Secure Custom Claims checkboxes */}
+              <div className="bg-[#F5F7FA] dark:bg-[#111827] p-4 rounded-2xl border border-[#E5E7EB] dark:border-[#111827] space-y-2">
+                <h4 className="font-bold text-[#111827] dark:text-white mb-2 flex items-center gap-1.5">
+                  <Award className="h-4 w-4 text-[#0F2D5C]" />
+                  Secure Custom Claims Assignment
                 </h4>
                 
-                <label className="flex items-center gap-2 text-slate-700 dark:text-slate-300 cursor-pointer">
+                <label className="flex items-center gap-2 text-[#4B5563] dark:text-[#E5E7EB] cursor-pointer">
                   <input
                     type="checkbox"
                     checked={Boolean(customClaims.superAdmin)}
                     disabled={!isSuperAdmin}
                     onChange={(e) => setCustomClaims({ ...customClaims, superAdmin: e.target.checked })}
-                    className="rounded text-indigo-600 focus:ring-indigo-500"
+                    className="rounded text-[#0F2D5C] focus:ring-[#0F2D5C]"
                   />
                   <span>superAdmin = true</span>
                 </label>
 
-                <label className="flex items-center gap-2 text-slate-700 dark:text-slate-300 cursor-pointer">
+                <label className="flex items-center gap-2 text-[#4B5563] dark:text-[#E5E7EB] cursor-pointer">
                   <input
                     type="checkbox"
                     checked={Boolean(customClaims.admin)}
                     disabled={!isSuperAdmin}
                     onChange={(e) => setCustomClaims({ ...customClaims, admin: e.target.checked })}
-                    className="rounded text-indigo-600 focus:ring-indigo-500"
+                    className="rounded text-[#0F2D5C] focus:ring-[#0F2D5C]"
                   />
                   <span>admin = true</span>
                 </label>
 
-                <label className="flex items-center gap-2 text-slate-700 dark:text-slate-300 cursor-pointer">
+                <label className="flex items-center gap-2 text-[#4B5563] dark:text-[#E5E7EB] cursor-pointer">
                   <input
                     type="checkbox"
                     checked={Boolean(customClaims.staff)}
                     onChange={(e) => setCustomClaims({ ...customClaims, staff: e.target.checked })}
-                    className="rounded text-indigo-600 focus:ring-indigo-500"
+                    className="rounded text-[#0F2D5C] focus:ring-[#0F2D5C]"
                   />
                   <span>staff = true</span>
                 </label>
 
-                <label className="flex items-center gap-2 text-slate-700 dark:text-slate-300 cursor-pointer">
+                <label className="flex items-center gap-2 text-[#4B5563] dark:text-[#E5E7EB] cursor-pointer">
                   <input
                     type="checkbox"
                     checked={Boolean(customClaims.support)}
                     onChange={(e) => setCustomClaims({ ...customClaims, support: e.target.checked })}
-                    className="rounded text-indigo-600 focus:ring-indigo-500"
+                    className="rounded text-[#0F2D5C] focus:ring-[#0F2D5C]"
                   />
                   <span>support = true</span>
                 </label>
 
-                <label className="flex items-center gap-2 text-slate-700 dark:text-slate-300 cursor-pointer">
+                <label className="flex items-center gap-2 text-[#4B5563] dark:text-[#E5E7EB] cursor-pointer">
                   <input
                     type="checkbox"
                     checked={Boolean(customClaims.finance)}
                     onChange={(e) => setCustomClaims({ ...customClaims, finance: e.target.checked })}
-                    className="rounded text-indigo-600 focus:ring-indigo-500"
+                    className="rounded text-[#0F2D5C] focus:ring-[#0F2D5C]"
                   />
                   <span>finance = true</span>
                 </label>
               </div>
 
-              <div className="pt-4 flex items-center justify-end gap-2 border-t border-slate-100 dark:border-slate-800">
+              <div className="pt-4 flex items-center justify-end gap-2 border-t border-[#E5E7EB] dark:border-[#111827]">
                 <button
                   type="button"
                   onClick={() => setEditingRoleUser(null)}
-                  className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl font-bold cursor-pointer"
+                  className="px-4 py-2 bg-[#E5E7EB] dark:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB] rounded-xl font-bold cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold cursor-pointer shadow-md"
+                  className="px-5 py-2 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white rounded-xl font-bold cursor-pointer shadow-md"
                 >
                   Save Access Rights
                 </button>
@@ -539,19 +539,19 @@ export default function UserManagementAdmin({
 
       {/* MODAL: VIEW LOGIN HISTORY */}
       {viewHistoryUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
-          <div className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-2xl my-8">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
+          <div className="w-full max-w-2xl bg-white dark:bg-[#111827] rounded-3xl p-6 border border-[#E5E7EB] dark:border-[#111827] shadow-2xl my-8">
+            <div className="flex items-center justify-between pb-4 border-b border-[#E5E7EB] dark:border-[#111827] mb-4">
               <div>
-                <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-indigo-500" />
+                <h3 className="text-base font-bold text-[#111827] dark:text-white flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-[#0F2D5C]" />
                   Security Login Audit Trail
                 </h3>
-                <p className="text-xs text-slate-500">History for {viewHistoryUser.fullName} ({viewHistoryUser.email})</p>
+                <p className="text-xs text-[#6B7280]">History for {viewHistoryUser.fullName} ({viewHistoryUser.email})</p>
               </div>
               <button
                 onClick={() => setViewHistoryUser(null)}
-                className="text-slate-400 hover:text-slate-600 text-sm font-bold p-1 cursor-pointer"
+                className="text-[#9CA3AF] hover:text-[#4B5563] text-sm font-bold p-1 cursor-pointer"
               >
                 ✕
               </button>
@@ -559,29 +559,29 @@ export default function UserManagementAdmin({
 
             <div className="max-h-96 overflow-y-auto space-y-2 font-mono text-xs">
               {userLogs.length === 0 ? (
-                <div className="p-8 text-center text-slate-400 font-sans">
+                <div className="p-8 text-center text-[#9CA3AF] font-sans">
                   No login history sessions recorded for this user yet.
                 </div>
               ) : (
                 userLogs.map((log, idx) => (
                   <div
                     key={log.id ? `ulog-${log.id}-${idx}` : `ulog-${idx}`}
-                    className="p-3 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between"
+                    className="p-3 bg-[#F5F7FA] dark:bg-[#111827] rounded-xl border border-[#E5E7EB] dark:border-[#111827] flex items-center justify-between"
                   >
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-slate-900 dark:text-white">{log.loginTime}</span>
+                        <span className="font-bold text-[#111827] dark:text-white">{log.loginTime}</span>
                         <span
                           className={`px-2 py-0.2 rounded text-[10px] font-bold ${
                             log.status === "SUCCESS"
-                              ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
-                              : "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300"
+                              ? "bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C] dark:text-[#9CA3AF]"
+                              : "bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C] dark:text-[#9CA3AF]"
                           }`}
                         >
                           {log.status}
                         </span>
                       </div>
-                      <div className="text-[11px] text-slate-400 mt-0.5">
+                      <div className="text-[11px] text-[#9CA3AF] mt-0.5">
                         IP: {log.ipAddress} • {log.browser} on {log.os} ({log.deviceType})
                       </div>
                     </div>
@@ -590,10 +590,10 @@ export default function UserManagementAdmin({
               )}
             </div>
 
-            <div className="pt-4 flex justify-end border-t border-slate-100 dark:border-slate-800 mt-4">
+            <div className="pt-4 flex justify-end border-t border-[#E5E7EB] dark:border-[#111827] mt-4">
               <button
                 onClick={() => setViewHistoryUser(null)}
-                className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl font-bold cursor-pointer text-xs"
+                className="px-4 py-2 bg-[#E5E7EB] dark:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB] rounded-xl font-bold cursor-pointer text-xs"
               >
                 Close Audit
               </button>

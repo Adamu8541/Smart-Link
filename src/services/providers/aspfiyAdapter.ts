@@ -29,9 +29,12 @@ export interface PaymentProviderConfig {
   id: string;
   name: string;
   secretKey: string;
+  apiKey?: string;
   baseUrl?: string;
   webhookUrl?: string;
   webhookSecret?: string;
+  clientId?: string;
+  appId?: string;
   supportsTxVerification?: boolean;
   supportsWalletFunding?: boolean;
   supportsBankTransfer?: boolean;
@@ -69,6 +72,11 @@ export interface ProviderAdapter {
   testConnection?: (
     config: PaymentProviderConfig
   ) => Promise<{ ok: boolean; message: string; responseTimeMs: number }>;
+  payout?: (
+    db: any,
+    params: { recipientAccount: string; bankCode: string; amount: number; reference: string; userId: string },
+    config: PaymentProviderConfig
+  ) => Promise<{ success: boolean; providerReference?: string; rawResponse?: any; error?: string }>;
   verifyWebhookSignature?: (
     headers: Record<string, any>,
     rawBody: string,

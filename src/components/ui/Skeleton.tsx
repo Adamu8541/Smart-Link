@@ -7,7 +7,7 @@ interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
 export function Skeleton({ className = "", ...props }: SkeletonProps) {
   return (
     <div
-      className={`animate-pulse rounded-md bg-slate-200/80 dark:bg-slate-700/50 ${className}`}
+      className={`animate-pulse rounded-md bg-[#E5E7EB]/80 dark:bg-[#4B5563]/50 ${className}`}
       {...props}
     />
   );
@@ -15,7 +15,7 @@ export function Skeleton({ className = "", ...props }: SkeletonProps) {
 
 export function CardSkeleton({ className = "" }: { className?: string }) {
   return (
-    <div className={`p-6 bg-white rounded-2xl border border-slate-100 shadow-xs space-y-4 ${className}`}>
+    <div className={`p-6 bg-white rounded-2xl border border-[#E5E7EB] shadow-xs space-y-4 ${className}`}>
       <div className="flex items-center justify-between">
         <Skeleton className="h-5 w-1/3 rounded-lg" />
         <Skeleton className="h-8 w-8 rounded-full" />
@@ -31,8 +31,8 @@ export function CardSkeleton({ className = "" }: { className?: string }) {
 
 export function TableSkeleton({ rows = 5 }: { rows?: number }) {
   return (
-    <div className="w-full bg-white rounded-2xl border border-slate-100 overflow-hidden space-y-3 p-4">
-      <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+    <div className="w-full bg-white rounded-2xl border border-[#E5E7EB] overflow-hidden space-y-3 p-4">
+      <div className="flex items-center justify-between pb-3 border-b border-[#E5E7EB]">
         <Skeleton className="h-4 w-28 rounded-md" />
         <Skeleton className="h-4 w-16 rounded-md" />
       </div>

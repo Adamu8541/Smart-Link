@@ -278,67 +278,67 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
   return (
     <div className="space-y-6 max-w-4xl mx-auto p-4 sm:p-6 text-left">
       {/* Top Header Section */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
+      <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl p-6 shadow-sm space-y-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
             {onBackToDashboard && (
               <button
                 type="button"
                 onClick={onBackToDashboard}
-                className="p-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
+                className="p-2.5 rounded-2xl bg-[#E5E7EB] dark:bg-[#111827] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563] text-[#4B5563] dark:text-[#E5E7EB] transition-colors cursor-pointer"
                 title="Back to Dashboard"
               >
                 <ArrowLeft className="h-5 w-5" />
               </button>
             )}
 
-            <div className="p-3 bg-gradient-to-tr from-amber-600 to-yellow-600 text-white rounded-2xl shadow-md shadow-amber-600/20">
+            <div className="p-3 bg-gradient-to-tr from-[#0F2D5C] to-[#0F2D5C] text-white rounded-2xl shadow-md shadow-amber-600/20">
               <Building2 className="h-7 w-7" />
             </div>
 
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">
+                <h1 className="text-lg font-black text-[#111827] dark:text-white tracking-tight">
                   CAC Business Verification
                 </h1>
-                <span className="px-2.5 py-0.5 text-[10px] font-extrabold uppercase bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 rounded-full border border-amber-300 dark:border-amber-800">
-                  CAC Abuja Gateway
+                <span className="px-2.5 py-0.5 text-[10px] font-extrabold uppercase bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C] dark:text-[#9CA3AF] rounded-full border border-[#E5E7EB] dark:border-[#0F2D5C]">
+                  CAC National Gateway
                 </span>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-0.5">
                 Official Corporate Affairs Commission register for Business Names, RC Companies, and Incorporated Trustees
               </p>
             </div>
           </div>
 
           {/* Service Meta Stats & Wallet */}
-          <div className="flex flex-wrap items-center gap-3 self-stretch sm:self-auto justify-between sm:justify-end bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80">
+          <div className="flex flex-wrap items-center gap-3 self-stretch sm:self-auto justify-between sm:justify-end bg-[#F5F7FA] dark:bg-[#111827]/60 p-2.5 rounded-2xl border border-[#E5E7EB]/80 dark:border-[#4B5563]/80">
             <div className="text-right">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">Wallet Balance</span>
-              <span className="font-mono text-sm font-extrabold text-emerald-600 dark:text-emerald-400">
+              <span className="text-[10px] uppercase font-bold text-[#9CA3AF] block">Wallet Balance</span>
+              <span className="font-mono text-sm font-extrabold text-[#0F2D5C] dark:text-[#9CA3AF]">
                 ₦{userBalance.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
               </span>
             </div>
-            <div className="h-8 w-px bg-slate-200 dark:bg-slate-700" />
+            <div className="h-8 w-px bg-[#E5E7EB] dark:bg-[#4B5563]" />
             <div className="text-right">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">Fee</span>
-              <span className="font-mono text-sm font-extrabold text-amber-600 dark:text-amber-400">
+              <span className="text-[10px] uppercase font-bold text-[#9CA3AF] block">Fee</span>
+              <span className="font-mono text-sm font-extrabold text-[#0F2D5C] dark:text-[#9CA3AF]">
                 ₦{cacFee.toLocaleString()}
               </span>
             </div>
-            <div className="h-8 w-px bg-slate-200 dark:bg-slate-700" />
+            <div className="h-8 w-px bg-[#E5E7EB] dark:bg-[#4B5563]" />
             <div className="text-right">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">Status</span>
-              <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[10px] uppercase font-bold text-[#9CA3AF] block">Status</span>
+              <span className="inline-flex items-center gap-1 text-xs font-bold text-[#0F2D5C] dark:text-[#9CA3AF]">
+                <span className="h-2 w-2 rounded-full bg-[#0F2D5C] animate-pulse" />
                 {providerStatus}
               </span>
             </div>
-            <div className="h-8 w-px bg-slate-200 dark:bg-slate-700" />
+            <div className="h-8 w-px bg-[#E5E7EB] dark:bg-[#4B5563]" />
             <div className="text-right">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">Speed</span>
-              <span className="font-mono text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
-                <Clock className="h-3 w-3 text-slate-400" />
+              <span className="text-[10px] uppercase font-bold text-[#9CA3AF] block">Speed</span>
+              <span className="font-mono text-xs font-bold text-[#4B5563] dark:text-[#E5E7EB] flex items-center gap-1">
+                <Clock className="h-3 w-3 text-[#9CA3AF]" />
                 {estimatedProcessingTime}
               </span>
             </div>
@@ -346,14 +346,14 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
         </div>
 
         {/* View Tabs */}
-        <div className="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+        <div className="flex items-center gap-2 pt-2 border-t border-[#E5E7EB] dark:border-[#111827]">
           <button
             type="button"
             onClick={() => setActiveTab("VERIFY")}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
               activeTab === "VERIFY"
-                ? "bg-amber-600 text-white shadow-md shadow-amber-600/20"
-                : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                ? "bg-[#0F2D5C] text-white shadow-md shadow-amber-600/20"
+                : "bg-[#E5E7EB] dark:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563]"
             }`}
           >
             <Building className="h-4 w-4" />
@@ -365,8 +365,8 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
             onClick={() => setActiveTab("HISTORY")}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
               activeTab === "HISTORY"
-                ? "bg-amber-600 text-white shadow-md shadow-amber-600/20"
-                : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                ? "bg-[#0F2D5C] text-white shadow-md shadow-amber-600/20"
+                : "bg-[#E5E7EB] dark:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563]"
             }`}
           >
             <History className="h-4 w-4" />
@@ -377,14 +377,14 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
 
       {/* TAB 1: CAC Form & Execution */}
       {activeTab === "VERIFY" && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-6">
+        <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl p-6 shadow-sm space-y-6">
           {stepMode === "INPUT" && (
             <div className="space-y-6 max-w-xl mx-auto">
-              <div className="p-4 bg-amber-50/70 dark:bg-amber-950/40 rounded-2xl border border-amber-200/60 dark:border-amber-900/40 flex items-center gap-3">
-                <ShieldCheck className="h-6 w-6 text-amber-600 dark:text-amber-400 shrink-0" />
+              <div className="p-4 bg-[#F5F7FA]/70 dark:bg-[#0F2D5C]/40 rounded-2xl border border-[#E5E7EB]/60 dark:border-[#0F2D5C]/40 flex items-center gap-3">
+                <ShieldCheck className="h-6 w-6 text-[#0F2D5C] dark:text-[#9CA3AF] shrink-0" />
                 <div className="text-xs">
-                  <p className="font-bold text-slate-800 dark:text-slate-200">Official Corporate Affairs Commission Registry</p>
-                  <p className="text-slate-500 dark:text-slate-400">
+                  <p className="font-bold text-[#111827] dark:text-[#E5E7EB]">Official Corporate Affairs Commission Registry</p>
+                  <p className="text-[#6B7280] dark:text-[#9CA3AF]">
                     Returns verified registration status, RC/BN/IT number, incorporation date, registered address, and board of directors.
                   </p>
                 </div>
@@ -392,8 +392,8 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
 
               {/* Verification Type Selectors */}
               <div className="space-y-2">
-                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
-                  Select Verification Type <span className="text-rose-500">*</span>
+                <label className="block text-xs font-bold text-[#111827] dark:text-[#E5E7EB]">
+                  Select Verification Type <span className="text-[#0F2D5C]">*</span>
                 </label>
                 <div className="grid grid-cols-2 gap-2.5">
                   <button
@@ -404,11 +404,11 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
                     }}
                     className={`p-3 rounded-2xl border text-left text-xs font-bold transition-all cursor-pointer flex items-center gap-2.5 ${
                       cacType === "COMPANY_RC"
-                        ? "border-amber-500 bg-amber-50 dark:bg-amber-950/60 text-amber-900 dark:text-amber-200 shadow-xs"
-                        : "border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                        ? "border-[#0F2D5C] bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] shadow-xs"
+                        : "border-[#E5E7EB] dark:border-[#4B5563] hover:bg-[#F5F7FA] dark:hover:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB]"
                     }`}
                   >
-                    <Building2 className="h-4 w-4 text-amber-600 shrink-0" />
+                    <Building2 className="h-4 w-4 text-[#0F2D5C] shrink-0" />
                     <span>Company (RC Number)</span>
                   </button>
 
@@ -420,11 +420,11 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
                     }}
                     className={`p-3 rounded-2xl border text-left text-xs font-bold transition-all cursor-pointer flex items-center gap-2.5 ${
                       cacType === "BUSINESS_NAME"
-                        ? "border-amber-500 bg-amber-50 dark:bg-amber-950/60 text-amber-900 dark:text-amber-200 shadow-xs"
-                        : "border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                        ? "border-[#0F2D5C] bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] shadow-xs"
+                        : "border-[#E5E7EB] dark:border-[#4B5563] hover:bg-[#F5F7FA] dark:hover:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB]"
                     }`}
                   >
-                    <Briefcase className="h-4 w-4 text-amber-600 shrink-0" />
+                    <Briefcase className="h-4 w-4 text-[#0F2D5C] shrink-0" />
                     <span>Business Name</span>
                   </button>
 
@@ -436,11 +436,11 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
                     }}
                     className={`p-3 rounded-2xl border text-left text-xs font-bold transition-all cursor-pointer flex items-center gap-2.5 ${
                       cacType === "INCORPORATED_TRUSTEE"
-                        ? "border-amber-500 bg-amber-50 dark:bg-amber-950/60 text-amber-900 dark:text-amber-200 shadow-xs"
-                        : "border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                        ? "border-[#0F2D5C] bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] shadow-xs"
+                        : "border-[#E5E7EB] dark:border-[#4B5563] hover:bg-[#F5F7FA] dark:hover:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB]"
                     }`}
                   >
-                    <Building className="h-4 w-4 text-amber-600 shrink-0" />
+                    <Building className="h-4 w-4 text-[#0F2D5C] shrink-0" />
                     <span>Incorporated Trustee</span>
                   </button>
 
@@ -452,11 +452,11 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
                     }}
                     className={`p-3 rounded-2xl border text-left text-xs font-bold transition-all cursor-pointer flex items-center gap-2.5 ${
                       cacType === "REGISTRATION_NUMBER"
-                        ? "border-amber-500 bg-amber-50 dark:bg-amber-950/60 text-amber-900 dark:text-amber-200 shadow-xs"
-                        : "border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                        ? "border-[#0F2D5C] bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] shadow-xs"
+                        : "border-[#E5E7EB] dark:border-[#4B5563] hover:bg-[#F5F7FA] dark:hover:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB]"
                     }`}
                   >
-                    <FileCheck2 className="h-4 w-4 text-amber-600 shrink-0" />
+                    <FileCheck2 className="h-4 w-4 text-[#0F2D5C] shrink-0" />
                     <span>Registration Number</span>
                   </button>
                 </div>
@@ -466,8 +466,8 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
               <div className="space-y-4">
                 {cacType === "BUSINESS_NAME" ? (
                   <div className="space-y-1.5">
-                    <label htmlFor="bizNameInput" className="block text-xs font-bold text-slate-800 dark:text-slate-200">
-                      Full Business Name <span className="text-rose-500">*</span>
+                    <label htmlFor="bizNameInput" className="block text-xs font-bold text-[#111827] dark:text-[#E5E7EB]">
+                      Full Business Name <span className="text-[#0F2D5C]">*</span>
                     </label>
                     <input
                       id="bizNameInput"
@@ -478,26 +478,26 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
                         if (inputError) setInputError(null);
                       }}
                       placeholder="e.g. SmartLink Digital Solutions"
-                      className={`w-full px-4 py-3.5 text-sm bg-slate-50 dark:bg-slate-800 border rounded-2xl focus:outline-hidden focus:ring-2 text-slate-900 dark:text-white ${
+                      className={`w-full px-4 py-3.5 text-sm bg-[#F5F7FA] dark:bg-[#111827] border rounded-2xl focus:outline-hidden focus:ring-2 text-[#111827] dark:text-white ${
                         inputError
-                          ? "border-rose-500 ring-rose-500/20"
-                          : "border-slate-200 dark:border-slate-700 focus:ring-amber-500/20"
+                          ? "border-[#0F2D5C] ring-[#0F2D5C]/20"
+                          : "border-[#E5E7EB] dark:border-[#4B5563] focus:ring-[#0F2D5C]/20"
                       }`}
                     />
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                      <Info className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                    <p className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF] flex items-center gap-1">
+                      <Info className="h-3.5 w-3.5 text-[#0F2D5C] shrink-0" />
                       <span>Enter between 3 and 200 characters of the registered business name.</span>
                     </p>
                   </div>
                 ) : (
                   <div className="space-y-1.5">
-                    <label htmlFor="targetNumberInput" className="block text-xs font-bold text-slate-800 dark:text-slate-200">
+                    <label htmlFor="targetNumberInput" className="block text-xs font-bold text-[#111827] dark:text-[#E5E7EB]">
                       {cacType === "COMPANY_RC"
                         ? "Company RC Number"
                         : cacType === "INCORPORATED_TRUSTEE"
                         ? "Incorporated Trustee Registration Number"
                         : "CAC Registration Number"}{" "}
-                      <span className="text-rose-500">*</span>
+                      <span className="text-[#0F2D5C]">*</span>
                     </label>
                     <input
                       id="targetNumberInput"
@@ -514,14 +514,14 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
                           ? "e.g. IT987654"
                           : "e.g. BN234567"
                       }
-                      className={`w-full px-4 py-3.5 text-base bg-slate-50 dark:bg-slate-800 border rounded-2xl focus:outline-hidden focus:ring-2 font-mono tracking-wider text-slate-900 dark:text-white ${
+                      className={`w-full px-4 py-3.5 text-base bg-[#F5F7FA] dark:bg-[#111827] border rounded-2xl focus:outline-hidden focus:ring-2 font-mono tracking-wider text-[#111827] dark:text-white ${
                         inputError
-                          ? "border-rose-500 ring-rose-500/20"
-                          : "border-slate-200 dark:border-slate-700 focus:ring-amber-500/20"
+                          ? "border-[#0F2D5C] ring-[#0F2D5C]/20"
+                          : "border-[#E5E7EB] dark:border-[#4B5563] focus:ring-[#0F2D5C]/20"
                       }`}
                     />
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                      <Info className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                    <p className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF] flex items-center gap-1">
+                      <Info className="h-3.5 w-3.5 text-[#0F2D5C] shrink-0" />
                       <span>Enter valid CAC Registration Number issued upon incorporation.</span>
                     </p>
                   </div>
@@ -529,14 +529,14 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label htmlFor="cacVerificationPurpose" className="block text-xs font-bold text-slate-800 dark:text-slate-200">
+                    <label htmlFor="cacVerificationPurpose" className="block text-xs font-bold text-[#111827] dark:text-[#E5E7EB]">
                       Verification Purpose
                     </label>
                     <select
                       id="cacVerificationPurpose"
                       value={verificationPurpose}
                       onChange={(e) => setVerificationPurpose(e.target.value)}
-                      className="w-full px-4 py-3 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl focus:outline-hidden focus:ring-2 focus:ring-amber-500/20 text-slate-900 dark:text-white"
+                      className="w-full px-4 py-3 text-xs bg-[#F5F7FA] dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#4B5563] rounded-2xl focus:outline-hidden focus:ring-2 focus:ring-[#0F2D5C]/20 text-[#111827] dark:text-white"
                     >
                       <option value="Corporate Due Diligence">Corporate Due Diligence</option>
                       <option value="KYC Onboarding">KYC Onboarding & Verification</option>
@@ -547,7 +547,7 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
                   </div>
 
                   <div className="space-y-1.5">
-                    <label htmlFor="cacReferenceNote" className="block text-xs font-bold text-slate-800 dark:text-slate-200">
+                    <label htmlFor="cacReferenceNote" className="block text-xs font-bold text-[#111827] dark:text-[#E5E7EB]">
                       Reference Note (Optional)
                     </label>
                     <input
@@ -556,13 +556,13 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
                       value={referenceNote}
                       onChange={(e) => setReferenceNote(e.target.value)}
                       placeholder="e.g. Compliance Audit #104"
-                      className="w-full px-4 py-3 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl focus:outline-hidden focus:ring-2 focus:ring-amber-500/20 text-slate-900 dark:text-white"
+                      className="w-full px-4 py-3 text-xs bg-[#F5F7FA] dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#4B5563] rounded-2xl focus:outline-hidden focus:ring-2 focus:ring-[#0F2D5C]/20 text-[#111827] dark:text-white"
                     />
                   </div>
                 </div>
 
                 {/* Mandatory Regulatory Consent Checkbox */}
-                <div className="flex items-start gap-3 p-4 bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 rounded-2xl">
+                <div className="flex items-start gap-3 p-4 bg-[#F5F7FA] dark:bg-[#111827]/40 border border-[#E5E7EB] dark:border-[#4B5563] rounded-2xl">
                   <input
                     type="checkbox"
                     id="cacConsentCheckbox"
@@ -571,17 +571,17 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
                       setUserConsent(e.target.checked);
                       if (inputError) setInputError(null);
                     }}
-                    className="mt-0.5 h-4 w-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500 cursor-pointer shrink-0"
+                    className="mt-0.5 h-4 w-4 rounded border-[#E5E7EB] text-[#0F2D5C] focus:ring-[#0F2D5C] cursor-pointer shrink-0"
                   />
-                  <label htmlFor="cacConsentCheckbox" className="text-xs text-slate-600 dark:text-slate-300 cursor-pointer leading-relaxed">
-                    I confirm that I have explicit authorization to verify this <span className="font-bold text-slate-800 dark:text-slate-100">CAC Corporate Entity Record</span> for legitimate due diligence purposes in accordance with CAC regulations & NDPR rules.
+                  <label htmlFor="cacConsentCheckbox" className="text-xs text-[#4B5563] dark:text-[#E5E7EB] cursor-pointer leading-relaxed">
+                    I confirm that I have explicit authorization to verify this <span className="font-bold text-[#111827] dark:text-[#E5E7EB]">CAC Corporate Entity Record</span> for legitimate due diligence purposes in accordance with CAC regulations & NDPR rules.
                   </label>
                 </div>
 
                 {/* Input Error Callout */}
                 {inputError && (
-                  <div className="p-3.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 rounded-xl flex items-center gap-2 text-xs text-rose-700 dark:text-rose-300">
-                    <AlertCircle className="h-4 w-4 shrink-0 text-rose-500" />
+                  <div className="p-3.5 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border border-[#E5E7EB] dark:border-[#0F2D5C]/60 rounded-xl flex items-center gap-2 text-xs text-[#0F2D5C] dark:text-[#9CA3AF]">
+                    <AlertCircle className="h-4 w-4 shrink-0 text-[#0F2D5C]" />
                     <span>{inputError}</span>
                   </div>
                 )}
@@ -592,7 +592,7 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
                 <button
                   type="button"
                   onClick={handleResetForm}
-                  className="py-3 px-5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-2xl text-xs transition-colors cursor-pointer flex items-center gap-1.5"
+                  className="py-3 px-5 bg-[#E5E7EB] dark:bg-[#111827] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563] text-[#4B5563] dark:text-[#E5E7EB] font-bold rounded-2xl text-xs transition-colors cursor-pointer flex items-center gap-1.5"
                 >
                   <RotateCcw className="h-3.5 w-3.5" />
                   <span>Clear Form</span>
@@ -601,7 +601,7 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
                 <button
                   type="button"
                   onClick={handleProceedToConfirmation}
-                  className="flex-1 py-3.5 px-6 bg-amber-600 hover:bg-amber-700 active:scale-98 text-white font-extrabold rounded-2xl text-xs transition-all shadow-md shadow-amber-600/20 cursor-pointer flex items-center justify-center gap-2"
+                  className="flex-1 py-3.5 px-6 bg-[#0F2D5C] hover:bg-[#0F2D5C] active:scale-98 text-white font-extrabold rounded-2xl text-xs transition-all shadow-md shadow-amber-600/20 cursor-pointer flex items-center justify-center gap-2"
                 >
                   <Lock className="h-4 w-4" />
                   <span>Verify Business (₦{cacFee.toLocaleString()})</span>
@@ -656,62 +656,62 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
 
       {/* TAB 2: CAC History */}
       {activeTab === "HISTORY" && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-5">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
+        <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl p-6 shadow-sm space-y-5">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-[#E5E7EB] dark:border-[#111827]">
             <div>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <History className="h-4 w-4 text-amber-500" />
+              <h3 className="text-sm font-bold text-[#111827] dark:text-white flex items-center gap-2">
+                <History className="h-4 w-4 text-[#0F2D5C]" />
                 <span>CAC Business Verification Audit Trail</span>
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">
                 Audit trail of all Corporate Affairs Commission queries executed on your account
               </p>
             </div>
 
             <div className="relative w-full sm:w-64">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-[#9CA3AF]" />
               <input
                 type="text"
                 value={historySearch}
                 onChange={(e) => setHistorySearch(e.target.value)}
                 placeholder="Search by RC, Company Name, Ref..."
-                className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-hidden text-slate-900 dark:text-white"
+                className="w-full pl-9 pr-4 py-2 text-xs bg-[#F5F7FA] dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#4B5563] rounded-xl focus:outline-hidden text-[#111827] dark:text-white"
               />
             </div>
           </div>
 
           {historyLoading ? (
-            <div className="py-12 text-center text-xs text-slate-500 dark:text-slate-400 flex flex-col items-center gap-2">
-              <RefreshCw className="h-5 w-5 animate-spin text-amber-500" />
+            <div className="py-12 text-center text-xs text-[#6B7280] dark:text-[#9CA3AF] flex flex-col items-center gap-2">
+              <RefreshCw className="h-5 w-5 animate-spin text-[#0F2D5C]" />
               <span>Loading CAC query history...</span>
             </div>
           ) : filteredHistory.length === 0 ? (
             <div className="py-12 text-center space-y-2">
-              <Building2 className="h-10 w-10 mx-auto text-slate-300 dark:text-slate-700" />
-              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">No CAC Verifications Found</p>
-              <p className="text-[11px] text-slate-400">Perform your first business query using the form above.</p>
+              <Building2 className="h-10 w-10 mx-auto text-[#E5E7EB] dark:text-[#4B5563]" />
+              <p className="text-xs font-semibold text-[#4B5563] dark:text-[#9CA3AF]">No CAC Verifications Found</p>
+              <p className="text-[11px] text-[#9CA3AF]">Perform your first business query using the form above.</p>
             </div>
           ) : (
             <div className="space-y-3">
               {filteredHistory.map((item) => (
                 <div
                   key={item.id}
-                  className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:border-amber-500/40 transition-colors"
+                  className="p-4 bg-[#F5F7FA] dark:bg-[#111827]/40 rounded-2xl border border-[#E5E7EB] dark:border-[#111827] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:border-[#0F2D5C]/40 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-400">
+                    <div className="p-2.5 rounded-xl bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 border border-[#E5E7EB] dark:border-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF]">
                       <Building2 className="h-5 w-5" />
                     </div>
                     <div className="space-y-0.5">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-xs text-slate-900 dark:text-white">
+                        <span className="font-bold text-xs text-[#111827] dark:text-white">
                           {item.data?.companyName || item.verifiedId}
                         </span>
-                        <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300">
+                        <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/60 dark:text-[#9CA3AF]">
                           {item.data?.companyStatus || "ACTIVE"}
                         </span>
                       </div>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                      <p className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF] flex items-center gap-2">
                         <span>Reg No: {item.maskedId}</span>
                         <span>•</span>
                         <span>Ref: #{item.reference}</span>
@@ -722,7 +722,7 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
                   </div>
 
                   <div className="flex items-center gap-3 self-end sm:self-auto">
-                    <span className="font-mono text-xs font-bold text-slate-700 dark:text-slate-300">
+                    <span className="font-mono text-xs font-bold text-[#4B5563] dark:text-[#E5E7EB]">
                       ₦{item.fee.toLocaleString()}
                     </span>
                     <button
@@ -746,7 +746,7 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
                         };
                         setSelectedHistoryReceipt(stdRes);
                       }}
-                      className="px-3 py-1.5 bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-200 dark:border-amber-800 rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5"
+                      className="px-3 py-1.5 bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] hover:bg-[#E5E7EB] dark:hover:bg-[#0F2D5C]/60 border border-[#E5E7EB] dark:border-[#0F2D5C] rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5"
                     >
                       <FileText className="h-3.5 w-3.5" />
                       <span>Receipt</span>

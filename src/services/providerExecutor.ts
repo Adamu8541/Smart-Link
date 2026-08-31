@@ -360,13 +360,32 @@ export class ProviderExecutor {
     const providerName = provider.name || params.providerName || "Provider";
     const providerCode = provider.id || params.providerCode || "PROV";
 
-    // 2. Find request template in db.api_requests
+    // 2. Check if there's a specialized ProviderAdapter for IDENTITY_API (LumiID, NinBvnPortal, etc.)
+    const registeredAdapter = getAdapterForProvider(provider);
     const apiRequests = db.api_requests || [];
     const requestTemplate = apiRequests.find((r: any) =>
       r &&
       r.status !== "DISABLED" &&
-      (r.provider === provider.id || r.provider === provider.name || r.category === params.category || (r.provider && String(r.provider).toLowerCase().includes(String(provider.name).toLowerCase())))
+      (r.provider === provider.id || r.provider === provider.name || (r.provider && String(r.provider).toLowerCase().includes(String(provider.name).toLowerCase())))
     );
+
+    if (params.category === "IDENTITY_API" && registeredAdapter && typeof (registeredAdapter as any).verifyIdentity === "function" && !requestTemplate) {
+      const sType = params.extraData?.verificationType || params.category;
+      const targetId = params.customerId || params.phoneNumber || "";
+      const adapterRes = await (registeredAdapter as any).verifyIdentity(sType, targetId, params.extraData || {}, provider);
+      return {
+        success: adapterRes.success,
+        providerName,
+        providerCode,
+        providerReference: adapterRes.providerReference,
+        transactionId: adapterRes.transactionId || adapterRes.providerReference,
+        message: adapterRes.error,
+        error: adapterRes.error,
+        rawResponse: adapterRes.data || adapterRes,
+        statusCode: adapterRes.statusCode,
+        responseTimeMs: adapterRes.responseTimeMs || (Date.now() - startTime),
+      };
+    }
 
     // 3. Construct Context Variables for Template Substitution
     const targetCustomerId = params.customerId || params.phoneNumber || "";

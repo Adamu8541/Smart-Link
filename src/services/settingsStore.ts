@@ -1,4 +1,5 @@
 import { getAdminFirestore } from "./firebaseAdmin";
+import { readDB } from "../../server/db";
 
 export interface AdminConfigDoc {
   system_settings?: any;
@@ -22,8 +23,28 @@ export async function getSettingsDoc(): Promise<AdminConfigDoc | null> {
     if (snapshot.exists) {
       return snapshot.data() as AdminConfigDoc;
     }
-  } catch (err) {
-    console.warn("[settingsStore] getSettingsDoc failed:", err);
+  } catch (err: any) {
+    if (!err?.message?.includes("RESOURCE_EXHAUSTED") && err?.code !== 8) {
+      console.log("[settingsStore] Firestore unavailable, using local database fallback.");
+    }
+    try {
+      const db = readDB();
+      if (db) {
+        return {
+          system_settings: db.system_settings,
+          branding_settings: db.branding_settings,
+          maintenance_settings: db.maintenance_settings,
+          platform_configuration: db.platform_configuration,
+          apiProviders: db.api_providers || db.apiProviders || [],
+          api_providers: db.api_providers || db.apiProviders || [],
+          servicesCatalog: db.servicesCatalog || [],
+          services_catalog: db.servicesCatalog || [],
+          priceMatrix: db.priceMatrix,
+          siteSettings: db.siteSettings,
+          settings_audit_logs: db.settings_audit_logs || [],
+        };
+      }
+    } catch (fallbackErr) {}
   }
   return null;
 }

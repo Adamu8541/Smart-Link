@@ -130,58 +130,58 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
     switch (type) {
       case "WALLET_CREDIT":
       case "WALLET_DEBIT":
-        return <Wallet className="w-4 h-4 text-emerald-500" />;
+        return <Wallet className="w-4 h-4 text-[#0F2D5C]" />;
       case "VERIFICATION_SUCCESSFUL":
       case "VERIFICATION_FAILED":
-        return <UserCheck className="w-4 h-4 text-blue-500" />;
+        return <UserCheck className="w-4 h-4 text-[#0F2D5C]" />;
       case "LOGIN":
       case "LOGOUT":
       case "PASSWORD_CHANGED":
-        return <KeyRound className="w-4 h-4 text-purple-500" />;
+        return <KeyRound className="w-4 h-4 text-[#0F2D5C]" />;
       case "SECURITY_ALERT":
-        return <ShieldAlert className="w-4 h-4 text-rose-500" />;
+        return <ShieldAlert className="w-4 h-4 text-[#0F2D5C]" />;
       case "ADMIN_ANNOUNCEMENT":
       case "NEW_FEATURE_ANNOUNCEMENT":
-        return <Megaphone className="w-4 h-4 text-amber-500" />;
+        return <Megaphone className="w-4 h-4 text-[#0F2D5C]" />;
       case "MAINTENANCE_NOTICE":
-        return <AlertTriangle className="w-4 h-4 text-orange-500" />;
+        return <AlertTriangle className="w-4 h-4 text-[#0F2D5C]" />;
       case "REFUND_COMPLETED":
-        return <RotateCcw className="w-4 h-4 text-indigo-500" />;
+        return <RotateCcw className="w-4 h-4 text-[#0F2D5C]" />;
       default:
-        if (category === "TRANSACTION") return <Wallet className="w-4 h-4 text-emerald-500" />;
-        if (category === "VERIFICATION") return <UserCheck className="w-4 h-4 text-blue-500" />;
-        if (category === "SECURITY") return <ShieldAlert className="w-4 h-4 text-rose-500" />;
-        return <Info className="w-4 h-4 text-slate-500" />;
+        if (category === "TRANSACTION") return <Wallet className="w-4 h-4 text-[#0F2D5C]" />;
+        if (category === "VERIFICATION") return <UserCheck className="w-4 h-4 text-[#0F2D5C]" />;
+        if (category === "SECURITY") return <ShieldAlert className="w-4 h-4 text-[#0F2D5C]" />;
+        return <Info className="w-4 h-4 text-[#6B7280]" />;
     }
   };
 
   const totalPages = Math.ceil(total / pageSize) || 1;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111827]/60 backdrop-blur-sm animate-in fade-in duration-200">
       <div
         className={`relative w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden border flex flex-col max-h-[90vh] ${
           isDarkMode
-            ? "bg-slate-900 border-slate-800 text-slate-100"
-            : "bg-white border-slate-200 text-slate-900"
+            ? "bg-[#111827] border-[#111827] text-[#E5E7EB]"
+            : "bg-white border-[#E5E7EB] text-[#111827]"
         }`}
       >
         {/* Header */}
-        <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0">
+        <div className="p-5 border-b border-[#E5E7EB] dark:border-[#111827] flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
-            <div className="relative p-2.5 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400">
+            <div className="relative p-2.5 rounded-xl bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF]">
               <Bell className="w-5 h-5" />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-rose-500 text-white text-[10px] font-extrabold rounded-full flex items-center justify-center animate-pulse">
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#0F2D5C] text-white text-[10px] font-extrabold rounded-full flex items-center justify-center animate-pulse">
                   {unreadCount > 99 ? "99+" : unreadCount}
                 </span>
               )}
             </div>
             <div>
-              <h3 className="font-bold text-lg text-slate-900 dark:text-white leading-tight">
+              <h3 className="font-bold text-lg text-[#111827] dark:text-white leading-tight">
                 Notification Center
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">
                 Real-time updates, alerts, and system activity records.
               </p>
             </div>
@@ -189,14 +189,14 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="p-2 rounded-xl text-[#9CA3AF] hover:text-[#4B5563] dark:hover:text-[#E5E7EB] hover:bg-[#E5E7EB] dark:hover:bg-[#111827] transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Navigation Tabs & Actions Bar */}
-        <div className="px-5 pt-3 pb-2 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex flex-wrap items-center justify-between gap-3 shrink-0">
+        <div className="px-5 pt-3 pb-2 border-b border-[#E5E7EB] dark:border-[#111827] bg-[#F5F7FA]/50 dark:bg-[#111827]/30 flex flex-wrap items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-1.5">
             <button
               onClick={() => {
@@ -205,8 +205,8 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
               }}
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                 activeTab === "ALL"
-                  ? "bg-blue-600 text-white shadow-sm"
-                  : "text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800"
+                  ? "bg-[#0F2D5C] text-white shadow-sm"
+                  : "text-[#4B5563] dark:text-[#9CA3AF] hover:bg-[#E5E7EB] dark:hover:bg-[#111827]"
               }`}
             >
               All Notifications ({total})
@@ -219,13 +219,13 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
               }}
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all relative ${
                 activeTab === "UNREAD"
-                  ? "bg-blue-600 text-white shadow-sm"
-                  : "text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800"
+                  ? "bg-[#0F2D5C] text-white shadow-sm"
+                  : "text-[#4B5563] dark:text-[#9CA3AF] hover:bg-[#E5E7EB] dark:hover:bg-[#111827]"
               }`}
             >
               Unread
               {unreadCount > 0 && (
-                <span className="ml-1.5 px-1.5 py-0.2 bg-rose-500 text-white text-[10px] rounded-full">
+                <span className="ml-1.5 px-1.5 py-0.2 bg-[#0F2D5C] text-white text-[10px] rounded-full">
                   {unreadCount}
                 </span>
               )}
@@ -235,8 +235,8 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
               onClick={() => setActiveTab("SETTINGS")}
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
                 activeTab === "SETTINGS"
-                  ? "bg-blue-600 text-white shadow-sm"
-                  : "text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800"
+                  ? "bg-[#0F2D5C] text-white shadow-sm"
+                  : "text-[#4B5563] dark:text-[#9CA3AF] hover:bg-[#E5E7EB] dark:hover:bg-[#111827]"
               }`}
             >
               <Settings className="w-3.5 h-3.5" />
@@ -249,19 +249,19 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
               <button
                 onClick={handleMarkAllRead}
                 disabled={unreadCount === 0}
-                className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-medium hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 transition-colors flex items-center gap-1"
+                className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#4B5563] text-[#4B5563] dark:text-[#E5E7EB] text-xs font-medium hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563] disabled:opacity-40 transition-colors flex items-center gap-1"
                 title="Mark all as read"
               >
-                <CheckCheck className="w-3.5 h-3.5 text-blue-600" />
+                <CheckCheck className="w-3.5 h-3.5 text-[#0F2D5C]" />
                 Mark All Read
               </button>
 
               <button
                 onClick={() => fetchNotifications()}
-                className="p-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                className="p-1.5 rounded-lg bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#4B5563] text-[#4B5563] dark:text-[#E5E7EB] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563] transition-colors"
                 title="Refresh"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-blue-600" : ""}`} />
+                <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-[#0F2D5C]" : ""}`} />
               </button>
             </div>
           )}
@@ -269,16 +269,16 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
 
         {/* Search & Filter Bar (Only when in notification lists) */}
         {activeTab !== "SETTINGS" && (
-          <div className="px-5 py-2.5 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 grid grid-cols-1 sm:grid-cols-3 gap-2 shrink-0">
+          <div className="px-5 py-2.5 border-b border-[#E5E7EB] dark:border-[#111827] bg-white dark:bg-[#111827] grid grid-cols-1 sm:grid-cols-3 gap-2 shrink-0">
             <div className="relative sm:col-span-2">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400" />
+              <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-[#9CA3AF]" />
               <input
                 type="text"
                 placeholder="Search notification title or message..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && fetchNotifications()}
-                className="w-full pl-8 pr-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-8 pr-3 py-1.5 bg-[#F5F7FA] dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#4B5563] rounded-xl text-xs text-[#111827] dark:text-[#E5E7EB] focus:outline-none focus:ring-2 focus:ring-[#0F2D5C]"
               />
             </div>
 
@@ -289,7 +289,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
                   setCategoryFilter(e.target.value);
                   setPage(1);
                 }}
-                className="w-full px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-2.5 py-1.5 bg-[#F5F7FA] dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#4B5563] rounded-xl text-xs text-[#111827] dark:text-[#E5E7EB] focus:outline-none focus:ring-2 focus:ring-[#0F2D5C]"
               >
                 <option value="ALL">All Categories</option>
                 <option value="TRANSACTION">Transactions</option>
@@ -308,29 +308,29 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
             /* PREFERENCES TAB */
             <div className="space-y-5 text-left max-w-xl mx-auto py-2">
               <div>
-                <h4 className="font-bold text-sm text-slate-900 dark:text-white">
+                <h4 className="font-bold text-sm text-[#111827] dark:text-white">
                   Notification Preferences & Alert Channels
                 </h4>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-1">
                   Choose which alerts and communication channels you want enabled.
                 </p>
               </div>
 
               {settingsMessage && (
-                <div className="p-3 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 rounded-xl text-xs font-semibold flex items-center gap-2">
-                  <Check className="w-4 h-4 text-emerald-600" />
+                <div className="p-3 bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 border border-[#E5E7EB] dark:border-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF] rounded-xl text-xs font-semibold flex items-center gap-2">
+                  <Check className="w-4 h-4 text-[#0F2D5C]" />
                   {settingsMessage}
                 </div>
               )}
 
               {settings ? (
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-800">
+                  <div className="flex items-center justify-between p-3.5 bg-[#F5F7FA] dark:bg-[#111827]/60 rounded-xl border border-[#E5E7EB] dark:border-[#111827]">
                     <div>
-                      <div className="font-semibold text-xs text-slate-900 dark:text-slate-100">
+                      <div className="font-semibold text-xs text-[#111827] dark:text-[#E5E7EB]">
                         In-App Real-Time Notifications
                       </div>
-                      <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                      <div className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF]">
                         Show popup alerts & badge updates directly inside SmartLink.
                       </div>
                     </div>
@@ -340,16 +340,16 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
                       onChange={(e) =>
                         setSettings({ ...settings, inAppNotifications: e.target.checked })
                       }
-                      className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                      className="w-4 h-4 text-[#0F2D5C] rounded focus:ring-[#0F2D5C]"
                     />
                   </div>
 
-                  <div className="flex items-center justify-between p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-800">
+                  <div className="flex items-center justify-between p-3.5 bg-[#F5F7FA] dark:bg-[#111827]/60 rounded-xl border border-[#E5E7EB] dark:border-[#111827]">
                     <div>
-                      <div className="font-semibold text-xs text-slate-900 dark:text-slate-100">
+                      <div className="font-semibold text-xs text-[#111827] dark:text-[#E5E7EB]">
                         Email Receipt & Activity Notifications
                       </div>
-                      <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                      <div className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF]">
                         Send transaction receipts and verification updates to your email.
                       </div>
                     </div>
@@ -359,16 +359,16 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
                       onChange={(e) =>
                         setSettings({ ...settings, emailNotifications: e.target.checked })
                       }
-                      className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                      className="w-4 h-4 text-[#0F2D5C] rounded focus:ring-[#0F2D5C]"
                     />
                   </div>
 
-                  <div className="flex items-center justify-between p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-800">
+                  <div className="flex items-center justify-between p-3.5 bg-[#F5F7FA] dark:bg-[#111827]/60 rounded-xl border border-[#E5E7EB] dark:border-[#111827]">
                     <div>
-                      <div className="font-semibold text-xs text-slate-900 dark:text-slate-100">
+                      <div className="font-semibold text-xs text-[#111827] dark:text-[#E5E7EB]">
                         Security & Login Alerts
                       </div>
-                      <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                      <div className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF]">
                         Instant notification when new logins, password changes, or IP shifts occur.
                       </div>
                     </div>
@@ -378,16 +378,16 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
                       onChange={(e) =>
                         setSettings({ ...settings, securityAlerts: e.target.checked })
                       }
-                      className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                      className="w-4 h-4 text-[#0F2D5C] rounded focus:ring-[#0F2D5C]"
                     />
                   </div>
 
-                  <div className="flex items-center justify-between p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-800">
+                  <div className="flex items-center justify-between p-3.5 bg-[#F5F7FA] dark:bg-[#111827]/60 rounded-xl border border-[#E5E7EB] dark:border-[#111827]">
                     <div>
-                      <div className="font-semibold text-xs text-slate-900 dark:text-slate-100">
+                      <div className="font-semibold text-xs text-[#111827] dark:text-[#E5E7EB]">
                         System Announcements & Maintenance Notices
                       </div>
-                      <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                      <div className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF]">
                         Important core platform maintenance windows and downtime notices.
                       </div>
                     </div>
@@ -397,16 +397,16 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
                       onChange={(e) =>
                         setSettings({ ...settings, systemAnnouncements: e.target.checked })
                       }
-                      className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                      className="w-4 h-4 text-[#0F2D5C] rounded focus:ring-[#0F2D5C]"
                     />
                   </div>
 
-                  <div className="flex items-center justify-between p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-800">
+                  <div className="flex items-center justify-between p-3.5 bg-[#F5F7FA] dark:bg-[#111827]/60 rounded-xl border border-[#E5E7EB] dark:border-[#111827]">
                     <div>
-                      <div className="font-semibold text-xs text-slate-900 dark:text-slate-100">
+                      <div className="font-semibold text-xs text-[#111827] dark:text-[#E5E7EB]">
                         Marketing Messages & New Features
                       </div>
-                      <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                      <div className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF]">
                         Promotions, discounted VTU rates, and new feature highlights.
                       </div>
                     </div>
@@ -416,14 +416,14 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
                       onChange={(e) =>
                         setSettings({ ...settings, marketingMessages: e.target.checked })
                       }
-                      className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                      className="w-4 h-4 text-[#0F2D5C] rounded focus:ring-[#0F2D5C]"
                     />
                   </div>
 
                   <button
                     onClick={handleSaveSettings}
                     disabled={settingsSaving}
-                    className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-md shadow-blue-500/20 transition-colors flex items-center justify-center gap-2"
+                    className="w-full py-2.5 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white rounded-xl text-xs font-semibold shadow-md shadow-blue-500/20 transition-colors flex items-center justify-center gap-2"
                   >
                     {settingsSaving ? (
                       <RefreshCw className="w-4 h-4 animate-spin" />
@@ -434,21 +434,21 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
                   </button>
                 </div>
               ) : (
-                <div className="py-8 text-center text-slate-400 text-xs">
+                <div className="py-8 text-center text-[#9CA3AF] text-xs">
                   Loading notification settings...
                 </div>
               )}
             </div>
           ) : /* NOTIFICATIONS LIST */
           loading ? (
-            <div className="py-12 text-center text-slate-400 space-y-2">
-              <RefreshCw className="w-6 h-6 animate-spin mx-auto text-blue-600" />
+            <div className="py-12 text-center text-[#9CA3AF] space-y-2">
+              <RefreshCw className="w-6 h-6 animate-spin mx-auto text-[#0F2D5C]" />
               <p className="text-xs">Fetching notification ledger...</p>
             </div>
           ) : notifications.length === 0 ? (
-            <div className="py-12 text-center text-slate-400 space-y-2">
-              <Bell className="w-8 h-8 mx-auto text-slate-300 dark:text-slate-700" />
-              <p className="text-xs font-medium text-slate-500">
+            <div className="py-12 text-center text-[#9CA3AF] space-y-2">
+              <Bell className="w-8 h-8 mx-auto text-[#E5E7EB] dark:text-[#4B5563]" />
+              <p className="text-xs font-medium text-[#6B7280]">
                 No notifications found. You're all caught up!
               </p>
             </div>
@@ -459,15 +459,15 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
                 className={`p-3.5 rounded-xl border transition-all text-left flex items-start gap-3 relative group ${
                   !n.read
                     ? isDarkMode
-                      ? "bg-slate-800/80 border-blue-900/60 shadow-sm"
-                      : "bg-blue-50/50 border-blue-200 shadow-sm"
+                      ? "bg-[#111827]/80 border-[#0F2D5C]/60 shadow-sm"
+                      : "bg-[#F5F7FA]/50 border-[#E5E7EB] shadow-sm"
                     : isDarkMode
-                    ? "bg-slate-900/50 border-slate-800 opacity-90"
-                    : "bg-white border-slate-200"
+                    ? "bg-[#111827]/50 border-[#111827] opacity-90"
+                    : "bg-white border-[#E5E7EB]"
                 }`}
               >
                 {/* Icon */}
-                <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 shrink-0 mt-0.5">
+                <div className="p-2 rounded-lg bg-[#E5E7EB] dark:bg-[#111827] shrink-0 mt-0.5">
                   {getNotificationIcon(n.type, n.category)}
                 </div>
 
@@ -476,21 +476,21 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
                   <div className="flex items-center gap-2">
                     <h5
                       className={`text-xs font-bold leading-snug ${
-                        !n.read ? "text-blue-950 dark:text-blue-200" : "text-slate-900 dark:text-slate-200"
+                        !n.read ? "text-[#0F2D5C] dark:text-[#9CA3AF]" : "text-[#111827] dark:text-[#E5E7EB]"
                       }`}
                     >
                       {n.title}
                     </h5>
                     {!n.read && (
-                      <span className="w-2 h-2 rounded-full bg-blue-600 shrink-0"></span>
+                      <span className="w-2 h-2 rounded-full bg-[#0F2D5C] shrink-0"></span>
                     )}
                   </div>
 
-                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                  <p className="text-xs text-[#4B5563] dark:text-[#E5E7EB] leading-relaxed">
                     {n.body}
                   </p>
 
-                  <div className="flex items-center gap-3 text-[10px] text-slate-400 pt-1">
+                  <div className="flex items-center gap-3 text-[10px] text-[#9CA3AF] pt-1">
                     <span className="flex items-center gap-1">
                       <Clock className="w-3 h-3" />
                       {new Date(n.createdAt).toLocaleString("en-NG", {
@@ -499,12 +499,12 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
                       })}
                     </span>
                     {n.category && (
-                      <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-semibold uppercase">
+                      <span className="px-2 py-0.5 rounded bg-[#E5E7EB] dark:bg-[#111827] text-[#6B7280] dark:text-[#9CA3AF] font-semibold uppercase">
                         {n.category}
                       </span>
                     )}
                     {n.reference && (
-                      <span className="font-mono text-slate-500 dark:text-slate-400">
+                      <span className="font-mono text-[#6B7280] dark:text-[#9CA3AF]">
                         Ref: {n.reference}
                       </span>
                     )}
@@ -516,7 +516,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
                   {!n.read && (
                     <button
                       onClick={() => handleMarkRead(n.notificationId || n.id)}
-                      className="p-1.5 rounded-md hover:bg-blue-100 dark:hover:bg-blue-900 text-blue-600 dark:text-blue-400 transition-colors"
+                      className="p-1.5 rounded-md hover:bg-[#E5E7EB] dark:hover:bg-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF] transition-colors"
                       title="Mark as Read"
                     >
                       <Check className="w-3.5 h-3.5" />
@@ -524,7 +524,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
                   )}
                   <button
                     onClick={() => handleDelete(n.notificationId || n.id)}
-                    className="p-1.5 rounded-md hover:bg-rose-100 dark:hover:bg-rose-950 text-slate-400 hover:text-rose-600 transition-colors"
+                    className="p-1.5 rounded-md hover:bg-[#E5E7EB] dark:hover:bg-[#0F2D5C] text-[#9CA3AF] hover:text-[#0F2D5C] transition-colors"
                     title="Delete Notification"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -537,26 +537,26 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
 
         {/* Footer Pagination */}
         {activeTab !== "SETTINGS" && notifications.length > 0 && (
-          <div className="p-3.5 bg-slate-50 dark:bg-slate-800/40 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 shrink-0">
+          <div className="p-3.5 bg-[#F5F7FA] dark:bg-[#111827]/40 border-t border-[#E5E7EB] dark:border-[#111827] flex items-center justify-between text-xs text-[#6B7280] shrink-0">
             <div>
-              Showing <span className="font-bold text-slate-800 dark:text-slate-200">{notifications.length}</span> of{" "}
-              <span className="font-bold text-slate-800 dark:text-slate-200">{total}</span> alerts
+              Showing <span className="font-bold text-[#111827] dark:text-[#E5E7EB]">{notifications.length}</span> of{" "}
+              <span className="font-bold text-[#111827] dark:text-[#E5E7EB]">{total}</span> alerts
             </div>
             <div className="flex items-center gap-2">
               <button
                 disabled={page <= 1}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="p-1 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition-colors"
+                className="p-1 rounded-lg border border-[#E5E7EB] dark:border-[#4B5563] hover:bg-[#E5E7EB] dark:hover:bg-[#111827] disabled:opacity-40 transition-colors"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              <span className="font-semibold text-slate-700 dark:text-slate-300">
+              <span className="font-semibold text-[#4B5563] dark:text-[#E5E7EB]">
                 {page} / {totalPages}
               </span>
               <button
                 disabled={page >= totalPages}
                 onClick={() => setPage((p) => p + 1)}
-                className="p-1 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition-colors"
+                className="p-1 rounded-lg border border-[#E5E7EB] dark:border-[#4B5563] hover:bg-[#E5E7EB] dark:hover:bg-[#111827] disabled:opacity-40 transition-colors"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>

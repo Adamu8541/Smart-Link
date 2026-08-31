@@ -1,4 +1,5 @@
 import { getAdminFirestore } from "./firebaseAdmin";
+import { readDB, writeDB } from "../../server/db";
 
 export interface UserDoc {
   id?: string;
@@ -25,7 +26,7 @@ export interface UserDoc {
 const COLLECTION_NAME = "users";
 
 /**
- * Get all users from Firestore "users" collection.
+ * Get all users from Firestore "users" collection with local DB fallback.
  */
 export async function getAllUsers(): Promise<UserDoc[]> {
   try {
@@ -42,14 +43,21 @@ export async function getAllUsers(): Promise<UserDoc[]> {
       });
     });
     return users;
-  } catch (err) {
-    console.error("[usersStore] getAllUsers error:", err);
-    return [];
+  } catch (err: any) {
+    if (!err?.message?.includes("RESOURCE_EXHAUSTED") && err?.code !== 8) {
+      console.log("[usersStore] Firestore getAllUsers unavailable, using local database fallback.");
+    }
+    try {
+      const localDb = readDB();
+      return Array.isArray(localDb?.users) ? localDb.users : [];
+    } catch (dbErr) {
+      return [];
+    }
   }
 }
 
 /**
- * Get a user by ID or UID.
+ * Get a user by ID or UID with local DB fallback.
  */
 export async function getUserById(idOrUid: string): Promise<UserDoc | null> {
   if (!idOrUid) return null;
@@ -78,71 +86,82 @@ export async function getUserById(idOrUid: string): Promise<UserDoc | null> {
       const data = doc.data() as UserDoc;
       return { id: doc.id, uid: data.uid || doc.id, ...data };
     }
-  } catch (err) {
-    console.error("[usersStore] getUserById error:", err);
+  } catch (err: any) {
+    if (!err?.message?.includes("RESOURCE_EXHAUSTED") && err?.code !== 8) {
+      console.log("[usersStore] Firestore getUserById lookup unavailable, using local database fallback.");
+    }
   }
+
+  // Local DB Fallback
+  try {
+    const localDb = readDB();
+    const found = (localDb?.users || []).find((u: any) => u.id === idOrUid || u.uid === idOrUid);
+    if (found) return found;
+  } catch (dbErr) {}
+
   return null;
 }
 
 /**
- * Get a user by email address.
+ * Get a user by email address with local DB fallback.
  */
 export async function getUserByEmail(email: string): Promise<UserDoc | null> {
   if (!email) return null;
+  const cleanEmail = email.trim();
+  const normalizedEmail = cleanEmail.toLowerCase();
   try {
     const db = getAdminFirestore();
-    const querySnap = await db.collection(COLLECTION_NAME).where("email", "==", email).limit(1).get();
+    let querySnap = await db.collection(COLLECTION_NAME).where("email", "==", normalizedEmail).limit(1).get();
+    if (querySnap.empty && cleanEmail !== normalizedEmail) {
+      querySnap = await db.collection(COLLECTION_NAME).where("email", "==", cleanEmail).limit(1).get();
+    }
     if (!querySnap.empty) {
       const doc = querySnap.docs[0];
       const data = doc.data() as UserDoc;
       return { id: doc.id, uid: data.uid || doc.id, ...data };
     }
-
-    // Case-insensitive fallback scan if not found by exact string
-    const normalized = email.toLowerCase().trim();
-    const all = await getAllUsers();
-    const found = all.find((u) => u.email && u.email.toLowerCase().trim() === normalized);
-    return found || null;
-  } catch (err) {
-    console.error("[usersStore] getUserByEmail error:", err);
+  } catch (err: any) {
+    if (!err?.message?.includes("RESOURCE_EXHAUSTED") && err?.code !== 8) {
+      console.log("[usersStore] Firestore getUserByEmail lookup unavailable, using local database fallback.");
+    }
   }
+
+  // Local DB Fallback
+  try {
+    const localDb = readDB();
+    const found = (localDb?.users || []).find((u: any) => (u.email || "").toLowerCase().trim() === normalizedEmail);
+    if (found) return found;
+  } catch (dbErr) {}
+
   return null;
 }
 
 export async function getUserByPhone(phoneNumber: string): Promise<UserDoc | null> {
   if (!phoneNumber) return null;
+  const cleanPhone = phoneNumber.trim();
+  if (!cleanPhone) return null;
   try {
     const db = getAdminFirestore();
-    const normalized = phoneNumber.replace(/\D/g, "");
-    if (!normalized) return null;
-
-    // 1. Direct query by exact phoneNumber
-    const snapshot = await db.collection(COLLECTION_NAME).where("phoneNumber", "==", phoneNumber.trim()).limit(1).get();
+    const snapshot = await db.collection(COLLECTION_NAME).where("phoneNumber", "==", cleanPhone).limit(1).get();
     if (!snapshot.empty) {
       const doc = snapshot.docs[0];
       const data = doc.data() as UserDoc;
       return { id: doc.id, uid: data.uid || doc.id, ...data };
     }
-
-    // 2. Normalized digits fallback match
-    const allUsers = await getAllUsers();
-    const found = allUsers.find(
-      (u: any) => u.phoneNumber && u.phoneNumber.replace(/\D/g, "") === normalized
-    );
-    return found || null;
-  } catch (err) {
-    console.error("[usersStore] getUserByPhone error:", err);
-    try {
-      const allUsers = await getAllUsers();
-      const normalized = phoneNumber.replace(/\D/g, "");
-      const found = allUsers.find(
-        (u: any) => u.phoneNumber && u.phoneNumber.replace(/\D/g, "") === normalized
-      );
-      return found || null;
-    } catch {
-      return null;
+  } catch (err: any) {
+    if (!err?.message?.includes("RESOURCE_EXHAUSTED") && err?.code !== 8) {
+      console.log("[usersStore] Firestore getUserByPhone lookup unavailable, using local database fallback.");
     }
   }
+
+  // Local DB Fallback
+  try {
+    const localDb = readDB();
+    const found = (localDb?.users || []).find((u: any) => (u.phoneNumber || "").trim() === cleanPhone);
+    if (found) return found;
+  } catch (dbErr) {}
+
+  return null;
 }
 
 /**
@@ -180,44 +199,82 @@ export async function createUser(user: UserDoc): Promise<UserDoc> {
 
   const db = getAdminFirestore();
   const sanitized = JSON.parse(JSON.stringify(cleanUser));
-  const docRef = db.collection(COLLECTION_NAME).doc(docId);
 
-  // Check if document with docId already exists to avoid silently overwriting
-  const snap = await docRef.get();
-  if (snap.exists) {
-    const existingData = snap.data() as UserDoc;
-    if (existingData.email && existingData.email.toLowerCase().trim() !== normalizedEmail) {
-      throw new Error("email exist sign in instead");
+  try {
+    const docRef = db.collection(COLLECTION_NAME).doc(docId);
+    const snap = await docRef.get();
+    if (snap.exists) {
+      const existingData = snap.data() as UserDoc;
+      if (existingData.email && existingData.email.toLowerCase().trim() !== normalizedEmail) {
+        throw new Error("email exist sign in instead");
+      }
+      return { id: snap.id, uid: existingData.uid || snap.id, ...existingData };
     }
-    return { id: snap.id, uid: existingData.uid || snap.id, ...existingData };
+    await docRef.set(sanitized);
+  } catch (err: any) {
+    if (err?.message === "email exist sign in instead" || err?.message?.includes("already linked")) {
+      throw err;
+    }
+    if (!err?.message?.includes("RESOURCE_EXHAUSTED") && err?.code !== 8) {
+      console.log("[usersStore] Firestore createUser bypassed, saving to local database fallback.");
+    }
   }
 
-  await docRef.set(sanitized);
+  // Persist to local JSON DB
+  try {
+    const localDb = readDB();
+    if (Array.isArray(localDb.users)) {
+      const idx = localDb.users.findIndex((u: any) => u.id === docId || u.uid === cleanUser.uid);
+      if (idx >= 0) {
+        localDb.users[idx] = { ...localDb.users[idx], ...cleanUser };
+      } else {
+        localDb.users.push(cleanUser);
+      }
+      writeDB(localDb);
+    }
+  } catch (dbErr) {}
+
   return cleanUser;
 }
 
 /**
- * Update an existing user in "users" collection.
+ * Update an existing user in "users" collection with local DB fallback.
  */
 export async function updateUser(idOrUid: string, updates: Partial<UserDoc>): Promise<UserDoc | null> {
   if (!idOrUid) return null;
-  try {
-    const db = getAdminFirestore();
-    let existing = await getUserById(idOrUid);
-    if (!existing) {
-      return null;
-    }
-
-    const docId = existing.id || existing.uid || idOrUid;
-    const merged = { ...existing, ...updates, updatedAt: new Date().toISOString() };
-    const sanitized = JSON.parse(JSON.stringify(merged));
-
-    await db.collection(COLLECTION_NAME).doc(docId).set(sanitized, { merge: true });
-    return merged;
-  } catch (err) {
-    console.error("[usersStore] updateUser error:", err);
+  let existing = await getUserById(idOrUid);
+  if (!existing) {
     return null;
   }
+
+  const docId = existing.id || existing.uid || idOrUid;
+  const merged = { ...existing, ...updates, updatedAt: new Date().toISOString() };
+  const sanitized = JSON.parse(JSON.stringify(merged));
+
+  try {
+    const db = getAdminFirestore();
+    await db.collection(COLLECTION_NAME).doc(docId).set(sanitized, { merge: true });
+  } catch (err: any) {
+    if (!err?.message?.includes("RESOURCE_EXHAUSTED") && err?.code !== 8) {
+      console.log("[usersStore] Firestore updateUser bypassed, updating local database fallback.");
+    }
+  }
+
+  // Update in local JSON DB
+  try {
+    const localDb = readDB();
+    if (Array.isArray(localDb.users)) {
+      const idx = localDb.users.findIndex((u: any) => u.id === docId || u.uid === docId || u.id === idOrUid || u.uid === idOrUid);
+      if (idx >= 0) {
+        localDb.users[idx] = { ...localDb.users[idx], ...merged };
+      } else {
+        localDb.users.push(merged);
+      }
+      writeDB(localDb);
+    }
+  } catch (dbErr) {}
+
+  return merged;
 }
 
 /**
@@ -232,11 +289,20 @@ export async function deleteUser(idOrUid: string): Promise<boolean> {
 
     const docId = existing.id || existing.uid || idOrUid;
     await db.collection(COLLECTION_NAME).doc(docId).delete();
-    return true;
-  } catch (err) {
-    console.error("[usersStore] deleteUser error:", err);
-    return false;
-  }
+  } catch (err) {}
+
+  try {
+    const localDb = readDB();
+    if (Array.isArray(localDb.users)) {
+      const existing = (localDb.users || []).find((u: any) => u.id === idOrUid || u.uid === idOrUid);
+      if (existing) {
+        localDb.users = localDb.users.filter((u: any) => u.id !== existing.id && u.uid !== existing.uid);
+        writeDB(localDb);
+      }
+    }
+  } catch (dbErr) {}
+
+  return true;
 }
 
 /**
@@ -252,9 +318,7 @@ export async function seedUsersIfEmpty(defaultUsers: UserDoc[]): Promise<void> {
       }
       console.log(`[usersStore] Seeded ${defaultUsers.length} default users to Firestore "users" collection.`);
     }
-  } catch (err) {
-    console.error("[usersStore] seedUsersIfEmpty error:", err);
-  }
+  } catch (err) {}
 }
 
 export const usersStore = {

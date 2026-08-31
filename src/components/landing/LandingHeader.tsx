@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Menu, X, ArrowRight, ShieldCheck, User, LogIn, UserPlus } from "lucide-react";
-import logoImg from "../../assets/images/logo.png";
+const logoImg = "/logo.png";
 import { useSiteConfig } from "../../context/SiteConfigContext";
 
 interface LandingHeaderProps {
@@ -90,7 +90,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
                 onClick={() => handleNavClick(item.id)}
                 className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   activeSection === item.id
-                    ? "text-[#0F2D5C] bg-blue-50 font-bold"
+                    ? "text-[#0F2D5C] bg-[#F5F7FA] font-bold"
                     : "text-[#4B5563] hover:text-[#0F2D5C] hover:bg-[#F5F7FA]"
                 }`}
               >
@@ -110,7 +110,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
                   window.location.href = "/admin/login";
                 }
               }}
-              className="px-3.5 py-2 text-xs font-bold text-white bg-[#111827] hover:bg-black rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
+              className="px-3.5 py-2 text-xs font-bold text-white bg-[#111827] hover:bg-[#0F2D5C] rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
               title="Secured Admin Portal Login"
             >
               <ShieldCheck className="h-3.5 w-3.5 text-white" />
@@ -120,7 +120,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
             <button
               id="header-btn-login"
               onClick={onLogin}
-              className="px-4 py-2 text-xs font-bold text-white bg-[#111827] hover:bg-black rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
+              className="px-4 py-2 text-xs font-bold text-white bg-[#111827] hover:bg-[#0F2D5C] rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
             >
               <LogIn className="h-3.5 w-3.5 text-white" />
               Login
@@ -129,7 +129,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
             <button
               id="header-btn-register"
               onClick={onRegister}
-              className="px-4 py-2 text-xs font-bold text-white bg-[#111827] hover:bg-black rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
+              className="px-4 py-2 text-xs font-bold text-white bg-[#111827] hover:bg-[#0F2D5C] rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
             >
               <UserPlus className="h-3.5 w-3.5 text-white" />
               Register
@@ -138,7 +138,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
             <button
               id="header-btn-get-started"
               onClick={onGetStarted}
-              className="px-5 py-2.5 bg-black hover:bg-[#111827] text-white font-bold rounded-xl text-xs shadow-xs transition-all active:scale-98 cursor-pointer flex items-center gap-2"
+              className="px-5 py-2.5 bg-[#111827] hover:bg-[#0F2D5C] text-white font-bold rounded-xl text-xs shadow-xs transition-all active:scale-98 cursor-pointer flex items-center gap-2"
             >
               Get Started
               <ArrowRight className="h-3.5 w-3.5 text-white" />
@@ -175,74 +175,34 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
                 { id: "api-section", label: "API" },
                 { id: "about-section", label: "About" },
                 { id: "contact-section", label: "Contact" },
-              ].map((item) => (
-                <button
-                  key={item.id}
-                  id={`mobile-nav-link-${item.id}`}
-                  onClick={() => handleNavClick(item.id)}
-                  className="w-full text-left px-4 py-3 text-sm font-semibold text-[#111827] hover:bg-blue-50 rounded-xl transition-colors cursor-pointer flex items-center justify-between"
-                >
-                  <span>{item.label}</span>
-                  <ArrowRight className="h-4 w-4 text-[#6B7280]" />
-                </button>
-              ))}
+              ].map((item) => {
+                const isModalLink = item.id === "about-section" || item.id === "contact-section";
+                return (
+                  <button
+                    key={item.id}
+                    id={`mobile-nav-link-${item.id}`}
+                    onClick={() => handleNavClick(item.id)}
+                    className={`w-full text-left px-4 py-3 text-sm font-semibold transition-all duration-200 rounded-xl cursor-pointer flex items-center justify-between ${
+                      isModalLink
+                        ? "text-[#0F2D5C] bg-[#F5F7FA]/70 hover:bg-[#F5F7FA] border-l-2 border-[#0F2D5C] rounded-l-none"
+                        : "text-[#111827] hover:bg-[#F5F7FA]"
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className="text-sm font-semibold">{item.label}</span>
+                      {isModalLink && (
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-[#0F2D5C] bg-[#0F2D5C]/10 px-2 py-0.5 rounded-full">
+                          Info
+                        </span>
+                      )}
+                    </span>
+                    <ArrowRight className={`h-4 w-4 ${isModalLink ? "text-[#0F2D5C]" : "text-[#6B7280]"}`} />
+                  </button>
+                );
+              })}
             </div>
 
-            <div className="pt-4 border-t border-[#E5E7EB] space-y-2.5">
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  id="mobile-btn-login"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    onLogin();
-                  }}
-                  className="w-full py-3 bg-[#F5F7FA] text-[#111827] font-bold rounded-xl text-xs hover:bg-slate-200 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <LogIn className="h-3.5 w-3.5 text-[#0F2D5C]" />
-                  Login
-                </button>
 
-                <button
-                  id="mobile-btn-register"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    onRegister();
-                  }}
-                  className="w-full py-3 bg-blue-50 text-[#0F2D5C] border border-blue-200 font-bold rounded-xl text-xs hover:bg-blue-100 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <UserPlus className="h-3.5 w-3.5" />
-                  Register
-                </button>
-              </div>
-
-              <button
-                id="mobile-btn-get-started"
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  onGetStarted();
-                }}
-                className="w-full py-3.5 bg-[#0F2D5C] text-white font-bold rounded-xl text-sm shadow-xs flex items-center justify-center gap-2 cursor-pointer"
-              >
-                Get Started Free
-                <ArrowRight className="h-4 w-4" />
-              </button>
-
-              <button
-                id="mobile-btn-admin-login"
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  if (onAdminLogin) {
-                    onAdminLogin();
-                  } else {
-                    window.location.href = "/admin/login";
-                  }
-                }}
-                className="w-full py-3 bg-[#111827] text-white font-bold rounded-xl text-xs hover:bg-[#0F2D5C] transition-colors flex items-center justify-center gap-2 cursor-pointer border border-[#E5E7EB]"
-              >
-                <ShieldCheck className="h-4 w-4 text-blue-200" />
-                Secured Admin Login
-              </button>
-            </div>
           </div>
         </div>
       )}

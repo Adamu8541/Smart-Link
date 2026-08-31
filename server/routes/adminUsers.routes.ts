@@ -4,7 +4,7 @@ import fs from "fs";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 import { readDB, writeDB, initializeDB, DB_DIR, DB_FILE, UPLOADS_DIR, SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD, hashPassword, safeCompareHash, generateSalt, isMaskedValue } from "../db";
-import { verifyUserOrAdminSession } from "../middleware/auth";
+import { verifyUserOrAdminSession, requireAdmin } from "../middleware/auth";
 import { isMaintenanceModeActive, getMaintenanceDetails, getValueByJsonPath, seedModule7SettingsIfEmpty, sanitizePublicSettings } from "../middleware/maintenance";
 import { getAI } from "../services/ai";
 import { 
@@ -24,8 +24,6 @@ import { AutomaticWalletFundingEngine } from "../../src/services/automaticWallet
 import { PaymentVerificationReconciliationEngine } from "../../src/services/paymentVerificationReconciliationEngine";
 import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerGateway";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
-import { AgentHubAdapter } from "../../src/services/providers/agenthubAdapter";
-import { NINTrustAdapter } from "../../src/services/providers/nintrustAdapter";
 import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
 import { syncFromFirestore, syncToFirestore } from "../../src/services/settingsStore";
 import { loadFirestoreDb, syncDbToFirestore, saveDocToFirestore } from "../../src/services/firestoreStore";
@@ -40,23 +38,18 @@ import { getAdminFirestore } from "../../src/services/firebaseAdmin";
 const router = express.Router();
 const app = router;
 
-app.get("/api/admin/users/list", async (req, res) => {
+app.get("/api/admin/users/list", requireAdmin, async (req, res) => {
   const allUsers = await usersStore.getAllUsers();
   const sanitizedUsers = allUsers.map(({ passwordHash, salt, ...u }: any) => u);
   res.json({ users: sanitizedUsers });
 });
 
-app.post("/api/admin/users/update", async (req, res) => {
+app.post("/api/admin/users/update", requireAdmin, async (req, res) => {
   const { targetUid, fullName, email, phoneNumber, role, status, permissions, walletBalance } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
   const db = readDB();
+  const admin = (req as any).admin;
+  const adminUid = (req as any).authenticatedUid;
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ error: "Unauthorized admin access." });
-  }
-  const admin = val.session;
-  const adminUid = admin.uid;
   if (admin.role !== "SUPER_ADMIN" && admin.role !== "ADMIN" && !admin.permissions?.includes("manage_users")) {
     return res.status(403).json({ error: "Unauthorized to update user profiles." });
   }
@@ -125,17 +118,11 @@ app.post("/api/admin/users/update", async (req, res) => {
   res.json({ success: true, user: safeUser });
 });
 
-app.post("/api/admin/users/wallet", async (req, res) => {
+app.post("/api/admin/users/wallet", requireAdmin, async (req, res) => {
   const { targetUid, actionType, amount, description } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
   const db = readDB();
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ error: "Unauthorized admin access." });
-  }
-  const admin = val.session;
-  const adminUid = admin.uid;
+  const admin = (req as any).admin;
+  const adminUid = (req as any).authenticatedUid;
   if (admin.role !== "SUPER_ADMIN" && admin.role !== "ADMIN" && !admin.permissions?.includes("manage_users")) {
     return res.status(403).json({ error: "Unauthorized. Permission required." });
   }
@@ -189,17 +176,11 @@ app.post("/api/admin/users/wallet", async (req, res) => {
   res.json({ success: true, balance: newBal, transaction: tx });
 });
 
-app.post("/api/admin/users/delete", async (req, res) => {
+app.post("/api/admin/users/delete", requireAdmin, async (req, res) => {
   const { targetUid } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
   const db = readDB();
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ error: "Unauthorized admin access." });
-  }
-  const admin = val.session;
-  const adminUid = admin.uid;
+  const admin = (req as any).admin;
+  const adminUid = (req as any).authenticatedUid;
   if (admin.role !== "SUPER_ADMIN") {
     return res.status(403).json({ error: "Only Super Admin can delete user accounts." });
   }
@@ -228,15 +209,9 @@ app.post("/api/admin/users/delete", async (req, res) => {
 });
 
 // --- ONE-TIME ADMIN MIGRATION: FIRESTORE USERS TO FIREBASE AUTH ---
-app.post("/api/admin/migrate-users-to-firebase-auth", async (req, res) => {
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
+app.post("/api/admin/migrate-users-to-firebase-auth", requireAdmin, async (req, res) => {
   const db = readDB();
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ error: "Unauthorized admin access." });
-  }
-  const admin = val.session;
+  const admin = (req as any).admin;
   if (admin.role !== "SUPER_ADMIN" && admin.role !== "ADMIN") {
     return res.status(403).json({ error: "Unauthorized. Admin permission required." });
   }
@@ -296,16 +271,11 @@ app.post("/api/admin/migrate-users-to-firebase-auth", async (req, res) => {
 
 
 // 1. GET /api/admin/users — Query, Filter & Search Users
-app.get("/api/admin/users", async (req, res) => {
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
+app.get("/api/admin/users", requireAdmin, async (req, res) => {
   const db = readDB();
+  const admin = (req as any).admin;
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
-
-  const check = adminAuthService.checkRoutePermission(val.session, "/admin/users");
+  const check = adminAuthService.checkRoutePermission(admin, "/admin/users");
   if (!check.allowed) {
     return res.status(403).json({ success: false, message: check.reason });
   }
@@ -320,22 +290,15 @@ app.get("/api/admin/users", async (req, res) => {
 });
 
 // 2. GET /api/admin/users/:userId — Fetch Single User Complete Profile
-app.get("/api/admin/users/:userId", async (req, res) => {
+app.get("/api/admin/users/:userId", requireAdmin, async (req, res) => {
   const { userId } = req.params;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
-  const db = readDB();
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
-
   const user = await usersStore.getUserById(userId);
 
   if (!user) {
     return res.status(404).json({ success: false, message: `User record with ID ${userId} not found.` });
   }
 
+  const db = readDB();
   // Filter user's transactions
   const userTransactions = (db.transactions || []).filter((t: any) => t.userId === userId || t.userEmail === user.email);
   // Audit logs for user
@@ -354,18 +317,14 @@ app.get("/api/admin/users/:userId", async (req, res) => {
 });
 
 // 3. PUT /api/admin/users/:userId/profile — Edit User Profile
-app.put("/api/admin/users/:userId/profile", async (req, res) => {
+app.put("/api/admin/users/:userId/profile", requireAdmin, async (req, res) => {
   const { userId } = req.params;
   const { fullName, phoneNumber, email, role, kycLevel } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
+  const admin = (req as any).admin;
 
-  if (!adminAuthService.hasPermission(val.session, "MANAGE_USERS")) {
+  if (!adminAuthService.hasPermission(admin, "MANAGE_USERS")) {
     return res.status(403).json({ success: false, message: "Permission Denied: MANAGE_USERS required." });
   }
 
@@ -387,8 +346,8 @@ app.put("/api/admin/users/:userId/profile", async (req, res) => {
   const updatedUser = { ...user, ...updates };
 
   const record = recordAdminUserAction(db, {
-    adminUid: val.session.uid,
-    adminEmail: val.session.email,
+    adminUid: admin.uid,
+    adminEmail: admin.email,
     targetUserId: userId,
     action: "UPDATE_PROFILE",
     details: `Updated user profile details for ${updatedUser.email} (${updatedUser.fullName}).`,
@@ -407,18 +366,14 @@ app.put("/api/admin/users/:userId/profile", async (req, res) => {
 });
 
 // 4. POST /api/admin/users/:userId/status — Update Account Status (ACTIVE/SUSPENDED/DISABLED/LOCKED/DELETED)
-app.post("/api/admin/users/:userId/status", async (req, res) => {
+app.post("/api/admin/users/:userId/status", requireAdmin, async (req, res) => {
   const { userId } = req.params;
   const { status, reason } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
+  const admin = (req as any).admin;
 
-  if (!adminAuthService.hasPermission(val.session, "MANAGE_USERS")) {
+  if (!adminAuthService.hasPermission(admin, "MANAGE_USERS")) {
     return res.status(403).json({ success: false, message: "Permission Denied: MANAGE_USERS required." });
   }
 
@@ -436,8 +391,8 @@ app.post("/api/admin/users/:userId/status", async (req, res) => {
   const updatedUser = { ...user, status };
 
   const record = recordAdminUserAction(db, {
-    adminUid: val.session.uid,
-    adminEmail: val.session.email,
+    adminUid: admin.uid,
+    adminEmail: admin.email,
     targetUserId: userId,
     action: `SET_STATUS_${status}`,
     details: `Changed account status for ${user.email} from [${oldStatus}] to [${status}]. Reason: ${reason}`,
@@ -469,18 +424,14 @@ app.post("/api/admin/users/:userId/status", async (req, res) => {
 });
 
 // 5. POST /api/admin/users/:userId/wallet — Manual Wallet Credit / Debit
-app.post("/api/admin/users/:userId/wallet", async (req, res) => {
+app.post("/api/admin/users/:userId/wallet", requireAdmin, async (req, res) => {
   const { userId } = req.params;
   const { action, amount, reason } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
+  const admin = (req as any).admin;
 
-  if (!adminAuthService.hasPermission(val.session, "MANAGE_WALLET") && !adminAuthService.hasPermission(val.session, "MANAGE_USERS")) {
+  if (!adminAuthService.hasPermission(admin, "MANAGE_WALLET") && !adminAuthService.hasPermission(admin, "MANAGE_USERS")) {
     return res.status(403).json({ success: false, message: "Permission Denied: MANAGE_WALLET or MANAGE_USERS required." });
   }
 
@@ -539,8 +490,8 @@ app.post("/api/admin/users/:userId/wallet", async (req, res) => {
   });
 
   const record = recordAdminUserAction(db, {
-    adminUid: val.session.uid,
-    adminEmail: val.session.email,
+    adminUid: admin.uid,
+    adminEmail: admin.email,
     targetUserId: userId,
     action: `WALLET_${action}`,
     details: `Executed manual ${action} of ₦${numAmount.toLocaleString()} on ${user.email}. Previous: ₦${previousBalance.toLocaleString()}, New: ₦${newBalance.toLocaleString()}. Reason: ${reason}`,
@@ -574,17 +525,13 @@ app.post("/api/admin/users/:userId/wallet", async (req, res) => {
 });
 
 // 6. POST /api/admin/users/:userId/reset-password — Password Reset Trigger
-app.post("/api/admin/users/:userId/reset-password", async (req, res) => {
+app.post("/api/admin/users/:userId/reset-password", requireAdmin, async (req, res) => {
   const { userId } = req.params;
-  const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
+  const admin = (req as any).admin;
 
-  if (!adminAuthService.hasPermission(val.session, "MANAGE_USERS")) {
+  if (!adminAuthService.hasPermission(admin, "MANAGE_USERS")) {
     return res.status(403).json({ success: false, message: "Permission Denied: MANAGE_USERS required." });
   }
 
@@ -595,8 +542,8 @@ app.post("/api/admin/users/:userId/reset-password", async (req, res) => {
 
   const token = `rst_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
   const record = recordAdminUserAction(db, {
-    adminUid: val.session.uid,
-    adminEmail: val.session.email,
+    adminUid: admin.uid,
+    adminEmail: admin.email,
     targetUserId: userId,
     action: "RESET_PASSWORD_TRIGGER",
     details: `Triggered password reset notification for ${user.email}. Reset Token: ${token}`,
@@ -613,16 +560,13 @@ app.post("/api/admin/users/:userId/reset-password", async (req, res) => {
 });
 
 // 7. POST /api/admin/users/:userId/notify — Direct User Notification Dispatch
-app.post("/api/admin/users/:userId/notify", async (req, res) => {
+app.post("/api/admin/users/:userId/notify", requireAdmin, async (req, res) => {
   const { userId } = req.params;
   const { title, body, type = "ACCOUNT" } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
+  const admin = (req as any).admin;
+
 
   const user = await usersStore.getUserById(userId);
   if (!user) {
@@ -647,8 +591,8 @@ app.post("/api/admin/users/:userId/notify", async (req, res) => {
   db.notifications.unshift(notif);
 
   recordAdminUserAction(db, {
-    adminUid: val.session.uid,
-    adminEmail: val.session.email,
+    adminUid: admin.uid,
+    adminEmail: admin.email,
     targetUserId: userId,
     action: "SEND_NOTIFICATION",
     details: `Dispatched direct notification to ${user.email}: "${title}"`,
@@ -664,17 +608,13 @@ app.post("/api/admin/users/:userId/notify", async (req, res) => {
 });
 
 // 8. POST /api/admin/users/bulk-action — Process Bulk User Operations
-app.post("/api/admin/users/bulk-action", async (req, res) => {
+app.post("/api/admin/users/bulk-action", requireAdmin, async (req, res) => {
   const { userIds = [], action, reason, broadcastTitle, broadcastBody } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
+  const admin = (req as any).admin;
 
-  if (!adminAuthService.hasPermission(val.session, "MANAGE_USERS")) {
+  if (!adminAuthService.hasPermission(admin, "MANAGE_USERS")) {
     return res.status(403).json({ success: false, message: "Permission Denied: MANAGE_USERS required." });
   }
 
@@ -713,8 +653,8 @@ app.post("/api/admin/users/bulk-action", async (req, res) => {
     }
 
     recordAdminUserAction(db, {
-      adminUid: val.session.uid,
-      adminEmail: val.session.email,
+      adminUid: admin.uid,
+      adminEmail: admin.email,
       targetUserId: uid,
       action: `BULK_${action}`,
       details: `Executed bulk action [${action}] on ${user.email}. Reason: ${reason || "Batch processing"}`,
@@ -731,7 +671,7 @@ app.post("/api/admin/users/bulk-action", async (req, res) => {
 });
 
 // 9. POST /api/admin/module3/test — Automated Self-Test Suite for User Management
-app.all(["/api/admin/module3/test"], async (req, res) => {
+app.all(["/api/admin/module3/test"], requireAdmin, async (req, res) => {
   const startTime = Date.now();
   const db = readDB();
   const users = await usersStore.getAllUsers();

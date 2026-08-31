@@ -4,7 +4,7 @@ import fs from "fs";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 import { readDB, writeDB, initializeDB, DB_DIR, DB_FILE, UPLOADS_DIR, SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD, hashPassword, safeCompareHash, generateSalt, isMaskedValue } from "../db";
-import { verifyUserOrAdminSession } from "../middleware/auth";
+import { requireAdmin, requireAuth, verifyUserOrAdminSession } from "../middleware/auth";
 import { isMaintenanceModeActive, getMaintenanceDetails, getValueByJsonPath, seedModule7SettingsIfEmpty, sanitizePublicSettings } from "../middleware/maintenance";
 import { getAI } from "../services/ai";
 import { 
@@ -24,8 +24,6 @@ import { AutomaticWalletFundingEngine } from "../../src/services/automaticWallet
 import { PaymentVerificationReconciliationEngine } from "../../src/services/paymentVerificationReconciliationEngine";
 import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerGateway";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
-import { AgentHubAdapter } from "../../src/services/providers/agenthubAdapter";
-import { NINTrustAdapter } from "../../src/services/providers/nintrustAdapter";
 import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
 import { syncFromFirestore, syncToFirestore } from "../../src/services/settingsStore";
 import { loadFirestoreDb, syncDbToFirestore, saveDocToFirestore } from "../../src/services/firestoreStore";
@@ -40,7 +38,7 @@ import { getAdminFirestore } from "../../src/services/firebaseAdmin";
 const router = express.Router();
 const app = router;
 
-app.get("/api/admin/subadmins", async (req, res) => {
+app.get("/api/admin/subadmins", requireAdmin, async (req, res) => {
   const allUsers = await usersStore.getAllUsers();
   const subAdmins = allUsers
     .filter((u: any) => u.role === "SUB_ADMIN" || u.role === "ADMIN" || u.role === "SUPER_ADMIN")
@@ -49,17 +47,11 @@ app.get("/api/admin/subadmins", async (req, res) => {
   res.json({ subAdmins });
 });
 
-app.post("/api/admin/subadmins/create", async (req, res) => {
+app.post("/api/admin/subadmins/create", requireAdmin, async (req, res) => {
   const { fullName, email, password, phoneNumber, permissions } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
   const db = readDB();
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ error: "Unauthorized admin access." });
-  }
-  const admin = val.session;
-  const adminUid = admin.uid;
+  const admin = (req as any).admin;
+  const adminUid = (req as any).authenticatedUid;
   if (admin.role !== "SUPER_ADMIN") {
     return res.status(403).json({ error: "Only Super Admin can create Sub-Admins and assign permissions." });
   }
@@ -73,8 +65,8 @@ app.post("/api/admin/subadmins/create", async (req, res) => {
     return res.status(400).json({ error: "User already exists with this email address." });
   }
 
-  const userSalt = generateSalt();
-  const userHash = hashPassword(password, userSalt);
+  const userHash = hashPassword(password);
+  const userSalt = "";
   const uid = "usr_sub_" + Math.random().toString(36).substring(2, 9);
 
   const newSubAdmin = {
@@ -123,17 +115,11 @@ app.post("/api/admin/subadmins/create", async (req, res) => {
   res.json({ success: true, subAdmin: safeUser });
 });
 
-app.post("/api/admin/subadmins/update-permissions", async (req, res) => {
+app.post("/api/admin/subadmins/update-permissions", requireAdmin, async (req, res) => {
   const { targetUid, permissions } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
   const db = readDB();
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ error: "Unauthorized admin access." });
-  }
-  const admin = val.session;
-  const adminUid = admin.uid;
+  const admin = (req as any).admin;
+  const adminUid = (req as any).authenticatedUid;
   if (admin.role !== "SUPER_ADMIN") {
     return res.status(403).json({ error: "Only Super Admin can modify Sub-Admin permissions." });
   }
@@ -160,17 +146,11 @@ app.post("/api/admin/subadmins/update-permissions", async (req, res) => {
   res.json({ success: true, subAdmin: safeUser });
 });
 
-app.post("/api/admin/subadmins/batch-update-permissions", async (req, res) => {
+app.post("/api/admin/subadmins/batch-update-permissions", requireAdmin, async (req, res) => {
   const { updates } = req.body; // updates: Array<{ targetUid: string, permissions: string[] }>
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
   const db = readDB();
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ error: "Unauthorized admin access." });
-  }
-  const admin = val.session;
-  const adminUid = admin.uid;
+  const admin = (req as any).admin;
+  const adminUid = (req as any).authenticatedUid;
   if (admin.role !== "SUPER_ADMIN") {
     return res.status(403).json({ error: "Only Super Admin can batch update Sub-Admin permissions." });
   }
@@ -208,17 +188,11 @@ app.post("/api/admin/subadmins/batch-update-permissions", async (req, res) => {
   res.json({ success: true, updatedSubAdmins });
 });
 
-app.post("/api/admin/subadmins/revoke", async (req, res) => {
+app.post("/api/admin/subadmins/revoke", requireAdmin, async (req, res) => {
   const { targetUid } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
   const db = readDB();
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ error: "Unauthorized admin access." });
-  }
-  const admin = val.session;
-  const adminUid = admin.uid;
+  const admin = (req as any).admin;
+  const adminUid = (req as any).authenticatedUid;
   if (admin.role !== "SUPER_ADMIN") {
     return res.status(403).json({ error: "Only Super Admin can revoke Sub-Admin access." });
   }
@@ -255,66 +229,64 @@ app.post("/api/admin/subadmins/revoke", async (req, res) => {
 // SMARTLINK ADMIN PANEL — MODULE 1: AUTH & RBAC ENDPOINTS
 // ==========================================
 
-// Admin Login Endpoint
+// Direct Admin Login Endpoint (Email + Password fallback for Super Admins and Staff)
 app.post("/api/admin/auth/login", async (req, res) => {
   const { email, password } = req.body;
-  const ipAddress = (req.headers["x-forwarded-for"] as string) || req.socket.remoteAddress || "127.0.0.1";
-  const db = readDB();
-
-  try {
-    const result = await adminAuthService.loginAdmin(db, email, password, ipAddress);
-    writeDB(db);
-
-    if (!result.success) {
-      return res.status(result.errorType === "DISABLED_ACCOUNT" ? 403 : 401).json(result);
-    }
-
-    res.json(result);
-  } catch (err: any) {
-    res.status(500).json({ success: false, message: "Internal server error during admin authentication.", error: err.message });
+  if (!email || !password) {
+    return res.status(400).json({ success: false, message: "Email and password are required." });
   }
-});
 
-// Admin Session Validation Endpoint
-app.get("/api/admin/auth/session", async (req, res) => {
-  const authHeader = req.headers.authorization;
-  const tokenFromHeader = authHeader?.startsWith("Bearer ") ? authHeader.substring(7) : null;
-  const sessionToken = (req.query.token as string) || tokenFromHeader || (req.headers["x-admin-token"] as string);
-
+  const cleanEmail = email.toLowerCase().trim();
   const db = readDB();
-  const valResult = await adminAuthService.validateSession(db, sessionToken || "");
+  const ipAddress = req.ip || req.socket.remoteAddress || "127.0.0.1";
+
+  const result = await adminAuthService.loginAdmin(db, cleanEmail, password, ipAddress);
+
+  if (!result.success || !result.session) {
+    return res.status(401).json({
+      success: false,
+      message: result.message || "Invalid administrator email or password.",
+    });
+  }
+
   writeDB(db);
-
-  if (!valResult.valid) {
-    return res.status(401).json({ success: false, message: valResult.message || "Invalid or expired admin session." });
-  }
 
   res.json({
     success: true,
-    session: valResult.session,
+    session: result.session,
+    user: result.adminUser,
+    message: "Administrative login successful.",
   });
 });
 
-// Admin Logout Endpoint
-app.post("/api/admin/auth/logout", async (req, res) => {
-  const { sessionToken } = req.body;
-  const db = readDB();
-  const result = await adminAuthService.logoutAdmin(db, sessionToken);
-  writeDB(db);
-  res.json(result);
-});
+// Admin Session Validation Endpoint
+app.get("/api/admin/auth/session", requireAdmin, async (req, res) => {
+  const admin = (req as any).admin;
+  const uid = (req as any).authenticatedUid;
+  const authHeader = (req.headers["authorization"] || req.headers["Authorization"]) as string;
+  const token = (req as any).adminToken || (authHeader && authHeader.startsWith("Bearer ") ? authHeader.substring(7).trim() : "");
 
-// Admin Forgot Password Request
-app.post("/api/admin/auth/forgot-password", async (req, res) => {
-  const { email } = req.body;
-  const db = readDB();
-  const result = await adminAuthService.forgotPassword(db, email);
-  writeDB(db);
-  res.json(result);
+  const session = {
+    uid,
+    email: admin.email,
+    fullName: admin.fullName || "Administrator",
+    role: admin.role,
+    permissions: admin.permissions || (admin.role === "SUPER_ADMIN" ? ["*"] : ["VIEW_DASHBOARD"]),
+    sessionToken: token,
+    loginTime: new Date().toISOString(),
+    expiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+    lastActive: new Date().toISOString(),
+    status: "ACTIVE",
+  };
+
+  res.json({
+    success: true,
+    session,
+  });
 });
 
 // Admin Roles & Permission Matrix Reference Endpoint
-app.get("/api/admin/auth/roles", async (req, res) => {
+app.get("/api/admin/auth/roles", requireAdmin, async (req, res) => {
   res.json({
     success: true,
     roles: ADMIN_ROLES_CONFIG,
@@ -322,21 +294,16 @@ app.get("/api/admin/auth/roles", async (req, res) => {
 });
 
 // Admin Users Directory Endpoint (Protected by RBAC)
-app.get(["/api/admin/auth/admin-users", "/api/admin/admins"], async (req, res) => {
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
+app.get(["/api/admin/auth/admin-users", "/api/admin/admins"], requireAdmin, async (req, res) => {
   const db = readDB();
+  const admin = (req as any).admin;
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
-
-  const check = adminAuthService.checkRoutePermission(val.session, "/admin/users");
+  const check = adminAuthService.checkRoutePermission(admin, "/admin/users");
   if (!check.allowed) {
     return res.status(403).json({ success: false, message: check.reason });
   }
 
-  const users = await adminAuthService.getAdminUsers(db, val.session);
+  const users = await adminAuthService.getAdminUsers(db, admin);
   res.json({
     success: true,
     users,
@@ -344,14 +311,8 @@ app.get(["/api/admin/auth/admin-users", "/api/admin/admins"], async (req, res) =
 });
 
 // Admin Activity Logs Endpoint
-app.get("/api/admin/activity-logs", async (req, res) => {
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
+app.get("/api/admin/activity-logs", requireAdmin, async (req, res) => {
   const db = readDB();
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
 
   res.json({
     success: true,
@@ -360,26 +321,14 @@ app.get("/api/admin/activity-logs", async (req, res) => {
 });
 
 // Automated Module 1 Self-Test Endpoint (Protected: SUPER_ADMIN only)
-app.all(["/api/admin/module1/test", "/api/admin/auth/test"], async (req, res) => {
-  const sessionToken =
-    (req.headers["x-admin-token"] as string) ||
-    (req.headers["authorization"] ? (req.headers["authorization"] as string).replace("Bearer ", "") : "") ||
-    (req.query.token as string);
-
+app.all(["/api/admin/module1/test", "/api/admin/auth/test"], requireAdmin, async (req, res) => {
   const db = readDB();
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({
+  const admin = (req as any).admin;
+  if (admin.role !== "SUPER_ADMIN") {
+    return res.status(403).json({
       success: false,
       message: "Unauthorized: Active SUPER_ADMIN session token required to trigger self-tests.",
-    });
-  }
-
-  if (val.session.role !== "SUPER_ADMIN") {
-    return res.status(401).json({
-      success: false,
-      message: "Unauthorized: Only SUPER_ADMIN accounts can trigger system self-tests.",
     });
   }
 
@@ -536,17 +485,12 @@ app.post("/api/wallet/fund/card", async (req, res) => {
 });
 
 // Admin Manual Wallet Credit / Debit
-app.post("/api/admin/wallet/manual-credit", async (req, res) => {
+app.post("/api/admin/wallet/manual-credit", requireAdmin, async (req, res) => {
   const { adminEmail, targetEmailOrUid, action = "CREDIT", amount, reason } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
   const db = readDB();
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ error: "Unauthorized admin access." });
-  }
-  const adminUser = val.session;
-  const adminUid = adminUser.uid;
+  const adminUser = (req as any).admin;
+  const adminUid = (req as any).authenticatedUid;
 
   if (!targetEmailOrUid || !amount || amount <= 0 || !reason) {
     return res.status(400).json({ error: "All admin ledger fields (target, action, amount, reason) are mandatory." });
@@ -659,18 +603,9 @@ app.post("/api/admin/wallet/manual-credit", async (req, res) => {
 });
 
 // Wallet Funding History Endpoint
-app.get("/api/wallet/funding-history", async (req, res) => {
-  const userId = req.query.userId as string;
-  if (!userId) {
-    return res.status(400).json({ error: "User ID is required." });
-  }
-
+app.get("/api/wallet/funding-history", requireAuth, async (req, res) => {
+  const userId = (req as any).authenticatedUid;
   const db = readDB();
-
-  const authCheck = await verifyUserOrAdminSession(req, userId, db);
-  if (!authCheck.authorized) {
-    return res.status(403).json({ error: authCheck.reason || "Forbidden" });
-  }
 
   const txs = (db.transactions || []).filter(
     (t: any) => t.userId === userId && (t.type === "WALLET_FUNDING" || t.service === "WALLET_FUNDING" || t.amount > 0)

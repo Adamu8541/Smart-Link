@@ -1,6 +1,6 @@
 /**
  * SmartLink Admin Panel — Refunds Management View
- * Live Firestore Database Integration & Homepage Theme Matching
+ * Live Cloud Database Integration & Homepage Theme Matching
  */
 
 import React, { useState, useEffect } from "react";
@@ -203,11 +203,11 @@ export function AdminRefundsView({ session, onNavigate }: AdminRefundsViewProps)
       {/* Top Header Card */}
       <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6 md:p-8 shadow-[0_4px_12px_rgba(15,23,42,0.06)] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-blue-50 border border-blue-100 rounded-2xl text-[#0F2D5C]">
+          <div className="p-3 bg-[#F5F7FA] border border-[#E5E7EB] rounded-2xl text-[#0F2D5C]">
             <RotateCcw className="h-7 w-7" />
           </div>
           <div>
-            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-blue-50 text-[#0F2D5C] text-xs font-semibold mb-1">
+            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-[#F5F7FA] text-[#0F2D5C] text-xs font-semibold mb-1">
               <ShieldCheck className="h-3.5 w-3.5" />
               <span>Finance & Ledger Governance</span>
             </div>
@@ -215,7 +215,7 @@ export function AdminRefundsView({ session, onNavigate }: AdminRefundsViewProps)
               Refunds & Reversals Management
             </h1>
             <p className="text-xs md:text-sm text-[#4B5563] mt-0.5">
-              Review transaction refund requests, authorize wallet credits, and manage settlement disputes directly on Firestore.
+              Review transaction refund requests, authorize wallet credits, and manage settlement disputes directly on our secure database.
             </p>
           </div>
         </div>
@@ -246,15 +246,15 @@ export function AdminRefundsView({ session, onNavigate }: AdminRefundsViewProps)
         <div
           className={`p-4 rounded-2xl border flex items-center justify-between text-xs font-semibold ${
             msg.type === "success"
-              ? "bg-emerald-50 border-emerald-200 text-emerald-800"
-              : "bg-rose-50 border-rose-200 text-rose-800"
+              ? "bg-[#F5F7FA] border-[#E5E7EB] text-[#0F2D5C]"
+              : "bg-[#F5F7FA] border-[#E5E7EB] text-[#0F2D5C]"
           }`}
         >
           <div className="flex items-center gap-2">
             {msg.type === "success" ? (
-              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+              <CheckCircle2 className="h-4 w-4 text-[#0F2D5C]" />
             ) : (
-              <AlertCircle className="h-4 w-4 text-rose-600" />
+              <AlertCircle className="h-4 w-4 text-[#0F2D5C]" />
             )}
             <span>{msg.text}</span>
           </div>
@@ -273,24 +273,24 @@ export function AdminRefundsView({ session, onNavigate }: AdminRefundsViewProps)
         <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-[0_4px_12px_rgba(15,23,42,0.06)] space-y-1">
           <span className="text-xs font-semibold text-[#4B5563]">Total Approved Refunds</span>
           <p className="text-2xl font-bold text-[#111827]">₦{totalRefundAmount.toLocaleString()}</p>
-          <span className="text-[11px] text-emerald-600 font-medium">Credited to customer wallets</span>
+          <span className="text-[11px] text-[#0F2D5C] font-medium">Credited to customer wallets</span>
         </div>
 
         <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-[0_4px_12px_rgba(15,23,42,0.06)] space-y-1">
           <span className="text-xs font-semibold text-[#4B5563]">Pending Authorization</span>
-          <p className="text-2xl font-bold text-amber-600">{pendingCount}</p>
+          <p className="text-2xl font-bold text-[#0F2D5C]">{pendingCount}</p>
           <span className="text-[11px] text-[#4B5563]">Awaiting administrative review</span>
         </div>
 
         <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-[0_4px_12px_rgba(15,23,42,0.06)] space-y-1">
           <span className="text-xs font-semibold text-[#4B5563]">Processed / Approved</span>
-          <p className="text-2xl font-bold text-emerald-600">{approvedCount}</p>
+          <p className="text-2xl font-bold text-[#0F2D5C]">{approvedCount}</p>
           <span className="text-[11px] text-[#4B5563]">Successfully refunded</span>
         </div>
 
         <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-[0_4px_12px_rgba(15,23,42,0.06)] space-y-1">
           <span className="text-xs font-semibold text-[#4B5563]">Declined / Rejected</span>
-          <p className="text-2xl font-bold text-rose-600">{rejectedCount}</p>
+          <p className="text-2xl font-bold text-[#0F2D5C]">{rejectedCount}</p>
           <span className="text-[11px] text-[#4B5563]">Failed verification checks</span>
         </div>
       </div>
@@ -319,7 +319,7 @@ export function AdminRefundsView({ session, onNavigate }: AdminRefundsViewProps)
                 className={`py-1.5 px-3.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                   statusFilter === filterKey
                     ? "bg-[#0F2D5C] text-white shadow-xs"
-                    : "bg-white border border-[#E5E7EB] text-[#4B5563] hover:bg-slate-100"
+                    : "bg-white border border-[#E5E7EB] text-[#4B5563] hover:bg-[#E5E7EB]"
                 }`}
               >
                 {filterKey}
@@ -348,7 +348,7 @@ export function AdminRefundsView({ session, onNavigate }: AdminRefundsViewProps)
                 <tr>
                   <td colSpan={8} className="py-12 text-center text-[#4B5563]">
                     <RefreshCw className="h-6 w-6 animate-spin mx-auto text-[#0F2D5C] mb-2" />
-                    <span>Loading refund records from Firestore...</span>
+                    <span>Loading refund records from database...</span>
                   </td>
                 </tr>
               ) : filteredRefunds.length === 0 ? (
@@ -361,7 +361,7 @@ export function AdminRefundsView({ session, onNavigate }: AdminRefundsViewProps)
                 </tr>
               ) : (
                 filteredRefunds.map((refund) => (
-                  <tr key={refund.id} className="hover:bg-[#F9FAFB] transition-colors">
+                  <tr key={refund.id} className="hover:bg-[#0F2D5C] transition-colors">
                     <td className="py-3.5 px-5 font-mono font-bold text-[#0F2D5C]">
                       {refund.id}
                     </td>
@@ -382,15 +382,15 @@ export function AdminRefundsView({ session, onNavigate }: AdminRefundsViewProps)
                       <span
                         className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
                           refund.status === "APPROVED"
-                            ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                            ? "bg-[#F5F7FA] text-[#0F2D5C] border border-[#E5E7EB]"
                             : refund.status === "REJECTED"
-                            ? "bg-rose-50 text-rose-800 border border-rose-200"
-                            : "bg-amber-50 text-amber-800 border border-amber-200"
+                            ? "bg-[#F5F7FA] text-[#0F2D5C] border border-[#E5E7EB]"
+                            : "bg-[#F5F7FA] text-[#0F2D5C] border border-[#E5E7EB]"
                         }`}
                       >
-                        {refund.status === "APPROVED" && <CheckCircle2 className="h-3 w-3 text-emerald-600" />}
-                        {refund.status === "REJECTED" && <XCircle className="h-3 w-3 text-rose-600" />}
-                        {refund.status === "PENDING" && <Clock className="h-3 w-3 text-amber-600" />}
+                        {refund.status === "APPROVED" && <CheckCircle2 className="h-3 w-3 text-[#0F2D5C]" />}
+                        {refund.status === "REJECTED" && <XCircle className="h-3 w-3 text-[#0F2D5C]" />}
+                        {refund.status === "PENDING" && <Clock className="h-3 w-3 text-[#0F2D5C]" />}
                         <span>{refund.status}</span>
                       </span>
                     </td>
@@ -413,9 +413,9 @@ export function AdminRefundsView({ session, onNavigate }: AdminRefundsViewProps)
                               setActionType("APPROVE");
                               setAdminNotes(`Approved refund credit of ₦${refund.amount}`);
                             }}
-                            className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 font-bold text-[11px] flex items-center gap-1 cursor-pointer"
+                            className="p-1.5 rounded-lg bg-[#F5F7FA] text-[#0F2D5C] hover:bg-[#E5E7EB] border border-[#E5E7EB] font-bold text-[11px] flex items-center gap-1 cursor-pointer"
                           >
-                            <Check className="h-3.5 w-3.5 text-emerald-600" />
+                            <Check className="h-3.5 w-3.5 text-[#0F2D5C]" />
                             <span>Approve</span>
                           </button>
                           <button
@@ -425,9 +425,9 @@ export function AdminRefundsView({ session, onNavigate }: AdminRefundsViewProps)
                               setActionType("REJECT");
                               setAdminNotes("Disputed transaction confirmed as valid");
                             }}
-                            className="p-1.5 rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 font-bold text-[11px] flex items-center gap-1 cursor-pointer"
+                            className="p-1.5 rounded-lg bg-[#F5F7FA] text-[#0F2D5C] hover:bg-[#E5E7EB] border border-[#E5E7EB] font-bold text-[11px] flex items-center gap-1 cursor-pointer"
                           >
-                            <X className="h-3.5 w-3.5 text-rose-600" />
+                            <X className="h-3.5 w-3.5 text-[#0F2D5C]" />
                             <span>Reject</span>
                           </button>
                         </div>
@@ -454,7 +454,7 @@ export function AdminRefundsView({ session, onNavigate }: AdminRefundsViewProps)
               <button
                 type="button"
                 onClick={() => setShowCreateModal(false)}
-                className="p-1 hover:bg-slate-100 rounded-lg cursor-pointer"
+                className="p-1 hover:bg-[#E5E7EB] rounded-lg cursor-pointer"
               >
                 <X className="h-4 w-4 text-[#6B7280]" />
               </button>
@@ -524,7 +524,7 @@ export function AdminRefundsView({ session, onNavigate }: AdminRefundsViewProps)
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="py-2 px-4 rounded-xl border border-[#E5E7EB] text-[#4B5563] font-semibold hover:bg-slate-100 cursor-pointer"
+                  className="py-2 px-4 rounded-xl border border-[#E5E7EB] text-[#4B5563] font-semibold hover:bg-[#E5E7EB] cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -556,7 +556,7 @@ export function AdminRefundsView({ session, onNavigate }: AdminRefundsViewProps)
                   setSelectedRefund(null);
                   setActionType(null);
                 }}
-                className="p-1 hover:bg-slate-100 rounded-lg cursor-pointer"
+                className="p-1 hover:bg-[#E5E7EB] rounded-lg cursor-pointer"
               >
                 <X className="h-4 w-4 text-[#6B7280]" />
               </button>
@@ -604,7 +604,7 @@ export function AdminRefundsView({ session, onNavigate }: AdminRefundsViewProps)
                     setSelectedRefund(null);
                     setActionType(null);
                   }}
-                  className="py-2 px-4 rounded-xl border border-[#E5E7EB] text-[#4B5563] font-semibold hover:bg-slate-100 cursor-pointer"
+                  className="py-2 px-4 rounded-xl border border-[#E5E7EB] text-[#4B5563] font-semibold hover:bg-[#E5E7EB] cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -613,7 +613,7 @@ export function AdminRefundsView({ session, onNavigate }: AdminRefundsViewProps)
                     type="button"
                     onClick={handleApprove}
                     disabled={Boolean(actionLoading)}
-                    className="py-2 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold cursor-pointer flex items-center gap-1.5 shadow-xs"
+                    className="py-2 px-5 rounded-xl bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-bold cursor-pointer flex items-center gap-1.5 shadow-xs"
                   >
                     {actionLoading && <RefreshCw className="h-3.5 w-3.5 animate-spin" />}
                     <span>Authorize & Credit Wallet</span>
@@ -623,7 +623,7 @@ export function AdminRefundsView({ session, onNavigate }: AdminRefundsViewProps)
                     type="button"
                     onClick={handleReject}
                     disabled={Boolean(actionLoading)}
-                    className="py-2 px-5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold cursor-pointer flex items-center gap-1.5 shadow-xs"
+                    className="py-2 px-5 rounded-xl bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-bold cursor-pointer flex items-center gap-1.5 shadow-xs"
                   >
                     {actionLoading && <RefreshCw className="h-3.5 w-3.5 animate-spin" />}
                     <span>Confirm Rejection</span>

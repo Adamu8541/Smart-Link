@@ -26,7 +26,7 @@ export const SmartLinkSpinner: React.FC<SmartLinkSpinnerProps> = ({
       {label && (
         <div className="space-y-1">
           <p className="text-sm font-bold text-[#0F2D5C] tracking-tight">{label}</p>
-          {sublabel && <p className="text-xs text-slate-500 font-normal">{sublabel}</p>}
+          {sublabel && <p className="text-xs text-[#6B7280] font-normal">{sublabel}</p>}
         </div>
       )}
     </div>
@@ -35,7 +35,7 @@ export const SmartLinkSpinner: React.FC<SmartLinkSpinnerProps> = ({
   if (fullScreen) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/90 backdrop-blur-sm transition-opacity animate-fade-in">
-        <div className="bg-white p-8 rounded-3xl shadow-2xl border border-slate-100 max-w-sm w-full mx-4 flex flex-col items-center">
+        <div className="bg-white p-8 rounded-3xl shadow-2xl border border-[#E5E7EB] max-w-sm w-full mx-4 flex flex-col items-center">
           {content}
         </div>
       </div>

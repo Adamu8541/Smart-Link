@@ -32,7 +32,7 @@ import {
 } from "lucide-react";
 import { LEGAL_DOCUMENTS, LegalDocument, getLegalDocumentById } from "./legalData";
 import { useSiteConfig } from "../../context/SiteConfigContext";
-import logoImg from "../../assets/images/logo.png";
+const logoImg = "/logo.png";
 
 interface LegalDocumentViewProps {
   docId?: string;
@@ -116,27 +116,27 @@ export const LegalDocumentView: React.FC<LegalDocumentViewProps> = ({
   const getDocIcon = (iconName: string) => {
     switch (iconName) {
       case "ShieldCheck":
-        return <ShieldCheck className="h-5 w-5 text-blue-600 dark:text-blue-400" />;
+        return <ShieldCheck className="h-5 w-5 text-[#0F2D5C] dark:text-[#9CA3AF]" />;
       case "FileText":
-        return <FileText className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />;
+        return <FileText className="h-5 w-5 text-[#0F2D5C] dark:text-[#9CA3AF]" />;
       case "RefreshCw":
-        return <RefreshCw className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />;
+        return <RefreshCw className="h-5 w-5 text-[#0F2D5C] dark:text-[#9CA3AF]" />;
       case "Wallet":
-        return <Wallet className="h-5 w-5 text-amber-600 dark:text-amber-400" />;
+        return <Wallet className="h-5 w-5 text-[#0F2D5C] dark:text-[#9CA3AF]" />;
       case "CreditCard":
-        return <CreditCard className="h-5 w-5 text-teal-600 dark:text-teal-400" />;
+        return <CreditCard className="h-5 w-5 text-[#0F2D5C] dark:text-[#9CA3AF]" />;
       case "Cookie":
-        return <Cookie className="h-5 w-5 text-orange-600 dark:text-orange-400" />;
+        return <Cookie className="h-5 w-5 text-[#0F2D5C] dark:text-[#9CA3AF]" />;
       case "Fingerprint":
-        return <Fingerprint className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />;
+        return <Fingerprint className="h-5 w-5 text-[#0F2D5C] dark:text-[#9CA3AF]" />;
       case "ShieldAlert":
-        return <ShieldAlert className="h-5 w-5 text-rose-600 dark:text-rose-400" />;
+        return <ShieldAlert className="h-5 w-5 text-[#0F2D5C] dark:text-[#9CA3AF]" />;
       case "Lock":
         return <Lock className="h-5 w-5 text-violet-600 dark:text-violet-400" />;
       case "AlertTriangle":
-        return <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400" />;
+        return <AlertTriangle className="h-5 w-5 text-[#0F2D5C] dark:text-[#9CA3AF]" />;
       default:
-        return <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />;
+        return <FileText className="h-5 w-5 text-[#0F2D5C] dark:text-[#9CA3AF]" />;
     }
   };
 
@@ -145,22 +145,22 @@ export const LegalDocumentView: React.FC<LegalDocumentViewProps> = ({
     .filter(Boolean) as LegalDocument[];
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans">
+    <div className="min-h-screen bg-[#F5F7FA] dark:bg-[#111827] text-[#111827] dark:text-[#E5E7EB] font-sans">
       
       {/* Top Header */}
-      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40 shadow-xs print:hidden">
+      <header className="bg-white dark:bg-[#111827] border-b border-[#E5E7EB] dark:border-[#111827] sticky top-0 z-40 shadow-xs print:hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
               onClick={handleBackToCenter}
-              className="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer border-none bg-transparent"
+              className="p-2 rounded-xl text-[#6B7280] hover:text-[#111827] dark:text-[#9CA3AF] dark:hover:text-white hover:bg-[#E5E7EB] dark:hover:bg-[#111827] transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer border-none bg-transparent"
               title="Return to Legal Center"
             >
               <ArrowLeft className="h-4 w-4" />
               <span className="hidden sm:inline">Legal Center</span>
             </button>
 
-            <div className="h-5 w-px bg-slate-200 dark:bg-slate-800" />
+            <div className="h-5 w-px bg-[#E5E7EB] dark:bg-[#111827]" />
 
             <div
               onClick={handleGoHome}
@@ -179,13 +179,13 @@ export const LegalDocumentView: React.FC<LegalDocumentViewProps> = ({
           <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={handleCopyLink}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer border-none"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-[#4B5563] dark:text-[#E5E7EB] bg-[#E5E7EB] dark:bg-[#111827] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563] transition-colors cursor-pointer border-none"
               title="Copy policy URL"
             >
               {copied ? (
                 <>
-                  <Check className="h-3.5 w-3.5 text-emerald-600" />
-                  <span className="text-emerald-600 font-bold">Copied!</span>
+                  <Check className="h-3.5 w-3.5 text-[#0F2D5C]" />
+                  <span className="text-[#0F2D5C] font-bold">Copied!</span>
                 </>
               ) : (
                 <>
@@ -197,7 +197,7 @@ export const LegalDocumentView: React.FC<LegalDocumentViewProps> = ({
 
             <button
               onClick={() => window.print()}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer border-none"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-[#4B5563] dark:text-[#E5E7EB] bg-[#E5E7EB] dark:bg-[#111827] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563] transition-colors cursor-pointer border-none"
               title="Print Document"
             >
               <Printer className="h-3.5 w-3.5" />
@@ -220,36 +220,36 @@ export const LegalDocumentView: React.FC<LegalDocumentViewProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
         
         {/* Breadcrumb Navigation */}
-        <nav className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-6 print:hidden">
+        <nav className="flex items-center gap-2 text-xs text-[#6B7280] dark:text-[#9CA3AF] mb-6 print:hidden">
           <button
             onClick={handleGoHome}
-            className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors bg-transparent border-none p-0 cursor-pointer"
+            className="hover:text-[#0F2D5C] dark:hover:text-[#9CA3AF] transition-colors bg-transparent border-none p-0 cursor-pointer"
           >
             Home
           </button>
-          <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
+          <ChevronRight className="h-3.5 w-3.5 text-[#9CA3AF]" />
           <button
             onClick={handleBackToCenter}
-            className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors bg-transparent border-none p-0 cursor-pointer"
+            className="hover:text-[#0F2D5C] dark:hover:text-[#9CA3AF] transition-colors bg-transparent border-none p-0 cursor-pointer"
           >
             Legal & Policies
           </button>
-          <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
-          <span className="font-semibold text-slate-900 dark:text-white truncate">
+          <ChevronRight className="h-3.5 w-3.5 text-[#9CA3AF]" />
+          <span className="font-semibold text-[#111827] dark:text-white truncate">
             {doc.shortTitle}
           </span>
         </nav>
 
         {/* Document Header Hero */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 md:p-10 shadow-xs mb-8 text-left space-y-6">
+        <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl p-6 sm:p-8 md:p-10 shadow-xs mb-8 text-left space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 text-xs font-bold">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 border border-[#E5E7EB] dark:border-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF] text-xs font-bold">
               {getDocIcon(doc.iconName)}
               <span>{doc.categoryLabel}</span>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 font-mono font-medium">
+            <div className="flex flex-wrap items-center gap-3 text-xs text-[#6B7280] dark:text-[#9CA3AF]">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#E5E7EB] dark:bg-[#111827] font-mono font-medium">
                 Version {doc.version}
               </span>
               <span className="flex items-center gap-1">
@@ -260,43 +260,43 @@ export const LegalDocumentView: React.FC<LegalDocumentViewProps> = ({
           </div>
 
           <div>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-[#111827] dark:text-white tracking-tight">
               {doc.title}
             </h1>
-            <p className="mt-3 text-sm sm:text-base text-slate-600 dark:text-slate-400 leading-relaxed max-w-3xl">
+            <p className="mt-3 text-sm sm:text-base text-[#4B5563] dark:text-[#9CA3AF] leading-relaxed max-w-3xl">
               {doc.summary}
             </p>
           </div>
 
           {/* Dates & Entity Badge */}
-          <div className="pt-4 border-t border-slate-100 dark:border-slate-800/80 flex flex-wrap items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400">
+          <div className="pt-4 border-t border-[#E5E7EB] dark:border-[#111827]/80 flex flex-wrap items-center justify-between gap-4 text-xs text-[#6B7280] dark:text-[#9CA3AF]">
             <div className="flex flex-wrap items-center gap-4 sm:gap-6">
               <div className="flex items-center gap-1.5">
-                <Calendar className="h-4 w-4 text-blue-600" />
+                <Calendar className="h-4 w-4 text-[#0F2D5C]" />
                 <span>Effective Date: <strong>{doc.effectiveDate}</strong></span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Calendar className="h-4 w-4 text-emerald-600" />
+                <Calendar className="h-4 w-4 text-[#0F2D5C]" />
                 <span>Last Updated: <strong>{doc.lastUpdated}</strong></span>
               </div>
             </div>
 
             <div className="text-[11px] font-medium">
-              Registered Entity: Smart Link Nigeria Computer Business Enterprise (CAC RC 9347502)
+              Registered Entity: Smart Link Computer Business (CAC RC 9347502)
             </div>
           </div>
 
           {/* Key Principles Checklist */}
           {doc.highlights && doc.highlights.length > 0 && (
-            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 sm:p-5 border border-slate-200/60 dark:border-slate-800">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4 text-blue-600" />
+            <div className="bg-[#F5F7FA] dark:bg-[#111827]/50 rounded-2xl p-4 sm:p-5 border border-[#E5E7EB]/60 dark:border-[#111827]">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-[#4B5563] dark:text-[#E5E7EB] mb-3 flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-[#0F2D5C]" />
                 <span>Key Policy Highlights</span>
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                 {doc.highlights.map((hl, i) => (
-                  <div key={i} className="flex items-start gap-2 text-xs text-slate-600 dark:text-slate-300">
-                    <span className="h-1.5 w-1.5 rounded-full bg-blue-600 shrink-0 mt-1.5" />
+                  <div key={i} className="flex items-start gap-2 text-xs text-[#4B5563] dark:text-[#E5E7EB]">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#0F2D5C] shrink-0 mt-1.5" />
                     <span>{hl}</span>
                   </div>
                 ))}
@@ -310,9 +310,9 @@ export const LegalDocumentView: React.FC<LegalDocumentViewProps> = ({
           
           {/* Left Column: Table of Contents (Sticky) */}
           <aside className="lg:col-span-4 lg:sticky lg:top-24 space-y-6 print:hidden">
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-4 flex items-center gap-2">
-                <BookOpen className="h-4 w-4 text-blue-600" />
+            <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-2xl p-5 shadow-xs">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-[#9CA3AF] dark:text-[#6B7280] mb-4 flex items-center gap-2">
+                <BookOpen className="h-4 w-4 text-[#0F2D5C]" />
                 <span>Table of Contents</span>
               </h2>
 
@@ -325,16 +325,16 @@ export const LegalDocumentView: React.FC<LegalDocumentViewProps> = ({
                       onClick={() => handleScrollToSection(section.id)}
                       className={`w-full text-left px-3 py-2 rounded-xl text-xs transition-all flex items-center justify-between group cursor-pointer border-none ${
                         isActive
-                          ? "bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-bold"
-                          : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
+                          ? "bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] font-bold"
+                          : "text-[#4B5563] dark:text-[#9CA3AF] hover:bg-[#F5F7FA] dark:hover:bg-[#111827] hover:text-[#111827] dark:hover:text-white"
                       }`}
                     >
                       <span className="truncate">{section.title}</span>
                       <ChevronRight
                         className={`h-3.5 w-3.5 shrink-0 transition-transform ${
                           isActive
-                            ? "text-blue-600 translate-x-0.5"
-                            : "text-slate-300 dark:text-slate-600 opacity-0 group-hover:opacity-100"
+                            ? "text-[#0F2D5C] translate-x-0.5"
+                            : "text-[#E5E7EB] dark:text-[#4B5563] opacity-0 group-hover:opacity-100"
                         }`}
                       />
                     </button>
@@ -344,8 +344,8 @@ export const LegalDocumentView: React.FC<LegalDocumentViewProps> = ({
             </div>
 
             {/* Quick Switch to Other Legal Documents */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs space-y-3">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
+            <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-2xl p-5 shadow-xs space-y-3">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-[#9CA3AF] dark:text-[#6B7280] flex items-center gap-1.5">
                 <FileText className="h-3.5 w-3.5" />
                 <span>All Policies & Documents</span>
               </h2>
@@ -357,7 +357,7 @@ export const LegalDocumentView: React.FC<LegalDocumentViewProps> = ({
                     className={`w-full text-left px-3 py-1.5 rounded-lg text-[11px] transition-colors truncate block cursor-pointer border-none ${
                       d.id === doc.id
                         ? "bg-[#071C35] text-white font-bold"
-                        : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                        : "text-[#4B5563] dark:text-[#9CA3AF] hover:bg-[#E5E7EB] dark:hover:bg-[#111827]"
                     }`}
                   >
                     {d.shortTitle}
@@ -367,13 +367,13 @@ export const LegalDocumentView: React.FC<LegalDocumentViewProps> = ({
             </div>
 
             {/* Need Legal Support? */}
-            <div className="bg-blue-50/70 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/60 rounded-2xl p-4 text-xs space-y-2">
-              <span className="font-bold text-blue-900 dark:text-blue-200 flex items-center gap-1.5">
-                <Info className="h-4 w-4 text-blue-600" />
+            <div className="bg-[#F5F7FA]/70 dark:bg-[#0F2D5C]/40 border border-[#E5E7EB] dark:border-[#0F2D5C]/60 rounded-2xl p-4 text-xs space-y-2">
+              <span className="font-bold text-[#0F2D5C] dark:text-[#9CA3AF] flex items-center gap-1.5">
+                <Info className="h-4 w-4 text-[#0F2D5C]" />
                 <span>Need Clarification?</span>
               </span>
-              <p className="text-slate-600 dark:text-slate-400 text-[11px] leading-relaxed">
-                Contact our compliance & legal desk at <a href="mailto:Smartlinkcomputerbusiness@gmail.com" className="text-blue-600 underline font-medium">Smartlinkcomputerbusiness@gmail.com</a>
+              <p className="text-[#4B5563] dark:text-[#9CA3AF] text-[11px] leading-relaxed">
+                Contact our compliance & legal desk at <a href="mailto:Smartlinkcomputerbusiness@gmail.com" className="text-[#0F2D5C] underline font-medium">Smartlinkcomputerbusiness@gmail.com</a>
               </p>
             </div>
           </aside>
@@ -384,13 +384,13 @@ export const LegalDocumentView: React.FC<LegalDocumentViewProps> = ({
               <section
                 key={section.id}
                 id={section.id}
-                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 md:p-10 shadow-xs space-y-5 scroll-mt-24 text-left"
+                className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl p-6 sm:p-8 md:p-10 shadow-xs space-y-5 scroll-mt-24 text-left"
               >
-                <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight pb-3 border-b border-slate-100 dark:border-slate-800">
+                <h2 className="text-xl sm:text-2xl font-bold text-[#111827] dark:text-white tracking-tight pb-3 border-b border-[#E5E7EB] dark:border-[#111827]">
                   {section.title}
                 </h2>
 
-                <div className="space-y-4 text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-normal">
+                <div className="space-y-4 text-sm text-[#4B5563] dark:text-[#E5E7EB] leading-relaxed font-normal">
                   {section.content.map((paragraph, pIdx) => (
                     <p key={pIdx} className="leading-relaxed">
                       {paragraph}
@@ -404,12 +404,12 @@ export const LegalDocumentView: React.FC<LegalDocumentViewProps> = ({
                     {section.subsections.map((sub, sIdx) => (
                       <div
                         key={sIdx}
-                        className="bg-slate-50 dark:bg-slate-800/40 rounded-2xl p-5 border border-slate-200/70 dark:border-slate-800 space-y-3"
+                        className="bg-[#F5F7FA] dark:bg-[#111827]/40 rounded-2xl p-5 border border-[#E5E7EB]/70 dark:border-[#111827] space-y-3"
                       >
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-[#111827] dark:text-[#E5E7EB]">
                           {sub.subtitle}
                         </h4>
-                        <ul className="space-y-2 text-xs text-slate-600 dark:text-slate-300 pl-4 list-disc marker:text-blue-500">
+                        <ul className="space-y-2 text-xs text-[#4B5563] dark:text-[#E5E7EB] pl-4 list-disc marker:text-[#0F2D5C]">
                           {sub.points.map((pt, ptIdx) => (
                             <li key={ptIdx} className="leading-relaxed">
                               {pt}
@@ -426,12 +426,12 @@ export const LegalDocumentView: React.FC<LegalDocumentViewProps> = ({
                   <div
                     className={`rounded-2xl p-4 sm:p-5 border text-xs sm:text-sm leading-relaxed flex items-start gap-3 ${
                       section.callout.type === "warning"
-                        ? "bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200"
+                        ? "bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border-[#E5E7EB] dark:border-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF]"
                         : section.callout.type === "success"
-                        ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200"
+                        ? "bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border-[#E5E7EB] dark:border-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF]"
                         : section.callout.type === "notice"
-                        ? "bg-indigo-50 dark:bg-indigo-950/40 border-indigo-200 dark:border-indigo-800 text-indigo-900 dark:text-indigo-200"
-                        : "bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-200"
+                        ? "bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border-[#E5E7EB] dark:border-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF]"
+                        : "bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border-[#E5E7EB] dark:border-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF]"
                     }`}
                   >
                     <Info className="h-5 w-5 shrink-0 mt-0.5" />
@@ -443,9 +443,9 @@ export const LegalDocumentView: React.FC<LegalDocumentViewProps> = ({
 
             {/* Related Policies Cross-Navigation */}
             {relatedDocs.length > 0 && (
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 space-y-4 print:hidden">
-                <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-blue-600" />
+              <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl p-6 sm:p-8 space-y-4 print:hidden">
+                <h3 className="text-base font-bold text-[#111827] dark:text-white flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-[#0F2D5C]" />
                   <span>Related Legal Documents</span>
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -453,17 +453,17 @@ export const LegalDocumentView: React.FC<LegalDocumentViewProps> = ({
                     <div
                       key={relDoc.id}
                       onClick={() => handleSelectDoc(relDoc.id)}
-                      className="group p-4 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-blue-500 dark:hover:border-blue-500 bg-slate-50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-900 transition-all cursor-pointer flex items-center justify-between"
+                      className="group p-4 rounded-2xl border border-[#E5E7EB] dark:border-[#111827] hover:border-[#0F2D5C] dark:hover:border-[#0F2D5C] bg-[#F5F7FA] dark:bg-[#111827]/50 hover:bg-white dark:hover:bg-[#111827] transition-all cursor-pointer flex items-center justify-between"
                     >
                       <div className="space-y-1 pr-3">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#9CA3AF] block">
                           {relDoc.categoryLabel}
                         </span>
-                        <h4 className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors line-clamp-1">
+                        <h4 className="text-xs font-bold text-[#111827] dark:text-white group-hover:text-[#0F2D5C] transition-colors line-clamp-1">
                           {relDoc.title}
                         </h4>
                       </div>
-                      <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all shrink-0" />
+                      <ChevronRight className="h-4 w-4 text-[#9CA3AF] group-hover:text-[#0F2D5C] group-hover:translate-x-1 transition-all shrink-0" />
                     </div>
                   ))}
                 </div>
@@ -471,14 +471,14 @@ export const LegalDocumentView: React.FC<LegalDocumentViewProps> = ({
             )}
 
             {/* Back to Legal Center Bar */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-6 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-xs print:hidden">
-              <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
-                <ShieldCheck className="h-4 w-4 text-blue-600" />
-                <span>Smart Link Nigeria Computer Business Enterprise (CAC RC 9347502)</span>
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-6 bg-[#E5E7EB] dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-2xl text-xs print:hidden">
+              <div className="flex items-center gap-2 text-[#4B5563] dark:text-[#9CA3AF]">
+                <ShieldCheck className="h-4 w-4 text-[#0F2D5C]" />
+                <span>Smart Link Computer Business (CAC RC 9347502)</span>
               </div>
               <button
                 onClick={handleBackToCenter}
-                className="px-4 py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 rounded-xl font-bold transition-colors cursor-pointer"
+                className="px-4 py-2 bg-white dark:bg-[#111827] hover:bg-[#F5F7FA] dark:hover:bg-[#4B5563] text-[#111827] dark:text-white border border-[#E5E7EB] dark:border-[#4B5563] rounded-xl font-bold transition-colors cursor-pointer"
               >
                 Back to All Legal Documents
               </button>
@@ -493,7 +493,7 @@ export const LegalDocumentView: React.FC<LegalDocumentViewProps> = ({
       {showScrollTop && (
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="fixed bottom-6 right-6 p-3 rounded-full bg-[#071C35] text-white shadow-lg hover:bg-blue-900 transition-all z-30 cursor-pointer border-none print:hidden"
+          className="fixed bottom-6 right-6 p-3 rounded-full bg-[#071C35] text-white shadow-lg hover:bg-[#0F2D5C] transition-all z-30 cursor-pointer border-none print:hidden"
           title="Scroll to Top"
         >
           <ArrowUp className="h-5 w-5" />

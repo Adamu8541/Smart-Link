@@ -28,7 +28,7 @@ This document specifies the complete user experience architecture, component lay
   - Displays **Available Balance** in NGN (`₦XX,XXX.XX`) with eye-icon visibility toggle.
   - Sub-balances: **Pending Balance** & **Reserved Balance**.
   - Unique **Wallet Number** (e.g., `SL100000001`) with one-touch clipboard copy.
-  - Action Controls: `[+ Fund Wallet]`, `[ Send Money]`, `[ Pay Bills]`, `[ Transactions]`.
+  - Action Controls: `[+ Fund Wallet]`, `[ Pay Bills]`, `[ Transactions]`.
 - **Live Activity Feed**: Lists real-time recent transactions; renders clean empty state when `transactions.length === 0`.
 
 ### 2. Fund Wallet Experience (`/wallet/fund`)
@@ -39,15 +39,6 @@ This document specifies the complete user experience architecture, component lay
   4. Backend creates `payment_sessions` record and returns Squad checkout URL.
   5. User is redirected to Squad Gateway.
   6. Upon completion and Squad webhook verification, backend updates wallet and triggers UI refresh.
-
-### 3. Transfer Money (P2P Transfer) View (`/wallet/transfer`)
-- **Flow**:
-  1. User inputs recipient email, phone, or Wallet Number (`SL100000001`).
-  2. Live recipient lookup verifies existence and fetches verified recipient name.
-  3. User enters amount and description.
-  4. User confirms transaction in confirmation overlay.
-  5. POST request sent to `/api/wallet/transfer` (executing server-side atomic Firestore transaction).
-  6. Result displayed; receipt view made available.
 
 ### 4. Transaction History View (`/wallet/transactions`)
 - Live paginated data fetching with support for:

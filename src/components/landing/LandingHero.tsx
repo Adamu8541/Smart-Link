@@ -63,11 +63,10 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.12] text-[#111827]"
           >
-            Nigeria's Trusted Digital{" "}
+            Verify Any Identity Instantly &{" "}
             <span className="text-[#0F2D5C]">
-              Verification
-            </span>{" "}
-            Platform
+              Power Your Payments
+            </span>
           </motion.h1>
 
           {/* Subheading */}
@@ -77,7 +76,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-base sm:text-lg text-[#4B5563] font-normal leading-relaxed max-w-2xl mx-auto"
           >
-            Verify identities, pay bills, manage your wallet, and access government and financial verification services from one secure platform.
+            Streamline your business with high-velocity NIN, BVN, and CAC verifications, instant VTU router, and automated wallet operations on Nigeria's most reliable compliance gateway.
           </motion.p>
 
           {/* Action Buttons */}
@@ -95,15 +94,6 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
               >
                 Get Started
                 <ArrowRight className="h-4 w-4 text-white" />
-              </button>
-
-              <button
-                id="hero-secondary-btn"
-                onClick={onExploreServices}
-                className="w-full sm:w-auto px-7 py-4 bg-white hover:bg-[#F5F7FA] text-[#111827] border border-[#E5E7EB] font-bold rounded-xl text-sm transition-all cursor-pointer flex items-center justify-center gap-2"
-              >
-                Explore Services
-                <ArrowUpRight className="h-4 w-4 text-[#0F2D5C]" />
               </button>
             </div>
 

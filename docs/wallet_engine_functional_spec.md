@@ -34,7 +34,7 @@ Every active Smart Link wallet supports:
 2. **Peer-to-Peer Transfer**: Zero-latency internal transfers to any registered Smart Link user via phone number, email, or wallet number.
 3. **Airtime Purchase**: Instant top-up for MTN, Airtel, Glo, and 9mobile networks.
 4. **Data Bundle Top-up**: SME, Direct, and Corporate Data plans for all Nigerian telecommunication networks.
-5. **Electricity Utility Payments**: Prepaid & Postpaid meter token purchases for Ikeja, Eko, Abuja, Kano, and other DISCOs.
+5. **Electricity Utility Payments**: Prepaid & Postpaid meter token purchases for Ikeja, Eko, Central, Kano, and other DISCOs.
 6. **Cable TV Subscriptions**: DSTV, GOTV, and StarTimes subscription renewals.
 7. **Educational Services**: WAEC, NECO, and JAMB PIN purchases.
 8. **Refunds & Reversals**: System and Admin refund processing for failed third-party utility deliveries.

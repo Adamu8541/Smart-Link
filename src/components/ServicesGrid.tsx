@@ -38,15 +38,40 @@ interface ServicesGridProps {
 export const SMART_LINK_SERVICES: ServiceItem[] = [
   // 1. IDENTITY & KYC
   {
+    id: "id_nin_demography",
+    name: "NIN Demography",
+    category: "IDENTITY",
+    description: "Verify identity records via official NIMC demographic details (First Name, Last Name, Gender & Date of Birth). Choose slip type.",
+    price: 600,
+    actionLabel: "Verify Demographics",
+    fields: [
+      { name: "firstName", label: "First Name", type: "text", placeholder: "e.g. Shile", required: true },
+      { name: "lastName", label: "Last Name", type: "text", placeholder: "e.g. Ademurewa", required: true },
+      { name: "gender", label: "Gender", type: "select", placeholder: "Select Gender", required: true, options: ["MALE", "FEMALE"] },
+      { name: "dateOfBirth", label: "Date of Birth", type: "date", placeholder: "YYYY-MM-DD", required: true }
+    ]
+  },
+  {
     id: "id_nin_ver",
     name: "NIN Verification",
     category: "IDENTITY",
-    description: "Verify full NIMC government profiles instantly using the candidate's NIN. Secure database lookup.",
+    description: "Verify NIN profiles via third-party gateways instantly using the candidate's NIN. Secure database lookup.",
     price: 500,
     actionLabel: "Verify NIN Profile",
     fields: [
       { name: "idNumber", label: "National Identification Number (NIN)", type: "text", placeholder: "e.g. 12345678901", required: true },
       { name: "fullName", label: "Full Name (as on card)", type: "text", placeholder: "e.g. Abubakar Muhammad", required: true }
+    ]
+  },
+  {
+    id: "id_nin_phone",
+    name: "NIN With Phone Number",
+    category: "IDENTITY",
+    description: "Verify NIN records using the candidate's registered 11-digit mobile phone number.",
+    price: 500,
+    actionLabel: "Verify Phone Number",
+    fields: [
+      { name: "phoneNumber", label: "Phone Number", type: "text", placeholder: "e.g. 08012345678", required: true }
     ]
   },
   {
@@ -77,7 +102,7 @@ export const SMART_LINK_SERVICES: ServiceItem[] = [
     id: "id_nin_pers",
     name: "NIN Personalization",
     category: "IDENTITY",
-    description: "Customize and personalize active NIMC profiles with corporate custom parameters and verified photos.",
+    description: "Customize and personalize active NIN profiles with corporate custom parameters and verified photos.",
     price: 2000,
     actionLabel: "Personalize Profile",
     fields: [
@@ -89,7 +114,7 @@ export const SMART_LINK_SERVICES: ServiceItem[] = [
     id: "id_nin_mod",
     name: "NIN Modification",
     category: "IDENTITY",
-    description: "Submit corrections and modifications of birth dates, name spelling, or phone linkage for federal NIMC approval.",
+    description: "Submit corrections and modifications of birth dates, name spelling, or phone linkage for NIN registry updates via authorized gateways.",
     price: 15000,
     actionLabel: "Modify Profile",
     fields: [
@@ -102,7 +127,7 @@ export const SMART_LINK_SERVICES: ServiceItem[] = [
     id: "id_slip_gen",
     name: "Slip Generation",
     category: "IDENTITY",
-    description: "Generate and download premium full-sized high-fidelity printable NIMC identification slips.",
+    description: "Generate and download premium full-sized high-fidelity printable NIN verification slips.",
     price: 1000,
     actionLabel: "Generate Slip",
     fields: [
@@ -139,7 +164,7 @@ export const SMART_LINK_SERVICES: ServiceItem[] = [
     id: "id_nin_bvn",
     name: "NIN-BVN Linkage",
     category: "IDENTITY",
-    description: "Assistance to link NIMC NIN profiles with CBN Bank Verification records for commercial accounts.",
+    description: "Assistance to link NIN profiles with BVN records for commercial accounts.",
     price: 1500,
     actionLabel: "Link NIN & BVN",
     fields: [
@@ -149,12 +174,12 @@ export const SMART_LINK_SERVICES: ServiceItem[] = [
     ]
   },
   {
-    id: "id_vnin_to_nibss",
-    name: "VNIN to NIBSS",
+    id: "id_vnin_to_bvn",
+    name: "VNIN to BVN",
     category: "IDENTITY",
-    description: "Link and resolve VNIN to NIBSS database for banking and financial operations.",
+    description: "Link and resolve VNIN to BVN database for banking and financial operations.",
     price: 1000,
-    actionLabel: "Resolve VNIN to NIBSS",
+    actionLabel: "Resolve VNIN to BVN",
     fields: [
       { name: "vnin", label: "Virtual NIN (VNIN)", type: "text", placeholder: "e.g. AB12345678901Z", required: true },
       { name: "bvn", label: "Bank Verification Number (BVN)", type: "text", placeholder: "e.g. 22233344455", required: true },
@@ -165,7 +190,7 @@ export const SMART_LINK_SERVICES: ServiceItem[] = [
     id: "id_bvn_user",
     name: "BVN User",
     category: "IDENTITY",
-    description: "Query comprehensive user bio-data and facial profile logs from NIBSS central database.",
+    description: "Query user bio-data logs via third-party BVN gateways.",
     price: 500,
     actionLabel: "Query BVN User Profile",
     fields: [
@@ -188,14 +213,14 @@ export const SMART_LINK_SERVICES: ServiceItem[] = [
   },
   {
     id: "id_premium_slip",
-    name: "Premium Slip",
+    name: "BVN Slip Print",
     category: "IDENTITY",
-    description: "Generate and download premium printable verified banking or identity cards.",
+    description: "Generate and print verified BVN identity slips and cards.",
     price: 1000,
-    actionLabel: "Generate Premium Slip",
+    actionLabel: "Print BVN Slip",
     fields: [
-      { name: "bvnOrNin", label: "BVN or NIN", type: "text", placeholder: "Enter BVN or NIN number", required: true },
-      { name: "cardFormat", label: "Card/Slip Format", type: "select", placeholder: "Select format", required: true, options: ["Premium Plastic Card Format", "Official Digital Slip", "A4 Hardcopy Certificate Format"] }
+      { name: "bvnOrNin", label: "BVN Number", type: "text", placeholder: "Enter BVN number", required: true },
+      { name: "cardFormat", label: "Slip Format", type: "select", placeholder: "Select format", required: true, options: ["Standard BVN Slip", "Premium Plastic Card Format", "A4 Certificate Format"] }
     ]
   },
   {
@@ -240,7 +265,7 @@ export const SMART_LINK_SERVICES: ServiceItem[] = [
     id: "id_bank_account_verification",
     name: "Bank Account Verification",
     category: "IDENTITY",
-    description: "Confirm bank account holder's name and account validity across all Nigerian commercial banks, MFBs, and PSBs via NIBSS gateway.",
+    description: "Confirm bank account holder name via third-party bank gateways.",
     price: 100,
     actionLabel: "Verify Account Name",
     fields: [
@@ -266,7 +291,7 @@ export const SMART_LINK_SERVICES: ServiceItem[] = [
     id: "cac_biz_name",
     name: "CAC Business Name Registration",
     category: "CAC",
-    description: "Official registration of Business Names with the Corporate Affairs Commission. Filing includes Abuja agency approvals.",
+    description: "Official registration of Business Names with the Corporate Affairs Commission. Filing includes national agency approvals.",
     price: 15000,
     actionLabel: "Start Corporate Filing",
     fields: [
@@ -377,11 +402,11 @@ export const SMART_LINK_SERVICES: ServiceItem[] = [
     id: "vtu_electricity",
     name: "Prepaid Electricity Token",
     category: "VTU",
-    description: "Instant energy tokens for Jos (JEDC), Kaduna, Abuja (AEDC), Ikeja, and Eko electricity distribution companies.",
+    description: "Instant energy tokens for Jos (JEDC), Kaduna, Central (AEDC), Ikeja, and Eko electricity distribution companies.",
     priceLabel: "Pay bill value",
     actionLabel: "Generate Power Token",
     fields: [
-      { name: "provider", label: "Electricity DisCo Office", type: "select", placeholder: "Select Office", required: true, options: ["JEDC - Jos Electricity", "AEDC - Abuja Electricity", "KAEDCO - Kaduna Electricity", "IKEDC - Ikeja Electricity"] },
+      { name: "provider", label: "Electricity DisCo Office", type: "select", placeholder: "Select Office", required: true, options: ["JEDC - Jos Electricity", "AEDC - Central Electricity", "KAEDCO - Kaduna Electricity", "IKEDC - Ikeja Electricity"] },
       { name: "customerId", label: "Meter Number / Account ID", type: "text", placeholder: "e.g. 0130987123", required: true },
       { name: "amount", label: "Token Purchase Amount (₦)", type: "number", placeholder: "e.g. 5000", required: true }
     ]
@@ -446,7 +471,7 @@ export default function ServicesGrid({ onSelectService }: ServicesGridProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Title Block */}
         <div className="text-center space-y-3 max-w-3xl mx-auto mb-10">
-          <span className="px-3 py-1 rounded-full bg-blue-100 text-[#0F2D5C] text-xs font-bold tracking-wider uppercase border border-blue-200">
+          <span className="px-3 py-1 rounded-full bg-[#F5F7FA] text-[#0F2D5C] text-xs font-bold tracking-wider uppercase border border-[#E5E7EB]">
             Product Portfolio
           </span>
           <h2 className="text-3xl sm:text-4xl font-bold text-[#111827] tracking-tight">
@@ -502,7 +527,7 @@ export default function ServicesGrid({ onSelectService }: ServicesGridProps) {
                 className={`px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all ${
                   searchQuery.toLowerCase() === tag.query.toLowerCase()
                     ? "bg-[#0F2D5C] text-white shadow-xs"
-                    : "bg-white border border-[#E5E7EB] text-[#4B5563] hover:bg-blue-50 hover:text-[#0F2D5C]"
+                    : "bg-white border border-[#E5E7EB] text-[#4B5563] hover:bg-[#F5F7FA] hover:text-[#0F2D5C]"
                 }`}
               >
                 {tag.label}
@@ -554,11 +579,11 @@ export default function ServicesGrid({ onSelectService }: ServicesGridProps) {
                 <div className="space-y-4">
                   {/* Category Indicator */}
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] uppercase bg-blue-50 text-[#0F2D5C] px-2.5 py-0.5 rounded font-bold tracking-wider">
+                    <span className="text-[10px] uppercase bg-[#F5F7FA] text-[#0F2D5C] px-2.5 py-0.5 rounded font-bold tracking-wider">
                       {srv.category}
                     </span>
                     {livePrice !== undefined && (
-                      <span className="text-xs font-bold text-[#0F2D5C] bg-blue-50 px-2.5 py-0.5 rounded-full flex items-center gap-1 font-mono border border-blue-100">
+                      <span className="text-xs font-bold text-[#0F2D5C] bg-[#F5F7FA] px-2.5 py-0.5 rounded-full flex items-center gap-1 font-mono border border-[#E5E7EB]">
                         <Tag className="h-3 w-3" />
                         ₦{livePrice.toLocaleString()}
                       </span>

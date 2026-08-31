@@ -6,6 +6,7 @@ import path from "path";
 import fs from "fs";
 import crypto from "crypto";
 import dotenv from "dotenv";
+import bcrypt from "bcrypt";
 import { loadFirestoreDb, syncDbToFirestore, saveDocToFirestore } from "../src/services/firestoreStore";
 import { adminAuthService } from "../src/services/adminAuthService";
 
@@ -27,15 +28,39 @@ if (!process.env.SUPER_ADMIN_PASSWORD || !process.env.SUPER_ADMIN_PASSWORD.trim(
 export const SUPER_ADMIN_EMAIL = process.env.SUPER_ADMIN_EMAIL.toLowerCase().trim();
 export const SUPER_ADMIN_PASSWORD = process.env.SUPER_ADMIN_PASSWORD.trim();
 
-export function hashPassword(password: string, salt: string): string {
-  return crypto.createHash("sha256").update(password + salt).digest("hex");
+export function hashPassword(password: string, salt?: string): string {
+  return bcrypt.hashSync(password, 12);
+}
+
+export function verifyPassword(password: string, storedHash: string, salt?: string): { match: boolean; needsUpgrade: boolean } {
+  if (!password || !storedHash) return { match: false, needsUpgrade: false };
+  if (storedHash.startsWith("$2a$") || storedHash.startsWith("$2b$") || storedHash.startsWith("$2y$")) {
+    try {
+      const match = bcrypt.compareSync(password, storedHash);
+      return { match, needsUpgrade: false };
+    } catch {
+      return { match: false, needsUpgrade: false };
+    }
+  }
+  if (salt) {
+    try {
+      const legacyHash = crypto.createHash("sha256").update(password + salt).digest("hex");
+      if (safeCompareHash(legacyHash, storedHash)) {
+        return { match: true, needsUpgrade: true };
+      }
+    } catch {}
+  }
+  if (storedHash === password) {
+    return { match: true, needsUpgrade: true };
+  }
+  return { match: false, needsUpgrade: false };
 }
 
 export function safeCompareHash(providedHash: string, storedHash: string): boolean {
   if (!providedHash || !storedHash) return false;
   try {
-    const bufferA = Buffer.from(providedHash, "hex");
-    const bufferB = Buffer.from(storedHash, "hex");
+    const bufferA = Buffer.from(providedHash, "utf8");
+    const bufferB = Buffer.from(storedHash, "utf8");
     if (bufferA.length !== bufferB.length) return false;
     return crypto.timingSafeEqual(bufferA, bufferB);
   } catch {
@@ -79,8 +104,8 @@ export function initializeDB() {
     console.warn("Notice: Storage directory initialization handled:", e);
   }
 
-  const superAdminSalt = generateSalt();
-  const superAdminHash = hashPassword(SUPER_ADMIN_PASSWORD, superAdminSalt);
+  const superAdminHash = hashPassword(SUPER_ADMIN_PASSWORD);
+  const superAdminSalt = "";
 
   const defaultSiteSettings = {
     siteName: "Smart Link Digital",

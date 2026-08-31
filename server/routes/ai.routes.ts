@@ -24,8 +24,6 @@ import { AutomaticWalletFundingEngine } from "../../src/services/automaticWallet
 import { PaymentVerificationReconciliationEngine } from "../../src/services/paymentVerificationReconciliationEngine";
 import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerGateway";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
-import { AgentHubAdapter } from "../../src/services/providers/agenthubAdapter";
-import { NINTrustAdapter } from "../../src/services/providers/nintrustAdapter";
 import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
 import { syncFromFirestore, syncToFirestore } from "../../src/services/settingsStore";
 import { loadFirestoreDb, syncDbToFirestore, saveDocToFirestore } from "../../src/services/firestoreStore";
@@ -73,7 +71,7 @@ app.post("/api/ai/chat", async (req, res) => {
         4. Advanced ICT training, networking, Cybersecurity, and cloud migration.
         5. A multi-vendor digital services marketplace where third-party agents upload services and Smart Link charges automated commissions.
         
-        Answer professionally, warmly, and confidently. Speak in Nigerian business context when helpful (mentioning Naira, NIMC, CAC Abuja, Lagos, etc.).`,
+        Answer professionally, warmly, and confidently. Speak in Nigerian business context when helpful (mentioning Naira, NIMC, CAC National, Lagos, etc.).`,
       },
     });
 

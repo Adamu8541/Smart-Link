@@ -26,7 +26,7 @@ export const LandingCTASection: React.FC<LandingCTASectionProps> = ({
           initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 border border-blue-200 text-[#0F2D5C] text-xs font-bold"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#F5F7FA] border border-[#E5E7EB] text-[#0F2D5C] text-xs font-bold"
         >
           <Zap className="h-3.5 w-3.5 text-[#0F2D5C]" />
           <span>Instant Onboarding • Zero Setup Fees</span>

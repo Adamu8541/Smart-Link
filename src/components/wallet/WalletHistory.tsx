@@ -42,12 +42,12 @@ export const WalletHistory: React.FC<WalletHistoryProps> = ({
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400">
+          <div className="p-2 rounded-xl bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF]">
             <History className="h-4 w-4" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white">Transaction History</h3>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+            <h3 className="text-sm font-bold text-[#111827] dark:text-white">Transaction History</h3>
+            <p className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF]">
               Complete ledger of wallet debits, credits, and service payments
             </p>
           </div>
@@ -56,19 +56,19 @@ export const WalletHistory: React.FC<WalletHistoryProps> = ({
         {/* Filter & Search Bar */}
         <div className="flex items-center gap-2">
           <div className="relative flex-1 sm:w-48">
-            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
+            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[#9CA3AF]" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search ref or service..."
-              className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 text-slate-900 dark:text-white"
+              className="w-full pl-8 pr-3 py-1.5 text-xs bg-[#F5F7FA] dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#4B5563] rounded-xl focus:outline-hidden focus:ring-2 focus:ring-[#0F2D5C]/20 text-[#111827] dark:text-white"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-2 top-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                className="absolute right-2 top-2 text-[#9CA3AF] hover:text-[#4B5563] dark:hover:text-[#E5E7EB]"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -86,8 +86,8 @@ export const WalletHistory: React.FC<WalletHistoryProps> = ({
             onClick={() => setSelectedStatusFilter(status)}
             className={`px-3 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
               selectedStatusFilter === status
-                ? "bg-blue-600 text-white shadow-xs"
-                : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                ? "bg-[#0F2D5C] text-white shadow-xs"
+                : "bg-[#E5E7EB] dark:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563]"
             }`}
           >
             {status === "ALL" ? "All Statuses" : status}
@@ -101,17 +101,17 @@ export const WalletHistory: React.FC<WalletHistoryProps> = ({
           {[1, 2, 3].map((n) => (
             <div
               key={n}
-              className="h-16 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse"
+              className="h-16 rounded-xl bg-[#E5E7EB] dark:bg-[#111827] animate-pulse"
             />
           ))}
         </div>
       ) : displayedTxs.length === 0 ? (
-        <div className="p-8 text-center bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 space-y-2">
-          <FileText className="h-8 w-8 text-slate-400 mx-auto" />
-          <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+        <div className="p-8 text-center bg-[#F5F7FA] dark:bg-[#111827]/40 rounded-2xl border border-dashed border-[#E5E7EB] dark:border-[#111827] space-y-2">
+          <FileText className="h-8 w-8 text-[#9CA3AF] mx-auto" />
+          <p className="text-xs font-semibold text-[#4B5563] dark:text-[#E5E7EB]">
             No transactions found
           </p>
-          <p className="text-[11px] text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
+          <p className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF] max-w-xs mx-auto">
             {searchQuery || selectedStatusFilter !== "ALL"
               ? "Try adjusting your search query or filter settings."
               : "Your wallet transaction activity will appear here once you perform service transactions or fund your wallet."}
@@ -131,53 +131,53 @@ export const WalletHistory: React.FC<WalletHistoryProps> = ({
 
       {/* Digital Receipt Modal Dialog */}
       {selectedTx && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-2xl space-y-5 relative overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111827]/60 backdrop-blur-xs">
+          <div className="w-full max-w-md bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-2xl p-6 shadow-2xl space-y-5 relative overflow-hidden">
             <button
               type="button"
               onClick={() => setSelectedTx(null)}
-              className="absolute top-4 right-4 p-1 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              className="absolute top-4 right-4 p-1 rounded-full text-[#9CA3AF] hover:text-[#4B5563] dark:hover:text-[#E5E7EB] hover:bg-[#E5E7EB] dark:hover:bg-[#111827] transition-colors cursor-pointer"
             >
               <X className="h-4 w-4" />
             </button>
 
             <div className="text-center space-y-2 pt-2">
-              <div className="mx-auto w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+              <div className="mx-auto w-12 h-12 rounded-2xl bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] flex items-center justify-center">
                 <FileText className="h-6 w-6" />
               </div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-white">Transaction Receipt</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Official Smart Link Digital Proof of Transaction</p>
+              <h3 className="text-base font-bold text-[#111827] dark:text-white">Transaction Receipt</h3>
+              <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">Official Smart Link Digital Proof of Transaction</p>
             </div>
 
-            <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl space-y-3 text-xs border border-slate-100 dark:border-slate-800">
-              <div className="flex justify-between items-center pb-2 border-b border-slate-200 dark:border-slate-700">
-                <span className="text-slate-500 dark:text-slate-400">Status</span>
+            <div className="p-4 bg-[#F5F7FA] dark:bg-[#111827]/50 rounded-xl space-y-3 text-xs border border-[#E5E7EB] dark:border-[#111827]">
+              <div className="flex justify-between items-center pb-2 border-b border-[#E5E7EB] dark:border-[#4B5563]">
+                <span className="text-[#6B7280] dark:text-[#9CA3AF]">Status</span>
                 <TransactionStatusBadge status={selectedTx.status} />
               </div>
 
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 dark:text-slate-400">Reference No.</span>
-                <span className="font-mono font-bold text-slate-900 dark:text-white">#{selectedTx.reference}</span>
+                <span className="text-[#6B7280] dark:text-[#9CA3AF]">Reference No.</span>
+                <span className="font-mono font-bold text-[#111827] dark:text-white">#{selectedTx.reference}</span>
               </div>
 
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 dark:text-slate-400">Service / Details</span>
-                <span className="font-semibold text-slate-900 dark:text-white text-right max-w-[200px] truncate">
+                <span className="text-[#6B7280] dark:text-[#9CA3AF]">Service / Details</span>
+                <span className="font-semibold text-[#111827] dark:text-white text-right max-w-[200px] truncate">
                   {selectedTx.serviceName || selectedTx.description}
                 </span>
               </div>
 
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 dark:text-slate-400">Amount Paid</span>
-                <span className="font-mono font-extrabold text-slate-900 dark:text-white text-sm">
+                <span className="text-[#6B7280] dark:text-[#9CA3AF]">Amount Paid</span>
+                <span className="font-mono font-extrabold text-[#111827] dark:text-white text-sm">
                   ₦{selectedTx.amount.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
                 </span>
               </div>
 
               {selectedTx.walletBalanceBefore !== undefined && (
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-500 dark:text-slate-400">Balance Before</span>
-                  <span className="font-mono text-slate-700 dark:text-slate-300">
+                  <span className="text-[#6B7280] dark:text-[#9CA3AF]">Balance Before</span>
+                  <span className="font-mono text-[#4B5563] dark:text-[#E5E7EB]">
                     ₦{selectedTx.walletBalanceBefore.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
                   </span>
                 </div>
@@ -185,16 +185,16 @@ export const WalletHistory: React.FC<WalletHistoryProps> = ({
 
               {selectedTx.walletBalanceAfter !== undefined && (
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-500 dark:text-slate-400">Balance After</span>
-                  <span className="font-mono text-slate-700 dark:text-slate-300">
+                  <span className="text-[#6B7280] dark:text-[#9CA3AF]">Balance After</span>
+                  <span className="font-mono text-[#4B5563] dark:text-[#E5E7EB]">
                     ₦{selectedTx.walletBalanceAfter.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
                   </span>
                 </div>
               )}
 
-              <div className="flex justify-between items-center pt-2 border-t border-slate-200 dark:border-slate-700 text-[11px]">
-                <span className="text-slate-500 dark:text-slate-400">Date & Time</span>
-                <span className="text-slate-700 dark:text-slate-300 font-mono">
+              <div className="flex justify-between items-center pt-2 border-t border-[#E5E7EB] dark:border-[#4B5563] text-[11px]">
+                <span className="text-[#6B7280] dark:text-[#9CA3AF]">Date & Time</span>
+                <span className="text-[#4B5563] dark:text-[#E5E7EB] font-mono">
                   {new Date(selectedTx.createdAt).toLocaleString("en-NG")}
                 </span>
               </div>
@@ -204,7 +204,7 @@ export const WalletHistory: React.FC<WalletHistoryProps> = ({
               <button
                 type="button"
                 onClick={() => setSelectedTx(null)}
-                className="w-full py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-xs transition-colors cursor-pointer"
+                className="w-full py-2.5 bg-[#E5E7EB] dark:bg-[#111827] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563] text-[#4B5563] dark:text-[#E5E7EB] font-semibold rounded-xl text-xs transition-colors cursor-pointer"
               >
                 Close Receipt
               </button>

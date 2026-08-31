@@ -29,6 +29,8 @@ import aiRoutes from "./server/routes/ai.routes";
 import storageRoutes from "./server/routes/storage.routes";
 import webhooksRoutes from "./server/routes/webhooks.routes";
 import legalRoutes from "./server/routes/legal.routes";
+import marketplaceRoutes from "./server/routes/marketplace.routes";
+import virtualAccountRoutes from "./server/routes/virtualAccount.routes";
 
 // Re-export core helpers for backwards compatibility
 export {
@@ -100,6 +102,16 @@ app.use(settingsRoutes);
 app.use(aiRoutes);
 app.use(storageRoutes);
 app.use(legalRoutes);
+app.use(marketplaceRoutes);
+app.use(virtualAccountRoutes);
+
+// Fallback 404 for all unhandled /api/* routes so they always return JSON and never HTML
+app.all("/api/*", (req, res) => {
+  res.status(404).json({
+    success: false,
+    error: `API route not found: ${req.method} ${req.originalUrl}`,
+  });
+});
 
 // =========================================================================
 // VITE MIDDLEWARE & SERVER STARTUP

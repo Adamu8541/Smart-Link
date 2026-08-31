@@ -6,17 +6,22 @@
     <title>Smart Link Nigeria Computer Business Center | Enterprise E-Government, Verification & Multi-Vendor Digital Gateway</title>
     <script>
       window.addEventListener('unhandledrejection', function(e) {
-        var msg = (e && e.reason && (e.reason.message || e.reason)) || '';
-        if (typeof msg === 'string' && (msg.includes('WebSocket') || msg.includes('websocket') || msg.includes('vite'))) {
+        var reason = e && e.reason;
+        var msg = typeof reason === 'string' ? reason : (reason && (reason.message || reason.stack || String(reason))) || '';
+        var lower = String(msg).toLowerCase();
+        if (lower.includes('websocket') || lower.includes('vite') || lower.includes('closed without opened') || lower.includes('ws://') || lower.includes('wss://')) {
           e.preventDefault();
-          e.stopPropagation();
+          if (typeof e.stopPropagation === 'function') e.stopPropagation();
+          if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
         }
-      });
+      }, true);
       window.addEventListener('error', function(e) {
-        var msg = (e && e.message) || '';
-        if (typeof msg === 'string' && (msg.includes('WebSocket') || msg.includes('websocket') || msg.includes('vite'))) {
+        var msg = (e && (e.message || (e.error && e.error.message))) || '';
+        var lower = String(msg).toLowerCase();
+        if (lower.includes('websocket') || lower.includes('vite') || lower.includes('closed without opened') || lower.includes('ws://') || lower.includes('wss://')) {
           e.preventDefault();
-          e.stopPropagation();
+          if (typeof e.stopPropagation === 'function') e.stopPropagation();
+          if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
         }
       }, true);
     </script>
@@ -25,7 +30,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   </head>
-  <body class="bg-slate-50 text-slate-900 antialiased font-sans selection:bg-emerald-500 selection:text-white">
+  <body class="bg-[#F5F7FA] text-[#111827] antialiased font-sans selection:bg-[#6B7280] selection:text-white">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

@@ -50,6 +50,27 @@ export class VerificationValidator {
   }
 
   /**
+   * Validate NIN With Phone Number
+   * Must be exact 11 digits starting with '0', digits only.
+   */
+  static validateNinPhone(phone: string): ValidationResult {
+    const clean = phone.trim();
+    if (!clean) {
+      return { valid: false, error: "Phone number is required." };
+    }
+    if (!clean.startsWith("0")) {
+      return { valid: false, error: "Phone number must start with 0." };
+    }
+    if (!/^\d{11}$/.test(clean)) {
+      return {
+        valid: false,
+        error: "Phone number must be exactly 11 digits containing numbers only.",
+      };
+    }
+    return { valid: true, formattedValue: clean };
+  }
+
+  /**
    * Validate Nigerian Phone Number
    * e.g., 08031234567, 07012345678, +2348031234567
    */
@@ -178,7 +199,12 @@ export class VerificationValidator {
         primaryValidation = this.validateBVN(primaryInput);
         break;
       case "PHONE":
-        primaryValidation = this.validatePhone(primaryInput);
+      case "NIN_PHONE":
+        if (additionalFields?.searchMethod === "BY_PHONE_NUMBER") {
+          primaryValidation = this.validateNinPhone(primaryInput);
+        } else {
+          primaryValidation = this.validatePhone(primaryInput);
+        }
         break;
       case "EMAIL":
         primaryValidation = this.validateEmail(primaryInput);

@@ -19,7 +19,7 @@ export const LandingTrustSection: React.FC = () => {
     {
       id: "fast-verification",
       title: "Fast Verification",
-      description: "Direct connection to NIMC, NIBSS, CAC, and FIRS databases for sub-second responses.",
+      description: "Third-party API connections for NIN, BVN, CAC, and FIRS lookups for sub-second responses.",
       icon: Zap,
       badgeText: "Sub-Second Latency",
     },
@@ -52,7 +52,7 @@ export const LandingTrustSection: React.FC = () => {
         
         {/* Header Title */}
         <div className="text-center space-y-3 max-w-3xl mx-auto mb-12">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold bg-blue-50 text-[#0F2D5C] border border-blue-200">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#F5F7FA] text-[#0F2D5C] border border-[#E5E7EB]">
             <Award className="h-3.5 w-3.5" />
             <span>Trusted Digital Platform</span>
           </div>
@@ -83,7 +83,7 @@ export const LandingTrustSection: React.FC = () => {
                     <div className="h-10 w-10 rounded-xl bg-[#0F2D5C] text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform duration-200">
                       <IconComponent className="h-5 w-5" />
                     </div>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-[#0F2D5C] border border-blue-100">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#F5F7FA] text-[#0F2D5C] border border-[#E5E7EB]">
                       {badge.badgeText}
                     </span>
                   </div>
@@ -106,18 +106,7 @@ export const LandingTrustSection: React.FC = () => {
           })}
         </div>
 
-        {/* Enterprise Brand Trust Strip */}
-        <div className="mt-12 pt-8 border-t border-[#E5E7EB] flex flex-wrap items-center justify-center gap-6 sm:gap-12 opacity-85">
-          <span className="text-xs font-bold uppercase tracking-wider text-[#6B7280]">
-            Integrations & Direct Gateways:
-          </span>
-          {["NIMC Database", "NIBSS BVN Portal", "CAC Registry", "FIRS Tax Portal", "WAEC & NECO", "VTU Telco Switches"].map((brand) => (
-            <div key={brand} className="flex items-center gap-1.5 text-xs font-bold text-[#111827]">
-              <Check className="h-3.5 w-3.5 text-[#0F2D5C]" />
-              <span>{brand}</span>
-            </div>
-          ))}
-        </div>
+
 
       </div>
     </section>

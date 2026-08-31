@@ -8,13 +8,15 @@
  */
 
 import { AspfiyAdapter, ProviderAdapter, PaymentProviderConfig } from "./providers/aspfiyAdapter";
-import { AgentHubAdapter } from "./providers/agenthubAdapter";
-import { NINTrustAdapter } from "./providers/nintrustAdapter";
+import { LumiIDAdapter } from "./providers/lumiidAdapter";
+import { NinBvnPortalAdapter } from "./providers/ninBvnPortalAdapter";
+import { VerifyNGAdapter } from "./providers/verifyNgAdapter";
 
 const registeredAdapters: Record<string, ProviderAdapter> = {
   aspfiy: new AspfiyAdapter(),
-  agenthub: new AgentHubAdapter(),
-  nintrust: new NINTrustAdapter(),
+  lumiid: new LumiIDAdapter(),
+  ninbvnportal: new NinBvnPortalAdapter(),
+  verifyng: new VerifyNGAdapter(),
 };
 
 /**

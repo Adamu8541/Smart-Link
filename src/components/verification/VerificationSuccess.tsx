@@ -41,7 +41,7 @@ export const VerificationSuccess: React.FC<VerificationSuccessProps> = ({
           <button
             type="button"
             onClick={() => setShowSlipModal(true)}
-            className="w-full py-3 px-5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold rounded-2xl text-xs sm:text-sm transition-all shadow-lg shadow-emerald-600/25 cursor-pointer flex items-center justify-center gap-2"
+            className="w-full py-3 px-5 bg-gradient-to-r from-[#0F2D5C] to-[#0F2D5C] hover:from-[#0F2D5C] hover:to-[#0F2D5C] text-white font-extrabold rounded-2xl text-xs sm:text-sm transition-all shadow-lg shadow-emerald-600/25 cursor-pointer flex items-center justify-center gap-2"
           >
             <CreditCard className="h-4 w-4" />
             <span>Generate & Print Official Slip ({result.service})</span>
@@ -52,9 +52,9 @@ export const VerificationSuccess: React.FC<VerificationSuccessProps> = ({
           <button
             type="button"
             onClick={() => setShowReceipt(true)}
-            className="flex-1 py-2.5 px-4 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-semibold rounded-xl text-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+            className="flex-1 py-2.5 px-4 bg-[#E5E7EB] dark:bg-[#111827] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563] text-[#111827] dark:text-[#E5E7EB] font-semibold rounded-xl text-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5"
           >
-            <FileText className="h-3.5 w-3.5 text-blue-500" />
+            <FileText className="h-3.5 w-3.5 text-[#0F2D5C]" />
             <span>View Digital Receipt</span>
           </button>
 
@@ -62,9 +62,9 @@ export const VerificationSuccess: React.FC<VerificationSuccessProps> = ({
             <button
               type="button"
               onClick={onRepeatVerification}
-              className="flex-1 py-2.5 px-4 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-semibold rounded-xl text-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+              className="flex-1 py-2.5 px-4 bg-[#E5E7EB] dark:bg-[#111827] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563] text-[#111827] dark:text-[#E5E7EB] font-semibold rounded-xl text-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5"
             >
-              <RefreshCw className="h-3.5 w-3.5 text-emerald-500" />
+              <RefreshCw className="h-3.5 w-3.5 text-[#0F2D5C]" />
               <span>Repeat Query</span>
             </button>
           )}
@@ -73,7 +73,7 @@ export const VerificationSuccess: React.FC<VerificationSuccessProps> = ({
             <button
               type="button"
               onClick={onNewVerification}
-              className="w-full sm:w-auto py-2.5 px-5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-xs transition-all shadow-md shadow-blue-600/20 cursor-pointer flex items-center justify-center gap-1.5"
+              className="w-full sm:w-auto py-2.5 px-5 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-semibold rounded-xl text-xs transition-all shadow-md shadow-blue-600/20 cursor-pointer flex items-center justify-center gap-1.5"
             >
               <CheckCircle2 className="h-3.5 w-3.5" />
               <span>Perform Another Verification</span>

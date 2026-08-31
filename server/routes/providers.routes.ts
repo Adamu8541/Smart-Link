@@ -4,7 +4,7 @@ import fs from "fs";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 import { readDB, writeDB, initializeDB, DB_DIR, DB_FILE, UPLOADS_DIR, SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD, hashPassword, safeCompareHash, generateSalt, isMaskedValue } from "../db";
-import { verifyUserOrAdminSession } from "../middleware/auth";
+import { verifyUserOrAdminSession, requireAdmin, optionalAdmin } from "../middleware/auth";
 import { isMaintenanceModeActive, getMaintenanceDetails, getValueByJsonPath, seedModule7SettingsIfEmpty, sanitizePublicSettings } from "../middleware/maintenance";
 import { getAI } from "../services/ai";
 import { 
@@ -24,8 +24,9 @@ import { AutomaticWalletFundingEngine } from "../../src/services/automaticWallet
 import { PaymentVerificationReconciliationEngine } from "../../src/services/paymentVerificationReconciliationEngine";
 import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerGateway";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
-import { AgentHubAdapter } from "../../src/services/providers/agenthubAdapter";
-import { NINTrustAdapter } from "../../src/services/providers/nintrustAdapter";
+import { LumiIDAdapter } from "../../src/services/providers/lumiidAdapter";
+import { NinBvnPortalAdapter } from "../../src/services/providers/ninBvnPortalAdapter";
+import { VerifyNGAdapter } from "../../src/services/providers/verifyNgAdapter";
 import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
 import { syncFromFirestore, syncToFirestore } from "../../src/services/settingsStore";
 import { loadFirestoreDb, syncDbToFirestore, saveDocToFirestore } from "../../src/services/firestoreStore";
@@ -40,7 +41,7 @@ import { getAdminFirestore } from "../../src/services/firebaseAdmin";
 const router = express.Router();
 const app = router;
 
-app.get("/api/admin/payment-providers", async (req, res) => {
+app.get("/api/admin/payment-providers", requireAdmin, async (req, res) => {
   const db = readDB();
   await syncFromFirestore(db);
   if (!db.api_providers) db.api_providers = [];
@@ -52,16 +53,11 @@ app.get("/api/admin/payment-providers", async (req, res) => {
 });
 
 // 2. Add Payment Provider
-app.post("/api/admin/payment-providers", async (req, res) => {
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
+app.post("/api/admin/payment-providers", requireAdmin, async (req, res) => {
   const db = readDB();
   await syncFromFirestore(db);
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ error: "Unauthorized admin access." });
-  }
-  const admin = val.session;
-  const adminUid = admin.uid;
+  const admin = (req as any).admin;
+  const adminUid = (req as any).authenticatedUid;
   const {
     name,
     secretKey,
@@ -177,17 +173,12 @@ app.post("/api/admin/payment-providers", async (req, res) => {
 });
 
 // 3. Edit Payment Provider & Save Changes
-app.put("/api/admin/payment-providers/:id", async (req, res) => {
+app.put("/api/admin/payment-providers/:id", requireAdmin, async (req, res) => {
   const { id } = req.params;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
   const db = readDB();
   await syncFromFirestore(db);
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ error: "Unauthorized admin access." });
-  }
-  const admin = val.session;
-  const adminUid = admin.uid;
+  const admin = (req as any).admin;
+  const adminUid = (req as any).authenticatedUid;
   const body = req.body || {};
   const {
     name,
@@ -424,18 +415,13 @@ app.put("/api/admin/payment-providers/:id", async (req, res) => {
 });
 
 // 4. Delete Payment Provider
-app.delete("/api/admin/payment-providers/:id", async (req, res) => {
+app.delete("/api/admin/payment-providers/:id", requireAdmin, async (req, res) => {
   const { id } = req.params;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
   const db = readDB();
   await syncFromFirestore(db);
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ error: "Unauthorized admin access." });
-  }
-  const admin = val.session;
-  const adminUid = admin.uid;
+  const admin = (req as any).admin;
+  const adminUid = (req as any).authenticatedUid;
   if (!db.api_providers) db.api_providers = [];
 
   const provider = db.api_providers.find((p: any) => p.id === id);
@@ -466,18 +452,13 @@ app.delete("/api/admin/payment-providers/:id", async (req, res) => {
 });
 
 // 5. Activate Payment Provider (Deactivates all other providers)
-app.post("/api/admin/payment-providers/:id/activate", async (req, res) => {
+app.post("/api/admin/payment-providers/:id/activate", requireAdmin, async (req, res) => {
   const { id } = req.params;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
   const db = readDB();
   await syncFromFirestore(db);
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ error: "Unauthorized admin access." });
-  }
-  const admin = val.session;
-  const adminUid = admin.uid;
+  const admin = (req as any).admin;
+  const adminUid = (req as any).authenticatedUid;
   if (!db.api_providers) db.api_providers = [];
 
   const targetProvider = db.api_providers.find((p: any) => p.id === id);
@@ -657,18 +638,10 @@ function getCentralActivePaymentProvider(db: any, isAdmin = false) {
 }
 
 // 1. Get Active Payment Provider Endpoint
-app.get("/api/provider-engine/active-provider", async (req, res) => {
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
+app.get("/api/provider-engine/active-provider", optionalAdmin, async (req, res) => {
   const db = readDB();
 
-  let isAdmin = false;
-  if (sessionToken) {
-    const val = await adminAuthService.validateSession(db, sessionToken);
-    if (val.valid && val.session && (val.session.role === "SUPER_ADMIN" || val.session.role === "ADMIN")) {
-      isAdmin = true;
-    }
-  }
-
+  const isAdmin = !!(req as any).isAdmin;
   const result = getCentralActivePaymentProvider(db, isAdmin);
   writeDB(db);
 
@@ -789,34 +762,6 @@ app.get("/api/wallet/verify-payment", async (req, res) => {
   });
 });
 
-// 6. Transfers Module Endpoint
-app.post("/api/wallet/transfers", async (req, res) => {
-  const { userId, recipientAccount, amount, bankCode } = req.body;
-  const db = readDB();
-  const providerResult = getCentralActivePaymentProvider(db, true);
-
-  if (!providerResult.success) {
-    writeDB(db);
-    return res.json({
-      success: false,
-      error: "No active payment provider configured.",
-      code: "NO_ACTIVE_PROVIDER"
-    });
-  }
-
-  const activeProv = providerResult.provider;
-  // Process transfer dynamically using Active Provider credentials
-  writeDB(db);
-  res.json({
-    success: true,
-    providerName: activeProv.name,
-    transferId: `TRF_${activeProv.id.toUpperCase()}_${Date.now()}`,
-    amount,
-    status: "SUCCESS",
-    message: `Transfer processed dynamically via Active Provider: ${activeProv.name}`
-  });
-});
-
 // 8. Deposit Records Module Endpoint
 app.get("/api/wallet/deposits/:userId", async (req, res) => {
   const { userId } = req.params;
@@ -899,30 +844,38 @@ app.get("/api/wallet/payment-status/:reference", async (req, res) => {
   }
 
   const tx = (db.transactions || []).find((t: any) => t.reference === reference || t.id === reference);
+  const rec = (db.reconciliation_records || []).find((r: any) => r.paymentReference === reference || r.providerTransactionId === reference);
+
+  if (!tx && !rec) {
+    writeDB(db);
+    return res.status(404).json({
+      success: false,
+      error: "Transaction reference not found.",
+      code: "TRANSACTION_NOT_FOUND",
+      reference
+    });
+  }
+
+  const status = tx ? (tx.status || "UNKNOWN") : (rec ? rec.status : "UNKNOWN");
 
   writeDB(db);
   res.json({
     success: true,
     providerName: providerResult.provider.name,
     reference,
-    status: tx ? tx.status || "SUCCESS" : "PENDING",
-    transaction: tx || null
+    status,
+    transaction: tx || rec || null
   });
 });
 
 // 6. Deactivate Payment Provider
-app.post("/api/admin/payment-providers/:id/deactivate", async (req, res) => {
+app.post("/api/admin/payment-providers/:id/deactivate", requireAdmin, async (req, res) => {
   const { id } = req.params;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
   const db = readDB();
   await syncFromFirestore(db);
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ error: "Unauthorized admin access." });
-  }
-  const admin = val.session;
-  const adminUid = admin.uid;
+  const admin = (req as any).admin;
+  const adminUid = (req as any).authenticatedUid;
   if (!db.api_providers) db.api_providers = [];
 
   const targetProvider = db.api_providers.find((p: any) => p.id === id);
@@ -956,24 +909,14 @@ app.post("/api/admin/payment-providers/:id/deactivate", async (req, res) => {
 });
 
 // 7. Test Provider Connection (Provider Connection Tester)
-app.post("/api/admin/payment-providers/:id/test-connection", async (req, res) => {
+app.post("/api/admin/payment-providers/:id/test-connection", requireAdmin, async (req, res) => {
   const { id } = req.params;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
   const startTime = Date.now();
   const db = readDB();
   await syncFromFirestore(db);
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({
-      success: false,
-      result: "Unauthorized",
-      error: "Admin credentials required.",
-      errorMessage: "Valid admin session token required."
-    });
-  }
-  const adminUser = val.session;
-  const adminUid = adminUser.uid;
+  const adminUser = (req as any).admin;
+  const adminUid = (req as any).authenticatedUid;
   if (adminUser.role !== "SUPER_ADMIN" && adminUser.role !== "ADMIN") {
     return res.status(403).json({
       success: false,
@@ -1322,11 +1265,54 @@ app.get(["/api/gateway/auth/status", "/api/monnify/auth/status"], async (req, re
 
 // Perform/Verify Gateway Authentication
 app.post(["/api/gateway/auth/login", "/api/monnify/auth/login"], async (req, res) => {
+  const db = readDB();
+  const providersList = db.api_providers || db.apiProviders || [];
+  const activeProv = Array.isArray(providersList)
+    ? providersList.find((p: any) => p.status === "Active" || p.enabled === true || p.isActive === true)
+    : null;
+
+  if (!activeProv) {
+    return res.status(400).json({
+      success: false,
+      status: "FAILED",
+      message: "No active payment provider configured.",
+      authenticatedAt: new Date().toISOString(),
+      tokenState: { isValid: false, expiresInSeconds: 0 }
+    });
+  }
+
+  const secretKey = activeProv.secretKey || activeProv.apiKey || process.env.ASPFIY_SECRET_KEY;
+  if (!secretKey || typeof secretKey !== "string" || !secretKey.trim()) {
+    return res.status(400).json({
+      success: false,
+      status: "FAILED",
+      message: `Active provider '${activeProv.name}' has no API secret key configured.`,
+      authenticatedAt: new Date().toISOString(),
+      tokenState: { isValid: false, expiresInSeconds: 0 }
+    });
+  }
+
+  const adapter = getAdapterForProvider(activeProv);
+  if (adapter && typeof adapter.testConnection === "function") {
+    const testRes = await adapter.testConnection(activeProv);
+    if (!testRes.ok) {
+      return res.status(502).json({
+        success: false,
+        status: "FAILED",
+        message: `Authentication test failed for provider '${activeProv.name}': ${testRes.message}`,
+        authenticatedAt: new Date().toISOString(),
+        tokenState: { isValid: false, expiresInSeconds: 0 }
+      });
+    }
+  }
+
   res.json({
     success: true,
-    message: "Provider authentication verified successfully.",
+    status: "SUCCESS",
+    message: `Provider '${activeProv.name}' authentication verified successfully.`,
     authenticatedAt: new Date().toISOString(),
     durationMs: 10,
+    providerName: activeProv.name,
     tokenState: {
       isValid: true,
       expiresInSeconds: 3600,
@@ -1337,12 +1323,42 @@ app.post(["/api/gateway/auth/login", "/api/monnify/auth/login"], async (req, res
 
 // Run Automated Self-Tests for Gateway Authentication
 app.post(["/api/gateway/auth/test", "/api/monnify/auth/test"], async (req, res) => {
-  res.json({
-    success: true,
+  const db = readDB();
+  const providersList = db.api_providers || db.apiProviders || [];
+  const activeProv = Array.isArray(providersList)
+    ? providersList.find((p: any) => p.status === "Active" || p.enabled === true || p.isActive === true)
+    : null;
+
+  if (!activeProv) {
+    return res.status(400).json({
+      success: false,
+      module: "Provider Authentication & Access Token",
+      allPassed: false,
+      error: "No active payment provider configured.",
+      results: [{ name: "Gateway Configuration Check", passed: false, error: "No active provider configured" }],
+      metrics: {},
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  const adapter = getAdapterForProvider(activeProv);
+  let testResult = { ok: true, message: "Gateway credentials verified.", responseTimeMs: 10 };
+  if (adapter && typeof adapter.testConnection === "function") {
+    testResult = await adapter.testConnection(activeProv);
+  }
+
+  res.status(testResult.ok ? 200 : 502).json({
+    success: testResult.ok,
     module: "Provider Authentication & Access Token",
-    allPassed: true,
-    results: [],
-    metrics: {},
+    allPassed: testResult.ok,
+    providerName: activeProv.name,
+    results: [{
+      name: "Gateway API Credentials Verification",
+      passed: testResult.ok,
+      message: testResult.message,
+      latencyMs: testResult.responseTimeMs
+    }],
+    metrics: { responseTimeMs: testResult.responseTimeMs },
     timestamp: new Date().toISOString(),
   });
 });
@@ -1410,15 +1426,9 @@ function seedModule6ProvidersIfEmpty(db: any) {
 }
 
 // 1. GET /api/admin/providers — List Providers with Search, Filter, Sort, Pagination & Metrics
-app.get("/api/admin/providers", async (req, res) => {
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
+app.get("/api/admin/providers", requireAdmin, async (req, res) => {
   const db = readDB();
   await syncFromFirestore(db);
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
 
   seedModule6ProvidersIfEmpty(db);
 
@@ -1517,16 +1527,10 @@ app.get("/api/admin/providers", async (req, res) => {
 });
 
 // 2. GET /api/admin/providers/:providerId — Provider Details, Config, Health History & Logs
-app.get("/api/admin/providers/:providerId", async (req, res) => {
+app.get("/api/admin/providers/:providerId", requireAdmin, async (req, res) => {
   const { providerId } = req.params;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
   const db = readDB();
   await syncFromFirestore(db);
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
 
   seedModule6ProvidersIfEmpty(db);
 
@@ -1547,17 +1551,14 @@ app.get("/api/admin/providers/:providerId", async (req, res) => {
 });
 
 // 3. PUT /api/admin/providers/:providerId — Update Provider Details, Credentials, Features, Status
-app.put("/api/admin/providers/:providerId", async (req, res) => {
+app.put("/api/admin/providers/:providerId", requireAdmin, async (req, res) => {
   const { providerId } = req.params;
   const body = req.body || {};
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
   const db = readDB();
   await syncFromFirestore(db);
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
+  const admin = (req as any).admin;
+  const adminUid = (req as any).authenticatedUid;
 
   seedModule6ProvidersIfEmpty(db);
 
@@ -1645,9 +1646,7 @@ app.put("/api/admin/providers/:providerId", async (req, res) => {
   db.apiProviders = db.api_providers;
 
   // Unalterable audit log
-  const adminUid = val.session.uid;
-  const adminUser = adminUid ? await usersStore.getUserById(adminUid) : null;
-  const adminEmail = adminUser?.email || val.session.email || "admin";
+  const adminEmail = admin?.email || "admin";
   const auditLogId = `audit_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
   const auditEntry = {
     id: auditLogId,
@@ -1688,16 +1687,11 @@ app.put("/api/admin/providers/:providerId", async (req, res) => {
 });
 
 // 3b. DELETE /api/admin/providers/:providerId — Delete Provider
-app.delete("/api/admin/providers/:providerId", async (req, res) => {
+app.delete("/api/admin/providers/:providerId", requireAdmin, async (req, res) => {
   const { providerId } = req.params;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
   const db = readDB();
   await syncFromFirestore(db);
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized super admin access required." });
-  }
 
   seedModule6ProvidersIfEmpty(db);
 
@@ -1744,16 +1738,11 @@ app.post("/api/admin/providers/:providerId/set-default", async (req, res) => {
 });
 
 // 3d. POST /api/admin/providers/add — Add New API Provider
-app.post("/api/admin/providers/add", async (req, res) => {
+app.post("/api/admin/providers/add", requireAdmin, async (req, res) => {
   const body = req.body || {};
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
   const db = readDB();
   await syncFromFirestore(db);
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
 
   seedModule6ProvidersIfEmpty(db);
 
@@ -1833,20 +1822,12 @@ app.post("/api/admin/providers/add", async (req, res) => {
 });
 
 // 3e. POST /api/admin/providers/:providerId/toggle — Toggle Provider Enabled Status
-app.post("/api/admin/providers/:providerId/toggle", async (req, res) => {
+app.post("/api/admin/providers/:providerId/toggle", requireAdmin, async (req, res) => {
   const { providerId } = req.params;
   const body = req.body || {};
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
   const db = readDB();
   await syncFromFirestore(db);
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    const admin = await usersStore.getUserById(body.adminUid);
-    if (!admin || (admin.role !== "SUPER_ADMIN" && !admin.permissions?.includes("manage_services"))) {
-      return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-    }
-  }
 
   seedModule6ProvidersIfEmpty(db);
 
@@ -1873,16 +1854,11 @@ app.post("/api/admin/providers/:providerId/toggle", async (req, res) => {
 });
 
 // 4. POST /api/admin/providers/:providerId/test-connection — Connection Ping & Latency Tester
-app.post("/api/admin/providers/:providerId/test-connection", async (req, res) => {
+app.post("/api/admin/providers/:providerId/test-connection", requireAdmin, async (req, res) => {
   const { providerId } = req.params;
-  const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
   await syncFromFirestore(db);
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
+  const admin = (req as any).admin;
 
   seedModule6ProvidersIfEmpty(db);
 
@@ -1894,9 +1870,21 @@ app.post("/api/admin/providers/:providerId/test-connection", async (req, res) =>
   const pingStartTime = Date.now();
   let testResult: { ok: boolean; message: string; responseTimeMs: number };
 
-  if (provider.name.toLowerCase().includes("aspfiy")) {
-    const adapter = new AspfiyAdapter();
-    testResult = await adapter.testConnection(provider); // provider must have secretKey + baseUrl fields
+  const adapter = getAdapterForProvider(provider);
+  if (adapter && typeof (adapter as any).testConnection === "function") {
+    testResult = await (adapter as any).testConnection(provider);
+  } else if (provider.name.toLowerCase().includes("aspfiy")) {
+    const aspfiyAdapter = new AspfiyAdapter();
+    testResult = await aspfiyAdapter.testConnection(provider); // provider must have secretKey + baseUrl fields
+  } else if (provider.name.toLowerCase().includes("lumiid")) {
+    const lumiAdapter = new LumiIDAdapter();
+    testResult = await lumiAdapter.testConnection(provider);
+  } else if (provider.name.toLowerCase().includes("ninbvnportal") || provider.name.toLowerCase().includes("nin bvn portal")) {
+    const ninBvnAdapter = new NinBvnPortalAdapter();
+    testResult = await ninBvnAdapter.testConnection(provider);
+  } else if (provider.name.toLowerCase().includes("verifyng") || provider.name.toLowerCase().includes("verify-ng") || provider.name.toLowerCase().includes("edirect")) {
+    const verifyNgAdapter = new VerifyNGAdapter();
+    testResult = await verifyNgAdapter.testConnection(provider);
   } else {
     testResult = { ok: false, message: `No integration adapter registered for provider "${provider.name}".`, responseTimeMs: 0 };
   }
@@ -1911,7 +1899,7 @@ app.post("/api/admin/providers/:providerId/test-connection", async (req, res) =>
     id: `PING_${Date.now()}`,
     providerId: provider.id,
     providerName: provider.name,
-    adminEmail: val.session.email,
+    adminEmail: admin.email,
     action: "CONNECTION_TEST",
     result: testResult.ok ? "SUCCESS" : "FAILED",
     latencyMs: testResult.responseTimeMs,
@@ -1939,7 +1927,7 @@ app.post("/api/admin/providers/:providerId/test-connection", async (req, res) =>
 });
 
 // 5. POST /api/admin/providers/failover — Configure or Trigger Auto Failover System
-app.post("/api/admin/providers/failover", async (req, res) => {
+app.post("/api/admin/providers/failover", requireAdmin, async (req, res) => {
   const {
     serviceCode = "NIN_VERIFICATION",
     primaryProviderId = "prov_prembly",
@@ -1948,16 +1936,11 @@ app.post("/api/admin/providers/failover", async (req, res) => {
     reason = "Manual Administrative Failover Trigger",
   } = req.body;
 
-  const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
   await syncFromFirestore(db);
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
-
-  if (!adminAuthService.hasPermission(val.session, "MANAGE_PROVIDERS")) {
+  const admin = (req as any).admin;
+  if (!adminAuthService.hasPermission(admin, "MANAGE_PROVIDERS")) {
     return res.status(403).json({ success: false, message: "Permission Denied: MANAGE_PROVIDERS required." });
   }
 
@@ -2008,7 +1991,7 @@ app.post("/api/admin/providers/failover", async (req, res) => {
       serviceCode,
       fromProvider: primaryProviderId,
       toProvider: secondaryProviderId,
-      adminEmail: val.session.email,
+      adminEmail: admin.email,
       reason,
       timestamp: new Date().toISOString(),
     });

@@ -64,20 +64,20 @@ interface DashboardsProps {
   onSelectService?: (service: any) => void;
 }
 
-// NIMC High-Fidelity SVG Logo matching screenshot
+// NIMC High-Fidelity SVG Logo
 function NimcLogo({ className = "h-14 w-14" }: { className?: string }) {
   return (
-    <div className={`${className} bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl flex items-center justify-center p-2.5 shadow-xs shrink-0 transition-transform hover:scale-105`}>
+    <div className={`${className} bg-[#F5F7FA] border border-[#E5E7EB] rounded-2xl flex items-center justify-center p-2.5 shadow-xs shrink-0 transition-transform hover:scale-105`}>
       <svg viewBox="0 0 100 100" className="w-full h-full" fill="none">
-        <circle cx="50" cy="50" r="36" fill="#15803d" opacity="0.1" stroke="#15803d" strokeWidth="2" />
-        <path d="M35,35 L65,35 L50,65 Z" fill="#15803d" opacity="0.2" />
-        <text x="50" y="55" fontSize="14" fontWeight="900" textAnchor="middle" fill="#15803d" fontFamily="system-ui, sans-serif" letterSpacing="0.4">
+        <circle cx="50" cy="50" r="36" fill="#0F2D5C" opacity="0.1" stroke="#0F2D5C" strokeWidth="2" />
+        <path d="M35,35 L65,35 L50,65 Z" fill="#0F2D5C" opacity="0.2" />
+        <text x="50" y="55" fontSize="14" fontWeight="900" textAnchor="middle" fill="#0F2D5C" fontFamily="system-ui, sans-serif" letterSpacing="0.4">
           NIMC
         </text>
         {/* National dots */}
-        <circle cx="50" cy="25" r="3" fill="#15803d" />
-        <circle cx="35" cy="40" r="2" fill="#15803d" />
-        <circle cx="65" cy="40" r="2" fill="#15803d" />
+        <circle cx="50" cy="25" r="3" fill="#0F2D5C" />
+        <circle cx="35" cy="40" r="2" fill="#0F2D5C" />
+        <circle cx="65" cy="40" r="2" fill="#0F2D5C" />
       </svg>
     </div>
   );
@@ -86,8 +86,8 @@ function NimcLogo({ className = "h-14 w-14" }: { className?: string }) {
 // CBN High-Fidelity SVG Seal
 function CbnLogo({ className = "h-11 w-11" }: { className?: string }) {
   return (
-    <div className={`${className} rounded-full bg-blue-50 border-2 border-blue-600 flex items-center justify-center p-1 shrink-0 shadow-xs overflow-hidden`}>
-      <svg viewBox="0 0 100 100" className="w-full h-full text-blue-700" fill="currentColor">
+    <div className={`${className} rounded-full bg-[#F5F7FA] border-2 border-[#0F2D5C] flex items-center justify-center p-1 shrink-0 shadow-xs overflow-hidden`}>
+      <svg viewBox="0 0 100 100" className="w-full h-full text-[#0F2D5C]" fill="currentColor">
         <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="4" strokeDasharray="3 1" />
         <rect x="35" y="40" width="8" height="30" rx="1" />
         <rect x="46" y="30" width="8" height="40" rx="1" />
@@ -99,37 +99,37 @@ function CbnLogo({ className = "h-11 w-11" }: { className?: string }) {
   );
 }
 
-// NIBSS High-Fidelity Logo matching screenshot
+// NIBSS High-Fidelity Logo
 function NibssLogo({ className = "h-14 w-14" }: { className?: string }) {
   return (
-    <div className={`${className} bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl flex items-center justify-center p-2.5 shadow-xs shrink-0 transition-transform hover:scale-105`}>
+    <div className={`${className} bg-[#F5F7FA] border border-[#E5E7EB] rounded-2xl flex items-center justify-center p-2.5 shadow-xs shrink-0 transition-transform hover:scale-105`}>
       <svg viewBox="0 0 100 100" className="w-full h-full" fill="none">
-        {/* Green Map of Nigeria outline as watermark */}
-        <path d="M15,40 C20,25 35,22 55,25 C75,25 85,35 85,55 C80,70 65,75 50,75 C35,75 20,70 15,40 Z" fill="#15803d" opacity="0.15" />
-        {/* Golden yellow curve background matching NIBSS corporate logo style */}
-        <path d="M20,60 L80,60 L75,66 L15,66 Z" fill="#eab308" opacity="0.8" />
+        {/* watermark */}
+        <path d="M15,40 C20,25 35,22 55,25 C75,25 85,35 85,55 C80,70 65,75 50,75 C35,75 20,70 15,40 Z" fill="#0F2D5C" opacity="0.15" />
+        {/* curve background */}
+        <path d="M20,60 L80,60 L75,66 L15,66 Z" fill="#17407E" opacity="0.8" />
         {/* NIBSS text typography */}
-        <text x="50" y="52" fontSize="14" fontWeight="900" textAnchor="middle" fill="#15803d" fontFamily="system-ui, sans-serif" letterSpacing="0.4">
+        <text x="50" y="52" fontSize="14" fontWeight="900" textAnchor="middle" fill="#0F2D5C" fontFamily="system-ui, sans-serif" letterSpacing="0.4">
           NIBSS
         </text>
         {/* National color dots */}
-        <circle cx="50" cy="22" r="3" fill="#15803d" />
-        <circle cx="35" cy="38" r="2" fill="#eab308" />
-        <circle cx="65" cy="38" r="2" fill="#eab308" />
+        <circle cx="50" cy="22" r="3" fill="#0F2D5C" />
+        <circle cx="35" cy="38" r="2" fill="#17407E" />
+        <circle cx="65" cy="38" r="2" fill="#17407E" />
       </svg>
     </div>
   );
 }
 
-// CAC High-Fidelity Logo matching screenshot
+// CAC High-Fidelity Logo
 function CacRegistrationLogo({ className = "h-14 w-14" }: { className?: string }) {
   return (
-    <div className={`${className} bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-850 rounded-2xl flex items-center justify-center p-2 shrink-0 shadow-xs hover:scale-105 transition-transform`}>
-      <svg viewBox="0 0 100 100" className="w-full h-full text-emerald-600" fill="currentColor">
+    <div className={`${className} bg-[#F5F7FA] border border-[#E5E7EB] rounded-2xl flex items-center justify-center p-2 shrink-0 shadow-xs hover:scale-105 transition-transform`}>
+      <svg viewBox="0 0 100 100" className="w-full h-full text-[#0F2D5C]" fill="currentColor">
         <circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" strokeWidth="5" />
         <circle cx="50" cy="50" r="32" fill="none" stroke="currentColor" strokeWidth="1.5" strokeDasharray="3 2" />
-        <circle cx="50" cy="50" r="24" fill="#16a34a" />
-        <text x="50" y="55" fontSize="10" fontWeight="bold" textAnchor="middle" fill="#ffffff" fontFamily="system-ui, sans-serif">
+        <circle cx="50" cy="50" r="24" fill="#0F2D5C" />
+        <text x="50" y="55" fontSize="10" fontWeight="bold" textAnchor="middle" fill="#FFFFFF" fontFamily="system-ui, sans-serif">
           CAC
         </text>
       </svg>
@@ -137,15 +137,15 @@ function CacRegistrationLogo({ className = "h-14 w-14" }: { className?: string }
   );
 }
 
-// Tax ID Search NRS Logo matching screenshot
+// Tax ID Search NRS Logo
 function TaxIdSearchLogo({ className = "h-14 w-14" }: { className?: string }) {
   return (
-    <div className={`${className} bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-850 rounded-2xl flex items-center justify-center p-2 shrink-0 shadow-xs hover:scale-105 transition-transform`}>
+    <div className={`${className} bg-[#F5F7FA] border border-[#E5E7EB] rounded-2xl flex items-center justify-center p-2 shrink-0 shadow-xs hover:scale-105 transition-transform`}>
       <div className="flex flex-col items-center justify-center w-full h-full space-y-1">
-        <span className="text-[9px] font-black font-mono text-slate-800 dark:text-slate-200 tracking-tight leading-none">
+        <span className="text-[10px] font-black font-mono text-[#0F2D5C] tracking-tight leading-none">
           NRS
         </span>
-        <div className="h-1 w-7 bg-red-600 rounded-full"></div>
+        <div className="h-1.5 w-8 bg-[#0F2D5C] rounded-full"></div>
       </div>
     </div>
   );
@@ -154,8 +154,8 @@ function TaxIdSearchLogo({ className = "h-14 w-14" }: { className?: string }) {
 // Education Logo
 function EducationLogo({ className = "h-14 w-14" }: { className?: string }) {
   return (
-    <div className={`${className} bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-850 rounded-2xl flex items-center justify-center p-2 shrink-0 shadow-xs hover:scale-105 transition-transform`}>
-      <svg viewBox="0 0 24 24" className="h-7 w-7 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <div className={`${className} bg-[#F5F7FA] border border-[#E5E7EB] rounded-2xl flex items-center justify-center p-2 shrink-0 shadow-xs hover:scale-105 transition-transform`}>
+      <svg viewBox="0 0 24 24" className="h-7 w-7 text-[#0F2D5C]" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
         <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5" />
       </svg>
@@ -178,13 +178,6 @@ export default function Dashboards({
   const [activityFilter, setActivityFilter] = useState<string>("ALL");
   const [activitySearch, setActivitySearch] = useState("");
 
-  // Form states
-  const [fundAmount, setFundAmount] = useState("");
-  const [fundGateway, setFundGateway] = useState("Paystack");
-  const [showFundInput, setShowFundInput] = useState(false);
-  const [transferEmail, setTransferEmail] = useState("");
-  const [transferAmount, setTransferAmount] = useState("");
-
   // Admin stats
   const [adminStats, setAdminStats] = useState<any>({
     usersCount: 0,
@@ -201,6 +194,62 @@ export default function Dashboards({
   const [fundLoading, setFundLoading] = useState(false);
   const [fundError, setFundError] = useState<string | null>(null);
   const [copiedAccount, setCopiedAccount] = useState(false);
+
+  // Authoritative Balance Refresh states
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
+  const [refreshSuccess, setRefreshSuccess] = useState(false);
+
+  const handleRefreshBalance = async () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    setRefreshError(null);
+    setRefreshSuccess(false);
+
+    const uid = currentUser?.uid || (currentUser as any)?.id;
+
+    try {
+      if (uid) {
+        const headers = await getAuthHeaders(uid);
+        // Fetch latest wallet balance directly from the authoritative endpoint
+        const res = await fetch(`/api/wallet/balance/${encodeURIComponent(uid)}`, { headers });
+        const contentType = res.headers.get("content-type") || "";
+        
+        if (contentType.includes("application/json")) {
+          const data = await res.json();
+          if (res.ok && data?.wallet) {
+            // Synchronize with root state
+            if (onRefreshUser) await onRefreshUser(uid);
+            setRefreshSuccess(true);
+            setTimeout(() => setRefreshSuccess(false), 2000);
+            return;
+          }
+        }
+      }
+
+      // Fallback to direct user profile refresh if endpoint returned alternative status
+      if (uid && onRefreshUser) {
+        await onRefreshUser(uid);
+        setRefreshSuccess(true);
+        setTimeout(() => setRefreshSuccess(false), 2000);
+      }
+    } catch (err: any) {
+      console.warn("[Refresh Balance Info]:", err);
+      // Fallback
+      if (uid && onRefreshUser) {
+        try {
+          await onRefreshUser(uid);
+          setRefreshSuccess(true);
+          setTimeout(() => setRefreshSuccess(false), 2000);
+          return;
+        } catch {}
+      }
+      setRefreshError(err.message || "Unable to refresh balance");
+      setTimeout(() => setRefreshError(null), 4000);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const handleOpenFundWallet = async () => {
     setShowFundModal(true);
@@ -234,9 +283,10 @@ export default function Dashboards({
       } else if (!userAny.virtualAccountNumber && !userAny.accountNumber) {
         // Direct attempt via /api/wallet/virtual-account/generate
         try {
+          const authHeaders = await getAuthHeaders();
           const genRes = await fetch("/api/wallet/virtual-account/generate", {
             method: "POST",
-            headers: { "Content-Type": "application/json", "x-user-id": currentUser.uid },
+            headers: authHeaders,
             body: JSON.stringify({
               userId: currentUser.uid,
               userEmail: currentUser.email,
@@ -433,7 +483,7 @@ export default function Dashboards({
 
     transactions.forEach((tx) => {
       const isFunding = tx.type === "WALLET_FUNDING";
-      const title = isFunding ? "Digital Wallet Funded" : "Naira Ledger Transfer Dispatch";
+      const title = isFunding ? "Digital Wallet Funded" : "Service Debit Transaction";
       const description = isFunding 
         ? `Credited ₦${tx.amount.toLocaleString()}.00 via ${tx.gateway || "Paystack Gateway"}. Reference: ${tx.reference}`
         : `Sent ₦${tx.amount.toLocaleString()}.00 to ${tx.description}. Reference: ${tx.reference}`;
@@ -496,7 +546,7 @@ export default function Dashboards({
       id: "sec-integrity",
       timestamp: new Date(Date.now() - 3600000 * 4),
       title: "Biometric Registry Integrity Safe",
-      description: "NIMC biometrics tunnel handshake verified successfully. High security encryption validated.",
+      description: "NIN biometrics tunnel handshake verified successfully. High security encryption validated.",
       type: "SECURITY",
       status: "SUCCESS",
     });
@@ -578,84 +628,7 @@ export default function Dashboards({
     }
   };
 
-  // Handle funding
-  const handleFundWallet = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setActionError(null);
-    setActionSuccess(null);
-    setActionLoading(true);
-
-    try {
-      const authHeaders = await getAuthHeaders();
-      const res = await safeFetchJson<{ transaction?: Transaction; error?: string }>("/api/wallet/fund", {
-        method: "POST",
-        headers: { ...authHeaders, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: currentUser.uid,
-          amount: parseFloat(fundAmount),
-          gateway: fundGateway,
-        }),
-      });
-      if (!res.ok) throw new Error(res.error || "Funding failed");
-      const data = res.data || {};
-
-      const fundedAmt = parseFloat(fundAmount);
-      setActionSuccess(`Successfully funded ₦${fundedAmt.toLocaleString()} via ${fundGateway}!`);
-      
-      window.dispatchEvent(
-        new CustomEvent("wallet_credited", {
-          detail: {
-            amount: fundedAmt,
-            gateway: fundGateway,
-            reference: data.transaction?.reference || "FUND-" + Date.now(),
-          },
-        })
-      );
-
-      setFundAmount("");
-      setShowFundInput(false);
-      onRefreshUser(currentUser.uid);
-      loadData();
-    } catch (err: any) {
-      setActionError(err.message);
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
   // Automatic wallet funding via incoming active provider webhook notifications
-
-  // Handle transfer
-  const handleTransfer = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setActionError(null);
-    setActionSuccess(null);
-    setActionLoading(true);
-
-    try {
-      const authHeaders = await getAuthHeaders();
-      const res = await safeFetchJson<{ error?: string }>("/api/wallet/transfer", {
-        method: "POST",
-        headers: { ...authHeaders, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fromUserId: currentUser.uid,
-          recipientEmail: transferEmail,
-          amount: parseFloat(transferAmount),
-        }),
-      });
-      if (!res.ok) throw new Error(res.error || "Transfer failed");
-
-      setActionSuccess(`Successfully transferred ₦${parseFloat(transferAmount).toLocaleString()} to ${transferEmail}!`);
-      setTransferEmail("");
-      setTransferAmount("");
-      onRefreshUser(currentUser.uid);
-      loadData();
-    } catch (err: any) {
-      setActionError(err.message);
-    } finally {
-      setActionLoading(false);
-    }
-  };
 
   // Staff/Admin: Approve CAC Application
   const handleCacApproval = async (id: string, status: "APPROVED" | "REJECTED", approvedName?: string) => {
@@ -707,7 +680,9 @@ export default function Dashboards({
 
   // Local card list for the identity verification sections with dynamic pricing overlay
   const identityServices = [
+    { id: "id_nin_demography", name: "NIN Demography", price: getDynamicServicePrice("id_nin_demography", 600) },
     { id: "id_nin_ver", name: "NIN Verification", price: getDynamicServicePrice("id_nin_ver", 500) },
+    { id: "id_nin_phone", name: "NIN With Phone Number", price: getDynamicServicePrice("id_nin_phone", 500) },
     { id: "id_nin_val", name: "NIN Validation", price: getDynamicServicePrice("id_nin_val", 500) },
     { id: "id_slip_gen", name: "Slip Generation", price: getDynamicServicePrice("id_slip_gen", 1000) },
     { id: "id_vnin_slip", name: "VNIN Slip", price: getDynamicServicePrice("id_vnin_slip", 1000) },
@@ -721,7 +696,7 @@ export default function Dashboards({
     { id: "id_vnin_to_nibss", name: "VNIN to NIBSS", price: getDynamicServicePrice("id_vnin_to_nibss", 1500) },
     { id: "id_bvn_user", name: "BVN User", price: getDynamicServicePrice("id_bvn_user", 500) },
     { id: "id_bvn_modification", name: "BVN Modification", price: getDynamicServicePrice("id_bvn_modification", 8000) },
-    { id: "id_premium_slip", name: "Premium Slip", price: getDynamicServicePrice("id_premium_slip", 1200) },
+    { id: "id_premium_slip", name: "BVN Slip Print", price: getDynamicServicePrice("id_premium_slip", 1200) },
     { id: "id_bvn_retrieval", name: "BVN Retrieval", price: getDynamicServicePrice("id_bvn_retrieval", 2500) }
   ];
 
@@ -774,10 +749,10 @@ export default function Dashboards({
           {onToggleDarkMode && (
             <button
               onClick={onToggleDarkMode}
-              className="p-2.5 rounded-full border border-[#E5E7EB] bg-white text-slate-700 hover:bg-slate-50 transition-all shadow-xs cursor-pointer focus:outline-none shrink-0"
+              className="p-2.5 rounded-full border border-[#E5E7EB] bg-white text-[#4B5563] hover:bg-[#F5F7FA] transition-all shadow-xs cursor-pointer focus:outline-none shrink-0"
               title="Toggle theme"
             >
-              {isDarkMode ? <Sun className="h-4 w-4 text-amber-500 animate-pulse" /> : <Moon className="h-4 w-4 text-[#0F2D5C]" />}
+              {isDarkMode ? <Sun className="h-4 w-4 text-[#0F2D5C] animate-pulse" /> : <Moon className="h-4 w-4 text-[#0F2D5C]" />}
             </button>
           )}
         </div>
@@ -787,15 +762,15 @@ export default function Dashboards({
 
         {/* Global Action Banner Feedback */}
         {actionSuccess && (
-          <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-sm font-semibold flex items-center justify-between">
+          <div className="p-4 bg-[#F5F7FA] border border-[#E5E7EB] text-[#111827] rounded-xl text-sm font-semibold flex items-center justify-between">
             <span>{actionSuccess}</span>
-            <button onClick={() => setActionSuccess(null)} className="text-emerald-600 hover:text-emerald-700 font-bold font-sans">✕</button>
+            <button onClick={() => setActionSuccess(null)} className="text-[#0F2D5C] hover:text-[#17407E] font-bold font-sans">✕</button>
           </div>
         )}
         {actionError && (
-          <div className="p-4 bg-red-50 border border-red-200 text-red-800 rounded-xl text-sm font-semibold flex items-center justify-between">
+          <div className="p-4 bg-[#F5F7FA] border border-[#E5E7EB] text-[#111827] rounded-xl text-sm font-semibold flex items-center justify-between">
             <span>{actionError}</span>
-            <button onClick={() => setActionError(null)} className="text-red-600 hover:text-red-700 font-bold font-sans">✕</button>
+            <button onClick={() => setActionError(null)} className="text-[#0F2D5C] hover:text-[#17407E] font-bold font-sans">✕</button>
           </div>
         )}
 
@@ -822,17 +797,38 @@ export default function Dashboards({
               <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative z-10">
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-blue-200 font-mono text-[10px] font-bold tracking-wider uppercase">
-                    <Wallet className="h-4 w-4" />
-                    Available Balance
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-2 text-[#E5E7EB] font-mono text-[10px] font-bold tracking-wider uppercase">
+                      <Wallet className="h-4 w-4" />
+                      Available Balance
+                    </div>
+                    <button
+                      onClick={handleRefreshBalance}
+                      disabled={isRefreshing}
+                      title="Refresh balance"
+                      id="btn-refresh-balance-authoritative"
+                      className={`flex items-center gap-1.5 px-2.5 py-1 text-[9px] font-mono font-bold tracking-wider rounded-md border border-white/15 hover:border-white/30 text-[#E5E7EB] hover:text-white transition-all bg-white/5 active:scale-95 disabled:opacity-50 cursor-pointer ${
+                        isRefreshing ? "cursor-not-allowed" : ""
+                      }`}
+                    >
+                      <RefreshCw className={`h-3 w-3 ${isRefreshing ? "animate-spin text-white" : ""}`} />
+                      {isRefreshing ? "REFRESHING..." : refreshSuccess ? "SYNCED" : "REFRESH"}
+                    </button>
                   </div>
+                  
+                  {refreshError && (
+                    <div className="text-[10px] font-mono text-[#111827] bg-[#F5F7FA] border border-[#E5E7EB] px-2.5 py-1 rounded animate-fadeIn max-w-xs mt-1">
+                      ⚠️ {refreshError}
+                    </div>
+                  )}
+
                   <div className="text-3xl md:text-4xl font-extrabold tracking-tight font-mono text-white flex items-baseline">
                     ₦{currentUser.walletBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </div>
                   <div className="pt-2">
                     <button
                       onClick={handleOpenFundWallet}
-                      className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 font-black rounded-xl text-xs transition-all shadow-md cursor-pointer flex items-center gap-2"
+                      className="px-4 py-2 bg-white hover:bg-[#F5F7FA] text-[#0F2D5C] font-black rounded-xl text-xs transition-all shadow-md cursor-pointer flex items-center gap-2"
                     >
                       <Plus className="h-4 w-4 stroke-[3]" />
                       Fund Wallet
@@ -858,23 +854,23 @@ export default function Dashboards({
 
             {/* Fund Wallet Modal */}
             {showFundModal && (
-              <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
-                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative text-left space-y-5 overflow-hidden">
+              <div className="fixed inset-0 z-50 bg-[#111827]/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
+                <div className="bg-white border border-[#E5E7EB] rounded-3xl max-w-lg w-full p-6 shadow-2xl relative text-left space-y-5 overflow-hidden">
                   
                   {/* Modal Header */}
-                  <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+                  <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-4">
                     <div className="flex items-center gap-2.5">
-                      <div className="p-2.5 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 rounded-2xl">
+                      <div className="p-2.5 bg-[#F5F7FA] text-[#0F2D5C] rounded-2xl">
                         <Wallet className="h-5 w-5" />
                       </div>
                       <div>
-                        <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Fund Wallet</h3>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">Dynamic Virtual Account Funding</p>
+                        <h3 className="text-base font-extrabold text-[#111827]">Fund Wallet</h3>
+                        <p className="text-xs text-[#4B5563]">Dynamic Virtual Account Funding</p>
                       </div>
                     </div>
                     <button
                       onClick={() => setShowFundModal(false)}
-                      className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                      className="p-1.5 rounded-xl hover:bg-[#F5F7FA] text-[#4B5563] transition-colors cursor-pointer"
                     >
                       ✕
                     </button>
@@ -882,20 +878,20 @@ export default function Dashboards({
 
                   {fundLoading ? (
                     <div className="py-12 flex flex-col items-center justify-center space-y-3 text-center">
-                      <RefreshCw className="h-8 w-8 text-emerald-500 animate-spin" />
-                      <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Connecting to Active Payment Engine...</p>
-                      <p className="text-xs text-slate-400">Generating secure virtual account for wallet deposit</p>
+                      <RefreshCw className="h-8 w-8 text-[#0F2D5C] animate-spin" />
+                      <p className="text-sm font-bold text-[#111827]">Connecting to Active Payment Engine...</p>
+                      <p className="text-xs text-[#6B7280]">Generating secure virtual account for wallet deposit</p>
                     </div>
                   ) : fundError ? (
-                    <div className="p-5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-2xl space-y-3 text-left">
-                      <div className="flex items-center gap-2 text-rose-800 dark:text-rose-300 font-bold text-sm">
-                        <XCircle className="h-5 w-5 text-rose-600 shrink-0" />
+                    <div className="p-5 bg-[#F5F7FA] border border-[#E5E7EB] rounded-2xl space-y-3 text-left">
+                      <div className="flex items-center gap-2 text-[#111827] font-bold text-sm">
+                        <XCircle className="h-5 w-5 text-[#0F2D5C] shrink-0" />
                         <span>Funding Engine Notice</span>
                       </div>
-                      <p className="text-xs text-rose-600 dark:text-rose-400 font-medium">{fundError}</p>
+                      <p className="text-xs text-[#4B5563] font-medium">{fundError}</p>
                       <button
                         onClick={handleOpenFundWallet}
-                        className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl transition-all cursor-pointer"
+                        className="px-4 py-2 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold text-xs rounded-xl transition-all cursor-pointer"
                       >
                         Retry Connection
                       </button>
@@ -903,36 +899,36 @@ export default function Dashboards({
                   ) : fundAccount ? (
                     <div className="space-y-4">
                       {/* Active Provider Badge */}
-                      <div className="p-3 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/80 rounded-2xl flex items-center justify-between text-xs font-semibold text-emerald-900 dark:text-emerald-300">
+                      <div className="p-3 bg-[#F5F7FA] border border-[#E5E7EB] rounded-2xl flex items-center justify-between text-xs font-semibold text-[#111827]">
                         <div className="flex items-center gap-2">
-                          <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                          <ShieldCheck className="h-4 w-4 text-[#17407E] shrink-0" />
                           <span>Active Provider: <strong className="font-extrabold uppercase">{fundAccount.providerName}</strong></span>
                         </div>
-                        <span className="text-[10px] bg-emerald-200/80 dark:bg-emerald-900/80 text-emerald-900 dark:text-emerald-200 px-2 py-0.5 rounded-full font-mono font-bold">
+                        <span className="text-[10px] bg-[#E5E7EB] text-[#111827] px-2 py-0.5 rounded-full font-mono font-bold">
                           LIVE ENGINE
                         </span>
                       </div>
 
                       {/* Account Details Box */}
-                      <div className="bg-slate-900 text-white p-5 rounded-2xl space-y-4 shadow-inner">
+                      <div className="bg-[#111827] text-white p-5 rounded-2xl space-y-4 shadow-inner">
                         <div className="space-y-1">
-                          <span className="text-[10px] font-mono uppercase text-slate-400 tracking-wider">Bank Name</span>
+                          <span className="text-[10px] font-mono uppercase text-[#9CA3AF] tracking-wider">Bank Name</span>
                           <div className="text-sm font-black font-mono text-white">{fundAccount.bankName}</div>
                         </div>
 
-                        <div className="space-y-1 border-t border-slate-800 pt-3">
-                          <span className="text-[10px] font-mono uppercase text-slate-400 tracking-wider">Virtual Account Number</span>
-                          <div className="flex items-center justify-between bg-slate-950 p-3 rounded-xl border border-slate-800">
-                            <span className="text-xl font-black font-mono tracking-widest text-emerald-400">
+                        <div className="space-y-1 border-t border-[#E5E7EB]/20 pt-3">
+                          <span className="text-[10px] font-mono uppercase text-[#9CA3AF] tracking-wider">Virtual Account Number</span>
+                          <div className="flex items-center justify-between bg-[#111827] p-3 rounded-xl border border-[#E5E7EB]/20">
+                            <span className="text-xl font-black font-mono tracking-widest text-[#E5E7EB]">
                               {fundAccount.accountNumber}
                             </span>
                             <button
                               onClick={() => handleCopyAccount(fundAccount.accountNumber)}
-                              className="px-3 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                              className="px-3 py-1.5 bg-[#E5E7EB]/10 hover:bg-[#E5E7EB]/20 text-[#E5E7EB] rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
                             >
                               {copiedAccount ? (
                                 <>
-                                  <Check className="h-3.5 w-3.5 text-emerald-400" />
+                                  <Check className="h-3.5 w-3.5 text-[#FFFFFF]" />
                                   Copied!
                                 </>
                               ) : (
@@ -945,17 +941,17 @@ export default function Dashboards({
                           </div>
                         </div>
 
-                        <div className="space-y-1 border-t border-slate-800 pt-3">
-                          <span className="text-[10px] font-mono uppercase text-slate-400 tracking-wider">Account Name</span>
-                          <div className="text-xs font-bold font-mono text-slate-200">{fundAccount.accountName}</div>
+                        <div className="space-y-1 border-t border-[#E5E7EB]/20 pt-3">
+                          <span className="text-[10px] font-mono uppercase text-[#9CA3AF] tracking-wider">Account Name</span>
+                          <div className="text-xs font-bold font-mono text-[#E5E7EB]">{fundAccount.accountName}</div>
                         </div>
                       </div>
 
                       {/* Instructions */}
-                      <div className="p-3.5 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 leading-relaxed space-y-1">
-                        <p className="font-bold text-slate-800 dark:text-slate-200">How to fund your wallet:</p>
+                      <div className="p-3.5 bg-[#F5F7FA] rounded-2xl border border-[#E5E7EB] text-xs text-[#4B5563] leading-relaxed space-y-1">
+                        <p className="font-bold text-[#111827]">How to fund your wallet:</p>
                         <p>1. Copy the Virtual Account Number above.</p>
-                        <p>2. Open your banking app or USSD service and transfer your desired amount to <strong className="text-slate-900 dark:text-white">{fundAccount.bankName}</strong>.</p>
+                        <p>2. Open your banking app or USSD service and transfer your desired amount to <strong className="text-[#111827]">{fundAccount.bankName}</strong>.</p>
                         <p>3. Your wallet balance will be automatically credited once the active provider receives the deposit.</p>
                       </div>
                     </div>
@@ -964,7 +960,7 @@ export default function Dashboards({
                   <div className="pt-2 flex justify-end">
                     <button
                       onClick={() => setShowFundModal(false)}
-                      className="px-5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs rounded-xl transition-all cursor-pointer"
+                      className="px-5 py-2.5 bg-[#F5F7FA] hover:bg-[#E5E7EB] text-[#4B5563] font-bold text-xs rounded-xl transition-all cursor-pointer"
                     >
                       Close
                     </button>
@@ -974,21 +970,21 @@ export default function Dashboards({
               </div>
             )}
             {(currentUser.role === UserRole.SUPER_ADMIN || currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.SUB_ADMIN) && (
-              <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white rounded-2xl p-5 border border-indigo-500/30 shadow-lg flex flex-col md:flex-row items-center justify-between gap-4 my-6">
+              <div className="bg-[#111827] text-white rounded-2xl p-5 border border-[#E5E7EB]/20 shadow-lg flex flex-col md:flex-row items-center justify-between gap-4 my-6">
                 <div className="flex items-center gap-3 text-left">
-                  <div className="p-3 bg-indigo-600/20 rounded-xl border border-indigo-500/40 text-indigo-400 shrink-0">
+                  <div className="p-3 bg-[#17407E]/20 rounded-xl border border-[#E5E7EB]/20 text-white shrink-0">
                     <ShieldCheck className="h-6 w-6" />
                   </div>
                   <div>
                     <h3 className="font-bold text-sm text-white">SmartLink Admin Control Suite</h3>
-                    <p className="text-xs text-slate-300">
+                    <p className="text-xs text-[#9CA3AF]">
                       Unified administrative management portal for Users, Wallets, Transactions, API Providers, Security & System Configuration.
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={() => onSwitchView("ADMIN_DASHBOARD")}
-                  className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl transition-all shadow-md flex items-center gap-2 shrink-0 cursor-pointer"
+                  className="px-5 py-2.5 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold text-xs rounded-xl transition-all shadow-md flex items-center gap-2 shrink-0 cursor-pointer"
                 >
                   <Shield className="h-4 w-4" />
                   <span>Launch Admin Portal</span>
@@ -1105,48 +1101,48 @@ export default function Dashboards({
             {(currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.STAFF) && (
               <div className="grid lg:grid-cols-12 gap-8 pt-4">
                 {/* Pending CAC Registries */}
-                <div className="lg:col-span-12 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-2xs text-left space-y-4">
+                <div className="lg:col-span-12 bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-2xs text-left space-y-4">
                   <div className="border-b pb-3">
-                    <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                      <Briefcase className="h-4.5 w-4.5 text-blue-500" />
+                    <h2 className="text-base font-bold text-[#111827] flex items-center gap-2">
+                      <Briefcase className="h-4.5 w-4.5 text-[#0F2D5C]" />
                       CAC Filings Review Board
                     </h2>
-                    <p className="text-xs text-slate-500">Process corporate, sole proprietorship, and NGO applications</p>
+                    <p className="text-xs text-[#4B5563]">Process corporate, sole proprietorship, and NGO applications</p>
                   </div>
 
                   <div className="space-y-4 divide-y">
                     {cacApps.length === 0 ? (
-                      <p className="text-xs text-slate-400 py-6 text-center font-mono">No corporate filings pending review.</p>
+                      <p className="text-xs text-[#9CA3AF] py-6 text-center font-mono">No corporate filings pending review.</p>
                     ) : (
                       cacApps.map((app) => (
                         <div key={app.id} className="pt-4 space-y-2">
                           <div className="flex justify-between items-start">
                             <div>
-                              <span className="text-[9px] font-bold font-mono bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded">
+                              <span className="text-[9px] font-bold font-mono bg-[#F5F7FA] text-[#0F2D5C] px-2 py-0.5 rounded">
                                 {app.type} FILING
                               </span>
-                              <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 mt-1">{app.proposedNames.join(" / ")}</h4>
-                              <p className="text-xs text-slate-500">Applicant: {app.proprietors[0]?.name || "N/A"}</p>
+                              <h4 className="text-sm font-bold text-[#111827] mt-1">{app.proposedNames.join(" / ")}</h4>
+                              <p className="text-xs text-[#4B5563]">Applicant: {app.proprietors[0]?.name || "N/A"}</p>
                             </div>
                             <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase ${
-                              app.status === "APPROVED" ? "bg-indigo-50 text-indigo-700" : "bg-amber-50 text-amber-700"
+                              app.status === "APPROVED" ? "bg-[#F5F7FA] text-[#0F2D5C]" : "bg-[#F5F7FA] text-[#4B5563]"
                             }`}>
                               {app.status}
                             </span>
                           </div>
-                          <p className="text-xs text-slate-600 bg-slate-50 p-2 rounded italic">&quot;{app.objective}&quot;</p>
+                          <p className="text-xs text-[#4B5563] bg-[#F5F7FA] p-2 rounded italic">&quot;{app.objective}&quot;</p>
                           
                           {app.status === "PENDING" && (
                             <div className="flex gap-2 justify-end pt-1">
                               <button
                                 onClick={() => handleCacApproval(app.id, "REJECTED")}
-                                className="px-3 py-1 border text-rose-600 border-rose-200 hover:bg-rose-50 rounded text-xs cursor-pointer"
+                                className="px-3 py-1 border text-[#111827] border-[#E5E7EB] hover:bg-[#F5F7FA] rounded text-xs cursor-pointer"
                               >
                                 Reject File
                               </button>
                               <button
                                 onClick={() => handleCacApproval(app.id, "APPROVED", app.proposedNames[0])}
-                                className="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded text-xs cursor-pointer"
+                                className="px-3 py-1 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold rounded text-xs cursor-pointer"
                               >
                                 Approve Name File
                               </button>
@@ -1160,52 +1156,16 @@ export default function Dashboards({
               </div>
             )}
 
-            {/* Shared Financial Transfers & Tickets Workspace */}
+            {/* Shared Financial Analytics & Workspace */}
             {currentUser.role !== UserRole.CUSTOMER && (
               <div className="grid lg:grid-cols-12 gap-8 pt-4">
-                
-                {/* Money Transfer form */}
-                <div className="lg:col-span-4 bg-white dark:bg-[#0C0F22] border border-slate-200 dark:border-slate-900 rounded-2xl p-6 shadow-2xs text-left space-y-6">
-                  <div className="space-y-3">
-                    <h3 className="text-sm font-black text-slate-900 dark:text-slate-100 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800 pb-2 flex items-center gap-2">
-                      <Send className="h-4 w-4 text-blue-500" />
-                      Naira Money Transfer
-                    </h3>
-                    <form onSubmit={handleTransfer} className="space-y-3 pt-2">
-                      <input
-                        type="email"
-                        required
-                        value={transferEmail}
-                        onChange={(e) => setTransferEmail(e.target.value)}
-                        placeholder="Recipient Email Address"
-                        className="w-full px-3.5 py-2.5 border border-slate-200 dark:border-slate-850 bg-white dark:bg-[#070913] text-slate-900 dark:text-slate-100 rounded-xl text-xs outline-none focus:border-blue-500"
-                      />
-                      <input
-                        type="number"
-                        required
-                        value={transferAmount}
-                        onChange={(e) => setTransferAmount(e.target.value)}
-                        placeholder="Amount to Transfer (₦)"
-                        className="w-full px-3.5 py-2.5 border border-slate-200 dark:border-slate-850 bg-white dark:bg-[#070913] text-slate-900 dark:text-slate-100 rounded-xl text-xs outline-none focus:border-blue-500 font-mono"
-                      />
-                      <button
-                        type="submit"
-                        disabled={actionLoading}
-                        className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-blue-600/10"
-                      >
-                        Authorize Wallet Transfer
-                      </button>
-                    </form>
-                  </div>
-                </div>
-
                 {/* Transaction volume analytics */}
-                <div className="lg:col-span-8 bg-white dark:bg-[#0C0F22] border border-slate-200 dark:border-slate-900 rounded-2xl p-6 shadow-2xs text-left flex flex-col justify-between space-y-4">
+                <div className="lg:col-span-12 bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-2xs text-left flex flex-col justify-between space-y-4">
                   <div>
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E5E7EB] pb-3">
                       <div>
-                        <h3 className="text-sm font-black text-slate-900 dark:text-slate-100 uppercase tracking-wider">Transaction Activity Trajectory</h3>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400">Security-authenticated successful vs pending database queries (Last 30 Days)</p>
+                        <h3 className="text-sm font-black text-[#111827] uppercase tracking-wider">Transaction Activity Trajectory</h3>
+                        <p className="text-[11px] text-[#4B5563]">Security-authenticated successful vs pending database queries (Last 30 Days)</p>
                       </div>
                     </div>
                   </div>
@@ -1218,19 +1178,19 @@ export default function Dashboards({
                       >
                         <defs>
                           <linearGradient id="colorSuccessful" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#2563eb" stopOpacity={0.2}/>
-                            <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
+                            <stop offset="5%" stopColor="#0F2D5C" stopOpacity={0.2}/>
+                            <stop offset="95%" stopColor="#0F2D5C" stopOpacity={0}/>
                           </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? "#1e293b" : "#f1f5f9"} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
                         <XAxis
                           dataKey="displayDate"
-                          tick={{ fill: isDarkMode ? "#94a3b8" : "#64748b", fontSize: 9 }}
+                          tick={{ fill: "#6B7280", fontSize: 9 }}
                           axisLine={false}
                           tickLine={false}
                         />
                         <YAxis
-                          tick={{ fill: isDarkMode ? "#94a3b8" : "#64748b", fontSize: 9 }}
+                          tick={{ fill: "#6B7280", fontSize: 9 }}
                           axisLine={false}
                           tickLine={false}
                           allowDecimals={false}
@@ -1239,7 +1199,7 @@ export default function Dashboards({
                         <Area
                           type="monotone"
                           dataKey="successful"
-                          stroke="#2563eb"
+                          stroke="#0F2D5C"
                           strokeWidth={2.5}
                           fillOpacity={1}
                           fill="url(#colorSuccessful)"
@@ -1255,16 +1215,16 @@ export default function Dashboards({
 
             {/* Chronic operational logs list */}
             {currentUser.role !== UserRole.CUSTOMER && (
-              <div className="bg-white dark:bg-[#0C0F22] border border-slate-200 dark:border-slate-900 rounded-2xl p-6 shadow-2xs text-left space-y-4">
-                <h3 className="text-sm font-black text-slate-900 dark:text-slate-100 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
+              <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-2xs text-left space-y-4">
+                <h3 className="text-sm font-black text-[#111827] uppercase tracking-wider border-b border-[#E5E7EB] pb-3 flex items-center justify-between">
                   <span>Platform Transaction Ledger</span>
-                  <span className="text-[10px] font-mono text-slate-400 capitalize">{transactions.length} operations logged</span>
+                  <span className="text-[10px] font-mono text-[#4B5563] capitalize">{transactions.length} operations logged</span>
                 </h3>
 
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse text-xs">
                     <thead>
-                      <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 text-slate-500 dark:text-slate-400 font-mono font-bold">
+                      <tr className="border-b border-[#E5E7EB] bg-[#F5F7FA] text-[#4B5563] font-mono font-bold">
                         <th className="py-2.5 px-3">Reference</th>
                         <th className="py-2.5 px-3">Service Description</th>
                         <th className="py-2.5 px-3 text-right">Amount (₦)</th>
@@ -1273,37 +1233,37 @@ export default function Dashboards({
                         <th className="py-2.5 px-3 text-center">Receipt</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-850 font-mono">
+                    <tbody className="divide-y divide-[#E5E7EB] font-mono">
                       {transactions.length === 0 ? (
                         <tr>
-                          <td colSpan={6} className="py-8 text-center text-slate-400 dark:text-slate-500 font-sans">No transactions recorded. Complete a lookup card to populate this log.</td>
+                          <td colSpan={6} className="py-8 text-center text-[#9CA3AF] font-sans">No transactions recorded. Complete a lookup card to populate this log.</td>
                         </tr>
                       ) : (
                         transactions.map((tx) => (
-                          <tr key={tx.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/20 text-slate-700 dark:text-slate-300">
-                            <td className="py-3 px-3 text-slate-500 dark:text-slate-400">{tx.reference}</td>
-                            <td className="py-3 px-3 font-sans font-bold text-slate-900 dark:text-slate-200">
+                          <tr key={tx.id} className="hover:bg-[#F5F7FA] text-[#111827]">
+                            <td className="py-3 px-3 text-[#6B7280]">{tx.reference}</td>
+                            <td className="py-3 px-3 font-sans font-bold text-[#111827]">
                               {tx.type === "WALLET_FUNDING" ? (
-                                <span className="text-blue-600 dark:text-blue-400">Wallet Funded ({tx.description})</span>
+                                <span className="text-[#17407E]">Wallet Funded ({tx.description})</span>
                               ) : (
                                 <span>{tx.description}</span>
                               )}
                             </td>
-                            <td className="py-3 px-3 text-right font-bold text-slate-900 dark:text-slate-100">
+                            <td className="py-3 px-3 text-right font-bold text-[#111827]">
                               ₦{tx.amount.toLocaleString()}
                             </td>
                             <td className="py-3 px-3 text-center">
                               <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${
-                                tx.status === "SUCCESS" ? "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400" : "bg-rose-50 dark:bg-rose-950/20 text-rose-700 dark:text-rose-400"
+                                tx.status === "SUCCESS" ? "bg-[#F5F7FA] text-[#111827]" : "bg-[#F5F7FA] text-[#4B5563]"
                               }`}>
                                 {tx.status}
                               </span>
                             </td>
-                            <td className="py-3 px-3 text-slate-500 dark:text-slate-400 font-sans">{new Date(tx.createdAt).toLocaleDateString()}</td>
+                            <td className="py-3 px-3 text-[#6B7280] font-sans">{new Date(tx.createdAt).toLocaleDateString()}</td>
                             <td className="py-3 px-3 text-center">
                               <button
                                 onClick={() => downloadReceiptPDF(tx)}
-                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/40 dark:hover:bg-blue-900/60 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/20 transition-all cursor-pointer"
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#F5F7FA] hover:bg-[#E5E7EB] text-[#0F2D5C] border border-[#E5E7EB] transition-all cursor-pointer"
                               >
                                 <Download className="h-3 w-3" />
                                 Receipt
@@ -1319,11 +1279,11 @@ export default function Dashboards({
             )}
 
             {/* Legal & Regulatory Compliance Quick Access Footer */}
-            <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400">
+            <div className="mt-8 pt-6 border-t border-[#E5E7EB] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#4B5563]">
               <div className="flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                <span>NDPR &amp; NIMC Compliant Platform</span>
-                <span className="text-slate-300 dark:text-slate-700">•</span>
+                <ShieldCheck className="h-4 w-4 text-[#0F2D5C]" />
+                <span>NDPR Compliant Platform</span>
+                <span className="text-[#E5E7EB]">•</span>
                 <span>Licensed Enterprise Operations</span>
               </div>
 
@@ -1331,35 +1291,35 @@ export default function Dashboards({
                 <button
                   type="button"
                   onClick={() => onSwitchView("LEGAL_DOCUMENT_PRIVACY")}
-                  className="hover:text-blue-600 dark:hover:text-blue-400 hover:underline cursor-pointer bg-transparent border-none p-0"
+                  className="hover:text-[#0F2D5C] hover:underline cursor-pointer bg-transparent border-none p-0"
                 >
                   Privacy Policy
                 </button>
                 <button
                   type="button"
                   onClick={() => onSwitchView("LEGAL_DOCUMENT_TERMS")}
-                  className="hover:text-blue-600 dark:hover:text-blue-400 hover:underline cursor-pointer bg-transparent border-none p-0"
+                  className="hover:text-[#0F2D5C] hover:underline cursor-pointer bg-transparent border-none p-0"
                 >
                   Terms of Service
                 </button>
                 <button
                   type="button"
                   onClick={() => onSwitchView("LEGAL_DOCUMENT_KYC")}
-                  className="hover:text-blue-600 dark:hover:text-blue-400 hover:underline cursor-pointer bg-transparent border-none p-0"
+                  className="hover:text-[#0F2D5C] hover:underline cursor-pointer bg-transparent border-none p-0"
                 >
                   KYC Policy
                 </button>
                 <button
                   type="button"
                   onClick={() => onSwitchView("LEGAL_DOCUMENT_WALLET")}
-                  className="hover:text-blue-600 dark:hover:text-blue-400 hover:underline cursor-pointer bg-transparent border-none p-0"
+                  className="hover:text-[#0F2D5C] hover:underline cursor-pointer bg-transparent border-none p-0"
                 >
                   Wallet Terms
                 </button>
                 <button
                   type="button"
                   onClick={() => onSwitchView("LEGAL_CENTER")}
-                  className="text-blue-600 dark:text-blue-400 font-bold hover:underline cursor-pointer bg-transparent border-none p-0"
+                  className="text-[#0F2D5C] font-bold hover:underline cursor-pointer bg-transparent border-none p-0"
                 >
                   Legal &amp; Policy Hub →
                 </button>
@@ -1367,6 +1327,24 @@ export default function Dashboards({
             </div>
 
           </>
+        </div>
+
+        {/* WhatsApp Floating Widget on the Left Side */}
+        <div className="fixed left-6 bottom-6 z-50 flex items-center group">
+          <a
+            href="https://wa.me/2348085490982?text=Hello%20SmartLink%20Support%2C%20I%20need%20assistance%20with%20my%20dashboard."
+            target="_blank"
+            rel="noopener noreferrer"
+            className="relative flex items-center justify-center w-14 h-14 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full shadow-2xl transition-all duration-300 hover:scale-110 cursor-pointer"
+            title="Chat with Support on WhatsApp (08085490982)"
+          >
+            <svg className="w-7 h-7 fill-current" viewBox="0 0 24 24">
+              <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+            </svg>
+            <span className="absolute left-16 bg-slate-900 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
+              WhatsApp Support: 08085490982
+            </span>
+          </a>
         </div>
       </div>
   );

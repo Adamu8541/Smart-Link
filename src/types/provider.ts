@@ -13,6 +13,7 @@ export interface PaymentProvider {
   publicKey?: string; // Public Key (Optional)
   merchantId?: string; // Merchant ID (Optional)
   clientId?: string; // Client ID (Optional)
+  appId?: string; // App ID (Optional)
   clientSecret?: string; // Client Secret (Optional)
   encryptionKey?: string; // Encryption Key (Optional)
   webhookSecret?: string; // Webhook Secret (Optional)
@@ -79,6 +80,7 @@ export interface APIProviderConfig {
   privateKey?: string;
   merchantId?: string;
   clientId?: string;
+  appId?: string;
   clientSecret?: string;
   businessId?: string;
 

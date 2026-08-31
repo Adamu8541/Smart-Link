@@ -279,67 +279,67 @@ export const BankAccountVerificationView: React.FC<BankAccountVerificationViewPr
   return (
     <div className="space-y-6 max-w-4xl mx-auto p-4 sm:p-6 text-left">
       {/* Top Header Card */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
+      <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl p-6 shadow-sm space-y-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
             {onBackToDashboard && (
               <button
                 type="button"
                 onClick={onBackToDashboard}
-                className="p-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
+                className="p-2.5 rounded-2xl bg-[#E5E7EB] dark:bg-[#111827] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563] text-[#4B5563] dark:text-[#E5E7EB] transition-colors cursor-pointer"
                 title="Back to Dashboard"
               >
                 <ArrowLeft className="h-5 w-5" />
               </button>
             )}
 
-            <div className="p-3 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-2xl shadow-md shadow-blue-600/20">
+            <div className="p-3 bg-gradient-to-tr from-[#0F2D5C] to-[#0F2D5C] text-white rounded-2xl shadow-md shadow-blue-600/20">
               <Building className="h-7 w-7" />
             </div>
 
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">
+                <h1 className="text-lg font-black text-[#111827] dark:text-white tracking-tight">
                   Bank Account Verification (Name Enquiry)
                 </h1>
-                <span className="px-2.5 py-0.5 text-[10px] font-extrabold uppercase bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 rounded-full border border-blue-300 dark:border-blue-800">
+                <span className="px-2.5 py-0.5 text-[10px] font-extrabold uppercase bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C] dark:text-[#9CA3AF] rounded-full border border-[#E5E7EB] dark:border-[#0F2D5C]">
                   NIBSS Gateway
                 </span>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-0.5">
                 Instant real-time account holder name lookup across all CBN-licensed banks & PSBs
               </p>
             </div>
           </div>
 
           {/* Service Meta Stats & Wallet */}
-          <div className="flex flex-wrap items-center gap-3 self-stretch sm:self-auto justify-between sm:justify-end bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80">
+          <div className="flex flex-wrap items-center gap-3 self-stretch sm:self-auto justify-between sm:justify-end bg-[#F5F7FA] dark:bg-[#111827]/60 p-2.5 rounded-2xl border border-[#E5E7EB]/80 dark:border-[#4B5563]/80">
             <div className="text-right">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">Wallet Balance</span>
-              <span className="font-mono text-sm font-extrabold text-blue-600 dark:text-blue-400">
+              <span className="text-[10px] uppercase font-bold text-[#9CA3AF] block">Wallet Balance</span>
+              <span className="font-mono text-sm font-extrabold text-[#0F2D5C] dark:text-[#9CA3AF]">
                 ₦{userBalance.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
               </span>
             </div>
-            <div className="h-8 w-px bg-slate-200 dark:bg-slate-700" />
+            <div className="h-8 w-px bg-[#E5E7EB] dark:bg-[#4B5563]" />
             <div className="text-right">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">Fee</span>
-              <span className="font-mono text-sm font-extrabold text-blue-600 dark:text-blue-400">
+              <span className="text-[10px] uppercase font-bold text-[#9CA3AF] block">Fee</span>
+              <span className="font-mono text-sm font-extrabold text-[#0F2D5C] dark:text-[#9CA3AF]">
                 ₦{verificationFee.toLocaleString()}
               </span>
             </div>
-            <div className="h-8 w-px bg-slate-200 dark:bg-slate-700" />
+            <div className="h-8 w-px bg-[#E5E7EB] dark:bg-[#4B5563]" />
             <div className="text-right">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">Status</span>
-              <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[10px] uppercase font-bold text-[#9CA3AF] block">Status</span>
+              <span className="inline-flex items-center gap-1 text-xs font-bold text-[#0F2D5C] dark:text-[#9CA3AF]">
+                <span className="h-2 w-2 rounded-full bg-[#0F2D5C] animate-pulse" />
                 {providerStatus}
               </span>
             </div>
-            <div className="h-8 w-px bg-slate-200 dark:bg-slate-700" />
+            <div className="h-8 w-px bg-[#E5E7EB] dark:bg-[#4B5563]" />
             <div className="text-right">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">Speed</span>
-              <span className="font-mono text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
-                <Clock className="h-3 w-3 text-slate-400" />
+              <span className="text-[10px] uppercase font-bold text-[#9CA3AF] block">Speed</span>
+              <span className="font-mono text-xs font-bold text-[#4B5563] dark:text-[#E5E7EB] flex items-center gap-1">
+                <Clock className="h-3 w-3 text-[#9CA3AF]" />
                 {estimatedProcessingTime}
               </span>
             </div>
@@ -347,14 +347,14 @@ export const BankAccountVerificationView: React.FC<BankAccountVerificationViewPr
         </div>
 
         {/* View Tabs */}
-        <div className="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+        <div className="flex items-center gap-2 pt-2 border-t border-[#E5E7EB] dark:border-[#111827]">
           <button
             type="button"
             onClick={() => setActiveTab("VERIFY")}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
               activeTab === "VERIFY"
-                ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
-                : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                ? "bg-[#0F2D5C] text-white shadow-md shadow-blue-600/20"
+                : "bg-[#E5E7EB] dark:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563]"
             }`}
           >
             <CreditCard className="h-4 w-4" />
@@ -366,8 +366,8 @@ export const BankAccountVerificationView: React.FC<BankAccountVerificationViewPr
             onClick={() => setActiveTab("HISTORY")}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
               activeTab === "HISTORY"
-                ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
-                : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                ? "bg-[#0F2D5C] text-white shadow-md shadow-blue-600/20"
+                : "bg-[#E5E7EB] dark:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563]"
             }`}
           >
             <History className="h-4 w-4" />
@@ -378,16 +378,16 @@ export const BankAccountVerificationView: React.FC<BankAccountVerificationViewPr
 
       {/* TAB 1: Verification Form */}
       {activeTab === "VERIFY" && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-6">
+        <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl p-6 shadow-sm space-y-6">
           {stepMode === "INPUT" && (
             <div className="space-y-6 max-w-xl mx-auto">
-              <div className="p-4 bg-blue-50/70 dark:bg-blue-950/40 rounded-2xl border border-blue-200/60 dark:border-blue-900/40 flex items-center gap-3">
-                <ShieldCheck className="h-6 w-6 text-blue-600 dark:text-blue-400 shrink-0" />
+              <div className="p-4 bg-[#F5F7FA]/70 dark:bg-[#0F2D5C]/40 rounded-2xl border border-[#E5E7EB]/60 dark:border-[#0F2D5C]/40 flex items-center gap-3">
+                <ShieldCheck className="h-6 w-6 text-[#0F2D5C] dark:text-[#9CA3AF] shrink-0" />
                 <div className="text-xs">
-                  <p className="font-bold text-slate-800 dark:text-slate-200">
+                  <p className="font-bold text-[#111827] dark:text-[#E5E7EB]">
                     Official NIBSS (Nigeria Inter-Bank Settlement System) Gateway
                   </p>
-                  <p className="text-slate-500 dark:text-slate-400">
+                  <p className="text-[#6B7280] dark:text-[#9CA3AF]">
                     Confirms verified account holder name, account status, bank code, and BVN linking prior to money transfer or payout.
                   </p>
                 </div>
@@ -397,49 +397,49 @@ export const BankAccountVerificationView: React.FC<BankAccountVerificationViewPr
               <div className="space-y-4">
                 {/* Searchable Bank Dropdown */}
                 <div className="space-y-1.5 relative" ref={dropdownRef}>
-                  <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
-                    Select Bank <span className="text-rose-500">*</span>
+                  <label className="block text-xs font-bold text-[#111827] dark:text-[#E5E7EB]">
+                    Select Bank <span className="text-[#0F2D5C]">*</span>
                   </label>
 
                   <button
                     type="button"
                     onClick={() => setBankDropdownOpen(!bankDropdownOpen)}
-                    className="w-full px-4 py-3 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl focus:outline-hidden text-left flex items-center justify-between cursor-pointer text-slate-900 dark:text-white"
+                    className="w-full px-4 py-3 text-sm bg-[#F5F7FA] dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#4B5563] rounded-2xl focus:outline-hidden text-left flex items-center justify-between cursor-pointer text-[#111827] dark:text-white"
                   >
                     {selectedBank ? (
                       <div className="flex items-center gap-2.5">
                         <span className="font-bold">{selectedBank.name}</span>
-                        <span className="px-2 py-0.5 text-[10px] font-mono bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md">
+                        <span className="px-2 py-0.5 text-[10px] font-mono bg-[#E5E7EB] dark:bg-[#4B5563] text-[#4B5563] dark:text-[#E5E7EB] rounded-md">
                           Code: {selectedBank.code}
                         </span>
                       </div>
                     ) : (
-                      <span className="text-slate-400">Choose a Nigerian bank...</span>
+                      <span className="text-[#9CA3AF]">Choose a Nigerian bank...</span>
                     )}
                     {bankDropdownOpen ? (
-                      <ChevronUp className="h-4 w-4 text-slate-400" />
+                      <ChevronUp className="h-4 w-4 text-[#9CA3AF]" />
                     ) : (
-                      <ChevronDown className="h-4 w-4 text-slate-400" />
+                      <ChevronDown className="h-4 w-4 text-[#9CA3AF]" />
                     )}
                   </button>
 
                   {/* Dropdown Options List */}
                   {bankDropdownOpen && (
-                    <div className="absolute z-20 top-full left-0 right-0 mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl p-3 space-y-2 max-h-72 overflow-y-auto">
+                    <div className="absolute z-20 top-full left-0 right-0 mt-2 bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-2xl shadow-xl p-3 space-y-2 max-h-72 overflow-y-auto">
                       <div className="relative">
-                        <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
+                        <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-[#9CA3AF]" />
                         <input
                           type="text"
                           value={bankSearchQuery}
                           onChange={(e) => setBankSearchQuery(e.target.value)}
                           placeholder="Search bank name or code..."
-                          className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-hidden text-slate-900 dark:text-white"
+                          className="w-full pl-8 pr-3 py-1.5 text-xs bg-[#F5F7FA] dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#4B5563] rounded-xl focus:outline-hidden text-[#111827] dark:text-white"
                           autoFocus
                         />
                       </div>
 
                       {filteredBanks.length === 0 ? (
-                        <p className="p-3 text-center text-xs text-slate-400">No matching banks found.</p>
+                        <p className="p-3 text-center text-xs text-[#9CA3AF]">No matching banks found.</p>
                       ) : (
                         <div className="space-y-1">
                           {filteredBanks.map((b) => (
@@ -454,12 +454,12 @@ export const BankAccountVerificationView: React.FC<BankAccountVerificationViewPr
                               }}
                               className={`w-full p-2.5 rounded-xl text-xs text-left transition-colors flex items-center justify-between cursor-pointer ${
                                 selectedBank?.code === b.code
-                                  ? "bg-blue-50 dark:bg-blue-950/60 font-bold text-blue-900 dark:text-blue-200"
-                                  : "hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                                  ? "bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 font-bold text-[#0F2D5C] dark:text-[#9CA3AF]"
+                                  : "hover:bg-[#F5F7FA] dark:hover:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB]"
                               }`}
                             >
                               <span>{b.name}</span>
-                              <span className="font-mono text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-md">
+                              <span className="font-mono text-[10px] text-[#9CA3AF] bg-[#E5E7EB] dark:bg-[#111827] px-1.5 py-0.5 rounded-md">
                                 {b.code}
                               </span>
                             </button>
@@ -472,8 +472,8 @@ export const BankAccountVerificationView: React.FC<BankAccountVerificationViewPr
 
                 {/* Account Number Input */}
                 <div className="space-y-1.5">
-                  <label htmlFor="accountNumberInput" className="block text-xs font-bold text-slate-800 dark:text-slate-200">
-                    NUBAN Account Number (10 Digits) <span className="text-rose-500">*</span>
+                  <label htmlFor="accountNumberInput" className="block text-xs font-bold text-[#111827] dark:text-[#E5E7EB]">
+                    NUBAN Account Number (10 Digits) <span className="text-[#0F2D5C]">*</span>
                   </label>
                   <input
                     id="accountNumberInput"
@@ -486,14 +486,14 @@ export const BankAccountVerificationView: React.FC<BankAccountVerificationViewPr
                       if (inputError) setInputError(null);
                     }}
                     placeholder="e.g. 0123456789"
-                    className={`w-full px-4 py-3.5 text-lg bg-slate-50 dark:bg-slate-800 border rounded-2xl focus:outline-hidden focus:ring-2 font-mono tracking-widest text-slate-900 dark:text-white ${
+                    className={`w-full px-4 py-3.5 text-lg bg-[#F5F7FA] dark:bg-[#111827] border rounded-2xl focus:outline-hidden focus:ring-2 font-mono tracking-widest text-[#111827] dark:text-white ${
                       inputError
-                        ? "border-rose-500 ring-rose-500/20"
-                        : "border-slate-200 dark:border-slate-700 focus:ring-blue-500/20"
+                        ? "border-[#0F2D5C] ring-[#0F2D5C]/20"
+                        : "border-[#E5E7EB] dark:border-[#4B5563] focus:ring-[#0F2D5C]/20"
                     }`}
                   />
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                    <Info className="h-3.5 w-3.5 text-blue-500 shrink-0" />
+                  <p className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF] flex items-center gap-1">
+                    <Info className="h-3.5 w-3.5 text-[#0F2D5C] shrink-0" />
                     <span>Enter the 10-digit NUBAN account number maintained with {selectedBank?.name || "the selected bank"}.</span>
                   </p>
                 </div>
@@ -501,14 +501,14 @@ export const BankAccountVerificationView: React.FC<BankAccountVerificationViewPr
                 {/* Purpose and Reference */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label htmlFor="bankVerificationPurpose" className="block text-xs font-bold text-slate-800 dark:text-slate-200">
+                    <label htmlFor="bankVerificationPurpose" className="block text-xs font-bold text-[#111827] dark:text-[#E5E7EB]">
                       Verification Purpose
                     </label>
                     <select
                       id="bankVerificationPurpose"
                       value={verificationPurpose}
                       onChange={(e) => setVerificationPurpose(e.target.value)}
-                      className="w-full px-4 py-3 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 text-slate-900 dark:text-white"
+                      className="w-full px-4 py-3 text-xs bg-[#F5F7FA] dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#4B5563] rounded-2xl focus:outline-hidden focus:ring-2 focus:ring-[#0F2D5C]/20 text-[#111827] dark:text-white"
                     >
                       <option value="KYC & Account Onboarding">KYC & Account Onboarding</option>
                       <option value="Payroll & Disbursement Verification">Payroll & Disbursement</option>
@@ -519,7 +519,7 @@ export const BankAccountVerificationView: React.FC<BankAccountVerificationViewPr
                   </div>
 
                   <div className="space-y-1.5">
-                    <label htmlFor="bankReferenceNote" className="block text-xs font-bold text-slate-800 dark:text-slate-200">
+                    <label htmlFor="bankReferenceNote" className="block text-xs font-bold text-[#111827] dark:text-[#E5E7EB]">
                       Reference Note (Optional)
                     </label>
                     <input
@@ -528,13 +528,13 @@ export const BankAccountVerificationView: React.FC<BankAccountVerificationViewPr
                       value={referenceNote}
                       onChange={(e) => setReferenceNote(e.target.value)}
                       placeholder="e.g. Salary Payout Batch #12"
-                      className="w-full px-4 py-3 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 text-slate-900 dark:text-white"
+                      className="w-full px-4 py-3 text-xs bg-[#F5F7FA] dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#4B5563] rounded-2xl focus:outline-hidden focus:ring-2 focus:ring-[#0F2D5C]/20 text-[#111827] dark:text-white"
                     />
                   </div>
                 </div>
 
                 {/* Consent Checkbox */}
-                <div className="flex items-start gap-3 p-4 bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 rounded-2xl">
+                <div className="flex items-start gap-3 p-4 bg-[#F5F7FA] dark:bg-[#111827]/40 border border-[#E5E7EB] dark:border-[#4B5563] rounded-2xl">
                   <input
                     type="checkbox"
                     id="bankConsentCheckbox"
@@ -543,17 +543,17 @@ export const BankAccountVerificationView: React.FC<BankAccountVerificationViewPr
                       setUserConsent(e.target.checked);
                       if (inputError) setInputError(null);
                     }}
-                    className="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer shrink-0"
+                    className="mt-0.5 h-4 w-4 rounded border-[#E5E7EB] text-[#0F2D5C] focus:ring-[#0F2D5C] cursor-pointer shrink-0"
                   />
-                  <label htmlFor="bankConsentCheckbox" className="text-xs text-slate-600 dark:text-slate-300 cursor-pointer leading-relaxed">
-                    I confirm that I have user authorization and legitimate regulatory cause to perform <span className="font-bold text-slate-800 dark:text-slate-100">NIBSS Bank Account Name Enquiry</span> under CBN and NDPR guidelines.
+                  <label htmlFor="bankConsentCheckbox" className="text-xs text-[#4B5563] dark:text-[#E5E7EB] cursor-pointer leading-relaxed">
+                    I confirm that I have user authorization and legitimate regulatory cause to perform <span className="font-bold text-[#111827] dark:text-[#E5E7EB]">NIBSS Bank Account Name Enquiry</span> under CBN and NDPR guidelines.
                   </label>
                 </div>
 
                 {/* Input Error Callout */}
                 {inputError && (
-                  <div className="p-3.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 rounded-xl flex items-center gap-2 text-xs text-rose-700 dark:text-rose-300">
-                    <AlertCircle className="h-4 w-4 shrink-0 text-rose-500" />
+                  <div className="p-3.5 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border border-[#E5E7EB] dark:border-[#0F2D5C]/60 rounded-xl flex items-center gap-2 text-xs text-[#0F2D5C] dark:text-[#9CA3AF]">
+                    <AlertCircle className="h-4 w-4 shrink-0 text-[#0F2D5C]" />
                     <span>{inputError}</span>
                   </div>
                 )}
@@ -564,7 +564,7 @@ export const BankAccountVerificationView: React.FC<BankAccountVerificationViewPr
                 <button
                   type="button"
                   onClick={handleResetForm}
-                  className="py-3 px-5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-2xl text-xs transition-colors cursor-pointer flex items-center gap-1.5"
+                  className="py-3 px-5 bg-[#E5E7EB] dark:bg-[#111827] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563] text-[#4B5563] dark:text-[#E5E7EB] font-bold rounded-2xl text-xs transition-colors cursor-pointer flex items-center gap-1.5"
                 >
                   <RotateCcw className="h-3.5 w-3.5" />
                   <span>Clear Form</span>
@@ -573,7 +573,7 @@ export const BankAccountVerificationView: React.FC<BankAccountVerificationViewPr
                 <button
                   type="button"
                   onClick={handleProceedToConfirmation}
-                  className="flex-1 py-3.5 px-6 bg-blue-600 hover:bg-blue-700 active:scale-98 text-white font-extrabold rounded-2xl text-xs transition-all shadow-md shadow-blue-600/20 cursor-pointer flex items-center justify-center gap-2"
+                  className="flex-1 py-3.5 px-6 bg-[#0F2D5C] hover:bg-[#0F2D5C] active:scale-98 text-white font-extrabold rounded-2xl text-xs transition-all shadow-md shadow-blue-600/20 cursor-pointer flex items-center justify-center gap-2"
                 >
                   <Lock className="h-4 w-4" />
                   <span>Verify Account Name (₦{verificationFee.toLocaleString()})</span>
@@ -624,62 +624,62 @@ export const BankAccountVerificationView: React.FC<BankAccountVerificationViewPr
 
       {/* TAB 2: History Audit Trail */}
       {activeTab === "HISTORY" && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-5">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
+        <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl p-6 shadow-sm space-y-5">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-[#E5E7EB] dark:border-[#111827]">
             <div>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <History className="h-4 w-4 text-blue-500" />
+              <h3 className="text-sm font-bold text-[#111827] dark:text-white flex items-center gap-2">
+                <History className="h-4 w-4 text-[#0F2D5C]" />
                 <span>Bank Account Name Enquiry Audit Trail</span>
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">
                 Audit trail of all NIBSS bank account enquiry queries executed on your account
               </p>
             </div>
 
             <div className="relative w-full sm:w-64">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-[#9CA3AF]" />
               <input
                 type="text"
                 value={historySearch}
                 onChange={(e) => setHistorySearch(e.target.value)}
                 placeholder="Search by Name, Account, Ref..."
-                className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-hidden text-slate-900 dark:text-white"
+                className="w-full pl-9 pr-4 py-2 text-xs bg-[#F5F7FA] dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#4B5563] rounded-xl focus:outline-hidden text-[#111827] dark:text-white"
               />
             </div>
           </div>
 
           {historyLoading ? (
-            <div className="py-12 text-center text-xs text-slate-500 dark:text-slate-400 flex flex-col items-center gap-2">
-              <RefreshCw className="h-5 w-5 animate-spin text-blue-500" />
+            <div className="py-12 text-center text-xs text-[#6B7280] dark:text-[#9CA3AF] flex flex-col items-center gap-2">
+              <RefreshCw className="h-5 w-5 animate-spin text-[#0F2D5C]" />
               <span>Loading bank account enquiry history...</span>
             </div>
           ) : filteredHistory.length === 0 ? (
             <div className="py-12 text-center space-y-2">
-              <Building className="h-10 w-10 mx-auto text-slate-300 dark:text-slate-700" />
-              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">No Bank Account Enquiries Found</p>
-              <p className="text-[11px] text-slate-400">Perform your first account verification using the form above.</p>
+              <Building className="h-10 w-10 mx-auto text-[#E5E7EB] dark:text-[#4B5563]" />
+              <p className="text-xs font-semibold text-[#4B5563] dark:text-[#9CA3AF]">No Bank Account Enquiries Found</p>
+              <p className="text-[11px] text-[#9CA3AF]">Perform your first account verification using the form above.</p>
             </div>
           ) : (
             <div className="space-y-3">
               {filteredHistory.map((item) => (
                 <div
                   key={item.id}
-                  className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:border-blue-500/40 transition-colors"
+                  className="p-4 bg-[#F5F7FA] dark:bg-[#111827]/40 rounded-2xl border border-[#E5E7EB] dark:border-[#111827] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:border-[#0F2D5C]/40 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400">
+                    <div className="p-2.5 rounded-xl bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 border border-[#E5E7EB] dark:border-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF]">
                       <CreditCard className="h-5 w-5" />
                     </div>
                     <div className="space-y-0.5">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-xs text-slate-900 dark:text-white">
+                        <span className="font-bold text-xs text-[#111827] dark:text-white">
                           {item.data?.fullName || item.verifiedId}
                         </span>
-                        <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300">
+                        <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/60 dark:text-[#9CA3AF]">
                           {item.data?.companyStatus || "ACTIVE"}
                         </span>
                       </div>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                      <p className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF] flex items-center gap-2">
                         <span>{item.maskedId}</span>
                         <span>•</span>
                         <span>Ref: #{item.reference}</span>
@@ -690,7 +690,7 @@ export const BankAccountVerificationView: React.FC<BankAccountVerificationViewPr
                   </div>
 
                   <div className="flex items-center gap-3 self-end sm:self-auto">
-                    <span className="font-mono text-xs font-bold text-slate-700 dark:text-slate-300">
+                    <span className="font-mono text-xs font-bold text-[#4B5563] dark:text-[#E5E7EB]">
                       ₦{item.fee.toLocaleString()}
                     </span>
                     <button
@@ -714,7 +714,7 @@ export const BankAccountVerificationView: React.FC<BankAccountVerificationViewPr
                         };
                         setSelectedHistoryReceipt(stdRes);
                       }}
-                      className="px-3 py-1.5 bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/60 border border-blue-200 dark:border-blue-800 rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5"
+                      className="px-3 py-1.5 bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] hover:bg-[#E5E7EB] dark:hover:bg-[#0F2D5C]/60 border border-[#E5E7EB] dark:border-[#0F2D5C] rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5"
                     >
                       <FileText className="h-3.5 w-3.5" />
                       <span>Receipt</span>

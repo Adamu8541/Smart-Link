@@ -7,6 +7,8 @@ export * from "./VerificationReceipt";
 export * from "./VerificationSuccess";
 export * from "./VerificationHistory";
 export * from "./NinVerificationView";
+export * from "./NinDemographyView";
+export * from "./NinPhoneVerificationView";
 export * from "./BvnVerificationView";
 export * from "./CacVerificationView";
 export * from "./TinVerificationView";

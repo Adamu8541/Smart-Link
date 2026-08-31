@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from "react";
+import React, { useState } from "react";
 import SEOHead from "./SEOHead";
 import LandingHeader from "./LandingHeader";
 import LandingHero from "./LandingHero";
@@ -38,7 +38,17 @@ export const SmartLinkLandingPage: React.FC<SmartLinkLandingPageProps> = ({
   onNavigateLegal,
   siteAnnouncement,
 }) => {
+  const [activeInfoTab, setActiveInfoTab] = useState<"about" | "contact" | null>(null);
+
   const handleNavigateSection = (sectionId: string) => {
+    if (sectionId === "about-section") {
+      setActiveInfoTab("about");
+      return;
+    }
+    if (sectionId === "contact-section") {
+      setActiveInfoTab("contact");
+      return;
+    }
     const el = document.getElementById(sectionId);
     if (el) {
       el.scrollIntoView({ behavior: "smooth" });
@@ -67,7 +77,7 @@ export const SmartLinkLandingPage: React.FC<SmartLinkLandingPageProps> = ({
   };
 
   return (
-    <div id="smartlink-public-homepage" className="min-h-screen flex flex-col bg-white dark:bg-slate-900 font-sans text-slate-900 dark:text-slate-100 antialiased selection:bg-blue-500 selection:text-white">
+    <div id="smartlink-public-homepage" className="min-h-screen flex flex-col bg-white font-sans text-[#111827] antialiased selection:bg-[#0F2D5C] selection:text-white">
       
       {/* Dynamic SEO Meta Tags & Schema */}
       <SEOHead />
@@ -126,6 +136,8 @@ export const SmartLinkLandingPage: React.FC<SmartLinkLandingPageProps> = ({
         onRegister={onRegister}
         onAdminLogin={onAdminLogin}
         onNavigateLegal={onNavigateLegal}
+        activeInfoTab={activeInfoTab}
+        setActiveInfoTab={setActiveInfoTab}
       />
     </div>
   );

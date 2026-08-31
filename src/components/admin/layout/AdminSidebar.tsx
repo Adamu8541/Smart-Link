@@ -28,7 +28,7 @@ import {
   ShieldCheck
 } from "lucide-react";
 import { AdminSession, ADMIN_ROLES_CONFIG } from "../../../services/adminAuthTypes";
-import logoImg from "../../../assets/images/logo.png";
+const logoImg = "/logo.png";
 import { useSiteConfig } from "../../../context/SiteConfigContext";
 
 interface AdminSidebarProps {
@@ -111,7 +111,7 @@ export default function AdminSidebar({
 
   const roleDef = ADMIN_ROLES_CONFIG[session.role] || {
     displayName: session.role,
-    colorBadge: "bg-[#EAF3FF] text-[#0066FF] border-[#E5EAF0]",
+    colorBadge: "bg-[#0F2D5C] text-[#0F2D5C] border-[#0F2D5C]",
   };
 
   const checkHasAccess = (requiredPerms: string[]) => {
@@ -121,12 +121,12 @@ export default function AdminSidebar({
 
   return (
     <aside
-      className={`h-full bg-white text-[#101828] border-r border-[#E5EAF0] flex flex-col justify-between transition-all duration-300 relative select-none shadow-[2px_0_8px_rgba(11,31,58,0.04)] ${
+      className={`h-full bg-white text-[#0F2D5C] border-r border-[#0F2D5C] flex flex-col justify-between transition-all duration-300 relative select-none shadow-[2px_0_8px_rgba(11,31,58,0.04)] ${
         collapsed && !isMobileDrawer ? "w-20" : "w-72"
       }`}
     >
       {/* Top Header Logo */}
-      <div className="p-4 border-b border-[#E5EAF0] flex items-center justify-between bg-[#F7F9FC]">
+      <div className="p-4 border-b border-[#0F2D5C] flex items-center justify-between bg-[#0F2D5C]">
         <div
           className="flex items-center gap-3 overflow-hidden cursor-pointer"
           onClick={() => onNavigate("/admin/dashboard")}
@@ -135,22 +135,22 @@ export default function AdminSidebar({
             <img
               src={activeLogo}
               alt={siteName || "SmartLink Logo"}
-              className="h-10 w-auto max-w-[130px] rounded-lg object-contain bg-white border border-[#E5EAF0] p-1"
+              className="h-10 w-auto max-w-[130px] rounded-lg object-contain bg-white border border-[#0F2D5C] p-1"
               onError={(e: any) => {
                 e.currentTarget.src = "/logo.png";
               }}
             />
-            <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 bg-[#12B76A] rounded-full border-2 border-white" />
+            <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 bg-[#0F2D5C] rounded-full border-2 border-white" />
           </div>
           {(!collapsed || isMobileDrawer) && (
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-sm text-[#0B1F3A] tracking-tight">SmartLink</span>
-                <span className="px-1.5 py-0.2 rounded bg-[#EAF3FF] text-[#0066FF] font-mono text-[9px] font-bold">
+                <span className="font-extrabold text-sm text-[#0F2D5C] tracking-tight">SmartLink</span>
+                <span className="px-1.5 py-0.2 rounded bg-[#0F2D5C] text-[#0F2D5C] font-mono text-[9px] font-bold">
                   ADMIN
                 </span>
               </div>
-              <p className="text-[10px] text-[#667085] truncate">Enterprise Control</p>
+              <p className="text-[10px] text-[#0F2D5C] truncate">Enterprise Control</p>
             </div>
           )}
         </div>
@@ -159,7 +159,7 @@ export default function AdminSidebar({
           <button
             type="button"
             onClick={onToggleCollapse}
-            className="p-1.5 rounded-xl bg-white hover:bg-[#F7F9FC] border border-[#E5EAF0] text-[#667085] hover:text-[#101828] transition-colors cursor-pointer"
+            className="p-1.5 rounded-xl bg-white hover:bg-[#0F2D5C] border border-[#0F2D5C] text-[#0F2D5C] hover:text-[#0F2D5C] transition-colors cursor-pointer"
             title={collapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           >
             {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
@@ -168,17 +168,17 @@ export default function AdminSidebar({
       </div>
 
       {/* Admin User Card (Snapshot) */}
-      <div className="p-4 border-b border-[#E5EAF0] bg-white">
+      <div className="p-4 border-b border-[#0F2D5C] bg-white">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-[#0B1F3A] text-white flex items-center justify-center font-extrabold text-sm shrink-0">
+          <div className="h-10 w-10 rounded-xl bg-[#0F2D5C] text-white flex items-center justify-center font-extrabold text-sm shrink-0">
             {session.fullName.charAt(0).toUpperCase()}
           </div>
 
           {(!collapsed || isMobileDrawer) && (
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold text-[#101828] truncate">{session.fullName}</p>
+              <p className="text-xs font-bold text-[#0F2D5C] truncate">{session.fullName}</p>
               <div className="flex items-center gap-1.5 mt-0.5">
-                <span className="px-2 py-0.5 rounded-md font-mono text-[10px] font-bold bg-[#EAF3FF] text-[#0066FF] border border-[#E5EAF0]">
+                <span className="px-2 py-0.5 rounded-md font-mono text-[10px] font-bold bg-[#0F2D5C] text-[#0F2D5C] border border-[#0F2D5C]">
                   {roleDef.displayName}
                 </span>
               </div>
@@ -192,7 +192,7 @@ export default function AdminSidebar({
         {ADMIN_NAV_GROUPS.map((group) => (
           <div key={group.title} className="space-y-1">
             {(!collapsed || isMobileDrawer) && (
-              <p className="px-3 text-[10px] font-bold text-[#667085] uppercase tracking-wider mb-2">
+              <p className="px-3 text-[10px] font-bold text-[#0F2D5C] uppercase tracking-wider mb-2">
                 {group.title}
               </p>
             )}
@@ -212,16 +212,16 @@ export default function AdminSidebar({
                     title={collapsed ? `${item.label} ${!hasAccess ? "(Restricted)" : ""}` : undefined}
                     className={`w-full py-2.5 px-3 rounded-xl flex items-center justify-between text-xs font-semibold transition-all cursor-pointer group ${
                       isActive
-                        ? "bg-[#0B1F3A] text-white"
+                        ? "bg-[#0F2D5C] text-white"
                         : hasAccess
-                        ? "text-[#667085] hover:bg-[#F7F9FC] hover:text-[#0B1F3A]"
-                        : "text-[#667085] opacity-40 cursor-not-allowed"
+                        ? "text-[#0F2D5C] hover:bg-[#0F2D5C] hover:text-[#0F2D5C]"
+                        : "text-[#0F2D5C] opacity-40 cursor-not-allowed"
                     }`}
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <IconComp
                         className={`h-4 w-4 shrink-0 transition-transform group-hover:scale-110 ${
-                          isActive ? "text-white" : hasAccess ? "text-[#667085] group-hover:text-[#0B1F3A]" : "text-[#667085]"
+                          isActive ? "text-white" : hasAccess ? "text-[#0F2D5C] group-hover:text-[#0F2D5C]" : "text-[#0F2D5C]"
                         }`}
                       />
                       {(!collapsed || isMobileDrawer) && (
@@ -232,12 +232,12 @@ export default function AdminSidebar({
                     {(!collapsed || isMobileDrawer) && (
                       <div className="flex items-center gap-1.5 shrink-0">
                         {!hasAccess && (
-                          <Lock className="h-3 w-3 text-[#667085]" title="Permission Denied by RBAC" />
+                          <Lock className="h-3 w-3 text-[#0F2D5C]" title="Permission Denied by RBAC" />
                         )}
                         {item.badge && hasAccess && (
                           <span
                             className={`px-1.5 py-0.2 rounded-full font-mono text-[10px] font-bold ${
-                              isActive ? "bg-white text-[#0B1F3A]" : "bg-[#EAF3FF] text-[#0066FF] border border-[#E5EAF0]"
+                              isActive ? "bg-white text-[#0F2D5C]" : "bg-[#0F2D5C] text-[#0F2D5C] border border-[#0F2D5C]"
                             }`}
                           >
                             {item.badge}
@@ -254,23 +254,23 @@ export default function AdminSidebar({
       </div>
 
       {/* Footer System Status & Logout */}
-      <div className="p-3 border-t border-[#E5EAF0] bg-[#F7F9FC] space-y-2">
+      <div className="p-3 border-t border-[#0F2D5C] bg-[#0F2D5C] space-y-2">
         {(!collapsed || isMobileDrawer) && (
-          <div className="p-2 rounded-xl bg-white border border-[#E5EAF0] flex items-center justify-between text-[10px] text-[#667085]">
+          <div className="p-2 rounded-xl bg-white border border-[#0F2D5C] flex items-center justify-between text-[10px] text-[#0F2D5C]">
             <div className="flex items-center gap-1.5">
-              <Globe className="h-3.5 w-3.5 text-[#12B76A]" />
-              <span>Region: <strong className="text-[#101828]">Nigeria (WAT)</strong></span>
+              <Globe className="h-3.5 w-3.5 text-[#0F2D5C]" />
+              <span>Region: <strong className="text-[#0F2D5C]">Nigeria (WAT)</strong></span>
             </div>
-            <span className="h-2 w-2 rounded-full bg-[#12B76A]" />
+            <span className="h-2 w-2 rounded-full bg-[#0F2D5C]" />
           </div>
         )}
 
         <button
           type="button"
           onClick={onLogout}
-          className="w-full py-2.5 px-3 rounded-xl bg-white hover:bg-[#F7F9FC] border border-[#E5EAF0] text-[#F04438] font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full py-2.5 px-3 rounded-xl bg-white hover:bg-[#0F2D5C] border border-[#0F2D5C] text-[#0F2D5C] font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
         >
-          <LogOut className="h-4 w-4 shrink-0 text-[#F04438]" />
+          <LogOut className="h-4 w-4 shrink-0 text-[#0F2D5C]" />
           {(!collapsed || isMobileDrawer) && <span>Logout Session</span>}
         </button>
       </div>

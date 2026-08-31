@@ -97,32 +97,12 @@ export class FirestoreSlipService {
     // 1. Save to `slips` collection in Firestore
     try {
       const slipDocRef = doc(db, "slips", slipId);
-      await setDoc(slipDocRef, slipRecord);
+      await setDoc(slipDocRef, {
+        ...slipRecord,
+        signedQrContent: verificationResult.signedQrContent,
+      });
     } catch (err) {
       console.warn("Firestore slips collection write notification:", err);
-    }
-
-    // 2. Save public QR lookup index to `slip_validations` collection
-    try {
-      const validationDocRef = doc(db, "slip_validations", qrToken);
-      const publicValidation: SlipValidationPublicResult = {
-        isValid: true,
-        token: qrToken,
-        slipId,
-        serviceType: service || "NIN",
-        formatType,
-        issuedAt: nowISO,
-        maskedIdentification: maskedId,
-        holderName: data?.fullName || "RECORD CONFIRMED",
-        gender: data?.gender,
-        stateOfOrigin: data?.stateOfOrigin,
-        lga: data?.lga,
-        verifiedBy: "SmartLink Digital Identity Core Services",
-        verificationCount: 0,
-      };
-      await setDoc(validationDocRef, publicValidation);
-    } catch (err) {
-      console.warn("Firestore slip_validations write notification:", err);
     }
 
     return slipRecord;
@@ -163,46 +143,5 @@ export class FirestoreSlipService {
       console.warn("Error fetching user slips from Firestore:", err);
       return [];
     }
-  }
-
-  /**
-   * Public QR Code validation check from Firestore
-   */
-  static async validateToken(token: string): Promise<SlipValidationPublicResult | null> {
-    if (!token) return null;
-    try {
-      const valDocRef = doc(db, "slip_validations", token);
-      const snap = await getDoc(valDocRef);
-      if (snap.exists()) {
-        const valData = snap.data() as SlipValidationPublicResult;
-
-        // Increment verification counter in Firestore
-        try {
-          await updateDoc(valDocRef, {
-            verificationCount: (valData.verificationCount || 0) + 1,
-            lastCheckedAt: new Date().toISOString(),
-          });
-        } catch {
-          // ignore background counter error
-        }
-
-        return valData;
-      }
-    } catch (err) {
-      console.error("Firestore public validation token lookup error:", err);
-    }
-
-    // Fallback: try calling server endpoint
-    try {
-      const res = await fetch(`/api/slips/verify/${token}`);
-      if (res.ok) {
-        const data = await res.json();
-        return data.validation;
-      }
-    } catch (err) {
-      console.error("Server API token lookup fallback error:", err);
-    }
-
-    return null;
   }
 }

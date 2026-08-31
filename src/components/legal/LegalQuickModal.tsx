@@ -41,20 +41,20 @@ export const LegalQuickModal: React.FC<LegalQuickModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
       <div
-        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-3xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden"
+        className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl w-full max-w-3xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-950/60">
+        <div className="px-6 py-4 border-b border-[#E5E7EB] dark:border-[#111827] flex items-center justify-between bg-[#F5F7FA] dark:bg-[#111827]/60">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400">
+            <div className="p-2 rounded-xl bg-[#F5F7FA] dark:bg-[#0F2D5C]/80 text-[#0F2D5C] dark:text-[#9CA3AF]">
               <ShieldCheck className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-[#9CA3AF]">
                 {doc.categoryLabel}
               </div>
-              <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
+              <h3 className="text-sm sm:text-base font-bold text-[#111827] dark:text-white">
                 {doc.title}
               </h3>
             </div>
@@ -67,7 +67,7 @@ export const LegalQuickModal: React.FC<LegalQuickModalProps> = ({
                   onClose();
                   handleFullView(doc.id);
                 }}
-                className="p-2 rounded-xl text-slate-500 hover:text-blue-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-xs font-semibold flex items-center gap-1 border-none bg-transparent cursor-pointer"
+                className="p-2 rounded-xl text-[#6B7280] hover:text-[#0F2D5C] hover:bg-[#E5E7EB] dark:hover:bg-[#111827] transition-colors text-xs font-semibold flex items-center gap-1 border-none bg-transparent cursor-pointer"
                 title="Open in dedicated page"
               >
                 <ExternalLink className="h-4 w-4" />
@@ -76,7 +76,7 @@ export const LegalQuickModal: React.FC<LegalQuickModalProps> = ({
             )}
             <button
               onClick={onClose}
-              className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-none bg-transparent cursor-pointer"
+              className="p-2 rounded-xl text-[#9CA3AF] hover:text-[#4B5563] dark:hover:text-white hover:bg-[#E5E7EB] dark:hover:bg-[#111827] transition-colors border-none bg-transparent cursor-pointer"
             >
               <X className="h-5 w-5" />
             </button>
@@ -84,16 +84,16 @@ export const LegalQuickModal: React.FC<LegalQuickModalProps> = ({
         </div>
 
         {/* Modal Scrollable Body */}
-        <div className="p-6 overflow-y-auto space-y-6 text-left text-xs sm:text-sm text-slate-700 dark:text-slate-300">
+        <div className="p-6 overflow-y-auto space-y-6 text-left text-xs sm:text-sm text-[#4B5563] dark:text-[#E5E7EB]">
           
           {/* Metadata Banner */}
-          <div className="p-4 rounded-2xl bg-blue-50/60 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/60 space-y-2">
-            <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500 dark:text-slate-400">
+          <div className="p-4 rounded-2xl bg-[#F5F7FA]/60 dark:bg-[#0F2D5C]/40 border border-[#E5E7EB] dark:border-[#0F2D5C]/60 space-y-2">
+            <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#6B7280] dark:text-[#9CA3AF]">
               <span>Effective: <strong>{doc.effectiveDate}</strong></span>
               <span>Last Updated: <strong>{doc.lastUpdated}</strong></span>
               <span>Version: <strong>{doc.version}</strong></span>
             </div>
-            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+            <p className="text-xs text-[#4B5563] dark:text-[#E5E7EB] leading-relaxed">
               {doc.summary}
             </p>
           </div>
@@ -102,10 +102,10 @@ export const LegalQuickModal: React.FC<LegalQuickModalProps> = ({
           <div className="space-y-6">
             {doc.sections.map((sec) => (
               <div key={sec.id} className="space-y-2">
-                <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white pb-1 border-b border-slate-100 dark:border-slate-800">
+                <h4 className="text-xs sm:text-sm font-bold text-[#111827] dark:text-white pb-1 border-b border-[#E5E7EB] dark:border-[#111827]">
                   {sec.title}
                 </h4>
-                <div className="space-y-2 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
+                <div className="space-y-2 text-xs leading-relaxed text-[#4B5563] dark:text-[#E5E7EB]">
                   {sec.content.map((p, i) => (
                     <p key={i}>{p}</p>
                   ))}
@@ -113,7 +113,7 @@ export const LegalQuickModal: React.FC<LegalQuickModalProps> = ({
 
                 {sec.subsections?.map((sub, i) => (
                   <div key={i} className="pl-3 py-1 space-y-1">
-                    <span className="font-bold text-[11px] text-slate-800 dark:text-slate-200 block">
+                    <span className="font-bold text-[11px] text-[#111827] dark:text-[#E5E7EB] block">
                       {sub.subtitle}
                     </span>
                     <ul className="list-disc pl-4 space-y-1 text-[11px]">
@@ -130,14 +130,14 @@ export const LegalQuickModal: React.FC<LegalQuickModalProps> = ({
         </div>
 
         {/* Modal Footer */}
-        <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 flex items-center justify-between text-xs">
-          <span className="text-[11px] text-slate-500">
-            Smart Link Nigeria (CAC RC 9347502)
+        <div className="px-6 py-4 border-t border-[#E5E7EB] dark:border-[#111827] bg-[#F5F7FA] dark:bg-[#111827]/60 flex items-center justify-between text-xs">
+          <span className="text-[11px] text-[#6B7280]">
+            Smart Link Computer Business (RC 9347502)
           </span>
           <div className="flex items-center gap-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-white font-semibold transition-colors cursor-pointer border-none"
+              className="px-4 py-2 rounded-xl bg-[#E5E7EB] dark:bg-[#111827] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563] text-[#111827] dark:text-white font-semibold transition-colors cursor-pointer border-none"
             >
               Close
             </button>

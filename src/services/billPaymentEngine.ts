@@ -253,7 +253,7 @@ export class BillPaymentEngine {
       {
         id: "WATER",
         name: "Water Utility Bills",
-        description: "Lagos Water Corporation, Abuja Water Board & state water authorities.",
+        description: "Lagos Water Corporation, State Water Board & municipal water authorities.",
         icon: "Droplets",
         estimatedProcessingTime: "< 5 Minutes",
         providerStatus: "ONLINE",
@@ -307,7 +307,7 @@ export class BillPaymentEngine {
         return [
           { id: "ikedc", code: "IKEDC", name: "Ikeja Electric (IKEDC)", category, status: "ACTIVE", supportedMeterTypes: ["PREPAID", "POSTPAID"] },
           { id: "ekedc", code: "EKEDC", name: "Eko Electricity (EKEDC)", category, status: "ACTIVE", supportedMeterTypes: ["PREPAID", "POSTPAID"] },
-          { id: "aedc", code: "AEDC", name: "Abuja Electricity (AEDC)", category, status: "ACTIVE", supportedMeterTypes: ["PREPAID", "POSTPAID"] },
+          { id: "aedc", code: "AEDC", name: "Central Electricity (AEDC)", category, status: "ACTIVE", supportedMeterTypes: ["PREPAID", "POSTPAID"] },
           { id: "ibedc", code: "IBEDC", name: "Ibadan Electricity (IBEDC)", category, status: "ACTIVE", supportedMeterTypes: ["PREPAID", "POSTPAID"] },
           { id: "kedco", code: "KEDCO", name: "Kano Electricity (KEDCO)", category, status: "ACTIVE", supportedMeterTypes: ["PREPAID", "POSTPAID"] },
           { id: "eedc", code: "EEDC", name: "Enugu Electricity (EEDC)", category, status: "ACTIVE", supportedMeterTypes: ["PREPAID", "POSTPAID"] },

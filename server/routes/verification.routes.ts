@@ -25,8 +25,8 @@ import { AutomaticWalletFundingEngine } from "../../src/services/automaticWallet
 import { PaymentVerificationReconciliationEngine } from "../../src/services/paymentVerificationReconciliationEngine";
 import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerGateway";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
-import { AgentHubAdapter } from "../../src/services/providers/agenthubAdapter";
-import { NINTrustAdapter } from "../../src/services/providers/nintrustAdapter";
+import { LumiIDAdapter } from "../../src/services/providers/lumiidAdapter";
+import { NinBvnPortalAdapter } from "../../src/services/providers/ninBvnPortalAdapter";
 import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
 import { syncFromFirestore, syncToFirestore } from "../../src/services/settingsStore";
 import { loadFirestoreDb, syncDbToFirestore, saveDocToFirestore } from "../../src/services/firestoreStore";
@@ -36,6 +36,7 @@ import * as securityStore from "../../src/services/securityStore";
 import * as notificationsStore from "../../src/services/notificationsStore";
 import { getAuth } from "firebase-admin/auth";
 import { getAdminFirestore } from "../../src/services/firebaseAdmin";
+import { signQRPayload } from "../services/qrSecurity";
 
 
 const router = express.Router();
@@ -377,7 +378,7 @@ app.post("/api/verify/engine", async (req, res) => {
       userId,
       amount: serviceFee,
       smartlinkReference: reference,
-      extraData: { ...extraFields, service: sType, targetId },
+      extraData: { ...extraFields, service: sType, targetId, consent: extraFields.consent === true || extraFields.consent === "true" || req.body.consent === true },
     });
 
     if (!providerResult.success) {
@@ -450,6 +451,18 @@ app.post("/api/verify/engine", async (req, res) => {
       verifiedData.taxStatus = rawData.taxStatus || "ACTIVE";
     }
 
+    // Generate cryptographically signed QR payload for NIN
+    let signedQrContent: string | undefined;
+    if (sType === "NIN") {
+      signedQrContent = signQRPayload({
+        nin: verifiedData.nin || targetId,
+        firstName: verifiedData.firstName,
+        surname: verifiedData.lastName || verifiedData.fullName?.split(" ").pop() || "",
+        middleName: verifiedData.middleName,
+        dob: verifiedData.dateOfBirth,
+      });
+    }
+
     const responseTime = providerResult.responseTimeMs || Math.max(180, Date.now() - startTime);
 
     // 4. Save Verification Record to DB History
@@ -474,6 +487,7 @@ app.post("/api/verify/engine", async (req, res) => {
       fee: serviceFee,
       responseTime,
       createdAt: new Date().toISOString(),
+      signedQrContent,
       data: verifiedData,
     };
 
@@ -542,6 +556,7 @@ app.post("/api/verify/engine", async (req, res) => {
       fee: serviceFee,
       verifiedId: targetId,
       maskedId,
+      signedQrContent,
       balance: debitRes.wallet.currentBalance,
     });
   }
@@ -565,7 +580,7 @@ app.post("/api/verify/engine", async (req, res) => {
   const reference = `SML-VER-${Math.floor(100000 + Math.random() * 900000)}`;
   const receiptNumber = `REC-${reference}`;
 
-  // Execute verification via MultiGatewayRoutingEngine with automatic failover (NINTrust, AgentHub, Aspfiy, etc.)
+  // Execute verification via MultiGatewayRoutingEngine with automatic failover (Aspfiy, VerifyNG, etc.)
   const gatewayResult = await MultiGatewayRoutingEngine.executeWithFailover(db, {
     service: sType,
     targetId,
@@ -573,7 +588,7 @@ app.post("/api/verify/engine", async (req, res) => {
     userEmail: req.body.email || "",
     amount: serviceFee,
     smartlinkReference: reference,
-    extraData: { ...extraFields, service: sType, targetId },
+    extraData: { ...extraFields, service: sType, targetId, consent: extraFields.consent === true || extraFields.consent === "true" || req.body.consent === true },
     preferredProviderId: req.body.providerId || req.body.preferredProvider,
   });
 
@@ -643,6 +658,18 @@ app.post("/api/verify/engine", async (req, res) => {
   else if (sType === "PHONE") verifiedData.phoneNumber = rawData.phoneNumber || targetId;
   else if (sType === "CAC") verifiedData.rcNumber = rawData.rcNumber || targetId;
 
+  // Generate cryptographically signed QR payload for NIN
+  let signedQrContent: string | undefined;
+  if (sType === "NIN") {
+    signedQrContent = signQRPayload({
+      nin: verifiedData.nin || targetId,
+      firstName: verifiedData.firstName,
+      surname: verifiedData.lastName || verifiedData.fullName?.split(" ").pop() || "",
+      middleName: verifiedData.middleName,
+      dob: verifiedData.dateOfBirth,
+    });
+  }
+
   const responseTime = gatewayResult.responseTimeMs || Math.max(180, Date.now() - startTime);
 
   // 4. Save Verification Record to DB History
@@ -667,6 +694,7 @@ app.post("/api/verify/engine", async (req, res) => {
     fee: serviceFee,
     responseTime,
     createdAt: new Date().toISOString(),
+    signedQrContent,
     data: verifiedData,
     wasFailedOver: gatewayResult.wasFailedOver,
   };
@@ -736,6 +764,7 @@ app.post("/api/verify/engine", async (req, res) => {
     fee: serviceFee,
     verifiedId: targetId,
     maskedId,
+    signedQrContent,
     balance: debitRes.wallet.currentBalance,
   });
 });
@@ -781,7 +810,7 @@ app.post("/api/services/nin-verify", async (req, res) => {
       userId,
       amount: fee,
       smartlinkReference: reference,
-      extraData: { nin: cleanNin, idNumber: cleanNin, fullName, verificationType: "NIN" },
+      extraData: { nin: cleanNin, idNumber: cleanNin, fullName, verificationType: "NIN", consent: Boolean(consent) },
     });
 
     if (!providerResult.success) {
@@ -844,6 +873,15 @@ app.post("/api/services/nin-verify", async (req, res) => {
       rawResponse: providerResult.rawResponse,
     };
 
+    // Generate cryptographically signed QR payload for direct offline validation
+    const signedQrContent = signQRPayload({
+      nin: cleanNin,
+      firstName: verifiedData.firstName,
+      surname: verifiedData.lastName || verifiedData.fullName?.split(" ").pop() || "",
+      middleName: verifiedData.middleName,
+      dob: verifiedData.dateOfBirth,
+    });
+
     const receiptNumber = `REC-${reference}`;
     const responseTime = providerResult.responseTimeMs || Math.max(180, Date.now() - startTime);
 
@@ -862,6 +900,7 @@ app.post("/api/services/nin-verify", async (req, res) => {
       fee,
       responseTime,
       createdAt: new Date().toISOString(),
+      signedQrContent,
       data: verifiedData,
     };
 
@@ -928,6 +967,7 @@ app.post("/api/services/nin-verify", async (req, res) => {
       fee,
       verifiedId: cleanNin,
       maskedId,
+      signedQrContent,
       balance: debitRes.wallet.currentBalance,
     });
   }
@@ -980,7 +1020,7 @@ app.post("/api/services/nin-verify", async (req, res) => {
     userId,
     amount: fee,
     smartlinkReference: reference,
-    extraData: { nin: cleanNin, idNumber: cleanNin, fullName, verificationType: "NIN" },
+    extraData: { nin: cleanNin, idNumber: cleanNin, fullName, verificationType: "NIN", consent: Boolean(consent) },
   });
 
   if (!providerResult.success) {
@@ -1026,6 +1066,15 @@ app.post("/api/services/nin-verify", async (req, res) => {
     defaultFullName: fullName,
   });
 
+  // Generate cryptographically signed QR payload for direct offline validation
+  const signedQrContent = signQRPayload({
+    nin: cleanNin,
+    firstName: verifiedData.firstName,
+    surname: verifiedData.lastName || verifiedData.fullName?.split(" ").pop() || "",
+    middleName: verifiedData.middleName,
+    dob: verifiedData.dateOfBirth,
+  });
+
   const receiptNumber = `REC-${reference}`;
   const responseTime = providerResult.responseTimeMs || Math.max(180, Date.now() - startTime);
 
@@ -1044,6 +1093,7 @@ app.post("/api/services/nin-verify", async (req, res) => {
     fee,
     responseTime,
     createdAt: new Date().toISOString(),
+    signedQrContent,
     data: verifiedData,
   };
 
@@ -1110,6 +1160,7 @@ app.post("/api/services/nin-verify", async (req, res) => {
     fee,
     verifiedId: cleanNin,
     maskedId,
+    signedQrContent,
     balance: debitRes.wallet.currentBalance,
   });
 });
@@ -1573,7 +1624,7 @@ app.post("/api/services/cac-verify", async (req, res) => {
     debitRes = await ServerWalletEngine.debitWallet(db, {
       userId,
       amount: fee,
-      serviceName: "CAC Business Verification (CAC Abuja)",
+      serviceName: "CAC Business Verification (CAC National)",
       provider: resolvedProviderName,
       description: `CAC Business Registry Lookup: [${verificationType === "BUSINESS_NAME" ? cleanBizName : cleanRegNo}]`,
       reference,
@@ -2203,55 +2254,8 @@ app.get("/api/verify/history/:userId", async (req, res) => {
 });
 
 // --- Phase 1: High-Fidelity Slip Verification & Validation Endpoints ---
-// Public QR Verification Token Lookup Endpoint
-app.get("/api/slips/verify/:token", async (req, res) => {
-  const { token } = req.params;
-  const db = readDB();
-
-  if (!token) {
-    return res.status(400).json({ error: "Verification token is required", isValid: false });
-  }
-
-  // 1. Check in db.slips or db.slipValidations
-  const slips = db.slips || [];
-  const slipValidations = db.slipValidations || [];
-
-  const foundValidation = slipValidations.find((v: any) => v.token === token);
-  const foundSlip = slips.find((s: any) => s.qrVerificationToken === token);
-
-  if (foundValidation || foundSlip) {
-    const item = foundValidation || foundSlip;
-    const holderData = foundSlip?.holderData || {};
-    const maskedId = item.maskedIdentification || foundSlip?.maskedId || (foundSlip?.identificationNumber ? `${foundSlip.identificationNumber.substring(0, 3)}****${foundSlip.identificationNumber.substring(foundSlip.identificationNumber.length - 4)}` : "VERIFIED");
-
-    return res.json({
-      success: true,
-      isValid: true,
-      validation: {
-        isValid: true,
-        token,
-        slipId: item.slipId || foundSlip?.slipId || "SLIP-VALIDATED",
-        serviceType: item.serviceType || foundSlip?.serviceType || "IDENTITY",
-        formatType: item.formatType || foundSlip?.formatType || "NIN_STANDARD",
-        issuedAt: item.issuedAt || foundSlip?.createdAt || new Date().toISOString(),
-        maskedIdentification: maskedId,
-        holderName: item.holderName || holderData.fullName || "RECORD CONFIRMED",
-        gender: item.gender || holderData.gender,
-        stateOfOrigin: item.stateOfOrigin || holderData.stateOfOrigin,
-        lga: item.lga || holderData.lga,
-        verifiedBy: "SmartLink Digital Identity Core Services",
-        verificationCount: (item.verificationCount || 0) + 1,
-      },
-    });
-  }
-
-  // Fallback: If not found, return invalid response
-  return res.status(404).json({
-    success: false,
-    isValid: false,
-    error: "No active verification record matches this token.",
-  });
-});
+// Website-based QR validation approach removed in favor of direct signed QR payloads.
+// Public QR Verification Token Lookup Endpoint deleted.
 
 // Get User Slips Endpoint
 app.get("/api/slips/user/:userId", async (req, res) => {
@@ -2277,7 +2281,7 @@ app.post("/api/slips", async (req, res) => {
   }
 
   if (!db.slips) db.slips = [];
-  if (!db.slipValidations) db.slipValidations = [];
+  // slip_validations removed for direct signed QR approach
 
   // Upsert slip
   const existingIdx = db.slips.findIndex((s: any) => s.slipId === slipData.slipId);
@@ -2285,32 +2289,6 @@ app.post("/api/slips", async (req, res) => {
     db.slips[existingIdx] = slipData;
   } else {
     db.slips.unshift(slipData);
-  }
-
-  // Upsert validation index
-  if (slipData.qrVerificationToken) {
-    const valIdx = db.slipValidations.findIndex((v: any) => v.token === slipData.qrVerificationToken);
-    const valRecord = {
-      isValid: true,
-      token: slipData.qrVerificationToken,
-      slipId: slipData.slipId,
-      serviceType: slipData.serviceType,
-      formatType: slipData.formatType,
-      issuedAt: slipData.createdAt || new Date().toISOString(),
-      maskedIdentification: slipData.maskedId,
-      holderName: slipData.holderData?.fullName || "RECORD CONFIRMED",
-      gender: slipData.holderData?.gender,
-      stateOfOrigin: slipData.holderData?.stateOfOrigin,
-      lga: slipData.holderData?.lga,
-      verifiedBy: "SmartLink Digital Identity Core Services",
-      verificationCount: 0,
-    };
-
-    if (valIdx >= 0) {
-      db.slipValidations[valIdx] = valRecord;
-    } else {
-      db.slipValidations.unshift(valRecord);
-    }
   }
 
   writeDB(db);

@@ -37,7 +37,22 @@ export class WalletService {
         };
       }
 
-      const response = await fetch(`/api/wallet/balance/${userId}`);
+      let headers: Record<string, string> = { "Content-Type": "application/json" };
+      try {
+        const { getAuthHeaders } = await import("./providerService");
+        headers = await getAuthHeaders(userId);
+      } catch {}
+
+      const response = await fetch(`/api/wallet/balance/${encodeURIComponent(userId)}`, { headers });
+      const contentType = response.headers.get("content-type") || "";
+      if (!contentType.includes("application/json")) {
+        return {
+          success: false,
+          error: "Unable to retrieve wallet balance",
+          errorCode: "SERVER_ERROR",
+        };
+      }
+
       const data = await response.json();
 
       if (!response.ok || data.error) {

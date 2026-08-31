@@ -4,7 +4,7 @@ import fs from "fs";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 import { readDB, writeDB, initializeDB, DB_DIR, DB_FILE, UPLOADS_DIR, SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD, hashPassword, safeCompareHash, generateSalt, isMaskedValue } from "../db";
-import { verifyUserOrAdminSession } from "../middleware/auth";
+import { verifyUserOrAdminSession, requireAdmin } from "../middleware/auth";
 import { isMaintenanceModeActive, getMaintenanceDetails, getValueByJsonPath, seedModule7SettingsIfEmpty, sanitizePublicSettings } from "../middleware/maintenance";
 import { getAI } from "../services/ai";
 import { 
@@ -24,8 +24,6 @@ import { AutomaticWalletFundingEngine } from "../../src/services/automaticWallet
 import { PaymentVerificationReconciliationEngine } from "../../src/services/paymentVerificationReconciliationEngine";
 import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerGateway";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
-import { AgentHubAdapter } from "../../src/services/providers/agenthubAdapter";
-import { NINTrustAdapter } from "../../src/services/providers/nintrustAdapter";
 import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
 import { syncFromFirestore, syncToFirestore } from "../../src/services/settingsStore";
 import { loadFirestoreDb, syncDbToFirestore, saveDocToFirestore } from "../../src/services/firestoreStore";
@@ -34,23 +32,18 @@ import * as walletsStore from "../../src/services/walletsStore";
 import * as securityStore from "../../src/services/securityStore";
 import * as notificationsStore from "../../src/services/notificationsStore";
 import { getAuth } from "firebase-admin/auth";
-import { getAdminFirestore } from "../../src/services/firebaseAdmin";
+import { getAdminFirestore, getAdminAuth } from "../../src/services/firebaseAdmin";
 
 
 const router = express.Router();
 const app = router;
 
-app.post("/api/admin/transactions/override", async (req, res) => {
+app.post("/api/admin/transactions/override", requireAdmin, async (req, res) => {
   const { transactionId, newStatus, autoRefund } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
   const db = readDB();
+  const admin = (req as any).admin;
+  const adminUid = (req as any).authenticatedUid;
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ error: "Unauthorized admin access." });
-  }
-  const admin = val.session;
-  const adminUid = admin.uid;
   if (admin.role !== "SUPER_ADMIN" && admin.role !== "ADMIN" && !admin.permissions?.includes("manage_transactions")) {
     return res.status(403).json({ error: "Unauthorized. Permission 'manage_transactions' required." });
   }
@@ -99,17 +92,75 @@ app.post("/api/admin/transactions/override", async (req, res) => {
   res.json({ success: true, transaction: db.transactions[txIndex] });
 });
 
-app.get("/api/admin/audit-logs", async (req, res) => {
-  const db = readDB();
-  res.json({ auditLogs: db.auditLogs || [] });
+app.get("/api/admin/audit-logs", requireAdmin, async (req, res) => {
+  try {
+    const db = readDB();
+
+    const session = (req as any).admin;
+    const isAuthorized =
+      ["SUPER_ADMIN", "ADMIN", "SUB_ADMIN", "FINANCE_MANAGER", "SUPPORT_OFFICER", "VERIFICATION_OFFICER", "READ_ONLY_AUDITOR"].includes(session.role as string) ||
+      adminAuthService.hasPermission(session, "VIEW_LOGS") ||
+      adminAuthService.hasPermission(session, "VIEW_REPORTS") ||
+      adminAuthService.hasPermission(session, "VIEW_TRANSACTIONS") ||
+      adminAuthService.hasPermission(session, "MANAGE_SETTINGS") ||
+      (Array.isArray(session.permissions) &&
+        (session.permissions.includes("*") ||
+          session.permissions.includes("VIEW_LOGS") ||
+          session.permissions.includes("VIEW_REPORTS") ||
+          session.permissions.includes("VIEW_TRANSACTIONS") ||
+          session.permissions.includes("MANAGE_SETTINGS")));
+
+    if (!isAuthorized) {
+      return res.status(403).json({
+        success: false,
+        error: "Forbidden. Admin permission required to access audit logs."
+      });
+    }
+
+    return res.json({ success: true, auditLogs: db.auditLogs || [] });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      error: "An internal error occurred while fetching audit logs."
+    });
+  }
 });
 
 // --- API PROVIDER LOGS ---
 
 // Provider Audit Logs Ledger
-app.get("/api/admin/provider-logs", async (req, res) => {
-  const db = readDB();
-  res.json({ logs: db.providerLogs || [] });
+app.get("/api/admin/provider-logs", requireAdmin, async (req, res) => {
+  try {
+    const db = readDB();
+
+    const session = (req as any).admin;
+    const isAuthorized =
+      ["SUPER_ADMIN", "ADMIN", "SUB_ADMIN", "FINANCE_MANAGER", "SUPPORT_OFFICER", "VERIFICATION_OFFICER", "READ_ONLY_AUDITOR"].includes(session.role as string) ||
+      adminAuthService.hasPermission(session, "VIEW_LOGS") ||
+      adminAuthService.hasPermission(session, "VIEW_REPORTS") ||
+      adminAuthService.hasPermission(session, "VIEW_TRANSACTIONS") ||
+      adminAuthService.hasPermission(session, "MANAGE_SETTINGS") ||
+      (Array.isArray(session.permissions) &&
+        (session.permissions.includes("*") ||
+          session.permissions.includes("VIEW_LOGS") ||
+          session.permissions.includes("VIEW_REPORTS") ||
+          session.permissions.includes("VIEW_TRANSACTIONS") ||
+          session.permissions.includes("MANAGE_SETTINGS")));
+
+    if (!isAuthorized) {
+      return res.status(403).json({
+        success: false,
+        error: "Forbidden. Admin permission required to access provider logs."
+      });
+    }
+
+    return res.json({ success: true, logs: db.providerLogs || [] });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      error: "An internal error occurred while fetching provider logs."
+    });
+  }
 });
 
 // --- PAYMENT PROVIDER MANAGEMENT (DATABASE TABLE: api_providers) ---
@@ -121,15 +172,47 @@ app.get("/api/admin/provider-logs", async (req, res) => {
 
 // 1. Initiate Transaction & Balance Check / Hold
 app.post("/api/transaction/initiate", async (req, res) => {
-  const { userId, service, amount, charge, totalDeduction, recipient, provider, smartlinkReference, description, paymentMethod } = req.body;
-  const db = readDB();
+  const authHeader = (req.headers["authorization"] || req.headers["Authorization"]) as string;
+  const rawBearerToken = authHeader && authHeader.startsWith("Bearer ") ? authHeader.substring(7).trim() : null;
 
-  const user = await usersStore.getUserById(userId);
+  if (!rawBearerToken) {
+    return res.status(401).json({ success: false, error: "Unauthenticated request. Missing authorization token." });
+  }
+
+  let decodedToken: any;
+  try {
+    const adminAuth = getAdminAuth();
+    decodedToken = await adminAuth.verifyIdToken(rawBearerToken);
+  } catch (err: any) {
+    return res.status(401).json({ success: false, error: "Unauthenticated request. Invalid or expired token." });
+  }
+
+  if (!decodedToken || !decodedToken.uid) {
+    return res.status(401).json({ success: false, error: "Unauthenticated request. Invalid user identity." });
+  }
+
+  const authenticatedUid = decodedToken.uid;
+  const { service, amount, charge, totalDeduction, recipient, provider, smartlinkReference, description, paymentMethod } = req.body;
+
+  // Verify ownership / prevent supplying another user's identity
+  if (req.body.userId) {
+    const requestedUserId = String(req.body.userId).trim();
+    if (requestedUserId && requestedUserId !== authenticatedUid) {
+      const targetUser = await usersStore.getUserById(requestedUserId);
+      if (!targetUser || (targetUser.uid !== authenticatedUid && targetUser.id !== authenticatedUid)) {
+        return res.status(403).json({ success: false, error: "Forbidden: You are not authorized to perform transactions for another user." });
+      }
+    }
+  }
+
+  const user = await usersStore.getUserById(authenticatedUid);
   if (!user) return res.status(404).json({ success: false, error: "User account not found." });
 
   if (user.status === "SUSPENDED") {
     return res.status(403).json({ success: false, error: "Account is suspended. Cannot perform transactions." });
   }
+
+  const db = readDB();
 
   const currentBalance = user.walletBalance || 0;
   const requiredAmount = totalDeduction || (amount + (charge || 0));
@@ -155,50 +238,141 @@ app.post("/api/transaction/initiate", async (req, res) => {
 // 2. Execute Transaction (Debit Wallet, Write Ledger & Generate Receipt)
 app.post("/api/transaction/execute", async (req, res) => {
   const {
-    userId,
+    userId: rawUserId,
     smartlinkReference,
     providerReference,
     service,
-    amount,
-    charge,
     recipient,
     userName,
     userEmail,
     provider,
     description,
-    status,
-    failureReason,
     metadata
   } = req.body;
 
   const db = readDB();
-  const user = await usersStore.getUserById(userId);
+
+  // 1. Require Authenticated Ownership Verification
+  const targetUserId = rawUserId || "AUTHENTICATED_USER";
+  const authCheck = await verifyUserOrAdminSession(req, targetUserId, db);
+  if (!authCheck.authorized) {
+    const isUnauth =
+      authCheck.reason?.includes("Authentication required") ||
+      authCheck.reason?.includes("Missing session token") ||
+      authCheck.reason?.includes("Invalid or expired");
+    return res.status(isUnauth ? 401 : 403).json({
+      success: false,
+      error: authCheck.reason || "Unauthorized transaction execution request."
+    });
+  }
+
+  const effectiveUserId = authCheck.authenticatedUid || rawUserId;
+  const user = await usersStore.getUserById(effectiveUserId);
   if (!user) return res.status(404).json({ success: false, error: "User account not found." });
 
-  const totalCost = amount + (charge || 0);
-  const balanceBefore = user.walletBalance || 0;
+  if (user.status === "SUSPENDED") {
+    return res.status(403).json({ success: false, error: "Account is suspended. Cannot perform transactions." });
+  }
 
   // Prevent double execution of same reference
-  const existingTxn = (db.transactions || []).find((t: any) => t.smartlinkReference === smartlinkReference);
+  const existingTxn = (db.transactions || []).find(
+    (t: any) => t.smartlinkReference === smartlinkReference && smartlinkReference
+  );
   if (existingTxn) {
     return res.status(400).json({ success: false, error: "Duplicate transaction reference detected." });
   }
 
+  // 2. Derive Financial Values Server-Side (Client cannot dictate amount, charge, or balanceAfter)
+  let derivedAmount = 0;
+  let derivedCharge = 0;
+
+  const serviceUpper = String(service || "").toUpperCase().trim();
+  const catalogItem = (db.servicesCatalog || DEFAULT_SERVICES_CATALOG || []).find(
+    (s: any) =>
+      String(s.name || "").toUpperCase().trim() === serviceUpper ||
+      String(s.id || "").toUpperCase().trim() === serviceUpper ||
+      String(s.serviceCode || "").toUpperCase().trim() === serviceUpper
+  );
+
+  if (serviceUpper.includes("NIN")) {
+    derivedAmount = Number(db.systemSettings?.ninFee || db.priceMatrix?.identityRates?.ninFee || 500);
+    derivedCharge = Number(db.priceMatrix?.identityRates?.serviceCharge || 0);
+  } else if (serviceUpper.includes("BVN")) {
+    derivedAmount = Number(db.systemSettings?.bvnFee || db.priceMatrix?.identityRates?.bvnFee || 500);
+    derivedCharge = 0;
+  } else if (serviceUpper.includes("CAC")) {
+    derivedAmount = Number(db.systemSettings?.cacBaseFee || db.priceMatrix?.cacRates?.businessNameFee || 15000);
+    derivedCharge = 0;
+  } else if (
+    serviceUpper.includes("AIRTIME") ||
+    serviceUpper.includes("DATA") ||
+    serviceUpper.includes("VTU") ||
+    serviceUpper.includes("ELECTRICITY") ||
+    serviceUpper.includes("CABLE")
+  ) {
+    const pricingResult = await resolveVtuPlanAndPricing(db, {
+      type: serviceUpper,
+      provider: provider || metadata?.network || metadata?.provider || "",
+      extra: metadata?.planId || metadata?.packageCode || recipient || "",
+      amount: req.body.amount
+    });
+    derivedAmount = pricingResult.finalCustomerPrice || pricingResult.baseCost || Number(req.body.amount) || 0;
+    derivedCharge = pricingResult.markupFee || 0;
+  } else if (catalogItem) {
+    derivedAmount = Number(catalogItem.sellingFee ?? catalogItem.price ?? catalogItem.amount ?? req.body.amount ?? 0);
+    derivedCharge = Number(catalogItem.serviceCharge ?? catalogItem.fee ?? 0);
+  } else {
+    derivedAmount = Math.max(0, Number(req.body.amount) || 0);
+    derivedCharge = Number(db.priceMatrix?.utilityProcessingFee || db.systemSettings?.serviceCharge || 0);
+  }
+
+  const totalCost = derivedAmount + derivedCharge;
+  const balanceBefore = user.walletBalance || 0;
+
+  // 3. Provider Execution & Verification (Only verified provider result may mark transaction successful)
+  let txnStatus: "SUCCESSFUL" | "FAILED" = "FAILED";
+  let failureReason: string | undefined = undefined;
+  let provRef = providerReference || `PROV-${Date.now()}`;
+
+  const category = serviceUpper || "GENERAL_SERVICE";
+  const execResult = await ProviderExecutor.executeProviderCall(db, {
+    category,
+    customerId: recipient || "N/A",
+    phoneNumber: recipient || user.phoneNumber || "N/A",
+    amount: derivedAmount,
+    charge: derivedCharge,
+    planId: metadata?.planId || metadata?.packageCode,
+    smartlinkReference: smartlinkReference || `SL-${Date.now()}`,
+    providerCode: provider,
+    providerName: provider,
+    userId: effectiveUserId,
+    extraData: { ...metadata, recipient, description }
+  });
+
+  if (execResult && execResult.success) {
+    txnStatus = "SUCCESSFUL";
+    provRef = execResult.providerReference || provRef;
+  } else {
+    txnStatus = "FAILED";
+    failureReason = execResult?.error || execResult?.message || "Provider execution failed or rejected transaction.";
+  }
+
   let balanceAfter = balanceBefore;
 
-  // Only debit if successful or pending
-  if (status === "SUCCESSFUL") {
-    if (balanceBefore < totalCost && service !== "WALLET_FUNDING") {
-      return res.status(400).json({ success: false, error: "Insufficient funds for debit operation." });
-    }
-
-    if (service === "WALLET_FUNDING") {
-      balanceAfter = balanceBefore + amount;
+  // 4. Atomic Ledger Debit / Credit Server-Side
+  if (txnStatus === "SUCCESSFUL") {
+    if (balanceBefore < totalCost && serviceUpper !== "WALLET_FUNDING") {
+      txnStatus = "FAILED";
+      failureReason = `Insufficient wallet balance. Available: ₦${balanceBefore.toLocaleString()}, Required: ₦${totalCost.toLocaleString()}`;
+      balanceAfter = balanceBefore;
     } else {
-      balanceAfter = balanceBefore - totalCost;
+      if (serviceUpper === "WALLET_FUNDING") {
+        balanceAfter = balanceBefore + derivedAmount;
+      } else {
+        balanceAfter = balanceBefore - totalCost;
+      }
+      await usersStore.updateUser(effectiveUserId, { walletBalance: balanceAfter });
     }
-
-    await usersStore.updateUser(userId, { walletBalance: balanceAfter });
   }
 
   const txnId = "TXN_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
@@ -208,17 +382,17 @@ app.post("/api/transaction/execute", async (req, res) => {
   const newTxn = {
     id: txnId,
     transactionId: txnId,
-    userId,
-    walletId: user.walletId || `WLT_${userId}`,
+    userId: effectiveUserId,
+    walletId: user.walletId || `WLT_${effectiveUserId}`,
     service: service || "GENERAL_SERVICE",
-    amount,
-    charge: charge || 0,
+    amount: derivedAmount,
+    charge: derivedCharge,
     provider: provider || "SMARTLINK_CORE",
-    providerReference: providerReference || `PROV-${Date.now()}`,
+    providerReference: provRef,
     smartlinkReference: smartlinkReference || `SL-${Date.now()}`,
     description: description || `${service} transaction`,
     receiptId,
-    status: status || "SUCCESSFUL",
+    status: txnStatus,
     paymentMethod: "SmartLink Wallet",
     balanceBefore,
     balanceAfter,
@@ -232,14 +406,14 @@ app.post("/api/transaction/execute", async (req, res) => {
   const newReceipt = {
     id: receiptId,
     receiptId,
-    userId,
+    userId: effectiveUserId,
     transactionId: txnId,
     title: `${service} Official Receipt`,
-    amount,
-    charge: charge || 0,
+    amount: derivedAmount,
+    charge: derivedCharge,
     currency: "NGN",
     recipient: recipient || "Self",
-    providerRef: newTxn.providerReference,
+    providerRef: provRef,
     smartlinkRef: newTxn.smartlinkReference,
     userName: userName || user.fullName || "Valued Customer",
     userEmail: userEmail || user.email || "",
@@ -247,36 +421,38 @@ app.post("/api/transaction/execute", async (req, res) => {
     paymentMethod: "SmartLink Wallet",
     balanceBefore,
     balanceAfter,
-    status: newTxn.status,
+    status: txnStatus,
     details: { service, description, provider },
     issueTimestamp: nowISO,
     createdAt: nowISO,
     updatedAt: nowISO
   };
 
-  // Record Wallet Ledger Log
-  if (!db.walletLogs) db.walletLogs = [];
-  db.walletLogs.unshift({
-    id: "LOG_" + Date.now(),
-    walletId: newTxn.walletId,
-    userId,
-    changeType: service === "WALLET_FUNDING" ? "CREDIT" : "DEBIT",
-    amount: totalCost,
-    previousBalance: balanceBefore,
-    newBalance: balanceAfter,
-    reference: smartlinkReference,
-    createdAt: nowISO
-  });
+  if (txnStatus === "SUCCESSFUL") {
+    // Record Wallet Ledger Log
+    if (!db.walletLogs) db.walletLogs = [];
+    db.walletLogs.unshift({
+      id: "LOG_" + Date.now(),
+      walletId: newTxn.walletId,
+      userId: effectiveUserId,
+      changeType: serviceUpper === "WALLET_FUNDING" ? "CREDIT" : "DEBIT",
+      amount: totalCost,
+      previousBalance: balanceBefore,
+      newBalance: balanceAfter,
+      reference: newTxn.smartlinkReference,
+      createdAt: nowISO
+    });
+  }
 
   // Record Notification
   if (!db.notifications) db.notifications = [];
   db.notifications.unshift({
     id: "NOTIF_" + Date.now(),
     notificationId: "NOTIF_" + Date.now(),
-    userId,
-    title: `Transaction ${status === "SUCCESSFUL" ? "Successful" : "Failed"}`,
-    body: `Your ${service} transaction of ₦${totalCost.toLocaleString()} (${smartlinkReference}) was ${status.toLowerCase()}.`,
-    reference: smartlinkReference,
+    userId: effectiveUserId,
+    title: `Transaction ${txnStatus === "SUCCESSFUL" ? "Successful" : "Failed"}`,
+    body: `Your ${service} transaction of ₦${totalCost.toLocaleString()} (${newTxn.smartlinkReference}) was ${txnStatus.toLowerCase()}.${failureReason ? ` Reason: ${failureReason}` : ""}`,
+    reference: newTxn.smartlinkReference,
     read: false,
     type: "TRANSACTION",
     createdAt: nowISO
@@ -291,25 +467,21 @@ app.post("/api/transaction/execute", async (req, res) => {
   writeDB(db);
 
   res.json({
-    success: true,
+    success: txnStatus === "SUCCESSFUL",
     transaction: newTxn,
     receipt: newReceipt,
-    newBalance: balanceAfter
+    newBalance: balanceAfter,
+    error: failureReason
   });
 });
 
 // 3. Process Transaction Refund
-app.post("/api/transaction/refund", async (req, res) => {
+app.post("/api/transaction/refund", requireAdmin, async (req, res) => {
   const { transactionId, reason } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
   const db = readDB();
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, error: "Unauthorized admin access." });
-  }
-  const admin = val.session;
-  const adminUid = admin.uid;
+  const admin = (req as any).admin;
+  const adminUid = (req as any).authenticatedUid;
 
   const txnIdx = (db.transactions || []).findIndex((t: any) => t.transactionId === transactionId || t.id === transactionId);
   if (txnIdx === -1) return res.status(404).json({ success: false, error: "Transaction record not found." });
@@ -437,14 +609,9 @@ app.get("/api/transaction/receipt/:receiptId", async (req, res) => {
 });
 
 // 6. Admin Transaction Metrics
-app.get("/api/admin/transactions/stats", async (req, res) => {
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
+app.get("/api/admin/transactions/stats", requireAdmin, async (req, res) => {
   const db = readDB();
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ error: "Unauthorized admin access." });
-  }
 
   const txns = db.transactions || [];
   const todayStr = new Date().toISOString().slice(0, 10);
@@ -524,10 +691,23 @@ app.get("/api/transactions/history", async (req, res) => {
 
 // Generic Reconciliation & Settlement Endpoints
 app.post("/api/reconciliation/run", async (req, res) => {
+  const db = readDB();
+  const records = db.reconciliation_records || [];
+  const unmatched = db.unmatched_payments || [];
+
+  const matchedCount = records.filter((r: any) => r.status === "VERIFIED" || r.status === "CREDITED").length;
+  const discrepancyCount = unmatched.length + records.filter((r: any) => r.status === "UNMATCHED" || r.status === "FAILED").length;
+
   res.json({
     success: true,
-    message: "Automatic transaction reconciliation completed.",
-    report: { status: "COMPLETED", matchedCount: 0, discrepancyCount: 0 },
+    message: "Automatic transaction reconciliation process completed.",
+    report: {
+      status: "COMPLETED",
+      matchedCount,
+      discrepancyCount,
+      totalRecordsProcessed: records.length + unmatched.length,
+      timestamp: new Date().toISOString()
+    },
   });
 });
 
@@ -1225,16 +1405,11 @@ function seedModule5TransactionsIfEmpty(db: any) {
 }
 
 // 1. GET /api/admin/transactions — Centralized Transaction Management Endpoint
-app.get("/api/admin/transactions", async (req, res) => {
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
+app.get("/api/admin/transactions", requireAdmin, async (req, res) => {
   const db = readDB();
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
-
-  const check = adminAuthService.checkRoutePermission(val.session, "/admin/transactions");
+  const admin = (req as any).admin;
+  const check = adminAuthService.checkRoutePermission(admin, "/admin/transactions");
   if (!check.allowed) {
     return res.status(403).json({ success: false, message: check.reason });
   }
@@ -1436,15 +1611,9 @@ app.get("/api/admin/transactions", async (req, res) => {
 });
 
 // 2. GET /api/admin/transactions/:txId — Detailed Single Transaction & Audit Timeline
-app.get("/api/admin/transactions/:txId", async (req, res) => {
+app.get("/api/admin/transactions/:txId", requireAdmin, async (req, res) => {
   const { txId } = req.params;
-  const sessionToken = (req.headers["x-admin-token"] as string) || (req.query.token as string);
   const db = readDB();
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
 
   seedModule5TransactionsIfEmpty(db);
 
@@ -1506,16 +1675,12 @@ app.get("/api/admin/transactions/:txId", async (req, res) => {
 });
 
 // 3. POST /api/admin/transactions/:txId/notes — Add Internal Administrative Note
-app.post("/api/admin/transactions/:txId/notes", async (req, res) => {
+app.post("/api/admin/transactions/:txId/notes", requireAdmin, async (req, res) => {
   const { txId } = req.params;
   const { note } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
+  const admin = (req as any).admin;
 
   if (!note || !note.trim()) {
     return res.status(400).json({ success: false, message: "Administrative note content cannot be empty." });
@@ -1531,9 +1696,9 @@ app.post("/api/admin/transactions/:txId/notes", async (req, res) => {
   const noteObj = {
     id: `NOTE_${Date.now()}`,
     transactionId: tx.id,
-    adminUid: val.session.uid,
-    adminEmail: val.session.email,
-    adminName: val.session.fullName || val.session.email.split("@")[0],
+    adminUid: admin.uid,
+    adminEmail: admin.email,
+    adminName: admin.fullName || admin.email.split("@")[0],
     note: note.trim(),
     timestamp: new Date().toISOString(),
   };
@@ -1546,8 +1711,8 @@ app.post("/api/admin/transactions/:txId/notes", async (req, res) => {
   db.transaction_audit_logs.unshift({
     id: `AUD_${Date.now()}`,
     transactionId: tx.id,
-    adminUid: val.session.uid,
-    adminEmail: val.session.email,
+    adminUid: admin.uid,
+    adminEmail: admin.email,
     action: "ADD_INTERNAL_NOTE",
     details: `Added note: "${note.trim().substring(0, 50)}${note.length > 50 ? "..." : ""}"`,
     timestamp: new Date().toISOString(),
@@ -1566,18 +1731,14 @@ app.post("/api/admin/transactions/:txId/notes", async (req, res) => {
 });
 
 // 4. POST /api/admin/transactions/:txId/retry — Safe Transaction Retry Workflow
-app.post("/api/admin/transactions/:txId/retry", async (req, res) => {
+app.post("/api/admin/transactions/:txId/retry", requireAdmin, async (req, res) => {
   const { txId } = req.params;
   const { reason = "Manual retry by Administrator" } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
+  const admin = (req as any).admin;
 
-  if (!adminAuthService.hasPermission(val.session, "MANAGE_TRANSACTIONS") && !adminAuthService.hasPermission(val.session, "MANAGE_WALLET")) {
+  if (!adminAuthService.hasPermission(admin, "MANAGE_TRANSACTIONS") && !adminAuthService.hasPermission(admin, "MANAGE_WALLET")) {
     return res.status(403).json({ success: false, message: "Permission Denied: MANAGE_TRANSACTIONS required to retry transactions." });
   }
 
@@ -1600,7 +1761,7 @@ app.post("/api/admin/transactions/:txId/retry", async (req, res) => {
   if (!tx.timeline) tx.timeline = [];
   tx.timeline.push({
     stage: "Admin Actions",
-    title: `Transaction Retried by Admin (${val.session.email})`,
+    title: `Transaction Retried by Admin (${admin.email})`,
     timestamp: new Date().toISOString(),
     status: "SUCCESSFUL",
     details: `Retry executed. Reason: ${reason}`
@@ -1611,8 +1772,8 @@ app.post("/api/admin/transactions/:txId/retry", async (req, res) => {
   db.transaction_audit_logs.unshift({
     id: `AUD_${Date.now()}`,
     transactionId: tx.id,
-    adminUid: val.session.uid,
-    adminEmail: val.session.email,
+    adminUid: admin.uid,
+    adminEmail: admin.email,
     action: "RETRY_TRANSACTION",
     details: `Initiated transaction re-execution. Old Status: ${currentStatus}, New Status: SUCCESSFUL. Reason: ${reason}`,
     timestamp: new Date().toISOString(),
@@ -1628,15 +1789,11 @@ app.post("/api/admin/transactions/:txId/retry", async (req, res) => {
 });
 
 // 5. POST /api/admin/transactions/export — Transaction Export Engine (CSV, Excel, PDF Data)
-app.post("/api/admin/transactions/export", async (req, res) => {
+app.post("/api/admin/transactions/export", requireAdmin, async (req, res) => {
   const { filters = {}, scope = "FILTERED_RESULTS", format = "CSV" } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
+  const admin = (req as any).admin;
 
   seedModule5TransactionsIfEmpty(db);
 
@@ -1684,8 +1841,8 @@ app.post("/api/admin/transactions/export", async (req, res) => {
   if (!db.transaction_exports) db.transaction_exports = [];
   const exportRecord = {
     id: `EXP_${Date.now()}`,
-    adminUid: val.session.uid,
-    adminEmail: val.session.email,
+    adminUid: admin.uid,
+    adminEmail: admin.email,
     scope,
     format,
     recordCount: exportItems.length,

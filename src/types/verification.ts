@@ -104,6 +104,7 @@ export interface StandardizedVerificationResult {
   fee: number;
   verifiedId: string;
   maskedId: string;
+  signedQrContent?: string;
   userId?: string;
 }
 
@@ -122,6 +123,7 @@ export interface VerificationHistoryItem {
   fee: number;
   responseTime: number;
   createdAt: string;
+  signedQrContent?: string;
   data?: VerificationResponseData;
 }
 
@@ -139,12 +141,11 @@ export interface VerificationErrorState {
 }
 
 export type SlipFormatType =
-  | "NIN_STANDARD" // Official Green NIMC Enrolment Slip (NINS)
-  | "NIN_PREMIUM_GREEN" // Digital NIN Slip (Green Guilloche Security Pattern Card)
-  | "NIN_PREMIUM_WHITE" // Standard Premium NIN Slip (White Wallet Card)
+  | "NIN_STANDARD" // Standard NIN Slip (NINS)
+  | "NIN_REGULAR" // Regular NIN Slip
   | "NIN_THERMAL" // POS Terminal Monochrome Mini Slip
   | "NIN_BASIC_LOOKUP" // Text / Raw Demographics Only (No Watermarked Slip)
-  | "BVN_STANDARD" // Official NIBSS BVN Verification Slip
+  | "BVN_STANDARD" // Standard BVN Verification Slip
   | "BVN_PREMIUM_CARD" // Premium BVN Identity Card
   | "BVN_BASIC_LOOKUP" // Basic BVN Text Lookup
   | "BVN_THERMAL" // POS Terminal BVN Receipt
@@ -161,6 +162,7 @@ export interface GeneratedSlipRecord {
   identificationNumber: string;
   maskedId: string;
   trackingId?: string;
+  signedQrContent?: string;
   qrVerificationToken: string;
   qrVerificationUrl: string;
   holderData: {

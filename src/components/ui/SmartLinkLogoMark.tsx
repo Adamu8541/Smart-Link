@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "motion/react";
-import logoImg from "../../assets/images/logo.png";
+const logoImg = "/logo.png";
 import { useSiteConfig } from "../../context/SiteConfigContext";
 
 export interface SmartLinkLogoMarkProps {

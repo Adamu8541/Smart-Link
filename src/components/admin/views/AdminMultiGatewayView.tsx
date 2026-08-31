@@ -2,7 +2,7 @@
  * SmartLink Multi-Gateway Routing & Failover Management
  * Phase 2 - Production Identity Gateway Controller
  *
- * Configures intelligent multi-gateway failover matching agenthub.ng & nintrust.com.ng:
+ * Configures intelligent multi-gateway failover matching aspfiy & verifyng ecosystems:
  * - Dynamic Service Routing Rules (NIN, BVN, Phone, CAC, TIN, etc.)
  * - Gateway Health Matrix & Real-Time Latency Probes
  * - Automated Failover Audit Logs Stream
@@ -230,22 +230,22 @@ export const AdminMultiGatewayView: React.FC = () => {
   return (
     <div id="admin-multi-gateway-view" className="space-y-6">
       {/* Top Banner & Header */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm">
+      <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-xl p-6 shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <div className="flex items-center space-x-3">
-              <div className="p-2.5 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 rounded-lg">
+              <div className="p-2.5 bg-[#E5E7EB] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] rounded-lg">
                 <ArrowRightLeft className="w-6 h-6" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <h1 className="text-2xl font-bold text-[#111827] dark:text-white flex items-center gap-2">
                   Multi-Gateway Routing & Failover
-                  <span className="text-xs px-2.5 py-0.5 rounded-full font-medium bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                  <span className="text-xs px-2.5 py-0.5 rounded-full font-medium bg-[#E5E7EB] dark:bg-[#0F2D5C]/50 text-[#0F2D5C] dark:text-[#9CA3AF] border border-[#E5E7EB] dark:border-[#0F2D5C]">
                     Phase 2 Engine Active
                   </span>
                 </h1>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-                  Automated Provider Failover, Latency Balancing &amp; Real-time Background Reconciliation (NINTrust, AgentHub, Aspfiy, NIMC Direct)
+                <p className="text-sm text-[#6B7280] dark:text-[#9CA3AF] mt-0.5">
+                  Automated Provider Failover, Latency Balancing &amp; Real-time Background Reconciliation (Aspfiy, VerifyNG, NIN API)
                 </p>
               </div>
             </div>
@@ -256,9 +256,9 @@ export const AdminMultiGatewayView: React.FC = () => {
               id="btn-ping-all-gateways"
               onClick={handlePingAllGateways}
               disabled={loading || pingingId !== null}
-              className="inline-flex items-center space-x-2 px-3.5 py-2 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 transition"
+              className="inline-flex items-center space-x-2 px-3.5 py-2 text-xs font-semibold rounded-lg bg-[#E5E7EB] dark:bg-[#111827] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563] text-[#4B5563] dark:text-[#E5E7EB] border border-[#E5E7EB] dark:border-[#4B5563] transition"
             >
-              <Activity className="w-4 h-4 text-emerald-500 animate-pulse" />
+              <Activity className="w-4 h-4 text-[#0F2D5C] animate-pulse" />
               <span>Probe All Gateways</span>
             </button>
 
@@ -266,7 +266,7 @@ export const AdminMultiGatewayView: React.FC = () => {
               id="btn-trigger-reconciliation-sweep"
               onClick={handleTriggerSweep}
               disabled={isProcessingSweep}
-              className="inline-flex items-center space-x-2 px-3.5 py-2 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition disabled:opacity-50"
+              className="inline-flex items-center space-x-2 px-3.5 py-2 text-xs font-semibold rounded-lg bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white shadow-sm transition disabled:opacity-50"
             >
               <RotateCcw className={`w-4 h-4 ${isProcessingSweep ? "animate-spin" : ""}`} />
               <span>{isProcessingSweep ? "Sweeping Queue..." : "Run Reconciliation Sweep"}</span>
@@ -275,7 +275,7 @@ export const AdminMultiGatewayView: React.FC = () => {
             <button
               id="btn-queue-background-job"
               onClick={() => setIsQueueModalOpen(true)}
-              className="inline-flex items-center space-x-2 px-3.5 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition"
+              className="inline-flex items-center space-x-2 px-3.5 py-2 text-xs font-semibold rounded-lg bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white shadow-sm transition"
             >
               <Play className="w-4 h-4" />
               <span>Queue Async Job</span>
@@ -288,8 +288,8 @@ export const AdminMultiGatewayView: React.FC = () => {
           <div
             className={`mt-4 p-3 rounded-lg text-sm flex items-center space-x-2 border ${
               statusMessage.type === "success"
-                ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800"
-                : "bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300 border-rose-200 dark:border-rose-800"
+                ? "bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 text-[#0F2D5C] dark:text-[#9CA3AF] border-[#E5E7EB] dark:border-[#0F2D5C]"
+                : "bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 text-[#0F2D5C] dark:text-[#9CA3AF] border-[#E5E7EB] dark:border-[#0F2D5C]"
             }`}
           >
             {statusMessage.type === "success" ? <CheckCircle2 className="w-4 h-4 shrink-0" /> : <AlertTriangle className="w-4 h-4 shrink-0" />}
@@ -298,48 +298,48 @@ export const AdminMultiGatewayView: React.FC = () => {
         )}
 
         {/* Quick KPI Bar */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-6 border-t border-[#E5E7EB] dark:border-[#111827]">
           <div className="flex items-center space-x-3">
-            <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400">
+            <div className="p-2 rounded-lg bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 text-[#0F2D5C] dark:text-[#9CA3AF]">
               <Server className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Active Gateways</p>
-              <p className="text-lg font-bold text-slate-900 dark:text-white">
+              <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">Active Gateways</p>
+              <p className="text-lg font-bold text-[#111827] dark:text-white">
                 {metrics.filter((m) => m.status === "ONLINE").length} / {metrics.length} Online
               </p>
             </div>
           </div>
 
           <div className="flex items-center space-x-3">
-            <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400">
+            <div className="p-2 rounded-lg bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 text-[#0F2D5C] dark:text-[#9CA3AF]">
               <Zap className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Avg Network Latency</p>
-              <p className="text-lg font-bold text-slate-900 dark:text-white">
+              <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">Avg Network Latency</p>
+              <p className="text-lg font-bold text-[#111827] dark:text-white">
                 {metrics.length > 0 ? Math.round(metrics.reduce((acc, m) => acc + m.avgLatencyMs, 0) / metrics.length) : 240}ms
               </p>
             </div>
           </div>
 
           <div className="flex items-center space-x-3">
-            <div className="p-2 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400">
+            <div className="p-2 rounded-lg bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 text-[#0F2D5C] dark:text-[#9CA3AF]">
               <Shield className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Failover Occurrences</p>
-              <p className="text-lg font-bold text-slate-900 dark:text-white">{failovers.length} logged</p>
+              <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">Failover Occurrences</p>
+              <p className="text-lg font-bold text-[#111827] dark:text-white">{failovers.length} logged</p>
             </div>
           </div>
 
           <div className="flex items-center space-x-3">
-            <div className="p-2 rounded-lg bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400">
+            <div className="p-2 rounded-lg bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 text-[#0F2D5C] dark:text-[#9CA3AF]">
               <Clock className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Async Jobs in Queue</p>
-              <p className="text-lg font-bold text-slate-900 dark:text-white">
+              <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">Async Jobs in Queue</p>
+              <p className="text-lg font-bold text-[#111827] dark:text-white">
                 {jobs.filter((j) => j.status === "QUEUED" || j.status === "PROCESSING").length} Pending
               </p>
             </div>
@@ -348,14 +348,14 @@ export const AdminMultiGatewayView: React.FC = () => {
       </div>
 
       {/* Tabs Navigation */}
-      <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+      <div className="flex items-center justify-between border-b border-[#E5E7EB] dark:border-[#111827] pb-2">
         <div className="flex items-center space-x-2">
           <button
             onClick={() => setActiveTab("matrix")}
             className={`px-4 py-2 text-sm font-semibold rounded-lg transition ${
               activeTab === "matrix"
-                ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm"
-                : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                ? "bg-[#111827] dark:bg-white text-white dark:text-[#111827] shadow-sm"
+                : "text-[#4B5563] dark:text-[#9CA3AF] hover:bg-[#E5E7EB] dark:hover:bg-[#111827]"
             }`}
           >
             Gateway Health Matrix ({metrics.length})
@@ -364,8 +364,8 @@ export const AdminMultiGatewayView: React.FC = () => {
             onClick={() => setActiveTab("rules")}
             className={`px-4 py-2 text-sm font-semibold rounded-lg transition ${
               activeTab === "rules"
-                ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm"
-                : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                ? "bg-[#111827] dark:bg-white text-white dark:text-[#111827] shadow-sm"
+                : "text-[#4B5563] dark:text-[#9CA3AF] hover:bg-[#E5E7EB] dark:hover:bg-[#111827]"
             }`}
           >
             Service Routing Rules ({rules.length})
@@ -374,8 +374,8 @@ export const AdminMultiGatewayView: React.FC = () => {
             onClick={() => setActiveTab("failovers")}
             className={`px-4 py-2 text-sm font-semibold rounded-lg transition ${
               activeTab === "failovers"
-                ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm"
-                : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                ? "bg-[#111827] dark:bg-white text-white dark:text-[#111827] shadow-sm"
+                : "text-[#4B5563] dark:text-[#9CA3AF] hover:bg-[#E5E7EB] dark:hover:bg-[#111827]"
             }`}
           >
             Failover Audit Stream ({failovers.length})
@@ -384,8 +384,8 @@ export const AdminMultiGatewayView: React.FC = () => {
             onClick={() => setActiveTab("background_queue")}
             className={`px-4 py-2 text-sm font-semibold rounded-lg transition ${
               activeTab === "background_queue"
-                ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm"
-                : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                ? "bg-[#111827] dark:bg-white text-white dark:text-[#111827] shadow-sm"
+                : "text-[#4B5563] dark:text-[#9CA3AF] hover:bg-[#E5E7EB] dark:hover:bg-[#111827]"
             }`}
           >
             Background Reconciliation ({jobs.length})
@@ -393,13 +393,13 @@ export const AdminMultiGatewayView: React.FC = () => {
         </div>
 
         <div className="relative w-64">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search gateways, services, logs..."
-            className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-[#E5E7EB] dark:border-[#4B5563] bg-white dark:bg-[#111827] text-[#111827] dark:text-[#E5E7EB] focus:outline-none focus:ring-2 focus:ring-[#0F2D5C]"
           />
         </div>
       </div>
@@ -414,22 +414,22 @@ export const AdminMultiGatewayView: React.FC = () => {
             return (
               <div
                 key={metric.providerId}
-                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition flex flex-col justify-between"
+                className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-xl p-5 shadow-sm hover:border-[#E5E7EB] dark:hover:border-[#4B5563] transition flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-start justify-between">
                     <div>
                       <div className="flex items-center space-x-2">
-                        <h3 className="font-bold text-slate-900 dark:text-white text-base">{metric.providerName}</h3>
+                        <h3 className="font-bold text-[#111827] dark:text-white text-base">{metric.providerName}</h3>
                       </div>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 font-mono mt-0.5">{metric.baseUrl}</p>
+                      <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] font-mono mt-0.5">{metric.baseUrl}</p>
                     </div>
 
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                         metric.status === "ONLINE"
-                          ? "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
-                          : "bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800"
+                          ? "bg-[#E5E7EB] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] border border-[#E5E7EB] dark:border-[#0F2D5C]"
+                          : "bg-[#E5E7EB] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] border border-[#E5E7EB] dark:border-[#0F2D5C]"
                       }`}
                     >
                       {metric.status}
@@ -438,64 +438,64 @@ export const AdminMultiGatewayView: React.FC = () => {
 
                   {/* Circuit Breaker Status */}
                   {metric.circuitBreakerTripped && (
-                    <div className="mt-3 p-2 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs flex items-center space-x-2">
+                    <div className="mt-3 p-2 rounded-lg bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border border-[#E5E7EB] dark:border-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF] text-xs flex items-center space-x-2">
                       <XCircle className="w-4 h-4 shrink-0" />
                       <span>Circuit Breaker Tripped ({metric.consecutiveFailures} consecutive failures)</span>
                     </div>
                   )}
 
                   {/* Key Metrics Grid */}
-                  <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
-                    <div className="bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-lg">
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Uptime Guarantee</p>
-                      <p className="text-sm font-bold text-slate-900 dark:text-white">{metric.uptimePercentage}%</p>
+                  <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-[#E5E7EB] dark:border-[#111827]">
+                    <div className="bg-[#F5F7FA] dark:bg-[#111827]/50 p-2.5 rounded-lg">
+                      <p className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF] font-medium">Uptime Guarantee</p>
+                      <p className="text-sm font-bold text-[#111827] dark:text-white">{metric.uptimePercentage}%</p>
                     </div>
 
-                    <div className="bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-lg">
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Avg Latency</p>
-                      <p className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1">
-                        <Zap className="w-3.5 h-3.5 text-amber-500" />
+                    <div className="bg-[#F5F7FA] dark:bg-[#111827]/50 p-2.5 rounded-lg">
+                      <p className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF] font-medium">Avg Latency</p>
+                      <p className="text-sm font-bold text-[#111827] dark:text-white flex items-center gap-1">
+                        <Zap className="w-3.5 h-3.5 text-[#0F2D5C]" />
                         {metric.avgLatencyMs}ms
                       </p>
                     </div>
 
-                    <div className="bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-lg">
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Successful Queries</p>
-                      <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                    <div className="bg-[#F5F7FA] dark:bg-[#111827]/50 p-2.5 rounded-lg">
+                      <p className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF] font-medium">Successful Queries</p>
+                      <p className="text-sm font-bold text-[#0F2D5C] dark:text-[#9CA3AF]">
                         {metric.successfulQueries.toLocaleString()} / {metric.totalQueries.toLocaleString()}
                       </p>
                     </div>
 
-                    <div className="bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-lg">
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Failovers Caused</p>
-                      <p className="text-sm font-bold text-amber-600 dark:text-amber-400">{metric.failoverTriggeredCount} events</p>
+                    <div className="bg-[#F5F7FA] dark:bg-[#111827]/50 p-2.5 rounded-lg">
+                      <p className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF] font-medium">Failovers Caused</p>
+                      <p className="text-sm font-bold text-[#0F2D5C] dark:text-[#9CA3AF]">{metric.failoverTriggeredCount} events</p>
                     </div>
                   </div>
 
                   {/* Last Ping Output */}
                   {pingRes && (
-                    <div className="mt-3 p-2.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs flex items-center justify-between">
+                    <div className="mt-3 p-2.5 bg-[#E5E7EB] dark:bg-[#111827] rounded-lg text-xs flex items-center justify-between">
                       <div className="flex items-center space-x-2">
-                        {pingRes.ok ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <AlertTriangle className="w-4 h-4 text-amber-500" />}
-                        <span className="text-slate-700 dark:text-slate-300 truncate max-w-[180px]">{pingRes.message}</span>
+                        {pingRes.ok ? <CheckCircle2 className="w-4 h-4 text-[#0F2D5C]" /> : <AlertTriangle className="w-4 h-4 text-[#0F2D5C]" />}
+                        <span className="text-[#4B5563] dark:text-[#E5E7EB] truncate max-w-[180px]">{pingRes.message}</span>
                       </div>
-                      <span className="font-mono font-bold text-slate-900 dark:text-white">{pingRes.latency}ms</span>
+                      <span className="font-mono font-bold text-[#111827] dark:text-white">{pingRes.latency}ms</span>
                     </div>
                   )}
                 </div>
 
                 {/* Footer Ping Button */}
-                <div className="mt-5 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                  <span className="text-[11px] text-slate-400">
+                <div className="mt-5 pt-3 border-t border-[#E5E7EB] dark:border-[#111827] flex items-center justify-between">
+                  <span className="text-[11px] text-[#9CA3AF]">
                     Last Checked: {metric.lastPingAt ? new Date(metric.lastPingAt).toLocaleTimeString() : "Never"}
                   </span>
 
                   <button
                     onClick={() => handlePingGateway(metric.providerId)}
                     disabled={isPinging}
-                    className="inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 transition"
+                    className="inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#F5F7FA] hover:bg-[#E5E7EB] dark:bg-[#0F2D5C]/40 dark:hover:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] border border-[#E5E7EB] dark:border-[#0F2D5C] transition"
                   >
-                    <RefreshCw className={`w-3.5 h-3.5 ${isPinging ? "animate-spin text-emerald-600" : ""}`} />
+                    <RefreshCw className={`w-3.5 h-3.5 ${isPinging ? "animate-spin text-[#0F2D5C]" : ""}`} />
                     <span>{isPinging ? "Testing..." : "Ping Provider"}</span>
                   </button>
                 </div>
@@ -507,20 +507,20 @@ export const AdminMultiGatewayView: React.FC = () => {
 
       {/* TAB 2: SERVICE ROUTING RULES */}
       {activeTab === "rules" && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
-          <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-            <h2 className="font-bold text-slate-900 dark:text-white text-base flex items-center gap-2">
-              <Sliders className="w-4 h-4 text-indigo-500" />
+        <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-xl overflow-hidden shadow-sm">
+          <div className="p-4 border-b border-[#E5E7EB] dark:border-[#111827] flex items-center justify-between">
+            <h2 className="font-bold text-[#111827] dark:text-white text-base flex items-center gap-2">
+              <Sliders className="w-4 h-4 text-[#0F2D5C]" />
               Automated Gateway Routing Matrix (Per Verification Service)
             </h2>
-            <span className="text-xs text-slate-500 dark:text-slate-400">
+            <span className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">
               Auto-Failover switches to secondary gateway immediately if primary latency exceeds timeout or returns 5xx error.
             </span>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 font-semibold border-b border-slate-200 dark:border-slate-800">
+              <thead className="bg-[#F5F7FA] dark:bg-[#111827]/60 text-[#4B5563] dark:text-[#E5E7EB] font-semibold border-b border-[#E5E7EB] dark:border-[#111827]">
                 <tr>
                   <th className="py-3 px-4">Service</th>
                   <th className="py-3 px-4">Routing Strategy</th>
@@ -532,44 +532,44 @@ export const AdminMultiGatewayView: React.FC = () => {
                   <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-800 dark:text-slate-200">
+              <tbody className="divide-y divide-[#6B7280] dark:divide-[#6B7280] text-[#111827] dark:text-[#E5E7EB]">
                 {filteredRules.map((rule) => (
-                  <tr key={rule.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
+                  <tr key={rule.id} className="hover:bg-[#F5F7FA]/50 dark:hover:bg-[#111827]/30 transition">
                     <td className="py-3.5 px-4">
                       <div>
-                        <span className="font-bold text-slate-900 dark:text-white text-sm">{rule.service}</span>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400">{rule.serviceName}</p>
+                        <span className="font-bold text-[#111827] dark:text-white text-sm">{rule.service}</span>
+                        <p className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF]">{rule.serviceName}</p>
                       </div>
                     </td>
 
                     <td className="py-3.5 px-4">
-                      <span className="px-2 py-0.5 rounded font-mono text-[11px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                      <span className="px-2 py-0.5 rounded font-mono text-[11px] bg-[#E5E7EB] dark:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB] border border-[#E5E7EB] dark:border-[#4B5563]">
                         {rule.strategy}
                       </span>
                     </td>
 
                     <td className="py-3.5 px-4">
-                      <div className="flex items-center space-x-1.5 text-emerald-600 dark:text-emerald-400 font-semibold">
+                      <div className="flex items-center space-x-1.5 text-[#0F2D5C] dark:text-[#9CA3AF] font-semibold">
                         <CheckCircle2 className="w-4 h-4 shrink-0" />
                         <span>{rule.primaryProviderName}</span>
                       </div>
                     </td>
 
                     <td className="py-3.5 px-4">
-                      <div className="flex items-center space-x-1.5 text-slate-600 dark:text-slate-400 font-medium">
-                        <ArrowRightLeft className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                      <div className="flex items-center space-x-1.5 text-[#4B5563] dark:text-[#9CA3AF] font-medium">
+                        <ArrowRightLeft className="w-3.5 h-3.5 text-[#0F2D5C] shrink-0" />
                         <span>{rule.secondaryProviderName || "None"}</span>
                       </div>
                     </td>
 
                     <td className="py-3.5 px-4">
-                      <span className="text-slate-500 dark:text-slate-400 font-normal">
-                        {rule.tertiaryProviderName || "NIMC Direct Fallback"}
+                      <span className="text-[#6B7280] dark:text-[#9CA3AF] font-normal">
+                        {rule.tertiaryProviderName || "NIN API Fallback"}
                       </span>
                     </td>
 
                     <td className="py-3.5 px-4">
-                      <span className="font-mono text-slate-600 dark:text-slate-400 font-medium">
+                      <span className="font-mono text-[#4B5563] dark:text-[#9CA3AF] font-medium">
                         {rule.timeoutMs}ms / {rule.maxRetries}x
                       </span>
                     </td>
@@ -578,8 +578,8 @@ export const AdminMultiGatewayView: React.FC = () => {
                       <span
                         className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ${
                           rule.autoFailover
-                            ? "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300"
-                            : "bg-slate-100 dark:bg-slate-800 text-slate-500"
+                            ? "bg-[#E5E7EB] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF]"
+                            : "bg-[#E5E7EB] dark:bg-[#111827] text-[#6B7280]"
                         }`}
                       >
                         {rule.autoFailover ? "Enabled" : "Disabled"}
@@ -592,7 +592,7 @@ export const AdminMultiGatewayView: React.FC = () => {
                           setSelectedRule(rule);
                           setIsEditingRule(true);
                         }}
-                        className="inline-flex items-center space-x-1 px-2.5 py-1 text-xs font-semibold rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition"
+                        className="inline-flex items-center space-x-1 px-2.5 py-1 text-xs font-semibold rounded bg-[#E5E7EB] hover:bg-[#E5E7EB] dark:bg-[#111827] dark:hover:bg-[#4B5563] text-[#4B5563] dark:text-[#E5E7EB] transition"
                       >
                         <Settings2 className="w-3.5 h-3.5" />
                         <span>Configure</span>
@@ -608,27 +608,27 @@ export const AdminMultiGatewayView: React.FC = () => {
 
       {/* TAB 3: FAILOVER AUDIT STREAM */}
       {activeTab === "failovers" && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
-          <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-            <h2 className="font-bold text-slate-900 dark:text-white text-base flex items-center gap-2">
-              <Shield className="w-4 h-4 text-amber-500" />
+        <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-xl overflow-hidden shadow-sm">
+          <div className="p-4 border-b border-[#E5E7EB] dark:border-[#111827] flex items-center justify-between">
+            <h2 className="font-bold text-[#111827] dark:text-white text-base flex items-center gap-2">
+              <Shield className="w-4 h-4 text-[#0F2D5C]" />
               Automated Gateway Failover Audit Stream
             </h2>
-            <span className="text-xs text-slate-500 dark:text-slate-400">
+            <span className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">
               Audit log recording every incident where primary gateway faltered and the switch rescued the transaction.
             </span>
           </div>
 
           {filteredFailovers.length === 0 ? (
-            <div className="p-12 text-center text-slate-400">
-              <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto mb-2 opacity-80" />
-              <p className="font-medium text-slate-700 dark:text-slate-300">All primary verification gateways operating flawlessly.</p>
-              <p className="text-xs mt-1 text-slate-500">Zero recent failover triggers recorded.</p>
+            <div className="p-12 text-center text-[#9CA3AF]">
+              <CheckCircle2 className="w-10 h-10 text-[#0F2D5C] mx-auto mb-2 opacity-80" />
+              <p className="font-medium text-[#4B5563] dark:text-[#E5E7EB]">All primary verification gateways operating flawlessly.</p>
+              <p className="text-xs mt-1 text-[#6B7280]">Zero recent failover triggers recorded.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 font-semibold border-b border-slate-200 dark:border-slate-800">
+                <thead className="bg-[#F5F7FA] dark:bg-[#111827]/60 text-[#4B5563] dark:text-[#E5E7EB] font-semibold border-b border-[#E5E7EB] dark:border-[#111827]">
                   <tr>
                     <th className="py-3 px-4">Time</th>
                     <th className="py-3 px-4">Reference / Target</th>
@@ -639,40 +639,40 @@ export const AdminMultiGatewayView: React.FC = () => {
                     <th className="py-3 px-4">Recovery Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-800 dark:text-slate-200">
+                <tbody className="divide-y divide-[#6B7280] dark:divide-[#6B7280] text-[#111827] dark:text-[#E5E7EB]">
                   {filteredFailovers.map((f) => (
-                    <tr key={f.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
-                      <td className="py-3 px-4 font-mono text-slate-500">
+                    <tr key={f.id} className="hover:bg-[#F5F7FA]/50 dark:hover:bg-[#111827]/30 transition">
+                      <td className="py-3 px-4 font-mono text-[#6B7280]">
                         {new Date(f.timestamp).toLocaleString()}
                       </td>
 
                       <td className="py-3 px-4">
                         <div>
-                          <span className="font-bold font-mono text-slate-900 dark:text-white">{f.reference}</span>
-                          <p className="text-[11px] text-slate-500 font-mono">{f.targetIdMasked}</p>
+                          <span className="font-bold font-mono text-[#111827] dark:text-white">{f.reference}</span>
+                          <p className="text-[11px] text-[#6B7280] font-mono">{f.targetIdMasked}</p>
                         </div>
                       </td>
 
                       <td className="py-3 px-4">
-                        <span className="px-2 py-0.5 rounded font-bold text-[11px] bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200">
+                        <span className="px-2 py-0.5 rounded font-bold text-[11px] bg-[#E5E7EB] dark:bg-[#111827] text-[#111827] dark:text-[#E5E7EB]">
                           {f.service}
                         </span>
                       </td>
 
-                      <td className="py-3 px-4 text-rose-600 dark:text-rose-400 font-medium">
+                      <td className="py-3 px-4 text-[#0F2D5C] dark:text-[#9CA3AF] font-medium">
                         {f.failedProviderName}
                       </td>
 
-                      <td className="py-3 px-4 text-slate-600 dark:text-slate-400 max-w-xs truncate">
+                      <td className="py-3 px-4 text-[#4B5563] dark:text-[#9CA3AF] max-w-xs truncate">
                         {f.failureReason}
                       </td>
 
-                      <td className="py-3 px-4 text-emerald-600 dark:text-emerald-400 font-semibold">
+                      <td className="py-3 px-4 text-[#0F2D5C] dark:text-[#9CA3AF] font-semibold">
                         {f.fallbackProviderName}
                       </td>
 
                       <td className="py-3 px-4">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-[#E5E7EB] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] border border-[#E5E7EB] dark:border-[#0F2D5C]">
                           Rescued &amp; Completed
                         </span>
                       </td>
@@ -687,14 +687,14 @@ export const AdminMultiGatewayView: React.FC = () => {
 
       {/* TAB 4: BACKGROUND RECONCILIATION QUEUE */}
       {activeTab === "background_queue" && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
-          <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-xl overflow-hidden shadow-sm">
+          <div className="p-4 border-b border-[#E5E7EB] dark:border-[#111827] flex items-center justify-between">
             <div>
-              <h2 className="font-bold text-slate-900 dark:text-white text-base flex items-center gap-2">
-                <Clock className="w-4 h-4 text-purple-500" />
+              <h2 className="font-bold text-[#111827] dark:text-white text-base flex items-center gap-2">
+                <Clock className="w-4 h-4 text-[#0F2D5C]" />
                 Background Verification &amp; Reconciliation Queue
               </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-0.5">
                 Automated worker sweeps this queue every 45 seconds to resolve asynchronous identity lookups with multi-gateway routing.
               </p>
             </div>
@@ -702,7 +702,7 @@ export const AdminMultiGatewayView: React.FC = () => {
             <button
               onClick={handleTriggerSweep}
               disabled={isProcessingSweep}
-              className="inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-purple-600 hover:bg-purple-700 text-white shadow-sm transition disabled:opacity-50"
+              className="inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white shadow-sm transition disabled:opacity-50"
             >
               <RotateCcw className={`w-3.5 h-3.5 ${isProcessingSweep ? "animate-spin" : ""}`} />
               <span>{isProcessingSweep ? "Processing..." : "Sweep Queue Now"}</span>
@@ -710,15 +710,15 @@ export const AdminMultiGatewayView: React.FC = () => {
           </div>
 
           {filteredJobs.length === 0 ? (
-            <div className="p-12 text-center text-slate-400">
-              <Clock className="w-10 h-10 text-slate-400 mx-auto mb-2 opacity-50" />
-              <p className="font-medium text-slate-700 dark:text-slate-300">Background queue is empty.</p>
-              <p className="text-xs mt-1 text-slate-500">All identity verification queries processed in real-time.</p>
+            <div className="p-12 text-center text-[#9CA3AF]">
+              <Clock className="w-10 h-10 text-[#9CA3AF] mx-auto mb-2 opacity-50" />
+              <p className="font-medium text-[#4B5563] dark:text-[#E5E7EB]">Background queue is empty.</p>
+              <p className="text-xs mt-1 text-[#6B7280]">All identity verification queries processed in real-time.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 font-semibold border-b border-slate-200 dark:border-slate-800">
+                <thead className="bg-[#F5F7FA] dark:bg-[#111827]/60 text-[#4B5563] dark:text-[#E5E7EB] font-semibold border-b border-[#E5E7EB] dark:border-[#111827]">
                   <tr>
                     <th className="py-3 px-4">Job Reference</th>
                     <th className="py-3 px-4">Service / Target</th>
@@ -729,21 +729,21 @@ export const AdminMultiGatewayView: React.FC = () => {
                     <th className="py-3 px-4 text-right">Result</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-800 dark:text-slate-200">
+                <tbody className="divide-y divide-[#6B7280] dark:divide-[#6B7280] text-[#111827] dark:text-[#E5E7EB]">
                   {filteredJobs.map((job) => (
-                    <tr key={job.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
-                      <td className="py-3 px-4 font-mono font-bold text-slate-900 dark:text-white">
+                    <tr key={job.id} className="hover:bg-[#F5F7FA]/50 dark:hover:bg-[#111827]/30 transition">
+                      <td className="py-3 px-4 font-mono font-bold text-[#111827] dark:text-white">
                         {job.reference}
                       </td>
 
                       <td className="py-3 px-4">
                         <div>
-                          <span className="font-bold text-slate-800 dark:text-slate-200">{job.service}</span>
-                          <p className="text-[11px] text-slate-500 font-mono">{job.maskedId || job.targetId}</p>
+                          <span className="font-bold text-[#111827] dark:text-[#E5E7EB]">{job.service}</span>
+                          <p className="text-[11px] text-[#6B7280] font-mono">{job.maskedId || job.targetId}</p>
                         </div>
                       </td>
 
-                      <td className="py-3 px-4 text-slate-600 dark:text-slate-400 font-mono">
+                      <td className="py-3 px-4 text-[#4B5563] dark:text-[#9CA3AF] font-mono">
                         {job.userEmail || job.userId}
                       </td>
 
@@ -751,7 +751,7 @@ export const AdminMultiGatewayView: React.FC = () => {
                         {job.attempts} / {job.maxAttempts}
                       </td>
 
-                      <td className="py-3 px-4 text-slate-500">
+                      <td className="py-3 px-4 text-[#6B7280]">
                         {new Date(job.createdAt).toLocaleTimeString()}
                       </td>
 
@@ -759,12 +759,12 @@ export const AdminMultiGatewayView: React.FC = () => {
                         <span
                           className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ${
                             job.status === "COMPLETED"
-                              ? "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300"
+                              ? "bg-[#E5E7EB] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF]"
                               : job.status === "PROCESSING"
-                              ? "bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 animate-pulse"
+                              ? "bg-[#E5E7EB] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] animate-pulse"
                               : job.status === "FAILED"
-                              ? "bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300"
-                              : "bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300"
+                              ? "bg-[#E5E7EB] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF]"
+                              : "bg-[#E5E7EB] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF]"
                           }`}
                         >
                           {job.status}
@@ -773,13 +773,13 @@ export const AdminMultiGatewayView: React.FC = () => {
 
                       <td className="py-3 px-4 text-right">
                         {job.resultData ? (
-                          <span className="text-emerald-600 font-semibold text-xs">
+                          <span className="text-[#0F2D5C] font-semibold text-xs">
                             {job.resultData.fullName || "Verified"}
                           </span>
                         ) : job.errorReason ? (
-                          <span className="text-rose-600 text-xs truncate max-w-xs">{job.errorReason}</span>
+                          <span className="text-[#0F2D5C] text-xs truncate max-w-xs">{job.errorReason}</span>
                         ) : (
-                          <span className="text-slate-400 text-xs">In Queue</span>
+                          <span className="text-[#9CA3AF] text-xs">In Queue</span>
                         )}
                       </td>
                     </tr>
@@ -793,15 +793,15 @@ export const AdminMultiGatewayView: React.FC = () => {
 
       {/* EDIT ROUTING RULE MODAL */}
       {isEditingRule && selectedRule && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-xl max-w-lg w-full border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-            <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-              <h3 className="font-bold text-slate-900 dark:text-white text-base">
+        <div className="fixed inset-0 bg-[#111827]/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#111827] rounded-xl max-w-lg w-full border border-[#E5E7EB] dark:border-[#111827] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div className="p-5 border-b border-[#E5E7EB] dark:border-[#111827] flex items-center justify-between">
+              <h3 className="font-bold text-[#111827] dark:text-white text-base">
                 Configure Gateway Routing: {selectedRule.service}
               </h3>
               <button
                 onClick={() => setIsEditingRule(false)}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                className="text-[#9CA3AF] hover:text-[#4B5563] dark:hover:text-[#E5E7EB]"
               >
                 ✕
               </button>
@@ -815,7 +815,7 @@ export const AdminMultiGatewayView: React.FC = () => {
               className="p-5 space-y-4 text-xs"
             >
               <div>
-                <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block font-semibold text-[#4B5563] dark:text-[#E5E7EB] mb-1">
                   Routing Strategy
                 </label>
                 <select
@@ -823,7 +823,7 @@ export const AdminMultiGatewayView: React.FC = () => {
                   onChange={(e) =>
                     setSelectedRule({ ...selectedRule, strategy: e.target.value as RoutingStrategyType })
                   }
-                  className="w-full p-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                  className="w-full p-2 rounded-lg border border-[#E5E7EB] dark:border-[#4B5563] bg-white dark:bg-[#111827] text-[#111827] dark:text-white"
                 >
                   <option value="PRIORITY_ORDER">PRIORITY_ORDER (Primary &rarr; Secondary &rarr; Tertiary)</option>
                   <option value="FASTEST_RESPONSE">FASTEST_RESPONSE (Dynamic Latency Probing)</option>
@@ -834,66 +834,66 @@ export const AdminMultiGatewayView: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block font-semibold text-[#4B5563] dark:text-[#E5E7EB] mb-1">
                     Primary Provider
                   </label>
                   <select
                     value={selectedRule.primaryProviderId}
                     onChange={(e) => {
                       const pId = e.target.value;
-                      const pName = pId === "nintrust" ? "NINTrust Federal Gateway" : pId === "agenthub" ? "AgentHub Identity Gateway" : "Aspfiy Payment Gateway";
+                      const pName = pId === "aspfiy" ? "Aspfiy Payment Gateway" : pId === "verifyng" ? "VerifyNG Gateway" : "LumiID Gateway";
                       setSelectedRule({ ...selectedRule, primaryProviderId: pId, primaryProviderName: pName });
                     }}
-                    className="w-full p-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                    className="w-full p-2 rounded-lg border border-[#E5E7EB] dark:border-[#4B5563] bg-white dark:bg-[#111827] text-[#111827] dark:text-white"
                   >
-                    <option value="nintrust">NINTrust Federal Gateway (nintrust.com.ng)</option>
-                    <option value="agenthub">AgentHub Identity Gateway (agenthub.ng)</option>
                     <option value="aspfiy">Aspfiy Payment Gateway</option>
+                    <option value="verifyng">VerifyNG Gateway</option>
+                    <option value="lumiid">LumiID Gateway</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block font-semibold text-[#4B5563] dark:text-[#E5E7EB] mb-1">
                     Secondary Gateway (Failover 1)
                   </label>
                   <select
                     value={selectedRule.secondaryProviderId || ""}
                     onChange={(e) => {
                       const pId = e.target.value;
-                      const pName = pId === "nintrust" ? "NINTrust Federal Gateway" : pId === "agenthub" ? "AgentHub Identity Gateway" : "Aspfiy Payment Gateway";
+                      const pName = pId === "aspfiy" ? "Aspfiy Payment Gateway" : pId === "verifyng" ? "VerifyNG Gateway" : "LumiID Gateway";
                       setSelectedRule({ ...selectedRule, secondaryProviderId: pId, secondaryProviderName: pName });
                     }}
-                    className="w-full p-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                    className="w-full p-2 rounded-lg border border-[#E5E7EB] dark:border-[#4B5563] bg-white dark:bg-[#111827] text-[#111827] dark:text-white"
                   >
-                    <option value="agenthub">AgentHub Identity Gateway (agenthub.ng)</option>
-                    <option value="nintrust">NINTrust Federal Gateway (nintrust.com.ng)</option>
                     <option value="aspfiy">Aspfiy Payment Gateway</option>
+                    <option value="verifyng">VerifyNG Gateway</option>
+                    <option value="lumiid">LumiID Gateway</option>
                   </select>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block font-semibold text-[#4B5563] dark:text-[#E5E7EB] mb-1">
                     Timeout Threshold (ms)
                   </label>
                   <input
                     type="number"
                     value={selectedRule.timeoutMs}
                     onChange={(e) => setSelectedRule({ ...selectedRule, timeoutMs: Number(e.target.value) })}
-                    className="w-full p-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                    className="w-full p-2 rounded-lg border border-[#E5E7EB] dark:border-[#4B5563] bg-white dark:bg-[#111827] text-[#111827] dark:text-white"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block font-semibold text-[#4B5563] dark:text-[#E5E7EB] mb-1">
                     Max Retries Before Failover
                   </label>
                   <input
                     type="number"
                     value={selectedRule.maxRetries}
                     onChange={(e) => setSelectedRule({ ...selectedRule, maxRetries: Number(e.target.value) })}
-                    className="w-full p-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                    className="w-full p-2 rounded-lg border border-[#E5E7EB] dark:border-[#4B5563] bg-white dark:bg-[#111827] text-[#111827] dark:text-white"
                   />
                 </div>
               </div>
@@ -904,24 +904,24 @@ export const AdminMultiGatewayView: React.FC = () => {
                   id="chk-autofailover"
                   checked={selectedRule.autoFailover}
                   onChange={(e) => setSelectedRule({ ...selectedRule, autoFailover: e.target.checked })}
-                  className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 w-4 h-4"
+                  className="rounded border-[#E5E7EB] text-[#0F2D5C] focus:ring-[#0F2D5C] w-4 h-4"
                 />
-                <label htmlFor="chk-autofailover" className="font-semibold text-slate-800 dark:text-slate-200">
+                <label htmlFor="chk-autofailover" className="font-semibold text-[#111827] dark:text-[#E5E7EB]">
                   Enable Automatic Instant Failover to Secondary Gateway
                 </label>
               </div>
 
-              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end space-x-2">
+              <div className="pt-4 border-t border-[#E5E7EB] dark:border-[#111827] flex items-center justify-end space-x-2">
                 <button
                   type="button"
                   onClick={() => setIsEditingRule(false)}
-                  className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition font-semibold"
+                  className="px-4 py-2 rounded-lg bg-[#E5E7EB] dark:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB] hover:bg-[#E5E7EB] transition font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition font-semibold shadow-sm"
+                  className="px-4 py-2 rounded-lg bg-[#0F2D5C] text-white hover:bg-[#0F2D5C] transition font-semibold shadow-sm"
                 >
                   Save Routing Rule
                 </button>
@@ -933,15 +933,15 @@ export const AdminMultiGatewayView: React.FC = () => {
 
       {/* QUEUE ASYNC JOB MODAL */}
       {isQueueModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-xl max-w-md w-full border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-            <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-              <h3 className="font-bold text-slate-900 dark:text-white text-base">
+        <div className="fixed inset-0 bg-[#111827]/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#111827] rounded-xl max-w-md w-full border border-[#E5E7EB] dark:border-[#111827] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div className="p-5 border-b border-[#E5E7EB] dark:border-[#111827] flex items-center justify-between">
+              <h3 className="font-bold text-[#111827] dark:text-white text-base">
                 Queue Background Identity Job
               </h3>
               <button
                 onClick={() => setIsQueueModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                className="text-[#9CA3AF] hover:text-[#4B5563] dark:hover:text-[#E5E7EB]"
               >
                 ✕
               </button>
@@ -949,13 +949,13 @@ export const AdminMultiGatewayView: React.FC = () => {
 
             <form onSubmit={handleQueueJob} className="p-5 space-y-4 text-xs">
               <div>
-                <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block font-semibold text-[#4B5563] dark:text-[#E5E7EB] mb-1">
                   Verification Service
                 </label>
                 <select
                   value={newJobService}
                   onChange={(e) => setNewJobService(e.target.value)}
-                  className="w-full p-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                  className="w-full p-2 rounded-lg border border-[#E5E7EB] dark:border-[#4B5563] bg-white dark:bg-[#111827] text-[#111827] dark:text-white"
                 >
                   <option value="NIN">NIN Identity Verification</option>
                   <option value="BVN">BVN Banking Verification</option>
@@ -968,7 +968,7 @@ export const AdminMultiGatewayView: React.FC = () => {
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block font-semibold text-[#4B5563] dark:text-[#E5E7EB] mb-1">
                   Target Identification Number
                 </label>
                 <input
@@ -976,48 +976,48 @@ export const AdminMultiGatewayView: React.FC = () => {
                   value={newJobTargetId}
                   onChange={(e) => setNewJobTargetId(e.target.value)}
                   placeholder="e.g. 12345678901 (11 digits)"
-                  className="w-full p-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono"
+                  className="w-full p-2 rounded-lg border border-[#E5E7EB] dark:border-[#4B5563] bg-white dark:bg-[#111827] text-[#111827] dark:text-white font-mono"
                   required
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block font-semibold text-[#4B5563] dark:text-[#E5E7EB] mb-1">
                     User Identifier
                   </label>
                   <input
                     type="text"
                     value={newJobUserId}
                     onChange={(e) => setNewJobUserId(e.target.value)}
-                    className="w-full p-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono"
+                    className="w-full p-2 rounded-lg border border-[#E5E7EB] dark:border-[#4B5563] bg-white dark:bg-[#111827] text-[#111827] dark:text-white font-mono"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block font-semibold text-[#4B5563] dark:text-[#E5E7EB] mb-1">
                     Notification Email
                   </label>
                   <input
                     type="email"
                     value={newJobUserEmail}
                     onChange={(e) => setNewJobUserEmail(e.target.value)}
-                    className="w-full p-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                    className="w-full p-2 rounded-lg border border-[#E5E7EB] dark:border-[#4B5563] bg-white dark:bg-[#111827] text-[#111827] dark:text-white"
                   />
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end space-x-2">
+              <div className="pt-4 border-t border-[#E5E7EB] dark:border-[#111827] flex items-center justify-end space-x-2">
                 <button
                   type="button"
                   onClick={() => setIsQueueModalOpen(false)}
-                  className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition font-semibold"
+                  className="px-4 py-2 rounded-lg bg-[#E5E7EB] dark:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB] hover:bg-[#E5E7EB] transition font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition font-semibold shadow-sm"
+                  className="px-4 py-2 rounded-lg bg-[#0F2D5C] text-white hover:bg-[#0F2D5C] transition font-semibold shadow-sm"
                 >
                   Enqueue Verification
                 </button>

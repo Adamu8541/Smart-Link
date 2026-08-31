@@ -360,7 +360,7 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
   });
 
   return (
-    <div id="api-request-builder-page" className="p-4 md:p-8 space-y-6 max-w-[1600px] mx-auto text-slate-100">
+    <div id="api-request-builder-page" className="p-4 md:p-8 space-y-6 max-w-[1600px] mx-auto text-[#E5E7EB]">
       {/* Toast Notification */}
       <AnimatePresence>
         {toastMessage && (
@@ -370,8 +370,8 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
             exit={{ opacity: 0, y: -20 }}
             className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border ${
               toastMessage.type === "success"
-                ? "bg-emerald-950/90 text-emerald-300 border-emerald-800"
-                : "bg-rose-950/90 text-rose-300 border-rose-800"
+                ? "bg-[#0F2D5C]/90 text-[#9CA3AF] border-[#0F2D5C]"
+                : "bg-[#0F2D5C]/90 text-[#9CA3AF] border-[#0F2D5C]"
             }`}
           >
             {toastMessage.type === "success" ? <CheckCircle2 className="h-5 w-5 shrink-0" /> : <AlertTriangle className="h-5 w-5 shrink-0" />}
@@ -381,15 +381,15 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
       </AnimatePresence>
 
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-[#111827] border border-[#111827] rounded-3xl p-6 shadow-xl">
         <div className="space-y-1">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-blue-600/20 border border-blue-500/30 rounded-2xl text-blue-400">
+            <div className="p-3 bg-[#0F2D5C]/20 border border-[#0F2D5C]/30 rounded-2xl text-[#9CA3AF]">
               <Code className="h-6 w-6" />
             </div>
             <div>
               <h1 className="text-2xl font-bold text-white tracking-tight">API Request Builder</h1>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-[#9CA3AF]">
                 Dynamically create, modify, and test payment provider request templates stored directly in the database.
               </p>
             </div>
@@ -400,7 +400,7 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
           <button
             type="button"
             onClick={() => { fetchRequests(); fetchLogs(); }}
-            className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white font-medium text-xs flex items-center gap-2 transition cursor-pointer"
+            className="px-4 py-2.5 rounded-xl bg-[#111827] hover:bg-[#4B5563] border border-[#4B5563] text-[#E5E7EB] hover:text-white font-medium text-xs flex items-center gap-2 transition cursor-pointer"
           >
             <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
             Refresh
@@ -409,16 +409,16 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
           <button
             type="button"
             onClick={() => setIsLogsOpen(true)}
-            className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white font-medium text-xs flex items-center gap-2 transition cursor-pointer"
+            className="px-4 py-2.5 rounded-xl bg-[#111827] hover:bg-[#4B5563] border border-[#4B5563] text-[#E5E7EB] hover:text-white font-medium text-xs flex items-center gap-2 transition cursor-pointer"
           >
-            <FileText className="h-4 w-4 text-purple-400" />
+            <FileText className="h-4 w-4 text-[#9CA3AF]" />
             Execution Logs ({logs.length})
           </button>
 
           <button
             type="button"
             onClick={handleCreateNew}
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-xs flex items-center gap-2 shadow-lg shadow-blue-600/20 transition cursor-pointer"
+            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0F2D5C] to-[#0F2D5C] hover:from-[#0F2D5C] hover:to-[#0F2D5C] text-white font-semibold text-xs flex items-center gap-2 shadow-lg shadow-none transition cursor-pointer"
           >
             <Plus className="h-4 w-4" />
             Add Request Config
@@ -429,13 +429,13 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
       {/* Filters & Search Bar */}
       <div className="grid md:grid-cols-12 gap-4 items-center">
         <div className="md:col-span-6 relative">
-          <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-500" />
+          <Search className="absolute left-3.5 top-3 h-4 w-4 text-[#6B7280]" />
           <input
             type="text"
             placeholder="Search request name, provider, or endpoint URL..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-900 border border-slate-800 rounded-2xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition"
+            className="w-full bg-[#111827] border border-[#111827] rounded-2xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#0F2D5C] transition"
           />
         </div>
 
@@ -443,7 +443,7 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
           <select
             value={selectedProvider}
             onChange={(e) => setSelectedProvider(e.target.value)}
-            className="w-full bg-slate-900 border border-slate-800 rounded-2xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500 transition"
+            className="w-full bg-[#111827] border border-[#111827] rounded-2xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C] transition"
           >
             <option value="ALL">All Providers ({requests.length})</option>
             {PROVIDER_OPTIONS.map((p) => (
@@ -456,7 +456,7 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full bg-slate-900 border border-slate-800 rounded-2xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500 transition"
+            className="w-full bg-[#111827] border border-[#111827] rounded-2xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C] transition"
           >
             <option value="ALL">All Statuses</option>
             <option value="ENABLED">Enabled Only</option>
@@ -466,18 +466,18 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
       </div>
 
       {/* Requests Table / Cards */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-xl">
+      <div className="bg-[#111827] border border-[#111827] rounded-3xl overflow-hidden shadow-xl">
         {isLoading ? (
           <div className="p-12 text-center space-y-3">
-            <RefreshCw className="h-8 w-8 text-blue-500 animate-spin mx-auto" />
-            <p className="text-sm text-slate-400">Loading API request configurations...</p>
+            <RefreshCw className="h-8 w-8 text-[#0F2D5C] animate-spin mx-auto" />
+            <p className="text-sm text-[#9CA3AF]">Loading API request configurations...</p>
           </div>
         ) : filteredRequests.length === 0 ? (
           <div className="p-12 text-center space-y-4">
-            <Database className="h-12 w-12 text-slate-700 mx-auto" />
+            <Database className="h-12 w-12 text-[#4B5563] mx-auto" />
             <div className="space-y-1">
               <h3 className="text-base font-semibold text-white">No API Requests Found</h3>
-              <p className="text-xs text-slate-400 max-w-md mx-auto">
+              <p className="text-xs text-[#9CA3AF] max-w-md mx-auto">
                 {searchQuery || selectedProvider !== "ALL" || statusFilter !== "ALL"
                   ? "No request templates match your filter parameters."
                   : "Start by creating your first dynamic API request template for payment providers."}
@@ -486,7 +486,7 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
             <button
               type="button"
               onClick={handleCreateNew}
-              className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs inline-flex items-center gap-2 transition cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-medium text-xs inline-flex items-center gap-2 transition cursor-pointer"
             >
               <Plus className="h-4 w-4" />
               Create Request Template
@@ -495,7 +495,7 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-950/60 text-slate-400 border-b border-slate-800">
+              <thead className="bg-[#111827]/60 text-[#9CA3AF] border-b border-[#111827]">
                 <tr>
                   <th className="px-6 py-4 font-semibold uppercase tracking-wider">Provider / Name</th>
                   <th className="px-6 py-4 font-semibold uppercase tracking-wider">HTTP Method & Endpoint</th>
@@ -504,19 +504,19 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
                   <th className="px-6 py-4 font-semibold uppercase tracking-wider text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 text-slate-300">
+              <tbody className="divide-y divide-[#6B7280] text-[#E5E7EB]">
                 {filteredRequests.map((req) => (
-                  <tr key={req.id} className="hover:bg-slate-800/30 transition">
+                  <tr key={req.id} className="hover:bg-[#111827]/30 transition">
                     {/* Provider / Name */}
                     <td className="px-6 py-4">
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="px-2 py-0.5 rounded-md bg-blue-950/80 border border-blue-800/60 text-blue-400 font-mono text-[10px] font-semibold">
+                          <span className="px-2 py-0.5 rounded-md bg-[#0F2D5C]/80 border border-[#0F2D5C]/60 text-[#9CA3AF] font-mono text-[10px] font-semibold">
                             {req.provider}
                           </span>
                         </div>
                         <p className="font-bold text-white text-sm">{req.requestName}</p>
-                        {req.notes && <p className="text-[11px] text-slate-400 truncate max-w-xs">{req.notes}</p>}
+                        {req.notes && <p className="text-[11px] text-[#9CA3AF] truncate max-w-xs">{req.notes}</p>}
                       </div>
                     </td>
 
@@ -527,18 +527,18 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
                           <span
                             className={`px-2 py-0.5 rounded font-mono text-[10px] font-extrabold ${
                               req.httpMethod === "POST"
-                                ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
+                                ? "bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C]"
                                 : req.httpMethod === "GET"
-                                ? "bg-blue-950 text-blue-400 border border-blue-800"
+                                ? "bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C]"
                                 : req.httpMethod === "PUT"
-                                ? "bg-amber-950 text-amber-400 border border-amber-800"
-                                : "bg-rose-950 text-rose-400 border border-rose-800"
+                                ? "bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C]"
+                                : "bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C]"
                             }`}
                           >
                             {req.httpMethod}
                           </span>
                         </div>
-                        <p className="font-mono text-[11px] text-slate-300 truncate max-w-md select-all" title={req.endpoint}>
+                        <p className="font-mono text-[11px] text-[#E5E7EB] truncate max-w-md select-all" title={req.endpoint}>
                           {req.endpoint}
                         </p>
                       </div>
@@ -547,11 +547,11 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
                     {/* Auth & Content Type */}
                     <td className="px-6 py-4">
                       <div className="space-y-1">
-                        <div className="flex items-center gap-1.5 text-slate-300">
-                          <Key className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                        <div className="flex items-center gap-1.5 text-[#E5E7EB]">
+                          <Key className="h-3.5 w-3.5 text-[#9CA3AF] shrink-0" />
                           <span className="font-medium text-xs">{req.authType}</span>
                         </div>
-                        <p className="text-[10px] font-mono text-slate-400">{req.contentType}</p>
+                        <p className="text-[10px] font-mono text-[#9CA3AF]">{req.contentType}</p>
                       </div>
                     </td>
 
@@ -562,11 +562,11 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
                         onClick={(e) => handleToggleStatus(req.id, e)}
                         className={`px-3 py-1 rounded-full font-semibold text-[10px] border transition cursor-pointer inline-flex items-center gap-1.5 ${
                           req.status === "ENABLED"
-                            ? "bg-emerald-950/80 text-emerald-300 border-emerald-800 hover:bg-emerald-900"
-                            : "bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700"
+                            ? "bg-[#0F2D5C]/80 text-[#9CA3AF] border-[#0F2D5C] hover:bg-[#0F2D5C]"
+                            : "bg-[#111827] text-[#9CA3AF] border-[#4B5563] hover:bg-[#4B5563]"
                         }`}
                       >
-                        <span className={`h-1.5 w-1.5 rounded-full ${req.status === "ENABLED" ? "bg-emerald-400 animate-pulse" : "bg-slate-500"}`} />
+                        <span className={`h-1.5 w-1.5 rounded-full ${req.status === "ENABLED" ? "bg-[#0F2D5C] animate-pulse" : "bg-[#6B7280]"}`} />
                         {req.status}
                       </button>
                     </td>
@@ -577,7 +577,7 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
                         <button
                           type="button"
                           onClick={() => handleRunTest(req)}
-                          className="p-2 rounded-xl bg-blue-950/80 hover:bg-blue-900 border border-blue-800/80 text-blue-300 hover:text-white transition cursor-pointer"
+                          className="p-2 rounded-xl bg-[#0F2D5C]/80 hover:bg-[#0F2D5C] border border-[#0F2D5C]/80 text-[#9CA3AF] hover:text-white transition cursor-pointer"
                           title="Test Request"
                         >
                           <Play className="h-3.5 w-3.5 fill-current" />
@@ -586,7 +586,7 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
                         <button
                           type="button"
                           onClick={() => handleEdit(req)}
-                          className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
+                          className="p-2 rounded-xl bg-[#111827] hover:bg-[#4B5563] border border-[#4B5563] text-[#E5E7EB] hover:text-white transition cursor-pointer"
                           title="Edit Configuration"
                         >
                           <Edit3 className="h-3.5 w-3.5" />
@@ -595,7 +595,7 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
                         <button
                           type="button"
                           onClick={() => handleDeleteRequest(req.id, req.requestName)}
-                          className="p-2 rounded-xl bg-rose-950/50 hover:bg-rose-900/80 border border-rose-900/80 text-rose-400 hover:text-rose-200 transition cursor-pointer"
+                          className="p-2 rounded-xl bg-[#0F2D5C]/50 hover:bg-[#0F2D5C]/80 border border-[#0F2D5C]/80 text-[#9CA3AF] hover:text-[#9CA3AF] transition cursor-pointer"
                           title="Delete Request"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -618,19 +618,19 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl my-8 space-y-6 max-h-[90vh] overflow-y-auto"
+              className="w-full max-w-4xl bg-[#111827] border border-[#111827] rounded-3xl p-6 md:p-8 shadow-2xl my-8 space-y-6 max-h-[90vh] overflow-y-auto"
             >
               {/* Modal Header */}
-              <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div className="flex items-center justify-between border-b border-[#111827] pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-blue-600/20 border border-blue-500/30 rounded-xl text-blue-400">
+                  <div className="p-2.5 bg-[#0F2D5C]/20 border border-[#0F2D5C]/30 rounded-xl text-[#9CA3AF]">
                     <Sliders className="h-5 w-5" />
                   </div>
                   <div>
                     <h2 className="text-lg font-bold text-white">
                       {activeRequest.id ? "Edit API Request Configuration" : "New Dynamic API Request"}
                     </h2>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-[#9CA3AF]">
                       Configure endpoints, authentication schemas, custom headers, and payload structures.
                     </p>
                   </div>
@@ -639,7 +639,7 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
                 <button
                   type="button"
                   onClick={() => setIsEditorOpen(false)}
-                  className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition cursor-pointer"
+                  className="p-2 rounded-xl bg-[#111827] hover:bg-[#4B5563] text-[#9CA3AF] hover:text-white transition cursor-pointer"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -649,14 +649,14 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
               <div className="grid md:grid-cols-2 gap-4 text-xs">
                 {/* Provider */}
                 <div className="space-y-1.5">
-                  <label className="font-semibold text-slate-300">Payment Provider *</label>
+                  <label className="font-semibold text-[#E5E7EB]">Payment Provider *</label>
                   <input
                     type="text"
                     list="provider-suggestions"
                     value={activeRequest.provider || ""}
                     onChange={(e) => setActiveRequest({ ...activeRequest, provider: e.target.value })}
                     placeholder="e.g. Aspfiy, Paystack, Squad"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-blue-500"
+                    className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-[#0F2D5C]"
                   />
                   <datalist id="provider-suggestions">
                     {PROVIDER_OPTIONS.map((p) => (
@@ -667,23 +667,23 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
 
                 {/* Request Name */}
                 <div className="space-y-1.5">
-                  <label className="font-semibold text-slate-300">Request Name *</label>
+                  <label className="font-semibold text-[#E5E7EB]">Request Name *</label>
                   <input
                     type="text"
                     value={activeRequest.requestName || ""}
                     onChange={(e) => setActiveRequest({ ...activeRequest, requestName: e.target.value })}
                     placeholder="e.g. Resolve Account Name, Initialize Payment"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-blue-500"
+                    className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-[#0F2D5C]"
                   />
                 </div>
 
                 {/* HTTP Method */}
                 <div className="space-y-1.5">
-                  <label className="font-semibold text-slate-300">HTTP Method *</label>
+                  <label className="font-semibold text-[#E5E7EB]">HTTP Method *</label>
                   <select
                     value={activeRequest.httpMethod || "POST"}
                     onChange={(e) => setActiveRequest({ ...activeRequest, httpMethod: e.target.value as any })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-blue-500"
+                    className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-[#0F2D5C]"
                   >
                     <option value="GET">GET</option>
                     <option value="POST">POST</option>
@@ -695,23 +695,23 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
 
                 {/* Endpoint */}
                 <div className="space-y-1.5 md:col-span-2">
-                  <label className="font-semibold text-slate-300">Endpoint URL *</label>
+                  <label className="font-semibold text-[#E5E7EB]">Endpoint URL *</label>
                   <input
                     type="text"
                     value={activeRequest.endpoint || ""}
                     onChange={(e) => setActiveRequest({ ...activeRequest, endpoint: e.target.value })}
                     placeholder="e.g. https://api.paystack.co/bank/resolve or https://api.aspfiy.com/v1/auth/login"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white font-mono focus:outline-none focus:border-blue-500"
+                    className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-white font-mono focus:outline-none focus:border-[#0F2D5C]"
                   />
                 </div>
 
                 {/* Authentication Type */}
                 <div className="space-y-1.5">
-                  <label className="font-semibold text-slate-300">Authentication Type</label>
+                  <label className="font-semibold text-[#E5E7EB]">Authentication Type</label>
                   <select
                     value={activeRequest.authType || "None"}
                     onChange={(e) => setActiveRequest({ ...activeRequest, authType: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-blue-500"
+                    className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-[#0F2D5C]"
                   >
                     {AUTH_TYPES.map((a) => (
                       <option key={a} value={a}>{a}</option>
@@ -721,11 +721,11 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
 
                 {/* Content Type */}
                 <div className="space-y-1.5">
-                  <label className="font-semibold text-slate-300">Content Type</label>
+                  <label className="font-semibold text-[#E5E7EB]">Content Type</label>
                   <select
                     value={activeRequest.contentType || "application/json"}
                     onChange={(e) => setActiveRequest({ ...activeRequest, contentType: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-blue-500"
+                    className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-[#0F2D5C]"
                   >
                     {CONTENT_TYPES.map((c) => (
                       <option key={c} value={c}>{c}</option>
@@ -735,34 +735,34 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
 
                 {/* Accept Header */}
                 <div className="space-y-1.5">
-                  <label className="font-semibold text-slate-300">Accept Header</label>
+                  <label className="font-semibold text-[#E5E7EB]">Accept Header</label>
                   <input
                     type="text"
                     value={activeRequest.acceptHeader || "application/json"}
                     onChange={(e) => setActiveRequest({ ...activeRequest, acceptHeader: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white font-mono focus:outline-none focus:border-blue-500"
+                    className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-white font-mono focus:outline-none focus:border-[#0F2D5C]"
                   />
                 </div>
 
                 {/* Authorization Header Override */}
                 <div className="space-y-1.5">
-                  <label className="font-semibold text-slate-300">Authorization Header (Override)</label>
+                  <label className="font-semibold text-[#E5E7EB]">Authorization Header (Override)</label>
                   <input
                     type="text"
                     value={activeRequest.authorizationHeader || ""}
                     onChange={(e) => setActiveRequest({ ...activeRequest, authorizationHeader: e.target.value })}
                     placeholder="e.g. Bearer sk_live_xxxxxxxx or Basic dXNlcjpwYXNz"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white font-mono focus:outline-none focus:border-blue-500"
+                    className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-white font-mono focus:outline-none focus:border-[#0F2D5C]"
                   />
                 </div>
 
                 {/* Body Format */}
                 <div className="space-y-1.5">
-                  <label className="font-semibold text-slate-300">Request Body Format</label>
+                  <label className="font-semibold text-[#E5E7EB]">Request Body Format</label>
                   <select
                     value={activeRequest.bodyFormat || "JSON"}
                     onChange={(e) => setActiveRequest({ ...activeRequest, bodyFormat: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-blue-500"
+                    className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-[#0F2D5C]"
                   >
                     {BODY_FORMATS.map((bf) => (
                       <option key={bf} value={bf}>{bf}</option>
@@ -772,11 +772,11 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
 
                 {/* Status */}
                 <div className="space-y-1.5">
-                  <label className="font-semibold text-slate-300">Status</label>
+                  <label className="font-semibold text-[#E5E7EB]">Status</label>
                   <select
                     value={activeRequest.status || "ENABLED"}
                     onChange={(e) => setActiveRequest({ ...activeRequest, status: e.target.value as any })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-blue-500"
+                    className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-[#0F2D5C]"
                   >
                     <option value="ENABLED">ENABLED</option>
                     <option value="DISABLED">DISABLED</option>
@@ -785,16 +785,16 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
               </div>
 
               {/* CUSTOM HEADERS SECTION (Unlimited) */}
-              <div className="space-y-3 pt-2 border-t border-slate-800">
+              <div className="space-y-3 pt-2 border-t border-[#111827]">
                 <div className="flex items-center justify-between">
                   <label className="font-bold text-xs text-white flex items-center gap-2">
-                    <Layers className="h-4 w-4 text-blue-400" />
+                    <Layers className="h-4 w-4 text-[#9CA3AF]" />
                     Custom Headers (Unlimited)
                   </label>
                   <button
                     type="button"
                     onClick={handleAddHeader}
-                    className="px-3 py-1.5 rounded-lg bg-blue-950 border border-blue-800 text-blue-300 hover:text-white font-medium text-xs flex items-center gap-1.5 cursor-pointer transition"
+                    className="px-3 py-1.5 rounded-lg bg-[#0F2D5C] border border-[#0F2D5C] text-[#9CA3AF] hover:text-white font-medium text-xs flex items-center gap-1.5 cursor-pointer transition"
                   >
                     <Plus className="h-3.5 w-3.5" />
                     Add Header
@@ -802,7 +802,7 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
                 </div>
 
                 {(!activeRequest.customHeaders || activeRequest.customHeaders.length === 0) ? (
-                  <p className="text-[11px] text-slate-500 italic">No custom headers added yet.</p>
+                  <p className="text-[11px] text-[#6B7280] italic">No custom headers added yet.</p>
                 ) : (
                   <div className="space-y-2">
                     {activeRequest.customHeaders.map((hdr, idx) => (
@@ -811,26 +811,26 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
                           type="checkbox"
                           checked={hdr.enabled !== false}
                           onChange={(e) => handleUpdateHeader(idx, "enabled", e.target.checked)}
-                          className="rounded border-slate-800 bg-slate-950 text-blue-600 focus:ring-0 cursor-pointer"
+                          className="rounded border-[#111827] bg-[#111827] text-[#0F2D5C] focus:ring-0 cursor-pointer"
                         />
                         <input
                           type="text"
                           placeholder="Header Name (e.g. x-api-key)"
                           value={hdr.key}
                           onChange={(e) => handleUpdateHeader(idx, "key", e.target.value)}
-                          className="w-1/2 bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-blue-500"
+                          className="w-1/2 bg-[#111827] border border-[#111827] rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-[#0F2D5C]"
                         />
                         <input
                           type="text"
                           placeholder="Header Value"
                           value={hdr.value}
                           onChange={(e) => handleUpdateHeader(idx, "value", e.target.value)}
-                          className="w-1/2 bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-blue-500"
+                          className="w-1/2 bg-[#111827] border border-[#111827] rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-[#0F2D5C]"
                         />
                         <button
                           type="button"
                           onClick={() => handleRemoveHeader(idx)}
-                          className="p-1.5 rounded-lg bg-rose-950/60 text-rose-400 hover:bg-rose-900 cursor-pointer transition shrink-0"
+                          className="p-1.5 rounded-lg bg-[#0F2D5C]/60 text-[#9CA3AF] hover:bg-[#0F2D5C] cursor-pointer transition shrink-0"
                         >
                           <X className="h-4 w-4" />
                         </button>
@@ -841,16 +841,16 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
               </div>
 
               {/* QUERY PARAMS SECTION */}
-              <div className="space-y-3 pt-2 border-t border-slate-800">
+              <div className="space-y-3 pt-2 border-t border-[#111827]">
                 <div className="flex items-center justify-between">
                   <label className="font-bold text-xs text-white flex items-center gap-2">
-                    <Sliders className="h-4 w-4 text-purple-400" />
+                    <Sliders className="h-4 w-4 text-[#9CA3AF]" />
                     Query Parameters
                   </label>
                   <button
                     type="button"
                     onClick={handleAddQueryParam}
-                    className="px-3 py-1.5 rounded-lg bg-purple-950 border border-purple-800 text-purple-300 hover:text-white font-medium text-xs flex items-center gap-1.5 cursor-pointer transition"
+                    className="px-3 py-1.5 rounded-lg bg-[#0F2D5C] border border-[#0F2D5C] text-[#9CA3AF] hover:text-white font-medium text-xs flex items-center gap-1.5 cursor-pointer transition"
                   >
                     <Plus className="h-3.5 w-3.5" />
                     Add Query Param
@@ -858,7 +858,7 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
                 </div>
 
                 {(!activeRequest.queryParams || activeRequest.queryParams.length === 0) ? (
-                  <p className="text-[11px] text-slate-500 italic">No query parameters defined.</p>
+                  <p className="text-[11px] text-[#6B7280] italic">No query parameters defined.</p>
                 ) : (
                   <div className="space-y-2">
                     {activeRequest.queryParams.map((qp, idx) => (
@@ -867,26 +867,26 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
                           type="checkbox"
                           checked={qp.enabled !== false}
                           onChange={(e) => handleUpdateQueryParam(idx, "enabled", e.target.checked)}
-                          className="rounded border-slate-800 bg-slate-950 text-purple-600 focus:ring-0 cursor-pointer"
+                          className="rounded border-[#111827] bg-[#111827] text-[#0F2D5C] focus:ring-0 cursor-pointer"
                         />
                         <input
                           type="text"
                           placeholder="Param Key (e.g. page)"
                           value={qp.key}
                           onChange={(e) => handleUpdateQueryParam(idx, "key", e.target.value)}
-                          className="w-1/2 bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-purple-500"
+                          className="w-1/2 bg-[#111827] border border-[#111827] rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-[#0F2D5C]"
                         />
                         <input
                           type="text"
                           placeholder="Param Value"
                           value={qp.value}
                           onChange={(e) => handleUpdateQueryParam(idx, "value", e.target.value)}
-                          className="w-1/2 bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-purple-500"
+                          className="w-1/2 bg-[#111827] border border-[#111827] rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-[#0F2D5C]"
                         />
                         <button
                           type="button"
                           onClick={() => handleRemoveQueryParam(idx)}
-                          className="p-1.5 rounded-lg bg-rose-950/60 text-rose-400 hover:bg-rose-900 cursor-pointer transition shrink-0"
+                          className="p-1.5 rounded-lg bg-[#0F2D5C]/60 text-[#9CA3AF] hover:bg-[#0F2D5C] cursor-pointer transition shrink-0"
                         >
                           <X className="h-4 w-4" />
                         </button>
@@ -897,9 +897,9 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
               </div>
 
               {/* REQUEST BODY SCHEMA / PAYLOAD */}
-              <div className="space-y-2 pt-2 border-t border-slate-800">
+              <div className="space-y-2 pt-2 border-t border-[#111827]">
                 <label className="font-bold text-xs text-white flex items-center gap-2">
-                  <Code className="h-4 w-4 text-emerald-400" />
+                  <Code className="h-4 w-4 text-[#9CA3AF]" />
                   Request Body Payload / Schema Template
                 </label>
                 <textarea
@@ -907,28 +907,28 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
                   value={activeRequest.bodyContent || ""}
                   onChange={(e) => setActiveRequest({ ...activeRequest, bodyContent: e.target.value })}
                   placeholder={`{\n  "account_number": "0123456789",\n  "bank_code": "058"\n}`}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-emerald-300 font-mono focus:outline-none focus:border-blue-500"
+                  className="w-full bg-[#111827] border border-[#111827] rounded-xl p-3 text-xs text-[#9CA3AF] font-mono focus:outline-none focus:border-[#0F2D5C]"
                 />
               </div>
 
               {/* NOTES */}
-              <div className="space-y-1.5 pt-2 border-t border-slate-800">
-                <label className="font-semibold text-xs text-slate-300">Administrator Notes</label>
+              <div className="space-y-1.5 pt-2 border-t border-[#111827]">
+                <label className="font-semibold text-xs text-[#E5E7EB]">Administrator Notes</label>
                 <textarea
                   rows={2}
                   value={activeRequest.notes || ""}
                   onChange={(e) => setActiveRequest({ ...activeRequest, notes: e.target.value })}
                   placeholder="Optional documentation notes or description for this request format..."
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-300 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-[#111827] border border-[#111827] rounded-xl p-3 text-xs text-[#E5E7EB] focus:outline-none focus:border-[#0F2D5C]"
                 />
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center justify-between pt-4 border-t border-slate-800">
+              <div className="flex items-center justify-between pt-4 border-t border-[#111827]">
                 <button
                   type="button"
                   onClick={() => handleRunTest()}
-                  className="px-4 py-2.5 rounded-xl bg-purple-950/80 border border-purple-800 text-purple-300 hover:text-white font-medium text-xs flex items-center gap-2 cursor-pointer transition"
+                  className="px-4 py-2.5 rounded-xl bg-[#0F2D5C]/80 border border-[#0F2D5C] text-[#9CA3AF] hover:text-white font-medium text-xs flex items-center gap-2 cursor-pointer transition"
                 >
                   <Play className="h-4 w-4 fill-current" />
                   Test Request Now
@@ -938,14 +938,14 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
                   <button
                     type="button"
                     onClick={() => setIsEditorOpen(false)}
-                    className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs cursor-pointer transition"
+                    className="px-4 py-2.5 rounded-xl bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] font-medium text-xs cursor-pointer transition"
                   >
                     Cancel
                   </button>
                   <button
                     type="button"
                     onClick={handleSaveRequest}
-                    className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-lg shadow-blue-600/30 cursor-pointer transition"
+                    className="px-6 py-2.5 rounded-xl bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-semibold text-xs shadow-lg shadow-none cursor-pointer transition"
                   >
                     Save Configuration
                   </button>
@@ -964,23 +964,23 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-3xl bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto"
+              className="w-full max-w-3xl bg-[#111827] border border-[#111827] rounded-3xl p-6 md:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto"
             >
-              <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div className="flex items-center justify-between border-b border-[#111827] pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-purple-600/20 border border-purple-500/30 rounded-xl text-purple-400">
+                  <div className="p-2.5 bg-[#0F2D5C]/20 border border-[#0F2D5C]/30 rounded-xl text-[#9CA3AF]">
                     <Play className="h-5 w-5 fill-current" />
                   </div>
                   <div>
                     <h2 className="text-lg font-bold text-white">Live API Request Tester</h2>
-                    <p className="text-xs text-slate-400">Executes HTTP call with configured headers and formats.</p>
+                    <p className="text-xs text-[#9CA3AF]">Executes HTTP call with configured headers and formats.</p>
                   </div>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => setIsTestRunnerOpen(false)}
-                  className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition cursor-pointer"
+                  className="p-2 rounded-xl bg-[#111827] hover:bg-[#4B5563] text-[#9CA3AF] hover:text-white transition cursor-pointer"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -988,11 +988,11 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
 
               {isTesting ? (
                 <div className="p-12 text-center space-y-4">
-                  <RefreshCw className="h-10 w-10 text-purple-500 animate-spin mx-auto" />
-                  <p className="text-sm font-medium text-slate-300">Sending HTTP request to endpoint...</p>
+                  <RefreshCw className="h-10 w-10 text-[#0F2D5C] animate-spin mx-auto" />
+                  <p className="text-sm font-medium text-[#E5E7EB]">Sending HTTP request to endpoint...</p>
                 </div>
               ) : testError ? (
-                <div className="p-6 bg-rose-950/50 border border-rose-900/80 rounded-2xl space-y-2 text-rose-300">
+                <div className="p-6 bg-[#0F2D5C]/50 border border-[#0F2D5C]/80 rounded-2xl space-y-2 text-[#9CA3AF]">
                   <div className="flex items-center gap-2 font-bold">
                     <AlertTriangle className="h-5 w-5" />
                     <span>Execution Error</span>
@@ -1002,46 +1002,46 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
               ) : testResultData ? (
                 <div className="space-y-6">
                   {/* Result Header Badge */}
-                  <div className="flex flex-wrap items-center justify-between gap-4 bg-slate-950 p-4 rounded-2xl border border-slate-800">
+                  <div className="flex flex-wrap items-center justify-between gap-4 bg-[#111827] p-4 rounded-2xl border border-[#111827]">
                     <div className="flex items-center gap-3">
                       <span
                         className={`px-3 py-1 rounded-full font-extrabold text-xs border ${
                           testResultData.testResult === "Success"
-                            ? "bg-emerald-950 text-emerald-300 border-emerald-800"
+                            ? "bg-[#0F2D5C] text-[#9CA3AF] border-[#0F2D5C]"
                             : testResultData.testResult === "Unauthorized"
-                            ? "bg-amber-950 text-amber-300 border-amber-800"
+                            ? "bg-[#0F2D5C] text-[#9CA3AF] border-[#0F2D5C]"
                             : testResultData.testResult === "Timeout"
-                            ? "bg-orange-950 text-orange-300 border-orange-800"
-                            : "bg-rose-950 text-rose-300 border-rose-800"
+                            ? "bg-[#0F2D5C] text-[#9CA3AF] border-[#0F2D5C]"
+                            : "bg-[#0F2D5C] text-[#9CA3AF] border-[#0F2D5C]"
                         }`}
                       >
                         {testResultData.testResult}
                       </span>
-                      <span className="font-mono text-xs text-slate-300">
+                      <span className="font-mono text-xs text-[#E5E7EB]">
                         Status: <strong className="text-white">{testResultData.httpStatus} {testResultData.statusText}</strong>
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
-                      <Clock className="h-4 w-4 text-blue-400" />
-                      <span>Response Time: <strong className="text-emerald-400">{testResultData.responseTime} ms</strong></span>
+                    <div className="flex items-center gap-2 text-xs font-mono text-[#9CA3AF]">
+                      <Clock className="h-4 w-4 text-[#9CA3AF]" />
+                      <span>Response Time: <strong className="text-[#9CA3AF]">{testResultData.responseTime} ms</strong></span>
                     </div>
                   </div>
 
                   {/* Response Headers */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <label className="font-bold text-xs text-slate-300">Response Headers</label>
+                      <label className="font-bold text-xs text-[#E5E7EB]">Response Headers</label>
                       <button
                         type="button"
                         onClick={() => handleCopyText(JSON.stringify(testResultData.responseHeaders, null, 2), "resHeaders")}
-                        className="text-[11px] text-blue-400 hover:underline flex items-center gap-1 cursor-pointer"
+                        className="text-[11px] text-[#9CA3AF] hover:underline flex items-center gap-1 cursor-pointer"
                       >
                         {copiedKey === "resHeaders" ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                         Copy
                       </button>
                     </div>
-                    <pre className="p-3 bg-slate-950 border border-slate-800 rounded-xl text-[11px] text-slate-300 font-mono overflow-x-auto max-h-36">
+                    <pre className="p-3 bg-[#111827] border border-[#111827] rounded-xl text-[11px] text-[#E5E7EB] font-mono overflow-x-auto max-h-36">
                       {JSON.stringify(testResultData.responseHeaders || {}, null, 2)}
                     </pre>
                   </div>
@@ -1049,28 +1049,28 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
                   {/* Response Body */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <label className="font-bold text-xs text-slate-300">Response Body</label>
+                      <label className="font-bold text-xs text-[#E5E7EB]">Response Body</label>
                       <button
                         type="button"
                         onClick={() => handleCopyText(testResultData.responseBody || "", "resBody")}
-                        className="text-[11px] text-blue-400 hover:underline flex items-center gap-1 cursor-pointer"
+                        className="text-[11px] text-[#9CA3AF] hover:underline flex items-center gap-1 cursor-pointer"
                       >
                         {copiedKey === "resBody" ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                         Copy
                       </button>
                     </div>
-                    <pre className="p-4 bg-slate-950 border border-slate-800 rounded-xl text-xs text-emerald-400 font-mono overflow-x-auto max-h-64 whitespace-pre-wrap">
+                    <pre className="p-4 bg-[#111827] border border-[#111827] rounded-xl text-xs text-[#9CA3AF] font-mono overflow-x-auto max-h-64 whitespace-pre-wrap">
                       {testResultData.responseBody || "Empty Response"}
                     </pre>
                   </div>
                 </div>
               ) : null}
 
-              <div className="flex justify-end pt-4 border-t border-slate-800">
+              <div className="flex justify-end pt-4 border-t border-[#111827]">
                 <button
                   type="button"
                   onClick={() => setIsTestRunnerOpen(false)}
-                  className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-medium text-xs transition cursor-pointer"
+                  className="px-5 py-2.5 rounded-xl bg-[#111827] hover:bg-[#4B5563] text-white font-medium text-xs transition cursor-pointer"
                 >
                   Close
                 </button>
@@ -1088,37 +1088,37 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-5xl bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto"
+              className="w-full max-w-5xl bg-[#111827] border border-[#111827] rounded-3xl p-6 md:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto"
             >
-              <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div className="flex items-center justify-between border-b border-[#111827] pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-blue-600/20 border border-blue-500/30 rounded-xl text-blue-400">
+                  <div className="p-2.5 bg-[#0F2D5C]/20 border border-[#0F2D5C]/30 rounded-xl text-[#9CA3AF]">
                     <FileText className="h-5 w-5" />
                   </div>
                   <div>
                     <h2 className="text-lg font-bold text-white">API Request Execution Audit Logs</h2>
-                    <p className="text-xs text-slate-400">Audit trail of tested endpoints, latencies, and HTTP status codes.</p>
+                    <p className="text-xs text-[#9CA3AF]">Audit trail of tested endpoints, latencies, and HTTP status codes.</p>
                   </div>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => setIsLogsOpen(false)}
-                  className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition cursor-pointer"
+                  className="p-2 rounded-xl bg-[#111827] hover:bg-[#4B5563] text-[#9CA3AF] hover:text-white transition cursor-pointer"
                 >
                   <X className="h-5 w-5" />
                 </button>
               </div>
 
               {logs.length === 0 ? (
-                <div className="p-12 text-center text-slate-500 space-y-2">
-                  <Clock className="h-10 w-10 mx-auto text-slate-700" />
+                <div className="p-12 text-center text-[#6B7280] space-y-2">
+                  <Clock className="h-10 w-10 mx-auto text-[#4B5563]" />
                   <p className="text-sm">No test logs recorded yet.</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto border border-slate-800 rounded-2xl">
+                <div className="overflow-x-auto border border-[#111827] rounded-2xl">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-950 text-slate-400 border-b border-slate-800">
+                    <thead className="bg-[#111827] text-[#9CA3AF] border-b border-[#111827]">
                       <tr>
                         <th className="px-4 py-3 font-semibold">Request / Provider</th>
                         <th className="px-4 py-3 font-semibold">Result</th>
@@ -1128,30 +1128,30 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
                         <th className="px-4 py-3 font-semibold">Date & Time</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800 text-slate-300 font-mono">
+                    <tbody className="divide-y divide-[#6B7280] text-[#E5E7EB] font-mono">
                       {logs.map((log) => (
-                        <tr key={log.id} className="hover:bg-slate-800/40">
+                        <tr key={log.id} className="hover:bg-[#111827]/40">
                           <td className="px-4 py-3 font-sans">
                             <p className="font-bold text-white">{log.requestName}</p>
-                            <span className="text-[10px] text-blue-400">{log.provider}</span>
+                            <span className="text-[10px] text-[#9CA3AF]">{log.provider}</span>
                           </td>
                           <td className="px-4 py-3">
                             <span
                               className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                                 log.testResult === "Success"
-                                  ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
+                                  ? "bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C]"
                                   : log.testResult === "Unauthorized"
-                                  ? "bg-amber-950 text-amber-400 border border-amber-800"
-                                  : "bg-rose-950 text-rose-400 border border-rose-800"
+                                  ? "bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C]"
+                                  : "bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C]"
                               }`}
                             >
                               {log.testResult}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-slate-200">{log.httpStatus}</td>
-                          <td className="px-4 py-3 text-emerald-400">{log.responseTime} ms</td>
-                          <td className="px-4 py-3 font-sans text-slate-400">{log.testedBy}</td>
-                          <td className="px-4 py-3 text-[10px] text-slate-400">{new Date(log.date).toLocaleString()}</td>
+                          <td className="px-4 py-3 text-[#E5E7EB]">{log.httpStatus}</td>
+                          <td className="px-4 py-3 text-[#9CA3AF]">{log.responseTime} ms</td>
+                          <td className="px-4 py-3 font-sans text-[#9CA3AF]">{log.testedBy}</td>
+                          <td className="px-4 py-3 text-[10px] text-[#9CA3AF]">{new Date(log.date).toLocaleString()}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -1159,11 +1159,11 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
                 </div>
               )}
 
-              <div className="flex justify-end pt-4 border-t border-slate-800">
+              <div className="flex justify-end pt-4 border-t border-[#111827]">
                 <button
                   type="button"
                   onClick={() => setIsLogsOpen(false)}
-                  className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-medium text-xs transition cursor-pointer"
+                  className="px-5 py-2.5 rounded-xl bg-[#111827] hover:bg-[#4B5563] text-white font-medium text-xs transition cursor-pointer"
                 >
                   Close
                 </button>

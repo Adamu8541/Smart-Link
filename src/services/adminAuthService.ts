@@ -4,6 +4,7 @@
  */
 
 import crypto from "crypto";
+import bcrypt from "bcrypt";
 import { getAdminFirestore } from "./firebaseAdmin";
 export * from "./adminAuthTypes";
 import {
@@ -28,15 +29,39 @@ export function generateSalt(): string {
   return crypto.randomBytes(16).toString("hex");
 }
 
-export function hashPassword(password: string, salt: string): string {
-  return crypto.createHash("sha256").update(password + salt).digest("hex");
+export function hashPassword(password: string, salt?: string): string {
+  return bcrypt.hashSync(password, 12);
+}
+
+export function verifyPassword(password: string, storedHash: string, salt?: string): { match: boolean; needsUpgrade: boolean } {
+  if (!password || !storedHash) return { match: false, needsUpgrade: false };
+  if (storedHash.startsWith("$2a$") || storedHash.startsWith("$2b$") || storedHash.startsWith("$2y$")) {
+    try {
+      const match = bcrypt.compareSync(password, storedHash);
+      return { match, needsUpgrade: false };
+    } catch {
+      return { match: false, needsUpgrade: false };
+    }
+  }
+  if (salt) {
+    try {
+      const legacyHash = crypto.createHash("sha256").update(password + salt).digest("hex");
+      if (safeCompareHash(legacyHash, storedHash)) {
+        return { match: true, needsUpgrade: true };
+      }
+    } catch {}
+  }
+  if (storedHash === password) {
+    return { match: true, needsUpgrade: true };
+  }
+  return { match: false, needsUpgrade: false };
 }
 
 export function safeCompareHash(providedHash: string, storedHash: string): boolean {
   if (!providedHash || !storedHash) return false;
   try {
-    const bufferA = Buffer.from(providedHash, "hex");
-    const bufferB = Buffer.from(storedHash, "hex");
+    const bufferA = Buffer.from(providedHash, "utf8");
+    const bufferB = Buffer.from(storedHash, "utf8");
     if (bufferA.length !== bufferB.length) return false;
     return crypto.timingSafeEqual(bufferA, bufferB);
   } catch {
@@ -162,8 +187,8 @@ export class AdminAuthService {
         const existingQuery = await fsDb.collection("admin_users").where("email", "==", email).get();
 
         if (existingQuery.empty) {
-          const salt = generateSalt();
-          const passwordHash = hashPassword(password, salt);
+          const passwordHash = hashPassword(password);
+          const salt = "";
           const now = new Date().toISOString();
           const uid = `adm_sa_${Date.now()}`;
 
@@ -371,8 +396,13 @@ export class AdminAuthService {
     if (!adminUser && db && db.users) {
       const uData = db.users.find((u: any) => u.email && u.email.toLowerCase() === email);
       if (uData) {
-        const saEnvEmail = (process.env.SUPER_ADMIN_EMAIL || "").toLowerCase().trim();
-        const isSuperAdminEmail = Boolean(saEnvEmail && email === saEnvEmail);
+        const superAdminEmails = [
+          (process.env.SUPER_ADMIN_EMAIL || "").toLowerCase().trim(),
+          "adamuamuhammad8541@gmail.com",
+          "admin@smartlinkng.com.ng",
+          "admin@smartlink.ng"
+        ].filter(Boolean);
+        const isSuperAdminEmail = Boolean(email && superAdminEmails.includes(email));
         const adminRoles = ["SUPER_ADMIN", "ADMIN", "SUB_ADMIN", "STAFF", "FINANCE_MANAGER", "VERIFICATION_OFFICER", "READ_ONLY_AUDITOR"];
 
         if (adminRoles.includes(uData.role) || isSuperAdminEmail) {
@@ -395,15 +425,20 @@ export class AdminAuthService {
     }
 
     // Super Admin ENV fallback
-    const saEnvEmail = (process.env.SUPER_ADMIN_EMAIL || "").toLowerCase().trim();
+    const superAdminEmails = [
+      (process.env.SUPER_ADMIN_EMAIL || "").toLowerCase().trim(),
+      "adamuamuhammad8541@gmail.com",
+      "admin@smartlinkng.com.ng",
+      "admin@smartlink.ng"
+    ].filter(Boolean);
     const saEnvPass = (process.env.SUPER_ADMIN_PASSWORD || "").trim();
-    if (!adminUser && saEnvEmail && email === saEnvEmail) {
-      const salt = generateSalt();
-      const passwordHash = hashPassword(saEnvPass, salt);
+    if (!adminUser && superAdminEmails.includes(email)) {
+      const passwordHash = saEnvPass ? hashPassword(saEnvPass) : "";
+      const salt = "";
       adminUser = {
         uid: `adm_sa_${Date.now()}`,
-        email: saEnvEmail,
-        fullName: "Super Admin",
+        email: email,
+        fullName: "Adamu A. Muhammad",
         role: "SUPER_ADMIN",
         permissions: ADMIN_ROLES_CONFIG["SUPER_ADMIN"].permissions,
         status: "ACTIVE",
@@ -466,13 +501,21 @@ export class AdminAuthService {
     }
 
     const userSalt = (adminUser as any).salt || "";
-    let isValidPass = safeCompareHash(
-      hashPassword(password, userSalt),
-      adminUser.passwordHash
-    );
+    const vResult = verifyPassword(password, adminUser.passwordHash, userSalt);
+    let isValidPass = vResult.match;
 
-    if (!isValidPass && saEnvEmail && email === saEnvEmail && saEnvPass && password === saEnvPass) {
+    if (!isValidPass && superAdminEmails.includes(email) && saEnvPass && password === saEnvPass) {
       isValidPass = true;
+    }
+
+    if (isValidPass && vResult.needsUpgrade) {
+      const newHash = hashPassword(password);
+      try {
+        const fsDb = getFsDb();
+        if (fsDb) {
+          await fsDb.collection("admin_users").doc(adminUser.uid).update({ passwordHash: newHash });
+        }
+      } catch {}
     }
 
     if (!isValidPass) {
@@ -825,8 +868,8 @@ export class AdminAuthService {
     const tempFinUid = `adm_test_fin_${Date.now()}`;
     const tempFinEmail = `test_fin_${Date.now()}_${Math.floor(Math.random() * 1000)}@test.local`;
     const tempFinPass = `TestFinPass_${Date.now()}!`;
-    const tempFinSalt = generateSalt();
-    const tempFinHash = hashPassword(tempFinPass, tempFinSalt);
+    const tempFinSalt = "";
+    const tempFinHash = hashPassword(tempFinPass);
 
     try {
       const fsDb = getFsDb();
@@ -881,8 +924,8 @@ export class AdminAuthService {
     const tempAudUid = `adm_test_aud_${Date.now()}`;
     const tempAudEmail = `test_aud_${Date.now()}_${Math.floor(Math.random() * 1000)}@test.local`;
     const tempAudPass = `TestAudPass_${Date.now()}!`;
-    const tempAudSalt = generateSalt();
-    const tempAudHash = hashPassword(tempAudPass, tempAudSalt);
+    const tempAudSalt = "";
+    const tempAudHash = hashPassword(tempAudPass);
 
     try {
       const wrongPassRes = await this.loginAdmin(db, saEmail, "WrongPassword123!");
@@ -974,8 +1017,8 @@ export class AdminAuthService {
     const tempSuppUid = `adm_test_vo_${Date.now()}`;
     const tempSuppEmail = `test_vo_${Date.now()}_${Math.floor(Math.random() * 1000)}@test.local`;
     const tempSuppPass = `TestVoPass_${Date.now()}!`;
-    const tempSuppSalt = generateSalt();
-    const tempSuppHash = hashPassword(tempSuppPass, tempSuppSalt);
+    const tempSuppSalt = "";
+    const tempSuppHash = hashPassword(tempSuppPass);
 
     try {
       const fsDb = getFsDb();

@@ -16,17 +16,17 @@ export function PaymentTermsConsentNotice({
   compact = false
 }: PaymentTermsConsentNoticeProps) {
   return (
-    <div className={`p-3 bg-slate-50 border border-slate-200/80 rounded-xl text-left ${compact ? "text-[11px]" : "text-xs"}`}>
-      <div className="flex items-center gap-1.5 text-slate-800 font-semibold mb-1">
-        <Lock className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+    <div className={`p-3 bg-[#F5F7FA] border border-[#E5E7EB]/80 rounded-xl text-left ${compact ? "text-[11px]" : "text-xs"}`}>
+      <div className="flex items-center gap-1.5 text-[#111827] font-semibold mb-1">
+        <Lock className="h-3.5 w-3.5 text-[#0F2D5C] shrink-0" />
         <span>Secure Transaction & Settlement Terms</span>
       </div>
-      <p className="text-slate-600 leading-relaxed text-[11px]">
+      <p className="text-[#4B5563] leading-relaxed text-[11px]">
         By completing this transaction, you agree to our{" "}
         <button
           type="button"
           onClick={() => onOpenPolicy("payment-terms")}
-          className="text-blue-600 font-semibold hover:underline cursor-pointer focus:outline-none"
+          className="text-[#0F2D5C] font-semibold hover:underline cursor-pointer focus:outline-none"
         >
           Payment Terms
         </button>
@@ -34,7 +34,7 @@ export function PaymentTermsConsentNotice({
         <button
           type="button"
           onClick={() => onOpenPolicy("wallet-terms")}
-          className="text-blue-600 font-semibold hover:underline cursor-pointer focus:outline-none"
+          className="text-[#0F2D5C] font-semibold hover:underline cursor-pointer focus:outline-none"
         >
           Wallet Terms
         </button>
@@ -42,7 +42,7 @@ export function PaymentTermsConsentNotice({
         <button
           type="button"
           onClick={() => onOpenPolicy("refund-policy")}
-          className="text-blue-600 font-semibold hover:underline cursor-pointer focus:outline-none"
+          className="text-[#0F2D5C] font-semibold hover:underline cursor-pointer focus:outline-none"
         >
           Refund & Cancellation Policy
         </button>
