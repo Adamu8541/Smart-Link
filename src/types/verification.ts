@@ -143,6 +143,8 @@ export interface VerificationErrorState {
 export type SlipFormatType =
   | "NIN_STANDARD" // Standard NIN Slip (NINS)
   | "NIN_REGULAR" // Regular NIN Slip
+  | "NIN_PREMIUM_GREEN" // Digital NIN Slip (Green Guilloche Security Pattern Card)
+  | "NIN_PREMIUM_WHITE" // Standard Premium NIN Slip (White Wallet Card)
   | "NIN_THERMAL" // POS Terminal Monochrome Mini Slip
   | "NIN_BASIC_LOOKUP" // Text / Raw Demographics Only (No Watermarked Slip)
   | "BVN_STANDARD" // Standard BVN Verification Slip

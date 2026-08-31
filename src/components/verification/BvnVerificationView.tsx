@@ -75,7 +75,7 @@ export function getBvnSlipOptions(siteConfig?: any): BvnSlipType3[] {
       label: "BVN Card",
       price: cardPrice,
       badge: "Plastic Card",
-      formatId: "BVN_PREMIUM_CARD",
+      formatId: "NIN_PREMIUM_WHITE",
     },
     {
       id: "BVN_SLIP_1",

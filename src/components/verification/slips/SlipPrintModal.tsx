@@ -32,6 +32,8 @@ import { FirestoreSlipService } from "../../../services/firestoreSlipService";
 import { SlipPrintEngine } from "../../../services/slipPrintEngine";
 import { EmailSlipService } from "../../../services/emailSlipService";
 import { NinStandardSlip } from "./NinStandardSlip";
+import { NimcDigitalGreenSlip } from "./NimcDigitalGreenSlip";
+import { NimcPremiumWhiteSlip } from "./NimcPremiumWhiteSlip";
 import { BvnVerificationSlip } from "./BvnVerificationSlip";
 import { ThermalReceiptSlip } from "./ThermalReceiptSlip";
 
@@ -52,7 +54,7 @@ export const SlipPrintModal: React.FC<SlipPrintModalProps> = ({
 }) => {
   const isBvn = verificationResult.service === "BVN";
   const [selectedFormat, setSelectedFormat] = useState<SlipFormatType>(
-    isBvn ? "BVN_STANDARD" : (initialFormat as string === "NIN_PREMIUM_WHITE" ? "NIN_STANDARD" : initialFormat)
+    isBvn ? "BVN_STANDARD" : initialFormat
   );
   const [isFoldable, setIsFoldable] = useState(true);
   const [paperWidth, setPaperWidth] = useState<"58mm" | "80mm">("80mm");
@@ -109,7 +111,7 @@ export const SlipPrintModal: React.FC<SlipPrintModalProps> = ({
 
     const elementId = "active-printable-slip";
     const filename = `SmartLink_${activeSlip.serviceType}_Slip_${activeSlip.identificationNumber}`;
-    const isCard = selectedFormat === "BVN_PREMIUM_CARD";
+    const isCard = selectedFormat === "NIN_PREMIUM_GREEN" || selectedFormat === "NIN_PREMIUM_WHITE";
 
     await SlipPrintEngine.exportToPdf({
       elementId,
@@ -402,6 +404,19 @@ export const SlipPrintModal: React.FC<SlipPrintModalProps> = ({
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
+              onClick={() => setSelectedFormat("NIN_PREMIUM_WHITE")}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
+                selectedFormat === "NIN_PREMIUM_WHITE"
+                  ? "bg-[#0F2D5C] text-white shadow-md shadow-blue-600/20"
+                  : "bg-[#E5E7EB] dark:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563]"
+              }`}
+            >
+              <CreditCard className="h-4 w-4" />
+              <span>Premium Slip</span>
+            </button>
+
+            <button
+              type="button"
               onClick={() => setSelectedFormat("NIN_STANDARD")}
               className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
                 selectedFormat === "NIN_STANDARD"
@@ -467,8 +482,8 @@ export const SlipPrintModal: React.FC<SlipPrintModalProps> = ({
             <div className="w-full flex flex-col items-center justify-center">
               {/* Slip Card Render Container targeted by ID */}
               <div id="active-printable-slip" className="w-full">
-                {activeSlip.serviceType === "BVN" || isBvn ? (
-                  <BvnVerificationSlip slip={activeSlip} />
+                {selectedFormat === "NIN_PREMIUM_WHITE" ? (
+                  <NimcPremiumWhiteSlip slip={activeSlip} isFoldable={isFoldable} />
                 ) : (
                   <NinStandardSlip slip={activeSlip} />
                 )}

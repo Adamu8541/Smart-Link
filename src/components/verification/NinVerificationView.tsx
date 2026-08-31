@@ -53,10 +53,19 @@ export function getNinSlipOptions(siteConfig?: any): NinSlipType3[] {
   const priceMatrix = siteConfig?.priceMatrix || {};
   const slipPrices = priceMatrix.slipPrices || siteConfig?.systemSettings?.slipPrices || {};
 
+  const premiumPrice = typeof slipPrices.PREMIUM === "number" ? slipPrices.PREMIUM : (typeof slipPrices.premium === "number" ? slipPrices.premium : 250);
   const standardPrice = typeof slipPrices.STANDARD === "number" ? slipPrices.STANDARD : (typeof slipPrices.standard === "number" ? slipPrices.standard : 200);
   const regularPrice = typeof slipPrices.REGULAR === "number" ? slipPrices.REGULAR : (typeof slipPrices.regular === "number" ? slipPrices.regular : 180);
 
   return [
+    {
+      id: "PREMIUM",
+      name: "Premium",
+      label: "Premium",
+      price: premiumPrice,
+      badge: "Plastic White Card",
+      formatId: "NIN_PREMIUM_WHITE",
+    },
     {
       id: "STANDARD",
       name: "Standard",

@@ -40,6 +40,27 @@ export interface ServiceSlipManifest {
 
 export const NIN_SLIP_OPTIONS: SlipOptionConfig[] = [
   {
+    id: "NIN_PREMIUM_WHITE",
+    name: "Premium Slip",
+    badge: "Plastic White Card",
+    badgeColor: "bg-[#F5F7FA] text-[#0F2D5C] border border-[#E5E7EB]",
+    price: 250,
+    description: "Dual-sided landscape wallet-sized white card format with high-resolution photograph, national seals, 2D barcode, and issue metadata.",
+    dimensions: "CR80 (85.6mm x 53.98mm - Standard ID Card)",
+    recommendedFor: "ID Card Printing, PVC Lamination, Wallets & Field Identification",
+    themeColor: "#2563eb",
+    bgGradient: "from-[#0F2D5C]/10 via-[#0F2D5C]/5 to-[#111827]/10",
+    features: [
+      "Front & Back Dual-Sided Card Layout",
+      "High-Resolution Biometric Photo",
+      "Wallet Card Size (PVC Printable)",
+      "Guilloche Security Watermark Pattern",
+      "Security QR Authentication Seal",
+    ],
+    isPopular: true,
+    sampleLayout: "PREMIUM_CARD",
+  },
+  {
     id: "NIN_STANDARD",
     name: "Standard Slip",
     badge: "Official Standard",
