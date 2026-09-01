@@ -1,8 +1,16 @@
 import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
+import * as Sentry from "@sentry/react";
 import App from './App.tsx';
 import { SiteConfigProvider } from './context/SiteConfigContext.tsx';
 import './index.css';
+
+// Initialize Sentry
+if (import.meta.env.VITE_SENTRY_DSN) {
+  Sentry.init({
+    dsn: import.meta.env.VITE_SENTRY_DSN,
+  });
+}
 
 // Suppress benign Vite WebSocket / HMR and iframe database lifecycle errors in sandboxed runtime environment
 if (typeof window !== 'undefined') {

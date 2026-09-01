@@ -1,3 +1,4 @@
+import retry from 'async-retry';
 import express from "express";
 import path from "path";
 import fs from "fs";
@@ -181,21 +182,38 @@ app.post("/api/services/vtu", async (req, res) => {
   }
 
   // 3. Send API purchase handshake request to active fallback provider using ONLY expected wholesale providerPlanId and raw baseCost
-  const providerResult = await ProviderExecutor.executeProviderCall(db, {
-    category: "TELECOM_VTU",
-    providerName: secondaryProvider,
-    userId,
-    customerId: phoneNumber,
-    phoneNumber,
-    amount: baseCost,
-    smartlinkReference: reference,
-    extraData: {
-      planId: providerPlanId,
-      providerPlanId,
-      wholesaleCost: baseCost,
-      network,
+  const providerResult = await retry(
+    async (bail) => {
+      const result = await ProviderExecutor.executeProviderCall(db, {
+        category: "TELECOM_VTU",
+        providerName: secondaryProvider,
+        userId,
+        customerId: phoneNumber,
+        phoneNumber,
+        amount: baseCost,
+        smartlinkReference: reference,
+        extraData: {
+          planId: providerPlanId,
+          providerPlanId,
+          wholesaleCost: baseCost,
+          network,
+        },
+      });
+      
+      // If result.success is false and it's a client error (e.g., 400-499), bail.
+      if (!result.success && result.statusCode && result.statusCode >= 400 && result.statusCode < 500) {
+        bail(new Error(result.error || "Permanent provider failure"));
+      } else if (!result.success) {
+        throw new Error(result.error || "Provider call failed, retrying...");
+      }
+      return result;
     },
-  });
+    {
+      retries: 3,
+      minTimeout: 1000,
+      onRetry: (err) => console.log(`Retry attempt for VTU: ${(err as Error).message}`),
+    }
+  );
 
   if (!providerResult.success) {
     // Atomically refund wallet if fallback provider call fails
@@ -302,16 +320,33 @@ app.post("/api/services/bill", async (req, res) => {
   const desc = `${provider} Bill Payment ${plan ? "(" + plan + ")" : ""} for Meter/ID: ${customerId}`;
 
   // Execute real provider call BEFORE debiting
-  const providerResult = await ProviderExecutor.executeProviderCall(db, {
-    category: "UTILITY_BILL",
-    providerName: provider,
-    userId,
-    customerId,
-    phoneNumber: customerId,
-    amount: amt,
-    smartlinkReference: reference,
-    extraData: { plan, category },
-  });
+  const providerResult = await retry(
+    async (bail) => {
+      const result = await ProviderExecutor.executeProviderCall(db, {
+        category: "UTILITY_BILL",
+        providerName: provider,
+        userId,
+        customerId,
+        phoneNumber: customerId,
+        amount: amt,
+        smartlinkReference: reference,
+        extraData: { plan, category },
+      });
+      
+      // If result.success is false and it's a client error (e.g., 400-499), bail.
+      if (!result.success && result.statusCode && result.statusCode >= 400 && result.statusCode < 500) {
+        bail(new Error(result.error || "Permanent provider failure"));
+      } else if (!result.success) {
+        throw new Error(result.error || "Provider call failed, retrying...");
+      }
+      return result;
+    },
+    {
+      retries: 3,
+      minTimeout: 1000,
+      onRetry: (err) => console.log(`Retry attempt for Bill: ${(err as Error).message}`),
+    }
+  );
 
   if (!providerResult.success) {
     return res.status(502).json({

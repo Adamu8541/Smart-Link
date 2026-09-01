@@ -11,43 +11,43 @@ export const LandingTrustSection: React.FC = () => {
   const trustBadges = [
     {
       id: "secure-payments",
-      title: "Secure Payments",
-      description: "Encrypted transactions via PCI-DSS compliant payment gateways and automated virtual accounts.",
+      title: "Secure Payment Environment",
+      description: "PCI-DSS Level 1 certified systems ensuring customer payment data is handled according to strict global security standards.",
       icon: ShieldCheck,
       badgeText: "PCI-DSS Level 1",
     },
     {
-      id: "fast-verification",
-      title: "Fast Verification",
-      description: "Third-party API connections for NIN, BVN, CAC, and FIRS lookups for sub-second responses.",
-      icon: Zap,
-      badgeText: "Sub-Second Latency",
-    },
-    {
-      id: "reliable-apis",
-      title: "Reliable APIs",
-      description: "Developer-first JSON APIs with extensive webhooks, sandbox environments, and zero setup fee.",
-      icon: Code,
-      badgeText: "99.99% SLA Uptime",
-    },
-    {
-      id: "247-availability",
-      title: "24/7 Availability",
-      description: "Round-the-clock service execution for identity lookups, utility bills, and scratch card tokens.",
-      icon: Clock,
-      badgeText: "24/7/365 Monitor",
-    },
-    {
-      id: "enterprise-security",
-      title: "Enterprise Security",
-      description: "NDPR compliant data handling, IP whitelist restriction, and strict role-based access control.",
+      id: "data-privacy",
+      title: "Data Privacy Focused",
+      description: "NDPR compliant processing, ensuring sensitive identity information is managed in strict accordance with Nigeria’s privacy regulations.",
       icon: Lock,
       badgeText: "NDPR Compliant",
+    },
+    {
+      id: "uninterrupted-service",
+      title: "Uninterrupted Service",
+      description: "Infrastructure designed for 99.99% availability, ensuring your operations remain online during peak demand.",
+      icon: Clock,
+      badgeText: "99.99% Uptime",
+    },
+    {
+      id: "rapid-api",
+      title: "Rapid API Performance",
+      description: "Optimized for efficiency, our sub-second API latency ensures your applications deliver fast, real-time results.",
+      icon: Zap,
+      badgeText: "Sub-second Latency",
+    },
+    {
+      id: "proactive-oversight",
+      title: "Proactive Oversight",
+      description: "Round-the-clock monitoring 24/7/365 to proactively detect and resolve potential issues before they impact your business flow.",
+      icon: Code,
+      badgeText: "24/7/365 Monitor",
     },
   ];
 
   return (
-    <section id="trust-section" className="py-16 bg-[#F5F7FA] border-b border-[#E5E7EB]">
+    <section id="trust-section" className="py-12 bg-[#F5F7FA] border-b border-[#E5E7EB]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header Title */}
@@ -57,10 +57,10 @@ export const LandingTrustSection: React.FC = () => {
             <span>Trusted Digital Platform</span>
           </div>
           <h2 className="text-2xl sm:text-4xl font-bold text-[#111827] tracking-tight">
-            Trusted by Nigerians for secure digital services
+            Built for Enterprise Reliability
           </h2>
           <p className="text-xs sm:text-sm text-[#4B5563] font-normal max-w-2xl mx-auto leading-relaxed">
-            Powering identity compliance, automated bill settlements, and corporate verification for individuals, financial institutions, tech startups, and government agencies nationwide.
+            Your business operations require infrastructure that is both stable and secure. SmartLink Nigeria provides the enterprise-grade foundation necessary to scale your verification and payment processes with absolute confidence.
           </p>
         </div>
 

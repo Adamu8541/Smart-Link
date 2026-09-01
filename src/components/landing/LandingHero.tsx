@@ -48,7 +48,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
   };
 
   return (
-    <section id="hero-section" className="relative overflow-hidden bg-white text-[#111827] pt-16 pb-20 lg:pt-24 lg:pb-32 border-b border-[#E5E7EB]">
+    <section id="hero-section" className="relative overflow-hidden bg-white text-[#111827] py-12 lg:pt-24 lg:pb-32 border-b border-[#E5E7EB]">
       
       {/* Background Subtle Overlay */}
       <div className="absolute inset-0 bg-[radial-gradient(rgba(15,45,92,0.04)_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none" />
@@ -63,9 +63,9 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.12] text-[#111827]"
           >
-            Verify Any Identity Instantly &{" "}
+            Digital Identity Verification and{" "}
             <span className="text-[#0F2D5C]">
-              Power Your Payments
+              Payments Platform
             </span>
           </motion.h1>
 
@@ -76,14 +76,35 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-base sm:text-lg text-[#4B5563] font-normal leading-relaxed max-w-2xl mx-auto"
           >
-            Streamline your business with high-velocity NIN, BVN, and CAC verifications, instant VTU router, and automated wallet operations on Nigeria's most reliable compliance gateway.
+            Built for agents, business and individual and offer services like NIN Slips/ID cards, BVN Slips, CAC Registration & Filing, Airtime and data purchase, identity lookup, verification and validation, SCUML registration, High Court Affidavits and many more
           </motion.p>
+
+          {/* Benefit Bullets */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-6 text-sm text-[#4B5563]"
+          >
+            <div className="flex items-center gap-2">
+              <Server className="h-4 w-4 text-[#0F2D5C]" />
+              <span>99.9% API Uptime</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-[#0F2D5C]" />
+              <span>Compliance-First Security</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Zap className="h-4 w-4 text-[#0F2D5C]" />
+              <span>Built for Scale</span>
+            </div>
+          </motion.div>
 
           {/* Action Buttons */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
             className="flex flex-col items-center justify-center gap-3 pt-2"
           >
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
@@ -92,21 +113,19 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                 onClick={onGetStarted}
                 className="w-full sm:w-auto px-8 py-4 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold rounded-xl text-sm shadow-xs transition-all active:scale-98 cursor-pointer flex items-center justify-center gap-2.5"
               >
-                Get Started
-                <ArrowRight className="h-4 w-4 text-white" />
+                Get Started for Free
+              </button>
+              <button
+                id="hero-secondary-btn"
+                onClick={onExploreServices}
+                className="w-full sm:w-auto px-8 py-4 bg-white hover:bg-[#F5F7FA] text-[#0F2D5C] border border-[#0F2D5C] font-bold rounded-xl text-sm shadow-xs transition-all active:scale-98 cursor-pointer flex items-center justify-center gap-2.5"
+              >
+                Explore Services
               </button>
             </div>
-
-            {onLogin && (
-              <button
-                id="hero-login-btn"
-                onClick={onLogin}
-                className="w-full sm:w-auto px-8 py-4 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold rounded-xl text-sm shadow-xs transition-all active:scale-98 cursor-pointer flex items-center justify-center gap-2.5"
-              >
-                Login
-                <ArrowRight className="h-4 w-4 text-white" />
-              </button>
-            )}
+            <p className="text-xs text-[#6B7280] pt-2">
+              No setup fees • Instant activation • Comprehensive documentation
+            </p>
           </motion.div>
 
         </div>

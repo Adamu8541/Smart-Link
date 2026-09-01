@@ -12,8 +12,8 @@ interface SEOHeadProps {
 }
 
 export const SEOHead: React.FC<SEOHeadProps> = ({
-  title = "SmartLink Nigeria | Nigeria's Trusted Digital Verification Platform",
-  description = "Verify identities, pay bills, manage your wallet, and access government and financial verification services from one secure platform in Nigeria.",
+  title = "SmartLink Nigeria: Secure Identity Verification & Payment APIs",
+  description = "SmartLink Nigeria provides reliable digital identity verification (NIN, BVN, CAC), instant utility payments, and robust APIs for developers and businesses. Verified. Instant. Secure.",
   canonicalUrl = "https://smartlinkng.com.ng",
 }) => {
   useEffect(() => {

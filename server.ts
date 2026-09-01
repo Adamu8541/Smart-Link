@@ -4,6 +4,7 @@
  */
 import express from "express";
 import path from "path";
+import helmet from "helmet";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
 
@@ -11,6 +12,7 @@ import { readDB, writeDB, initializeDB } from "./server/db";
 import { maintenanceMiddleware, isMaintenanceModeActive, getMaintenanceDetails, sanitizePublicSettings, seedModule7SettingsIfEmpty, getValueByJsonPath } from "./server/middleware/maintenance";
 import { verifyUserOrAdminSession } from "./server/middleware/auth";
 import { getAI } from "./server/services/ai";
+import { connectRedis } from "./server/redis";
 
 // Import modular route handlers
 import publicRoutes from "./server/routes/public.routes";
@@ -50,6 +52,12 @@ dotenv.config();
 
 const app = express();
 const PORT = 3000;
+
+// Security Headers
+app.use(helmet({
+  frameguard: false,
+  contentSecurityPolicy: false,
+}));
 
 // CORS setup for custom domains smartlinkng.com.ng
 app.use((req, res, next) => {
@@ -119,6 +127,7 @@ app.all("/api/*", (req, res) => {
 let serverInstance: any = null;
 
 async function startServer() {
+  // await connectRedis(); // Temporarily disabled due to missing Redis service in this environment
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },

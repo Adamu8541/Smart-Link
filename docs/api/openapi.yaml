@@ -1,0 +1,49 @@
+openapi: 3.0.0
+info:
+  title: SmartLink Nigeria API
+  version: 1.0.0
+  description: API for identity verification and utility payments in Nigeria.
+servers:
+  - url: https://api.smartlink.ng
+paths:
+  /api/verify/identity:
+    post:
+      summary: Verify Identity (NIN/BVN)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                type:
+                  type: string
+                  enum: [NIN, BVN]
+                idNumber:
+                  type: string
+      responses:
+        '200':
+          description: Successful verification
+  /api/services/nin-verify:
+    post:
+      summary: NIN Verification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                nin:
+                  type: string
+                fullName:
+                  type: string
+                consent:
+                  type: boolean
+      responses:
+        '200':
+          description: Successful NIN verification
