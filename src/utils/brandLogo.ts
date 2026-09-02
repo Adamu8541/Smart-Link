@@ -5,7 +5,8 @@
 
 import type React from "react";
 
-export const DEFAULT_LOGO_URL = "/logo.png";
+export const DEFAULT_LOGO_URL = "/logo.webp";
+export const PNG_LOGO_URL = "/logo.png";
 
 /**
  * High-resolution embedded vector SVG Data URI of SmartLink Nigeria brand mark.
@@ -67,9 +68,13 @@ export function handleLogoError(e: React.SyntheticEvent<HTMLImageElement, Event>
 
   if (stage === "0") {
     img.dataset.fallbackStage = "1";
-    // If original src was not /logo.png, try /logo.png
-    if (img.src && !img.src.endsWith("/logo.png")) {
+    // If original src was not /logo.webp, try /logo.webp then PNG
+    if (img.src && !img.src.endsWith("/logo.webp") && !img.src.endsWith("/logo.png")) {
       img.src = DEFAULT_LOGO_URL;
+      return;
+    }
+    if (img.src && img.src.endsWith("/logo.webp")) {
+      img.src = PNG_LOGO_URL;
       return;
     }
   }

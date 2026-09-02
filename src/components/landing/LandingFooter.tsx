@@ -178,7 +178,7 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
                 <li key={item}>
                   <button
                     id={`footer-support-${item.toLowerCase().replace(/\s+/g, "-")}`}
-                    onClick={() => onNavigateSection("contact-section")}
+                    onClick={() => item === "FAQs" ? onNavigateSection("faq-section") : onNavigateSection("contact-section")}
                     className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors cursor-pointer bg-transparent border-none p-0 text-left font-medium"
                   >
                     {item}

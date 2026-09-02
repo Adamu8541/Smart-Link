@@ -3,38 +3,49 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, lazy, Suspense } from "react";
 import SmartLinkLandingPage from "./components/landing/SmartLinkLandingPage";
 import HeroSection from "./components/HeroSection";
-import ServicesGrid, { ServiceItem } from "./components/ServicesGrid";
-import ServiceModal from "./components/ServiceModal";
-import Dashboards from "./components/Dashboards";
 import Navigation from "./components/Navigation";
-import AdminLogin from "./components/admin/AdminLogin";
-import AdminGuard from "./components/admin/AdminGuard";
-import AdminDashboardOverview from "./components/admin/AdminDashboardOverview";
-import AdminDashboardLayout from "./components/admin/layout/AdminDashboardLayout";
-import AdminDashboardHome from "./components/admin/views/AdminDashboardHome";
-import AdminPermissionsView from "./components/admin/views/AdminPermissionsView";
-import { AdminUsersView } from "./components/admin/views/AdminUsersView";
-import { AdminWalletView } from "./components/admin/views/AdminWalletView";
-import { AdminTransactionsView } from "./components/admin/views/AdminTransactionsView";
-import { AdminProvidersView } from "./components/admin/views/AdminProvidersView";
-import { AdminMultiGatewayView } from "./components/admin/views/AdminMultiGatewayView";
-import ApiRequestBuilderView from "./components/admin/views/ApiRequestBuilderView";
-import ApiResponseMapperView from "./components/admin/views/ApiResponseMapperView";
-import { AdminSettingsView } from "./components/admin/views/AdminSettingsView";
-import { AdminNotificationsView } from "./components/admin/views/AdminNotificationsView";
-import { UserNotificationCenter } from "./components/notification/UserNotificationCenter";
-import { AdminSecurityView } from "./components/admin/views/AdminSecurityView";
-import { AdminServicesView } from "./components/admin/views/AdminServicesView";
-import { AdminReconciliationView } from "./components/admin/views/AdminReconciliationView";
-import { AdminLegalComplianceView } from "./components/admin/views/AdminLegalComplianceView";
-import {
-  AdminRefundsView,
-  AdminReportsView,
-  AdminSystemView,
-} from "./components/admin/views/AdminPlaceholderViews";
+import { RouteLoadingFallback } from "./components/common/RouteLoadingFallback";
+
+// Lazy-loaded routes & heavy components
+const ServicesGrid = lazy(() => import("./components/ServicesGrid"));
+const ServiceModal = lazy(() => import("./components/ServiceModal"));
+const Dashboards = lazy(() => import("./components/Dashboards"));
+const AdminLogin = lazy(() => import("./components/admin/AdminLogin"));
+const AdminGuard = lazy(() => import("./components/admin/AdminGuard"));
+const AdminDashboardOverview = lazy(() => import("./components/admin/AdminDashboardOverview"));
+const AdminDashboardLayout = lazy(() => import("./components/admin/layout/AdminDashboardLayout"));
+const AdminDashboardHome = lazy(() => import("./components/admin/views/AdminDashboardHome"));
+const AdminPermissionsView = lazy(() => import("./components/admin/views/AdminPermissionsView"));
+const AdminUsersView = lazy(() => import("./components/admin/views/AdminUsersView").then(m => ({ default: m.AdminUsersView })));
+const AdminWalletView = lazy(() => import("./components/admin/views/AdminWalletView").then(m => ({ default: m.AdminWalletView })));
+const AdminTransactionsView = lazy(() => import("./components/admin/views/AdminTransactionsView").then(m => ({ default: m.AdminTransactionsView })));
+const AdminProvidersView = lazy(() => import("./components/admin/views/AdminProvidersView").then(m => ({ default: m.AdminProvidersView })));
+const AdminMultiGatewayView = lazy(() => import("./components/admin/views/AdminMultiGatewayView").then(m => ({ default: m.AdminMultiGatewayView })));
+const ApiRequestBuilderView = lazy(() => import("./components/admin/views/ApiRequestBuilderView"));
+const ApiResponseMapperView = lazy(() => import("./components/admin/views/ApiResponseMapperView"));
+const AdminSettingsView = lazy(() => import("./components/admin/views/AdminSettingsView").then(m => ({ default: m.AdminSettingsView })));
+const AdminNotificationsView = lazy(() => import("./components/admin/views/AdminNotificationsView").then(m => ({ default: m.AdminNotificationsView })));
+const UserNotificationCenter = lazy(() => import("./components/notification/UserNotificationCenter").then(m => ({ default: m.UserNotificationCenter })));
+const AdminSecurityView = lazy(() => import("./components/admin/views/AdminSecurityView").then(m => ({ default: m.AdminSecurityView })));
+const AdminServicesView = lazy(() => import("./components/admin/views/AdminServicesView").then(m => ({ default: m.AdminServicesView })));
+const AdminReconciliationView = lazy(() => import("./components/admin/views/AdminReconciliationView").then(m => ({ default: m.AdminReconciliationView })));
+const AdminLegalComplianceView = lazy(() => import("./components/admin/views/AdminLegalComplianceView").then(m => ({ default: m.AdminLegalComplianceView })));
+const AdminRefundsView = lazy(() => import("./components/admin/views/AdminPlaceholderViews").then(m => ({ default: m.AdminRefundsView })));
+const AdminReportsView = lazy(() => import("./components/admin/views/AdminPlaceholderViews").then(m => ({ default: m.AdminReportsView })));
+const AdminSystemView = lazy(() => import("./components/admin/views/AdminPlaceholderViews").then(m => ({ default: m.AdminSystemView })));
+const ForgotPasswordView = lazy(() => import("./components/auth/ForgotPasswordView").then(m => ({ default: m.ForgotPasswordView })));
+const ResetPasswordView = lazy(() => import("./components/auth/ResetPasswordView").then(m => ({ default: m.ResetPasswordView })));
+const VerifyEmailView = lazy(() => import("./components/auth/VerifyEmailView").then(m => ({ default: m.VerifyEmailView })));
+const AuthActionHandler = lazy(() => import("./components/auth/AuthActionHandler").then(m => ({ default: m.AuthActionHandler })));
+const LegalCenter = lazy(() => import("./components/legal").then(m => ({ default: m.LegalCenter })));
+const LegalDocumentView = lazy(() => import("./components/legal").then(m => ({ default: m.LegalDocumentView })));
+const LegalQuickModal = lazy(() => import("./components/legal").then(m => ({ default: m.LegalQuickModal })));
+const UserLegalAgreementsModal = lazy(() => import("./components/legal").then(m => ({ default: m.UserLegalAgreementsModal })));
+
+import { ServiceItem } from "./components/ServicesGrid";
 import { AdminSession, getStoredAdminSession, clearAdminSession } from "./services/adminAuthTypes";
 import { UserProfile, UserRole } from "./types";
 import { motion, AnimatePresence } from "motion/react";
@@ -45,20 +56,12 @@ const logoImg = DEFAULT_LOGO_URL;
 import { getFriendlyErrorMessage, safeFetchJson } from "./utils/authErrorHandler";
 import { soundFx } from "./utils/audioEffects";
 import { AuthFormSkeleton } from "./components/ui/AuthSkeleton";
-import { ForgotPasswordView } from "./components/auth/ForgotPasswordView";
-import { ResetPasswordView } from "./components/auth/ResetPasswordView";
-import { VerifyEmailView } from "./components/auth/VerifyEmailView";
-import { AuthActionHandler } from "./components/auth/AuthActionHandler";
 
 import { useSiteConfig } from "./context/SiteConfigContext";
 import { MaintenanceScreen } from "./components/maintenance/MaintenanceScreen";
 import {
-  LegalCenter,
-  LegalDocumentView,
-  LegalQuickModal,
   LegalConsentBox,
   PolicyUpdateReAcceptanceModal,
-  UserLegalAgreementsModal,
   LEGAL_DOCUMENTS,
   getLegalDocumentById,
 } from "./components/legal";
@@ -2056,384 +2059,386 @@ export default function App() {
             />
           )}
 
-          {currentView === "SERVICES" && (
-            currentUser ? (
-              <ServicesGrid onSelectService={setSelectedService} />
-            ) : (
-              <div className="max-w-md mx-auto my-16 px-4">
-                <div className="bg-white border border-[#E5E7EB] rounded-2xl p-8 shadow-sm text-center space-y-6">
-                  <div className="h-12 w-12 rounded-full bg-[#F5F7FA] border border-[#E5E7EB] flex items-center justify-center mx-auto text-[#0F2D5C]">
-                    <Lock className="h-5 w-5" />
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="text-base font-black text-[#111827]">Portal Authentication Required</h3>
-                    <p className="text-xs text-[#4B5563] leading-relaxed max-w-xs mx-auto">
-                      All government portal integrations, VTU services, and scratch card dispatch pipelines require an active authenticated user profile.
-                    </p>
-                  </div>
-                  <div className="flex flex-col gap-2 pt-2">
-                    <button
-                      onClick={() => {
-                        setCurrentView("DASHBOARD");
-                        setIsRegistering(false);
-                        setAuthError(null);
-                      }}
-                      className="w-full py-2.5 bg-[#111827] text-white hover:bg-[#0F2D5C] hover:text-white font-bold rounded-lg text-xs transition-all cursor-pointer shadow-xs"
-                    >
-                      Authenticate Now
-                    </button>
+          <Suspense fallback={<RouteLoadingFallback />}>
+            {currentView === "SERVICES" && (
+              currentUser ? (
+                <ServicesGrid onSelectService={setSelectedService} />
+              ) : (
+                <div className="max-w-md mx-auto my-16 px-4">
+                  <div className="bg-white border border-[#E5E7EB] rounded-2xl p-8 shadow-sm text-center space-y-6">
+                    <div className="h-12 w-12 rounded-full bg-[#F5F7FA] border border-[#E5E7EB] flex items-center justify-center mx-auto text-[#0F2D5C]">
+                      <Lock className="h-5 w-5" />
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="text-base font-black text-[#111827]">Portal Authentication Required</h3>
+                      <p className="text-xs text-[#4B5563] leading-relaxed max-w-xs mx-auto">
+                        All government portal integrations, VTU services, and scratch card dispatch pipelines require an active authenticated user profile.
+                      </p>
+                    </div>
+                    <div className="flex flex-col gap-2 pt-2">
+                      <button
+                        onClick={() => {
+                          setCurrentView("DASHBOARD");
+                          setIsRegistering(false);
+                          setAuthError(null);
+                        }}
+                        className="w-full py-2.5 bg-[#111827] text-white hover:bg-[#0F2D5C] hover:text-white font-bold rounded-lg text-xs transition-all cursor-pointer shadow-xs"
+                      >
+                        Authenticate Now
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )
-          )}
+              )
+            )}
 
-          {/* Admin Login View */}
-          {currentView === "ADMIN_LOGIN" && (
-            <div className="w-full bg-[#111827] min-h-[calc(100vh-75px)] flex flex-col items-center justify-center p-4 md:p-8">
-              <AdminLogin
-                onLoginSuccess={(session) => {
-                  setAdminSession(session);
-                  setCurrentView("ADMIN_DASHBOARD");
+            {/* Admin Login View */}
+            {currentView === "ADMIN_LOGIN" && (
+              <div className="w-full bg-[#111827] min-h-[calc(100vh-75px)] flex flex-col items-center justify-center p-4 md:p-8">
+                <AdminLogin
+                  onLoginSuccess={(session) => {
+                    setAdminSession(session);
+                    setCurrentView("ADMIN_DASHBOARD");
+                  }}
+                />
+              </div>
+            )}
+
+            {/* Admin Protected Views wrapped in AdminGuard & AdminDashboardLayout */}
+            {currentView.startsWith("ADMIN_") && currentView !== "ADMIN_LOGIN" && (
+              <div className="w-full bg-[#111827] min-h-screen">
+                <AdminGuard
+                  currentRoute={viewToRouteMap[currentView] || "/admin/dashboard"}
+                  adminSession={adminSession}
+                  onLogout={() => {
+                    clearAdminSession();
+                    setAdminSession(null);
+                    setCurrentView("ADMIN_LOGIN");
+                  }}
+                  onNavigate={(routePath) => {
+                    const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
+                    setCurrentView(targetView);
+                  }}
+                >
+                  {adminSession && (
+                    <AdminDashboardLayout
+                      currentRoute={viewToRouteMap[currentView] || "/admin/dashboard"}
+                      session={adminSession}
+                      onNavigate={(routePath) => {
+                        const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
+                        setCurrentView(targetView);
+                      }}
+                      onLogout={() => {
+                        clearAdminSession();
+                        setAdminSession(null);
+                        setCurrentView("ADMIN_LOGIN");
+                      }}
+                    >
+                      {currentView === "ADMIN_DASHBOARD" && (
+                        <AdminDashboardHome
+                          session={adminSession}
+                          onNavigate={(routePath) => {
+                            const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
+                            setCurrentView(targetView);
+                          }}
+                          onLogout={() => {
+                            clearAdminSession();
+                            setAdminSession(null);
+                            setCurrentView("ADMIN_LOGIN");
+                          }}
+                        />
+                      )}
+
+                      {currentView === "ADMIN_USERS" && (
+                        <AdminUsersView
+                          session={adminSession}
+                          onNavigate={(routePath) => {
+                            const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
+                            setCurrentView(targetView);
+                          }}
+                        />
+                      )}
+
+                      {currentView === "ADMIN_WALLET" && (
+                        <AdminWalletView
+                          session={adminSession}
+                          onNavigate={(routePath) => {
+                            const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
+                            setCurrentView(targetView);
+                          }}
+                        />
+                      )}
+
+                      {currentView === "ADMIN_PERMISSIONS" && (
+                        <AdminPermissionsView
+                          session={adminSession!}
+                          onNavigate={(routePath) => {
+                            const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
+                            setCurrentView(targetView);
+                          }}
+                        />
+                      )}
+
+                      {currentView === "ADMIN_SERVICES" && (
+                        <AdminServicesView
+                          session={adminSession}
+                          onNavigate={(routePath) => {
+                            const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
+                            setCurrentView(targetView);
+                          }}
+                        />
+                      )}
+
+                      {currentView === "ADMIN_PROVIDERS" && (
+                        <AdminProvidersView
+                          session={adminSession}
+                          onNavigate={(routePath) => {
+                            const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
+                            setCurrentView(targetView);
+                          }}
+                        />
+                      )}
+
+                      {currentView === "ADMIN_GATEWAY_ROUTING" && (
+                        <AdminMultiGatewayView />
+                      )}
+
+                      {currentView === "ADMIN_API_BUILDER" && (
+                        <ApiRequestBuilderView
+                          session={adminSession}
+                          onNavigate={(routePath) => {
+                            const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
+                            setCurrentView(targetView);
+                          }}
+                        />
+                      )}
+
+                      {currentView === "ADMIN_RESPONSE_MAPPER" && (
+                        <ApiResponseMapperView
+                          session={adminSession}
+                          onNavigate={(routePath) => {
+                            const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
+                            setCurrentView(targetView);
+                          }}
+                        />
+                      )}
+
+                      {currentView === "ADMIN_TRANSACTIONS" && (
+                        <AdminTransactionsView
+                          session={adminSession}
+                          onNavigate={(routePath) => {
+                            const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
+                            setCurrentView(targetView);
+                          }}
+                        />
+                      )}
+
+                      {currentView === "ADMIN_REFUNDS" && (
+                        <AdminRefundsView
+                          session={adminSession}
+                          onNavigate={(routePath) => {
+                            const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
+                            setCurrentView(targetView);
+                          }}
+                        />
+                      )}
+
+                      {currentView === "ADMIN_REPORTS" && (
+                        <AdminReconciliationView
+                          session={adminSession}
+                          onNavigate={(routePath) => {
+                            const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
+                            setCurrentView(targetView);
+                          }}
+                        />
+                      )}
+
+                      {currentView === "ADMIN_SETTINGS" && (
+                        <AdminSettingsView
+                          session={adminSession}
+                          onNavigate={(routePath) => {
+                            const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
+                            setCurrentView(targetView);
+                          }}
+                        />
+                      )}
+
+                      {currentView === "ADMIN_SECURITY" && (
+                        <AdminSecurityView
+                          session={adminSession}
+                          subRoute={adminSecuritySubRoute}
+                          onNavigate={(routePath) => {
+                            if (routePath.startsWith("/admin/security")) {
+                              setAdminSecuritySubRoute(routePath);
+                            }
+                            const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
+                            setCurrentView(targetView);
+                          }}
+                        />
+                      )}
+
+                      {currentView === "ADMIN_LEGAL" && (
+                        <AdminLegalComplianceView
+                          session={adminSession}
+                          onNavigate={(routePath) => {
+                            const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
+                            setCurrentView(targetView);
+                          }}
+                        />
+                      )}
+
+                      {currentView === "ADMIN_SYSTEM" && (
+                        <AdminSystemView
+                          session={adminSession}
+                          onNavigate={(routePath) => {
+                            const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
+                            setCurrentView(targetView);
+                          }}
+                        />
+                      )}
+
+                      {currentView === "ADMIN_NOTIFICATIONS" && (
+                        <AdminNotificationsView
+                          session={adminSession}
+                          onNavigate={(routePath) => {
+                            const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
+                            setCurrentView(targetView);
+                          }}
+                        />
+                      )}
+                    </AdminDashboardLayout>
+                  )}
+                </AdminGuard>
+              </div>
+            )}
+            {currentView === "DASHBOARD" && currentUser && (
+              <Dashboards
+                currentUser={currentUser}
+                onRefreshUser={fetchUserProfile}
+                onSwitchView={navigateToView}
+                isDarkMode={isDarkMode}
+                onToggleDarkMode={handleToggleDarkMode}
+                onSelectService={setSelectedService}
+              />
+            )}
+
+            {currentView === "USER_NOTIFICATIONS" && (
+              <UserNotificationCenter
+                currentUser={currentUser}
+                onNavigateHome={() => setCurrentView("DASHBOARD")}
+              />
+            )}
+
+            {/* Custom Firebase Auth Action Pages */}
+            {currentView === "FORGOT_PASSWORD" && (
+              <ForgotPasswordView
+                onNavigateToLogin={() => {
+                  window.history.pushState({}, "", "/");
+                  setCurrentView("DASHBOARD");
+                  setIsRegistering(false);
+                  setIsResetPassword(false);
+                  setAuthError(null);
+                }}
+                onNavigateToRegister={() => {
+                  window.history.pushState({}, "", "/");
+                  setCurrentView("DASHBOARD");
+                  setIsRegistering(true);
+                  setIsResetPassword(false);
+                  setAuthError(null);
+                }}
+                onNavigateHome={() => {
+                  window.history.pushState({}, "", "/");
+                  setCurrentView("HOME");
+                }}
+                initialEmail={authEmail}
+              />
+            )}
+
+            {currentView === "RESET_PASSWORD" && (
+              <ResetPasswordView
+                onNavigateToLogin={() => {
+                  window.history.pushState({}, "", "/");
+                  setCurrentView("DASHBOARD");
+                  setIsRegistering(false);
+                  setIsResetPassword(false);
+                  setAuthError(null);
+                }}
+                onNavigateHome={() => {
+                  window.history.pushState({}, "", "/");
+                  setCurrentView("HOME");
+                }}
+                onNavigateToForgotPassword={() => {
+                  window.history.pushState({}, "", "/forgot-password");
+                  setCurrentView("FORGOT_PASSWORD");
                 }}
               />
-            </div>
-          )}
+            )}
 
-          {/* Admin Protected Views wrapped in AdminGuard & AdminDashboardLayout */}
-          {currentView.startsWith("ADMIN_") && currentView !== "ADMIN_LOGIN" && (
-            <div className="w-full bg-[#111827] min-h-screen">
-              <AdminGuard
-                currentRoute={viewToRouteMap[currentView] || "/admin/dashboard"}
-                adminSession={adminSession}
-                onLogout={() => {
-                  clearAdminSession();
-                  setAdminSession(null);
-                  setCurrentView("ADMIN_LOGIN");
+            {currentView === "VERIFY_EMAIL" && (
+              <VerifyEmailView
+                onNavigateToLogin={() => {
+                  window.history.pushState({}, "", "/");
+                  setCurrentView("DASHBOARD");
+                  setIsRegistering(false);
+                  setIsResetPassword(false);
+                  setAuthError(null);
                 }}
-                onNavigate={(routePath) => {
-                  const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
-                  setCurrentView(targetView);
+                onNavigateHome={() => {
+                  window.history.pushState({}, "", "/");
+                  setCurrentView("HOME");
                 }}
-              >
-                {adminSession && (
-                  <AdminDashboardLayout
-                    currentRoute={viewToRouteMap[currentView] || "/admin/dashboard"}
-                    session={adminSession}
-                    onNavigate={(routePath) => {
-                      const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
-                      setCurrentView(targetView);
-                    }}
-                    onLogout={() => {
-                      clearAdminSession();
-                      setAdminSession(null);
-                      setCurrentView("ADMIN_LOGIN");
-                    }}
-                  >
-                    {currentView === "ADMIN_DASHBOARD" && (
-                      <AdminDashboardHome
-                        session={adminSession}
-                        onNavigate={(routePath) => {
-                          const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
-                          setCurrentView(targetView);
-                        }}
-                        onLogout={() => {
-                          clearAdminSession();
-                          setAdminSession(null);
-                          setCurrentView("ADMIN_LOGIN");
-                        }}
-                      />
-                    )}
+                onNavigateToDashboard={() => {
+                  window.history.pushState({}, "", "/");
+                  setCurrentView("DASHBOARD");
+                }}
+                userEmailFromProps={authEmail || verificationEmail}
+              />
+            )}
 
-                    {currentView === "ADMIN_USERS" && (
-                      <AdminUsersView
-                        session={adminSession}
-                        onNavigate={(routePath) => {
-                          const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
-                          setCurrentView(targetView);
-                        }}
-                      />
-                    )}
+            {currentView === "AUTH_ACTION" && (
+              <AuthActionHandler
+                onNavigateToLogin={() => {
+                  window.history.pushState({}, "", "/");
+                  setCurrentView("DASHBOARD");
+                  setIsRegistering(false);
+                  setIsResetPassword(false);
+                  setAuthError(null);
+                }}
+                onNavigateHome={() => {
+                  window.history.pushState({}, "", "/");
+                  setCurrentView("HOME");
+                }}
+                onNavigateToDashboard={() => {
+                  window.history.pushState({}, "", "/");
+                  setCurrentView("DASHBOARD");
+                }}
+              />
+            )}
 
-                    {currentView === "ADMIN_WALLET" && (
-                      <AdminWalletView
-                        session={adminSession}
-                        onNavigate={(routePath) => {
-                          const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
-                          setCurrentView(targetView);
-                        }}
-                      />
-                    )}
+            {/* Legal & Compliance Center View */}
+            {currentView === "LEGAL_CENTER" && (
+              <LegalCenter
+                onSelectDocument={(docId) => navigateToLegal(docId)}
+                onNavigateHome={() => navigateToView(currentUser ? "DASHBOARD" : "HOME")}
+              />
+            )}
 
-                    {currentView === "ADMIN_PERMISSIONS" && (
-                      <AdminPermissionsView
-                        session={adminSession!}
-                        onNavigate={(routePath) => {
-                          const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
-                          setCurrentView(targetView);
-                        }}
-                      />
-                    )}
-
-                    {currentView === "ADMIN_SERVICES" && (
-                      <AdminServicesView
-                        session={adminSession}
-                        onNavigate={(routePath) => {
-                          const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
-                          setCurrentView(targetView);
-                        }}
-                      />
-                    )}
-
-                    {currentView === "ADMIN_PROVIDERS" && (
-                      <AdminProvidersView
-                        session={adminSession}
-                        onNavigate={(routePath) => {
-                          const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
-                          setCurrentView(targetView);
-                        }}
-                      />
-                    )}
-
-                    {currentView === "ADMIN_GATEWAY_ROUTING" && (
-                      <AdminMultiGatewayView />
-                    )}
-
-                    {currentView === "ADMIN_API_BUILDER" && (
-                      <ApiRequestBuilderView
-                        session={adminSession}
-                        onNavigate={(routePath) => {
-                          const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
-                          setCurrentView(targetView);
-                        }}
-                      />
-                    )}
-
-                    {currentView === "ADMIN_RESPONSE_MAPPER" && (
-                      <ApiResponseMapperView
-                        session={adminSession}
-                        onNavigate={(routePath) => {
-                          const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
-                          setCurrentView(targetView);
-                        }}
-                      />
-                    )}
-
-                    {currentView === "ADMIN_TRANSACTIONS" && (
-                      <AdminTransactionsView
-                        session={adminSession}
-                        onNavigate={(routePath) => {
-                          const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
-                          setCurrentView(targetView);
-                        }}
-                      />
-                    )}
-
-                    {currentView === "ADMIN_REFUNDS" && (
-                      <AdminRefundsView
-                        session={adminSession}
-                        onNavigate={(routePath) => {
-                          const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
-                          setCurrentView(targetView);
-                        }}
-                      />
-                    )}
-
-                    {currentView === "ADMIN_REPORTS" && (
-                      <AdminReconciliationView
-                        session={adminSession}
-                        onNavigate={(routePath) => {
-                          const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
-                          setCurrentView(targetView);
-                        }}
-                      />
-                    )}
-
-                    {currentView === "ADMIN_SETTINGS" && (
-                      <AdminSettingsView
-                        session={adminSession}
-                        onNavigate={(routePath) => {
-                          const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
-                          setCurrentView(targetView);
-                        }}
-                      />
-                    )}
-
-                    {currentView === "ADMIN_SECURITY" && (
-                      <AdminSecurityView
-                        session={adminSession}
-                        subRoute={adminSecuritySubRoute}
-                        onNavigate={(routePath) => {
-                          if (routePath.startsWith("/admin/security")) {
-                            setAdminSecuritySubRoute(routePath);
-                          }
-                          const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
-                          setCurrentView(targetView);
-                        }}
-                      />
-                    )}
-
-                    {currentView === "ADMIN_LEGAL" && (
-                      <AdminLegalComplianceView
-                        session={adminSession}
-                        onNavigate={(routePath) => {
-                          const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
-                          setCurrentView(targetView);
-                        }}
-                      />
-                    )}
-
-                    {currentView === "ADMIN_SYSTEM" && (
-                      <AdminSystemView
-                        session={adminSession}
-                        onNavigate={(routePath) => {
-                          const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
-                          setCurrentView(targetView);
-                        }}
-                      />
-                    )}
-
-                    {currentView === "ADMIN_NOTIFICATIONS" && (
-                      <AdminNotificationsView
-                        session={adminSession}
-                        onNavigate={(routePath) => {
-                          const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
-                          setCurrentView(targetView);
-                        }}
-                      />
-                    )}
-                  </AdminDashboardLayout>
-                )}
-              </AdminGuard>
-            </div>
-          )}
-          {currentView === "DASHBOARD" && currentUser && (
-            <Dashboards
-              currentUser={currentUser}
-              onRefreshUser={fetchUserProfile}
-              onSwitchView={navigateToView}
-              isDarkMode={isDarkMode}
-              onToggleDarkMode={handleToggleDarkMode}
-              onSelectService={setSelectedService}
-            />
-          )}
-
-          {currentView === "USER_NOTIFICATIONS" && (
-            <UserNotificationCenter
-              currentUser={currentUser}
-              onNavigateHome={() => setCurrentView("DASHBOARD")}
-            />
-          )}
-
-          {/* Custom Firebase Auth Action Pages */}
-          {currentView === "FORGOT_PASSWORD" && (
-            <ForgotPasswordView
-              onNavigateToLogin={() => {
-                window.history.pushState({}, "", "/");
-                setCurrentView("DASHBOARD");
-                setIsRegistering(false);
-                setIsResetPassword(false);
-                setAuthError(null);
-              }}
-              onNavigateToRegister={() => {
-                window.history.pushState({}, "", "/");
-                setCurrentView("DASHBOARD");
-                setIsRegistering(true);
-                setIsResetPassword(false);
-                setAuthError(null);
-              }}
-              onNavigateHome={() => {
-                window.history.pushState({}, "", "/");
-                setCurrentView("HOME");
-              }}
-              initialEmail={authEmail}
-            />
-          )}
-
-          {currentView === "RESET_PASSWORD" && (
-            <ResetPasswordView
-              onNavigateToLogin={() => {
-                window.history.pushState({}, "", "/");
-                setCurrentView("DASHBOARD");
-                setIsRegistering(false);
-                setIsResetPassword(false);
-                setAuthError(null);
-              }}
-              onNavigateHome={() => {
-                window.history.pushState({}, "", "/");
-                setCurrentView("HOME");
-              }}
-              onNavigateToForgotPassword={() => {
-                window.history.pushState({}, "", "/forgot-password");
-                setCurrentView("FORGOT_PASSWORD");
-              }}
-            />
-          )}
-
-          {currentView === "VERIFY_EMAIL" && (
-            <VerifyEmailView
-              onNavigateToLogin={() => {
-                window.history.pushState({}, "", "/");
-                setCurrentView("DASHBOARD");
-                setIsRegistering(false);
-                setIsResetPassword(false);
-                setAuthError(null);
-              }}
-              onNavigateHome={() => {
-                window.history.pushState({}, "", "/");
-                setCurrentView("HOME");
-              }}
-              onNavigateToDashboard={() => {
-                window.history.pushState({}, "", "/");
-                setCurrentView("DASHBOARD");
-              }}
-              userEmailFromProps={authEmail || verificationEmail}
-            />
-          )}
-
-          {currentView === "AUTH_ACTION" && (
-            <AuthActionHandler
-              onNavigateToLogin={() => {
-                window.history.pushState({}, "", "/");
-                setCurrentView("DASHBOARD");
-                setIsRegistering(false);
-                setIsResetPassword(false);
-                setAuthError(null);
-              }}
-              onNavigateHome={() => {
-                window.history.pushState({}, "", "/");
-                setCurrentView("HOME");
-              }}
-              onNavigateToDashboard={() => {
-                window.history.pushState({}, "", "/");
-                setCurrentView("DASHBOARD");
-              }}
-            />
-          )}
-
-          {/* Legal & Compliance Center View */}
-          {currentView === "LEGAL_CENTER" && (
-            <LegalCenter
-              onSelectDocument={(docId) => navigateToLegal(docId)}
-              onNavigateHome={() => navigateToView(currentUser ? "DASHBOARD" : "HOME")}
-            />
-          )}
-
-          {/* Individual Legal Document View */}
-          {(currentView === "LEGAL_DOCUMENT" || currentView.startsWith("LEGAL_DOCUMENT_")) && (
-            <LegalDocumentView
-              docId={viewToDocIdMap[currentView] || activeLegalDocId || "privacy-policy"}
-              documentId={viewToDocIdMap[currentView] || activeLegalDocId || "privacy-policy"}
-              onNavigateCenter={() => navigateToView("LEGAL_CENTER")}
-              onBack={() => navigateToView("LEGAL_CENTER")}
-              onSelectDocument={(docId) => navigateToLegal(docId)}
-              onNavigateHome={() => navigateToView(currentUser ? "DASHBOARD" : "HOME")}
-              onLogin={() => {
-                navigateToView("DASHBOARD");
-                setIsRegistering(false);
-              }}
-            />
-          )}
+            {/* Individual Legal Document View */}
+            {(currentView === "LEGAL_DOCUMENT" || currentView.startsWith("LEGAL_DOCUMENT_")) && (
+              <LegalDocumentView
+                docId={viewToDocIdMap[currentView] || activeLegalDocId || "privacy-policy"}
+                documentId={viewToDocIdMap[currentView] || activeLegalDocId || "privacy-policy"}
+                onNavigateCenter={() => navigateToView("LEGAL_CENTER")}
+                onBack={() => navigateToView("LEGAL_CENTER")}
+                onSelectDocument={(docId) => navigateToLegal(docId)}
+                onNavigateHome={() => navigateToView(currentUser ? "DASHBOARD" : "HOME")}
+                onLogin={() => {
+                  navigateToView("DASHBOARD");
+                  setIsRegistering(false);
+                }}
+              />
+            )}
+          </Suspense>
 
           {/* Secure Node Manual Login / Register Form */}
           {currentView === "DASHBOARD" && !currentUser && (
@@ -3562,48 +3567,52 @@ export default function App() {
       </main>
 
       {/* Global Action Modal for Ordering/Verifying */}
-      {selectedService && (
-        <ServiceModal
-          service={selectedService}
-          onClose={() => setSelectedService(null)}
-          currentUser={currentUser}
-          onRefreshUser={fetchUserProfile}
-        />
-      )}
+      <Suspense fallback={null}>
+        {selectedService && (
+          <ServiceModal
+            service={selectedService}
+            onClose={() => setSelectedService(null)}
+            currentUser={currentUser}
+            onRefreshUser={fetchUserProfile}
+          />
+        )}
+      </Suspense>
         </>
       )}
 
       {/* Quick Legal Policy Slide-over Modal */}
-      {quickLegalModalDocId && (
-        <LegalQuickModal
-          docId={quickLegalModalDocId}
-          documentId={quickLegalModalDocId}
-          isOpen={true}
-          onClose={() => setQuickLegalModalDocId(null)}
-          onOpenFullPage={(docId) => {
-            setQuickLegalModalDocId(null);
-            navigateToLegal(docId);
-          }}
-          onOpenFullView={(docId) => {
-            setQuickLegalModalDocId(null);
-            navigateToLegal(docId);
-          }}
-        />
-      )}
+      <Suspense fallback={null}>
+        {quickLegalModalDocId && (
+          <LegalQuickModal
+            docId={quickLegalModalDocId}
+            documentId={quickLegalModalDocId}
+            isOpen={true}
+            onClose={() => setQuickLegalModalDocId(null)}
+            onOpenFullPage={(docId) => {
+              setQuickLegalModalDocId(null);
+              navigateToLegal(docId);
+            }}
+            onOpenFullView={(docId) => {
+              setQuickLegalModalDocId(null);
+              navigateToLegal(docId);
+            }}
+          />
+        )}
 
-      {/* User Legal Agreements Modal */}
-      {showUserAgreementsModal && currentUser && (
-        <UserLegalAgreementsModal
-          isOpen={showUserAgreementsModal}
-          userId={currentUser.uid}
-          userEmail={currentUser.email}
-          onClose={() => setShowUserAgreementsModal(false)}
-          onOpenDocument={(docId) => {
-            setShowUserAgreementsModal(false);
-            navigateToLegal(docId);
-          }}
-        />
-      )}
+        {/* User Legal Agreements Modal */}
+        {showUserAgreementsModal && currentUser && (
+          <UserLegalAgreementsModal
+            isOpen={showUserAgreementsModal}
+            userId={currentUser.uid}
+            userEmail={currentUser.email}
+            onClose={() => setShowUserAgreementsModal(false)}
+            onOpenDocument={(docId) => {
+              setShowUserAgreementsModal(false);
+              navigateToLegal(docId);
+            }}
+          />
+        )}
+      </Suspense>
 
       {/* Policy Re-Acceptance Modal (NDPR Major Changes) */}
       {showReAcceptanceModal && pendingReAcceptancePolicies.length > 0 && currentUser && (

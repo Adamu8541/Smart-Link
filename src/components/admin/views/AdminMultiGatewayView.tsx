@@ -288,11 +288,11 @@ export const AdminMultiGatewayView: React.FC = () => {
           <div
             className={`mt-4 p-3 rounded-lg text-sm flex items-center space-x-2 border ${
               statusMessage.type === "success"
-                ? "bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 text-[#0F2D5C] dark:text-[#9CA3AF] border-[#E5E7EB] dark:border-[#0F2D5C]"
-                : "bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 text-[#0F2D5C] dark:text-[#9CA3AF] border-[#E5E7EB] dark:border-[#0F2D5C]"
+                ? "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-200 border-emerald-200 dark:border-emerald-800"
+                : "bg-red-50 dark:bg-red-950/60 text-red-800 dark:text-red-200 border-red-200 dark:border-red-800"
             }`}
           >
-            {statusMessage.type === "success" ? <CheckCircle2 className="w-4 h-4 shrink-0" /> : <AlertTriangle className="w-4 h-4 shrink-0" />}
+            {statusMessage.type === "success" ? <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" /> : <AlertTriangle className="w-4 h-4 shrink-0 text-red-600 dark:text-red-400" />}
             <span>{statusMessage.text}</span>
           </div>
         )}

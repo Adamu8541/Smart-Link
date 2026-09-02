@@ -70,16 +70,15 @@ export function AdminReconciliationView({ session, onNavigate }: AdminReconcilia
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "VERIFIED":
-        return "bg-[#0F2D5C]/80 text-[#9CA3AF] border-[#0F2D5C]/80";
+        return "bg-emerald-950/70 text-emerald-300 border-emerald-700/80";
       case "UNMATCHED":
-        return "bg-[#0F2D5C]/80 text-[#9CA3AF] border-[#0F2D5C]/80";
       case "FAILED":
-        return "bg-[#0F2D5C]/80 text-[#9CA3AF] border-[#0F2D5C]/80";
+        return "bg-red-950/70 text-red-300 border-red-700/80";
       case "REVERSED":
-        return "bg-[#0F2D5C]/80 text-[#9CA3AF] border-[#0F2D5C]/80";
+        return "bg-blue-950/70 text-blue-300 border-blue-700/80";
       case "PENDING":
       default:
-        return "bg-[#111827] text-[#E5E7EB] border-[#4B5563]";
+        return "bg-amber-950/70 text-amber-300 border-amber-700/80";
     }
   };
 

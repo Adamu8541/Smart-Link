@@ -370,11 +370,11 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
             exit={{ opacity: 0, y: -20 }}
             className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border ${
               toastMessage.type === "success"
-                ? "bg-[#0F2D5C]/90 text-[#9CA3AF] border-[#0F2D5C]"
-                : "bg-[#0F2D5C]/90 text-[#9CA3AF] border-[#0F2D5C]"
+                ? "bg-emerald-950/90 text-emerald-200 border-emerald-700"
+                : "bg-red-950/90 text-red-200 border-red-700"
             }`}
           >
-            {toastMessage.type === "success" ? <CheckCircle2 className="h-5 w-5 shrink-0" /> : <AlertTriangle className="h-5 w-5 shrink-0" />}
+            {toastMessage.type === "success" ? <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" /> : <AlertTriangle className="h-5 w-5 text-red-400 shrink-0" />}
             <span className="text-sm font-medium">{toastMessage.text}</span>
           </motion.div>
         )}

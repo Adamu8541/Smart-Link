@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useSiteConfig } from "../context/SiteConfigContext";
+import { getRealServiceIcon } from "./common/ServiceIcons";
 
 export interface ServiceItem {
   id: string;
@@ -595,10 +596,15 @@ export default function ServicesGrid({ onSelectService }: ServicesGridProps) {
                     )}
                   </div>
 
-                  {/* Name */}
-                  <h3 className="text-base font-bold text-[#111827] group-hover:text-[#0F2D5C] transition-colors">
-                    {srv.name}
-                  </h3>
+                  {/* Icon & Name */}
+                  <div className="flex items-center gap-3">
+                    <div className="shrink-0">
+                      {getRealServiceIcon(srv.id, "h-11 w-11")}
+                    </div>
+                    <h3 className="text-base font-bold text-[#111827] group-hover:text-[#0F2D5C] transition-colors leading-tight">
+                      {srv.name}
+                    </h3>
+                  </div>
 
                   {/* Description */}
                   <p className="text-xs text-[#4B5563] leading-relaxed">

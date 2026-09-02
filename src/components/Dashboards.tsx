@@ -42,9 +42,9 @@ import {
 import { UserProfile, UserRole, Transaction, CACApplication } from "../types";
 import { ProviderService, getAuthHeaders } from "../services/providerService";
 import { safeFetchJson } from "../utils/authErrorHandler";
-import { jsPDF } from "jspdf";
 import { SMART_LINK_SERVICES, ServiceItem } from "./ServicesGrid";
 import { UserAnnouncementBanner } from "./notification/UserAnnouncementBanner";
+import { getRealServiceIcon } from "./common/ServiceIcons";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -64,20 +64,21 @@ interface DashboardsProps {
   onSelectService?: (service: any) => void;
 }
 
-// NIMC High-Fidelity SVG Logo
+// NIMC High-Fidelity SVG Logo (Authentic Nigerian NIMC Green #008751)
 function NimcLogo({ className = "h-14 w-14" }: { className?: string }) {
   return (
-    <div className={`${className} bg-[#F5F7FA] border border-[#E5E7EB] rounded-2xl flex items-center justify-center p-2.5 shadow-xs shrink-0 transition-transform hover:scale-105`}>
+    <div className={`${className} bg-white border border-emerald-100 rounded-2xl flex items-center justify-center p-2.5 shadow-xs shrink-0 transition-transform hover:scale-105`}>
       <svg viewBox="0 0 100 100" className="w-full h-full" fill="none">
-        <circle cx="50" cy="50" r="36" fill="#0F2D5C" opacity="0.1" stroke="#0F2D5C" strokeWidth="2" />
-        <path d="M35,35 L65,35 L50,65 Z" fill="#0F2D5C" opacity="0.2" />
-        <text x="50" y="55" fontSize="14" fontWeight="900" textAnchor="middle" fill="#0F2D5C" fontFamily="system-ui, sans-serif" letterSpacing="0.4">
+        <circle cx="50" cy="50" r="38" fill="#008751" fillOpacity="0.08" stroke="#008751" strokeWidth="2.5" />
+        <circle cx="50" cy="50" r="30" stroke="#008751" strokeWidth="1" strokeDasharray="3 2" opacity="0.6" />
+        <path d="M35,34 L65,34 L50,62 Z" fill="#008751" fillOpacity="0.15" />
+        <text x="50" y="55" fontSize="15" fontWeight="900" textAnchor="middle" fill="#008751" fontFamily="system-ui, -apple-system, sans-serif" letterSpacing="0.5">
           NIMC
         </text>
         {/* National dots */}
-        <circle cx="50" cy="25" r="3" fill="#0F2D5C" />
-        <circle cx="35" cy="40" r="2" fill="#0F2D5C" />
-        <circle cx="65" cy="40" r="2" fill="#0F2D5C" />
+        <circle cx="50" cy="22" r="3" fill="#008751" />
+        <circle cx="33" cy="38" r="2.5" fill="#008751" />
+        <circle cx="67" cy="38" r="2.5" fill="#008751" />
       </svg>
     </div>
   );
@@ -86,7 +87,7 @@ function NimcLogo({ className = "h-14 w-14" }: { className?: string }) {
 // CBN High-Fidelity SVG Seal
 function CbnLogo({ className = "h-11 w-11" }: { className?: string }) {
   return (
-    <div className={`${className} rounded-full bg-[#F5F7FA] border-2 border-[#0F2D5C] flex items-center justify-center p-1 shrink-0 shadow-xs overflow-hidden`}>
+    <div className={`${className} rounded-full bg-white border-2 border-[#0F2D5C] flex items-center justify-center p-1 shrink-0 shadow-xs overflow-hidden`}>
       <svg viewBox="0 0 100 100" className="w-full h-full text-[#0F2D5C]" fill="currentColor">
         <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="4" strokeDasharray="3 1" />
         <rect x="35" y="40" width="8" height="30" rx="1" />
@@ -99,63 +100,112 @@ function CbnLogo({ className = "h-11 w-11" }: { className?: string }) {
   );
 }
 
-// NIBSS High-Fidelity Logo
+// NIBSS High-Fidelity Logo (Official NIBSS Blue #00529B & Vibrant Cyan/Teal #00A3E0)
 function NibssLogo({ className = "h-14 w-14" }: { className?: string }) {
   return (
-    <div className={`${className} bg-[#F5F7FA] border border-[#E5E7EB] rounded-2xl flex items-center justify-center p-2.5 shadow-xs shrink-0 transition-transform hover:scale-105`}>
+    <div className={`${className} bg-white border border-blue-100 rounded-2xl flex items-center justify-center p-2.5 shadow-xs shrink-0 transition-transform hover:scale-105`}>
       <svg viewBox="0 0 100 100" className="w-full h-full" fill="none">
-        {/* watermark */}
-        <path d="M15,40 C20,25 35,22 55,25 C75,25 85,35 85,55 C80,70 65,75 50,75 C35,75 20,70 15,40 Z" fill="#0F2D5C" opacity="0.15" />
-        {/* curve background */}
-        <path d="M20,60 L80,60 L75,66 L15,66 Z" fill="#17407E" opacity="0.8" />
-        {/* NIBSS text typography */}
-        <text x="50" y="52" fontSize="14" fontWeight="900" textAnchor="middle" fill="#0F2D5C" fontFamily="system-ui, sans-serif" letterSpacing="0.4">
+        {/* NIBSS background watermark badge */}
+        <circle cx="50" cy="50" r="38" fill="#00529B" fillOpacity="0.06" stroke="#00529B" strokeWidth="2" />
+        {/* Dynamic curve background */}
+        <path d="M20,62 L80,62 L74,68 L16,68 Z" fill="#00A3E0" />
+        {/* NIBSS text typography in exact NIBSS deep blue */}
+        <text x="50" y="53" fontSize="15" fontWeight="900" textAnchor="middle" fill="#00529B" fontFamily="system-ui, -apple-system, sans-serif" letterSpacing="0.5">
           NIBSS
         </text>
-        {/* National color dots */}
-        <circle cx="50" cy="22" r="3" fill="#0F2D5C" />
-        <circle cx="35" cy="38" r="2" fill="#17407E" />
-        <circle cx="65" cy="38" r="2" fill="#17407E" />
+        {/* Brand color accents */}
+        <circle cx="50" cy="22" r="3" fill="#00529B" />
+        <circle cx="34" cy="38" r="2.5" fill="#00A3E0" />
+        <circle cx="66" cy="38" r="2.5" fill="#00A3E0" />
       </svg>
     </div>
   );
 }
 
-// CAC High-Fidelity Logo
+// CAC High-Fidelity Logo (Official Corporate Affairs Commission Forest Green #006837 & Gold #D97706)
 function CacRegistrationLogo({ className = "h-14 w-14" }: { className?: string }) {
   return (
-    <div className={`${className} bg-[#F5F7FA] border border-[#E5E7EB] rounded-2xl flex items-center justify-center p-2 shrink-0 shadow-xs hover:scale-105 transition-transform`}>
-      <svg viewBox="0 0 100 100" className="w-full h-full text-[#0F2D5C]" fill="currentColor">
-        <circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" strokeWidth="5" />
-        <circle cx="50" cy="50" r="32" fill="none" stroke="currentColor" strokeWidth="1.5" strokeDasharray="3 2" />
-        <circle cx="50" cy="50" r="24" fill="#0F2D5C" />
-        <text x="50" y="55" fontSize="10" fontWeight="bold" textAnchor="middle" fill="#FFFFFF" fontFamily="system-ui, sans-serif">
+    <div className={`${className} bg-white border border-emerald-100 rounded-2xl flex items-center justify-center p-2 shrink-0 shadow-xs hover:scale-105 transition-transform`}>
+      <svg viewBox="0 0 100 100" className="w-full h-full" fill="none">
+        <circle cx="50" cy="50" r="42" stroke="#006837" strokeWidth="3.5" />
+        <circle cx="50" cy="50" r="33" stroke="#D97706" strokeWidth="1.5" strokeDasharray="3 2" />
+        <circle cx="50" cy="50" r="24" fill="#006837" />
+        <text x="50" y="55" fontSize="12" fontWeight="900" textAnchor="middle" fill="#FFFFFF" fontFamily="system-ui, -apple-system, sans-serif" letterSpacing="0.5">
           CAC
+        </text>
+        <circle cx="50" cy="18" r="2.5" fill="#D97706" />
+      </svg>
+    </div>
+  );
+}
+
+// Tax ID Search NRS / FIRS Logo (Official Crimson Red #DC2626)
+function TaxIdSearchLogo({ className = "h-14 w-14" }: { className?: string }) {
+  return (
+    <div className={`${className} bg-white border border-red-100 rounded-2xl flex items-center justify-center p-2 shrink-0 shadow-xs hover:scale-105 transition-transform`}>
+      <svg viewBox="0 0 100 100" className="w-full h-full" fill="none">
+        <circle cx="50" cy="50" r="38" fill="#DC2626" fillOpacity="0.08" stroke="#DC2626" strokeWidth="2.5" />
+        <rect x="25" y="62" width="50" height="4" rx="2" fill="#DC2626" />
+        <text x="50" y="53" fontSize="16" fontWeight="900" textAnchor="middle" fill="#DC2626" fontFamily="system-ui, -apple-system, sans-serif" letterSpacing="0.8">
+          NRS
+        </text>
+        <circle cx="50" cy="22" r="3" fill="#DC2626" />
+      </svg>
+    </div>
+  );
+}
+
+// WAEC Official Logo (Royal Blue #1E40AF & Gold #F59E0B)
+function WaecLogo({ className = "h-14 w-14" }: { className?: string }) {
+  return (
+    <div className={`${className} bg-white border border-blue-100 rounded-2xl flex items-center justify-center p-2 shrink-0 shadow-xs hover:scale-105 transition-transform`}>
+      <svg viewBox="0 0 100 100" className="w-full h-full" fill="none">
+        <circle cx="50" cy="50" r="38" fill="#1E40AF" fillOpacity="0.08" stroke="#1E40AF" strokeWidth="2.5" />
+        <path d="M50,18 L60,26 L72,24 L76,36 L88,40 L84,52 L90,62 L80,70 L80,82 L68,82 L60,90 L50,84 L40,90 L32,82 L20,82 L20,70 L10,62 L16,52 L12,40 L24,36 L28,24 L40,26 Z" fill="#F59E0B" fillOpacity="0.25" stroke="#F59E0B" strokeWidth="1" />
+        <text x="50" y="55" fontSize="13" fontWeight="900" textAnchor="middle" fill="#1E40AF" fontFamily="system-ui, -apple-system, sans-serif" letterSpacing="0.4">
+          WAEC
         </text>
       </svg>
     </div>
   );
 }
 
-// Tax ID Search NRS Logo
-function TaxIdSearchLogo({ className = "h-14 w-14" }: { className?: string }) {
+// NECO Official Logo (Emerald Green #059669 & Yellow/Gold #EAB308)
+function NecoLogo({ className = "h-14 w-14" }: { className?: string }) {
   return (
-    <div className={`${className} bg-[#F5F7FA] border border-[#E5E7EB] rounded-2xl flex items-center justify-center p-2 shrink-0 shadow-xs hover:scale-105 transition-transform`}>
-      <div className="flex flex-col items-center justify-center w-full h-full space-y-1">
-        <span className="text-[10px] font-black font-mono text-[#0F2D5C] tracking-tight leading-none">
-          NRS
-        </span>
-        <div className="h-1.5 w-8 bg-[#0F2D5C] rounded-full"></div>
-      </div>
+    <div className={`${className} bg-white border border-emerald-100 rounded-2xl flex items-center justify-center p-2 shrink-0 shadow-xs hover:scale-105 transition-transform`}>
+      <svg viewBox="0 0 100 100" className="w-full h-full" fill="none">
+        <circle cx="50" cy="50" r="38" fill="#059669" fillOpacity="0.08" stroke="#059669" strokeWidth="2.5" />
+        <circle cx="50" cy="50" r="30" stroke="#EAB308" strokeWidth="1.5" strokeDasharray="4 2" />
+        <text x="50" y="55" fontSize="14" fontWeight="900" textAnchor="middle" fill="#059669" fontFamily="system-ui, -apple-system, sans-serif" letterSpacing="0.5">
+          NECO
+        </text>
+        <circle cx="50" cy="22" r="3" fill="#EAB308" />
+      </svg>
     </div>
   );
 }
 
-// Education Logo
+// JAMB Official Logo (Forest Green #047857 & Amber Gold #D97706)
+function JambLogo({ className = "h-14 w-14" }: { className?: string }) {
+  return (
+    <div className={`${className} bg-white border border-emerald-100 rounded-2xl flex items-center justify-center p-2 shrink-0 shadow-xs hover:scale-105 transition-transform`}>
+      <svg viewBox="0 0 100 100" className="w-full h-full" fill="none">
+        <circle cx="50" cy="50" r="38" fill="#047857" fillOpacity="0.08" stroke="#047857" strokeWidth="2.5" />
+        <polygon points="50,22 58,38 75,40 62,52 66,70 50,60 34,70 38,52 25,40 42,38" fill="#D97706" fillOpacity="0.2" stroke="#D97706" strokeWidth="1" />
+        <text x="50" y="55" fontSize="14" fontWeight="900" textAnchor="middle" fill="#047857" fontFamily="system-ui, -apple-system, sans-serif" letterSpacing="0.5">
+          JAMB
+        </text>
+      </svg>
+    </div>
+  );
+}
+
+// Education Logo Fallback
 function EducationLogo({ className = "h-14 w-14" }: { className?: string }) {
   return (
-    <div className={`${className} bg-[#F5F7FA] border border-[#E5E7EB] rounded-2xl flex items-center justify-center p-2 shrink-0 shadow-xs hover:scale-105 transition-transform`}>
-      <svg viewBox="0 0 24 24" className="h-7 w-7 text-[#0F2D5C]" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <div className={`${className} bg-white border border-blue-100 rounded-2xl flex items-center justify-center p-2 shrink-0 shadow-xs hover:scale-105 transition-transform`}>
+      <svg viewBox="0 0 24 24" className="h-7 w-7 text-[#1E40AF]" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
         <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5" />
       </svg>
@@ -555,8 +605,9 @@ export default function Dashboards({
   };
 
   // Generate Receipt PDF
-  const downloadReceiptPDF = (tx: Transaction) => {
+  const downloadReceiptPDF = async (tx: Transaction) => {
     try {
+      const { jsPDF } = await import("jspdf");
       const doc = new jsPDF({
         orientation: "portrait",
         unit: "mm",
@@ -1010,7 +1061,7 @@ export default function Dashboards({
                       onClick={() => handleServiceCardClick(srv.id)}
                       className="bg-white rounded-2xl border border-[#E5E7EB] p-6 flex flex-col items-center justify-center gap-4 cursor-pointer shadow-[0_4px_12px_rgba(15,23,42,0.06)] hover:border-[#0F2D5C] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 min-h-[160px]"
                     >
-                      <NimcLogo />
+                      {getRealServiceIcon(srv.id)}
                       <h3 className="font-bold text-[#111827] text-xs tracking-tight text-center">
                         {srv.name}
                       </h3>
@@ -1034,7 +1085,7 @@ export default function Dashboards({
                       onClick={() => handleServiceCardClick(srv.id)}
                       className="bg-white rounded-2xl border border-[#E5E7EB] p-6 flex flex-col items-center justify-center gap-4 cursor-pointer shadow-[0_4px_12px_rgba(15,23,42,0.06)] hover:border-[#0F2D5C] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 min-h-[160px]"
                     >
-                      <NibssLogo />
+                      {getRealServiceIcon(srv.id)}
                       <h3 className="font-bold text-[#111827] text-xs tracking-tight text-center">
                         {srv.name}
                       </h3>
@@ -1058,11 +1109,7 @@ export default function Dashboards({
                       onClick={() => handleServiceCardClick(srv.id)}
                       className="bg-white rounded-2xl border border-[#E5E7EB] p-6 flex flex-col items-center justify-center gap-4 cursor-pointer shadow-[0_4px_12px_rgba(15,23,42,0.06)] hover:border-[#0F2D5C] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 min-h-[160px]"
                     >
-                      {srv.id === "id_cac_registration" ? (
-                        <CacRegistrationLogo />
-                      ) : (
-                        <TaxIdSearchLogo />
-                      )}
+                      {getRealServiceIcon(srv.id)}
                       <h3 className="font-bold text-[#111827] text-xs tracking-tight text-center">
                         {srv.name}
                       </h3>
@@ -1086,7 +1133,7 @@ export default function Dashboards({
                       onClick={() => handleServiceCardClick(srv.id)}
                       className="bg-white rounded-2xl border border-[#E5E7EB] p-6 flex flex-col items-center justify-center gap-4 cursor-pointer shadow-[0_4px_12px_rgba(15,23,42,0.06)] hover:border-[#0F2D5C] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 min-h-[160px]"
                     >
-                      <EducationLogo />
+                      {getRealServiceIcon(srv.id)}
                       <h3 className="font-bold text-[#111827] text-xs tracking-tight text-center">
                         {srv.name}
                       </h3>

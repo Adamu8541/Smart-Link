@@ -246,15 +246,15 @@ export function AdminRefundsView({ session, onNavigate }: AdminRefundsViewProps)
         <div
           className={`p-4 rounded-2xl border flex items-center justify-between text-xs font-semibold ${
             msg.type === "success"
-              ? "bg-[#F5F7FA] border-[#E5E7EB] text-[#0F2D5C]"
-              : "bg-[#F5F7FA] border-[#E5E7EB] text-[#0F2D5C]"
+              ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200"
+              : "bg-red-50 dark:bg-red-950/40 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200"
           }`}
         >
           <div className="flex items-center gap-2">
             {msg.type === "success" ? (
-              <CheckCircle2 className="h-4 w-4 text-[#0F2D5C]" />
+              <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
             ) : (
-              <AlertCircle className="h-4 w-4 text-[#0F2D5C]" />
+              <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
             )}
             <span>{msg.text}</span>
           </div>

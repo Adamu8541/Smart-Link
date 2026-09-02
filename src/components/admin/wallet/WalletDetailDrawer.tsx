@@ -365,7 +365,7 @@ export function WalletDetailDrawer({
                                 <div className={`font-mono font-bold text-sm ${isCredit ? "text-[#9CA3AF]" : "text-[#E5E7EB]"}`}>
                                   {isCredit ? "+" : "-"}₦{tx.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                 </div>
-                                <span className={`text-[10px] font-bold uppercase ${tx.status === "SUCCESSFUL" ? "text-[#9CA3AF]" : tx.status === "FAILED" ? "text-[#9CA3AF]" : "text-[#9CA3AF]"}`}>
+                                <span className={`text-[10px] font-bold uppercase ${tx.status === "SUCCESSFUL" ? "text-emerald-400" : tx.status === "FAILED" ? "text-red-400" : "text-amber-400"}`}>
                                   {tx.status}
                                 </span>
                               </div>

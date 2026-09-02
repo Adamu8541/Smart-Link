@@ -156,15 +156,15 @@ export function TransactionDetailDrawer({
     switch (status) {
       case "SUCCESSFUL":
       case "COMPLETED":
-        return "bg-[#0F2D5C] text-[#9CA3AF] border-[#0F2D5C]";
+        return "bg-emerald-950/70 text-emerald-300 border-emerald-700/80";
       case "FAILED":
       case "CANCELLED":
-        return "bg-[#0F2D5C] text-[#9CA3AF] border-[#0F2D5C]";
+        return "bg-red-950/70 text-red-300 border-red-700/80";
       case "REFUNDED":
       case "REVERSED":
-        return "bg-[#0F2D5C] text-[#9CA3AF] border-[#0F2D5C]";
+        return "bg-blue-950/70 text-blue-300 border-blue-700/80";
       default:
-        return "bg-[#0F2D5C] text-[#9CA3AF] border-[#0F2D5C]";
+        return "bg-amber-950/70 text-amber-300 border-amber-700/80";
     }
   };
 

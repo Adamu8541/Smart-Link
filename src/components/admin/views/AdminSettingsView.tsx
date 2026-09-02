@@ -438,15 +438,15 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
           <div
             className={`p-4 rounded-2xl border flex items-center justify-between text-xs font-medium ${
               message.type === "success"
-                ? "bg-[#0F2D5C]/50 border-[#0F2D5C]/80 text-[#9CA3AF]"
-                : "bg-[#0F2D5C]/50 border-[#0F2D5C]/80 text-[#9CA3AF]"
+                ? "bg-emerald-950/40 border-emerald-800/80 text-emerald-200"
+                : "bg-red-950/40 border-red-800/80 text-red-200"
             }`}
           >
             <div className="flex items-center gap-2.5">
               {message.type === "success" ? (
-                <CheckCircle2 className="h-4 w-4 text-[#9CA3AF] shrink-0" />
+                <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
               ) : (
-                <AlertTriangle className="h-4 w-4 text-[#9CA3AF] shrink-0" />
+                <AlertTriangle className="h-4 w-4 text-red-400 shrink-0" />
               )}
               <span>{message.text}</span>
             </div>

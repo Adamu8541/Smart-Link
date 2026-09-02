@@ -5,9 +5,6 @@
  * and direct thermal / desktop printing routines.
  */
 
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
-
 export class SlipPrintEngine {
   /**
    * Export DOM element as a crisp, print-ready PDF
@@ -27,6 +24,11 @@ export class SlipPrintEngine {
     }
 
     try {
+      const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+        import("jspdf"),
+        import("html2canvas"),
+      ]);
+
       // 1. Render high-resolution canvas at 2.5x - 3x display scale
       const canvas = await html2canvas(element, {
         scale: 3, // High-DPI 300 DPI equivalent
@@ -93,6 +95,7 @@ export class SlipPrintEngine {
     if (!element) return false;
 
     try {
+      const { default: html2canvas } = await import("html2canvas");
       const canvas = await html2canvas(element, {
         scale: 3,
         useCORS: true,

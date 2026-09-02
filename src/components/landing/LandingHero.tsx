@@ -57,46 +57,51 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
         <div className="space-y-8">
           
           {/* Main Semantic H1 Headline */}
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
+          <h1
             className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.12] text-[#111827]"
           >
-            Digital Identity Verification, Utility Bills,{" "}
+            Instant Identity Verification, Business Filing &amp;{" "}
             <span className="text-[#0F2D5C]">
-              Airtime and Data Platform in Nigeria
+              Automated Utility Bills in Nigeria
             </span>
-          </motion.h1>
+          </h1>
 
           {/* High-Intent Subheading */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+          <p
             className="text-base sm:text-lg text-[#4B5563] font-normal leading-relaxed max-w-2xl mx-auto"
           >
-            Nigeria&apos;s leading automated portal for POS agents, businesses, developers, and individuals. Instant <strong>NIN Slips &amp; Premium ID Cards</strong>, <strong>BVN Validation</strong>, <strong>CAC Business Name Registration</strong>, <strong>SCUML Compliance</strong>, <strong>High Court Affidavits</strong>, and wholesale <strong>Airtime, SME Data &amp; Electricity Tokens</strong>.
-          </motion.p>
+            Verify NIN and BVN records with slip downloads, register businesses with CAC, and settle electricity, data, and airtime transactions in seconds through one unified portal and developer API.
+          </p>
 
-          {/* Benefit Bullets */}
+          {/* 3 Focused Benefit Bullets */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-6 text-sm text-[#4B5563]"
+            className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 text-left max-w-3xl mx-auto"
           >
-            <div className="flex items-center gap-2">
-              <Server className="h-4 w-4 text-[#0F2D5C]" />
-              <span>99.9% API Uptime</span>
+            <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+              <ShieldCheck className="h-5 w-5 text-[#0F2D5C] shrink-0 mt-0.5" />
+              <div>
+                <h3 className="text-sm font-bold text-[#0F2D5C]">Instant Verification &amp; Slips</h3>
+                <p className="text-xs text-[#64748B] mt-0.5">Standard/premium NIN slips, BVN cards, and CAC reports with QR codes.</p>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-[#0F2D5C]" />
-              <span>Compliance-First Security</span>
+
+            <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+              <Zap className="h-5 w-5 text-[#0F2D5C] shrink-0 mt-0.5" />
+              <div>
+                <h3 className="text-sm font-bold text-[#0F2D5C]">Automated Bills &amp; VTU</h3>
+                <p className="text-xs text-[#64748B] mt-0.5">Zero-delay Disco tokens, cheap SME data bundles, airtime, and exam pins.</p>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Zap className="h-4 w-4 text-[#0F2D5C]" />
-              <span>Built for Scale</span>
+
+            <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+              <Lock className="h-5 w-5 text-[#0F2D5C] shrink-0 mt-0.5" />
+              <div>
+                <h3 className="text-sm font-bold text-[#0F2D5C]">Bank-Grade &amp; 99.9% Uptime</h3>
+                <p className="text-xs text-[#64748B] mt-0.5">Dedicated virtual account funding, encrypted payouts, and REST APIs.</p>
+              </div>
             </div>
           </motion.div>
 
@@ -113,18 +118,23 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                 onClick={onGetStarted}
                 className="w-full sm:w-auto px-8 py-4 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold rounded-xl text-sm shadow-xs transition-all active:scale-98 cursor-pointer flex items-center justify-center gap-2.5"
               >
-                Get Started for Free
+                Get Started Free
+                <ArrowRight className="h-4 w-4" />
               </button>
               <button
                 id="hero-secondary-btn"
                 onClick={onExploreServices}
                 className="w-full sm:w-auto px-8 py-4 bg-white hover:bg-[#F5F7FA] text-[#0F2D5C] border border-[#0F2D5C] font-bold rounded-xl text-sm shadow-xs transition-all active:scale-98 cursor-pointer flex items-center justify-center gap-2.5"
               >
-                Explore Services
+                Explore Services &amp; Pricing
               </button>
             </div>
-            <p className="text-xs text-[#6B7280] pt-2">
-              No setup fees • Instant activation • Comprehensive documentation
+            <p className="text-xs text-[#6B7280] pt-2 flex items-center justify-center gap-1.5 flex-wrap">
+              <span>Instant Automated Processing</span>
+              <span>•</span>
+              <span>Dedicated Virtual Account Funding</span>
+              <span>•</span>
+              <span>No Hidden Setup Fees</span>
             </p>
           </motion.div>
 

@@ -166,14 +166,18 @@ async function startServer() {
     const distPath = path.join(process.cwd(), "dist");
     const publicPath = path.join(process.cwd(), "public");
 
-    // Explicit route for logo to ensure it never falls through to SPA index.html fallback
-    app.get(["/logo.png", "/assets/logo.png"], (_req, res) => {
-      const publicLogo = path.join(publicPath, "logo.png");
-      const distLogo = path.join(distPath, "logo.png");
-      const rootLogo = path.join(process.cwd(), "logo.png");
+    // Explicit route for WebP and PNG logos with long-term caching
+    app.get(["/logo.webp", "/assets/logo.webp", "/logo.png", "/assets/logo.png"], (req, res) => {
+      const isWebp = req.path.endsWith(".webp");
+      const ext = isWebp ? ".webp" : ".png";
+      const mime = isWebp ? "image/webp" : "image/png";
       
-      res.setHeader("Content-Type", "image/png");
-      res.setHeader("Cache-Control", "public, max-age=86400");
+      const publicLogo = path.join(publicPath, `logo${ext}`);
+      const distLogo = path.join(distPath, `logo${ext}`);
+      const rootLogo = path.join(process.cwd(), `logo${ext}`);
+      
+      res.setHeader("Content-Type", mime);
+      res.setHeader("Cache-Control", "public, max-age=604800, stale-while-revalidate=86400");
       if (fs.existsSync(publicLogo)) return res.sendFile(publicLogo);
       if (fs.existsSync(distLogo)) return res.sendFile(distLogo);
       if (fs.existsSync(rootLogo)) return res.sendFile(rootLogo);
@@ -187,18 +191,40 @@ async function startServer() {
       const rootOg = path.join(process.cwd(), "og-image.png");
 
       res.setHeader("Content-Type", "image/png");
-      res.setHeader("Cache-Control", "public, max-age=86400");
+      res.setHeader("Cache-Control", "public, max-age=604800, stale-while-revalidate=86400");
       if (fs.existsSync(publicOg)) return res.sendFile(publicOg);
       if (fs.existsSync(distOg)) return res.sendFile(distOg);
       if (fs.existsSync(rootOg)) return res.sendFile(rootOg);
       // Fallback to logo if og-image is missing
-      const publicLogo = path.join(publicPath, "logo.png");
+      const publicLogo = path.join(publicPath, "logo.webp");
       if (fs.existsSync(publicLogo)) return res.sendFile(publicLogo);
       return res.status(404).send("OG image not found");
     });
 
-    app.use(express.static(publicPath));
-    app.use(express.static(distPath));
+    // Hashed Vite production assets - 1 Year Immutable Cache
+    app.use("/assets", express.static(path.join(distPath, "assets"), {
+      maxAge: "31536000s",
+      immutable: true,
+    }));
+
+    // Static public directory - 7 Days Cache with ETag support
+    app.use(express.static(publicPath, {
+      maxAge: "604800s",
+      setHeaders: (res, filePath) => {
+        if (filePath.endsWith(".html")) {
+          res.setHeader("Cache-Control", "no-cache");
+        }
+      }
+    }));
+
+    app.use(express.static(distPath, {
+      maxAge: "86400s",
+      setHeaders: (res, filePath) => {
+        if (filePath.endsWith(".html")) {
+          res.setHeader("Cache-Control", "no-cache");
+        }
+      }
+    }));
 
     // Dynamic Server-Side HTML Rendering with SEO, Open Graph & Twitter Card Meta Tags
     app.get("*", (req, res) => {

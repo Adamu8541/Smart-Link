@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
 @variant dark (&:where(.dark, .dark *));
@@ -24,8 +23,8 @@
   --admin-border-gray: #E5E7EB;
   --admin-text-gray: #4B5563;
   --admin-dark-text: #111827;
-  --admin-success-green: #17407E;
-  --admin-error-red: #0F2D5C;
+  --admin-success-green: #10B981;
+  --admin-error-red: #EF4444;
 }
 
 /* Admin Dashboard Palette Classes */
@@ -36,23 +35,23 @@
 .bg-admin-white { background-color: #FFFFFF !important; }
 .bg-admin-light-bg { background-color: #F5F7FA !important; }
 .bg-admin-border-gray { background-color: #E5E7EB !important; }
-.bg-admin-success { background-color: #17407E !important; }
-.bg-admin-error { background-color: #0F2D5C !important; }
+.bg-admin-success { background-color: #10B981 !important; }
+.bg-admin-error { background-color: #EF4444 !important; }
 
 .text-admin-navy { color: #0F2D5C !important; }
 .text-admin-deep-blue { color: #17407E !important; }
 .text-admin-primary-blue { color: #0F2D5C !important; }
 .text-admin-text-gray { color: #4B5563 !important; }
 .text-admin-dark-text { color: #111827 !important; }
-.text-admin-success { color: #17407E !important; }
-.text-admin-error { color: #0F2D5C !important; }
+.text-admin-success { color: #10B981 !important; }
+.text-admin-error { color: #EF4444 !important; }
 .text-admin-white { color: #FFFFFF !important; }
 
 .border-admin-border-gray { border-color: #E5E7EB !important; }
 .border-admin-primary-blue { border-color: #0F2D5C !important; }
 .border-admin-navy { border-color: #0F2D5C !important; }
-.border-admin-success { border-color: #17407E !important; }
-.border-admin-error { border-color: #0F2D5C !important; }
+.border-admin-success { border-color: #10B981 !important; }
+.border-admin-error { border-color: #EF4444 !important; }
 
 ::-webkit-scrollbar-track {
   background: transparent;
@@ -156,6 +155,13 @@ h1, h2, h3, h4, h5, h6 {
 .keep-white-bg {
   background-color: #ffffff !important;
 }
+
+/* Offscreen section rendering optimization */
+.content-visibility-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 600px;
+}
+
 
 
 

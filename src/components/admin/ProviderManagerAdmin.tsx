@@ -445,11 +445,11 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
       {/* Toast Notification Alert */}
       {toast && (
         <div
-          className={`fixed top-6 right-6 z-50 px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 text-xs font-bold text-white transition-all animate-bounce ${
-            toast.type === "success" ? "bg-[#0F2D5C]" : "bg-[#0F2D5C]"
+          className={`fixed top-6 right-6 z-50 px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 text-xs font-bold text-white transition-all ${
+            toast.type === "success" ? "bg-emerald-600 border border-emerald-500" : "bg-red-600 border border-red-500"
           }`}
         >
-          {toast.type === "success" ? <CheckCircle2 className="h-5 w-5 shrink-0" /> : <AlertTriangle className="h-5 w-5 shrink-0" />}
+          {toast.type === "success" ? <CheckCircle2 className="h-5 w-5 shrink-0 text-white" /> : <AlertTriangle className="h-5 w-5 shrink-0 text-white" />}
           <span>{toast.msg}</span>
         </div>
       )}

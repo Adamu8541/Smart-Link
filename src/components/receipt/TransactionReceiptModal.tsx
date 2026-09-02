@@ -138,26 +138,26 @@ export const TransactionReceiptModal: React.FC<TransactionReceiptModalProps> = (
           <div className="text-center py-3 bg-[#F5F7FA] dark:bg-[#111827]/50 rounded-xl border border-[#E5E7EB] dark:border-[#111827]/80">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold mb-2">
               {status === "SUCCESSFUL" && (
-                <span className="bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/70 dark:text-[#9CA3AF] px-3 py-1 rounded-full flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-[#0F2D5C] dark:text-[#9CA3AF]" />
+                <span className="bg-emerald-50 text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 px-3 py-1 rounded-full flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                   Transaction Successful
                 </span>
               )}
               {status === "PENDING" && (
-                <span className="bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/70 dark:text-[#9CA3AF] px-3 py-1 rounded-full flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-[#0F2D5C] dark:text-[#9CA3AF]" />
+                <span className="bg-amber-50 text-amber-700 dark:bg-amber-950/70 dark:text-amber-400 border border-amber-200 dark:border-amber-800 px-3 py-1 rounded-full flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                   Processing Transaction
                 </span>
               )}
               {status === "FAILED" && (
-                <span className="bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/70 dark:text-[#9CA3AF] px-3 py-1 rounded-full flex items-center gap-1">
-                  <XCircle className="w-3.5 h-3.5 text-[#0F2D5C] dark:text-[#9CA3AF]" />
+                <span className="bg-red-50 text-red-700 dark:bg-red-950/70 dark:text-red-400 border border-red-200 dark:border-red-800 px-3 py-1 rounded-full flex items-center gap-1">
+                  <XCircle className="w-3.5 h-3.5 text-red-600 dark:text-red-400" />
                   Transaction Failed
                 </span>
               )}
               {status === "REFUNDED" && (
-                <span className="bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/70 dark:text-[#9CA3AF] px-3 py-1 rounded-full flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#0F2D5C] dark:text-[#9CA3AF]" />
+                <span className="bg-blue-50 text-blue-700 dark:bg-blue-950/70 dark:text-blue-400 border border-blue-200 dark:border-blue-800 px-3 py-1 rounded-full flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                   Refunded to Wallet
                 </span>
               )}

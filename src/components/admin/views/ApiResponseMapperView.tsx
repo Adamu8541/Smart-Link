@@ -390,11 +390,11 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
             exit={{ opacity: 0, y: -20 }}
             className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border ${
               toastMessage.type === "success"
-                ? "bg-[#0F2D5C]/90 text-[#9CA3AF] border-[#0F2D5C]"
-                : "bg-[#0F2D5C]/90 text-[#9CA3AF] border-[#0F2D5C]"
+                ? "bg-emerald-950/90 text-emerald-200 border-emerald-700"
+                : "bg-red-950/90 text-red-200 border-red-700"
             }`}
           >
-            {toastMessage.type === "success" ? <CheckCircle2 className="h-5 w-5 shrink-0" /> : <AlertTriangle className="h-5 w-5 shrink-0" />}
+            {toastMessage.type === "success" ? <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" /> : <AlertTriangle className="h-5 w-5 text-red-400 shrink-0" />}
             <span className="text-sm font-medium">{toastMessage.text}</span>
           </motion.div>
         )}
@@ -1113,10 +1113,10 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                       <span
                         className={`px-3 py-1 rounded-full font-extrabold text-xs border ${
                           testResult.testResult === "SUCCESS"
-                            ? "bg-[#0F2D5C] text-[#9CA3AF] border-[#0F2D5C]"
+                            ? "bg-emerald-950/70 text-emerald-300 border-emerald-700"
                             : testResult.testResult === "PARTIAL"
-                            ? "bg-[#0F2D5C] text-[#9CA3AF] border-[#0F2D5C]"
-                            : "bg-[#0F2D5C] text-[#9CA3AF] border-[#0F2D5C]"
+                            ? "bg-amber-950/70 text-amber-300 border-amber-700"
+                            : "bg-red-950/70 text-red-300 border-red-700"
                         }`}
                       >
                         {testResult.testResult}
@@ -1125,10 +1125,10 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
 
                     <div className="flex items-center gap-3 text-xs">
                       <span className="text-[#9CA3AF]">
-                        Invalid Paths: <strong className="text-[#9CA3AF]">{testResult.invalidPaths?.length || 0}</strong>
+                        Invalid Paths: <strong className="text-red-400">{testResult.invalidPaths?.length || 0}</strong>
                       </span>
                       <span className="text-[#9CA3AF]">
-                        Unmapped Fields: <strong className="text-[#9CA3AF]">{testResult.missingFields?.length || 0}</strong>
+                        Unmapped Fields: <strong className="text-amber-400">{testResult.missingFields?.length || 0}</strong>
                       </span>
                     </div>
                   </div>
@@ -1176,7 +1176,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                             <span className="text-[10px] text-[#6B7280] uppercase tracking-wider font-sans font-semibold">{key}</span>
                             <span className={`font-bold truncate mt-1 ${
                               key === "status"
-                                ? val === "SUCCESS" ? "text-[#9CA3AF]" : "text-[#9CA3AF]"
+                                ? val === "SUCCESS" ? "text-emerald-400" : "text-red-400"
                                 : val !== null && val !== undefined ? "text-[#E5E7EB]" : "text-[#4B5563] italic"
                             }`}>
                               {val === null || val === undefined ? "null" : typeof val === "object" ? JSON.stringify(val) : String(val)}

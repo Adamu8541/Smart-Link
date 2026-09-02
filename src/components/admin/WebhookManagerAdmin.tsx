@@ -443,11 +443,11 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
         <div
           className={`p-4 rounded-2xl text-xs font-bold border flex items-center gap-3 animate-fadeIn ${
             feedback.type === "success"
-              ? "bg-[#0F2D5C]/10 text-[#0F2D5C] dark:text-[#9CA3AF] border-[#0F2D5C]/20"
-              : "bg-[#0F2D5C]/10 text-[#0F2D5C] dark:text-[#9CA3AF] border-[#0F2D5C]/20"
+              ? "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-200 border-emerald-200 dark:border-emerald-800"
+              : "bg-red-50 dark:bg-red-950/60 text-red-800 dark:text-red-200 border-red-200 dark:border-red-800"
           }`}
         >
-          {feedback.type === "success" ? <CheckCircle2 className="h-5 w-5 shrink-0" /> : <AlertTriangle className="h-5 w-5 shrink-0" />}
+          {feedback.type === "success" ? <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0" /> : <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400 shrink-0" />}
           <span>{feedback.message}</span>
         </div>
       )}

@@ -267,10 +267,10 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             className={`fixed top-5 right-5 z-50 p-4 rounded-2xl border shadow-xl flex items-center gap-3 text-xs font-bold ${
-              toast.type === "success" ? "bg-[#0F2D5C] border-[#0F2D5C] text-[#9CA3AF]" : "bg-[#0F2D5C] border-[#0F2D5C] text-[#9CA3AF]"
+              toast.type === "success" ? "bg-emerald-950 border-emerald-700 text-emerald-200" : "bg-red-950 border-red-700 text-red-200"
             }`}
           >
-            {toast.type === "success" ? <CheckCircle2 className="h-5 w-5 text-[#9CA3AF]" /> : <AlertTriangle className="h-5 w-5 text-[#9CA3AF]" />}
+            {toast.type === "success" ? <CheckCircle2 className="h-5 w-5 text-emerald-400" /> : <AlertTriangle className="h-5 w-5 text-red-400" />}
             <span>{toast.msg}</span>
           </motion.div>
         )}

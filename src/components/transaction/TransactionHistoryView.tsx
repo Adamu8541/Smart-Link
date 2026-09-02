@@ -325,26 +325,26 @@ export const TransactionHistoryView: React.FC<TransactionHistoryViewProps> = ({
 
                       <td className="py-3.5 px-4">
                         {txn.status === "SUCCESSFUL" && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#F5F7FA] text-[#111827]  ">
-                            <CheckCircle2 className="w-3 h-3 text-[#0F2D5C]" />
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                             Success
                           </span>
                         )}
                         {txn.status === "PENDING" && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#F5F7FA] text-[#111827]  ">
-                            <Clock className="w-3 h-3 text-[#0F2D5C]" />
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
+                            <Clock className="w-3 h-3 text-amber-600 dark:text-amber-400" />
                             Pending
                           </span>
                         )}
                         {txn.status === "FAILED" && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#F5F7FA] text-[#111827]  ">
-                            <XCircle className="w-3 h-3 text-[#0F2D5C]" />
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 dark:bg-red-950/60 dark:text-red-400 border border-red-200 dark:border-red-800">
+                            <XCircle className="w-3 h-3 text-red-600 dark:text-red-400" />
                             Failed
                           </span>
                         )}
                         {txn.status === "REFUNDED" && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#F5F7FA] text-[#111827]  ">
-                            <ShieldCheck className="w-3 h-3 text-[#0F2D5C]" />
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
+                            <ShieldCheck className="w-3 h-3 text-blue-600 dark:text-blue-400" />
                             Refunded
                           </span>
                         )}

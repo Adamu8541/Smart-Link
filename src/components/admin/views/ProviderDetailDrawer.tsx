@@ -477,12 +477,12 @@ export function ProviderDetailDrawer({
             <div
               className={`p-4 rounded-2xl border text-xs font-medium flex items-center justify-between ${
                 toast.type === "success"
-                  ? "bg-[#0F2D5C]/80 border-[#0F2D5C] text-[#9CA3AF]"
-                  : "bg-[#0F2D5C]/80 border-[#0F2D5C] text-[#9CA3AF]"
+                  ? "bg-emerald-950/80 border-emerald-700 text-emerald-200"
+                  : "bg-red-950/80 border-red-700 text-red-200"
               }`}
             >
               <span>{toast.message}</span>
-              <button onClick={() => setToast(null)} className="text-[#9CA3AF] hover:text-white">✕</button>
+              <button onClick={() => setToast(null)} className="text-white/80 hover:text-white">✕</button>
             </div>
           )}
 

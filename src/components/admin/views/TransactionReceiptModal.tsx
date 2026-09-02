@@ -67,15 +67,15 @@ export function TransactionReceiptModal({ isOpen, onClose, transaction, user }: 
     switch (status) {
       case "SUCCESSFUL":
       case "COMPLETED":
-        return "bg-[#0F2D5C]/80 text-[#9CA3AF] border-[#0F2D5C]/80";
+        return "bg-emerald-950/70 text-emerald-300 border-emerald-700/80";
       case "FAILED":
       case "CANCELLED":
-        return "bg-[#0F2D5C]/80 text-[#9CA3AF] border-[#0F2D5C]/80";
+        return "bg-red-950/70 text-red-300 border-red-700/80";
       case "REFUNDED":
       case "REVERSED":
-        return "bg-[#0F2D5C]/80 text-[#9CA3AF] border-[#0F2D5C]/80";
+        return "bg-blue-950/70 text-blue-300 border-blue-700/80";
       default:
-        return "bg-[#0F2D5C]/80 text-[#9CA3AF] border-[#0F2D5C]/80";
+        return "bg-amber-950/70 text-amber-300 border-amber-700/80";
     }
   };
 
@@ -107,7 +107,7 @@ export function TransactionReceiptModal({ isOpen, onClose, transaction, user }: 
           {/* SmartLink Header */}
           <div className="text-center pb-6 border-b border-[#111827]/80 print:border-black">
             <div className="inline-flex items-center gap-2 mb-1">
-              <span className="h-3 w-3 rounded-full bg-[#0F2D5C] animate-pulse"></span>
+              <span className="h-3 w-3 rounded-full bg-emerald-500 animate-pulse"></span>
               <span className="text-lg font-black text-white tracking-wider uppercase print:text-black">SMARTLINK DIGITAL</span>
             </div>
             <p className="text-xs text-[#9CA3AF] print:text-[#4B5563]">Smart Link Digital Identity & Payment Infrastructure</p>
@@ -117,10 +117,10 @@ export function TransactionReceiptModal({ isOpen, onClose, transaction, user }: 
           {/* Status Badge Stamp */}
           <div className="flex justify-center">
             <div className={`px-4 py-1.5 rounded-full border text-xs font-bold uppercase tracking-wider flex items-center gap-2 ${getStatusColor(transaction.status)}`}>
-              {transaction.status === "SUCCESSFUL" && <CheckCircle2 className="h-4 w-4 text-[#9CA3AF]" />}
-              {transaction.status === "FAILED" && <AlertTriangle className="h-4 w-4 text-[#9CA3AF]" />}
-              {transaction.status === "PENDING" && <Clock className="h-4 w-4 text-[#9CA3AF] animate-spin" />}
-              {transaction.status === "REFUNDED" && <RefreshCw className="h-4 w-4 text-[#9CA3AF]" />}
+              {(transaction.status === "SUCCESSFUL" || transaction.status === "COMPLETED") && <CheckCircle2 className="h-4 w-4 text-emerald-400" />}
+              {(transaction.status === "FAILED" || transaction.status === "CANCELLED") && <AlertTriangle className="h-4 w-4 text-red-400" />}
+              {transaction.status === "PENDING" && <Clock className="h-4 w-4 text-amber-400 animate-spin" />}
+              {(transaction.status === "REFUNDED" || transaction.status === "REVERSED") && <RefreshCw className="h-4 w-4 text-blue-400" />}
               <span>{transaction.status}</span>
             </div>
           </div>

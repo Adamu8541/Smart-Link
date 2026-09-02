@@ -169,34 +169,10 @@ export function resolveSEOMetadata(req: Request): SEOMetadata {
       "mainEntity": [
         {
           "@type": "Question",
-          "name": "How do I verify and download my NIN Slip in Nigeria?",
+          "name": "How does wallet funding work on SmartLink NG?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "You can verify your National Identity Number (NIN) instantly on SmartLink Nigeria by providing your 11-digit NIN or registered phone number. The portal retrieves verified data directly from official databases and generates downloadable standard/premium PDF slips with QR codes in seconds."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "How long does BVN verification and plastic card generation take?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "BVN verification on SmartLink Nigeria is instantaneous. Once confirmed, you can download a formatted BVN identity slip or print-ready plastic card layout immediately."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "Can I register my business with the Corporate Affairs Commission (CAC) through SmartLink?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Yes, SmartLink Nigeria provides CAC business name reservation, full enterprise registration, status report retrieval, and post-incorporation filing support handled by accredited professionals."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "Which utility bills and telecom services can I pay on SmartLink Nigeria?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "SmartLink supports prepaid and postpaid electricity tokens for all Nigerian Discos (IKEDC, EKEDC, AEDC, IBEDC, KAEDCO, etc.), instant VTU data and airtime across MTN, Airtel, Glo, and 9mobile, and cable TV renewals for DSTV, GOtv, and StarTimes."
+            "text": "Every registered user and agent receives automated dedicated virtual bank account numbers (Wema Bank, Moniepoint, Sterling, Providus). Any bank transfer made to your virtual account is credited to your SmartLink wallet balance in real time with zero manual confirmation. Debit cards and instant online checkouts are also supported."
           }
         },
         {
@@ -204,7 +180,47 @@ export function resolveSEOMetadata(req: Request): SEOMetadata {
           "name": "How do developers integrate SmartLink's identity verification and VTU APIs?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Developers can generate secure API keys from their SmartLink dashboard and connect using our standard RESTful JSON endpoints with dedicated webhook notifications and 99.9% uptime SLAs."
+            "text": "Developers can generate live and sandbox API keys directly from their dashboard. We offer high-performance RESTful JSON endpoints with sub-450ms response latency, complete Postman collections, standardized response codes, and automated webhook notifications for wallet debits, meter tokens, and verification lookups."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What are the requirements for CAC Business Name & Company Registration?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "To register a Business Name or Company with CAC, you need: 1) Two proposed business names for reservation, 2) Nature and description of business activities, 3) Valid government-issued ID (NIN, Driver's License, or Intl Passport), 4) Passport photograph and signature image, and 5) Official business address and contact phone/email. Our accredited agents process your filing end-to-end within 48 to 72 hours."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I verify and download my NIN Slip in Nigeria?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "You can verify your National Identity Number (NIN) instantly on SmartLink NG by providing your 11-digit NIN or registered phone number. The portal retrieves verified data directly from official databases and generates downloadable standard/premium PDF slips with QR codes in seconds."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How long does BVN verification and plastic card generation take?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "BVN verification on SmartLink NG is instantaneous. Once confirmed, you can download a formatted BVN identity slip or print-ready plastic card layout immediately."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I register my business with the Corporate Affairs Commission (CAC) through SmartLink?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, SmartLink NG provides CAC business name reservation, full enterprise registration, status report retrieval, and post-incorporation filing support handled by accredited professionals."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Which utility bills and telecom services can I pay on SmartLink NG?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "SmartLink NG supports prepaid and postpaid electricity tokens for all Nigerian Discos (IKEDC, EKEDC, AEDC, IBEDC, KAEDCO, etc.), instant VTU data and airtime across MTN, Airtel, Glo, and 9mobile, and cable TV renewals for DSTV, GOtv, and StarTimes."
           }
         }
       ]

@@ -330,14 +330,14 @@ export default function AdminPermissionsView({ session, onNavigate }: AdminPermi
           <div
             className={`p-4 rounded-2xl text-xs font-semibold flex items-center gap-2.5 ${
               statusMessage.type === "success"
-                ? "bg-[#F5F7FA] dark:bg-[#0F2D5C]/80 text-[#0F2D5C] dark:text-[#9CA3AF] border border-[#E5E7EB] dark:border-[#0F2D5C]"
-                : "bg-[#F5F7FA] dark:bg-[#0F2D5C]/80 text-[#0F2D5C] dark:text-[#9CA3AF] border border-[#E5E7EB] dark:border-[#0F2D5C]"
+                ? "bg-emerald-50 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-800"
+                : "bg-red-50 dark:bg-red-950/80 text-red-800 dark:text-red-200 border border-red-200 dark:border-red-800"
             }`}
           >
             {statusMessage.type === "success" ? (
-              <CheckCircle2 className="h-4 w-4 shrink-0 text-[#0F2D5C] dark:text-[#9CA3AF]" />
+              <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
             ) : (
-              <AlertCircle className="h-4 w-4 shrink-0 text-[#0F2D5C] dark:text-[#9CA3AF]" />
+              <AlertCircle className="h-4 w-4 shrink-0 text-red-600 dark:text-red-400" />
             )}
             <span>{statusMessage.text}</span>
           </div>

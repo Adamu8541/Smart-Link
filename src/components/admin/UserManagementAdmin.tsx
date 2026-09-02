@@ -192,10 +192,10 @@ export default function UserManagementAdmin({
       {toast && (
         <div
           className={`fixed top-6 right-6 z-50 px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 text-xs font-bold text-white transition-all ${
-            toast.type === "success" ? "bg-[#0F2D5C]" : "bg-[#0F2D5C]"
+            toast.type === "success" ? "bg-emerald-600 border border-emerald-500" : "bg-red-600 border border-red-500"
           }`}
         >
-          {toast.type === "success" ? <CheckCircle2 className="h-5 w-5" /> : <AlertTriangle className="h-5 w-5" />}
+          {toast.type === "success" ? <CheckCircle2 className="h-5 w-5 text-white" /> : <AlertTriangle className="h-5 w-5 text-white" />}
           <span>{toast.msg}</span>
         </div>
       )}

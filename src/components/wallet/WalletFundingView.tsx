@@ -35,7 +35,6 @@ import {
   DollarSign
 } from "lucide-react";
 import QRCode from "qrcode";
-import { jsPDF } from "jspdf";
 import { UserProfile, UserRole } from "../../types";
 import { SmartLinkLogoMark } from "../ui/SmartLinkLogoMark";
 import { ProviderService, ActiveProviderConfig, getAuthHeaders } from "../../services/providerService";
@@ -467,7 +466,8 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
   };
 
   // Download Official PDF Receipt
-  const downloadReceiptPDF = (receipt: any) => {
+  const downloadReceiptPDF = async (receipt: any) => {
+    const { jsPDF } = await import("jspdf");
     const doc = new jsPDF();
     
     // Brand header

@@ -10,6 +10,7 @@ import LandingHero from "./LandingHero";
 import LandingTrustSection from "./LandingTrustSection";
 import LandingServicesPreview from "./LandingServicesPreview";
 import LandingHowItWorks from "./LandingHowItWorks";
+import LandingFAQSection from "./LandingFAQSection";
 import LandingCTASection from "./LandingCTASection";
 import LandingFooter from "./LandingFooter";
 import { UserAnnouncementBanner } from "../notification/UserAnnouncementBanner";
@@ -110,22 +111,38 @@ export const SmartLinkLandingPage: React.FC<SmartLinkLandingPageProps> = ({
         />
 
         {/* Trust Section */}
-        <LandingTrustSection />
+        <div className="content-visibility-auto">
+          <LandingTrustSection />
+        </div>
 
         {/* Services Preview */}
-        <LandingServicesPreview
-          onSelectService={onSelectService}
-          onExploreAll={onExploreServices}
-        />
+        <div className="content-visibility-auto">
+          <LandingServicesPreview
+            onSelectService={onSelectService}
+            onExploreAll={onExploreServices}
+          />
+        </div>
 
         {/* How It Works */}
-        <LandingHowItWorks onGetStarted={onGetStarted} />
+        <div className="content-visibility-auto">
+          <LandingHowItWorks onGetStarted={onGetStarted} />
+        </div>
+
+        {/* FAQs */}
+        <div className="content-visibility-auto">
+          <LandingFAQSection 
+            onContactSupport={handleContactSales}
+            onGetStarted={onGetStarted}
+          />
+        </div>
 
         {/* Call To Action */}
-        <LandingCTASection
-          onRegister={onRegister}
-          onContactSales={handleContactSales}
-        />
+        <div className="content-visibility-auto">
+          <LandingCTASection
+            onRegister={onRegister}
+            onContactSales={handleContactSales}
+          />
+        </div>
 
       </main>
 

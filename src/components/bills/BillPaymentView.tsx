@@ -39,7 +39,6 @@ import {
   FileText
 } from "lucide-react";
 import QRCode from "qrcode";
-import { jsPDF } from "jspdf";
 import { UserProfile, UserRole } from "../../types";
 import { SmartLinkLogoMark } from "../ui/SmartLinkLogoMark";
 import {
@@ -336,7 +335,8 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
   };
 
   // Download Official PDF Receipt
-  const handleDownloadPDF = (resObj: BillPaymentResponse) => {
+  const handleDownloadPDF = async (resObj: BillPaymentResponse) => {
+    const { jsPDF } = await import("jspdf");
     const doc = new jsPDF();
 
     // Header background
@@ -632,8 +632,8 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
           </div>
 
           {validationError && (
-            <div className="p-4 rounded-2xl bg-[#F5F7FA] dark:bg-[#0F2D5C]/30 border border-[#E5E7EB] dark:border-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF] text-xs font-semibold flex items-center gap-2.5 animate-fadeIn">
-              <AlertCircle className="h-5 w-5 shrink-0 text-[#0F2D5C]" />
+            <div className="p-4 rounded-2xl bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-xs font-semibold flex items-center gap-2.5 animate-fadeIn">
+              <AlertCircle className="h-5 w-5 shrink-0 text-red-600 dark:text-red-400" />
               <span className="leading-relaxed">{validationError}</span>
             </div>
           )}
