@@ -32,7 +32,8 @@ import {
 } from "lucide-react";
 import { LEGAL_DOCUMENTS, LegalDocument, getLegalDocumentById } from "./legalData";
 import { useSiteConfig } from "../../context/SiteConfigContext";
-const logoImg = "/logo.png";
+import { DEFAULT_LOGO_URL, handleLogoError } from "../../utils/brandLogo";
+const logoImg = DEFAULT_LOGO_URL;
 
 interface LegalDocumentViewProps {
   docId?: string;
@@ -171,7 +172,7 @@ export const LegalDocumentView: React.FC<LegalDocumentViewProps> = ({
                 alt={siteName || "SmartLink Nigeria"}
                 className="h-10 sm:h-12 w-auto max-w-[200px] object-contain"
                 referrerPolicy="no-referrer"
-                onError={(e: any) => { e.currentTarget.src = "/logo.png"; }}
+                onError={handleLogoError}
               />
             </div>
           </div>

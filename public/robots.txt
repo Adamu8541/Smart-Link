@@ -1,0 +1,40 @@
+# ==============================================================================
+# SmartLink Nigeria Digital Platform - Search Engine Robots Directives
+# Website: https://smartlinkng.com.ng
+# ==============================================================================
+
+User-agent: *
+Allow: /
+Allow: /explore-services
+Allow: /verification
+Allow: /bills
+Allow: /api-docs
+Allow: /developer-api
+Allow: /terms
+Allow: /privacy
+Allow: /compliance
+Allow: /refund-policy
+Allow: /security
+Allow: /sla
+Allow: /og-image.png
+Allow: /logo.png
+Allow: /favicon.png
+Allow: /assets/
+
+# Disallow Private Administration, Authentication & Dashboard Endpoints
+Disallow: /admin
+Disallow: /admin/
+Disallow: /admin/*
+Disallow: /api/
+Disallow: /api/*
+Disallow: /dashboard
+Disallow: /dashboard/
+Disallow: /dashboard/*
+Disallow: /wallet/
+Disallow: /wallet/*
+Disallow: /reset-password
+Disallow: /verify-token
+
+# Crawl Delay & Sitemap Reference
+Crawl-delay: 1
+Sitemap: https://smartlinkng.com.ng/sitemap.xml

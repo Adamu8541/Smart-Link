@@ -1,7 +1,8 @@
 import React from "react";
 import { motion } from "motion/react";
-const logoImg = "/logo.png";
 import { useSiteConfig } from "../../context/SiteConfigContext";
+import { DEFAULT_LOGO_URL, handleLogoError } from "../../utils/brandLogo";
+const logoImg = DEFAULT_LOGO_URL;
 
 export interface SmartLinkLogoMarkProps {
   /** Size in pixels or Tailwind scale ('xs' | 'sm' | 'md' | 'lg' | 'xl' | number) */
@@ -71,12 +72,14 @@ export const SmartLinkLogoMark: React.FC<SmartLinkLogoMarkProps> = ({
       >
         <img
           src={activeLogo}
-          alt={siteName || "SmartLink Logo"}
+          alt={`${siteName || "SmartLink"} Official Brand Logo`}
+          width={180}
+          height={pxHeight}
+          loading="eager"
+          decoding="async"
           className="h-full w-auto object-contain max-w-full"
           referrerPolicy="no-referrer"
-          onError={(e: any) => {
-            e.currentTarget.src = "/logo.png";
-          }}
+          onError={handleLogoError}
         />
       </motion.div>
 

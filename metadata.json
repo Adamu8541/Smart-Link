@@ -1,6 +1,7 @@
 {
-  "name": "Smart Link Nigeria Digital Platform",
-  "description": "An enterprise-grade digital business, e-government, identity verification, and multi-vendor fintech platform based in Nigeria.",
+  "name": "Smart Link NG",
+  "description": "Nigeria's all-in-one digital portal for NIN Verification & Slip/ID Card Printing, BVN Validation, CAC Business Name Registration & Filing, SCUML Certificates, High Court Affidavits, Electricity Disco Meter Tokens, Cheap VTU Airtime & SME Data Bundles (MTN, Airtel, Glo, 9mobile), Cable TV Subscriptions (DSTV, GOtv, StarTimes), Exam Result Scratch Cards (WAEC, NECO, NABTEB), and Developer Verification APIs.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
+

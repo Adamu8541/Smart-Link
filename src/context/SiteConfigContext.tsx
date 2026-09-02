@@ -4,7 +4,8 @@
  */
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
-const defaultLogoImg = "/logo.png";
+import { DEFAULT_LOGO_URL } from "../utils/brandLogo";
+const defaultLogoImg = DEFAULT_LOGO_URL;
 
 export interface BrandingConfig {
   siteName?: string;

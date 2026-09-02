@@ -17,9 +17,10 @@ import {
   KeyRound,
   X
 } from "lucide-react";
-const logoImg = "/logo.png";
 import { SmartLinkLogoMark } from "../ui/SmartLinkLogoMark";
 import { useSiteConfig } from "../../context/SiteConfigContext";
+import { DEFAULT_LOGO_URL, handleLogoError } from "../../utils/brandLogo";
+const logoImg = DEFAULT_LOGO_URL;
 import { auth } from "../../firebase";
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 
@@ -197,7 +198,7 @@ export default function AdminLogin({ onLoginSuccess, onNavigateHome }: AdminLogi
               src={activeLogo}
               alt={siteName || "SmartLink Logo"}
               className="h-12 md:h-14 w-auto max-w-[200px] object-contain"
-              onError={(e: any) => { e.currentTarget.src = "/logo.png"; }}
+              onError={handleLogoError}
             />
           </div>
           <div>

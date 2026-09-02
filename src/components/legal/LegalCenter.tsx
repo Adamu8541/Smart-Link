@@ -32,7 +32,8 @@ import {
 } from "lucide-react";
 import { LEGAL_CATEGORIES, LEGAL_DOCUMENTS, LegalDocument } from "./legalData";
 import { useSiteConfig } from "../../context/SiteConfigContext";
-const logoImg = "/logo.png";
+import { DEFAULT_LOGO_URL, handleLogoError } from "../../utils/brandLogo";
+const logoImg = DEFAULT_LOGO_URL;
 
 interface LegalCenterProps {
   onSelectDocument: (docId: string) => void;
@@ -121,10 +122,14 @@ export const LegalCenter: React.FC<LegalCenterProps> = ({
             >
               <img
                 src={activeLogo}
-                alt={siteName || "SmartLink Nigeria"}
+                alt={`${siteName || "SmartLink Nigeria"} Legal & Compliance Center`}
+                width={200}
+                height={48}
+                loading="eager"
+                decoding="async"
                 className="h-10 sm:h-12 w-auto max-w-[200px] object-contain"
                 referrerPolicy="no-referrer"
-                onError={(e: any) => { e.currentTarget.src = "/logo.png"; }}
+                onError={handleLogoError}
               />
             </div>
           </div>
@@ -363,7 +368,7 @@ export const LegalCenter: React.FC<LegalCenterProps> = ({
                 alt="SmartLink Nigeria"
                 className="h-9 w-auto object-contain"
                 referrerPolicy="no-referrer"
-                onError={(e: any) => { e.currentTarget.src = "/logo.png"; }}
+                onError={handleLogoError}
               />
               <span className="font-bold text-[#111827] dark:text-white">SmartLink Nigeria</span>
             </div>

@@ -37,10 +37,11 @@ import {
 } from "./components/admin/views/AdminPlaceholderViews";
 import { AdminSession, getStoredAdminSession, clearAdminSession } from "./services/adminAuthTypes";
 import { UserProfile, UserRole } from "./types";
-const logoImg = "/logo.png";
 import { motion, AnimatePresence } from "motion/react";
 import { Sparkles, ArrowRight, ArrowLeft, ShieldCheck, Mail, Lock, Phone, Tag, UserRound, Check, Eye, EyeOff, AlertCircle, RefreshCw, CheckCircle2, LogOut, X, FileCheck } from "lucide-react";
 import { SmartLinkLogoMark } from "./components/ui/SmartLinkLogoMark";
+import { DEFAULT_LOGO_URL, handleLogoError } from "./utils/brandLogo";
+const logoImg = DEFAULT_LOGO_URL;
 import { getFriendlyErrorMessage, safeFetchJson } from "./utils/authErrorHandler";
 import { soundFx } from "./utils/audioEffects";
 import { AuthFormSkeleton } from "./components/ui/AuthSkeleton";
@@ -210,7 +211,7 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
 
 export default function App() {
   const { maintenanceActive, config: siteConfig, logoUrl: contextLogoUrl, refreshConfig: refreshSiteConfig } = useSiteConfig();
-  const dynamicLogo = siteConfig.branding?.logoUrl || siteConfig.branding?.lightLogoUrl || contextLogoUrl || "/logo.png";
+  const dynamicLogo = siteConfig.branding?.logoUrl || siteConfig.branding?.lightLogoUrl || contextLogoUrl || DEFAULT_LOGO_URL;
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
     try {
       const stored = localStorage.getItem("smart_link_user");
@@ -1812,7 +1813,7 @@ export default function App() {
                 alt="Smart Link Nigeria"
                 className="h-14 sm:h-16 w-auto max-w-[240px] object-contain"
                 referrerPolicy="no-referrer"
-                onError={(e: any) => { e.currentTarget.src = "/logo.png"; }}
+                onError={handleLogoError}
               />
             </div>
 
@@ -3377,7 +3378,7 @@ export default function App() {
                       alt="Smart Link Nigeria"
                       className="h-12 sm:h-14 w-auto max-w-[220px] object-contain shrink-0"
                       referrerPolicy="no-referrer"
-                      onError={(e: any) => { e.currentTarget.src = "/logo.png"; }}
+                      onError={handleLogoError}
                     />
                   </div>
                   <p className="text-[11px] text-[#4B5563] font-normal leading-relaxed">

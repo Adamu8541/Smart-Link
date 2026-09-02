@@ -193,13 +193,19 @@ app.get("/api/storage/file/:savedFileName", async (req, res) => {
   }
 
   // Fallback for system logo files
-  const isLogo = savedFileName.toLowerCase().includes("logo") || savedFileName.toLowerCase().includes("smartlink");
-  if (!fileOwnerId && isLogo) {
+  const isLogo = savedFileName.toLowerCase().includes("logo") || savedFileName.toLowerCase().includes("smartlink") || savedFileName.toLowerCase().includes("img_2023");
+  if (isLogo) {
     const defaultPng = path.join(process.cwd(), "public", "logo.png");
+    const rootPng = path.join(process.cwd(), "logo.png");
     if (fs.existsSync(defaultPng)) {
       res.setHeader("Content-Type", "image/png");
       res.setHeader("Cache-Control", "public, max-age=86400");
       return res.sendFile(defaultPng);
+    }
+    if (fs.existsSync(rootPng)) {
+      res.setHeader("Content-Type", "image/png");
+      res.setHeader("Cache-Control", "public, max-age=86400");
+      return res.sendFile(rootPng);
     }
   }
 

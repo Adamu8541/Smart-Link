@@ -5,8 +5,9 @@
 
 import React, { useState } from "react";
 import { Facebook, Twitter, Instagram, Linkedin, Youtube, Mail, Phone, MapPin, ShieldCheck, X, Building2, Briefcase, BookOpen, MessageSquare, Calendar, ChevronRight, Clock, Sparkles } from "lucide-react";
-const logoImg = "/logo.png";
 import { useSiteConfig } from "../../context/SiteConfigContext";
+import { DEFAULT_LOGO_URL, handleLogoError } from "../../utils/brandLogo";
+const logoImg = DEFAULT_LOGO_URL;
 
 interface LandingFooterProps {
   onNavigateSection: (sectionId: string) => void;
@@ -55,10 +56,14 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
             <div className="flex items-center">
               <img
                 src={activeLogo}
-                alt={siteName || "SmartLink Nigeria"}
+                alt={`${siteName || "SmartLink Nigeria"} - Identity Verification, Utility Bills and Enterprise CAC Filing`}
+                width={240}
+                height={64}
+                loading="lazy"
+                decoding="async"
                 className="h-14 sm:h-16 w-auto max-w-[240px] object-contain rounded-lg p-1 bg-white"
                 referrerPolicy="no-referrer"
-                onError={(e: any) => { e.currentTarget.src = "/logo.png"; }}
+                onError={handleLogoError}
               />
             </div>
 

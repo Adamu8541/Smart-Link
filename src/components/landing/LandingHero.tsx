@@ -56,27 +56,27 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
         <div className="space-y-8">
           
-          {/* Main Headline */}
+          {/* Main Semantic H1 Headline */}
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.12] text-[#111827]"
           >
-            Digital Identity Verification and{" "}
+            Digital Identity Verification, Utility Bills,{" "}
             <span className="text-[#0F2D5C]">
-              Payments Platform
+              Airtime and Data Platform in Nigeria
             </span>
           </motion.h1>
 
-          {/* Subheading */}
+          {/* High-Intent Subheading */}
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-base sm:text-lg text-[#4B5563] font-normal leading-relaxed max-w-2xl mx-auto"
           >
-            Built for agents, business and individual and offer services like NIN Slips/ID cards, BVN Slips, CAC Registration & Filing, Airtime and data purchase, identity lookup, verification and validation, SCUML registration, High Court Affidavits and many more
+            Nigeria&apos;s leading automated portal for POS agents, businesses, developers, and individuals. Instant <strong>NIN Slips &amp; Premium ID Cards</strong>, <strong>BVN Validation</strong>, <strong>CAC Business Name Registration</strong>, <strong>SCUML Compliance</strong>, <strong>High Court Affidavits</strong>, and wholesale <strong>Airtime, SME Data &amp; Electricity Tokens</strong>.
           </motion.p>
 
           {/* Benefit Bullets */}

@@ -5,8 +5,9 @@
 
 import React, { useState, useEffect } from "react";
 import { Menu, X, ArrowRight, ShieldCheck, User, LogIn, UserPlus } from "lucide-react";
-const logoImg = "/logo.png";
 import { useSiteConfig } from "../../context/SiteConfigContext";
+import { DEFAULT_LOGO_URL, handleLogoError } from "../../utils/brandLogo";
+const logoImg = DEFAULT_LOGO_URL;
 
 interface LandingHeaderProps {
   onLogin: () => void;
@@ -67,10 +68,15 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
           >
             <img
               src={activeLogo}
-              alt={siteName || "SmartLink Nigeria"}
+              alt={`${siteName || "SmartLink Nigeria"} - Official Identity Verification & Fintech Gateway`}
+              width={240}
+              height={64}
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
               className="h-14 sm:h-16 lg:h-18 w-auto max-w-[240px] sm:max-w-[280px] object-contain group-hover:scale-102 transition-all duration-300"
               referrerPolicy="no-referrer"
-              onError={(e: any) => { e.currentTarget.src = "/logo.png"; }}
+              onError={handleLogoError}
             />
           </div>
 

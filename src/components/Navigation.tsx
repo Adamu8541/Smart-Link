@@ -45,8 +45,9 @@ import {
 } from "lucide-react";
 import { UserProfile, UserRole } from "../types";
 import { SMART_LINK_SERVICES } from "./ServicesGrid";
-const defaultLogoImg = "/logo.png";
 import { useSiteConfig } from "../context/SiteConfigContext";
+import { DEFAULT_LOGO_URL, handleLogoError } from "../utils/brandLogo";
+const defaultLogoImg = DEFAULT_LOGO_URL;
 
 interface NavigationProps {
   currentView: string;
@@ -274,10 +275,14 @@ export default function Navigation({
         <div className="flex items-center shrink-0">
           <img
             src={logoUrl}
-            alt={siteName}
+            alt={`${siteName} Portal Gateway`}
+            width={150}
+            height={48}
+            loading="eager"
+            decoding="async"
             className="h-10 sm:h-12 w-auto max-w-[150px] object-contain rounded-lg bg-white p-1 shadow-sm border border-[#E5E7EB]"
             referrerPolicy="no-referrer"
-            onError={(e: any) => { e.currentTarget.src = defaultLogoImg; }}
+            onError={handleLogoError}
           />
         </div>
       </header>
@@ -300,7 +305,7 @@ export default function Navigation({
                   alt={siteName}
                   className="h-10 w-auto max-w-[180px] object-contain shrink-0"
                   referrerPolicy="no-referrer"
-                  onError={(e: any) => { e.currentTarget.src = defaultLogoImg; }}
+                  onError={handleLogoError}
                 />
               </div>
 
@@ -419,10 +424,14 @@ export default function Navigation({
           <div className="flex items-center justify-center px-1 py-2 select-none bg-white rounded-xl shadow-sm border border-[#17407E]/30">
             <img
               src={logoUrl}
-              alt={siteName}
+              alt={`${siteName} Enterprise Dashboard`}
+              width={200}
+              height={48}
+              loading="eager"
+              decoding="async"
               className="h-12 w-auto max-w-[200px] object-contain hover:scale-102 transition-transform"
               referrerPolicy="no-referrer"
-              onError={(e: any) => { e.currentTarget.src = defaultLogoImg; }}
+              onError={handleLogoError}
             />
           </div>
 

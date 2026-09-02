@@ -4,6 +4,7 @@
  */
 import express from "express";
 import path from "path";
+import fs from "fs";
 import helmet from "helmet";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
@@ -13,6 +14,8 @@ import { maintenanceMiddleware, isMaintenanceModeActive, getMaintenanceDetails, 
 import { verifyUserOrAdminSession } from "./server/middleware/auth";
 import { getAI } from "./server/services/ai";
 import { connectRedis } from "./server/redis";
+
+import { resolveSEOMetadata, injectSEOTags, generateSitemapXml, generateRobotsTxt } from "./server/services/seo.service";
 
 // Import modular route handlers
 import publicRoutes from "./server/routes/public.routes";
@@ -121,6 +124,31 @@ app.all("/api/*", (req, res) => {
   });
 });
 
+// Search Engine Directives: robots.txt and sitemap.xml
+app.get("/robots.txt", (req, res) => {
+  const host = req.headers["x-forwarded-host"] || req.headers.host || "smartlinkng.com.ng";
+  const protocol = req.headers["x-forwarded-proto"] || req.protocol || "https";
+  const origin = host.includes("localhost") || host.includes("127.0.0.1") || host.includes("ais-")
+    ? `${protocol}://${host}`
+    : "https://smartlinkng.com.ng";
+
+  res.setHeader("Content-Type", "text/plain; charset=utf-8");
+  res.setHeader("Cache-Control", "public, max-age=3600");
+  res.send(generateRobotsTxt(origin));
+});
+
+app.get(["/sitemap.xml", "/sitemap_index.xml"], (req, res) => {
+  const host = req.headers["x-forwarded-host"] || req.headers.host || "smartlinkng.com.ng";
+  const protocol = req.headers["x-forwarded-proto"] || req.protocol || "https";
+  const origin = host.includes("localhost") || host.includes("127.0.0.1") || host.includes("ais-")
+    ? `${protocol}://${host}`
+    : "https://smartlinkng.com.ng";
+
+  res.setHeader("Content-Type", "application/xml; charset=utf-8");
+  res.setHeader("Cache-Control", "public, max-age=3600");
+  res.send(generateSitemapXml(origin));
+});
+
 // =========================================================================
 // VITE MIDDLEWARE & SERVER STARTUP
 // =========================================================================
@@ -136,9 +164,58 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), "dist");
+    const publicPath = path.join(process.cwd(), "public");
+
+    // Explicit route for logo to ensure it never falls through to SPA index.html fallback
+    app.get(["/logo.png", "/assets/logo.png"], (_req, res) => {
+      const publicLogo = path.join(publicPath, "logo.png");
+      const distLogo = path.join(distPath, "logo.png");
+      const rootLogo = path.join(process.cwd(), "logo.png");
+      
+      res.setHeader("Content-Type", "image/png");
+      res.setHeader("Cache-Control", "public, max-age=86400");
+      if (fs.existsSync(publicLogo)) return res.sendFile(publicLogo);
+      if (fs.existsSync(distLogo)) return res.sendFile(distLogo);
+      if (fs.existsSync(rootLogo)) return res.sendFile(rootLogo);
+      return res.status(404).send("Logo not found");
+    });
+
+    // Explicit route for Open Graph & Social Preview image (1200x630)
+    app.get(["/og-image.png", "/assets/og-image.png", "/og-image.jpg"], (_req, res) => {
+      const publicOg = path.join(publicPath, "og-image.png");
+      const distOg = path.join(distPath, "og-image.png");
+      const rootOg = path.join(process.cwd(), "og-image.png");
+
+      res.setHeader("Content-Type", "image/png");
+      res.setHeader("Cache-Control", "public, max-age=86400");
+      if (fs.existsSync(publicOg)) return res.sendFile(publicOg);
+      if (fs.existsSync(distOg)) return res.sendFile(distOg);
+      if (fs.existsSync(rootOg)) return res.sendFile(rootOg);
+      // Fallback to logo if og-image is missing
+      const publicLogo = path.join(publicPath, "logo.png");
+      if (fs.existsSync(publicLogo)) return res.sendFile(publicLogo);
+      return res.status(404).send("OG image not found");
+    });
+
+    app.use(express.static(publicPath));
     app.use(express.static(distPath));
-    app.get("*", (_req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
+
+    // Dynamic Server-Side HTML Rendering with SEO, Open Graph & Twitter Card Meta Tags
+    app.get("*", (req, res) => {
+      try {
+        const indexPath = path.join(distPath, "index.html");
+        if (fs.existsSync(indexPath)) {
+          const rawHtml = fs.readFileSync(indexPath, "utf-8");
+          const seoMetadata = resolveSEOMetadata(req);
+          const finalHtml = injectSEOTags(rawHtml, seoMetadata);
+          res.setHeader("Content-Type", "text/html; charset=utf-8");
+          res.setHeader("Cache-Control", "public, max-age=300");
+          return res.send(finalHtml);
+        }
+        res.sendFile(indexPath);
+      } catch (err) {
+        res.sendFile(path.join(distPath, "index.html"));
+      }
     });
   }
 

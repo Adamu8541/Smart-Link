@@ -142,8 +142,12 @@ export const LandingTestimonials: React.FC = () => {
                   <div className="flex items-center gap-4">
                     <img
                       src={testimonials[currentIndex].avatar}
-                      alt={testimonials[currentIndex].name}
-                      className="h-14 w-14 rounded-full object-cover border-2 border-[#0F2D5C] shadow-md"
+                      alt={`${testimonials[currentIndex].name} - ${testimonials[currentIndex].business} verified client review`}
+                      width={56}
+                      height={56}
+                      loading="lazy"
+                      decoding="async"
+                      className="h-14 w-14 rounded-full object-cover border-2 border-[#0F2D5C] shadow-md shrink-0"
                       referrerPolicy="no-referrer"
                     />
                     <div>
