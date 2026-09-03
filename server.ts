@@ -60,6 +60,8 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 app.use(helmet({
   frameguard: false,
   contentSecurityPolicy: false,
+  crossOriginOpenerPolicy: false,
+  crossOriginResourcePolicy: false,
 }));
 
 // CORS setup for custom domains smartlinkng.com.ng and Render subdomains
@@ -160,7 +162,8 @@ let serverInstance: any = null;
 
 async function startServer() {
   // await connectRedis(); // Temporarily disabled due to missing Redis service in this environment
-  if (process.env.NODE_ENV !== "production") {
+  const isProductionMode = process.env.NODE_ENV === "production" || fs.existsSync(path.join(process.cwd(), "dist", "index.html"));
+  if (!isProductionMode) {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
