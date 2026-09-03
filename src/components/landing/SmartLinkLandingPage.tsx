@@ -28,6 +28,7 @@ interface SmartLinkLandingPageProps {
     showAnnouncement?: boolean;
     announcementText?: string;
   };
+  currentUser?: any;
 }
 
 export const SmartLinkLandingPage: React.FC<SmartLinkLandingPageProps> = ({
@@ -39,6 +40,7 @@ export const SmartLinkLandingPage: React.FC<SmartLinkLandingPageProps> = ({
   onSelectService,
   onNavigateLegal,
   siteAnnouncement,
+  currentUser,
 }) => {
   const [activeInfoTab, setActiveInfoTab] = useState<"about" | "contact" | null>(null);
 
@@ -151,18 +153,20 @@ export const SmartLinkLandingPage: React.FC<SmartLinkLandingPageProps> = ({
 
       </main>
 
-      {/* Footer */}
-      <Suspense fallback={null}>
-        <LandingFooter
-          onNavigateSection={handleNavigateSection}
-          onLogin={onLogin}
-          onRegister={onRegister}
-          onAdminLogin={onAdminLogin}
-          onNavigateLegal={onNavigateLegal}
-          activeInfoTab={activeInfoTab}
-          setActiveInfoTab={setActiveInfoTab}
-        />
-      </Suspense>
+      {/* Footer - blocked completely when user logged in, appears only on homepage */}
+      {!currentUser && (
+        <Suspense fallback={null}>
+          <LandingFooter
+            onNavigateSection={handleNavigateSection}
+            onLogin={onLogin}
+            onRegister={onRegister}
+            onAdminLogin={onAdminLogin}
+            onNavigateLegal={onNavigateLegal}
+            activeInfoTab={activeInfoTab}
+            setActiveInfoTab={setActiveInfoTab}
+          />
+        </Suspense>
+      )}
     </div>
   );
 };

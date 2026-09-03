@@ -258,10 +258,11 @@ export default function Navigation({
   return (
     <>
       {/* Mobile Header */}
-      <header className="lg:hidden bg-[#0F2D5C] text-white p-3.5 flex items-center justify-between gap-3 sticky top-0 z-40 border-b border-[#17407E]">
+      <header className="lg:hidden bg-[#0F2D5C] text-white p-3 flex items-center justify-between gap-3 sticky top-0 z-40 border-b border-[#17407E]">
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="p-1 rounded bg-white/10 hover:bg-white/20 transition-colors shrink-0 border border-white/20"
+          aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+          className="min-h-[44px] min-w-[44px] p-2.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors shrink-0 border border-white/20 flex items-center justify-center cursor-pointer"
         >
           {mobileMenuOpen ? <X className="h-5 w-5 text-white" /> : <Menu className="h-5 w-5 text-white" />}
         </button>
@@ -313,7 +314,7 @@ export default function Navigation({
               {currentUser ? (
                 <div className="p-3 rounded-lg bg-[#111827]/40 border border-[#111827]/60 text-left space-y-1">
                   <div className="text-[9px] text-[#9CA3AF] font-semibold font-mono">AUTHORIZED PARTNER</div>
-                  <h3 className="font-bold text-xs truncate text-[#E5E7EB]">{currentUser.fullName}</h3>
+                  <p className="font-bold text-xs truncate text-[#E5E7EB]">{currentUser.fullName}</p>
                   <div className="flex justify-between items-center text-[10px] font-mono text-[#9CA3AF] pt-1">
                     <div className="flex items-center gap-1.5">
                       <span>₦{currentUser.walletBalance.toLocaleString()}</span>
@@ -367,7 +368,7 @@ export default function Navigation({
                           <button
                             key={item.id}
                             onClick={() => handleItemClick(item)}
-                            className={`flex items-center gap-3 px-3 py-2 rounded-lg text-[11px] font-bold transition-all ${
+                            className={`flex items-center gap-3 px-3 py-2.5 min-h-[44px] rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
                               active
                                 ? "bg-[#0F2D5C]/15 text-white border-l-2 border-[#0F2D5C] pl-2.5"
                                 : "text-[#9CA3AF] hover:bg-[#111827] hover:text-[#FFFFFF]"
@@ -389,7 +390,7 @@ export default function Navigation({
               <button
                 type="button"
                 onClick={onToggleDarkMode}
-                className="w-full py-2 bg-[#111827]/50 hover:bg-[#6B7280] text-[#E5E7EB] border border-[#111827] rounded text-[11px] font-bold transition-all flex items-center justify-between px-3 cursor-pointer"
+                className="w-full min-h-[44px] py-2.5 bg-[#111827]/50 hover:bg-[#6B7280] text-[#E5E7EB] border border-[#111827] rounded-lg text-[11px] font-bold transition-all flex items-center justify-between px-3 cursor-pointer"
               >
                 <span className="flex items-center gap-2">
                   {isDarkMode ? <Sun className="h-3.5 w-3.5 text-[#9CA3AF]" /> : <Moon className="h-3.5 w-3.5 text-[#9CA3AF]" />}
@@ -406,7 +407,7 @@ export default function Navigation({
                     onLogout();
                     setMobileMenuOpen(false);
                   }}
-                  className="w-full py-2 bg-[#6B7280] hover:bg-[#0F2D5C]/40 hover:text-[#9CA3AF] text-[#9CA3AF] border border-[#111827] rounded text-[11px] font-bold transition-all flex items-center justify-center gap-2"
+                  className="w-full min-h-[44px] py-2.5 bg-[#6B7280] hover:bg-[#0F2D5C]/40 hover:text-[#9CA3AF] text-[#9CA3AF] border border-[#111827] rounded-lg text-[11px] font-bold transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <LogOut className="h-4 w-4" />
                   Sign Out / Exit
@@ -443,7 +444,7 @@ export default function Navigation({
                 <span className="inline-block h-1.5 w-1.5 bg-[#0F2D5C] rounded-full animate-pulse"></span>
               </div>
               <div>
-                <h3 className="font-bold text-xs text-white truncate">{currentUser.fullName}</h3>
+                <p className="font-bold text-xs text-white truncate">{currentUser.fullName}</p>
                 <p className="text-[10px] text-[#9CA3AF] font-mono truncate mt-0.5">{currentUser.email}</p>
               </div>
               <div className="flex justify-between items-center pt-2 border-t border-white/10">

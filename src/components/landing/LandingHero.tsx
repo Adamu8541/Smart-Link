@@ -83,7 +83,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
             <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
               <ShieldCheck className="h-5 w-5 text-[#0F2D5C] shrink-0 mt-0.5" />
               <div>
-                <h3 className="text-sm font-bold text-[#0F2D5C]">Instant Verification &amp; Slips</h3>
+                <p className="text-sm font-bold text-[#0F2D5C]">Instant Verification &amp; Slips</p>
                 <p className="text-xs text-[#64748B] mt-0.5">Standard/premium NIN slips, BVN cards, and CAC reports with QR codes.</p>
               </div>
             </div>
@@ -91,7 +91,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
             <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
               <Zap className="h-5 w-5 text-[#0F2D5C] shrink-0 mt-0.5" />
               <div>
-                <h3 className="text-sm font-bold text-[#0F2D5C]">Automated Bills &amp; VTU</h3>
+                <p className="text-sm font-bold text-[#0F2D5C]">Automated Bills &amp; VTU</p>
                 <p className="text-xs text-[#64748B] mt-0.5">Zero-delay Disco tokens, cheap SME data bundles, airtime, and exam pins.</p>
               </div>
             </div>
@@ -99,7 +99,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
             <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
               <Lock className="h-5 w-5 text-[#0F2D5C] shrink-0 mt-0.5" />
               <div>
-                <h3 className="text-sm font-bold text-[#0F2D5C]">Bank-Grade &amp; 99.9% Uptime</h3>
+                <p className="text-sm font-bold text-[#0F2D5C]">Bank-Grade &amp; 99.9% Uptime</p>
                 <p className="text-xs text-[#64748B] mt-0.5">Dedicated virtual account funding, encrypted payouts, and REST APIs.</p>
               </div>
             </div>
@@ -116,7 +116,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
               <button
                 id="hero-primary-btn"
                 onClick={onGetStarted}
-                className="w-full sm:w-auto px-8 py-4 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold rounded-xl text-sm shadow-xs transition-all active:scale-98 cursor-pointer flex items-center justify-center gap-2.5"
+                className="w-full sm:w-auto min-h-[48px] px-8 py-4 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold rounded-xl text-sm shadow-xs transition-all active:scale-98 cursor-pointer flex items-center justify-center gap-2.5"
               >
                 Get Started Free
                 <ArrowRight className="h-4 w-4" />
@@ -124,7 +124,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
               <button
                 id="hero-secondary-btn"
                 onClick={onExploreServices}
-                className="w-full sm:w-auto px-8 py-4 bg-white hover:bg-[#F5F7FA] text-[#0F2D5C] border border-[#0F2D5C] font-bold rounded-xl text-sm shadow-xs transition-all active:scale-98 cursor-pointer flex items-center justify-center gap-2.5"
+                className="w-full sm:w-auto min-h-[48px] px-8 py-4 bg-white hover:bg-[#F5F7FA] text-[#0F2D5C] border border-[#0F2D5C] font-bold rounded-xl text-sm shadow-xs transition-all active:scale-98 cursor-pointer flex items-center justify-center gap-2.5"
               >
                 Explore Services &amp; Pricing
               </button>

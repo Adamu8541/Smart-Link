@@ -103,10 +103,10 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
 
           {/* Column 3: Company */}
           <div className="space-y-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#111827]">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-[#111827]">
               Company
-            </h3>
-            <ul className="space-y-2 font-normal">
+            </h2>
+            <ul className="space-y-1 font-normal">
               {[
                 { name: "About", tab: "about" },
                 { name: "Contact", tab: "contact" }
@@ -115,7 +115,7 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
                   <button
                     id={`footer-company-${item.tab}`}
                     onClick={() => setActiveInfoTab(item.tab as any)}
-                    className="text-[#4B5563] hover:text-[#0F2D5C] hover:translate-x-1 duration-200 transition-all cursor-pointer bg-transparent border-none p-0 text-left font-medium flex items-center gap-1.5"
+                    className="text-[#4B5563] hover:text-[#0F2D5C] hover:translate-x-1 duration-200 transition-all cursor-pointer bg-transparent border-none py-2 px-1 min-h-[44px] text-left font-medium flex items-center gap-1.5"
                   >
                     <ChevronRight className="h-3 w-3 text-[#4B5563]/40" />
                     <span>{item.name}</span>
@@ -127,10 +127,10 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
 
           {/* Column 4: Services */}
           <div className="space-y-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#111827]">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-[#111827]">
               Services
-            </h3>
-            <ul className="space-y-2 font-normal">
+            </h2>
+            <ul className="space-y-1 font-normal">
               {[
                 "Identity Verification",
                 "Bill Payments",
@@ -141,7 +141,7 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
                   <button
                     id={`footer-services-${item.toLowerCase().replace(/\s+/g, "-")}`}
                     onClick={() => onNavigateSection("services-section")}
-                    className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors cursor-pointer bg-transparent border-none p-0 text-left font-medium"
+                    className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors cursor-pointer bg-transparent border-none py-2 px-1 min-h-[44px] text-left font-medium flex items-center"
                   >
                     {item}
                   </button>
@@ -152,10 +152,10 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
 
           {/* Column 5: Legal & Policies */}
           <div className="space-y-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#111827] flex items-center justify-between">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-[#111827] flex items-center justify-between">
               <span>Legal & Policies</span>
-            </h3>
-            <ul className="space-y-1.5 font-normal">
+            </h2>
+            <ul className="space-y-1 font-normal">
               {[
                 { label: "Legal Center", docId: "legal-center" },
                 { label: "Privacy Policy", docId: "privacy-policy" },
@@ -173,7 +173,7 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
                   <button
                     id={`footer-legal-${item.docId}`}
                     onClick={() => handleLegalClick(item.docId === "legal-center" ? undefined : item.docId)}
-                    className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors cursor-pointer bg-transparent border-none p-0 text-left font-medium text-[11px] block"
+                    className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors cursor-pointer bg-transparent border-none py-1.5 px-1 min-h-[40px] text-left font-medium text-xs flex items-center"
                   >
                     {item.label}
                   </button>
@@ -184,10 +184,10 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
 
           {/* Column 6: Support */}
           <div className="space-y-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#111827]">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-[#111827]">
               Support
-            </h3>
-            <ul className="space-y-2 font-normal">
+            </h2>
+            <ul className="space-y-1 font-normal">
               {[
                 "Help Center",
                 "FAQs",
@@ -197,7 +197,7 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
                   <button
                     id={`footer-support-${item.toLowerCase().replace(/\s+/g, "-")}`}
                     onClick={() => item === "FAQs" ? onNavigateSection("faq-section") : onNavigateSection("contact-section")}
-                    className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors cursor-pointer bg-transparent border-none p-0 text-left font-medium"
+                    className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors cursor-pointer bg-transparent border-none py-2 px-1 min-h-[44px] text-left font-medium flex items-center"
                   >
                     {item}
                   </button>
@@ -227,7 +227,7 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2 rounded-xl bg-[#F5F7FA] text-[#4B5563] border border-[#E5E7EB] hover:bg-[#0F2D5C] hover:text-white transition-colors cursor-pointer"
+                  className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2.5 rounded-xl bg-[#F5F7FA] text-[#4B5563] border border-[#E5E7EB] hover:bg-[#0F2D5C] hover:text-white transition-colors cursor-pointer"
                   aria-label={social.name}
                 >
                   <IconComp className="h-4 w-4" />
@@ -239,14 +239,14 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
           <div className="flex items-center gap-4 text-xs">
             <button
               onClick={onLogin}
-              className="text-[#111827] hover:text-[#0F2D5C] font-semibold cursor-pointer"
+              className="text-[#111827] hover:text-[#0F2D5C] font-semibold cursor-pointer min-h-[44px] inline-flex items-center py-2 px-1"
             >
               Sign In to Portal
             </button>
             <span className="text-[#9CA3AF]">•</span>
             <button
               onClick={onRegister}
-              className="text-[#0F2D5C] hover:underline font-bold cursor-pointer"
+              className="text-[#0F2D5C] hover:underline font-bold cursor-pointer min-h-[44px] inline-flex items-center py-2 px-1"
             >
               Create Free Account
             </button>
@@ -259,7 +259,7 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
             <div className="flex flex-wrap gap-x-4 gap-y-1">
               <button
                 onClick={() => handleLegalClick("privacy-policy")}
-                className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors cursor-pointer bg-transparent border-none p-0 text-left font-medium"
+                className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors cursor-pointer bg-transparent border-none py-2 px-1.5 min-h-[44px] inline-flex items-center text-left font-medium"
               >
                 Privacy Policy
               </button>

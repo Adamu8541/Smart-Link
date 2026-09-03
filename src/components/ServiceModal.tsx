@@ -37,12 +37,17 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
   const [successResult, setSuccessResult] = useState<any | null>(null);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    document.documentElement.scrollTop = 0;
+  }, [service?.id]);
+
   if (!service) return null;
 
   if ((service.id === "wallet_funding" || service.id === "fund_wallet") && currentUser) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
-        <div className="w-full max-w-4xl my-8">
+      <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
+        <div className="w-full max-w-4xl mb-8">
           <WalletFundingView
             currentUser={currentUser}
             onBackToDashboard={onClose}
@@ -88,8 +93,8 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
   if (isBillPaymentService && currentUser) {
     const initialCategory = getBillCategory(service.id);
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
-        <div className="w-full max-w-4xl my-8">
+      <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
+        <div className="w-full max-w-4xl mb-8">
           <BillPaymentView
             currentUser={currentUser}
             initialCategory={initialCategory}
@@ -129,8 +134,8 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
       service.name.toLowerCase().includes("nin with phone")
     ) {
       return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
-          <div className="w-full max-w-xl my-8">
+        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
+          <div className="w-full max-w-xl mb-8">
             <NinPhoneVerificationView
               userId={currentUser.uid}
               userEmail={currentUser.email}
@@ -144,8 +149,8 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
     }
     if (service.id.includes("demography") || service.name.toLowerCase().includes("demography")) {
       return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
-          <div className="w-full max-w-xl my-8">
+        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
+          <div className="w-full max-w-xl mb-8">
             <NinDemographyView
               userId={currentUser.uid}
               userEmail={currentUser.email}
@@ -159,8 +164,8 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
     const vType = getVerificationType(service.id);
     if (vType === "NIN") {
       return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
-          <div className="w-full max-w-xl my-8">
+        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
+          <div className="w-full max-w-xl mb-8">
             <NinVerificationView
               userId={currentUser.uid}
               userEmail={currentUser.email}
@@ -175,8 +180,8 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
     }
     if (vType === "BVN") {
       return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
-          <div className="w-full max-w-5xl my-8">
+        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
+          <div className="w-full max-w-5xl mb-8">
             <BvnVerificationView
               userId={currentUser.uid}
               userEmail={currentUser.email}
@@ -189,8 +194,8 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
     }
     if (vType === "CAC") {
       return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
-          <div className="w-full max-w-3xl my-8">
+        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
+          <div className="w-full max-w-3xl mb-8">
             <CacVerificationView
               userId={currentUser.uid}
               onBackToDashboard={onClose}
@@ -202,8 +207,8 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
     }
     if (vType === "TIN") {
       return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
-          <div className="w-full max-w-3xl my-8">
+        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
+          <div className="w-full max-w-3xl mb-8">
             <TinVerificationView
               userId={currentUser.uid}
               onBackToDashboard={onClose}
@@ -215,8 +220,8 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
     }
     if (vType === "BANK_ACCOUNT") {
       return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
-          <div className="w-full max-w-3xl my-8">
+        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
+          <div className="w-full max-w-3xl mb-8">
             <BankAccountVerificationView
               userId={currentUser.uid}
               onBackToDashboard={onClose}
@@ -227,8 +232,8 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
       );
     }
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
-        <div className="w-full max-w-2xl my-8">
+      <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
+        <div className="w-full max-w-2xl mb-8">
           <VerificationEngine
             userId={currentUser.uid}
             initialServiceType={vType}
@@ -399,8 +404,8 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
   };
 
   return (
-    <div className="fixed inset-0 bg-[#111827]/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto">
-      <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full overflow-hidden border border-[#E5E7EB] flex flex-col my-8">
+    <div className="fixed inset-0 bg-[#111827]/60 backdrop-blur-xs flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 z-50 overflow-y-auto">
+      <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full overflow-hidden border border-[#E5E7EB] flex flex-col mb-8">
         {/* Modal Header */}
         <div className="bg-[#111827] text-white p-5 flex justify-between items-center">
           <div>

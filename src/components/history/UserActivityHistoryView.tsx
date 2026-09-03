@@ -94,6 +94,8 @@ export const UserActivityHistoryView: React.FC<UserActivityHistoryViewProps> = (
   };
 
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    document.documentElement.scrollTop = 0;
     fetchLogs();
   }, [userId, activeTab, page, typeFilter, startDate, endDate]);
 

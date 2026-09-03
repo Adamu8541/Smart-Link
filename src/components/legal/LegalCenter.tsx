@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   ShieldCheck,
   FileText,
@@ -50,6 +50,11 @@ export const LegalCenter: React.FC<LegalCenterProps> = ({
   const activeLogo = config.branding?.logoUrl || configuredLogoUrl || logoImg;
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState<string>("");
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    document.documentElement.scrollTop = 0;
+  }, [selectedCategory]);
 
   const getDocIcon = (iconName: string) => {
     switch (iconName) {
@@ -357,38 +362,6 @@ export const LegalCenter: React.FC<LegalCenterProps> = ({
         </div>
 
       </main>
-
-      {/* Footer */}
-      <footer className="bg-white dark:bg-[#111827] border-t border-[#E5E7EB] dark:border-[#111827] py-10 text-xs text-[#6B7280] dark:text-[#9CA3AF]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 text-left">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <img
-                src={activeLogo}
-                alt="SmartLink Nigeria"
-                className="h-9 w-auto object-contain"
-                referrerPolicy="no-referrer"
-                onError={handleLogoError}
-              />
-              <span className="font-bold text-[#111827] dark:text-white">SmartLink Nigeria</span>
-            </div>
-            <p className="text-[11px]">
-              © {new Date().getFullYear()} Smart Link Computer Business (CAC RC 9347502), operating as SmartLink NG & Smart Link Nigeria. All rights reserved.
-            </p>
-          </div>
-          <div className="border-t border-[#E5E7EB] dark:border-[#111827] pt-4 flex flex-wrap gap-x-6 gap-y-2 text-[11px]">
-            {LEGAL_DOCUMENTS.map((doc) => (
-              <button
-                key={doc.id}
-                onClick={() => onSelectDocument(doc.id)}
-                className="text-[#6B7280] hover:text-[#0F2D5C] dark:hover:text-[#9CA3AF] transition-colors bg-transparent border-none p-0 cursor-pointer text-left"
-              >
-                {doc.shortTitle}
-              </button>
-            ))}
-          </div>
-        </div>
-      </footer>
 
     </div>
   );

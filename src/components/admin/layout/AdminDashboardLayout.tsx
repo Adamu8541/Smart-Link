@@ -8,7 +8,6 @@ import { motion, AnimatePresence } from "motion/react";
 import AdminSidebar from "./AdminSidebar";
 import AdminHeader from "./AdminHeader";
 import AdminBreadcrumbs from "./AdminBreadcrumbs";
-import AdminFooter from "./AdminFooter";
 import AdminNotificationDrawer from "./AdminNotificationDrawer";
 import { AdminSession } from "../../../services/adminAuthTypes";
 import { adminLayoutService } from "../../../services/adminLayoutService";
@@ -192,9 +191,6 @@ export default function AdminDashboardLayout({
           <main className="flex-1 p-4 md:p-8 space-y-6 max-w-7xl w-full mx-auto">
             {children}
           </main>
-
-          {/* Footer */}
-          <AdminFooter />
         </div>
       </div>
     </div>

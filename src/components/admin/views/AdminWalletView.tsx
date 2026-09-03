@@ -6,6 +6,7 @@
  */
 
 import React, { useState, useEffect } from "react";
+import { useModalBackHandler } from "../../../services/navigationManager";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Wallet,
@@ -74,9 +75,11 @@ export function AdminWalletView({ session, onNavigate }: AdminWalletViewProps) {
   // Modals & Drawers State
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  useModalBackHandler(drawerOpen, "admin-wallet-drawer", () => setDrawerOpen(false));
 
   const [selectedUserForAction, setSelectedUserForAction] = useState<any | null>(null);
   const [activeModal, setActiveModal] = useState<"CREDIT" | "DEBIT" | "STATUS" | "STATEMENT" | null>(null);
+  useModalBackHandler(!!activeModal, "admin-wallet-modal", () => setActiveModal(null));
   const [targetStatus, setTargetStatus] = useState<"ACTIVE" | "FROZEN" | "LOCKED">("FROZEN");
 
   // Test Suite View Toggle

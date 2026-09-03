@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ShieldAlert,
   FileText,
@@ -90,13 +90,20 @@ export function PolicyUpdateReAcceptanceModal({
     }
   };
 
+  useEffect(() => {
+    if (pendingPolicies && pendingPolicies.length > 0) {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      document.documentElement.scrollTop = 0;
+    }
+  }, [pendingPolicies]);
+
   if (!pendingPolicies || pendingPolicies.length === 0) return null;
 
   const allSelected = acceptedPolicyIds.length === pendingPolicies.length;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[#111827]/80 backdrop-blur-xs animate-fadeIn">
-      <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-[#E5E7EB] text-left space-y-5 animate-scaleUp">
+    <div className="fixed inset-0 z-[9999] flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/80 backdrop-blur-xs animate-fadeIn overflow-y-auto">
+      <div className="bg-white rounded-2xl max-w-lg w-full mb-8 p-6 shadow-2xl border border-[#E5E7EB] text-left space-y-5 animate-scaleUp">
         {/* Header */}
         <div className="flex items-start gap-3.5">
           <div className="h-11 w-11 rounded-xl bg-[#F5F7FA] border border-[#E5E7EB] flex items-center justify-center text-[#0F2D5C] shrink-0">

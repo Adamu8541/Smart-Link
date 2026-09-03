@@ -171,9 +171,18 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
 
   // Load Virtual Accounts & History on mount
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    document.documentElement.scrollTop = 0;
     loadActiveProvider();
     loadFundingHistory();
   }, [currentUser.uid]);
+
+  useEffect(() => {
+    if (show3DSModal || showQrModal || selectedReceipt) {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      document.documentElement.scrollTop = 0;
+    }
+  }, [show3DSModal, showQrModal, selectedReceipt]);
 
   const loadActiveProvider = async () => {
     setLoadingProvider(true);
@@ -1149,8 +1158,8 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
 
       {/* 3D Secure OTP Modal for Card Payment */}
       {show3DSModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111827]/70 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl p-6 md:p-8 max-w-md w-full space-y-6 shadow-2xl relative">
+        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/70 backdrop-blur-xs animate-fadeIn overflow-y-auto">
+          <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl p-6 md:p-8 max-w-md w-full mb-8 space-y-6 shadow-2xl relative">
             <button
               onClick={() => setShow3DSModal(false)}
               className="absolute right-4 top-4 p-2 text-[#9CA3AF] hover:text-[#4B5563] rounded-full cursor-pointer"
@@ -1206,8 +1215,8 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
 
       {/* QR Code Modal */}
       {showQrModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111827]/70 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl relative">
+        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/70 backdrop-blur-xs animate-fadeIn overflow-y-auto">
+          <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl p-6 max-w-sm w-full mb-8 text-center space-y-4 shadow-2xl relative">
             <button
               onClick={() => setShowQrModal(false)}
               className="absolute right-4 top-4 p-2 text-[#9CA3AF] hover:text-[#4B5563] rounded-full cursor-pointer"
@@ -1236,8 +1245,8 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
 
       {/* Official Receipt Modal */}
       {selectedReceipt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111827]/75 backdrop-blur-xs animate-fadeIn overflow-y-auto">
-          <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl p-6 md:p-8 max-w-xl w-full my-8 space-y-6 shadow-2xl relative">
+        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/75 backdrop-blur-xs animate-fadeIn overflow-y-auto">
+          <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl p-6 md:p-8 max-w-xl w-full mb-8 space-y-6 shadow-2xl relative">
             <button
               onClick={() => setSelectedReceipt(null)}
               className="absolute right-4 top-4 p-2 text-[#9CA3AF] hover:text-[#4B5563] rounded-full cursor-pointer"

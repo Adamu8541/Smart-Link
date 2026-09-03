@@ -173,9 +173,9 @@ export const LandingWhySmartLink: React.FC = () => {
               <FileCode2 className="h-4 w-4" />
               <span>Developer-First Integration</span>
             </div>
-            <h4 className="text-lg font-bold text-[#111827]">
+            <h3 className="text-lg font-bold text-[#111827]">
               Need programmatic verification and automated webhook dispatches?
-            </h4>
+            </h3>
             <p className="text-xs sm:text-sm text-[#64748B] max-w-xl">
               Access standardized REST API endpoints, sandbox test keys, and real-time transaction webhooks with clear payload specifications.
             </p>

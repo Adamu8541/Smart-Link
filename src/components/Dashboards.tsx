@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect } from "react";
+import { useModalBackHandler } from "../services/navigationManager";
 import {
   Wallet,
   ArrowDownLeft,
@@ -240,10 +241,23 @@ export default function Dashboards({
 
   // Dynamic Provider Fund Wallet states
   const [showFundModal, setShowFundModal] = useState(false);
+  useModalBackHandler(showFundModal, "dashboards-fund-modal", () => setShowFundModal(false));
   const [fundAccount, setFundAccount] = useState<any>(null);
   const [fundLoading, setFundLoading] = useState(false);
   const [fundError, setFundError] = useState<string | null>(null);
   const [copiedAccount, setCopiedAccount] = useState(false);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    document.documentElement.scrollTop = 0;
+  }, []);
+
+  useEffect(() => {
+    if (showFundModal) {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      document.documentElement.scrollTop = 0;
+    }
+  }, [showFundModal]);
 
   // Authoritative Balance Refresh states
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -785,31 +799,18 @@ export default function Dashboards({
   return (
     <div className="py-8 bg-[#F5F7FA] min-h-screen transition-colors duration-300 flex-1" id="dashboard-main-section">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-        
-        {/* Dynamic Welcoming Header matching screenshot layout */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 py-2 text-left">
+
+        {/* User Full Name Header */}
+        <div className="flex items-center justify-between text-left">
           <div>
-            <h1 className="text-2xl font-bold text-[#111827] tracking-tight">
-              Welcome back, Partner 👋
+            <h1 className="text-xl sm:text-2xl font-bold text-[#111827] tracking-tight">
+              {currentUser.fullName}
             </h1>
-            <p className="text-xs text-[#6B7280] mt-1 font-medium">
-              Select a service below to get started. Secure Node: {currentUser.fullName}
+            <p className="text-xs text-[#6B7280] font-medium mt-0.5">
+              Account Overview & Services
             </p>
           </div>
-          {/* Circular Dark Mode Toggle Button */}
-          {onToggleDarkMode && (
-            <button
-              onClick={onToggleDarkMode}
-              className="p-2.5 rounded-full border border-[#E5E7EB] bg-white text-[#4B5563] hover:bg-[#F5F7FA] transition-all shadow-xs cursor-pointer focus:outline-none shrink-0"
-              title="Toggle theme"
-            >
-              {isDarkMode ? <Sun className="h-4 w-4 text-[#0F2D5C] animate-pulse" /> : <Moon className="h-4 w-4 text-[#0F2D5C]" />}
-            </button>
-          )}
         </div>
-
-        {/* Live Active Announcements Banner */}
-        <UserAnnouncementBanner variant="dashboard" />
 
         {/* Global Action Banner Feedback */}
         {actionSuccess && (
@@ -824,23 +825,6 @@ export default function Dashboards({
             <button onClick={() => setActionError(null)} className="text-[#0F2D5C] hover:text-[#17407E] font-bold font-sans">✕</button>
           </div>
         )}
-
-        {/* Modern Tabs Bar */}
-        <div className="border-b border-[#E5E7EB] pb-px text-left">
-          <div className="flex gap-6">
-            <button
-              onClick={() => {
-                sessionStorage.setItem("dashboard_tab", "OVERVIEW");
-                setActiveTab("OVERVIEW");
-                window.dispatchEvent(new Event("dashboard_tab_changed"));
-              }}
-              className="pb-3 text-xs font-bold flex items-center gap-2 border-b-2 border-[#0F2D5C] text-[#0F2D5C] cursor-pointer"
-            >
-              <BarChart3 className="h-4 w-4" />
-              Overview Portal
-            </button>
-          </div>
-        </div>
 
         <>
             {/* Balance Card Section matching the fintech specification */}
@@ -905,8 +889,8 @@ export default function Dashboards({
 
             {/* Fund Wallet Modal */}
             {showFundModal && (
-              <div className="fixed inset-0 z-50 bg-[#111827]/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
-                <div className="bg-white border border-[#E5E7EB] rounded-3xl max-w-lg w-full p-6 shadow-2xl relative text-left space-y-5 overflow-hidden">
+              <div className="fixed inset-0 z-50 bg-[#111827]/70 backdrop-blur-sm flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 overflow-y-auto animate-fadeIn">
+                <div className="bg-white border border-[#E5E7EB] rounded-3xl max-w-lg w-full mb-8 p-6 shadow-2xl relative text-left space-y-5 overflow-hidden">
                   
                   {/* Modal Header */}
                   <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-4">
@@ -1142,235 +1126,6 @@ export default function Dashboards({
                 </div>
               </div>
 
-            </div>
-
-            {/* Staff or Admin Reviews Dashboard */}
-            {(currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.STAFF) && (
-              <div className="grid lg:grid-cols-12 gap-8 pt-4">
-                {/* Pending CAC Registries */}
-                <div className="lg:col-span-12 bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-2xs text-left space-y-4">
-                  <div className="border-b pb-3">
-                    <h2 className="text-base font-bold text-[#111827] flex items-center gap-2">
-                      <Briefcase className="h-4.5 w-4.5 text-[#0F2D5C]" />
-                      CAC Filings Review Board
-                    </h2>
-                    <p className="text-xs text-[#4B5563]">Process corporate, sole proprietorship, and NGO applications</p>
-                  </div>
-
-                  <div className="space-y-4 divide-y">
-                    {cacApps.length === 0 ? (
-                      <p className="text-xs text-[#9CA3AF] py-6 text-center font-mono">No corporate filings pending review.</p>
-                    ) : (
-                      cacApps.map((app) => (
-                        <div key={app.id} className="pt-4 space-y-2">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <span className="text-[9px] font-bold font-mono bg-[#F5F7FA] text-[#0F2D5C] px-2 py-0.5 rounded">
-                                {app.type} FILING
-                              </span>
-                              <h4 className="text-sm font-bold text-[#111827] mt-1">{app.proposedNames.join(" / ")}</h4>
-                              <p className="text-xs text-[#4B5563]">Applicant: {app.proprietors[0]?.name || "N/A"}</p>
-                            </div>
-                            <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase ${
-                              app.status === "APPROVED" ? "bg-[#F5F7FA] text-[#0F2D5C]" : "bg-[#F5F7FA] text-[#4B5563]"
-                            }`}>
-                              {app.status}
-                            </span>
-                          </div>
-                          <p className="text-xs text-[#4B5563] bg-[#F5F7FA] p-2 rounded italic">&quot;{app.objective}&quot;</p>
-                          
-                          {app.status === "PENDING" && (
-                            <div className="flex gap-2 justify-end pt-1">
-                              <button
-                                onClick={() => handleCacApproval(app.id, "REJECTED")}
-                                className="px-3 py-1 border text-[#111827] border-[#E5E7EB] hover:bg-[#F5F7FA] rounded text-xs cursor-pointer"
-                              >
-                                Reject File
-                              </button>
-                              <button
-                                onClick={() => handleCacApproval(app.id, "APPROVED", app.proposedNames[0])}
-                                className="px-3 py-1 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold rounded text-xs cursor-pointer"
-                              >
-                                Approve Name File
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Shared Financial Analytics & Workspace */}
-            {currentUser.role !== UserRole.CUSTOMER && (
-              <div className="grid lg:grid-cols-12 gap-8 pt-4">
-                {/* Transaction volume analytics */}
-                <div className="lg:col-span-12 bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-2xs text-left flex flex-col justify-between space-y-4">
-                  <div>
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E5E7EB] pb-3">
-                      <div>
-                        <h3 className="text-sm font-black text-[#111827] uppercase tracking-wider">Transaction Activity Trajectory</h3>
-                        <p className="text-[11px] text-[#4B5563]">Security-authenticated successful vs pending database queries (Last 30 Days)</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="h-56 w-full pt-2">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart
-                        data={getChartData()}
-                        margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-                      >
-                        <defs>
-                          <linearGradient id="colorSuccessful" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#0F2D5C" stopOpacity={0.2}/>
-                            <stop offset="95%" stopColor="#0F2D5C" stopOpacity={0}/>
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                        <XAxis
-                          dataKey="displayDate"
-                          tick={{ fill: "#6B7280", fontSize: 9 }}
-                          axisLine={false}
-                          tickLine={false}
-                        />
-                        <YAxis
-                          tick={{ fill: "#6B7280", fontSize: 9 }}
-                          axisLine={false}
-                          tickLine={false}
-                          allowDecimals={false}
-                        />
-                        <Tooltip />
-                        <Area
-                          type="monotone"
-                          dataKey="successful"
-                          stroke="#0F2D5C"
-                          strokeWidth={2.5}
-                          fillOpacity={1}
-                          fill="url(#colorSuccessful)"
-                          name="Successful Logs"
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
-              </div>
-            )}
-
-            {/* Chronic operational logs list */}
-            {currentUser.role !== UserRole.CUSTOMER && (
-              <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-2xs text-left space-y-4">
-                <h3 className="text-sm font-black text-[#111827] uppercase tracking-wider border-b border-[#E5E7EB] pb-3 flex items-center justify-between">
-                  <span>Platform Transaction Ledger</span>
-                  <span className="text-[10px] font-mono text-[#4B5563] capitalize">{transactions.length} operations logged</span>
-                </h3>
-
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse text-xs">
-                    <thead>
-                      <tr className="border-b border-[#E5E7EB] bg-[#F5F7FA] text-[#4B5563] font-mono font-bold">
-                        <th className="py-2.5 px-3">Reference</th>
-                        <th className="py-2.5 px-3">Service Description</th>
-                        <th className="py-2.5 px-3 text-right">Amount (₦)</th>
-                        <th className="py-2.5 px-3 text-center">Status</th>
-                        <th className="py-2.5 px-3">Date</th>
-                        <th className="py-2.5 px-3 text-center">Receipt</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#E5E7EB] font-mono">
-                      {transactions.length === 0 ? (
-                        <tr>
-                          <td colSpan={6} className="py-8 text-center text-[#9CA3AF] font-sans">No transactions recorded. Complete a lookup card to populate this log.</td>
-                        </tr>
-                      ) : (
-                        transactions.map((tx) => (
-                          <tr key={tx.id} className="hover:bg-[#F5F7FA] text-[#111827]">
-                            <td className="py-3 px-3 text-[#6B7280]">{tx.reference}</td>
-                            <td className="py-3 px-3 font-sans font-bold text-[#111827]">
-                              {tx.type === "WALLET_FUNDING" ? (
-                                <span className="text-[#17407E]">Wallet Funded ({tx.description})</span>
-                              ) : (
-                                <span>{tx.description}</span>
-                              )}
-                            </td>
-                            <td className="py-3 px-3 text-right font-bold text-[#111827]">
-                              ₦{tx.amount.toLocaleString()}
-                            </td>
-                            <td className="py-3 px-3 text-center">
-                              <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${
-                                tx.status === "SUCCESS" ? "bg-[#F5F7FA] text-[#111827]" : "bg-[#F5F7FA] text-[#4B5563]"
-                              }`}>
-                                {tx.status}
-                              </span>
-                            </td>
-                            <td className="py-3 px-3 text-[#6B7280] font-sans">{new Date(tx.createdAt).toLocaleDateString()}</td>
-                            <td className="py-3 px-3 text-center">
-                              <button
-                                onClick={() => downloadReceiptPDF(tx)}
-                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#F5F7FA] hover:bg-[#E5E7EB] text-[#0F2D5C] border border-[#E5E7EB] transition-all cursor-pointer"
-                              >
-                                <Download className="h-3 w-3" />
-                                Receipt
-                              </button>
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-
-            {/* Legal & Regulatory Compliance Quick Access Footer */}
-            <div className="mt-8 pt-6 border-t border-[#E5E7EB] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#4B5563]">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4 text-[#0F2D5C]" />
-                <span>NDPR Compliant Platform</span>
-                <span className="text-[#E5E7EB]">•</span>
-                <span>Licensed Enterprise Operations</span>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-medium">
-                <button
-                  type="button"
-                  onClick={() => onSwitchView("LEGAL_DOCUMENT_PRIVACY")}
-                  className="hover:text-[#0F2D5C] hover:underline cursor-pointer bg-transparent border-none p-0"
-                >
-                  Privacy Policy
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onSwitchView("LEGAL_DOCUMENT_TERMS")}
-                  className="hover:text-[#0F2D5C] hover:underline cursor-pointer bg-transparent border-none p-0"
-                >
-                  Terms of Service
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onSwitchView("LEGAL_DOCUMENT_KYC")}
-                  className="hover:text-[#0F2D5C] hover:underline cursor-pointer bg-transparent border-none p-0"
-                >
-                  KYC Policy
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onSwitchView("LEGAL_DOCUMENT_WALLET")}
-                  className="hover:text-[#0F2D5C] hover:underline cursor-pointer bg-transparent border-none p-0"
-                >
-                  Wallet Terms
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onSwitchView("LEGAL_CENTER")}
-                  className="text-[#0F2D5C] font-bold hover:underline cursor-pointer bg-transparent border-none p-0"
-                >
-                  Legal &amp; Policy Hub →
-                </button>
-              </div>
             </div>
 
           </>

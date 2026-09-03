@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from "react";
+import { useModalBackHandler } from "../../../services/navigationManager";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Users,
@@ -84,13 +85,20 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
 
   // Modals & Drawers State
   const [activeDrawerUserId, setActiveDrawerUserId] = useState<string | null>(null);
+  useModalBackHandler(!!activeDrawerUserId, "admin-user-drawer", () => setActiveDrawerUserId(null));
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
+  useModalBackHandler(!!editingUser, "admin-edit-user-modal", () => setEditingUser(null));
   const [statusModalUser, setStatusModalUser] = useState<UserProfile | null>(null);
+  useModalBackHandler(!!statusModalUser, "admin-user-status-modal", () => setStatusModalUser(null));
   const [targetStatus, setTargetStatus] = useState<"ACTIVE" | "SUSPENDED" | "DISABLED" | "LOCKED" | "DELETED">("SUSPENDED");
   const [walletModalUser, setWalletModalUser] = useState<UserProfile | null>(null);
+  useModalBackHandler(!!walletModalUser, "admin-user-wallet-modal", () => setWalletModalUser(null));
   const [notifyModalUser, setNotifyModalUser] = useState<UserProfile | null>(null);
+  useModalBackHandler(!!notifyModalUser, "admin-user-notify-modal", () => setNotifyModalUser(null));
   const [bulkActionType, setBulkActionType] = useState<"ACTIVATE" | "SUSPEND" | "BROADCAST" | "DELETE" | null>(null);
+  useModalBackHandler(!!bulkActionType, "admin-user-bulk-modal", () => setBulkActionType(null));
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  useModalBackHandler(isExportModalOpen, "admin-user-export-modal", () => setIsExportModalOpen(false));
   const [showTestPanel, setShowTestPanel] = useState(false);
 
   // Toast Feedback

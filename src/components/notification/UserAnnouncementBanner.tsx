@@ -135,8 +135,9 @@ export function UserAnnouncementBanner({ variant = "dashboard", className = "", 
               )}
               <button
                 onClick={() => handleDismiss(ann.id)}
-                className="p-1.5 hover:bg-black/10 dark:hover:bg-white/10 rounded-xl text-[#6B7280] hover:text-[#111827] dark:text-[#9CA3AF] dark:hover:text-white transition-colors cursor-pointer"
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2.5 hover:bg-black/10 dark:hover:bg-white/10 rounded-xl text-[#6B7280] hover:text-[#111827] dark:text-[#9CA3AF] dark:hover:text-white transition-colors cursor-pointer"
                 title="Dismiss announcement"
+                aria-label="Dismiss announcement"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -183,7 +184,7 @@ export function UserAnnouncementBanner({ variant = "dashboard", className = "", 
             {ann.actionText && (
               <button
                 onClick={() => handleActionClick(ann.actionUrl || "/")}
-                className="px-3.5 py-2 bg-[#111827] hover:bg-black text-white dark:bg-white dark:hover:bg-[#E5E7EB] dark:text-[#111827] rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+                className="px-3.5 py-2 min-h-[44px] bg-[#111827] hover:bg-black text-white dark:bg-white dark:hover:bg-[#E5E7EB] dark:text-[#111827] rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
               >
                 <span>{ann.actionText}</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -191,8 +192,9 @@ export function UserAnnouncementBanner({ variant = "dashboard", className = "", 
             )}
             <button
               onClick={() => handleDismiss(ann.id)}
-              className="p-2 hover:bg-black/10 dark:hover:bg-white/10 rounded-xl text-[#6B7280] hover:text-[#111827] dark:text-[#9CA3AF] dark:hover:text-white transition-colors cursor-pointer"
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2.5 hover:bg-black/10 dark:hover:bg-white/10 rounded-xl text-[#6B7280] hover:text-[#111827] dark:text-[#9CA3AF] dark:hover:text-white transition-colors cursor-pointer"
               title="Dismiss announcement"
+              aria-label="Dismiss announcement"
             >
               <X className="w-4 h-4" />
             </button>

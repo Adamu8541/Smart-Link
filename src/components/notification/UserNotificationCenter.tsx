@@ -40,6 +40,18 @@ export function UserNotificationCenter({ currentUser, onNavigateHome, isModal = 
   const userEmail = currentUser?.email || "adamuamuhammad8541@gmail.com";
 
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    document.documentElement.scrollTop = 0;
+  }, []);
+
+  useEffect(() => {
+    if (selectedNotif) {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      document.documentElement.scrollTop = 0;
+    }
+  }, [selectedNotif]);
+
+  useEffect(() => {
     fetchNotifications();
   }, [userEmail]);
 
@@ -348,8 +360,8 @@ export function UserNotificationCenter({ currentUser, onNavigateHome, isModal = 
 
       {/* Notification Detail Drawer / Modal */}
       {selectedNotif && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] w-full max-w-lg rounded-2xl shadow-2xl p-6 relative space-y-4 animate-in fade-in zoom-in-95">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 overflow-y-auto">
+          <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] w-full max-w-lg mb-8 rounded-2xl shadow-2xl p-6 relative space-y-4 animate-in fade-in zoom-in-95">
             <button
               onClick={() => setSelectedNotif(null)}
               className="absolute right-4 top-4 p-2 text-[#9CA3AF] hover:text-[#4B5563] dark:hover:text-white rounded-lg"

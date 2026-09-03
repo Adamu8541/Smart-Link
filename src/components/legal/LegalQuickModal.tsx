@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from "react";
+import React, { useEffect } from "react";
 import {
   X,
   ShieldCheck,
@@ -33,15 +33,23 @@ export const LegalQuickModal: React.FC<LegalQuickModalProps> = ({
   onOpenFullView,
 }) => {
   const targetDocId = docId || documentId;
+
+  useEffect(() => {
+    if (isOpen && targetDocId) {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      document.documentElement.scrollTop = 0;
+    }
+  }, [isOpen, targetDocId]);
+
   if (!isOpen || !targetDocId) return null;
 
   const doc = getLegalDocumentById(targetDocId) || LEGAL_DOCUMENTS[0];
   const handleFullView = onOpenFullPage || onOpenFullView;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto">
       <div
-        className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl w-full max-w-3xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden"
+        className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl w-full max-w-3xl max-h-[85vh] mb-8 flex flex-col shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}

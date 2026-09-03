@@ -48,6 +48,7 @@ const UserLegalAgreementsModal = lazy(() => import("./components/legal").then(m 
 import { ServiceItem } from "./components/ServicesGrid";
 import { AdminSession, getStoredAdminSession, clearAdminSession } from "./services/adminAuthTypes";
 import { UserProfile, UserRole } from "./types";
+import { navigationManager, useModalBackHandler } from "./services/navigationManager";
 import { motion, AnimatePresence } from "motion/react";
 import { Sparkles, ArrowRight, ArrowLeft, ShieldCheck, Mail, Lock, Phone, Tag, UserRound, Check, Eye, EyeOff, AlertCircle, RefreshCw, CheckCircle2, LogOut, X, FileCheck } from "lucide-react";
 import { SmartLinkLogoMark } from "./components/ui/SmartLinkLogoMark";
@@ -252,6 +253,7 @@ export default function App() {
     return "privacy-policy";
   });
   const [quickLegalModalDocId, setQuickLegalModalDocId] = useState<string | null>(null);
+  useModalBackHandler(quickLegalModalDocId !== null, "app-quick-legal-modal", () => setQuickLegalModalDocId(null));
 
   const [currentView, setCurrentView] = useState<string>(() => {
     const storedUser = localStorage.getItem("smart_link_user");
@@ -315,8 +317,10 @@ export default function App() {
     return "HOME";
   });
   const [selectedService, setSelectedService] = useState<ServiceItem | null>(null);
+  useModalBackHandler(selectedService !== null, "app-service-modal", () => setSelectedService(null));
   const [showServicesSummaryDropdown, setShowServicesSummaryDropdown] = useState<boolean>(false);
   const [showLogoutModal, setShowLogoutModal] = useState<boolean>(false);
+  useModalBackHandler(showLogoutModal, "app-logout-modal", () => setShowLogoutModal(false));
 
   // Admin Session & RBAC State
   const [adminSession, setAdminSession] = useState<AdminSession | null>(() => getStoredAdminSession());
@@ -440,9 +444,22 @@ export default function App() {
   const selectedServiceRef = useRef(selectedService);
 
   useEffect(() => { currentViewRef.current = currentView; }, [currentView]);
-  useEffect(() => { currentUserRef.current = currentUser; }, [currentUser]);
-  useEffect(() => { adminSessionRef.current = adminSession; }, [adminSession]);
+  useEffect(() => {
+    currentUserRef.current = currentUser;
+    navigationManager.setSessionStatus(Boolean(currentUser), Boolean(adminSession));
+  }, [currentUser, adminSession]);
+  useEffect(() => {
+    adminSessionRef.current = adminSession;
+    navigationManager.setSessionStatus(Boolean(currentUser), Boolean(adminSession));
+  }, [adminSession]);
   useEffect(() => { selectedServiceRef.current = selectedService; }, [selectedService]);
+
+  useEffect(() => {
+    const unregister = navigationManager.registerViewChangeHandler((view) => {
+      setCurrentView(view);
+    });
+    return unregister;
+  }, []);
 
   const navigateToView = (view: string, replace: boolean = false) => {
     if (maintenanceActive && !adminSessionRef.current && !view.startsWith("ADMIN_")) {
@@ -466,20 +483,19 @@ export default function App() {
     }
 
     setCurrentView(view);
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
     const targetRoute = viewToRouteMap[view] || (view === "DASHBOARD" ? "/dashboard" : "/");
-    try {
-      const stateObj = { view, userUid: currentUser?.uid || null };
-      if (replace) {
-        window.history.replaceState(stateObj, document.title, targetRoute);
-      } else {
-        if (window.location.pathname !== targetRoute || window.history.state?.view !== view) {
-          window.history.pushState(stateObj, document.title, targetRoute);
-        }
-      }
-    } catch (e) {
-      console.warn("Could not push history state:", e);
-    }
+    navigationManager.pushView(view, targetRoute, replace);
   };
+
+  // Ensure every page view and popup shows from the top
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [currentView, selectedService]);
 
   // Dark mode state (persisting across the session)
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
@@ -518,7 +534,9 @@ export default function App() {
   const [regAgreedKyc, setRegAgreedKyc] = useState(false);
   const [regMarketingAccepted, setRegMarketingAccepted] = useState(false);
   const [showUserAgreementsModal, setShowUserAgreementsModal] = useState(false);
+  useModalBackHandler(showUserAgreementsModal, "app-agreements-modal", () => setShowUserAgreementsModal(false));
   const [showReAcceptanceModal, setShowReAcceptanceModal] = useState(false);
+  useModalBackHandler(showReAcceptanceModal, "app-reacceptance-modal", () => setShowReAcceptanceModal(false));
   const [pendingReAcceptancePolicies, setPendingReAcceptancePolicies] = useState<any[]>([]);
 
   // Password recovery states
@@ -608,13 +626,8 @@ export default function App() {
   // Handle browser back/forward navigation and URL routing
   useEffect(() => {
     const handlePopState = (e: PopStateEvent) => {
-      // If service modal is open, back button closes modal first
-      if (selectedServiceRef.current) {
-        setSelectedService(null);
-        const currentRoute = viewToRouteMap[currentViewRef.current] || "/";
-        try {
-          window.history.pushState({ view: currentViewRef.current, userUid: currentUserRef.current?.uid }, document.title, currentRoute);
-        } catch (err) {}
+      if (navigationManager.hasOpenModals()) {
+        navigationManager.handlePopState(e, routeToViewMap);
         return;
       }
 
@@ -2014,6 +2027,7 @@ export default function App() {
           )}
           {currentView === "HOME" && (
             <SmartLinkLandingPage
+              currentUser={currentUser}
               onLogin={() => {
                 navigateToView("DASHBOARD");
                 setIsRegistering(false);
@@ -3369,201 +3383,6 @@ export default function App() {
             </div>
           )}
         </div>
-
-        {/* Global Footer */}
-        {currentView !== "HOME" && (
-          <footer className="bg-white text-[#4B5563] py-12 border-t border-[#E5E7EB] text-xs">
-            <div className="max-w-7xl mx-auto px-6 md:px-12 space-y-8 text-left">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 items-start">
-                {/* Brand Column */}
-                <div className="space-y-3 lg:col-span-1">
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={dynamicLogo}
-                      alt="Smart Link Nigeria"
-                      className="h-12 sm:h-14 w-auto max-w-[220px] object-contain shrink-0"
-                      referrerPolicy="no-referrer"
-                      onError={handleLogoError}
-                    />
-                  </div>
-                  <p className="text-[11px] text-[#4B5563] font-normal leading-relaxed">
-                    Smart Link Nigeria Computer is a premier technology enterprise and authorized service channel in Nigeria, providing professional CAC business registrations, reliable biometrics identity solutions, WAEC/JAMB scratch card distributions, and comprehensive enterprise ICT solutions.
-                  </p>
-                  <p className="text-[10px] text-[#6B7280] font-mono">RC: 9347502 &bull; BN Registered</p>
-                </div>
-
-                {/* Quick Navigation */}
-                <div className="space-y-3">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#111827]">Quick Links</p>
-                  <ul className="space-y-2 text-[11px]">
-                    <li>
-                      <button
-                        onClick={() => navigateToView("HOME")}
-                        className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors bg-transparent border-none p-0 cursor-pointer"
-                      >
-                        Home Page
-                      </button>
-                    </li>
-                    <li>
-                      <button
-                        onClick={() => navigateToView(currentUser ? "SERVICES" : "HOME")}
-                        className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors bg-transparent border-none p-0 cursor-pointer"
-                      >
-                        Digital Services
-                      </button>
-                    </li>
-                    <li>
-                      <button
-                        onClick={() => navigateToView("DASHBOARD")}
-                        className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors bg-transparent border-none p-0 cursor-pointer"
-                      >
-                        {currentUser ? "User Dashboard" : "Client Portal"}
-                      </button>
-                    </li>
-                    <li>
-                      <button
-                        onClick={() => navigateToLegal()}
-                        className="text-[#0F2D5C] font-bold hover:underline transition-colors bg-transparent border-none p-0 cursor-pointer"
-                      >
-                        Legal & Compliance Hub
-                      </button>
-                    </li>
-                  </ul>
-                </div>
-
-                {/* Legal & Policies Column */}
-                <div className="space-y-3">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#111827]">Legal & Policies</p>
-                  <ul className="space-y-1.5 text-[11px]">
-                    <li>
-                      <button
-                        onClick={() => navigateToLegal("privacy-policy")}
-                        className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors bg-transparent border-none p-0 cursor-pointer"
-                      >
-                        Privacy Policy
-                      </button>
-                    </li>
-                    <li>
-                      <button
-                        onClick={() => navigateToLegal("terms-of-service")}
-                        className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors bg-transparent border-none p-0 cursor-pointer"
-                      >
-                        Terms of Service
-                      </button>
-                    </li>
-                    <li>
-                      <button
-                        onClick={() => navigateToLegal("refund-policy")}
-                        className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors bg-transparent border-none p-0 cursor-pointer"
-                      >
-                        Refund & Cancellation
-                      </button>
-                    </li>
-                    <li>
-                      <button
-                        onClick={() => navigateToLegal("wallet-terms")}
-                        className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors bg-transparent border-none p-0 cursor-pointer"
-                      >
-                        Wallet Terms & Conditions
-                      </button>
-                    </li>
-                    <li>
-                      <button
-                        onClick={() => navigateToLegal("payment-terms")}
-                        className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors bg-transparent border-none p-0 cursor-pointer"
-                      >
-                        Payment Terms
-                      </button>
-                    </li>
-                    <li>
-                      <button
-                        onClick={() => navigateToLegal("kyc-notice")}
-                        className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors bg-transparent border-none p-0 cursor-pointer"
-                      >
-                        KYC & Identity Notice
-                      </button>
-                    </li>
-                    <li>
-                      <button
-                        onClick={() => navigateToLegal("data-protection")}
-                        className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors bg-transparent border-none p-0 cursor-pointer"
-                      >
-                        NDPR Data Protection
-                      </button>
-                    </li>
-                    <li>
-                      <button
-                        onClick={() => navigateToLegal("disclaimer")}
-                        className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors bg-transparent border-none p-0 cursor-pointer"
-                      >
-                        Third-Party Disclaimer
-                      </button>
-                    </li>
-                  </ul>
-                </div>
-
-                {/* Contact & Hours */}
-                <div className="space-y-3">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#111827]">Support & Inquiries</p>
-                  <p className="text-[11px] text-[#4B5563] leading-relaxed">
-                    <strong>Email:</strong> Smartlinkcomputerbusiness@gmail.com<br />
-                    <strong>Tel:</strong> +234 808 549 0982<br />
-                    <strong>WhatsApp:</strong> +234 904 773 8212<br />
-                    <strong>Hours:</strong> Mon – Sat: 8:00 AM – 6:00 PM WAT
-                  </p>
-                  <div className="pt-2">
-                    <button
-                      onClick={() => navigateToLegal("acceptable-use")}
-                      className="text-[11px] text-[#6B7280] hover:text-[#111827] transition-colors bg-transparent border-none p-0 cursor-pointer underline"
-                    >
-                      Report Fraud / Abuse &rarr;
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="border-t border-[#E5E7EB] pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] text-[#6B7280]">
-                <p>© {new Date().getFullYear()} Smart Link Computer Business (RC 9347502). All rights reserved.</p>
-                <div className="flex flex-wrap items-center gap-4">
-                  <button
-                    onClick={() => navigateToLegal("terms-of-service")}
-                    className="text-[#6B7280] hover:text-[#0F2D5C] transition-colors bg-transparent border-none p-0 cursor-pointer"
-                  >
-                    Terms
-                  </button>
-                  <span>&bull;</span>
-                  <button
-                    onClick={() => navigateToLegal("privacy-policy")}
-                    className="text-[#6B7280] hover:text-[#0F2D5C] transition-colors bg-transparent border-none p-0 cursor-pointer"
-                  >
-                    Privacy
-                  </button>
-                  <span>&bull;</span>
-                  <button
-                    onClick={() => navigateToLegal("cookie-policy")}
-                    className="text-[#6B7280] hover:text-[#0F2D5C] transition-colors bg-transparent border-none p-0 cursor-pointer"
-                  >
-                    Cookies
-                  </button>
-                  <span>&bull;</span>
-                  <button
-                    onClick={() => navigateToLegal("disclaimer")}
-                    className="text-[#6B7280] hover:text-[#0F2D5C] transition-colors bg-transparent border-none p-0 cursor-pointer"
-                  >
-                    Disclaimers
-                  </button>
-                  <span>&bull;</span>
-                  <button
-                    onClick={() => navigateToLegal()}
-                    className="text-[#0F2D5C] font-bold hover:underline transition-colors bg-transparent border-none p-0 cursor-pointer"
-                  >
-                    All Policies
-                  </button>
-                </div>
-              </div>
-            </div>
-          </footer>
-        )}
       </main>
 
       {/* Global Action Modal for Ordering/Verifying */}
@@ -3635,7 +3454,7 @@ export default function App() {
       {/* Logout Confirmation Modal */}
       <AnimatePresence>
         {showLogoutModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111827]/60 backdrop-blur-xs">
+          <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-4 pt-10 sm:pt-4 bg-[#111827]/60 backdrop-blur-xs overflow-y-auto">
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}

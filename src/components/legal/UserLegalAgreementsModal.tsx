@@ -95,11 +95,18 @@ export function UserLegalAgreementsModal({
     }
   };
 
+  useEffect(() => {
+    if (isOpen) {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      document.documentElement.scrollTop = 0;
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[#111827]/70 backdrop-blur-xs animate-fadeIn">
-      <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-[#E5E7EB] text-left overflow-hidden animate-scaleUp">
+    <div className="fixed inset-0 z-[9999] flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/70 backdrop-blur-xs animate-fadeIn overflow-y-auto">
+      <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] mb-8 flex flex-col shadow-2xl border border-[#E5E7EB] text-left overflow-hidden animate-scaleUp">
         {/* Header */}
         <div className="px-6 py-4 bg-[#111827] text-white flex items-center justify-between border-b border-[#111827] shrink-0">
           <div className="flex items-center gap-3">

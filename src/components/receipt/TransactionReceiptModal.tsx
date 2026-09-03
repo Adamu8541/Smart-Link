@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   X,
   Printer,
@@ -100,10 +100,15 @@ export const TransactionReceiptModal: React.FC<TransactionReceiptModalProps> = (
     }
   };
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    document.documentElement.scrollTop = 0;
+  }, []);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111827]/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/60 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
       <div
-        className={`relative w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden border ${
+        className={`relative w-full max-w-lg mb-8 rounded-2xl shadow-2xl overflow-hidden border ${
           isDarkMode
             ? "bg-[#111827] border-[#111827] text-[#E5E7EB]"
             : "bg-white border-[#E5E7EB] text-[#111827]"

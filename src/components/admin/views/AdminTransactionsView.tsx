@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useModalBackHandler } from "../../../services/navigationManager";
 import {
   BarChart3,
   Search,
@@ -70,13 +71,16 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
   const [sortBy, setSortBy] = useState("timestamp");
   const [sortOrder, setSortOrder] = useState("desc");
   const [showFilterDrawer, setShowFilterDrawer] = useState(false);
+  useModalBackHandler(showFilterDrawer, "admin-tx-filter-drawer", () => setShowFilterDrawer(false));
 
   // Drawer & Modal States
   const [selectedTxId, setSelectedTxId] = useState<string | null>(null);
   const [detailDrawerOpen, setDetailDrawerOpen] = useState(false);
+  useModalBackHandler(detailDrawerOpen, "admin-tx-detail-drawer", () => setDetailDrawerOpen(false));
   const [receiptTx, setReceiptTx] = useState<any | null>(null);
   const [receiptUser, setReceiptUser] = useState<any | null>(null);
   const [receiptModalOpen, setReceiptModalOpen] = useState(false);
+  useModalBackHandler(receiptModalOpen, "admin-tx-receipt-modal", () => setReceiptModalOpen(false));
   const [showTestPanel, setShowTestPanel] = useState(false);
   const [exporting, setExporting] = useState(false);
 

@@ -65,6 +65,11 @@ export const SlipPrintModal: React.FC<SlipPrintModalProps> = ({
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedSms, setCopiedSms] = useState(false);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    document.documentElement.scrollTop = 0;
+  }, []);
+
   // Email & Delivery State
   const [showEmailPanel, setShowEmailPanel] = useState(false);
   const [customEmail, setCustomEmail] = useState("");
@@ -226,8 +231,8 @@ export const SlipPrintModal: React.FC<SlipPrintModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-[#111827]/80 backdrop-blur-sm animate-fade-in overflow-y-auto print:p-0 print:bg-white print:static">
-      <div className="w-full max-w-5xl bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] print:max-h-none print:shadow-none print:border-none print:rounded-none">
+    <div className="fixed inset-0 z-50 flex items-start justify-center p-3 sm:p-6 pt-4 sm:pt-8 pb-12 bg-[#111827]/80 backdrop-blur-sm animate-fade-in overflow-y-auto print:p-0 print:bg-white print:static">
+      <div className="w-full max-w-5xl bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] mb-8 print:max-h-none print:shadow-none print:border-none print:rounded-none">
         {/* Modal Header Controls (Hidden during direct print) */}
         <div className="p-4 sm:p-5 border-b border-[#E5E7EB] dark:border-[#111827] flex flex-wrap items-center justify-between gap-3 bg-[#F5F7FA]/80 dark:bg-[#111827]/50 print:hidden">
           <div className="flex items-center gap-3">

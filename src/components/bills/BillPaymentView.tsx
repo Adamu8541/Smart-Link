@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect } from "react";
+import { useModalBackHandler } from "../../services/navigationManager";
 import {
   Smartphone,
   Wifi,
@@ -92,6 +93,7 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
 
   // Confirmation Modal state
   const [showConfirmation, setShowConfirmation] = useState(false);
+  useModalBackHandler(showConfirmation, "bill-confirmation-modal", () => setShowConfirmation(false));
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   // Result state
@@ -117,9 +119,16 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
 
   // Load Categories on mount
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    document.documentElement.scrollTop = 0;
     loadCategoriesCatalog();
     loadHistory();
   }, []);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    document.documentElement.scrollTop = 0;
+  }, [viewMode, showConfirmation]);
 
   const loadCategoriesCatalog = async () => {
     setLoadingCategories(true);
@@ -875,8 +884,8 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
 
       {/* CONFIRMATION DIALOG MODAL */}
       {showConfirmation && selectedCategory && selectedProvider && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111827]/70 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl p-6 md:p-8 max-w-lg w-full space-y-6 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/70 backdrop-blur-xs animate-fadeIn overflow-y-auto">
+          <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl p-6 md:p-8 max-w-lg w-full mb-8 space-y-6 shadow-2xl">
             <div className="flex items-center justify-between border-b border-[#E5E7EB] dark:border-[#111827] pb-4">
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[#0F2D5C] dark:text-[#9CA3AF]">
