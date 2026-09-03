@@ -231,105 +231,115 @@ export class ServerWalletEngine {
     let txResult: WalletTxRecord;
 
     if (fsDb) {
-      // Execute as one atomic Firestore Transaction
-      await fsDb.runTransaction(async (transaction) => {
-        // 1. Uniqueness check / Idempotency key lookup
-        const idempotencyRef = fsDb.collection("idempotency_keys").doc(ref);
-        const idempotencySnap = await transaction.get(idempotencyRef);
-        if (idempotencySnap.exists) {
-          throw new Error(`Duplicate transaction reference detected (${ref}). Credit operation already processed.`);
-        }
+      try {
+        // Execute as one atomic Firestore Transaction
+        await fsDb.runTransaction(async (transaction) => {
+          // 1. Uniqueness check / Idempotency key lookup
+          const idempotencyRef = fsDb.collection("idempotency_keys").doc(ref);
+          const idempotencySnap = await transaction.get(idempotencyRef);
+          if (idempotencySnap.exists) {
+            throw new Error(`Duplicate transaction reference detected (${ref}). Credit operation already processed.`);
+          }
 
-        // 2. Fetch user to verify they exist and get email
-        const userRef = fsDb.collection("users").doc(userId);
-        const userSnap = await transaction.get(userRef);
-        if (!userSnap.exists) {
-          throw new Error("User account not found.");
-        }
-        const userData = userSnap.data() || {};
-        if (userData.status === "SUSPENDED" || userData.status === "LOCKED") {
-          throw new Error("User account is suspended or locked. Transaction denied.");
-        }
+          // 2. Fetch user to verify they exist and get email
+          const userRef = fsDb.collection("users").doc(userId);
+          const userSnap = await transaction.get(userRef);
+          if (!userSnap.exists) {
+            throw new Error("User account not found.");
+          }
+          const userData = userSnap.data() || {};
+          if (userData.status === "SUSPENDED" || userData.status === "LOCKED") {
+            throw new Error("User account is suspended or locked. Transaction denied.");
+          }
 
-        // 3. Fetch wallet to modify
-        const walletRef = fsDb.collection("wallets").doc(userId);
-        const walletSnap = await transaction.get(walletRef);
-        
-        let currentWallet: WalletDbRecord;
-        if (!walletSnap.exists) {
-          const initialBal = typeof userData.walletBalance === "number" && !isNaN(userData.walletBalance) ? userData.walletBalance : 0.0;
-          currentWallet = {
-            userId,
-            walletId: `wal_${userId}`,
-            balance: initialBal,
-            currentBalance: initialBal,
-            heldBalance: 0.0,
-            totalCredits: initialBal,
-            totalDebits: 0.0,
-            status: "ACTIVE",
-            walletStatus: "ACTIVE",
-            currency: "NGN",
+          // 3. Fetch wallet to modify
+          const walletRef = fsDb.collection("wallets").doc(userId);
+          const walletSnap = await transaction.get(walletRef);
+          
+          let currentWallet: WalletDbRecord;
+          if (!walletSnap.exists) {
+            const initialBal = typeof userData.walletBalance === "number" && !isNaN(userData.walletBalance) ? userData.walletBalance : 0.0;
+            currentWallet = {
+              userId,
+              walletId: `wal_${userId}`,
+              balance: initialBal,
+              currentBalance: initialBal,
+              heldBalance: 0.0,
+              totalCredits: initialBal,
+              totalDebits: 0.0,
+              status: "ACTIVE",
+              walletStatus: "ACTIVE",
+              currency: "NGN",
+              updatedAt: now,
+              lastUpdated: now,
+              createdAt: userData.createdAt || now,
+            };
+          } else {
+            currentWallet = walletSnap.data() as WalletDbRecord;
+          }
+
+          // Keep status server-governed only
+          if (currentWallet.status !== "ACTIVE" || currentWallet.walletStatus !== "ACTIVE") {
+            throw new Error("Wallet is currently suspended or locked. Transaction denied.");
+          }
+
+          const balanceBefore = currentWallet.balance || 0;
+          const newBalance = balanceBefore + amt;
+
+          // Construct updated wallet object
+          const updatedWallet: WalletDbRecord = {
+            ...currentWallet,
+            balance: newBalance,
+            currentBalance: newBalance,
+            totalCredits: (currentWallet.totalCredits || 0) + amt,
             updatedAt: now,
             lastUpdated: now,
-            createdAt: userData.createdAt || now,
           };
+
+          // Construct transaction record
+          const tx: WalletTxRecord = {
+            id: txId,
+            transactionId: txId,
+            reference: ref,
+            userId,
+            userEmail: userData.email || "",
+            serviceName: serviceName || "Wallet Top-up",
+            amount: amt,
+            currency: "NGN",
+            fee,
+            walletBalanceBefore: balanceBefore,
+            walletBalanceAfter: newBalance,
+            status: "SUCCESS",
+            provider,
+            description: description || `Wallet Credited ₦${amt.toLocaleString("en-NG", { minimumFractionDigits: 2 })} via ${serviceName}`,
+            createdAt: now,
+            updatedAt: now,
+            recipientDetails,
+            type: type || "WALLET_FUNDING",
+            idempotencyKey,
+          };
+
+          // 4. Perform atomic writes
+          transaction.set(idempotencyRef, { processedAt: now, userId, amount: amt, txId });
+          transaction.set(walletRef, JSON.parse(JSON.stringify(updatedWallet)), { merge: true });
+          transaction.set(userRef, { walletBalance: newBalance }, { merge: true });
+          
+          const txRef = fsDb.collection("transactions").doc(txId);
+          transaction.set(txRef, JSON.parse(JSON.stringify(tx)));
+
+          walletResult = updatedWallet;
+          txResult = tx;
+        });
+      } catch (fsErr: any) {
+        if (fsErr?.message?.includes("RESOURCE_EXHAUSTED") || fsErr?.code === 8 || fsErr?.status === 8) {
+          console.warn("[serverWalletEngine] Firestore quota limit reached during creditWallet, using local DB fallback.");
         } else {
-          currentWallet = walletSnap.data() as WalletDbRecord;
+          throw fsErr;
         }
+      }
+    }
 
-        // Keep status server-governed only
-        if (currentWallet.status !== "ACTIVE" || currentWallet.walletStatus !== "ACTIVE") {
-          throw new Error("Wallet is currently suspended or locked. Transaction denied.");
-        }
-
-        const balanceBefore = currentWallet.balance || 0;
-        const newBalance = balanceBefore + amt;
-
-        // Construct updated wallet object
-        const updatedWallet: WalletDbRecord = {
-          ...currentWallet,
-          balance: newBalance,
-          currentBalance: newBalance,
-          totalCredits: (currentWallet.totalCredits || 0) + amt,
-          updatedAt: now,
-          lastUpdated: now,
-        };
-
-        // Construct transaction record
-        const tx: WalletTxRecord = {
-          id: txId,
-          transactionId: txId,
-          reference: ref,
-          userId,
-          userEmail: userData.email || "",
-          serviceName: serviceName || "Wallet Top-up",
-          amount: amt,
-          currency: "NGN",
-          fee,
-          walletBalanceBefore: balanceBefore,
-          walletBalanceAfter: newBalance,
-          status: "SUCCESS",
-          provider,
-          description: description || `Wallet Credited ₦${amt.toLocaleString("en-NG", { minimumFractionDigits: 2 })} via ${serviceName}`,
-          createdAt: now,
-          updatedAt: now,
-          recipientDetails,
-          type: type || "WALLET_FUNDING",
-          idempotencyKey,
-        };
-
-        // 4. Perform atomic writes
-        transaction.set(idempotencyRef, { processedAt: now, userId, amount: amt, txId });
-        transaction.set(walletRef, JSON.parse(JSON.stringify(updatedWallet)), { merge: true });
-        transaction.set(userRef, { walletBalance: newBalance }, { merge: true });
-        
-        const txRef = fsDb.collection("transactions").doc(txId);
-        transaction.set(txRef, JSON.parse(JSON.stringify(tx)));
-
-        walletResult = updatedWallet;
-        txResult = tx;
-      });
-    } else {
+    if (!walletResult! || !txResult!) {
       // Local fallback for memory DB environment (just in case)
       const allTxs = (db.transactions || []).concat(db.wallet_transactions || []);
       const existingTx = allTxs.find((t: any) => (t.reference && t.reference === ref) || (idempotencyKey && t.idempotencyKey === idempotencyKey));
@@ -480,97 +490,107 @@ export class ServerWalletEngine {
     let txResult: WalletTxRecord;
 
     if (fsDb) {
-      await fsDb.runTransaction(async (transaction) => {
-        // 1. Uniqueness check / Idempotency key lookup
-        const idempotencyRef = fsDb.collection("idempotency_keys").doc(ref);
-        const idempotencySnap = await transaction.get(idempotencyRef);
-        if (idempotencySnap.exists) {
-          throw new Error(`Duplicate transaction reference detected (${ref}). Debit operation already processed.`);
+      try {
+        await fsDb.runTransaction(async (transaction) => {
+          // 1. Uniqueness check / Idempotency key lookup
+          const idempotencyRef = fsDb.collection("idempotency_keys").doc(ref);
+          const idempotencySnap = await transaction.get(idempotencyRef);
+          if (idempotencySnap.exists) {
+            throw new Error(`Duplicate transaction reference detected (${ref}). Debit operation already processed.`);
+          }
+
+          // 2. Fetch user to verify status
+          const userRef = fsDb.collection("users").doc(userId);
+          const userSnap = await transaction.get(userRef);
+          if (!userSnap.exists) {
+            throw new Error("User account not found.");
+          }
+          const userData = userSnap.data() || {};
+          if (userData.status === "SUSPENDED" || userData.status === "LOCKED") {
+            throw new Error("User account is suspended or locked. Transaction denied.");
+          }
+
+          // 3. Fetch wallet to verify balance & status
+          const walletRef = fsDb.collection("wallets").doc(userId);
+          const walletSnap = await transaction.get(walletRef);
+          if (!walletSnap.exists) {
+            throw new Error("Wallet account not found.");
+          }
+
+          const currentWallet = walletSnap.data() as WalletDbRecord;
+          if (currentWallet.status !== "ACTIVE" || currentWallet.walletStatus !== "ACTIVE") {
+            throw new Error("Wallet is currently suspended or locked. Transaction denied.");
+          }
+
+          const balanceBefore = currentWallet.balance || 0;
+          const held = currentWallet.heldBalance || 0;
+          const available = balanceBefore - held;
+
+          if (available < amt) {
+            throw new Error(`Insufficient wallet balance. Available: ₦${available.toLocaleString("en-NG", { minimumFractionDigits: 2 })}, Requested Debit: ₦${amt.toLocaleString("en-NG", { minimumFractionDigits: 2 })}.`);
+          }
+
+          const newBalance = balanceBefore - amt;
+
+          // Construct updated wallet
+          const updatedWallet: WalletDbRecord = {
+            ...currentWallet,
+            balance: newBalance,
+            currentBalance: newBalance,
+            totalDebits: (currentWallet.totalDebits || 0) + amt,
+            updatedAt: now,
+            lastUpdated: now,
+          };
+
+          // Construct transaction record
+          const tx: WalletTxRecord = {
+            id: txId,
+            transactionId: txId,
+            reference: ref,
+            userId,
+            userEmail: userData.email || "",
+            serviceName: serviceName || "Service Payment",
+            amount: amt,
+            currency: "NGN",
+            fee,
+            walletBalanceBefore: balanceBefore,
+            walletBalanceAfter: newBalance,
+            status: "SUCCESS",
+            provider,
+            description: description || `Payment for ${serviceName}`,
+            createdAt: now,
+            updatedAt: now,
+            recipientDetails,
+            type: type || "SERVICE_PAYMENT",
+            idempotencyKey,
+            providerReference,
+            rawResponse,
+            token,
+            units,
+            pins,
+          };
+
+          // 4. Write atomically inside transaction
+          transaction.set(idempotencyRef, { processedAt: now, userId, amount: amt, txId });
+          transaction.set(walletRef, JSON.parse(JSON.stringify(updatedWallet)), { merge: true });
+          transaction.set(userRef, { walletBalance: newBalance }, { merge: true });
+
+          const txRef = fsDb.collection("transactions").doc(txId);
+          transaction.set(txRef, JSON.parse(JSON.stringify(tx)));
+
+          walletResult = updatedWallet;
+          txResult = tx;
+        });
+      } catch (fsErr: any) {
+        if (fsErr?.message?.includes("RESOURCE_EXHAUSTED") || fsErr?.code === 8 || fsErr?.status === 8) {
+          console.warn("[serverWalletEngine] Firestore quota limit reached during debitWallet, using local DB fallback.");
+        } else {
+          throw fsErr;
         }
+      }
+    }
 
-        // 2. Fetch user to verify status
-        const userRef = fsDb.collection("users").doc(userId);
-        const userSnap = await transaction.get(userRef);
-        if (!userSnap.exists) {
-          throw new Error("User account not found.");
-        }
-        const userData = userSnap.data() || {};
-        if (userData.status === "SUSPENDED" || userData.status === "LOCKED") {
-          throw new Error("User account is suspended or locked. Transaction denied.");
-        }
-
-        // 3. Fetch wallet to verify balance & status
-        const walletRef = fsDb.collection("wallets").doc(userId);
-        const walletSnap = await transaction.get(walletRef);
-        if (!walletSnap.exists) {
-          throw new Error("Wallet account not found.");
-        }
-
-        const currentWallet = walletSnap.data() as WalletDbRecord;
-        if (currentWallet.status !== "ACTIVE" || currentWallet.walletStatus !== "ACTIVE") {
-          throw new Error("Wallet is currently suspended or locked. Transaction denied.");
-        }
-
-        const balanceBefore = currentWallet.balance || 0;
-        const held = currentWallet.heldBalance || 0;
-        const available = balanceBefore - held;
-
-        if (available < amt) {
-          throw new Error(`Insufficient wallet balance. Available: ₦${available.toLocaleString("en-NG", { minimumFractionDigits: 2 })}, Requested Debit: ₦${amt.toLocaleString("en-NG", { minimumFractionDigits: 2 })}.`);
-        }
-
-        const newBalance = balanceBefore - amt;
-
-        // Construct updated wallet
-        const updatedWallet: WalletDbRecord = {
-          ...currentWallet,
-          balance: newBalance,
-          currentBalance: newBalance,
-          totalDebits: (currentWallet.totalDebits || 0) + amt,
-          updatedAt: now,
-          lastUpdated: now,
-        };
-
-        // Construct transaction record
-        const tx: WalletTxRecord = {
-          id: txId,
-          transactionId: txId,
-          reference: ref,
-          userId,
-          userEmail: userData.email || "",
-          serviceName: serviceName || "Service Payment",
-          amount: amt,
-          currency: "NGN",
-          fee,
-          walletBalanceBefore: balanceBefore,
-          walletBalanceAfter: newBalance,
-          status: "SUCCESS",
-          provider,
-          description: description || `Payment for ${serviceName}`,
-          createdAt: now,
-          updatedAt: now,
-          recipientDetails,
-          type: type || "SERVICE_PAYMENT",
-          idempotencyKey,
-          providerReference,
-          rawResponse,
-          token,
-          units,
-          pins,
-        };
-
-        // 4. Write atomically inside transaction
-        transaction.set(idempotencyRef, { processedAt: now, userId, amount: amt, txId });
-        transaction.set(walletRef, JSON.parse(JSON.stringify(updatedWallet)), { merge: true });
-        transaction.set(userRef, { walletBalance: newBalance }, { merge: true });
-
-        const txRef = fsDb.collection("transactions").doc(txId);
-        transaction.set(txRef, JSON.parse(JSON.stringify(tx)));
-
-        walletResult = updatedWallet;
-        txResult = tx;
-      });
-    } else {
+    if (!walletResult! || !txResult!) {
       // Local fallback for memory DB environment
       const allTxs = (db.transactions || []).concat(db.wallet_transactions || []);
       const existingTx = allTxs.find((t: any) => (t.reference && t.reference === ref) || (idempotencyKey && t.idempotencyKey === idempotencyKey));
@@ -704,77 +724,87 @@ export class ServerWalletEngine {
     let txResult: WalletTxRecord;
 
     if (fsDb) {
-      await fsDb.runTransaction(async (transaction) => {
-        // Uniqueness check / Idempotency
-        const idempotencyRef = fsDb.collection("idempotency_keys").doc(ref);
-        const idempotencySnap = await transaction.get(idempotencyRef);
-        if (idempotencySnap.exists) {
-          throw new Error(`Duplicate hold reference detected (${ref}).`);
+      try {
+        await fsDb.runTransaction(async (transaction) => {
+          // Uniqueness check / Idempotency
+          const idempotencyRef = fsDb.collection("idempotency_keys").doc(ref);
+          const idempotencySnap = await transaction.get(idempotencyRef);
+          if (idempotencySnap.exists) {
+            throw new Error(`Duplicate hold reference detected (${ref}).`);
+          }
+
+          const userRef = fsDb.collection("users").doc(userId);
+          const userSnap = await transaction.get(userRef);
+          if (!userSnap.exists) {
+            throw new Error("User account not found.");
+          }
+          const userData = userSnap.data() || {};
+          if (userData.status === "SUSPENDED" || userData.status === "LOCKED") {
+            throw new Error("User account is suspended or locked. Hold denied.");
+          }
+
+          const walletRef = fsDb.collection("wallets").doc(userId);
+          const walletSnap = await transaction.get(walletRef);
+          if (!walletSnap.exists) {
+            throw new Error("Wallet not found.");
+          }
+
+          const currentWallet = walletSnap.data() as WalletDbRecord;
+          if (currentWallet.status !== "ACTIVE" || currentWallet.walletStatus !== "ACTIVE") {
+            throw new Error("Wallet is suspended or locked. Hold denied.");
+          }
+
+          const balanceBefore = currentWallet.balance || 0;
+          const held = currentWallet.heldBalance || 0;
+          const available = balanceBefore - held;
+
+          if (available < amt) {
+            throw new Error(`Insufficient wallet balance. Available: ₦${available.toLocaleString("en-NG", { minimumFractionDigits: 2 })}, Required Hold: ₦${amt.toLocaleString("en-NG", { minimumFractionDigits: 2 })}.`);
+          }
+
+          const updatedWallet: WalletDbRecord = {
+            ...currentWallet,
+            heldBalance: held + amt,
+            updatedAt: now,
+            lastUpdated: now,
+          };
+
+          const tx: WalletTxRecord = {
+            id: txId,
+            transactionId: txId,
+            reference: ref,
+            userId,
+            userEmail: userData.email || "",
+            serviceName,
+            amount: amt,
+            walletBalanceBefore: balanceBefore,
+            walletBalanceAfter: balanceBefore,
+            status: "PENDING",
+            provider,
+            description: description || `Held ₦${amt.toLocaleString()} for ${serviceName}`,
+            createdAt: now,
+            updatedAt: now,
+          };
+
+          transaction.set(idempotencyRef, { processedAt: now, userId, amount: amt, txId });
+          transaction.set(walletRef, JSON.parse(JSON.stringify(updatedWallet)), { merge: true });
+          
+          const txRef = fsDb.collection("transactions").doc(txId);
+          transaction.set(txRef, JSON.parse(JSON.stringify(tx)));
+
+          walletResult = updatedWallet;
+          txResult = tx;
+        });
+      } catch (fsErr: any) {
+        if (fsErr?.message?.includes("RESOURCE_EXHAUSTED") || fsErr?.code === 8 || fsErr?.status === 8) {
+          console.warn("[serverWalletEngine] Firestore quota limit reached during holdWalletBalance, using local DB fallback.");
+        } else {
+          throw fsErr;
         }
+      }
+    }
 
-        const userRef = fsDb.collection("users").doc(userId);
-        const userSnap = await transaction.get(userRef);
-        if (!userSnap.exists) {
-          throw new Error("User account not found.");
-        }
-        const userData = userSnap.data() || {};
-        if (userData.status === "SUSPENDED" || userData.status === "LOCKED") {
-          throw new Error("User account is suspended or locked. Hold denied.");
-        }
-
-        const walletRef = fsDb.collection("wallets").doc(userId);
-        const walletSnap = await transaction.get(walletRef);
-        if (!walletSnap.exists) {
-          throw new Error("Wallet not found.");
-        }
-
-        const currentWallet = walletSnap.data() as WalletDbRecord;
-        if (currentWallet.status !== "ACTIVE" || currentWallet.walletStatus !== "ACTIVE") {
-          throw new Error("Wallet is suspended or locked. Hold denied.");
-        }
-
-        const balanceBefore = currentWallet.balance || 0;
-        const held = currentWallet.heldBalance || 0;
-        const available = balanceBefore - held;
-
-        if (available < amt) {
-          throw new Error(`Insufficient wallet balance. Available: ₦${available.toLocaleString("en-NG", { minimumFractionDigits: 2 })}, Required Hold: ₦${amt.toLocaleString("en-NG", { minimumFractionDigits: 2 })}.`);
-        }
-
-        const updatedWallet: WalletDbRecord = {
-          ...currentWallet,
-          heldBalance: held + amt,
-          updatedAt: now,
-          lastUpdated: now,
-        };
-
-        const tx: WalletTxRecord = {
-          id: txId,
-          transactionId: txId,
-          reference: ref,
-          userId,
-          userEmail: userData.email || "",
-          serviceName,
-          amount: amt,
-          walletBalanceBefore: balanceBefore,
-          walletBalanceAfter: balanceBefore,
-          status: "PENDING",
-          provider,
-          description: description || `Held ₦${amt.toLocaleString()} for ${serviceName}`,
-          createdAt: now,
-          updatedAt: now,
-        };
-
-        transaction.set(idempotencyRef, { processedAt: now, userId, amount: amt, txId });
-        transaction.set(walletRef, JSON.parse(JSON.stringify(updatedWallet)), { merge: true });
-        
-        const txRef = fsDb.collection("transactions").doc(txId);
-        transaction.set(txRef, JSON.parse(JSON.stringify(tx)));
-
-        walletResult = updatedWallet;
-        txResult = tx;
-      });
-    } else {
+    if (!walletResult! || !txResult!) {
       // Local memory fallback
       const user = (await usersStore.getUserById(userId)) || (db?.users ? db.users.find((u: any) => u.uid === userId) : null);
       const wallet = await this.getOrCreateWallet(db, userId);
@@ -847,82 +877,92 @@ export class ServerWalletEngine {
     let txResult: WalletTxRecord;
 
     if (fsDb) {
-      await fsDb.runTransaction(async (transaction) => {
-        // 1. Resolve transaction ID / reference
-        let txId = transactionId;
-        if (!txId && reference) {
-          const localTx = db.transactions?.find((t: any) => t.reference === reference);
-          if (localTx) {
-            txId = localTx.id || localTx.transactionId;
+      try {
+        await fsDb.runTransaction(async (transaction) => {
+          // 1. Resolve transaction ID / reference
+          let txId = transactionId;
+          if (!txId && reference) {
+            const localTx = db.transactions?.find((t: any) => t.reference === reference);
+            if (localTx) {
+              txId = localTx.id || localTx.transactionId;
+            }
           }
-        }
 
-        if (!txId) {
-          throw new Error("Transaction ID or Reference is required to release hold");
-        }
+          if (!txId) {
+            throw new Error("Transaction ID or Reference is required to release hold");
+          }
 
-        const txRef = fsDb.collection("transactions").doc(txId);
-        const txSnap = await transaction.get(txRef);
-        if (!txSnap.exists) {
-          throw new Error("Held transaction record not found in Firestore");
-        }
+          const txRef = fsDb.collection("transactions").doc(txId);
+          const txSnap = await transaction.get(txRef);
+          if (!txSnap.exists) {
+            throw new Error("Held transaction record not found in Firestore");
+          }
 
-        const tx = txSnap.data() as WalletTxRecord;
-        if (tx.status !== "PENDING") {
-          throw new Error("Transaction hold already released or processed");
-        }
+          const tx = txSnap.data() as WalletTxRecord;
+          if (tx.status !== "PENDING") {
+            throw new Error("Transaction hold already released or processed");
+          }
 
-        const amt = tx.amount;
+          const amt = tx.amount;
 
-        const walletRef = fsDb.collection("wallets").doc(userId);
-        const walletSnap = await transaction.get(walletRef);
-        if (!walletSnap.exists) {
-          throw new Error("Wallet not found");
-        }
+          const walletRef = fsDb.collection("wallets").doc(userId);
+          const walletSnap = await transaction.get(walletRef);
+          if (!walletSnap.exists) {
+            throw new Error("Wallet not found");
+          }
 
-        const currentWallet = walletSnap.data() as WalletDbRecord;
-        const balanceBefore = currentWallet.balance || 0;
-        const newHeld = Math.max(0, (currentWallet.heldBalance || 0) - amt);
+          const currentWallet = walletSnap.data() as WalletDbRecord;
+          const balanceBefore = currentWallet.balance || 0;
+          const newHeld = Math.max(0, (currentWallet.heldBalance || 0) - amt);
 
-        let updatedWallet: WalletDbRecord;
-        const updatedTx: WalletTxRecord = {
-          ...tx,
-          status: commitDebit ? "SUCCESS" : "FAILED",
-          updatedAt: now,
-        };
-
-        if (commitDebit) {
-          const newBal = balanceBefore - amt;
-          updatedWallet = {
-            ...currentWallet,
-            heldBalance: newHeld,
-            balance: newBal,
-            currentBalance: newBal,
-            totalDebits: (currentWallet.totalDebits || 0) + amt,
+          let updatedWallet: WalletDbRecord;
+          const updatedTx: WalletTxRecord = {
+            ...tx,
+            status: commitDebit ? "SUCCESS" : "FAILED",
             updatedAt: now,
-            lastUpdated: now,
           };
-          updatedTx.walletBalanceBefore = balanceBefore;
-          updatedTx.walletBalanceAfter = newBal;
-          
-          const userRef = fsDb.collection("users").doc(userId);
-          transaction.set(userRef, { walletBalance: newBal }, { merge: true });
+
+          if (commitDebit) {
+            const newBal = balanceBefore - amt;
+            updatedWallet = {
+              ...currentWallet,
+              heldBalance: newHeld,
+              balance: newBal,
+              currentBalance: newBal,
+              totalDebits: (currentWallet.totalDebits || 0) + amt,
+              updatedAt: now,
+              lastUpdated: now,
+            };
+            updatedTx.walletBalanceBefore = balanceBefore;
+            updatedTx.walletBalanceAfter = newBal;
+            
+            const userRef = fsDb.collection("users").doc(userId);
+            transaction.set(userRef, { walletBalance: newBal }, { merge: true });
+          } else {
+            updatedWallet = {
+              ...currentWallet,
+              heldBalance: newHeld,
+              updatedAt: now,
+              lastUpdated: now,
+            };
+          }
+
+          transaction.set(walletRef, JSON.parse(JSON.stringify(updatedWallet)), { merge: true });
+          transaction.set(txRef, JSON.parse(JSON.stringify(updatedTx)), { merge: true });
+
+          walletResult = updatedWallet;
+          txResult = updatedTx;
+        });
+      } catch (fsErr: any) {
+        if (fsErr?.message?.includes("RESOURCE_EXHAUSTED") || fsErr?.code === 8 || fsErr?.status === 8) {
+          console.warn("[serverWalletEngine] Firestore quota limit reached during releaseHeldBalance, using local DB fallback.");
         } else {
-          updatedWallet = {
-            ...currentWallet,
-            heldBalance: newHeld,
-            updatedAt: now,
-            lastUpdated: now,
-          };
+          throw fsErr;
         }
+      }
+    }
 
-        transaction.set(walletRef, JSON.parse(JSON.stringify(updatedWallet)), { merge: true });
-        transaction.set(txRef, JSON.parse(JSON.stringify(updatedTx)), { merge: true });
-
-        walletResult = updatedWallet;
-        txResult = updatedTx;
-      });
-    } else {
+    if (!walletResult! || !txResult!) {
       // Local fallback
       const wallet = await this.getOrCreateWallet(db, userId);
       if (!wallet) throw new Error("Wallet not found");
@@ -1008,94 +1048,104 @@ export class ServerWalletEngine {
     let revTxResult: WalletTxRecord;
 
     if (fsDb) {
-      await fsDb.runTransaction(async (transaction) => {
-        // 1. Fetch original transaction document to reverse
-        const txRef = fsDb.collection("transactions").doc(transactionId);
-        const txSnap = await transaction.get(txRef);
-        if (!txSnap.exists) {
-          throw new Error("Transaction record not found for reversal");
+      try {
+        await fsDb.runTransaction(async (transaction) => {
+          // 1. Fetch original transaction document to reverse
+          const txRef = fsDb.collection("transactions").doc(transactionId);
+          const txSnap = await transaction.get(txRef);
+          if (!txSnap.exists) {
+            throw new Error("Transaction record not found for reversal");
+          }
+
+          const origTx = txSnap.data() as WalletTxRecord;
+          if (origTx.userId !== userId) {
+            throw new Error("Unauthorized: Transaction does not belong to user.");
+          }
+          if (origTx.status === "REVERSED") {
+            throw new Error("Transaction has already been reversed");
+          }
+
+          const amt = origTx.amount;
+
+          // 2. Uniqueness check for the reversal transaction to prevent duplicate reversal execution
+          const revRef = "SML-REV-" + transactionId;
+          const idempotencyRef = fsDb.collection("idempotency_keys").doc(revRef);
+          const idempotencySnap = await transaction.get(idempotencyRef);
+          if (idempotencySnap.exists) {
+            throw new Error(`Duplicate transaction reversal detected. Reversal already processed.`);
+          }
+
+          // 3. Fetch wallet to modify
+          const walletRef = fsDb.collection("wallets").doc(userId);
+          const walletSnap = await transaction.get(walletRef);
+          if (!walletSnap.exists) {
+            throw new Error("Wallet not found");
+          }
+
+          const currentWallet = walletSnap.data() as WalletDbRecord;
+          const balanceBefore = currentWallet.balance || 0;
+          const newBalance = balanceBefore + amt;
+
+          // Construct updated wallet
+          const updatedWallet: WalletDbRecord = {
+            ...currentWallet,
+            balance: newBalance,
+            currentBalance: newBalance,
+            totalDebits: Math.max(0, (currentWallet.totalDebits || 0) - amt),
+            updatedAt: now,
+            lastUpdated: now,
+          };
+
+          // Update original transaction status to REVERSED
+          const updatedOrigTx: WalletTxRecord = {
+            ...origTx,
+            status: "REVERSED",
+            updatedAt: now,
+          };
+
+          const revId = "tx_rev_" + Math.random().toString(36).substring(2, 9);
+          const revTx: WalletTxRecord = {
+            id: revId,
+            transactionId: revId,
+            reference: revRef,
+            userId,
+            userEmail: origTx.userEmail || "",
+            serviceName: `Reversal: ${origTx.serviceName || origTx.description}`,
+            amount: amt,
+            walletBalanceBefore: balanceBefore,
+            walletBalanceAfter: newBalance,
+            status: "SUCCESS",
+            provider: "SmartLink Refund Engine",
+            description: `Reversal for Tx #${origTx.reference}. Reason: ${reason || "Service reversal"}`,
+            createdAt: now,
+            updatedAt: now,
+          };
+
+          // 4. Perform atomic writes
+          transaction.set(idempotencyRef, { processedAt: now, userId, amount: amt, txId: revId });
+          transaction.set(walletRef, JSON.parse(JSON.stringify(updatedWallet)), { merge: true });
+          transaction.set(txRef, JSON.parse(JSON.stringify(updatedOrigTx)), { merge: true });
+          
+          const userRef = fsDb.collection("users").doc(userId);
+          transaction.set(userRef, { walletBalance: newBalance }, { merge: true });
+
+          const revTxRef = fsDb.collection("transactions").doc(revId);
+          transaction.set(revTxRef, JSON.parse(JSON.stringify(revTx)));
+
+          walletResult = updatedWallet;
+          origTxResult = updatedOrigTx;
+          revTxResult = revTx;
+        });
+      } catch (fsErr: any) {
+        if (fsErr?.message?.includes("RESOURCE_EXHAUSTED") || fsErr?.code === 8 || fsErr?.status === 8) {
+          console.warn("[serverWalletEngine] Firestore quota limit reached during reverseTransaction, using local DB fallback.");
+        } else {
+          throw fsErr;
         }
+      }
+    }
 
-        const origTx = txSnap.data() as WalletTxRecord;
-        if (origTx.userId !== userId) {
-          throw new Error("Unauthorized: Transaction does not belong to user.");
-        }
-        if (origTx.status === "REVERSED") {
-          throw new Error("Transaction has already been reversed");
-        }
-
-        const amt = origTx.amount;
-
-        // 2. Uniqueness check for the reversal transaction to prevent duplicate reversal execution
-        const revRef = "SML-REV-" + transactionId;
-        const idempotencyRef = fsDb.collection("idempotency_keys").doc(revRef);
-        const idempotencySnap = await transaction.get(idempotencyRef);
-        if (idempotencySnap.exists) {
-          throw new Error(`Duplicate transaction reversal detected. Reversal already processed.`);
-        }
-
-        // 3. Fetch wallet to modify
-        const walletRef = fsDb.collection("wallets").doc(userId);
-        const walletSnap = await transaction.get(walletRef);
-        if (!walletSnap.exists) {
-          throw new Error("Wallet not found");
-        }
-
-        const currentWallet = walletSnap.data() as WalletDbRecord;
-        const balanceBefore = currentWallet.balance || 0;
-        const newBalance = balanceBefore + amt;
-
-        // Construct updated wallet
-        const updatedWallet: WalletDbRecord = {
-          ...currentWallet,
-          balance: newBalance,
-          currentBalance: newBalance,
-          totalDebits: Math.max(0, (currentWallet.totalDebits || 0) - amt),
-          updatedAt: now,
-          lastUpdated: now,
-        };
-
-        // Update original transaction status to REVERSED
-        const updatedOrigTx: WalletTxRecord = {
-          ...origTx,
-          status: "REVERSED",
-          updatedAt: now,
-        };
-
-        const revId = "tx_rev_" + Math.random().toString(36).substring(2, 9);
-        const revTx: WalletTxRecord = {
-          id: revId,
-          transactionId: revId,
-          reference: revRef,
-          userId,
-          userEmail: origTx.userEmail || "",
-          serviceName: `Reversal: ${origTx.serviceName || origTx.description}`,
-          amount: amt,
-          walletBalanceBefore: balanceBefore,
-          walletBalanceAfter: newBalance,
-          status: "SUCCESS",
-          provider: "SmartLink Refund Engine",
-          description: `Reversal for Tx #${origTx.reference}. Reason: ${reason || "Service reversal"}`,
-          createdAt: now,
-          updatedAt: now,
-        };
-
-        // 4. Perform atomic writes
-        transaction.set(idempotencyRef, { processedAt: now, userId, amount: amt, txId: revId });
-        transaction.set(walletRef, JSON.parse(JSON.stringify(updatedWallet)), { merge: true });
-        transaction.set(txRef, JSON.parse(JSON.stringify(updatedOrigTx)), { merge: true });
-        
-        const userRef = fsDb.collection("users").doc(userId);
-        transaction.set(userRef, { walletBalance: newBalance }, { merge: true });
-
-        const revTxRef = fsDb.collection("transactions").doc(revId);
-        transaction.set(revTxRef, JSON.parse(JSON.stringify(revTx)));
-
-        walletResult = updatedWallet;
-        origTxResult = updatedOrigTx;
-        revTxResult = revTx;
-      });
-    } else {
+    if (!walletResult! || !origTxResult! || !revTxResult!) {
       // Local fallback for memory DB environment
       const wallet = await this.getOrCreateWallet(db, userId);
       if (!wallet) throw new Error("Wallet not found");

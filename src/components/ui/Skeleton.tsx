@@ -1,4 +1,5 @@
 import React from "react";
+import { FaviconLoader } from "./FaviconLoader";
 
 interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
@@ -10,6 +11,22 @@ export function Skeleton({ className = "", ...props }: SkeletonProps) {
       className={`animate-pulse rounded-md bg-[#E5E7EB]/80 dark:bg-[#4B5563]/50 ${className}`}
       {...props}
     />
+  );
+}
+
+export function FaviconSkeleton({
+  className = "",
+  size = "md",
+  label = "Loading...",
+}: {
+  className?: string;
+  size?: "xs" | "sm" | "md" | "lg" | "xl" | number;
+  label?: string;
+}) {
+  return (
+    <div className={`flex flex-col items-center justify-center p-8 bg-white dark:bg-[#1F2937] rounded-2xl border border-[#E5E7EB] dark:border-[#374151] shadow-xs ${className}`}>
+      <FaviconLoader size={size} label={label} />
+    </div>
   );
 }
 

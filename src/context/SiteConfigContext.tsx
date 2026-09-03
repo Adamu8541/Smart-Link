@@ -88,6 +88,7 @@ const DEFAULT_CONFIG: SiteConfig = {
     siteName: "Smart Link Nigeria",
     tagline: "Enterprise Identity & Corporate Compliance Platform",
     logoUrl: "",
+    faviconUrl: "/favicon.webp",
     primaryColor: "#0F2D5C",
     secondaryColor: "#17407E",
     accentColor: "#2563EB",
@@ -151,16 +152,24 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
     const tagline = branding.tagline ? ` | ${branding.tagline}` : "";
     document.title = `${name}${tagline}`;
 
-    // Update favicon if set
-    if (branding.faviconUrl) {
-      let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
-      if (!link) {
-        link = document.createElement("link");
-        link.rel = "icon";
-        document.head.appendChild(link);
-      }
-      link.href = branding.faviconUrl;
+    // Update favicon and apple-touch-icon (website and app icons)
+    const activeFavicon = branding.faviconUrl || "/favicon.webp";
+    let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
+    if (!link) {
+      link = document.createElement("link");
+      link.rel = "icon";
+      document.head.appendChild(link);
     }
+    link.href = activeFavicon;
+    link.type = "image/webp";
+
+    let appleLink: HTMLLinkElement | null = document.querySelector("link[rel='apple-touch-icon']");
+    if (!appleLink) {
+      appleLink = document.createElement("link");
+      appleLink.rel = "apple-touch-icon";
+      document.head.appendChild(appleLink);
+    }
+    appleLink.href = activeFavicon;
   }, []);
 
   const fetchConfig = useCallback(async () => {

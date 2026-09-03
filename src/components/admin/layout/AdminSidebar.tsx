@@ -28,7 +28,7 @@ import {
   ShieldCheck
 } from "lucide-react";
 import { AdminSession, ADMIN_ROLES_CONFIG } from "../../../services/adminAuthTypes";
-const logoImg = "/logo.png";
+const logoImg = "/logo.webp";
 import { useSiteConfig } from "../../../context/SiteConfigContext";
 
 interface AdminSidebarProps {
@@ -137,7 +137,7 @@ export default function AdminSidebar({
               alt={siteName || "SmartLink Logo"}
               className="h-10 w-auto max-w-[130px] rounded-lg object-contain bg-white border border-[#0F2D5C] p-1"
               onError={(e: any) => {
-                e.currentTarget.src = "/logo.png";
+                e.currentTarget.src = "/logo.webp";
               }}
             />
             <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 bg-[#0F2D5C] rounded-full border-2 border-white" />

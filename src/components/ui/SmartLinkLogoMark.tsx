@@ -15,6 +15,8 @@ export interface SmartLinkLogoMarkProps {
   className?: string;
   /** Optional secondary label text beneath or beside icon */
   label?: string;
+  /** Whether to force using /favicon.webp for the mark */
+  useFavicon?: boolean;
 }
 
 export const SmartLinkLogoMark: React.FC<SmartLinkLogoMarkProps> = ({
@@ -22,9 +24,12 @@ export const SmartLinkLogoMark: React.FC<SmartLinkLogoMarkProps> = ({
   animating = true,
   className = "",
   label,
+  useFavicon = true,
 }) => {
   const { config, logoUrl: configuredLogoUrl, siteName } = useSiteConfig();
-  const activeLogo = config.branding?.logoUrl || config.branding?.lightLogoUrl || configuredLogoUrl || logoImg;
+  const activeLogo = useFavicon
+    ? (config.branding?.faviconUrl || "/favicon.webp")
+    : config.branding?.logoUrl || config.branding?.lightLogoUrl || configuredLogoUrl || logoImg;
 
   // Map size helper to pixel dimension
   const getPxHeight = () => {
@@ -51,19 +56,19 @@ export const SmartLinkLogoMark: React.FC<SmartLinkLogoMarkProps> = ({
     <div className={`inline-flex flex-col items-center justify-center gap-2 select-none ${className}`}>
       <motion.div
         className="relative flex items-center justify-center shrink-0"
-        style={{ height: pxHeight }}
+        style={{ height: pxHeight, width: useFavicon ? pxHeight : "auto" }}
         animate={
           animating
             ? {
-                scale: [1, 1.04, 1],
-                opacity: [0.9, 1, 0.9],
+                opacity: [0.15, 1, 0.15],
+                scale: [0.96, 1.04, 0.96],
               }
-            : { scale: 1, opacity: 1 }
+            : { opacity: 1, scale: 1 }
         }
         transition={
           animating
             ? {
-                duration: 1.8,
+                duration: 0.5,
                 repeat: Infinity,
                 ease: "easeInOut",
               }
@@ -73,7 +78,7 @@ export const SmartLinkLogoMark: React.FC<SmartLinkLogoMarkProps> = ({
         <img
           src={activeLogo}
           alt={`${siteName || "SmartLink"} Official Brand Logo`}
-          width={180}
+          width={useFavicon ? pxHeight : 180}
           height={pxHeight}
           loading="eager"
           decoding="async"

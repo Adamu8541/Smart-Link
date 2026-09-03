@@ -66,36 +66,18 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
             onClick={() => handleNavClick("hero-section")}
             className="flex items-center cursor-pointer group py-1.5"
           >
-            <picture>
-              <source
-                type="image/webp"
-                srcSet={
-                  activeLogo === logoImg
-                    ? "/logo-224x98.webp 1x, /logo-448x196.webp 2x"
-                    : activeLogo
-                }
-              />
-              <source
-                type="image/png"
-                srcSet={
-                  activeLogo === logoImg
-                    ? "/logo-224x98.png 1x, /logo-448x196.png 2x"
-                    : activeLogo
-                }
-              />
-              <img
-                src={activeLogo === logoImg ? "/logo-224x98.png" : activeLogo}
-                alt={`${siteName || "SmartLink Nigeria"} - Official Identity Verification & Fintech Gateway`}
-                width={224}
-                height={98}
-                loading="eager"
-                fetchPriority="high"
-                decoding="async"
-                className="h-14 sm:h-16 lg:h-18 w-auto max-w-[224px] sm:max-w-[280px] object-contain group-hover:scale-102 transition-all duration-300"
-                referrerPolicy="no-referrer"
-                onError={handleLogoError}
-              />
-            </picture>
+            <img
+              src={activeLogo}
+              alt={`${siteName || "SmartLink Nigeria"} - Official Identity Verification & Fintech Gateway`}
+              width={224}
+              height={98}
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
+              className="h-14 sm:h-16 lg:h-18 w-auto max-w-[224px] sm:max-w-[280px] object-contain group-hover:scale-102 transition-all duration-300"
+              referrerPolicy="no-referrer"
+              onError={handleLogoError}
+            />
           </div>
 
           {/* Center: Desktop Navigation Links */}

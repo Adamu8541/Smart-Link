@@ -59,7 +59,7 @@
             "@id": "https://smartlinkng.com.ng/#organization",
             "name": "Smart Link NG",
             "url": "https://smartlinkng.com.ng",
-            "logo": "https://smartlinkng.com.ng/logo.png",
+            "logo": "https://smartlinkng.com.ng/logo.webp",
             "image": "https://smartlinkng.com.ng/og-image.png",
             "description": "Nigeria's all-in-one digital portal for NIN Verification & Slip/ID Card Printing, BVN Validation, CAC Business Name Registration & Filing, SCUML Certificates, High Court Affidavits, Electricity Disco Meter Tokens, Cheap VTU Airtime & SME Data Bundles (MTN, Airtel, Glo, 9mobile), Cable TV Subscriptions (DSTV, GOtv, StarTimes), Exam Result Scratch Cards (WAEC, NECO, NABTEB), and Developer Verification APIs.",
             "telephone": "+234 808 549 0982",
@@ -239,11 +239,15 @@
       }, true);
     </script>
     <!-- Performance Preloads -->
-    <link rel="preload" href="/logo-224x98.webp" as="image" type="image/webp" fetchpriority="high" />
+    <link rel="preload" href="/favicon.webp" as="image" type="image/webp" fetchpriority="high" />
+    <link rel="preload" href="/logo.webp" as="image" type="image/webp" fetchpriority="high" />
 
     <!-- PWA & Mobile Web App Meta -->
     <link rel="manifest" href="/manifest.json" />
-    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <link rel="apple-touch-icon" href="/favicon.webp" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon.webp" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/favicon.webp" />
+    <link rel="apple-touch-icon" sizes="512x512" href="/favicon.webp" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -258,7 +262,9 @@
     <noscript>
       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
     </noscript>
-    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="icon" type="image/webp" href="/favicon.webp" />
+    <link rel="shortcut icon" type="image/webp" href="/favicon.webp" />
+    <link rel="alternate icon" href="/favicon.webp" />
   </head>
   <body class="bg-[#F5F7FA] text-[#111827] antialiased font-sans selection:bg-[#6B7280] selection:text-white">
     <div id="root"></div>

@@ -54,35 +54,17 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
           {/* Column 1 & 2: Brand Information */}
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center">
-              <picture>
-                <source
-                  type="image/webp"
-                  srcSet={
-                    activeLogo === logoImg
-                      ? "/logo-224x98.webp 1x, /logo-448x196.webp 2x"
-                      : activeLogo
-                  }
-                />
-                <source
-                  type="image/png"
-                  srcSet={
-                    activeLogo === logoImg
-                      ? "/logo-224x98.png 1x, /logo-448x196.png 2x"
-                      : activeLogo
-                  }
-                />
-                <img
-                  src={activeLogo === logoImg ? "/logo-224x98.png" : activeLogo}
-                  alt={`${siteName || "SmartLink Nigeria"} - Identity Verification, Utility Bills and Enterprise CAC Filing`}
-                  width={224}
-                  height={98}
-                  loading="lazy"
-                  decoding="async"
-                  className="h-14 sm:h-16 w-auto max-w-[224px] object-contain rounded-lg p-1 bg-white"
-                  referrerPolicy="no-referrer"
-                  onError={handleLogoError}
-                />
-              </picture>
+              <img
+                src={activeLogo}
+                alt={`${siteName || "SmartLink Nigeria"} - Identity Verification, Utility Bills and Enterprise CAC Filing`}
+                width={224}
+                height={98}
+                loading="lazy"
+                decoding="async"
+                className="h-14 sm:h-16 w-auto max-w-[224px] object-contain rounded-lg p-1 bg-white"
+                referrerPolicy="no-referrer"
+                onError={handleLogoError}
+              />
             </div>
 
             <p className="text-xs text-[#4B5563] font-normal leading-relaxed max-w-sm">

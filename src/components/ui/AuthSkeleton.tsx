@@ -1,19 +1,13 @@
 import React from "react";
 import { Skeleton } from "./Skeleton";
+import { FaviconLoader } from "./FaviconLoader";
 
 export function AuthFormSkeleton() {
   return (
     <div className="space-y-6 w-full max-w-md mx-auto p-2 animate-fadeIn" role="status" aria-label="Loading login portal">
-      {/* Brand logo & header skeleton */}
-      <div className="flex flex-col items-center justify-center space-y-4">
-        <div className="flex items-center justify-center gap-3">
-          <Skeleton className="h-12 w-12 rounded-xl" />
-          <Skeleton className="h-7 w-36 rounded-lg" />
-        </div>
-        <div className="space-y-1.5 text-center w-full flex flex-col items-center">
-          <Skeleton className="h-5 w-48 rounded-md" />
-          <Skeleton className="h-3.5 w-64 rounded-md" />
-        </div>
+      {/* Brand logo & header skeleton using FaviconLoader */}
+      <div className="flex flex-col items-center justify-center py-2 space-y-3">
+        <FaviconLoader size="lg" label="Loading portal..." />
       </div>
 
       {/* Google button skeleton */}

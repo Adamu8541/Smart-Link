@@ -6,7 +6,9 @@
 import type React from "react";
 
 export const DEFAULT_LOGO_URL = "/logo.webp";
-export const PNG_LOGO_URL = "/logo.png";
+export const PNG_LOGO_URL = "/logo.webp";
+export const DEFAULT_FAVICON_URL = "/favicon.webp";
+export const DEFAULT_APP_ICON_URL = "/favicon.webp";
 
 /**
  * High-resolution embedded vector SVG Data URI of SmartLink Nigeria brand mark.
@@ -68,18 +70,13 @@ export function handleLogoError(e: React.SyntheticEvent<HTMLImageElement, Event>
 
   if (stage === "0") {
     img.dataset.fallbackStage = "1";
-    // If original src was not /logo.webp, try /logo.webp then PNG
-    if (img.src && !img.src.endsWith("/logo.webp") && !img.src.endsWith("/logo.png")) {
+    if (img.src && !img.src.endsWith("/logo.webp")) {
       img.src = DEFAULT_LOGO_URL;
-      return;
-    }
-    if (img.src && img.src.endsWith("/logo.webp")) {
-      img.src = PNG_LOGO_URL;
       return;
     }
   }
 
-  // If /logo.png also fails or stage is already >= 1, use embedded SVG Data URI
+  // If /logo.webp fails or stage is already >= 1, use embedded SVG Data URI
   img.dataset.fallbackStage = "2";
   img.onerror = null; // Disable handler to strictly prevent any recursive events
   img.src = FALLBACK_LOGO_SVG;

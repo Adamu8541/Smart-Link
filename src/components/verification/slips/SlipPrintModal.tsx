@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { FaviconLoader } from "../../ui/FaviconLoader";
 import {
   X,
   Printer,
@@ -495,9 +496,8 @@ export const SlipPrintModal: React.FC<SlipPrintModalProps> = ({
               </div>
             </div>
           ) : (
-            <div className="py-16 text-center space-y-2">
-              <div className="w-8 h-8 border-3 border-[#0F2D5C] border-t-transparent rounded-full animate-spin mx-auto"></div>
-              <p className="text-xs text-[#6B7280] font-semibold">Generating authentic slip from database records...</p>
+            <div className="py-16 text-center space-y-3">
+              <FaviconLoader size="md" label="Generating authentic slip from database records..." />
             </div>
           )}
         </div>

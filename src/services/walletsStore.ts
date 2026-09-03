@@ -1,5 +1,6 @@
 import { getAdminFirestore } from "./firebaseAdmin";
 import { usersStore } from "./usersStore";
+import { readDB, writeDB } from "../../server/db";
 
 export interface WalletDbRecord {
   userId: string;
@@ -42,7 +43,7 @@ function sanitizeWalletRecord(docId: string, data: WalletDbRecord): WalletDbReco
 }
 
 /**
- * Get all wallets from Firestore "wallets" collection.
+ * Get all wallets from Firestore "wallets" collection with local fallback.
  */
 export async function getAllWallets(): Promise<WalletDbRecord[]> {
   try {
@@ -54,14 +55,23 @@ export async function getAllWallets(): Promise<WalletDbRecord[]> {
       wallets.push(sanitizeWalletRecord(doc.id, data));
     });
     return wallets;
-  } catch (err) {
-    console.error("[walletsStore] getAllWallets error:", err);
-    return [];
+  } catch (err: any) {
+    if (!err?.message?.includes("RESOURCE_EXHAUSTED") && err?.code !== 8) {
+      console.warn("[walletsStore] Firestore getAllWallets unavailable, using local database fallback.");
+    }
+    try {
+      const localDb = readDB();
+      return Array.isArray(localDb?.wallets)
+        ? localDb.wallets.map((w: any) => sanitizeWalletRecord(w.userId || w.id, w))
+        : [];
+    } catch (dbErr) {
+      return [];
+    }
   }
 }
 
 /**
- * Get a wallet by userId.
+ * Get a wallet by userId with local fallback.
  */
 export async function getWalletByUserId(userId: string): Promise<WalletDbRecord | null> {
   if (!userId) return null;
@@ -87,14 +97,28 @@ export async function getWalletByUserId(userId: string): Promise<WalletDbRecord 
       const doc = qWal.docs[0];
       return sanitizeWalletRecord(doc.id, doc.data() as WalletDbRecord);
     }
-  } catch (err) {
-    console.error("[walletsStore] getWalletByUserId error:", err);
+  } catch (err: any) {
+    if (!err?.message?.includes("RESOURCE_EXHAUSTED") && err?.code !== 8) {
+      console.warn(`[walletsStore] Firestore getWalletByUserId error for ${userId}:`, err?.message || err);
+    }
   }
+
+  // Local DB Fallback
+  try {
+    const localDb = readDB();
+    const found = (localDb?.wallets || []).find(
+      (w: any) => w.userId === userId || w.walletId === userId || w.id === userId
+    );
+    if (found) {
+      return sanitizeWalletRecord(userId, found);
+    }
+  } catch (dbErr) {}
+
   return null;
 }
 
 /**
- * Create a new wallet in "wallets" collection.
+ * Create a new wallet in "wallets" collection with local DB fallback.
  */
 export async function createWallet(wallet: WalletDbRecord): Promise<WalletDbRecord> {
   const docId = wallet.userId;
@@ -110,25 +134,43 @@ export async function createWallet(wallet: WalletDbRecord): Promise<WalletDbReco
     const db = getAdminFirestore();
     const sanitized = JSON.parse(JSON.stringify(cleanWallet));
     await db.collection(COLLECTION_NAME).doc(docId).set(sanitized, { merge: true });
-  } catch (err) {
-    console.error("[walletsStore] createWallet error:", err);
+  } catch (err: any) {
+    if (!err?.message?.includes("RESOURCE_EXHAUSTED") && err?.code !== 8) {
+      console.warn("[walletsStore] Firestore createWallet bypassed, saving to local database fallback.");
+    }
   }
+
+  // Persist to local JSON DB
+  try {
+    const localDb = readDB();
+    if (Array.isArray(localDb.wallets)) {
+      const idx = localDb.wallets.findIndex((w: any) => w.userId === docId || w.walletId === cleanWallet.walletId);
+      if (idx >= 0) {
+        localDb.wallets[idx] = { ...localDb.wallets[idx], ...cleanWallet };
+      } else {
+        localDb.wallets.push(cleanWallet);
+      }
+      writeDB(localDb);
+    }
+  } catch (dbErr) {}
+
   return cleanWallet;
 }
 
 /**
  * Update a wallet document in Firestore.
- * Uses Firestore runTransaction() to ensure atomic reads and writes.
+ * Uses Firestore runTransaction() with local database fallback.
  */
 export async function updateWallet(
   userId: string,
   updates: Partial<WalletDbRecord>
 ): Promise<WalletDbRecord | null> {
   if (!userId) return null;
-  const db = getAdminFirestore();
-  const docRef = db.collection(COLLECTION_NAME).doc(userId);
 
   try {
+    const db = getAdminFirestore();
+    const docRef = db.collection(COLLECTION_NAME).doc(userId);
+
     const updated = await db.runTransaction(async (transaction) => {
       const docSnap = await transaction.get(docRef);
       let existing: WalletDbRecord | null = null;
@@ -171,26 +213,56 @@ export async function updateWallet(
       await usersStore.updateUser(userId, { walletBalance: updated.balance }).catch(() => {});
     }
 
-    return updated;
-  } catch (err) {
-    console.error("[walletsStore] updateWallet transaction error:", err);
-    return null;
+    if (updated) {
+      return updated;
+    }
+  } catch (err: any) {
+    if (!err?.message?.includes("RESOURCE_EXHAUSTED") && err?.code !== 8) {
+      console.warn("[walletsStore] updateWallet Firestore transaction error:", err?.message || err);
+    }
   }
+
+  // Local DB Fallback
+  try {
+    const localDb = readDB();
+    const existingIdx = (localDb?.wallets || []).findIndex(
+      (w: any) => w.userId === userId || w.walletId === userId || w.id === userId
+    );
+    if (existingIdx >= 0) {
+      const existing = localDb.wallets[existingIdx];
+      const now = new Date().toISOString();
+      const currentBal = typeof updates.balance === "number" ? updates.balance : (existing.balance || 0);
+      const merged: WalletDbRecord = sanitizeWalletRecord(userId, {
+        ...existing,
+        ...updates,
+        balance: currentBal,
+        currentBalance: typeof updates.currentBalance === "number" ? updates.currentBalance : currentBal,
+        updatedAt: now,
+        lastUpdated: now,
+      });
+      localDb.wallets[existingIdx] = merged;
+      writeDB(localDb);
+      await usersStore.updateUser(userId, { walletBalance: merged.balance }).catch(() => {});
+      return merged;
+    }
+  } catch (fallbackErr) {}
+
+  return null;
 }
 
 /**
- * Atomically modify wallet financial parameters using Firestore runTransaction().
- * Ensures read-modify-write happens inside a single transaction.
+ * Atomically modify wallet financial parameters using Firestore or local fallback.
  */
 export async function updateWalletAtomic(
   userId: string,
   modifier: (current: WalletDbRecord) => Partial<WalletDbRecord>
 ): Promise<WalletDbRecord | null> {
   if (!userId) return null;
-  const db = getAdminFirestore();
-  const docRef = db.collection(COLLECTION_NAME).doc(userId);
 
   try {
+    const db = getAdminFirestore();
+    const docRef = db.collection(COLLECTION_NAME).doc(userId);
+
     const updated = await db.runTransaction(async (transaction) => {
       const docSnap = await transaction.get(docRef);
       let existing: WalletDbRecord | null = null;
@@ -230,13 +302,40 @@ export async function updateWalletAtomic(
 
     if (updated) {
       await usersStore.updateUser(userId, { walletBalance: updated.balance }).catch(() => {});
+      return updated;
     }
-
-    return updated;
-  } catch (err) {
-    console.error("[walletsStore] updateWalletAtomic error:", err);
-    return null;
+  } catch (err: any) {
+    if (!err?.message?.includes("RESOURCE_EXHAUSTED") && err?.code !== 8) {
+      console.warn("[walletsStore] updateWalletAtomic Firestore error:", err?.message || err);
+    }
   }
+
+  // Local DB Fallback
+  try {
+    const localDb = readDB();
+    const existingIdx = (localDb?.wallets || []).findIndex(
+      (w: any) => w.userId === userId || w.walletId === userId || w.id === userId
+    );
+    if (existingIdx >= 0) {
+      const existing = localDb.wallets[existingIdx];
+      const sanitizedExisting = sanitizeWalletRecord(userId, existing);
+      const changes = modifier(sanitizedExisting);
+      const now = new Date().toISOString();
+
+      const merged: WalletDbRecord = sanitizeWalletRecord(userId, {
+        ...sanitizedExisting,
+        ...changes,
+        updatedAt: now,
+        lastUpdated: now,
+      });
+      localDb.wallets[existingIdx] = merged;
+      writeDB(localDb);
+      await usersStore.updateUser(userId, { walletBalance: merged.balance }).catch(() => {});
+      return merged;
+    }
+  } catch (fallbackErr) {}
+
+  return null;
 }
 
 /**
@@ -251,11 +350,19 @@ export async function deleteAllWallets(): Promise<boolean> {
       batch.delete(doc.ref);
     });
     await batch.commit();
-    return true;
-  } catch (err) {
-    console.error("[walletsStore] deleteAllWallets error:", err);
-    return false;
+  } catch (err: any) {
+    if (!err?.message?.includes("RESOURCE_EXHAUSTED") && err?.code !== 8) {
+      console.warn("[walletsStore] deleteAllWallets Firestore error:", err?.message || err);
+    }
   }
+
+  try {
+    const localDb = readDB();
+    localDb.wallets = [];
+    writeDB(localDb);
+  } catch (dbErr) {}
+
+  return true;
 }
 
 export const walletsStore = {

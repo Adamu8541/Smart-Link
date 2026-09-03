@@ -52,6 +52,7 @@ import { navigationManager, useModalBackHandler } from "./services/navigationMan
 import { motion, AnimatePresence } from "motion/react";
 import { Sparkles, ArrowRight, ArrowLeft, ShieldCheck, Mail, Lock, Phone, Tag, UserRound, Check, Eye, EyeOff, AlertCircle, RefreshCw, CheckCircle2, LogOut, X, FileCheck } from "lucide-react";
 import { SmartLinkLogoMark } from "./components/ui/SmartLinkLogoMark";
+import { FaviconLoader } from "./components/ui/FaviconLoader";
 import { DEFAULT_LOGO_URL, handleLogoError } from "./utils/brandLogo";
 const logoImg = DEFAULT_LOGO_URL;
 import { getFriendlyErrorMessage, safeFetchJson } from "./utils/authErrorHandler";
@@ -1737,10 +1738,7 @@ export default function App() {
     <div className={`min-h-screen bg-[#F5F7FA] transition-colors duration-300 ${isDarkMode ? "dark-theme-active" : ""} ${!currentUser ? "flex flex-col bg-white" : "flex flex-col lg:flex-row"}`}>
       {/* Full-screen non-interactive loading overlay */}
       {authLoading && (
-        <div className="fixed inset-0 z-[9999] bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center gap-4">
-          <SmartLinkLogoMark size="lg" color="#0F2D5C" animating={true} />
-          <p className="text-sm font-semibold text-[#111827]">Processing, please wait...</p>
-        </div>
+        <FaviconLoader fullScreen size="lg" label="Processing, please wait..." />
       )}
 
       {/* Real-time Global Toast Notifications */}

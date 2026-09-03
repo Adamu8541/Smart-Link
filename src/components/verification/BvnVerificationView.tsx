@@ -122,7 +122,7 @@ export const BvnVerificationView: React.FC<BvnVerificationViewProps> = ({
   const availableSlips = getBvnSlipOptions(config);
 
   const [activeTab, setActiveTab] = useState<BvnViewTab>("VERIFY");
-  const [selectedSlip, setSelectedSlip] = useState<BvnSlipType3 | null>(availableSlips[0] || null);
+  const [selectedSlip, setSelectedSlip] = useState<BvnSlipType3 | null>(null);
 
   const [primaryInput, setPrimaryInput] = useState("");
   const [hasConsent, setHasConsent] = useState(false);

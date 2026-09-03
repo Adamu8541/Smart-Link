@@ -17,8 +17,8 @@ Allow: /refund-policy
 Allow: /security
 Allow: /sla
 Allow: /og-image.png
-Allow: /logo.png
-Allow: /favicon.png
+Allow: /logo.webp
+Allow: /favicon.webp
 Allow: /assets/
 
 # Disallow Private Administration, Authentication & Dashboard Endpoints
