@@ -1,14 +1,16 @@
 import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
-import * as Sentry from "@sentry/react";
 import App from './App.tsx';
 import { SiteConfigProvider } from './context/SiteConfigContext.tsx';
+import { RootErrorBoundary } from './components/common/RootErrorBoundary.tsx';
 import './index.css';
 
-// Initialize Sentry
+// Initialize Sentry dynamically
 if (import.meta.env.VITE_SENTRY_DSN) {
-  Sentry.init({
-    dsn: import.meta.env.VITE_SENTRY_DSN,
+  import("@sentry/react").then((Sentry) => {
+    Sentry.init({
+      dsn: import.meta.env.VITE_SENTRY_DSN,
+    });
   });
 }
 
@@ -86,9 +88,11 @@ if (typeof window !== 'undefined') {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <SiteConfigProvider>
-      <App />
-    </SiteConfigProvider>
+    <RootErrorBoundary>
+      <SiteConfigProvider>
+        <App />
+      </SiteConfigProvider>
+    </RootErrorBoundary>
   </StrictMode>,
 );
 

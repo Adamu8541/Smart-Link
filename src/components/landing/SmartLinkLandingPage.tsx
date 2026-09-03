@@ -3,17 +3,18 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from "react";
+import React, { useState, lazy, Suspense } from "react";
 import SEOHead from "./SEOHead";
 import LandingHeader from "./LandingHeader";
 import LandingHero from "./LandingHero";
-import LandingTrustSection from "./LandingTrustSection";
-import LandingServicesPreview from "./LandingServicesPreview";
-import LandingHowItWorks from "./LandingHowItWorks";
-import LandingFAQSection from "./LandingFAQSection";
-import LandingCTASection from "./LandingCTASection";
-import LandingFooter from "./LandingFooter";
-import { UserAnnouncementBanner } from "../notification/UserAnnouncementBanner";
+
+const LandingTrustSection = lazy(() => import("./LandingTrustSection"));
+const LandingServicesPreview = lazy(() => import("./LandingServicesPreview"));
+const LandingHowItWorks = lazy(() => import("./LandingHowItWorks"));
+const LandingFAQSection = lazy(() => import("./LandingFAQSection"));
+const LandingCTASection = lazy(() => import("./LandingCTASection"));
+const LandingFooter = lazy(() => import("./LandingFooter"));
+const UserAnnouncementBanner = lazy(() => import("../notification/UserAnnouncementBanner").then(m => ({ default: m.UserAnnouncementBanner })));
 
 interface SmartLinkLandingPageProps {
   onLogin: () => void;
@@ -93,12 +94,14 @@ export const SmartLinkLandingPage: React.FC<SmartLinkLandingPageProps> = ({
       />
 
       {/* Live Homepage Announcement Banner Ticker */}
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-1">
-        <UserAnnouncementBanner 
-          variant="homepage" 
-          onNavigate={handleAnnouncementNavigate} 
-        />
-      </div>
+      <Suspense fallback={null}>
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-1">
+          <UserAnnouncementBanner 
+            variant="homepage" 
+            onNavigate={handleAnnouncementNavigate} 
+          />
+        </div>
+      </Suspense>
 
       {/* Main Content Sections */}
       <main className="flex-1">
@@ -110,52 +113,56 @@ export const SmartLinkLandingPage: React.FC<SmartLinkLandingPageProps> = ({
           onLogin={onLogin}
         />
 
-        {/* Trust Section */}
-        <div className="content-visibility-auto">
-          <LandingTrustSection />
-        </div>
+        <Suspense fallback={null}>
+          {/* Trust Section */}
+          <div className="content-visibility-auto">
+            <LandingTrustSection />
+          </div>
 
-        {/* Services Preview */}
-        <div className="content-visibility-auto">
-          <LandingServicesPreview
-            onSelectService={onSelectService}
-            onExploreAll={onExploreServices}
-          />
-        </div>
+          {/* Services Preview */}
+          <div className="content-visibility-auto">
+            <LandingServicesPreview
+              onSelectService={onSelectService}
+              onExploreAll={onExploreServices}
+            />
+          </div>
 
-        {/* How It Works */}
-        <div className="content-visibility-auto">
-          <LandingHowItWorks onGetStarted={onGetStarted} />
-        </div>
+          {/* How It Works */}
+          <div className="content-visibility-auto">
+            <LandingHowItWorks onGetStarted={onGetStarted} />
+          </div>
 
-        {/* FAQs */}
-        <div className="content-visibility-auto">
-          <LandingFAQSection 
-            onContactSupport={handleContactSales}
-            onGetStarted={onGetStarted}
-          />
-        </div>
+          {/* FAQs */}
+          <div className="content-visibility-auto">
+            <LandingFAQSection 
+              onContactSupport={handleContactSales}
+              onGetStarted={onGetStarted}
+            />
+          </div>
 
-        {/* Call To Action */}
-        <div className="content-visibility-auto">
-          <LandingCTASection
-            onRegister={onRegister}
-            onContactSales={handleContactSales}
-          />
-        </div>
+          {/* Call To Action */}
+          <div className="content-visibility-auto">
+            <LandingCTASection
+              onRegister={onRegister}
+              onContactSales={handleContactSales}
+            />
+          </div>
+        </Suspense>
 
       </main>
 
       {/* Footer */}
-      <LandingFooter
-        onNavigateSection={handleNavigateSection}
-        onLogin={onLogin}
-        onRegister={onRegister}
-        onAdminLogin={onAdminLogin}
-        onNavigateLegal={onNavigateLegal}
-        activeInfoTab={activeInfoTab}
-        setActiveInfoTab={setActiveInfoTab}
-      />
+      <Suspense fallback={null}>
+        <LandingFooter
+          onNavigateSection={handleNavigateSection}
+          onLogin={onLogin}
+          onRegister={onRegister}
+          onAdminLogin={onAdminLogin}
+          onNavigateLegal={onNavigateLegal}
+          activeInfoTab={activeInfoTab}
+          setActiveInfoTab={setActiveInfoTab}
+        />
+      </Suspense>
     </div>
   );
 };

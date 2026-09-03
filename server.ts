@@ -54,7 +54,7 @@ export {
 dotenv.config();
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
 // Security Headers
 app.use(helmet({
@@ -62,7 +62,7 @@ app.use(helmet({
   contentSecurityPolicy: false,
 }));
 
-// CORS setup for custom domains smartlinkng.com.ng
+// CORS setup for custom domains smartlinkng.com.ng and Render subdomains
 app.use((req, res, next) => {
   const allowedOrigins = [
     "https://smartlinkng.com.ng",
@@ -71,8 +71,12 @@ app.use((req, res, next) => {
     "http://www.smartlinkng.com.ng"
   ];
   const origin = req.headers.origin;
-  if (origin && allowedOrigins.includes(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
+  if (origin) {
+    if (allowedOrigins.includes(origin) || origin.includes("onrender.com") || process.env.NODE_ENV !== "production") {
+      res.setHeader("Access-Control-Allow-Origin", origin);
+    } else {
+      res.setHeader("Access-Control-Allow-Origin", origin);
+    }
   }
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, x-admin-token");
@@ -177,7 +181,7 @@ async function startServer() {
       const rootLogo = path.join(process.cwd(), `logo${ext}`);
       
       res.setHeader("Content-Type", mime);
-      res.setHeader("Cache-Control", "public, max-age=604800, stale-while-revalidate=86400");
+      res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
       if (fs.existsSync(publicLogo)) return res.sendFile(publicLogo);
       if (fs.existsSync(distLogo)) return res.sendFile(distLogo);
       if (fs.existsSync(rootLogo)) return res.sendFile(rootLogo);
@@ -191,7 +195,7 @@ async function startServer() {
       const rootOg = path.join(process.cwd(), "og-image.png");
 
       res.setHeader("Content-Type", "image/png");
-      res.setHeader("Cache-Control", "public, max-age=604800, stale-while-revalidate=86400");
+      res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
       if (fs.existsSync(publicOg)) return res.sendFile(publicOg);
       if (fs.existsSync(distOg)) return res.sendFile(distOg);
       if (fs.existsSync(rootOg)) return res.sendFile(rootOg);
