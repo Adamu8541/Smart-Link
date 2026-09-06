@@ -264,7 +264,7 @@ export class VerificationEngine {
       serviceType,
       primaryInput,
       additionalFields = {},
-      slipType = "NIN_STANDARD",
+      slipType = "NIN_REGULAR",
       customFee,
       autoEmailToRegistered = false,
       onProgressUpdate,

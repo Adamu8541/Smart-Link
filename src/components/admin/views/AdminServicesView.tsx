@@ -611,7 +611,7 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
                 className="w-full bg-[#111827] border border-[#111827] rounded-xl pl-7 pr-3 py-2 text-sm text-white font-mono font-bold focus:outline-hidden focus:border-blue-400"
               />
             </div>
-            <p className="text-[10px] text-[#6B7280]">Default: ₦200.00 • Official Standard NINS</p>
+            <p className="text-[10px] text-[#6B7280]">Default: ₦200.00 • Standard Verification Rate</p>
           </div>
 
           {/* Regular Slip */}

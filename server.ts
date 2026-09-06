@@ -6,6 +6,7 @@ import express from "express";
 import path from "path";
 import fs from "fs";
 import helmet from "helmet";
+import compression from "compression";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
 
@@ -54,6 +55,7 @@ export {
 dotenv.config();
 
 const app = express();
+app.use(compression());
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
 // Security Headers
@@ -206,6 +208,44 @@ async function startServer() {
       const publicLogo = path.join(publicPath, "logo.webp");
       if (fs.existsSync(publicLogo)) return res.sendFile(publicLogo);
       return res.status(404).send("OG image not found");
+    });
+
+    // Dedicated route for public/assets files (NIN slips, BVN cards, etc.) with no-cache for instant live reflection
+    app.get("/assets/:filename", (req, res, next) => {
+      const filename = decodeURIComponent(req.params.filename);
+      const searchDirs = [
+        path.join(publicPath, "assets"),
+        path.join(distPath, "assets"),
+        path.join(process.cwd(), "public", "assets"),
+        path.join(process.cwd(), "assets"),
+      ];
+      
+      // 1. Exact match
+      for (const dir of searchDirs) {
+        const exactPath = path.join(dir, filename);
+        if (fs.existsSync(exactPath) && fs.statSync(exactPath).isFile()) {
+          res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+          return res.sendFile(exactPath);
+        }
+      }
+
+      // 2. Case-insensitive match in searchDirs
+      const lowerName = filename.toLowerCase();
+      for (const dir of searchDirs) {
+        if (fs.existsSync(dir)) {
+          try {
+            const files = fs.readdirSync(dir);
+            const found = files.find(f => f.toLowerCase() === lowerName);
+            if (found) {
+              const fullPath = path.join(dir, found);
+              res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+              return res.sendFile(fullPath);
+            }
+          } catch {}
+        }
+      }
+
+      next();
     });
 
     // Hashed Vite production assets - 1 Year Immutable Cache

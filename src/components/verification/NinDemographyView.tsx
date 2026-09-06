@@ -25,7 +25,6 @@ import { WalletService } from "../../services/walletService";
 import { VerificationEngine as VerificationEngineService } from "../../services/verificationEngine";
 import { StandardizedVerificationResult, GeneratedSlipRecord } from "../../types/verification";
 import { SlipPrintModal } from "./slips/SlipPrintModal";
-import { NinStandardSlip } from "./slips/NinStandardSlip";
 import { SlipLivePreviewCard } from "./slips/SlipLivePreviewCard";
 import { useSiteConfig } from "../../context/SiteConfigContext";
 import { THREE_NIN_SLIPS, mapSlipToConfig, NinSlipType3, getNinSlipOptions } from "./NinVerificationView";
@@ -223,37 +222,11 @@ export const NinDemographyView: React.FC<NinDemographyViewProps> = ({
               </div>
             </div>
 
-            {/* Generated Official Slip Preview */}
-            <div className="border border-slate-200 rounded-xl p-3 bg-slate-50 overflow-x-auto shadow-inner">
-              <NinStandardSlip
-                slip={{
-                  slipId: `SLIP-${verificationResult.reference}`,
-                  service: "NIN",
-                  format: "NIN_STANDARD",
-                  identificationNumber:
-                    verificationResult.verifiedData.nin ||
-                    verificationResult.targetId ||
-                    "52183237373",
-                  trackingId:
-                    verificationResult.verifiedData.trackingId ||
-                    `H6Y0NYFH${Math.floor(1000000 + Math.random() * 9000000)}`,
-                  holderData: {
-                    fullName: verificationResult.verifiedData.fullName,
-                    firstName: verificationResult.verifiedData.firstName || firstName,
-                    surname: verificationResult.verifiedData.lastName || lastName,
-                    middleName: verificationResult.verifiedData.middleName || "",
-                    gender: verificationResult.verifiedData.gender || gender,
-                    dateOfBirth: verificationResult.verifiedData.dateOfBirth || dateOfBirth,
-                    address:
-                      verificationResult.verifiedData.address ||
-                      "47, Harmony Avenue, KETU ALAPERE, Lagos",
-                    stateOfOrigin: verificationResult.verifiedData.stateOfOrigin || "Lagos",
-                    lga: verificationResult.verifiedData.lga || "Kosofe",
-                    photoUrl: verificationResult.verifiedData.photoUrl,
-                  },
-                  qrVerificationUrl: `https://verify.smartlink.ng/verify/${verificationResult.reference}`,
-                  createdAt: verificationResult.timestamp,
-                }}
+            {/* Real Slip Image Preview */}
+            <div className="border border-slate-200 rounded-xl p-3 bg-slate-50 overflow-hidden shadow-inner flex justify-center">
+              <SlipLivePreviewCard
+                slipOption={mapSlipToConfig(selectedSlip || availableSlips[0])}
+                serviceType="NIN"
               />
             </div>
 
@@ -299,12 +272,12 @@ export const NinDemographyView: React.FC<NinDemographyViewProps> = ({
                   }}
                   className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 px-4 text-xs sm:text-sm font-semibold text-slate-800 appearance-none focus:outline-hidden focus:ring-2 focus:ring-[#0F2D5C] shadow-2xs cursor-pointer pr-10"
                 >
-                  <option value="" disabled>
-                    — Choose a slip type —
+                  <option value="">
+                    - choose a slip type -
                   </option>
                   {availableSlips.map((opt) => (
                     <option key={opt.id} value={opt.id}>
-                      {opt.name} Slip
+                      {opt.name}
                     </option>
                   ))}
                 </select>
@@ -531,7 +504,7 @@ export const NinDemographyView: React.FC<NinDemographyViewProps> = ({
           verificationResult={verificationResult}
           userId={userId}
           userEmail={userEmail}
-          initialFormat="NIN_STANDARD"
+          initialFormat={selectedSlip?.formatId || "NIN_REGULAR"}
           onClose={() => setShowSlipModal(false)}
         />
       )}

@@ -234,10 +234,11 @@ export const LandingServicesPreview: React.FC<LandingServicesPreviewProps> = ({
           <div>
             <button
               id="services-preview-explore-all"
+              type="button"
               onClick={onExploreAll}
-              className="px-6 py-3 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold rounded-xl text-xs transition-all flex items-center gap-2 cursor-pointer shadow-xs"
+              className="min-h-[48px] px-6 py-3 bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-xs touch-manipulation"
             >
-              Explore All Portal Services
+              <span>Explore All Portal Services</span>
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>
@@ -292,8 +293,9 @@ export const LandingServicesPreview: React.FC<LandingServicesPreviewProps> = ({
                       <div className="pt-5 mt-4 border-t border-[#E5E7EB]">
                         <button
                           id={`btn-learn-more-${service.id}`}
+                          type="button"
                           onClick={() => onSelectService && onSelectService(service.id)}
-                          className="w-full py-2.5 px-4 bg-white hover:bg-[#0F2D5C] text-[#111827] hover:text-white border border-[#E5E7EB] hover:border-[#0F2D5C] rounded-xl text-xs font-bold transition-all flex items-center justify-between cursor-pointer shadow-xs"
+                          className="w-full min-h-[48px] py-3 px-4 bg-white hover:bg-[#0F2D5C] active:bg-[#17407E] text-[#111827] hover:text-white border border-[#E5E7EB] hover:border-[#0F2D5C] rounded-xl text-xs font-bold transition-colors flex items-center justify-between cursor-pointer shadow-xs touch-manipulation"
                         >
                           <span>Learn More</span>
                           <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />

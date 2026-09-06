@@ -43,9 +43,20 @@ import {
 import { UserProfile, UserRole, Transaction, CACApplication } from "../types";
 import { ProviderService, getAuthHeaders } from "../services/providerService";
 import { safeFetchJson } from "../utils/authErrorHandler";
-import { SMART_LINK_SERVICES, ServiceItem } from "./ServicesGrid";
+import { SMART_LINK_SERVICES, ServiceItem } from "../data/servicesData";
 import { UserAnnouncementBanner } from "./notification/UserAnnouncementBanner";
 import { getRealServiceIcon } from "./common/ServiceIcons";
+import {
+  NimcOfficialCardLogo,
+  NibssOfficialCardLogo,
+  CacOfficialCardLogo,
+  NrsOfficialCardLogo,
+  JambOfficialCardLogo,
+  ExamPinsOfficialCardLogo,
+  AirtimeOfficialCardLogo,
+  DataBundlesOfficialCardLogo,
+  FloatingHelpWidget
+} from "./common/ScreenshotServiceLogos";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -745,9 +756,7 @@ export default function Dashboards({
 
   // Local card list for the identity verification sections with dynamic pricing overlay
   const identityServices = [
-    { id: "id_nin_demography", name: "NIN Demography", price: getDynamicServicePrice("id_nin_demography", 600) },
     { id: "id_nin_ver", name: "NIN Verification", price: getDynamicServicePrice("id_nin_ver", 500) },
-    { id: "id_nin_phone", name: "NIN With Phone Number", price: getDynamicServicePrice("id_nin_phone", 500) },
     { id: "id_nin_val", name: "NIN Validation", price: getDynamicServicePrice("id_nin_val", 500) },
     { id: "id_slip_gen", name: "Slip Generation", price: getDynamicServicePrice("id_slip_gen", 1000) },
     { id: "id_vnin_slip", name: "VNIN Slip", price: getDynamicServicePrice("id_vnin_slip", 1000) },
@@ -761,7 +770,7 @@ export default function Dashboards({
     { id: "id_vnin_to_nibss", name: "VNIN to NIBSS", price: getDynamicServicePrice("id_vnin_to_nibss", 1500) },
     { id: "id_bvn_user", name: "BVN User", price: getDynamicServicePrice("id_bvn_user", 500) },
     { id: "id_bvn_modification", name: "BVN Modification", price: getDynamicServicePrice("id_bvn_modification", 8000) },
-    { id: "id_premium_slip", name: "BVN Slip Print", price: getDynamicServicePrice("id_premium_slip", 1200) },
+    { id: "id_premium_slip", name: "Premium Slip", price: getDynamicServicePrice("id_premium_slip", 1200) },
     { id: "id_bvn_retrieval", name: "BVN Retrieval", price: getDynamicServicePrice("id_bvn_retrieval", 2500) }
   ];
 
@@ -771,9 +780,13 @@ export default function Dashboards({
   ];
 
   const educationServices = [
-    { id: "edu_waec", name: "WAEC Result Checker", price: getDynamicServicePrice("edu_waec", 3800) },
-    { id: "edu_neco", name: "NECO Result Token", price: getDynamicServicePrice("edu_neco", 1200) },
-    { id: "edu_jamb", name: "JAMB ePIN Processing", price: getDynamicServicePrice("edu_jamb", 4700) }
+    { id: "edu_jamb", name: "JAMB Services", price: getDynamicServicePrice("edu_jamb", 4700), isSoon: true },
+    { id: "edu_waec", name: "Exam Pins", price: getDynamicServicePrice("edu_waec", 3800), isSoon: true }
+  ];
+
+  const utilitiesBillsServices = [
+    { id: "vtu_airtime", name: "Buy Airtime", price: getDynamicServicePrice("vtu_airtime", 100) },
+    { id: "vtu_data", name: "Data Bundles", price: getDynamicServicePrice("vtu_data", 350) }
   ];
 
   const handleServiceCardClick = (serviceId: string) => {
@@ -781,7 +794,13 @@ export default function Dashboards({
     setServiceActionLoading(serviceId);
     try {
       if (onSelectService) {
-        const baseServiceObj = SMART_LINK_SERVICES.find(s => s.id === serviceId);
+        let baseServiceObj = SMART_LINK_SERVICES.find(s => s.id === serviceId);
+        if (!baseServiceObj && serviceId === "id_vnin_to_nibss") {
+          baseServiceObj = SMART_LINK_SERVICES.find(s => s.id === "id_vnin_to_bvn");
+        }
+        if (!baseServiceObj && (serviceId === "edu_waec" || serviceId === "edu_jamb")) {
+          baseServiceObj = SMART_LINK_SERVICES.find(s => s.id.includes(serviceId.replace("edu_", "")));
+        }
         if (baseServiceObj) {
           const dynamicPrice = getDynamicServicePrice(serviceId, baseServiceObj.price);
           const enrichedService: ServiceItem = {
@@ -1028,25 +1047,28 @@ export default function Dashboards({
             )}
 
             {/* --- PRIMARY SERVICES GRID SECTION (MATCHING THE SCREENSHOT EXACTLY) --- */}
-            <div className="space-y-10">
+            <div className="space-y-8 pb-12">
               
               {/* Category 1: IDENTITY VERIFICATION */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 border-l-4 border-[#0F2D5C] pl-3 text-left">
-                  <h2 className="text-xs font-bold text-[#111827] uppercase tracking-wider font-sans">
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-left">
+                  <div className="w-1.5 h-4 bg-[#1E56A0] rounded-xs"></div>
+                  <h2 className="text-xs sm:text-sm font-bold tracking-wider text-[#1E293B] uppercase font-sans">
                     IDENTITY VERIFICATION
                   </h2>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
                   {identityServices.map((srv) => (
                     <div
                       key={srv.id}
                       onClick={() => handleServiceCardClick(srv.id)}
-                      className="bg-white rounded-2xl border border-[#E5E7EB] p-6 flex flex-col items-center justify-center gap-4 cursor-pointer shadow-[0_4px_12px_rgba(15,23,42,0.06)] hover:border-[#0F2D5C] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 min-h-[160px]"
+                      className="bg-white rounded-2xl border border-slate-100/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-slate-300 hover:shadow-md transition-all duration-200 p-5 sm:p-6 flex flex-col items-center justify-center min-h-[145px] sm:min-h-[160px] cursor-pointer group relative"
                     >
-                      {getRealServiceIcon(srv.id)}
-                      <h3 className="font-bold text-[#111827] text-xs tracking-tight text-center">
+                      <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-[#F4F6F8] flex items-center justify-center p-2.5 transition-transform duration-200 group-hover:scale-105 shrink-0">
+                        <NimcOfficialCardLogo className="w-full h-full object-contain" />
+                      </div>
+                      <h3 className="font-bold text-[#1E293B] text-xs sm:text-sm tracking-tight text-center mt-3 leading-snug">
                         {srv.name}
                       </h3>
                     </div>
@@ -1055,22 +1077,25 @@ export default function Dashboards({
               </div>
 
               {/* Category 2: BANKING & BVN */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 border-l-4 border-[#0F2D5C] pl-3 text-left">
-                  <h2 className="text-xs font-bold text-[#111827] uppercase tracking-wider font-sans">
-                    Banking & BVN
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-left">
+                  <div className="w-1.5 h-4 bg-[#1E56A0] rounded-xs"></div>
+                  <h2 className="text-xs sm:text-sm font-bold tracking-wider text-[#1E293B] uppercase font-sans">
+                    BANKING & BVN
                   </h2>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
                   {bankingBvnServices.map((srv) => (
                     <div
                       key={srv.id}
                       onClick={() => handleServiceCardClick(srv.id)}
-                      className="bg-white rounded-2xl border border-[#E5E7EB] p-6 flex flex-col items-center justify-center gap-4 cursor-pointer shadow-[0_4px_12px_rgba(15,23,42,0.06)] hover:border-[#0F2D5C] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 min-h-[160px]"
+                      className="bg-white rounded-2xl border border-slate-100/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-slate-300 hover:shadow-md transition-all duration-200 p-5 sm:p-6 flex flex-col items-center justify-center min-h-[145px] sm:min-h-[160px] cursor-pointer group relative"
                     >
-                      {getRealServiceIcon(srv.id)}
-                      <h3 className="font-bold text-[#111827] text-xs tracking-tight text-center">
+                      <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-[#F4F6F8] flex items-center justify-center p-2.5 transition-transform duration-200 group-hover:scale-105 shrink-0">
+                        <NibssOfficialCardLogo className="w-full h-full object-contain" />
+                      </div>
+                      <h3 className="font-bold text-[#1E293B] text-xs sm:text-sm tracking-tight text-center mt-3 leading-snug">
                         {srv.name}
                       </h3>
                     </div>
@@ -1079,22 +1104,29 @@ export default function Dashboards({
               </div>
 
               {/* Category 3: CORPORATE FILINGS */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 border-l-4 border-[#0F2D5C] pl-3 text-left">
-                  <h2 className="text-xs font-bold text-[#111827] uppercase tracking-wider font-sans">
-                    Corporate Filings
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-left">
+                  <div className="w-1.5 h-4 bg-[#1E56A0] rounded-xs"></div>
+                  <h2 className="text-xs sm:text-sm font-bold tracking-wider text-[#1E293B] uppercase font-sans">
+                    CORPORATE FILINGS
                   </h2>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
                   {corporateFilingsServices.map((srv) => (
                     <div
                       key={srv.id}
                       onClick={() => handleServiceCardClick(srv.id)}
-                      className="bg-white rounded-2xl border border-[#E5E7EB] p-6 flex flex-col items-center justify-center gap-4 cursor-pointer shadow-[0_4px_12px_rgba(15,23,42,0.06)] hover:border-[#0F2D5C] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 min-h-[160px]"
+                      className="bg-white rounded-2xl border border-slate-100/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-slate-300 hover:shadow-md transition-all duration-200 p-5 sm:p-6 flex flex-col items-center justify-center min-h-[145px] sm:min-h-[160px] cursor-pointer group relative"
                     >
-                      {getRealServiceIcon(srv.id)}
-                      <h3 className="font-bold text-[#111827] text-xs tracking-tight text-center">
+                      <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-[#F4F6F8] flex items-center justify-center p-2.5 transition-transform duration-200 group-hover:scale-105 shrink-0">
+                        {srv.id === "id_cac_registration" ? (
+                          <CacOfficialCardLogo className="w-full h-full object-contain" />
+                        ) : (
+                          <NrsOfficialCardLogo className="w-full h-full object-contain" />
+                        )}
+                      </div>
+                      <h3 className="font-bold text-[#1E293B] text-xs sm:text-sm tracking-tight text-center mt-3 leading-snug">
                         {srv.name}
                       </h3>
                     </div>
@@ -1103,22 +1135,66 @@ export default function Dashboards({
               </div>
 
               {/* Category 4: EDUCATION */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 border-l-4 border-[#0F2D5C] pl-3 text-left">
-                  <h2 className="text-xs font-bold text-[#111827] uppercase tracking-wider font-sans">
-                    Education
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-left">
+                  <div className="w-1.5 h-4 bg-[#1E56A0] rounded-xs"></div>
+                  <h2 className="text-xs sm:text-sm font-bold tracking-wider text-[#1E293B] uppercase font-sans">
+                    EDUCATION
                   </h2>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
                   {educationServices.map((srv) => (
                     <div
                       key={srv.id}
                       onClick={() => handleServiceCardClick(srv.id)}
-                      className="bg-white rounded-2xl border border-[#E5E7EB] p-6 flex flex-col items-center justify-center gap-4 cursor-pointer shadow-[0_4px_12px_rgba(15,23,42,0.06)] hover:border-[#0F2D5C] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 min-h-[160px]"
+                      className="bg-white rounded-2xl border border-slate-100/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-slate-300 hover:shadow-md transition-all duration-200 p-5 sm:p-6 flex flex-col items-center justify-center min-h-[145px] sm:min-h-[160px] cursor-pointer group relative"
                     >
-                      {getRealServiceIcon(srv.id)}
-                      <h3 className="font-bold text-[#111827] text-xs tracking-tight text-center">
+                      {/* SOON Badge */}
+                      <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#F1F5F9] border border-slate-200/60 text-[9px] font-extrabold text-slate-500 uppercase tracking-wider">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                        <span>SOON</span>
+                      </div>
+
+                      <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-[#F4F6F8] flex items-center justify-center p-2.5 transition-transform duration-200 group-hover:scale-105 shrink-0">
+                        {srv.id === "edu_jamb" ? (
+                          <JambOfficialCardLogo className="w-full h-full object-contain" />
+                        ) : (
+                          <ExamPinsOfficialCardLogo className="w-full h-full object-contain" />
+                        )}
+                      </div>
+                      <h3 className="font-bold text-[#1E293B] text-xs sm:text-sm tracking-tight text-center mt-3 leading-snug">
+                        {srv.name}
+                      </h3>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Category 5: UTILITIES & BILLS */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-left">
+                  <div className="w-1.5 h-4 bg-[#1E56A0] rounded-xs"></div>
+                  <h2 className="text-xs sm:text-sm font-bold tracking-wider text-[#1E293B] uppercase font-sans">
+                    UTILITIES & BILLS
+                  </h2>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+                  {utilitiesBillsServices.map((srv) => (
+                    <div
+                      key={srv.id}
+                      onClick={() => handleServiceCardClick(srv.id)}
+                      className="bg-white rounded-2xl border border-slate-100/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-slate-300 hover:shadow-md transition-all duration-200 p-5 sm:p-6 flex flex-col items-center justify-center min-h-[145px] sm:min-h-[160px] cursor-pointer group relative"
+                    >
+                      <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-[#F4F6F8] flex items-center justify-center p-2.5 transition-transform duration-200 group-hover:scale-105 shrink-0">
+                        {srv.id === "vtu_airtime" ? (
+                          <AirtimeOfficialCardLogo className="w-full h-full object-contain" />
+                        ) : (
+                          <DataBundlesOfficialCardLogo className="w-full h-full object-contain" />
+                        )}
+                      </div>
+                      <h3 className="font-bold text-[#1E293B] text-xs sm:text-sm tracking-tight text-center mt-3 leading-snug">
                         {srv.name}
                       </h3>
                     </div>
@@ -1131,23 +1207,8 @@ export default function Dashboards({
           </>
         </div>
 
-        {/* WhatsApp Floating Widget on the Left Side */}
-        <div className="fixed left-6 bottom-6 z-50 flex items-center group">
-          <a
-            href="https://wa.me/2348085490982?text=Hello%20SmartLink%20Support%2C%20I%20need%20assistance%20with%20my%20dashboard."
-            target="_blank"
-            rel="noopener noreferrer"
-            className="relative flex items-center justify-center w-14 h-14 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full shadow-2xl transition-all duration-300 hover:scale-110 cursor-pointer"
-            title="Chat with Support on WhatsApp (08085490982)"
-          >
-            <svg className="w-7 h-7 fill-current" viewBox="0 0 24 24">
-              <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
-            </svg>
-            <span className="absolute left-16 bg-slate-900 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
-              WhatsApp Support: 08085490982
-            </span>
-          </a>
-        </div>
+        {/* Floating Customer Support Help Widget on the Bottom-Right */}
+        <FloatingHelpWidget />
       </div>
   );
 }

@@ -106,10 +106,11 @@ export const LandingHowItWorks: React.FC<LandingHowItWorksProps> = ({ onGetStart
         <div className="mt-14 text-center">
           <button
             id="how-it-works-cta-btn"
+            type="button"
             onClick={onGetStarted}
-            className="px-8 py-3.5 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold rounded-xl text-xs shadow-xs transition-all cursor-pointer inline-flex items-center gap-2"
+            className="min-h-[48px] px-8 py-3.5 bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white font-bold rounded-xl text-sm shadow-xs transition-colors cursor-pointer inline-flex items-center justify-center gap-2 touch-manipulation"
           >
-            Start Your First Verification Now
+            <span>Start Your First Verification Now</span>
             <ArrowRight className="h-4 w-4" />
           </button>
         </div>

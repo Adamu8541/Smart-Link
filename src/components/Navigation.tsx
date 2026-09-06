@@ -44,7 +44,7 @@ import {
   Phone
 } from "lucide-react";
 import { UserProfile, UserRole } from "../types";
-import { SMART_LINK_SERVICES } from "./ServicesGrid";
+import { SMART_LINK_SERVICES } from "../data/servicesData";
 import { useSiteConfig } from "../context/SiteConfigContext";
 import { DEFAULT_LOGO_URL, handleLogoError } from "../utils/brandLogo";
 const defaultLogoImg = DEFAULT_LOGO_URL;

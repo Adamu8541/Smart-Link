@@ -125,8 +125,9 @@ export const LandingCTASection: React.FC<LandingCTASectionProps> = ({
               return (
                 <button
                   key={tabKey}
+                  type="button"
                   onClick={() => setActiveTab(tabKey)}
-                  className={`flex items-center justify-center gap-2 py-3 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                  className={`min-h-[48px] flex items-center justify-center gap-2 py-3 px-3 rounded-xl text-xs sm:text-sm font-bold transition-colors cursor-pointer touch-manipulation ${
                     isActive
                       ? "bg-[#0F2D5C] text-white shadow-xs"
                       : "text-[#475569] hover:text-[#0F2D5C] hover:bg-white/60"
@@ -177,11 +178,12 @@ export const LandingCTASection: React.FC<LandingCTASectionProps> = ({
 
             {/* Action Buttons & Targeted Support Line */}
             <div className="space-y-4 pt-2">
-              <div className="flex flex-col sm:flex-row items-center gap-4">
+              <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
                 <button
                   id={`cta-primary-${activeTab}`}
+                  type="button"
                   onClick={onRegister}
-                  className="w-full sm:w-auto px-7 py-4 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold rounded-xl text-sm shadow-xs transition-all cursor-pointer flex items-center justify-center gap-2.5 active:scale-98"
+                  className="w-full sm:w-auto min-h-[48px] px-7 py-3.5 bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white font-bold rounded-xl text-sm shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2.5 touch-manipulation"
                 >
                   <UserPlus className="h-4 w-4 text-white" />
                   <span>{current.primaryCTA}</span>
@@ -190,8 +192,9 @@ export const LandingCTASection: React.FC<LandingCTASectionProps> = ({
 
                 <button
                   id={`cta-secondary-${activeTab}`}
+                  type="button"
                   onClick={activeTab === "businesses" ? onContactSales : onRegister}
-                  className="w-full sm:w-auto px-6 py-4 bg-white hover:bg-[#F1F5F9] text-[#0F2D5C] border border-[#CBD5E1] font-bold rounded-xl text-sm transition-all cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto min-h-[48px] px-6 py-3.5 bg-white hover:bg-[#F1F5F9] active:bg-[#E2E8F0] text-[#0F2D5C] border border-[#CBD5E1] font-bold rounded-xl text-sm transition-colors cursor-pointer flex items-center justify-center gap-2 touch-manipulation"
                 >
                   {activeTab === "developers" ? (
                     <Code2 className="h-4 w-4 text-[#0F2D5C]" />

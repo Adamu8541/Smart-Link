@@ -50,6 +50,14 @@ export default defineConfig(() => {
               if (id.includes('@sentry')) {
                 return 'vendor-sentry';
               }
+              // 6. Animation Library
+              if (id.includes('motion')) {
+                return 'vendor-motion';
+              }
+              // 7. Vector Icons
+              if (id.includes('lucide-react')) {
+                return 'vendor-icons';
+              }
             }
           },
         },
@@ -57,6 +65,7 @@ export default defineConfig(() => {
     },
     esbuild: {
       legalComments: 'none',
+      drop: ['console', 'debugger'],
     },
   };
 });

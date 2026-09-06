@@ -5,11 +5,10 @@
 
 import React, { useState, useEffect, useRef, lazy, Suspense } from "react";
 import SmartLinkLandingPage from "./components/landing/SmartLinkLandingPage";
-import HeroSection from "./components/HeroSection";
-import Navigation from "./components/Navigation";
 import { RouteLoadingFallback } from "./components/common/RouteLoadingFallback";
 
 // Lazy-loaded routes & heavy components
+const Navigation = lazy(() => import("./components/Navigation"));
 const ServicesGrid = lazy(() => import("./components/ServicesGrid"));
 const ServiceModal = lazy(() => import("./components/ServiceModal"));
 const Dashboards = lazy(() => import("./components/Dashboards"));
@@ -45,7 +44,7 @@ const LegalDocumentView = lazy(() => import("./components/legal").then(m => ({ d
 const LegalQuickModal = lazy(() => import("./components/legal").then(m => ({ default: m.LegalQuickModal })));
 const UserLegalAgreementsModal = lazy(() => import("./components/legal").then(m => ({ default: m.UserLegalAgreementsModal })));
 
-import { ServiceItem } from "./components/ServicesGrid";
+import { ServiceItem } from "./data/servicesData";
 import { AdminSession, getStoredAdminSession, clearAdminSession } from "./services/adminAuthTypes";
 import { UserProfile, UserRole } from "./types";
 import { navigationManager, useModalBackHandler } from "./services/navigationManager";
@@ -1798,22 +1797,24 @@ export default function App() {
         <>
       {/* Dynamic Responsive Sidebar for Logged-In Users */}
       {currentUser && (
-        <Navigation
-          currentView={currentView}
-          onNavigate={navigateToView}
-          currentUser={currentUser}
-          onLogout={handleLogout}
-          isDarkMode={isDarkMode}
-          onToggleDarkMode={handleToggleDarkMode}
-          onSelectService={setSelectedService}
-          onRefreshUser={fetchUserProfile}
-          onSetAuthStates={({ isRegistering, isResetPassword }) => {
-            setIsRegistering(isRegistering);
-            setIsResetPassword(isResetPassword);
-            setAuthError(null);
-            setRecoverySuccessMessage(null);
-          }}
-        />
+        <Suspense fallback={null}>
+          <Navigation
+            currentView={currentView}
+            onNavigate={navigateToView}
+            currentUser={currentUser}
+            onLogout={handleLogout}
+            isDarkMode={isDarkMode}
+            onToggleDarkMode={handleToggleDarkMode}
+            onSelectService={setSelectedService}
+            onRefreshUser={fetchUserProfile}
+            onSetAuthStates={({ isRegistering, isResetPassword }) => {
+              setIsRegistering(isRegistering);
+              setIsResetPassword(isResetPassword);
+              setAuthError(null);
+              setRecoverySuccessMessage(null);
+            }}
+          />
+        </Suspense>
       )}
 
       {/* Top Header for Logged-Out Public Homepage */}

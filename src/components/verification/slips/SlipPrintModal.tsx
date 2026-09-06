@@ -32,11 +32,6 @@ import {
 import { FirestoreSlipService } from "../../../services/firestoreSlipService";
 import { SlipPrintEngine } from "../../../services/slipPrintEngine";
 import { EmailSlipService } from "../../../services/emailSlipService";
-import { NinStandardSlip } from "./NinStandardSlip";
-import { NimcDigitalGreenSlip } from "./NimcDigitalGreenSlip";
-import { NimcPremiumWhiteSlip } from "./NimcPremiumWhiteSlip";
-import { BvnVerificationSlip } from "./BvnVerificationSlip";
-import { ThermalReceiptSlip } from "./ThermalReceiptSlip";
 
 interface SlipPrintModalProps {
   verificationResult: StandardizedVerificationResult;
@@ -50,7 +45,7 @@ export const SlipPrintModal: React.FC<SlipPrintModalProps> = ({
   verificationResult,
   userId,
   userEmail,
-  initialFormat = "NIN_STANDARD",
+  initialFormat = "NIN_REGULAR",
   onClose,
 }) => {
   const isBvn = verificationResult.service === "BVN";
@@ -408,44 +403,87 @@ export const SlipPrintModal: React.FC<SlipPrintModalProps> = ({
         <div className="px-4 py-3 border-b border-[#E5E7EB] dark:border-[#111827] bg-white dark:bg-[#111827] flex flex-wrap items-center justify-between gap-3 print:hidden">
           {/* Format Tabs */}
           <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setSelectedFormat("NIN_PREMIUM_WHITE")}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
-                selectedFormat === "NIN_PREMIUM_WHITE"
-                  ? "bg-[#0F2D5C] text-white shadow-md shadow-blue-600/20"
-                  : "bg-[#E5E7EB] dark:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563]"
-              }`}
-            >
-              <CreditCard className="h-4 w-4" />
-              <span>Premium Slip</span>
-            </button>
+            {isBvn ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setSelectedFormat("BVN_CARD" as any)}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
+                    selectedFormat === ("BVN_CARD" as any) || selectedFormat === "BVN_STANDARD"
+                      ? "bg-[#0F2D5C] text-white shadow-md shadow-blue-600/20"
+                      : "bg-[#E5E7EB] dark:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563]"
+                  }`}
+                >
+                  <CreditCard className="h-4 w-4" />
+                  <span>BVN Card</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedFormat("BVN_SLIP_1" as any)}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
+                    selectedFormat === ("BVN_SLIP_1" as any)
+                      ? "bg-[#0F2D5C] text-white shadow-md shadow-emerald-600/20"
+                      : "bg-[#E5E7EB] dark:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563]"
+                  }`}
+                >
+                  <FileText className="h-4 w-4" />
+                  <span>BVN Slip 1</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedFormat("BVN_SLIP_2" as any)}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
+                    selectedFormat === ("BVN_SLIP_2" as any)
+                      ? "bg-[#0F2D5C] text-white shadow-md shadow-emerald-600/20"
+                      : "bg-[#E5E7EB] dark:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563]"
+                  }`}
+                >
+                  <Layers className="h-4 w-4" />
+                  <span>BVN Slip 2</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setSelectedFormat("NIN_REGULAR" as any)}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
+                    selectedFormat === ("NIN_REGULAR" as any)
+                      ? "bg-[#0F2D5C] text-white shadow-md shadow-emerald-600/20"
+                      : "bg-[#E5E7EB] dark:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563]"
+                  }`}
+                >
+                  <Layers className="h-4 w-4" />
+                  <span>Regular Slip</span>
+                </button>
 
-            <button
-              type="button"
-              onClick={() => setSelectedFormat("NIN_STANDARD")}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
-                selectedFormat === "NIN_STANDARD"
-                  ? "bg-[#0F2D5C] text-white shadow-md shadow-emerald-600/20"
-                  : "bg-[#E5E7EB] dark:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563]"
-              }`}
-            >
-              <FileText className="h-4 w-4" />
-              <span>Standard Slip</span>
-            </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedFormat("NIN_STANDARD")}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
+                    selectedFormat === "NIN_STANDARD"
+                      ? "bg-[#0F2D5C] text-white shadow-md shadow-emerald-600/20"
+                      : "bg-[#E5E7EB] dark:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563]"
+                  }`}
+                >
+                  <FileText className="h-4 w-4" />
+                  <span>Standard Slip</span>
+                </button>
 
-            <button
-              type="button"
-              onClick={() => setSelectedFormat("NIN_REGULAR" as any)}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
-                selectedFormat === ("NIN_REGULAR" as any)
-                  ? "bg-[#0F2D5C] text-white shadow-md shadow-emerald-600/20"
-                  : "bg-[#E5E7EB] dark:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563]"
-              }`}
-            >
-              <Layers className="h-4 w-4" />
-              <span>Regular Slip</span>
-            </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedFormat("NIN_PREMIUM_WHITE")}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
+                    selectedFormat === "NIN_PREMIUM_WHITE" || selectedFormat === "NIN_PREMIUM_GREEN"
+                      ? "bg-[#0F2D5C] text-white shadow-md shadow-blue-600/20"
+                      : "bg-[#E5E7EB] dark:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563]"
+                  }`}
+                >
+                  <CreditCard className="h-4 w-4" />
+                  <span>Premium Card</span>
+                </button>
+              </>
+            )}
           </div>
 
           {/* Action Export Buttons */}
@@ -487,11 +525,53 @@ export const SlipPrintModal: React.FC<SlipPrintModalProps> = ({
           {activeSlip ? (
             <div className="w-full flex flex-col items-center justify-center">
               {/* Slip Card Render Container targeted by ID */}
-              <div id="active-printable-slip" className="w-full">
-                {selectedFormat === "NIN_PREMIUM_WHITE" ? (
-                  <NimcPremiumWhiteSlip slip={activeSlip} isFoldable={isFoldable} />
+              <div id="active-printable-slip" className="w-full max-w-xl flex items-center justify-center p-2 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+                {isBvn ? (
+                  selectedFormat === "BVN_SLIP_2" ? (
+                    <img src="/assets/BVN%20Slip%202.webp" alt="BVN Slip 2" loading="eager" referrerPolicy="no-referrer" className="w-full h-auto object-contain rounded-xl" />
+                  ) : selectedFormat === "BVN_SLIP_1" ? (
+                    <img src="/assets/BVN%20Slip%201.webp" alt="BVN Slip 1" loading="eager" referrerPolicy="no-referrer" className="w-full h-auto object-contain rounded-xl" />
+                  ) : (
+                    <img src="/assets/BVN%20Card.webp" alt="BVN Card" loading="eager" referrerPolicy="no-referrer" className="w-full h-auto object-contain rounded-xl" />
+                  )
                 ) : (
-                  <NinStandardSlip slip={activeSlip} />
+                  selectedFormat === "NIN_PREMIUM_WHITE" || selectedFormat === "NIN_PREMIUM_GREEN" ? (
+                    <img
+                      src="/assets/premium.webp"
+                      alt="Premium Card"
+                      loading="eager"
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        if (!target.src.includes("Premium.webp")) target.src = "/assets/Premium.webp";
+                      }}
+                      className="w-full h-auto object-contain rounded-xl"
+                    />
+                  ) : selectedFormat === "NIN_STANDARD" ? (
+                    <img
+                      src="/assets/standard.webp"
+                      alt="Standard Slip"
+                      loading="eager"
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        if (!target.src.includes("Standard.webp")) target.src = "/assets/Standard.webp";
+                      }}
+                      className="w-full h-auto object-contain rounded-xl"
+                    />
+                  ) : (
+                    <img
+                      src="/assets/Regular.webp"
+                      alt="Regular Slip"
+                      loading="eager"
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        if (!target.src.includes("regular.webp")) target.src = "/assets/regular.webp";
+                      }}
+                      className="w-full h-auto object-contain rounded-xl"
+                    />
+                  )
                 )}
               </div>
             </div>

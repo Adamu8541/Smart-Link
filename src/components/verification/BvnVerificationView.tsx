@@ -75,7 +75,7 @@ export function getBvnSlipOptions(siteConfig?: any): BvnSlipType3[] {
       label: "BVN Card",
       price: cardPrice,
       badge: "Plastic Card",
-      formatId: "NIN_PREMIUM_WHITE",
+      formatId: "BVN_CARD" as any,
     },
     {
       id: "BVN_SLIP_1",
@@ -83,7 +83,7 @@ export function getBvnSlipOptions(siteConfig?: any): BvnSlipType3[] {
       label: "BVN Slip 1",
       price: slip1Price,
       badge: "Official Slip",
-      formatId: "NIN_STANDARD",
+      formatId: "BVN_SLIP_1" as any,
     },
     {
       id: "BVN_SLIP_2",
@@ -91,7 +91,7 @@ export function getBvnSlipOptions(siteConfig?: any): BvnSlipType3[] {
       label: "BVN Slip 2",
       price: slip2Price,
       badge: "Basic Slip",
-      formatId: "NIN_REGULAR" as any,
+      formatId: "BVN_SLIP_2" as any,
     },
   ];
 }
@@ -384,12 +384,12 @@ export const BvnVerificationView: React.FC<BvnVerificationViewProps> = ({
                   }}
                   className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 px-4 text-xs sm:text-sm font-semibold text-slate-800 appearance-none focus:outline-hidden focus:ring-2 focus:ring-[#0F2D5C] shadow-2xs cursor-pointer pr-10"
                 >
-                  <option value="" disabled>
-                    — Choose a slip type —
+                  <option value="">
+                    - choose a slip type -
                   </option>
                   {availableSlips.map((opt) => (
                     <option key={opt.id} value={opt.id}>
-                      {opt.name} ({opt.badge})
+                      {opt.name}
                     </option>
                   ))}
                 </select>
@@ -635,7 +635,7 @@ export const BvnVerificationView: React.FC<BvnVerificationViewProps> = ({
           verificationResult={result}
           userId={userId}
           userEmail={userEmail}
-          initialFormat={selectedSlip ? selectedSlip.formatId : "NIN_STANDARD"}
+          initialFormat={selectedSlip ? selectedSlip.formatId : ("BVN_CARD" as any)}
           onClose={() => setShowSlipModal(false)}
         />
       )}
@@ -646,7 +646,7 @@ export const BvnVerificationView: React.FC<BvnVerificationViewProps> = ({
           verificationResult={selectedHistorySlip}
           userId={userId}
           userEmail={userEmail}
-          initialFormat="NIN_STANDARD"
+          initialFormat={"BVN_CARD" as any}
           onClose={() => setSelectedHistorySlip(null)}
         />
       )}

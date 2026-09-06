@@ -53,34 +53,34 @@ export function getNinSlipOptions(siteConfig?: any): NinSlipType3[] {
   const priceMatrix = siteConfig?.priceMatrix || {};
   const slipPrices = priceMatrix.slipPrices || siteConfig?.systemSettings?.slipPrices || {};
 
-  const premiumPrice = typeof slipPrices.PREMIUM === "number" ? slipPrices.PREMIUM : (typeof slipPrices.premium === "number" ? slipPrices.premium : 250);
-  const standardPrice = typeof slipPrices.STANDARD === "number" ? slipPrices.STANDARD : (typeof slipPrices.standard === "number" ? slipPrices.standard : 200);
   const regularPrice = typeof slipPrices.REGULAR === "number" ? slipPrices.REGULAR : (typeof slipPrices.regular === "number" ? slipPrices.regular : 180);
+  const standardPrice = typeof slipPrices.STANDARD === "number" ? slipPrices.STANDARD : (typeof slipPrices.standard === "number" ? slipPrices.standard : 200);
+  const premiumPrice = typeof slipPrices.PREMIUM === "number" ? slipPrices.PREMIUM : (typeof slipPrices.premium === "number" ? slipPrices.premium : 250);
 
   return [
     {
-      id: "PREMIUM",
-      name: "Premium",
-      label: "Premium",
-      price: premiumPrice,
-      badge: "Plastic White Card",
-      formatId: "NIN_PREMIUM_WHITE",
+      id: "REGULAR",
+      name: "Regular Slip",
+      label: "Regular Slip",
+      price: regularPrice,
+      badge: "Basic Slip",
+      formatId: "NIN_REGULAR",
     },
     {
       id: "STANDARD",
-      name: "Standard",
-      label: "Standard",
+      name: "Standard Slip",
+      label: "Standard Slip",
       price: standardPrice,
-      badge: "Official Standard",
+      badge: "Standard Slip",
       formatId: "NIN_STANDARD",
     },
     {
-      id: "REGULAR",
-      name: "Regular",
-      label: "Regular",
-      price: regularPrice,
-      badge: "Basic Slip",
-      formatId: "NIN_STANDARD",
+      id: "PREMIUM",
+      name: "Premium Card",
+      label: "Premium Card",
+      price: premiumPrice,
+      badge: "Premium Card",
+      formatId: "NIN_PREMIUM_WHITE",
     },
   ];
 }
@@ -89,13 +89,13 @@ export const THREE_NIN_SLIPS: NinSlipType3[] = getNinSlipOptions();
 
 export const mapSlipToConfig = (s: NinSlipType3): SlipOptionConfig => ({
   id: s.formatId,
-  name: `${s.name} Slip`,
+  name: s.name,
   badge: s.badge,
   badgeColor: "bg-[#0F2D5C] text-white",
   price: s.price,
-  description: `${s.name} slip generated with official NIMC watermarks & scannable QR verification.`,
+  description: `${s.name} generated with official NIMC watermarks & scannable QR verification.`,
   dimensions: s.id === "PREMIUM" ? "CR80 Plastic Card Size" : "Standard A4 / Letter",
-  recommendedFor: "Official Identity & Bank KYC",
+  recommendedFor: s.id === "PREMIUM" ? "Plastic Card Printing & Wallet ID" : (s.id === "STANDARD" ? "Official Banking & KYC Verification" : "General Identity Verification"),
   themeColor: "#0F2D5C",
   bgGradient: "from-[#0F2D5C]/10 via-[#0F2D5C]/5 to-[#111827]/10",
   features: ["NIMC Verification Seal", "Scannable 2D QR Code", "Official Tracking ID", "Digital Watermark"],
@@ -343,12 +343,12 @@ export const NinVerificationView: React.FC<NinVerificationViewProps> = ({
                   }}
                   className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 px-4 text-xs sm:text-sm font-semibold text-slate-800 appearance-none focus:outline-hidden focus:ring-2 focus:ring-[#0F2D5C] shadow-2xs cursor-pointer pr-10"
                 >
-                  <option value="" disabled>
-                    — Choose a slip type —
+                  <option value="">
+                    - choose a slip type -
                   </option>
                   {availableSlips.map((opt) => (
                     <option key={opt.id} value={opt.id}>
-                      {opt.name} Slip
+                      {opt.name}
                     </option>
                   ))}
                 </select>
@@ -585,7 +585,7 @@ export const NinVerificationView: React.FC<NinVerificationViewProps> = ({
           verificationResult={result}
           userId={userId}
           userEmail={userEmail}
-          initialFormat={selectedSlip?.formatId || "NIN_STANDARD"}
+          initialFormat={selectedSlip?.formatId || "NIN_REGULAR"}
           onClose={() => setShowSlipModal(false)}
         />
       )}
