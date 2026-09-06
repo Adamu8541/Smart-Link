@@ -22,7 +22,6 @@ import {
   ExternalLink,
   FileText
 } from "lucide-react";
-import { motion } from "motion/react";
 
 interface ServiceCardItem {
   id: string;
@@ -252,30 +251,26 @@ export const LandingServicesPreview: React.FC<LandingServicesPreviewProps> = ({
                 <h3 className="text-2xl font-bold text-[#111827] tracking-tight">
                   {category.title}
                 </h3>
-                <p className="text-sm text-[#4B5563] mt-1">
+                <p className="text-sm text-[#374151] mt-1">
                   {category.benefit}
                 </p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {category.services.map((service, idx) => {
+                {category.services.map((service) => {
                   const IconComponent = service.icon;
                   return (
-                    <motion.div
+                    <div
                       key={service.id}
                       id={`service-card-${service.id}`}
-                      initial={{ opacity: 0, y: 15 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.4, delay: idx * 0.04 }}
-                      className="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-[0_4px_12px_rgba(15,23,42,0.08)] hover:border-[#0F2D5C] transition-all duration-300 flex flex-col justify-between group"
+                      className="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-[0_4px_12px_rgba(15,23,42,0.06)] hover:border-[#0F2D5C] transition-all duration-300 flex flex-col justify-between group"
                     >
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
                           <div className={`h-12 w-12 rounded-2xl border ${service.color} flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform duration-200`}>
-                            <IconComponent className="h-6 w-6" />
+                            <IconComponent className="h-6 w-6" aria-hidden="true" />
                           </div>
-                          <span className="text-[10px] font-bold text-[#4B5563] bg-[#F5F7FA] px-2 py-1 rounded-md uppercase tracking-wide">
+                          <span className="text-[10px] font-bold text-[#111827] bg-[#F5F7FA] border border-[#E5E7EB] px-2 py-1 rounded-md uppercase tracking-wide">
                             {service.badge}
                           </span>
                         </div>
@@ -284,7 +279,7 @@ export const LandingServicesPreview: React.FC<LandingServicesPreviewProps> = ({
                           <h4 className="text-base font-bold text-[#111827] group-hover:text-[#0F2D5C] transition-colors">
                             {service.name}
                           </h4>
-                          <p className="text-xs text-[#4B5563] leading-relaxed mt-2 font-normal line-clamp-3">
+                          <p className="text-xs text-[#374151] leading-relaxed mt-2 font-normal line-clamp-3">
                             {service.description}
                           </p>
                         </div>
@@ -295,13 +290,14 @@ export const LandingServicesPreview: React.FC<LandingServicesPreviewProps> = ({
                           id={`btn-learn-more-${service.id}`}
                           type="button"
                           onClick={() => onSelectService && onSelectService(service.id)}
+                          aria-label={`Learn more about ${service.name}`}
                           className="w-full min-h-[48px] py-3 px-4 bg-white hover:bg-[#0F2D5C] active:bg-[#17407E] text-[#111827] hover:text-white border border-[#E5E7EB] hover:border-[#0F2D5C] rounded-xl text-xs font-bold transition-colors flex items-center justify-between cursor-pointer shadow-xs touch-manipulation"
                         >
                           <span>Learn More</span>
-                          <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
+                          <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
                         </button>
                       </div>
-                    </motion.div>
+                    </div>
                   );
                 })}
               </div>

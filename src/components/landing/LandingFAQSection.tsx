@@ -95,30 +95,31 @@ export const LandingFAQSection: React.FC<{ onContactSupport?: () => void; onGetS
         {/* Section Header */}
         <div className="text-center space-y-3 max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#EBF3FC] text-[#0F2D5C] text-xs font-bold border border-[#D0E2F7]">
-            <HelpCircle className="h-3.5 w-3.5" />
+            <HelpCircle className="h-3.5 w-3.5" aria-hidden="true" />
             <span>Frequently Asked Questions</span>
           </div>
 
-          <h2 className="text-2xl sm:text-4xl font-bold text-[#111827] tracking-tight">
+          <h2 id="faq-heading" className="text-2xl sm:text-4xl font-bold text-[#111827] tracking-tight">
             Everything You Need to Know About SmartLink NG
           </h2>
 
-          <p className="text-sm sm:text-base text-[#64748B] max-w-2xl mx-auto leading-relaxed">
+          <p className="text-sm sm:text-base text-[#374151] max-w-2xl mx-auto leading-relaxed">
             Find answers to common questions on wallet funding, developer API integration, CAC business registration requirements, and instant identity validation.
           </p>
         </div>
 
         {/* Category Filters */}
-        <div className="flex items-center justify-center flex-wrap gap-2 pt-2">
+        <div className="flex items-center justify-center flex-wrap gap-2 pt-2" role="toolbar" aria-label="FAQ category filter">
           {categories.map((cat) => (
             <button
               key={cat}
               type="button"
               onClick={() => setActiveCategory(cat)}
-              className={`min-h-[44px] sm:min-h-[48px] px-4 py-2.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer touch-manipulation ${
+              aria-pressed={activeCategory === cat}
+              className={`min-h-[48px] px-4 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer touch-manipulation ${
                 activeCategory === cat
                   ? "bg-[#0F2D5C] text-white shadow-xs"
-                  : "bg-white text-[#475569] border border-[#E2E8F0] hover:bg-[#F1F5F9] hover:text-[#0F2D5C]"
+                  : "bg-white text-[#1E293B] border border-[#E2E8F0] hover:bg-[#F1F5F9] hover:text-[#0F2D5C]"
               }`}
             >
               {cat}
@@ -141,13 +142,15 @@ export const LandingFAQSection: React.FC<{ onContactSupport?: () => void; onGetS
               >
                 <button
                   id={`faq-btn-${faq.id}`}
+                  type="button"
                   onClick={() => toggleAccordion(faq.id)}
-                  className="w-full p-5 sm:p-6 text-left flex items-start justify-between gap-4 cursor-pointer"
+                  className="w-full p-5 sm:p-6 text-left flex items-start justify-between gap-4 cursor-pointer touch-manipulation"
                   aria-expanded={isOpen}
+                  aria-controls={`faq-answer-${faq.id}`}
                 >
                   <div className="flex items-start gap-3.5">
                     <div className={`p-2 rounded-xl shrink-0 mt-0.5 ${isOpen ? "bg-[#0F2D5C] text-white" : "bg-[#F1F5F9] text-[#0F2D5C]"}`}>
-                      <Icon className="h-4 w-4" />
+                      <Icon className="h-4 w-4" aria-hidden="true" />
                     </div>
                     <div>
                       <span className="text-[11px] font-bold text-[#0F2D5C] uppercase tracking-wider block mb-1">
@@ -159,20 +162,23 @@ export const LandingFAQSection: React.FC<{ onContactSupport?: () => void; onGetS
                     </div>
                   </div>
 
-                  <div className={`p-1.5 rounded-full shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180 bg-[#F1F5F9] text-[#0F2D5C]" : "text-[#64748B]"}`}>
-                    <ChevronDown className="h-4 w-4" />
+                  <div className={`p-1.5 rounded-full shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180 bg-[#F1F5F9] text-[#0F2D5C]" : "text-[#374151]"}`}>
+                    <ChevronDown className="h-4 w-4" aria-hidden="true" />
                   </div>
                 </button>
 
                 <AnimatePresence>
                   {isOpen && (
                     <motion.div
+                      id={`faq-answer-${faq.id}`}
+                      role="region"
+                      aria-labelledby={`faq-btn-${faq.id}`}
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.2 }}
                     >
-                      <div className="px-5 sm:px-6 pb-6 pt-1 text-xs sm:text-sm text-[#475569] leading-relaxed border-t border-[#F1F5F9] ml-12">
+                      <div className="px-5 sm:px-6 pb-6 pt-1 text-xs sm:text-sm text-[#374151] leading-relaxed border-t border-[#F1F5F9] ml-12">
                         {faq.answer}
                       </div>
                     </motion.div>
@@ -185,7 +191,7 @@ export const LandingFAQSection: React.FC<{ onContactSupport?: () => void; onGetS
 
         {/* Bottom Support CTA */}
         <div className="p-6 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs text-center max-w-2xl mx-auto space-y-3">
-          <p className="text-xs sm:text-sm font-medium text-[#475569]">
+          <p className="text-xs sm:text-sm font-medium text-[#374151]">
             Have a specific question not covered here? Our support team is active 24/7.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -195,7 +201,7 @@ export const LandingFAQSection: React.FC<{ onContactSupport?: () => void; onGetS
               className="w-full sm:w-auto min-h-[48px] px-6 py-3 rounded-xl bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white text-xs font-bold transition-colors shadow-xs cursor-pointer flex items-center justify-center gap-2 touch-manipulation"
             >
               <span>Chat with Support</span>
-              <ArrowRight className="h-3.5 w-3.5" />
+              <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
             </button>
             {onGetStarted && (
               <button

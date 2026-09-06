@@ -15,6 +15,7 @@ const LandingFAQSection = lazy(() => import("./LandingFAQSection"));
 const LandingCTASection = lazy(() => import("./LandingCTASection"));
 const LandingFooter = lazy(() => import("./LandingFooter"));
 const UserAnnouncementBanner = lazy(() => import("../notification/UserAnnouncementBanner").then(m => ({ default: m.UserAnnouncementBanner })));
+const FloatingHelpWidget = lazy(() => import("../common/ScreenshotServiceLogos").then(m => ({ default: m.FloatingHelpWidget })));
 
 interface SmartLinkLandingPageProps {
   onLogin: () => void;
@@ -167,6 +168,11 @@ export const SmartLinkLandingPage: React.FC<SmartLinkLandingPageProps> = ({
           />
         </Suspense>
       )}
+
+      {/* Floating WhatsApp Help Widget contacting 08085490982 */}
+      <Suspense fallback={null}>
+        <FloatingHelpWidget />
+      </Suspense>
     </div>
   );
 };

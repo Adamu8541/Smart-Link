@@ -58,9 +58,10 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
                 src={activeLogo}
                 alt={`${siteName || "SmartLink Nigeria"} - Identity Verification, Utility Bills and Enterprise CAC Filing`}
                 width={224}
-                height={98}
+                height={56}
                 loading="lazy"
                 decoding="async"
+                style={{ aspectRatio: "224 / 56" }}
                 className="h-14 sm:h-16 w-auto max-w-[224px] object-contain rounded-lg p-1 bg-white"
                 referrerPolicy="no-referrer"
                 onError={handleLogoError}
@@ -96,10 +97,11 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
                 <li key={item.tab}>
                   <button
                     id={`footer-company-${item.tab}`}
+                    type="button"
                     onClick={() => setActiveInfoTab(item.tab as any)}
-                    className="text-[#4B5563] hover:text-[#0F2D5C] hover:translate-x-1 duration-200 transition-all cursor-pointer bg-transparent border-none py-2 px-1 min-h-[44px] text-left font-medium flex items-center gap-1.5"
+                    className="text-[#374151] hover:text-[#0F2D5C] hover:translate-x-1 duration-200 transition-all cursor-pointer bg-transparent border-none py-2 px-1 min-h-[48px] text-left font-medium flex items-center gap-1.5 touch-manipulation"
                   >
-                    <ChevronRight className="h-3 w-3 text-[#4B5563]/40" />
+                    <ChevronRight className="h-3 w-3 text-[#374151]/60" aria-hidden="true" />
                     <span>{item.name}</span>
                   </button>
                 </li>
@@ -122,8 +124,9 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
                 <li key={item}>
                   <button
                     id={`footer-services-${item.toLowerCase().replace(/\s+/g, "-")}`}
+                    type="button"
                     onClick={() => onNavigateSection("services-section")}
-                    className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors cursor-pointer bg-transparent border-none py-2 px-1 min-h-[44px] text-left font-medium flex items-center"
+                    className="text-[#374151] hover:text-[#0F2D5C] transition-colors cursor-pointer bg-transparent border-none py-2 px-1 min-h-[48px] text-left font-medium flex items-center touch-manipulation"
                   >
                     {item}
                   </button>
@@ -154,8 +157,9 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
                 <li key={item.docId}>
                   <button
                     id={`footer-legal-${item.docId}`}
+                    type="button"
                     onClick={() => handleLegalClick(item.docId === "legal-center" ? undefined : item.docId)}
-                    className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors cursor-pointer bg-transparent border-none py-1.5 px-1 min-h-[40px] text-left font-medium text-xs flex items-center"
+                    className="text-[#374151] hover:text-[#0F2D5C] transition-colors cursor-pointer bg-transparent border-none py-2 px-1 min-h-[48px] text-left font-medium text-xs flex items-center touch-manipulation"
                   >
                     {item.label}
                   </button>
@@ -178,8 +182,9 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
                 <li key={item}>
                   <button
                     id={`footer-support-${item.toLowerCase().replace(/\s+/g, "-")}`}
+                    type="button"
                     onClick={() => item === "FAQs" ? onNavigateSection("faq-section") : onNavigateSection("contact-section")}
-                    className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors cursor-pointer bg-transparent border-none py-2 px-1 min-h-[44px] text-left font-medium flex items-center"
+                    className="text-[#374151] hover:text-[#0F2D5C] transition-colors cursor-pointer bg-transparent border-none py-2 px-1 min-h-[48px] text-left font-medium flex items-center touch-manipulation"
                   >
                     {item}
                   </button>
@@ -209,10 +214,10 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2.5 rounded-xl bg-[#F5F7FA] text-[#4B5563] border border-[#E5E7EB] hover:bg-[#0F2D5C] hover:text-white transition-colors cursor-pointer"
+                  className="min-h-[48px] min-w-[48px] flex items-center justify-center p-3 rounded-xl bg-[#F5F7FA] text-[#4B5563] border border-[#E5E7EB] hover:bg-[#0F2D5C] hover:text-white transition-colors cursor-pointer touch-manipulation"
                   aria-label={social.name}
                 >
-                  <IconComp className="h-4 w-4" />
+                  <IconComp className="h-4 w-4" aria-hidden="true" />
                 </a>
               );
             })}
@@ -220,15 +225,17 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
 
           <div className="flex items-center gap-4 text-xs">
             <button
+              type="button"
               onClick={onLogin}
-              className="text-[#111827] hover:text-[#0F2D5C] font-semibold cursor-pointer min-h-[44px] inline-flex items-center py-2 px-1"
+              className="text-[#111827] hover:text-[#0F2D5C] font-semibold cursor-pointer min-h-[48px] inline-flex items-center py-2 px-1 touch-manipulation"
             >
               Sign In to Portal
             </button>
-            <span className="text-[#9CA3AF]">•</span>
+            <span className="text-[#9CA3AF]" aria-hidden="true">•</span>
             <button
+              type="button"
               onClick={onRegister}
-              className="text-[#0F2D5C] hover:underline font-bold cursor-pointer min-h-[44px] inline-flex items-center py-2 px-1"
+              className="text-[#0F2D5C] hover:underline font-bold cursor-pointer min-h-[48px] inline-flex items-center py-2 px-1 touch-manipulation"
             >
               Create Free Account
             </button>
@@ -237,54 +244,60 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
 
         {/* Bottom Copyright & Disclaimer */}
         <div className="pt-6 border-t border-[#E5E7EB] space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-3 text-[11px] text-[#6B7280]">
-            <div className="flex flex-wrap gap-x-4 gap-y-1">
+          <div className="flex flex-wrap items-center justify-between gap-3 text-[11px] text-[#374151]">
+            <div className="flex flex-wrap gap-x-3 gap-y-1">
               <button
+                type="button"
                 onClick={() => handleLegalClick("privacy-policy")}
-                className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors cursor-pointer bg-transparent border-none py-2 px-1.5 min-h-[44px] inline-flex items-center text-left font-medium"
+                className="text-[#374151] hover:text-[#0F2D5C] transition-colors cursor-pointer bg-transparent border-none py-2 px-1.5 min-h-[48px] inline-flex items-center text-left font-medium touch-manipulation"
               >
                 Privacy Policy
               </button>
-              <span className="text-[#E5E7EB]">•</span>
+              <span className="text-[#D1D5DB] self-center" aria-hidden="true">•</span>
               <button
+                type="button"
                 onClick={() => handleLegalClick("terms-of-service")}
-                className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors cursor-pointer bg-transparent border-none p-0 text-left font-medium"
+                className="text-[#374151] hover:text-[#0F2D5C] transition-colors cursor-pointer bg-transparent border-none py-2 px-1.5 min-h-[48px] inline-flex items-center text-left font-medium touch-manipulation"
               >
                 Terms of Service
               </button>
-              <span className="text-[#E5E7EB]">•</span>
+              <span className="text-[#D1D5DB] self-center" aria-hidden="true">•</span>
               <button
+                type="button"
                 onClick={() => handleLegalClick("refund-policy")}
-                className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors cursor-pointer bg-transparent border-none p-0 text-left font-medium"
+                className="text-[#374151] hover:text-[#0F2D5C] transition-colors cursor-pointer bg-transparent border-none py-2 px-1.5 min-h-[48px] inline-flex items-center text-left font-medium touch-manipulation"
               >
                 Refund Policy
               </button>
-              <span className="text-[#E5E7EB]">•</span>
+              <span className="text-[#D1D5DB] self-center" aria-hidden="true">•</span>
               <button
+                type="button"
                 onClick={() => handleLegalClick("kyc-notice")}
-                className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors cursor-pointer bg-transparent border-none p-0 text-left font-medium"
+                className="text-[#374151] hover:text-[#0F2D5C] transition-colors cursor-pointer bg-transparent border-none py-2 px-1.5 min-h-[48px] inline-flex items-center text-left font-medium touch-manipulation"
               >
-                KYC & Verification Notice
+                KYC &amp; Verification Notice
               </button>
-              <span className="text-[#E5E7EB]">•</span>
+              <span className="text-[#D1D5DB] self-center" aria-hidden="true">•</span>
               <button
+                type="button"
                 onClick={() => handleLegalClick("disclaimer")}
-                className="text-[#4B5563] hover:text-[#0F2D5C] transition-colors cursor-pointer bg-transparent border-none p-0 text-left font-medium"
+                className="text-[#374151] hover:text-[#0F2D5C] transition-colors cursor-pointer bg-transparent border-none py-2 px-1.5 min-h-[48px] inline-flex items-center text-left font-medium touch-manipulation"
               >
                 Government Disclaimer
               </button>
             </div>
             <div>
               <button
+                type="button"
                 onClick={() => handleLegalClick()}
-                className="text-[#0F2D5C] hover:underline font-bold transition-colors cursor-pointer bg-transparent border-none p-0 text-left"
+                className="text-[#0F2D5C] hover:underline font-bold transition-colors cursor-pointer bg-transparent border-none py-2 px-1.5 min-h-[48px] inline-flex items-center text-left touch-manipulation"
               >
                 View Full Legal Center →
               </button>
             </div>
           </div>
 
-          <div className="flex flex-col md:flex-row items-center justify-between gap-2 text-[11px] text-[#6B7280]">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-2 text-[11px] text-[#374151]">
             <p>© SmartLink Nigeria. All Rights Reserved.</p>
             <p className="text-center md:text-right">
               Smart Link Computer Business (trading as SmartLink NG / Smart Link Nigeria). Registered with Corporate Affairs Commission (CAC RC 9347502).

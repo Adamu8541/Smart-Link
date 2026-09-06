@@ -5,7 +5,6 @@
 
 import React from "react";
 import { UserPlus, Wallet, MousePointerClick, CheckCircle2, ArrowRight } from "lucide-react";
-import { motion } from "motion/react";
 
 interface LandingHowItWorksProps {
   onGetStarted: () => void;
@@ -40,18 +39,18 @@ export const LandingHowItWorks: React.FC<LandingHowItWorksProps> = ({ onGetStart
   ];
 
   return (
-    <section id="how-it-works-section" className="py-20 bg-[#F5F7FA] border-b border-[#E5E7EB]">
+    <section id="how-it-works-section" aria-labelledby="how-it-works-heading" className="py-20 bg-[#F5F7FA] border-b border-[#E5E7EB]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
         <div className="text-center space-y-4 max-w-3xl mx-auto mb-16">
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#F5F7FA] text-[#0F2D5C] border border-[#E5E7EB]">
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-[#0F2D5C] border border-[#E5E7EB] shadow-2xs">
             Simple 4-Step Process
           </span>
-          <h2 className="text-3xl sm:text-4.5xl font-bold text-[#111827] tracking-tight">
+          <h2 id="how-it-works-heading" className="text-3xl sm:text-4.5xl font-bold text-[#111827] tracking-tight">
             How SmartLink Works
           </h2>
-          <p className="text-sm text-[#4B5563] font-normal leading-relaxed max-w-xl mx-auto">
+          <p className="text-sm text-[#374151] font-normal leading-relaxed max-w-xl mx-auto">
             Get started in minutes. Experience automated processing with direct verification connections and instant wallet settlement.
           </p>
         </div>
@@ -66,22 +65,18 @@ export const LandingHowItWorks: React.FC<LandingHowItWorksProps> = ({ onGetStart
             {steps.map((step, idx) => {
               const IconComponent = step.icon;
               return (
-                <motion.div
+                <div
                   key={step.number}
                   id={`step-card-${idx + 1}`}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: idx * 0.12 }}
-                  className="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-[0_4px_12px_rgba(15,23,42,0.08)] hover:border-[#0F2D5C] transition-all duration-300 relative z-10 flex flex-col justify-between group"
+                  className="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-[0_4px_12px_rgba(15,23,42,0.06)] hover:border-[#0F2D5C] transition-all duration-300 relative z-10 flex flex-col justify-between group"
                 >
                   <div className="space-y-4">
                     {/* Step Icon Header */}
                     <div className="flex items-center justify-between">
                       <div className="h-12 w-12 rounded-2xl bg-[#0F2D5C] text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform duration-200">
-                        <IconComponent className="h-6 w-6 text-white" />
+                        <IconComponent className="h-6 w-6 text-white" aria-hidden="true" />
                       </div>
-                      <span className="text-xs font-bold text-[#6B7280]">
+                      <span className="text-xs font-bold text-[#374151] bg-[#F5F7FA] border border-[#E5E7EB] px-2.5 py-1 rounded-full">
                         Step {step.number}
                       </span>
                     </div>
@@ -91,12 +86,12 @@ export const LandingHowItWorks: React.FC<LandingHowItWorksProps> = ({ onGetStart
                       <h3 className="text-base font-bold text-[#111827] group-hover:text-[#0F2D5C] transition-colors">
                         {step.title}
                       </h3>
-                      <p className="text-xs text-[#4B5563] font-normal leading-relaxed mt-2">
+                      <p className="text-xs text-[#374151] font-normal leading-relaxed mt-2">
                         {step.description}
                       </p>
                     </div>
                   </div>
-                </motion.div>
+                </div>
               );
             })}
           </div>
@@ -111,7 +106,7 @@ export const LandingHowItWorks: React.FC<LandingHowItWorksProps> = ({ onGetStart
             className="min-h-[48px] px-8 py-3.5 bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white font-bold rounded-xl text-sm shadow-xs transition-colors cursor-pointer inline-flex items-center justify-center gap-2 touch-manipulation"
           >
             <span>Start Your First Verification Now</span>
-            <ArrowRight className="h-4 w-4" />
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
 

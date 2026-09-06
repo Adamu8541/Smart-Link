@@ -452,9 +452,9 @@ export const FloatingHelpWidget: React.FC = () => {
   const whatsappUrl = `https://wa.me/${internationalNumber}?text=Hello%20Support%2C%20I%20need%20assistance.`;
 
   return (
-    <div className="fixed right-4 bottom-5 sm:right-6 sm:bottom-6 z-50 flex flex-col items-center select-none pointer-events-auto">
+    <aside id="whatsapp-floating-widget" aria-label="WhatsApp Support Help Desk" className="fixed right-4 bottom-5 sm:right-6 sm:bottom-6 z-50 flex flex-col items-center select-none pointer-events-auto">
       {/* Speech Bubble Tooltip */}
-      <div className="relative mb-2 filter drop-shadow-md animate-bounce" style={{ animationDuration: "2.5s" }}>
+      <div className="relative mb-2 filter drop-shadow-md animate-bounce" style={{ animationDuration: "2.5s" }} aria-hidden="true">
         <div className="bg-[#111827] text-white text-[11px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg border border-white/10">
           <span className="w-2 h-2 rounded-full bg-[#25D366] animate-pulse"></span>
           <span>Chat on WhatsApp</span>
@@ -465,23 +465,25 @@ export const FloatingHelpWidget: React.FC = () => {
 
       {/* WhatsApp Circular Floating Button */}
       <a
+        id="whatsapp-chat-button"
         href={whatsappUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="relative flex items-center justify-center cursor-pointer transition-transform duration-200 hover:scale-110 active:scale-95 group"
+        className="relative flex items-center justify-center cursor-pointer transition-transform duration-200 hover:scale-110 active:scale-95 group touch-manipulation"
         title={`Chat on WhatsApp (${phoneNumber})`}
-        aria-label={`Chat on WhatsApp at ${phoneNumber}`}
+        aria-label={`Contact support on WhatsApp at ${phoneNumber}`}
       >
         {/* Pulsing ring */}
         <span
           className="absolute -inset-1 rounded-full bg-[#25D366]/35 animate-ping opacity-75 group-hover:opacity-100"
           style={{ animationDuration: "2.5s" }}
+          aria-hidden="true"
         ></span>
 
         <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[#25D366] hover:bg-[#20bd5a] text-white flex items-center justify-center shadow-[0_6px_24px_rgba(37,211,102,0.5)] ring-4 ring-white transition-all duration-200">
           <WhatsAppOfficialLogo className="w-7 h-7 sm:w-8 sm:h-8 fill-white" />
         </div>
       </a>
-    </div>
+    </aside>
   );
 };

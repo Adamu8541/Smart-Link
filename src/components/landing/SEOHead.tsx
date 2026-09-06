@@ -70,7 +70,7 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
 
     // HTML root language
     if (document.documentElement) {
-      document.documentElement.lang = "en-NG";
+      document.documentElement.lang = "en";
       document.documentElement.dir = "ltr";
     }
 
