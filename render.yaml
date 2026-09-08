@@ -1,0 +1,12 @@
+services:
+  # Full-Stack Node.js + Express Web Service on Render
+  - type: web
+    name: smartlink-ng-portal
+    env: node
+    region: frankfurt
+    plan: free
+    buildCommand: npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production

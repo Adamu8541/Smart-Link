@@ -1,0 +1,186 @@
+@import "tailwindcss";
+
+@variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* Custom premium scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+:root {
+  --admin-navy: #0F2D5C;
+  --admin-deep-blue: #17407E;
+  --admin-primary-blue: #0F2D5C;
+  --admin-light-blue: #F5F7FA;
+  --admin-white: #FFFFFF;
+  --admin-light-bg: #F5F7FA;
+  --admin-border-gray: #E5E7EB;
+  --admin-text-gray: #4B5563;
+  --admin-dark-text: #111827;
+  --admin-success-green: #10B981;
+  --admin-error-red: #EF4444;
+}
+
+/* Admin Dashboard Palette Classes */
+.bg-admin-navy { background-color: #0F2D5C !important; }
+.bg-admin-deep-blue { background-color: #17407E !important; }
+.bg-admin-primary-blue { background-color: #0F2D5C !important; }
+.bg-admin-light-blue { background-color: #F5F7FA !important; }
+.bg-admin-white { background-color: #FFFFFF !important; }
+.bg-admin-light-bg { background-color: #F5F7FA !important; }
+.bg-admin-border-gray { background-color: #E5E7EB !important; }
+.bg-admin-success { background-color: #10B981 !important; }
+.bg-admin-error { background-color: #EF4444 !important; }
+
+.text-admin-navy { color: #0F2D5C !important; }
+.text-admin-deep-blue { color: #17407E !important; }
+.text-admin-primary-blue { color: #0F2D5C !important; }
+.text-admin-text-gray { color: #4B5563 !important; }
+.text-admin-dark-text { color: #111827 !important; }
+.text-admin-success { color: #10B981 !important; }
+.text-admin-error { color: #EF4444 !important; }
+.text-admin-white { color: #FFFFFF !important; }
+
+.border-admin-border-gray { border-color: #E5E7EB !important; }
+.border-admin-primary-blue { border-color: #0F2D5C !important; }
+.border-admin-navy { border-color: #0F2D5C !important; }
+.border-admin-success { border-color: #10B981 !important; }
+.border-admin-error { border-color: #EF4444 !important; }
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #E5E7EB;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6B7280;
+}
+
+/* Global design system defaults */
+body {
+  background-color: #F5F7FA;
+  color: #374151;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #111827;
+  font-weight: 700;
+}
+
+/* Base custom interactive effects */
+.fintech-card {
+  background-color: #FFFFFF;
+  border-radius: 16px;
+  border: 1px solid #E5E7EB;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+  transition: all 0.2s ease-in-out;
+}
+
+.fintech-card-hover:hover {
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.1);
+  transform: translateY(-2px);
+}
+
+.fintech-btn-primary {
+  background-color: #0F2D5C;
+  color: #FFFFFF;
+  border-radius: 12px;
+  font-weight: 600;
+  padding: 0.625rem 1.25rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.fintech-btn-primary:hover {
+  background-color: #17407E;
+}
+
+.fintech-btn-secondary {
+  background-color: #FFFFFF;
+  color: #0F2D5C;
+  border: 1px solid #0F2D5C;
+  border-radius: 12px;
+  font-weight: 600;
+  padding: 0.625rem 1.25rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.fintech-btn-secondary:hover {
+  background-color: #F8FAFC;
+}
+
+.fintech-input {
+  background-color: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 0.625rem 1rem;
+  color: #111827;
+  transition: all 0.2s ease-in-out;
+}
+
+.fintech-input:focus {
+  outline: none;
+  border-color: #0F2D5C;
+  box-shadow: 0 0 0 2px rgba(15, 45, 92, 0.15);
+}
+
+.fintech-input::placeholder {
+  color: #9CA3AF;
+}
+
+/* Beautiful logo text styling */
+.beautiful-brand-logo {
+  color: #0F2D5C !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.03em !important;
+  transition: all 0.3s ease !important;
+}
+
+.beautiful-brand-logo:hover {
+  color: #17407E !important;
+}
+
+/* Force high-contrast white background for QR Code scanner compatibility */
+.keep-white-bg {
+  background-color: #ffffff !important;
+}
+
+/* Offscreen section rendering optimization */
+.content-visibility-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 600px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+
+
+
+

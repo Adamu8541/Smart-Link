@@ -1,0 +1,63 @@
+# ==============================================================================
+# SmartLink Nigeria Digital Platform - Search Engine Robots Directives
+# Website: https://smartlinkng.com.ng
+# ==============================================================================
+
+User-agent: *
+Allow: /
+Allow: /explore-services
+Allow: /services
+Allow: /verification
+Allow: /nin
+Allow: /bvn
+Allow: /cac
+Allow: /scuml
+Allow: /bills
+Allow: /electricity
+Allow: /data
+Allow: /airtime
+Allow: /cable-tv
+Allow: /exam-pins
+Allow: /vtu
+Allow: /api-docs
+Allow: /developer-api
+Allow: /docs
+Allow: /terms
+Allow: /privacy
+Allow: /compliance
+Allow: /refund-policy
+Allow: /security
+Allow: /sla
+Allow: /wallet-terms
+Allow: /payment-terms
+Allow: /cookie-policy
+Allow: /kyc-notice
+Allow: /acceptable-use
+Allow: /data-protection
+Allow: /disclaimer
+Allow: /marketing-policy
+Allow: /legal-center
+Allow: /legal
+Allow: /legal/*
+Allow: /og-image.png
+Allow: /logo.webp
+Allow: /favicon.webp
+Allow: /assets/
+
+# Disallow Private Administration, Authentication & Dashboard Endpoints
+Disallow: /admin
+Disallow: /admin/
+Disallow: /admin/*
+Disallow: /api/
+Disallow: /api/*
+Disallow: /dashboard
+Disallow: /dashboard/
+Disallow: /dashboard/*
+Disallow: /wallet/
+Disallow: /wallet/*
+Disallow: /reset-password
+Disallow: /verify-token
+
+# Crawl Delay & Sitemap Reference
+Crawl-delay: 1
+Sitemap: https://smartlinkng.com.ng/sitemap.xml

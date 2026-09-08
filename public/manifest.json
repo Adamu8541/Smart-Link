@@ -1,0 +1,32 @@
+{
+  "name": "Smart Link NG - Identity, CAC & VTU Portal",
+  "short_name": "SmartLink NG",
+  "description": "Nigeria's all-in-one digital portal for NIN Verification, BVN Validation, CAC Business Name Registration, Electricity Disco Tokens, cheap VTU Data & Airtime, and Developer Verification APIs.",
+  "start_url": "/",
+  "id": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#F5F7FA",
+  "theme_color": "#0F2D5C",
+  "categories": ["finance", "utilities", "business", "productivity"],
+  "icons": [
+    {
+      "src": "/favicon.webp",
+      "sizes": "192x192 512x512",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.webp",
+      "sizes": "192x192 512x512",
+      "type": "image/webp",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/favicon.webp",
+      "sizes": "any",
+      "type": "image/webp"
+    }
+  ]
+}
