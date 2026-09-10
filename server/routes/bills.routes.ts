@@ -629,23 +629,70 @@ app.get("/api/bills/plans", async (req, res) => {
   if (category === "DATA") {
     if (provider === "MTN") {
       plans = [
-        { id: "mtn_500mb", providerCode: "MTN", planName: "MTN SME 500MB", dataVolume: "500MB", validity: "30 Days", amount: 140, category },
-        { id: "mtn_1gb", providerCode: "MTN", planName: "MTN SME 1.0GB", dataVolume: "1.0GB", validity: "30 Days", amount: 260, category },
-        { id: "mtn_2gb", providerCode: "MTN", planName: "MTN SME 2.0GB", dataVolume: "2.0GB", validity: "30 Days", amount: 520, category },
-        { id: "mtn_5gb", providerCode: "MTN", planName: "MTN SME 5.0GB", dataVolume: "5.0GB", validity: "30 Days", amount: 1300, category },
-        { id: "mtn_10gb", providerCode: "MTN", planName: "MTN SME 10.0GB", dataVolume: "10.0GB", validity: "30 Days", amount: 2600, category },
+        // MTN SME Data
+        { id: "mtn_sme_500mb", providerCode: "MTN", planCode: "500", planName: "MTN SME 500MB", dataType: "SME", dataVolume: "500MB", validity: "30 Days", amount: 140, category },
+        { id: "mtn_sme_1gb", providerCode: "MTN", planCode: "1000", planName: "MTN SME 1.0GB", dataType: "SME", dataVolume: "1.0GB", validity: "30 Days", amount: 260, category },
+        { id: "mtn_sme_2gb", providerCode: "MTN", planCode: "2000", planName: "MTN SME 2.0GB", dataType: "SME", dataVolume: "2.0GB", validity: "30 Days", amount: 520, category },
+        { id: "mtn_sme_3gb", providerCode: "MTN", planCode: "3000", planName: "MTN SME 3.0GB", dataType: "SME", dataVolume: "3.0GB", validity: "30 Days", amount: 780, category },
+        { id: "mtn_sme_5gb", providerCode: "MTN", planCode: "5000", planName: "MTN SME 5.0GB", dataType: "SME", dataVolume: "5.0GB", validity: "30 Days", amount: 1300, category },
+        { id: "mtn_sme_10gb", providerCode: "MTN", planCode: "10000", planName: "MTN SME 10.0GB", dataType: "SME", dataVolume: "10.0GB", validity: "30 Days", amount: 2600, category },
+        // MTN Corporate Gifting (CG)
+        { id: "mtn_cg_500mb", providerCode: "MTN", planCode: "CG500", planName: "MTN CG 500MB", dataType: "CORPORATE", dataVolume: "500MB", validity: "30 Days", amount: 145, category },
+        { id: "mtn_cg_1gb", providerCode: "MTN", planCode: "CG1000", planName: "MTN CG 1.0GB", dataType: "CORPORATE", dataVolume: "1.0GB", validity: "30 Days", amount: 265, category },
+        { id: "mtn_cg_2gb", providerCode: "MTN", planCode: "CG2000", planName: "MTN CG 2.0GB", dataType: "CORPORATE", dataVolume: "2.0GB", validity: "30 Days", amount: 530, category },
+        { id: "mtn_cg_5gb", providerCode: "MTN", planCode: "CG5000", planName: "MTN CG 5.0GB", dataType: "CORPORATE", dataVolume: "5.0GB", validity: "30 Days", amount: 1320, category },
+        // MTN Direct / Gifting
+        { id: "mtn_gift_1_5gb", providerCode: "MTN", planCode: "DG1500", planName: "MTN Direct 1.5GB", dataType: "GIFTING", dataVolume: "1.5GB", validity: "30 Days", amount: 1050, category },
+        { id: "mtn_gift_2gb", providerCode: "MTN", planCode: "DG2000", planName: "MTN Direct 2.0GB (Monthly)", dataType: "GIFTING", dataVolume: "2.0GB", validity: "30 Days", amount: 1250, category },
+        { id: "mtn_gift_4_5gb", providerCode: "MTN", planCode: "DG4500", planName: "MTN Direct 4.5GB", dataType: "GIFTING", dataVolume: "4.5GB", validity: "30 Days", amount: 2100, category },
+        { id: "mtn_gift_10gb", providerCode: "MTN", planCode: "DG10000", planName: "MTN Direct 10.0GB", dataType: "GIFTING", dataVolume: "10.0GB", validity: "30 Days", amount: 3150, category },
       ];
     } else if (provider === "GLO") {
       plans = [
-        { id: "glo_1gb", providerCode: "GLO", planName: "Glo Direct 1.0GB", dataVolume: "1.0GB", validity: "30 Days", amount: 250, category },
-        { id: "glo_2gb", providerCode: "GLO", planName: "Glo Direct 2.0GB", dataVolume: "2.0GB", validity: "30 Days", amount: 500, category },
-        { id: "glo_5gb", providerCode: "GLO", planName: "Glo Direct 5.0GB", dataVolume: "5.0GB", validity: "30 Days", amount: 1250, category },
+        // Glo Corporate Gifting / SME
+        { id: "glo_cg_500mb", providerCode: "GLO", planCode: "GLO500", planName: "Glo CG 500MB", dataType: "CORPORATE", dataVolume: "500MB", validity: "30 Days", amount: 125, category },
+        { id: "glo_cg_1gb", providerCode: "GLO", planCode: "GLO1000", planName: "Glo CG 1.0GB", dataType: "CORPORATE", dataVolume: "1.0GB", validity: "30 Days", amount: 240, category },
+        { id: "glo_cg_2gb", providerCode: "GLO", planCode: "GLO2000", planName: "Glo CG 2.0GB", dataType: "CORPORATE", dataVolume: "2.0GB", validity: "30 Days", amount: 480, category },
+        { id: "glo_cg_3gb", providerCode: "GLO", planCode: "GLO3000", planName: "Glo CG 3.0GB", dataType: "CORPORATE", dataVolume: "3.0GB", validity: "30 Days", amount: 720, category },
+        { id: "glo_cg_5gb", providerCode: "GLO", planCode: "GLO5000", planName: "Glo CG 5.0GB", dataType: "CORPORATE", dataVolume: "5.0GB", validity: "30 Days", amount: 1200, category },
+        { id: "glo_cg_10gb", providerCode: "GLO", planCode: "GLO10000", planName: "Glo CG 10.0GB", dataType: "CORPORATE", dataVolume: "10.0GB", validity: "30 Days", amount: 2400, category },
+        // Glo Direct
+        { id: "glo_dir_1_9gb", providerCode: "GLO", planCode: "G19", planName: "Glo Direct 1.9GB (Special)", dataType: "DIRECT", dataVolume: "1.9GB", validity: "14 Days", amount: 500, category },
+        { id: "glo_dir_3_9gb", providerCode: "GLO", planCode: "G39", planName: "Glo Direct 3.9GB", dataType: "DIRECT", dataVolume: "3.9GB", validity: "30 Days", amount: 1000, category },
+        { id: "glo_dir_7_5gb", providerCode: "GLO", planCode: "G75", planName: "Glo Direct 7.5GB", dataType: "DIRECT", dataVolume: "7.5GB", validity: "30 Days", amount: 1500, category },
+        { id: "glo_dir_9_2gb", providerCode: "GLO", planCode: "G92", planName: "Glo Direct 9.2GB", dataType: "DIRECT", dataVolume: "9.2GB", validity: "30 Days", amount: 2000, category },
+      ];
+    } else if (provider === "AIRTEL") {
+      plans = [
+        // Airtel Corporate Gifting / SME
+        { id: "airtel_cg_500mb", providerCode: "AIRTEL", planCode: "AIR500", planName: "Airtel CG 500MB", dataType: "CORPORATE", dataVolume: "500MB", validity: "30 Days", amount: 140, category },
+        { id: "airtel_cg_1gb", providerCode: "AIRTEL", planCode: "AIR1000", planName: "Airtel CG 1.0GB", dataType: "CORPORATE", dataVolume: "1.0GB", validity: "30 Days", amount: 270, category },
+        { id: "airtel_cg_2gb", providerCode: "AIRTEL", planCode: "AIR2000", planName: "Airtel CG 2.0GB", dataType: "CORPORATE", dataVolume: "2.0GB", validity: "30 Days", amount: 540, category },
+        { id: "airtel_cg_5gb", providerCode: "AIRTEL", planCode: "AIR5000", planName: "Airtel CG 5.0GB", dataType: "CORPORATE", dataVolume: "5.0GB", validity: "30 Days", amount: 1350, category },
+        { id: "airtel_cg_10gb", providerCode: "AIRTEL", planCode: "AIR10000", planName: "Airtel CG 10.0GB", dataType: "CORPORATE", dataVolume: "10.0GB", validity: "30 Days", amount: 2700, category },
+        // Airtel Direct / Gifting
+        { id: "airtel_dir_1_5gb", providerCode: "AIRTEL", planCode: "AIRD1500", planName: "Airtel Direct 1.5GB", dataType: "DIRECT", dataVolume: "1.5GB", validity: "30 Days", amount: 1050, category },
+        { id: "airtel_dir_3gb", providerCode: "AIRTEL", planCode: "AIRD3000", planName: "Airtel Direct 3.0GB", dataType: "DIRECT", dataVolume: "3.0GB", validity: "30 Days", amount: 1500, category },
+        { id: "airtel_dir_4_5gb", providerCode: "AIRTEL", planCode: "AIRD4500", planName: "Airtel Direct 4.5GB", dataType: "DIRECT", dataVolume: "4.5GB", validity: "30 Days", amount: 2050, category },
+      ];
+    } else if (provider === "9MOBILE") {
+      plans = [
+        // 9mobile SME / CG
+        { id: "9mobile_cg_500mb", providerCode: "9MOBILE", planCode: "9M500", planName: "9mobile CG 500MB", dataType: "CORPORATE", dataVolume: "500MB", validity: "30 Days", amount: 110, category },
+        { id: "9mobile_cg_1gb", providerCode: "9MOBILE", planCode: "9M1000", planName: "9mobile CG 1.0GB", dataType: "CORPORATE", dataVolume: "1.0GB", validity: "30 Days", amount: 190, category },
+        { id: "9mobile_cg_2gb", providerCode: "9MOBILE", planCode: "9M2000", planName: "9mobile CG 2.0GB", dataType: "CORPORATE", dataVolume: "2.0GB", validity: "30 Days", amount: 380, category },
+        { id: "9mobile_cg_3gb", providerCode: "9MOBILE", planCode: "9M3000", planName: "9mobile CG 3.0GB", dataType: "CORPORATE", dataVolume: "3.0GB", validity: "30 Days", amount: 570, category },
+        { id: "9mobile_cg_5gb", providerCode: "9MOBILE", planCode: "9M5000", planName: "9mobile CG 5.0GB", dataType: "CORPORATE", dataVolume: "5.0GB", validity: "30 Days", amount: 950, category },
+        { id: "9mobile_cg_10gb", providerCode: "9MOBILE", planCode: "9M10000", planName: "9mobile CG 10.0GB", dataType: "CORPORATE", dataVolume: "10.0GB", validity: "30 Days", amount: 1900, category },
+        // 9mobile Direct
+        { id: "9mobile_dir_1_5gb", providerCode: "9MOBILE", planCode: "9MD1500", planName: "9mobile Direct 1.5GB", dataType: "DIRECT", dataVolume: "1.5GB", validity: "30 Days", amount: 1000, category },
+        { id: "9mobile_dir_4_5gb", providerCode: "9MOBILE", planCode: "9MD4500", planName: "9mobile Direct 4.5GB", dataType: "DIRECT", dataVolume: "4.5GB", validity: "30 Days", amount: 2000, category },
       ];
     } else {
       plans = [
-        { id: "gen_1gb", providerCode: provider, planName: `${provider} Direct 1.0GB`, dataVolume: "1.0GB", validity: "30 Days", amount: 270, category },
-        { id: "gen_2gb", providerCode: provider, planName: `${provider} Direct 2.0GB`, dataVolume: "2.0GB", validity: "30 Days", amount: 540, category },
-        { id: "gen_5gb", providerCode: provider, planName: `${provider} Direct 5.0GB`, dataVolume: "5.0GB", validity: "30 Days", amount: 1350, category },
+        { id: "gen_1gb", providerCode: provider, planCode: "1000", planName: `${provider} Direct 1.0GB`, dataType: "DIRECT", dataVolume: "1.0GB", validity: "30 Days", amount: 270, category },
+        { id: "gen_2gb", providerCode: provider, planCode: "2000", planName: `${provider} Direct 2.0GB`, dataType: "DIRECT", dataVolume: "2.0GB", validity: "30 Days", amount: 540, category },
+        { id: "gen_5gb", providerCode: provider, planCode: "5000", planName: `${provider} Direct 5.0GB`, dataType: "DIRECT", dataVolume: "5.0GB", validity: "30 Days", amount: 1350, category },
       ];
     }
   } else if (category === "CABLE_TV") {
@@ -672,12 +719,38 @@ app.get("/api/bills/plans", async (req, res) => {
       ];
     }
   } else if (category === "EDUCATION") {
-    plans = [
-      { id: "waec_pin", providerCode: "WAEC", planName: "WAEC Result Checker ePIN", amount: 3800, category },
-      { id: "neco_token", providerCode: "NECO", planName: "NECO Result Token", amount: 1200, category },
-      { id: "jamb_epin", providerCode: "JAMB", planName: "JAMB UTME Registration ePIN", amount: 6200, category },
-      { id: "nabteb_card", providerCode: "NABTEB", planName: "NABTEB Result Scratch Card", amount: 1500, category },
-    ];
+    const provUpper = (provider || "").toUpperCase();
+    if (provUpper.includes("WAEC")) {
+      plans = [
+        { id: "waec_result_pin", providerCode: "WAEC", planName: "WAEC Result Checker ePIN", amount: 3800, category },
+        { id: "waec_verification_pin", providerCode: "WAEC", planName: "WAEC Certificate Verification PIN", amount: 4200, category },
+      ];
+    } else if (provUpper.includes("NECO")) {
+      plans = [
+        { id: "neco_result_token", providerCode: "NECO", planName: "NECO Result Checker Token", amount: 1200, category },
+        { id: "neco_bece_token", providerCode: "NECO", planName: "NECO BECE (Junior WAEC) Result Token", amount: 1500, category },
+        { id: "neco_ncee_token", providerCode: "NECO", planName: "NECO NCEE (Common Entrance) Token", amount: 1500, category },
+      ];
+    } else if (provUpper.includes("JAMB")) {
+      plans = [
+        { id: "jamb_utme_epin", providerCode: "JAMB", planName: "JAMB UTME Registration ePIN", amount: 6200, category },
+        { id: "jamb_de_epin", providerCode: "JAMB", planName: "JAMB Direct Entry (DE) ePIN", amount: 6200, category },
+        { id: "jamb_result_pin", providerCode: "JAMB", planName: "JAMB Result Slip Printing PIN", amount: 1500, category },
+        { id: "jamb_admission_pin", providerCode: "JAMB", planName: "JAMB Admission Letter Printing PIN", amount: 1500, category },
+      ];
+    } else if (provUpper.includes("NABTEB")) {
+      plans = [
+        { id: "nabteb_result_card", providerCode: "NABTEB", planName: "NABTEB Result Checker Scratch Card", amount: 1500, category },
+        { id: "nabteb_novdec_card", providerCode: "NABTEB", planName: "NABTEB Nov/Dec GCE Registration PIN", amount: 4500, category },
+      ];
+    } else {
+      plans = [
+        { id: "waec_pin", providerCode: "WAEC", planName: "WAEC Result Checker ePIN", amount: 3800, category },
+        { id: "neco_token", providerCode: "NECO", planName: "NECO Result Token", amount: 1200, category },
+        { id: "jamb_epin", providerCode: "JAMB", planName: "JAMB UTME Registration ePIN", amount: 6200, category },
+        { id: "nabteb_card", providerCode: "NABTEB", planName: "NABTEB Result Scratch Card", amount: 1500, category },
+      ];
+    }
   }
 
   res.json({ success: true, plans });
@@ -685,12 +758,64 @@ app.get("/api/bills/plans", async (req, res) => {
 
 // Validate Customer Details (Meter, IUC, Phone, Student ID)
 app.post("/api/bills/validate-customer", async (req, res) => {
-  const { category, providerCode, customerId } = req.body;
+  const { category, providerCode, customerId, meterType } = req.body;
   if (!customerId || customerId.trim().length < 5) {
     return res.status(400).json({ valid: false, error: "Please provide a valid Account / Meter / Customer ID (at least 5 digits)." });
   }
 
-  // Simulated live customer validation response
+  const db = readDB();
+  const activeProv = ProviderExecutor.getActiveProviderForCategory(db, category || "ELECTRICITY", providerCode);
+  if (activeProv) {
+    const adapter = getAdapterForProvider(activeProv);
+    if (adapter) {
+      if (category === "ELECTRICITY" && typeof (adapter as any).validateElectricityCustomer === "function") {
+        try {
+          const valRes = await (adapter as any).validateElectricityCustomer(
+            { electricCompany: providerCode || "IKEDC", meterType: meterType || "PREPAID", meterNo: customerId },
+            activeProv
+          );
+          if (valRes.valid) {
+            return res.json({
+              valid: true,
+              customerName: valRes.customerName || "VERIFIED ELECTRICITY CUSTOMER",
+              customerAddress: valRes.customerAddress || "",
+              accountStatus: "ACTIVE",
+              currentPlan: `${providerCode} ${meterType || "PREPAID"}`,
+              minimumAmount: 1000,
+              providerName: activeProv.name,
+              rawResponse: valRes.rawResponse,
+            });
+          }
+        } catch (e: any) {
+          console.warn("[validate-customer] Error from adapter:", e.message);
+        }
+      }
+
+      if (category === "CABLE_TV" && typeof (adapter as any).validateCableTVCustomer === "function") {
+        try {
+          const valRes = await (adapter as any).validateCableTVCustomer(
+            { cableProvider: providerCode || "DSTV", smartCardNo: customerId },
+            activeProv
+          );
+          if (valRes.valid) {
+            return res.json({
+              valid: true,
+              customerName: valRes.customerName || "VERIFIED SUBSCRIBER",
+              accountStatus: "ACTIVE",
+              currentPlan: valRes.currentPlan || `${providerCode} ACTIVE`,
+              minimumAmount: 1000,
+              providerName: activeProv.name,
+              rawResponse: valRes.rawResponse,
+            });
+          }
+        } catch (e: any) {
+          console.warn("[validate-customer] Error from cable adapter:", e.message);
+        }
+      }
+    }
+  }
+
+  // Fallback simulated response
   let customerName = "ALHAJI BABATUNDE KOLAWOLE";
   let customerAddress = "NO 14 ADEMOLA ADETOKUNBO CRESCENT, VICTORIA ISLAND, LAGOS";
   let currentPlan = "PREPAID STANDARD RESIDENTIAL";

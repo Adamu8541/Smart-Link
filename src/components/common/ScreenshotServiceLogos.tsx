@@ -319,6 +319,44 @@ export const NecoOfficialCardLogo: React.FC<{ className?: string }> = ({
 );
 
 /**
+ * Official NABTEB Logo (National Business and Technical Examinations Board)
+ */
+export const NabtebOfficialCardLogo: React.FC<{ className?: string }> = ({
+  className = "w-10 h-10"
+}) => (
+  <svg viewBox="0 0 100 100" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="50" cy="50" r="46" fill="#7C3AED" fillOpacity="0.08" stroke="#7C3AED" strokeWidth="3" />
+    <circle cx="50" cy="50" r="39" stroke="#7C3AED" strokeWidth="1.5" strokeDasharray="3 2" />
+    <path d="M32 38 Q50 32 50 42 Q50 32 68 38 L66 54 Q50 49 50 58 Q50 49 34 54 Z" fill="#7C3AED" fillOpacity="0.25" stroke="#7C3AED" strokeWidth="2" strokeLinejoin="round" />
+    <polygon points="50,18 46,26 54,26" fill="#F59E0B" />
+    <text
+      x="50"
+      y="74"
+      fontSize="13"
+      fontWeight="900"
+      textAnchor="middle"
+      fill="#7C3AED"
+      fontFamily="system-ui, -apple-system, sans-serif"
+      letterSpacing="0.8"
+    >
+      NABTEB
+    </text>
+    <text
+      x="50"
+      y="85"
+      fontSize="5.5"
+      fontWeight="800"
+      textAnchor="middle"
+      fill="#7C3AED"
+      opacity="0.85"
+      letterSpacing="0.4"
+    >
+      TECHNICAL EXAMS
+    </text>
+  </svg>
+);
+
+/**
  * Official SCUML Logo (Special Control Unit Against Money Laundering)
  */
 export const ScumlOfficialCardLogo: React.FC<{ className?: string }> = ({
@@ -333,7 +371,7 @@ export const ScumlOfficialCardLogo: React.FC<{ className?: string }> = ({
       SCUML
     </text>
     <text x="50" y="89" fontSize="6.5" fontWeight="800" textAnchor="middle" fill="#0A192F" letterSpacing="0.5">
-      EFCC AML/CFT
+      AML / CFT
     </text>
   </svg>
 );

@@ -301,7 +301,7 @@ app.post("/api/transaction/execute", async (req, res) => {
     derivedAmount = Number(db.systemSettings?.bvnFee || db.priceMatrix?.identityRates?.bvnFee || 500);
     derivedCharge = 0;
   } else if (serviceUpper.includes("CAC")) {
-    derivedAmount = Number(db.systemSettings?.cacBaseFee || db.priceMatrix?.cacRates?.businessNameFee || 15000);
+    derivedAmount = Number(db.systemSettings?.cacBaseFee || db.priceMatrix?.cacRates?.businessNameFee || 28000);
     derivedCharge = 0;
   } else if (
     serviceUpper.includes("AIRTIME") ||

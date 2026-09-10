@@ -31,6 +31,7 @@ import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
 import * as securityStore from "../../src/services/securityStore";
 import * as notificationsStore from "../../src/services/notificationsStore";
+import { sendPlatformEmail, getResolvedSmtpConfig } from "../services/email.service";
 import { getAuth } from "firebase-admin/auth";
 import { getAdminFirestore } from "../../src/services/firebaseAdmin";
 
@@ -789,6 +790,208 @@ app.post("/api/user/notifications/archive", async (req, res) => {
   }
 
   return res.json({ success: true, message: "Notification archived." });
+});
+
+// 6. POST /api/admin/emails/send - Admin Direct & Broadcast Email Sender
+app.post("/api/admin/emails/send", async (req, res) => {
+  const sessionToken = (req.headers["x-admin-token"] as string) || (req.headers["authorization"]?.replace("Bearer ", ""));
+  const db = readDB();
+  await syncFromFirestore(db);
+
+  const val = await adminAuthService.validateSession(db, sessionToken || "");
+  if (!val.valid || !val.session) {
+    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
+  }
+
+  const {
+    recipientMode = "individual",
+    recipients = [],
+    subject,
+    message,
+    senderName = "SmartLink NG",
+    attachments = [],
+  } = req.body;
+
+  if (!subject || !subject.trim()) {
+    return res.status(400).json({ success: false, message: "Email subject is required." });
+  }
+
+  if (!message || !message.trim()) {
+    return res.status(400).json({ success: false, message: "Email message content is required." });
+  }
+
+  // Resolve recipient emails
+  let targetEmails: string[] = [];
+
+  if (recipientMode === "all") {
+    const allUsers = await usersStore.getAllUsers();
+    targetEmails = allUsers
+      .map((u: any) => u.email)
+      .filter((e: any) => typeof e === "string" && e.trim().length > 3 && e.includes("@"));
+  } else if (recipientMode === "selective" || recipientMode === "individual") {
+    if (typeof recipients === "string") {
+      targetEmails = recipients.split(/[\s,;]+/).map(e => e.trim()).filter(e => e.includes("@"));
+    } else if (Array.isArray(recipients)) {
+      targetEmails = recipients
+        .map((r: any) => (typeof r === "string" ? r.trim() : (r?.email || "")))
+        .filter((e: string) => e && e.includes("@"));
+    }
+  }
+
+  // Deduplicate
+  targetEmails = Array.from(new Set(targetEmails));
+
+  if (targetEmails.length === 0) {
+    return res.status(400).json({ success: false, message: "No valid recipient email addresses specified." });
+  }
+
+  // Format attachments for Nodemailer
+  const formattedAttachments = Array.isArray(attachments) ? attachments.map((att: any) => ({
+    filename: att.filename || att.name || "attachment",
+    base64Content: att.base64Content || att.data || att.content || "",
+    contentType: att.contentType || att.type || "application/octet-stream"
+  })).filter(att => att.base64Content) : [];
+
+  // Format HTML message body
+  const formattedMessage = message.includes("<p>") || message.includes("<br") || message.includes("<div")
+    ? message
+    : message.replace(/\n/g, "<br/>");
+
+  const timestamp = new Date().toLocaleString("en-NG", { timeZone: "Africa/Lagos", dateStyle: "full", timeStyle: "medium" });
+
+  const filesRowsHtml = formattedAttachments.length > 0
+    ? formattedAttachments
+        .map(
+          (att: any) => `
+          <tr style="border-bottom: 1px solid #E5E7EB;">
+            <td style="padding: 10px 14px; font-weight: 600; color: #0F2D5C; background-color: #EFF6FF; width: 30%;">Attached File</td>
+            <td style="padding: 10px 14px; color: #111827;">📎 <strong>${att.filename}</strong> — <em>See Email Attachments</em></td>
+          </tr>
+        `
+        )
+        .join("")
+    : "";
+
+  const attachmentsTableHtml = formattedAttachments.length > 0
+    ? `
+      <div style="margin-top: 24px; background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 16px;">
+        <h3 style="margin: 0 0 10px 0; font-size: 13px; font-weight: bold; text-transform: uppercase; color: #0F2D5C; letter-spacing: 0.5px;">📎 Attached Documents (${formattedAttachments.length})</h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+          <tbody>
+            ${filesRowsHtml}
+          </tbody>
+        </table>
+      </div>
+    `
+    : "";
+
+  const emailHtml = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>${subject}</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; background-color: #F3F4F6; margin: 0; padding: 24px; color: #111827;">
+      <div style="max-width: 680px; margin: 0 auto; background-color: #FFFFFF; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid #E5E7EB;">
+        
+        <!-- Header -->
+        <div style="background-color: #0F2D5C; color: #FFFFFF; padding: 24px; text-align: left;">
+          <h1 style="margin: 0 0 6px 0; font-size: 20px; letter-spacing: -0.5px; font-weight: bold; text-transform: uppercase;">Smart Link NG</h1>
+          <p style="margin: 0; font-size: 13px; color: #93C5FD; font-weight: 500;">${senderName ? `${senderName} • Official Communication` : "Official Customer Notice"}</p>
+        </div>
+
+        <!-- Banner Alert -->
+        <div style="background-color: #EFF6FF; border-left: 4px solid #2563EB; padding: 14px 20px;">
+          <p style="margin: 0; font-size: 14px; color: #1E40AF; font-weight: bold;">
+            📢 ${subject}
+          </p>
+          <p style="margin: 4px 0 0 0; font-size: 12px; color: #4B5563;">
+            Date Dispatched: ${timestamp}
+          </p>
+        </div>
+
+        <!-- Content Body -->
+        <div style="padding: 24px; font-family: Arial, sans-serif; font-size: 14.5px; line-height: 1.65; color: #111827;">
+          ${formattedMessage}
+
+          ${attachmentsTableHtml}
+        </div>
+
+        <!-- Action / Notice Box -->
+        <div style="margin: 0 24px 24px 24px; background-color: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 8px; padding: 14px; text-align: center;">
+          <p style="margin: 0; font-size: 13px; color: #166534; font-weight: 600;">
+            ✓ Official communication dispatched securely via SmartLink Digital Services
+          </p>
+        </div>
+
+        <!-- Footer -->
+        <div style="background-color: #F9FAFB; padding: 16px 24px; border-top: 1px solid #E5E7EB; text-align: center; font-size: 12px; color: #6B7280;">
+          <p style="margin: 0; font-weight: 600;">SmartLink Digital Services • Customer Communications Engine</p>
+          <p style="margin: 4px 0 0 0;">© ${new Date().getFullYear()} ${senderName || "SmartLink Digital Services"}. All rights reserved.</p>
+        </div>
+
+      </div>
+    </body>
+    </html>
+  `;
+
+  let sentCount = 0;
+  let failedCount = 0;
+  const failedEmails: string[] = [];
+
+  for (const email of targetEmails) {
+    try {
+      const result = await sendPlatformEmail({
+        to: email,
+        subject,
+        html: emailHtml,
+        senderName: senderName || "SmartLink NG",
+        attachments: formattedAttachments,
+      }, db);
+
+      if (result.success) {
+        sentCount++;
+      } else {
+        failedCount++;
+        failedEmails.push(email);
+        console.error(`Admin send email error to ${email}:`, result.message || result.error);
+      }
+    } catch (err: any) {
+      failedCount++;
+      failedEmails.push(email);
+      console.error(`Admin send email exception to ${email}:`, err.message);
+    }
+  }
+
+  // Record audit entry
+  if (!db.notification_history) db.notification_history = [];
+  db.notification_history.unshift({
+    id: `EMAIL_DISPATCH_${Date.now()}`,
+    type: "EMAIL",
+    subject,
+    senderName: senderName || "SmartLink NG",
+    recipientMode,
+    targetCount: targetEmails.length,
+    sentCount,
+    failedCount,
+    failedEmails,
+    attachmentsCount: formattedAttachments.length,
+    adminEmail: val.session.email,
+    timestamp: new Date().toISOString(),
+  });
+
+  writeDB(db);
+  await syncToFirestore(db);
+
+  return res.json({
+    success: sentCount > 0,
+    message: `Email process completed: ${sentCount} sent successfully${failedCount > 0 ? `, ${failedCount} failed` : ""}.`,
+    sentCount,
+    failedCount,
+    totalTargets: targetEmails.length,
+    failedEmails,
+  });
 });
 
 

@@ -24,6 +24,7 @@ import { adminAuthService, ADMIN_ROLES_CONFIG } from "../../src/services/adminAu
 import { AutomaticWalletFundingEngine } from "../../src/services/automaticWalletFundingEngine";
 import { PaymentVerificationReconciliationEngine } from "../../src/services/paymentVerificationReconciliationEngine";
 import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerGateway";
+import { sendPlatformEmail } from "../services/email.service";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
 import { LumiIDAdapter } from "../../src/services/providers/lumiidAdapter";
 import { NinBvnPortalAdapter } from "../../src/services/providers/ninBvnPortalAdapter";
@@ -46,8 +47,8 @@ app.post("/api/cac/apply", async (req, res) => {
   const { userId, type, proposedNames, businessType, objective, address, proprietors } = req.body;
   const db = readDB();
 
-  let fee = 15000;
-  if (type === "COMPANY") fee = 25000;
+  let fee = 28000;
+  if (type === "COMPANY" || type === "LTD") fee = 35000;
   if (type === "NGO" || type === "TRUSTEE") fee = 35000;
 
   const txRef = "SML-CAC-" + Math.floor(100000 + Math.random() * 900000);
@@ -2580,36 +2581,19 @@ app.post("/api/verification/send-email-slip", async (req, res) => {
     const subject = `Official ${serviceType.toUpperCase()} Verification Slip & Certificate - ${holderName} [#${reference}]`;
 
     // Attempt SMTP dispatch
-    const smtpConfig = db.system_settings?.email || {};
-    const smtpHost = process.env.SMTP_HOST || smtpConfig.smtpHost;
-    const smtpPort = Number(process.env.SMTP_PORT || smtpConfig.smtpPort || 587);
-    const smtpUser = process.env.SMTP_USER || smtpConfig.smtpUsername;
-    const smtpPass = process.env.SMTP_PASS || process.env.SMTP_PASSWORD;
-
     let deliveryMode: "LIVE_SMTP" | "SIMULATED_SANDBOX" = "SIMULATED_SANDBOX";
     let smtpError: string | null = null;
 
-    if (smtpHost && smtpUser && smtpPass) {
-      try {
-        const transporter = nodemailer.createTransport({
-          host: smtpHost,
-          port: smtpPort,
-          secure: smtpPort === 465,
-          auth: { user: smtpUser, pass: smtpPass },
-        });
-
-        for (const destEmail of targetEmails) {
-          await transporter.sendMail({
-            from: `"${smtpConfig.senderName || 'SmartLink Verification Gateway'}" <${smtpConfig.replyToAddress || 'no-reply@smartlinkdigital.ng'}>`,
-            to: destEmail,
-            subject,
-            html: emailHtml,
-          });
-        }
+    for (const destEmail of targetEmails) {
+      const emailRes = await sendPlatformEmail({
+        to: destEmail,
+        subject,
+        html: emailHtml,
+      });
+      if (emailRes.success) {
         deliveryMode = "LIVE_SMTP";
-      } catch (err: any) {
-        console.warn("[SlipEmailDispatch] SMTP failure fallback to simulated log:", err.message);
-        smtpError = err.message;
+      } else {
+        smtpError = emailRes.message;
       }
     }
 

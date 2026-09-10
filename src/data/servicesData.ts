@@ -6,7 +6,7 @@ export interface ServiceItem {
   price?: number;
   priceLabel?: string;
   actionLabel: string;
-  fields: { name: string; label: string; type: string; placeholder: string; required: boolean; options?: string[] }[];
+  fields: { name: string; label: string; type: string; placeholder?: string; required: boolean; options?: string[] }[];
 }
 
 export const SMART_LINK_SERVICES: ServiceItem[] = [
@@ -228,13 +228,14 @@ export const SMART_LINK_SERVICES: ServiceItem[] = [
     name: "CAC Registration",
     category: "CAC",
     description: "Register and incorporate new Business Names, Companies (LTD), or NGOs with the Corporate Affairs Commission.",
-    price: 15000,
+    price: 0,
     actionLabel: "Start Registration",
     fields: [
-      { name: "proposedName", label: "Proposed Business Name (Choice 1)", type: "text", placeholder: "e.g. Agri-Allied Ventures", required: true },
-      { name: "alternativeName", label: "Alternative Proposed Name (Choice 2)", type: "text", placeholder: "e.g. Agritech Ventures", required: true },
-      { name: "type", label: "Filing Type", type: "select", placeholder: "Select type", required: true, options: ["Business Name Registration", "Private Limited Company (LTD)", "Incorporated Trustees (NGO)"] },
-      { name: "objective", label: "Main Business Objective", type: "textarea", placeholder: "Provide business goal description...", required: true }
+      { name: "proposedName", label: "Proposed Business Name (Choice 1)", type: "text", required: true },
+      { name: "alternativeName", label: "Alternative Proposed Name (Choice 2)", type: "text", required: true },
+      { name: "type", label: "Filing Type", type: "select", required: true, options: ["Business Name Registration", "Private Limited Company (LTD)", "NGO Registration", "Incorporated Trustees"] },
+      { name: "natureOfBusiness", label: "Nature of Business", type: "text", required: true },
+      { name: "objectivesOfBusiness", label: "Objectives of the Business", type: "textarea", required: true }
     ]
   },
   {
@@ -262,14 +263,14 @@ export const SMART_LINK_SERVICES: ServiceItem[] = [
   },
   {
     id: "id_tax_id_search",
-    name: "Tax ID Search",
+    name: "Tax Identity",
     category: "CAC",
-    description: "Search, verify, and retrieve official federal Tax Identification Number (TIN) database profiles.",
-    price: 500,
-    actionLabel: "Search Tax ID",
+    description: "Official Federal Tax Identification Number (TIN) desk: Tax ID retrieval, Individual & Corporate Tax ID registration, and Tax Identity verification.",
+    price: 1500,
+    actionLabel: "Open Tax Identity Desk",
     fields: [
-      { name: "companyName", label: "Company / Business Name", type: "text", placeholder: "e.g. Smart Link Integrated Ltd", required: true },
-      { name: "rcNumber", label: "RC or Business Number (Optional)", type: "text", placeholder: "e.g. RC 1908234", required: false }
+      { name: "taxpayerName", label: "Full Legal or Registered Name", type: "text", placeholder: "e.g. Adamu Abubakar Muhammad or Company Name", required: true },
+      { name: "taxServiceType", label: "Tax Identity Service", type: "select", placeholder: "Select Tax Identity Service", options: ["Tax ID Number retrieval", "Get Individual Tax Identity Number", "Get Business/corporate ID Number", "Verify Tax Identity Number"], required: true }
     ]
   },
 
@@ -278,16 +279,16 @@ export const SMART_LINK_SERVICES: ServiceItem[] = [
     id: "cac_biz_name",
     name: "CAC Business Name Registration",
     category: "CAC",
-    description: "Official registration of Business Names with the Corporate Affairs Commission. Filing includes national agency approvals.",
-    price: 15000,
+    description: "Official registration of Business Names with the Corporate Affairs Commission. Filing includes Certificate of Incorporation & Status Report.",
+    price: 0,
     actionLabel: "Start Corporate Filing",
     fields: [
-      { name: "proposedName1", label: "Proposed Business Name (Choice 1)", type: "text", placeholder: "e.g. Agro-Allied Ventures", required: true },
-      { name: "proposedName2", label: "Proposed Business Name (Choice 2)", type: "text", placeholder: "e.g. Agritech Ventures", required: true },
-      { name: "businessType", label: "Business Sector/Type", type: "text", placeholder: "e.g. Agriculture and Trading", required: true },
-      { name: "objective", label: "Main Business Objective", type: "textarea", placeholder: "e.g. Food production and fertilizer trading.", required: true },
-      { name: "proprietorName", label: "Primary Proprietor Full Name", type: "text", placeholder: "e.g. Abubakar Muhammad", required: true },
-      { name: "proprietorPhone", label: "Proprietor Contact Phone", type: "text", placeholder: "e.g. +2348030000000", required: true }
+      { name: "proposedName1", label: "Proposed Business Name (Choice 1)", type: "text", required: true },
+      { name: "proposedName2", label: "Proposed Business Name (Choice 2)", type: "text", required: true },
+      { name: "natureOfBusiness", label: "Nature of Business", type: "text", required: true },
+      { name: "objectivesOfBusiness", label: "Objectives of the Business", type: "textarea", required: true },
+      { name: "proprietorName", label: "Primary Proprietor Full Name", type: "text", required: true },
+      { name: "proprietorPhone", label: "Proprietor Contact Phone", type: "text", required: true }
     ]
   },
   {
@@ -295,28 +296,56 @@ export const SMART_LINK_SERVICES: ServiceItem[] = [
     name: "CAC Limited Liability Company",
     category: "CAC",
     description: "Register a fully-fledged private limited company (LTD) with share capital allocations and TIN with FIRS.",
-    price: 25000,
+    price: 0,
     actionLabel: "Start LTD Filing",
     fields: [
-      { name: "proposedName1", label: "Proposed Company Name (Choice 1)", type: "text", placeholder: "e.g. Logistics Ltd", required: true },
-      { name: "proposedName2", label: "Proposed Company Name (Choice 2)", type: "text", placeholder: "e.g. Cargo and Logistics Ltd", required: true },
-      { name: "shareCapital", label: "Authorized Share Capital (e.g. 1M)", type: "select", placeholder: "Select Share Capital", required: true, options: ["1,000,000 Shares", "2,000,000 Shares", "5,000,000 Shares"] },
-      { name: "objective", label: "Company Objectives", type: "textarea", placeholder: "Farming, logistics, civil contracting.", required: true },
-      { name: "directorName", label: "First Director Full Name", type: "text", placeholder: "Director Name", required: true }
+      { name: "proposedName1", label: "Proposed Company Name (Choice 1)", type: "text", required: true },
+      { name: "proposedName2", label: "Proposed Company Name (Choice 2)", type: "text", required: true },
+      { name: "shareCapital", label: "Authorized Share Capital", type: "select", required: true, options: ["1,000,000 Shares", "2,000,000 Shares", "5,000,000 Shares"] },
+      { name: "natureOfBusiness", label: "Nature of Business", type: "text", required: true },
+      { name: "objectivesOfBusiness", label: "Objectives of the Business", type: "textarea", required: true },
+      { name: "directorName", label: "First Director Full Name", type: "text", required: true }
     ]
   },
   {
-    id: "cac_scuml",
-    name: "SCUML EFCC Registration Assistance",
+    id: "cac_ngo",
+    name: "CAC NGO Registration",
     category: "CAC",
-    description: "Assistance with obtaining your SCUML anti-money laundering certification from EFCC, vital for corporate accounts.",
-    price: 8000,
-    actionLabel: "Register SCUML Profile",
-    fields: [
-      { name: "companyName", label: "Registered Company/Business Name", type: "text", placeholder: "Company Name on CAC", required: true },
-      { name: "rcNumber", label: "RC or BN Number", type: "text", placeholder: "e.g. RC 1908234", required: true },
-      { name: "address", label: "Business Headquarters Address", type: "text", placeholder: "No. Street, City Center", required: true }
-    ]
+    description: "Official non-profit NGO incorporation with the Corporate Affairs Commission (Part F). Discuss requirements, registration fee, and procedure directly on WhatsApp.",
+    price: 0,
+    priceLabel: "WhatsApp Desk",
+    actionLabel: "Chat on WhatsApp",
+    fields: []
+  },
+  {
+    id: "cac_incorporated_trustee",
+    name: "CAC Incorporated Trustees",
+    category: "CAC",
+    description: "Official incorporation of Foundations, Charities, Churches, Mosques, and Community Associations. Discuss requirements, registration fee, and procedure directly on WhatsApp.",
+    price: 0,
+    priceLabel: "WhatsApp Desk",
+    actionLabel: "Chat on WhatsApp",
+    fields: []
+  },
+  {
+    id: "cac_annual_returns",
+    name: "CAC Annual Returns Filing",
+    category: "CAC",
+    description: "Keep your registered business, company, or NGO active on the CAC portal. Discuss filing assessment, requirements, fee, and procedure directly on WhatsApp.",
+    price: 0,
+    priceLabel: "WhatsApp Desk",
+    actionLabel: "Chat on WhatsApp",
+    fields: []
+  },
+  {
+    id: "cac_scuml",
+    name: "SCUML Certificate Registration",
+    category: "CAC",
+    description: "Official SCUML anti-money laundering certification, vital for corporate accounts. Discuss requirements, fee, and procedure directly on WhatsApp.",
+    price: 0,
+    priceLabel: "WhatsApp Desk",
+    actionLabel: "Chat on WhatsApp",
+    fields: []
   },
 
   // 3. EDUCATION SCRATCH CARDS
@@ -354,6 +383,18 @@ export const SMART_LINK_SERVICES: ServiceItem[] = [
     fields: [
       { name: "examNumber", label: "JAMB Registration or Profile Code", type: "text", placeholder: "e.g. 55667788AB", required: true },
       { name: "candidateName", label: "Candidate Full Name", type: "text", placeholder: "e.g. Fatima Yusuf", required: true }
+    ]
+  },
+  {
+    id: "edu_nabteb",
+    name: "NABTEB Scratch Card",
+    category: "EDUCATION",
+    description: "Purchase official NABTEB result checker scratch card PINs for instant result retrieval.",
+    price: 1500,
+    actionLabel: "Buy NABTEB Card",
+    fields: [
+      { name: "quantity", label: "Quantity", type: "number", placeholder: "e.g. 1", required: true },
+      { name: "email", label: "Delivery Email Address", type: "email", placeholder: "e.g. student@gmail.com", required: true }
     ]
   },
 

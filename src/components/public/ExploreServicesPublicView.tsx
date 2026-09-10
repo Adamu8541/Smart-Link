@@ -81,7 +81,7 @@ const PUBLIC_SERVICES: ServiceCard[] = [
     name: "CAC Business Name Registration (BN)",
     category: "corporate",
     description: "End-to-end Corporate Affairs Commission (CAC) filing: Name Reservation, Enterprise Registration, Status Report & Certificate of Incorporation.",
-    price: "₦18,500 - ₦24,000",
+    price: "₦28,000",
     turnaround: "48 - 72 Hours",
     features: ["Accredited Agent Filing", "Name Availability Search", "Official CAC Certificate", "Federal Status Report Included"],
     popular: true,
@@ -91,7 +91,7 @@ const PUBLIC_SERVICES: ServiceCard[] = [
     name: "CAC Private Limited Company (LTD)",
     category: "corporate",
     description: "Full incorporation of Private Limited Liability Companies (1M+ Share Capital), Memorandum & Articles of Association (MEMART).",
-    price: "₦48,000 - ₦65,000",
+    price: "₦35,000",
     turnaround: "3 - 5 Days",
     features: ["Full MEMART Drafting", "TIN Generation Included", "Director Status Reports", "Fast-Track Processing"],
   },
@@ -102,7 +102,7 @@ const PUBLIC_SERVICES: ServiceCard[] = [
     description: "Special Control Unit Against Money Laundering (SCUML) application, compliance documentation, and certificate procurement for Designated Non-Financial Businesses (DNFBPs).",
     price: "₦25,000 - ₦35,000",
     turnaround: "5 - 10 Days",
-    features: ["EFCC / NFIU Compliance", "Document Review & Drafting", "Submission & Follow-up", "Official Certificate Delivery"],
+    features: ["AML / NFIU Compliance", "Document Review & Drafting", "Submission & Follow-up", "Official Certificate Delivery"],
   },
   {
     id: "disco-electricity-token",
@@ -254,12 +254,14 @@ export const ExploreServicesPublicView: React.FC<ExploreServicesPublicViewProps>
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search services, NIN, BVN, CAC, Discos, SME Data, WAEC, APIs..."
+                aria-label="Search all services and verification solutions"
                 className="w-full pl-12 pr-4 py-3.5 bg-white text-gray-900 rounded-2xl shadow-lg border border-transparent focus:border-[#0F2D5C] focus:ring-4 focus:ring-white/20 text-sm placeholder-gray-400 outline-none transition-all"
               />
               {searchTerm && (
                 <button
                   type="button"
                   onClick={() => setSearchTerm("")}
+                  aria-label="Clear search query"
                   className="absolute right-3.5 px-2.5 py-1 text-xs text-gray-500 hover:text-gray-900 font-medium bg-gray-100 hover:bg-gray-200 rounded-lg cursor-pointer"
                 >
                   Clear

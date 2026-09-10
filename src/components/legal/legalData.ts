@@ -176,7 +176,7 @@ export const LEGAL_DOCUMENTS: LegalDocument[] = [
           "We do not sell, rent, trade, or monetize your personal data. We only share information with third parties under the following strictly defined conditions:",
           "• Authorized Verification & Utility Providers: Transmitting query payloads (e.g. NIN, meter numbers, decoder numbers) to accredited third-party gateway APIs strictly to fulfill your requested transactions. SmartLink NG is a third-party platform and is not directly connected to primary providers like NIMC, NIBSS, CAC, or FRSC.",
           "• Licensed Payment Processors: Partnering commercial banks and Central Bank of Nigeria (CBN)-licensed payment solution service providers (e.g., Monnify, Opay, Flutterwave) to process virtual account deposits and card settlements.",
-          "• Legal & Regulatory Mandates: Disclosing records when formally required by a competent court of law, law enforcement agencies (e.g., EFCC, NPF), or regulatory authorities pursuant to valid legal process.",
+          "• Legal & Regulatory Mandates: Disclosing records when formally required by a competent court of law, law enforcement agencies (e.g., NPF), or regulatory authorities pursuant to valid legal process.",
         ],
       },
       {
@@ -736,7 +736,7 @@ export const LEGAL_DOCUMENTS: LegalDocument[] = [
       "Absolute zero-tolerance policy towards fraud, identity theft, and money laundering",
       "Prohibition against automated bots, vulnerability exploitation, and API scraping",
       "Immediate account freezing and law enforcement reporting for malicious actors",
-      "Collaborative fraud detection with banks, EFCC, and security agencies",
+      "Collaborative fraud detection with banks, law enforcement, and security agencies",
     ],
     relatedDocIds: ["terms-of-service", "kyc-notice", "disclaimer"],
     sections: [
@@ -773,7 +773,7 @@ export const LEGAL_DOCUMENTS: LegalDocument[] = [
           "• Immediately block or terminate account access and freeze associated wallet balances.",
           "• Quarantine and reverse disputed transactions pending comprehensive investigation.",
           "• Blacklist associated IP addresses, device identifiers, email domains, and phone numbers.",
-          "• Submit full audit dossiers, transaction histories, and user records to the Economic and Financial Crimes Commission (EFCC), Nigeria Police Force (NPF), and relevant banking fraud desks.",
+          "• Submit full audit dossiers, transaction histories, and user records to authorized law enforcement agencies, Nigeria Police Force (NPF), and relevant banking fraud desks.",
         ],
       },
     ],
@@ -1046,7 +1046,7 @@ export const LEGAL_DOCUMENTS: LegalDocument[] = [
         title: "4. Regulatory Inquiries & Lawful Interception",
         content: [
           "SmartLink NG cooperates with authorized law enforcement agencies, judicial authorities, and statutory regulators strictly within the provisions of Nigerian law.",
-          "Information disclosures are made only upon receipt of valid court orders, formal statutory requests from authorized regulatory agencies (such as EFCC, ICPC, Police Force, or NDPC), and following verification by our legal counsel.",
+          "Information disclosures are made only upon receipt of valid court orders, formal statutory requests from authorized regulatory agencies (such as ICPC, Police Force, or NDPC), and following verification by our legal counsel.",
         ],
       },
     ],

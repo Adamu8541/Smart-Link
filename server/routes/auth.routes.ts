@@ -23,6 +23,7 @@ import { adminAuthService, ADMIN_ROLES_CONFIG } from "../../src/services/adminAu
 import { AutomaticWalletFundingEngine } from "../../src/services/automaticWalletFundingEngine";
 import { PaymentVerificationReconciliationEngine } from "../../src/services/paymentVerificationReconciliationEngine";
 import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerGateway";
+import { sendPlatformEmail } from "../services/email.service";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
 import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
 import { syncFromFirestore, syncToFirestore } from "../../src/services/settingsStore";
@@ -417,45 +418,25 @@ app.post("/api/auth/forgot-password", async (req, res) => {
   // Attempt email delivery via Nodemailer if SMTP configuration exists
   let emailSent = false;
   try {
-    const db = readDB();
-    const smtpConfig = db.system_settings?.email || {};
-    const smtpHost = process.env.SMTP_HOST || smtpConfig.smtpHost;
-    const smtpPort = Number(process.env.SMTP_PORT || smtpConfig.smtpPort || 587);
-    const smtpUser = process.env.SMTP_USER || smtpConfig.smtpUsername;
-    const smtpPass = process.env.SMTP_PASS || process.env.SMTP_PASSWORD;
-
-    if (smtpHost && smtpUser && smtpPass) {
-      const transporter = nodemailer.createTransport({
-        host: smtpHost,
-        port: smtpPort,
-        secure: smtpPort === 465,
-        auth: {
-          user: smtpUser,
-          pass: smtpPass,
-        },
-      });
-
-      await transporter.sendMail({
-        from: `"${smtpConfig.senderName || 'SmartLink Support'}" <${smtpConfig.replyToAddress || 'no-reply@smartlinkng.com.ng'}>`,
-        to: cleanEmail,
-        subject: "SmartLink Account Password Reset Instructions",
-        html: `
-          <div style="font-family: sans-serif; padding: 20px; color: #333;">
-            <h2>SmartLink Password Reset Request</h2>
-            <p>Hello,</p>
-            <p>A password reset was requested for your account (${cleanEmail}). Please click the link below to reset your password:</p>
-            <p style="margin: 20px 0;">
-              <a href="${resetLink}" style="background-color: #0f172a; color: #ffffff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">Reset Password</a>
-            </p>
-            <p>Or copy and paste this link into your browser:</p>
-            <p><a href="${resetLink}">${resetLink}</a></p>
-            <p>This password reset link expires in 1 hour.</p>
-            <p>If you did not request a password reset, please disregard this email.</p>
-          </div>
-        `,
-      });
-      emailSent = true;
-    }
+    const emailResult = await sendPlatformEmail({
+      to: cleanEmail,
+      subject: "SmartLink Account Password Reset Instructions",
+      html: `
+        <div style="font-family: sans-serif; padding: 20px; color: #333;">
+          <h2>SmartLink Password Reset Request</h2>
+          <p>Hello,</p>
+          <p>A password reset was requested for your account (${cleanEmail}). Please click the link below to reset your password:</p>
+          <p style="margin: 20px 0;">
+            <a href="${resetLink}" style="background-color: #0f172a; color: #ffffff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">Reset Password</a>
+          </p>
+          <p>Or copy and paste this link into your browser:</p>
+          <p><a href="${resetLink}">${resetLink}</a></p>
+          <p>This password reset link expires in 1 hour.</p>
+          <p>If you did not request a password reset, please disregard this email.</p>
+        </div>
+      `,
+    });
+    emailSent = emailResult.success;
   } catch (mailErr) {
     console.error("[ForgotPassword] SMTP dispatch warning/error:", mailErr);
     emailSent = false;

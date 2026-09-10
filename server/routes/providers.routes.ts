@@ -27,6 +27,7 @@ import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
 import { LumiIDAdapter } from "../../src/services/providers/lumiidAdapter";
 import { NinBvnPortalAdapter } from "../../src/services/providers/ninBvnPortalAdapter";
 import { VerifyNGAdapter } from "../../src/services/providers/verifyNgAdapter";
+import { ClubkonnectAdapter } from "../../src/services/providers/clubkonnectAdapter";
 import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
 import { syncFromFirestore, syncToFirestore } from "../../src/services/settingsStore";
 import { loadFirestoreDb, syncDbToFirestore, saveDocToFirestore } from "../../src/services/firestoreStore";
@@ -1885,6 +1886,9 @@ app.post("/api/admin/providers/:providerId/test-connection", requireAdmin, async
   } else if (provider.name.toLowerCase().includes("verifyng") || provider.name.toLowerCase().includes("verify-ng") || provider.name.toLowerCase().includes("edirect")) {
     const verifyNgAdapter = new VerifyNGAdapter();
     testResult = await verifyNgAdapter.testConnection(provider);
+  } else if (provider.name.toLowerCase().includes("clubkonnect") || provider.name.toLowerCase().includes("club konnect")) {
+    const clubkonnectAdapter = new ClubkonnectAdapter();
+    testResult = await clubkonnectAdapter.testConnection(provider);
   } else {
     testResult = { ok: false, message: `No integration adapter registered for provider "${provider.name}".`, responseTimeMs: 0 };
   }
@@ -1923,6 +1927,38 @@ app.post("/api/admin/providers/:providerId/test-connection", requireAdmin, async
       baseUrlTested: provider.baseUrl,
       testedAt: new Date().toISOString(),
     },
+  });
+});
+
+// 4b. GET /api/admin/providers/:providerId/balance — Query Live Balance from Provider
+app.get("/api/admin/providers/:providerId/balance", requireAdmin, async (req, res) => {
+  const { providerId } = req.params;
+  const db = readDB();
+  await syncFromFirestore(db);
+
+  seedModule6ProvidersIfEmpty(db);
+
+  const provider = (db.api_providers || []).find((p: any) => p.id === providerId || p.name.toLowerCase() === providerId.toLowerCase());
+  if (!provider) {
+    return res.status(404).json({ success: false, message: `Provider ${providerId} not found.` });
+  }
+
+  const adapter = getAdapterForProvider(provider);
+  if (adapter && typeof (adapter as any).queryBalance === "function") {
+    const balResult = await (adapter as any).queryBalance(provider);
+    return res.json({
+      success: balResult.success,
+      balance: balResult.balance,
+      currency: balResult.currency || "NGN",
+      providerName: provider.name,
+      rawResponse: balResult.rawResponse,
+      error: balResult.error,
+    });
+  }
+
+  return res.status(400).json({
+    success: false,
+    message: `Provider "${provider.name}" does not support automated live balance queries.`,
   });
 });
 

@@ -11,12 +11,14 @@ import { AspfiyAdapter, ProviderAdapter, PaymentProviderConfig } from "./provide
 import { LumiIDAdapter } from "./providers/lumiidAdapter";
 import { NinBvnPortalAdapter } from "./providers/ninBvnPortalAdapter";
 import { VerifyNGAdapter } from "./providers/verifyNgAdapter";
+import { ClubkonnectAdapter } from "./providers/clubkonnectAdapter";
 
 const registeredAdapters: Record<string, ProviderAdapter> = {
   aspfiy: new AspfiyAdapter(),
   lumiid: new LumiIDAdapter(),
   ninbvnportal: new NinBvnPortalAdapter(),
   verifyng: new VerifyNGAdapter(),
+  clubkonnect: new ClubkonnectAdapter(),
 };
 
 /**

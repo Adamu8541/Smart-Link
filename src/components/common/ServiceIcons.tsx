@@ -526,7 +526,7 @@ export function CacRegistrationLogo({ className = "h-14 w-14" }: IconProps) {
   return <CacOfficialLogo className={className} />;
 }
 
-// SCUML / EFCC Official Anti-Money Laundering Logo
+// SCUML Official Anti-Money Laundering Logo
 export function ScumlOfficialLogo({ className = "h-14 w-14" }: IconProps) {
   return (
     <div className={`${className} bg-white border border-red-100 rounded-2xl flex items-center justify-center p-2 shadow-xs shrink-0 transition-transform duration-200 hover:scale-105`}>
@@ -542,7 +542,7 @@ export function ScumlOfficialLogo({ className = "h-14 w-14" }: IconProps) {
           SCUML
         </text>
         <text x="50" y="89" fontSize="6.5" fontWeight="800" textAnchor="middle" fill="#0A192F" letterSpacing="0.5">
-          EFCC AML/CFT
+          AML / CFT
         </text>
       </svg>
     </div>
@@ -1016,7 +1016,7 @@ export function getRealServiceIcon(serviceId: string, className = "h-14 w-14") {
   }
 
   // 3. CAC Registrations & Tax ID
-  if (sid === "cac_scuml" || sid.includes("scuml") || sid.includes("efcc")) return <ScumlOfficialLogo className={className} />;
+  if (sid === "cac_scuml" || sid.includes("scuml")) return <ScumlOfficialLogo className={className} />;
   if (sid.includes("cac")) return <CacOfficialLogo className={className} />;
   if (sid.includes("tax") || sid.includes("tin") || sid.includes("nrs") || sid.includes("firs")) return <NrsOfficialLogo className={className} />;
 

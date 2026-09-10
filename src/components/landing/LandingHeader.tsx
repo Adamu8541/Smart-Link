@@ -121,7 +121,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
                   window.location.href = "/admin/login";
                 }
               }}
-              className="px-3.5 py-2 text-xs font-bold text-white bg-[#111827] hover:bg-[#0F2D5C] rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
+              className="px-3.5 py-2 text-xs font-bold text-white bg-[#111827] hover:bg-[#0F2D5C] focus:ring-2 focus:ring-offset-2 focus:ring-[#0F2D5C] rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
               title="Secured Admin Portal Login"
             >
               <ShieldCheck className="h-3.5 w-3.5 text-white" aria-hidden="true" />
@@ -132,7 +132,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
               id="header-btn-login"
               type="button"
               onClick={onLogin}
-              className="px-4 py-2 text-xs font-bold text-white bg-[#111827] hover:bg-[#0F2D5C] rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
+              className="px-4 py-2 text-xs font-bold text-white bg-[#111827] hover:bg-[#0F2D5C] focus:ring-2 focus:ring-offset-2 focus:ring-[#0F2D5C] rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
             >
               <LogIn className="h-3.5 w-3.5 text-white" aria-hidden="true" />
               Login
@@ -142,7 +142,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
               id="header-btn-register"
               type="button"
               onClick={onRegister}
-              className="px-4 py-2 text-xs font-bold text-white bg-[#111827] hover:bg-[#0F2D5C] rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
+              className="px-4 py-2 text-xs font-bold text-white bg-[#111827] hover:bg-[#0F2D5C] focus:ring-2 focus:ring-offset-2 focus:ring-[#0F2D5C] rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
             >
               <UserPlus className="h-3.5 w-3.5 text-white" aria-hidden="true" />
               Register
@@ -152,7 +152,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
               id="header-btn-get-started"
               type="button"
               onClick={onGetStarted}
-              className="px-5 py-2.5 bg-[#111827] hover:bg-[#0F2D5C] text-white font-bold rounded-xl text-xs shadow-xs transition-all active:scale-98 cursor-pointer flex items-center gap-2"
+              className="px-5 py-2.5 bg-[#111827] hover:bg-[#0F2D5C] text-white font-bold rounded-xl text-xs shadow-xs focus:ring-2 focus:ring-offset-2 focus:ring-[#0F2D5C] transition-all active:scale-98 cursor-pointer flex items-center gap-2"
             >
               Get Started
               <ArrowRight className="h-3.5 w-3.5 text-white" aria-hidden="true" />

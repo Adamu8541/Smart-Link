@@ -102,7 +102,7 @@ export function resolveSEOMetadata(req: Request): SEOMetadata {
   else if (rawPath === "/compliance" || rawPath === "/legal/compliance") {
     title = `Regulatory Compliance & Governance Framework | ${siteName}`;
     description = "Full disclosure of SmartLink Nigeria regulatory licensing, Nigeria Data Protection Act (NDPA 2023) alignment, Anti-Money Laundering (AML/CFT) frameworks, and accredited corporate filings.";
-    keywords = "SmartLink compliance, NDPA 2023 compliance Nigeria, AML CFT policy, EFCC SCUML compliance, CAC accredited agent, fintech governance";
+    keywords = "SmartLink compliance, NDPA 2023 compliance Nigeria, AML CFT policy, SCUML compliance, CAC accredited agent, fintech governance";
     crawlableContentHtml = `
       <main style="max-width: 900px; margin: 0 auto; padding: 40px 20px; font-family: system-ui, sans-serif;">
         <h1>SmartLink Nigeria Regulatory Compliance &amp; Governance Framework</h1>

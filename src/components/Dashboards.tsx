@@ -54,6 +54,7 @@ import {
   JambOfficialCardLogo,
   WaecOfficialCardLogo,
   NecoOfficialCardLogo,
+  NabtebOfficialCardLogo,
   ScumlOfficialCardLogo,
   ElectricityOfficialCardLogo,
   PassportOfficialCardLogo,
@@ -737,6 +738,20 @@ export default function Dashboards({
 
   // Dynamic service pricing helper
   const getDynamicServicePrice = (serviceId: string, fallbackPrice?: number) => {
+    if (
+      serviceId === "cac_scuml" ||
+      serviceId === "cac_annual_returns" ||
+      serviceId === "cac_ngo" ||
+      serviceId === "cac_incorporated_trustee"
+    ) {
+      return fallbackPrice ?? 0;
+    }
+    if (serviceId === "id_cac_registration" || serviceId === "cac_biz_name") {
+      return priceMatrix?.cacRates?.businessNameFee ?? 28000;
+    }
+    if (serviceId === "cac_ltd_co") {
+      return priceMatrix?.cacRates?.companyFee ?? 35000;
+    }
     // Check if catalog has matching entry
     const matched = servicesCatalog.find((s: any) => 
       s.id === serviceId || 
@@ -782,13 +797,16 @@ export default function Dashboards({
   ];
 
   const corporateFilingsServices = [
-    { id: "id_cac_registration", name: "CAC Registration", price: getDynamicServicePrice("id_cac_registration", 25000) },
-    { id: "id_tax_id_search", name: "Tax ID Search", price: getDynamicServicePrice("id_tax_id_search", 1500) }
+    { id: "id_cac_registration", name: "CAC Registration", price: getDynamicServicePrice("id_cac_registration", 28000) },
+    { id: "cac_scuml", name: "SCUML Services", price: getDynamicServicePrice("cac_scuml", 0) },
+    { id: "id_tax_id_search", name: "Tax Identity", price: getDynamicServicePrice("id_tax_id_search", 1500) }
   ];
 
   const educationServices = [
-    { id: "edu_jamb", name: "JAMB Services", price: getDynamicServicePrice("edu_jamb", 4700), isSoon: true },
-    { id: "edu_waec", name: "Exam Pins", price: getDynamicServicePrice("edu_waec", 3800), isSoon: true }
+    { id: "edu_waec", name: "WAEC Pins", price: getDynamicServicePrice("edu_waec", 3800) },
+    { id: "edu_neco", name: "NECO Tokens", price: getDynamicServicePrice("edu_neco", 1200) },
+    { id: "edu_nabteb", name: "NABTEB Cards", price: getDynamicServicePrice("edu_nabteb", 1500) },
+    { id: "edu_jamb", name: "JAMB Services", price: getDynamicServicePrice("edu_jamb", 6200) }
   ];
 
   const utilitiesBillsServices = [
@@ -805,8 +823,9 @@ export default function Dashboards({
         if (!baseServiceObj && serviceId === "id_vnin_to_nibss") {
           baseServiceObj = SMART_LINK_SERVICES.find(s => s.id === "id_vnin_to_bvn");
         }
-        if (!baseServiceObj && (serviceId === "edu_waec" || serviceId === "edu_jamb")) {
-          baseServiceObj = SMART_LINK_SERVICES.find(s => s.id.includes(serviceId.replace("edu_", "")));
+        if (!baseServiceObj && serviceId.startsWith("edu_")) {
+          const examKeyword = serviceId.replace("edu_", "");
+          baseServiceObj = SMART_LINK_SERVICES.find(s => s.id.includes(examKeyword) || s.name.toLowerCase().includes(examKeyword));
         }
         if (baseServiceObj) {
           const dynamicPrice = getDynamicServicePrice(serviceId, baseServiceObj.price);
@@ -1159,12 +1178,6 @@ export default function Dashboards({
                       onClick={() => handleServiceCardClick(srv.id)}
                       className="bg-white rounded-2xl border border-slate-100/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-slate-300 hover:shadow-md transition-all duration-200 p-5 sm:p-6 flex flex-col items-center justify-center min-h-[145px] sm:min-h-[160px] cursor-pointer group relative"
                     >
-                      {/* SOON Badge */}
-                      <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#F1F5F9] border border-slate-200/60 text-[9px] font-extrabold text-slate-500 uppercase tracking-wider">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                        <span>SOON</span>
-                      </div>
-
                       <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-[#F4F6F8] flex items-center justify-center p-2.5 transition-transform duration-200 group-hover:scale-105 shrink-0">
                         {srv.id === "edu_jamb" ? (
                           <JambOfficialCardLogo className="w-full h-full object-contain" />
@@ -1172,6 +1185,8 @@ export default function Dashboards({
                           <WaecOfficialCardLogo className="w-full h-full object-contain" />
                         ) : srv.id === "edu_neco" ? (
                           <NecoOfficialCardLogo className="w-full h-full object-contain" />
+                        ) : srv.id === "edu_nabteb" ? (
+                          <NabtebOfficialCardLogo className="w-full h-full object-contain" />
                         ) : (
                           <ExamPinsOfficialCardLogo className="w-full h-full object-contain" />
                         )}

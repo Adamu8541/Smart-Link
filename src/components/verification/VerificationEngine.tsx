@@ -159,18 +159,36 @@ export const VerificationEngine: React.FC<VerificationEngineProps> = ({
       {/* Top Header Bar */}
       <div className="p-4 sm:p-5 border-b border-[#E5E7EB] dark:border-[#111827] flex items-center justify-between bg-[#F5F7FA]/50 dark:bg-[#111827]/30">
         <div className="flex items-center gap-3">
-          {viewMode !== "SERVICE_SELECT" && !initialServiceType && (
+          {onClose ? (
             <button
               type="button"
               onClick={() => {
-                if (viewMode === "FORM_INPUT") setViewMode("SERVICE_SELECT");
-                else if (viewMode === "CONFIRMATION") setViewMode("FORM_INPUT");
-                else handleReset();
+                if (viewMode === "CONFIRMATION") {
+                  setViewMode("FORM_INPUT");
+                } else {
+                  onClose();
+                }
               }}
               className="p-1.5 rounded-xl hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563] text-[#6B7280] transition-colors cursor-pointer"
+              title="Back to Services"
             >
               <ArrowLeft className="h-4 w-4" />
             </button>
+          ) : (
+            viewMode !== "SERVICE_SELECT" && !initialServiceType && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (viewMode === "FORM_INPUT") setViewMode("SERVICE_SELECT");
+                  else if (viewMode === "CONFIRMATION") setViewMode("FORM_INPUT");
+                  else handleReset();
+                }}
+                className="p-1.5 rounded-xl hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563] text-[#6B7280] transition-colors cursor-pointer"
+                title="Back"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </button>
+            )
           )}
 
           <div className="flex items-center gap-2">

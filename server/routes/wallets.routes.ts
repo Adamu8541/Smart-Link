@@ -23,6 +23,7 @@ import { adminAuthService, ADMIN_ROLES_CONFIG } from "../../src/services/adminAu
 import { AutomaticWalletFundingEngine } from "../../src/services/automaticWalletFundingEngine";
 import { PaymentVerificationReconciliationEngine } from "../../src/services/paymentVerificationReconciliationEngine";
 import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerGateway";
+import { sendPlatformEmail, getResolvedSmtpConfig } from "../services/email.service";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
 import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
 import { syncFromFirestore, syncToFirestore } from "../../src/services/settingsStore";
@@ -562,66 +563,45 @@ app.post("/api/receipt/email", async (req, res) => {
   }
 
   const db = readDB();
-  const smtpConfig = db.system_settings?.email || {};
-  const smtpHost = process.env.SMTP_HOST || smtpConfig.smtpHost;
-  const smtpPort = Number(process.env.SMTP_PORT || smtpConfig.smtpPort || 587);
-  const smtpUser = process.env.SMTP_USER || smtpConfig.smtpUsername;
-  const smtpPass = process.env.SMTP_PASS || process.env.SMTP_PASSWORD;
+  const { config, fromAddress } = getResolvedSmtpConfig(db);
+  const appName = db.system_settings?.general?.appName || "SmartLink Digital";
+  const subject = `Payment Receipt #${receiptId || reference || Date.now()} - ${serviceName || "Transaction"}`;
+  const htmlContent = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+      <h2 style="color: #0f172a; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">${appName} Payment Receipt</h2>
+      <p>Dear Customer,</p>
+      <p>Thank you for your transaction. Below is your official payment receipt details:</p>
+      <table style="width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 15px;">
+        <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 8px; font-weight: bold; color: #475569;">Receipt ID:</td><td style="padding: 8px; color: #0f172a;">${receiptId || reference || "N/A"}</td></tr>
+        <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 8px; font-weight: bold; color: #475569;">Service:</td><td style="padding: 8px; color: #0f172a;">${serviceName || "Digital Service"}</td></tr>
+        <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 8px; font-weight: bold; color: #475569;">Amount:</td><td style="padding: 8px; color: #0f172a; font-weight: bold; color: #16a34a;">₦${Number(amount || 0).toLocaleString()}</td></tr>
+        <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 8px; font-weight: bold; color: #475569;">Reference:</td><td style="padding: 8px; color: #0f172a;">${reference || receiptId || "N/A"}</td></tr>
+        <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 8px; font-weight: bold; color: #475569;">Date:</td><td style="padding: 8px; color: #0f172a;">${date || new Date().toLocaleString()}</td></tr>
+      </table>
+      <p style="color: #64748b; font-size: 13px; margin-top: 20px;">If you have any questions or require support, please contact our help desk.</p>
+      <p style="color: #0f172a; font-weight: bold; margin-top: 10px;">Regards,<br/>${appName} Team</p>
+    </div>
+  `;
 
-  if (!smtpHost || !smtpUser || !smtpPass) {
-    return res.status(501).json({
-      success: false,
-      error: "501 Not Implemented: Active SMTP email service credentials are not configured on this server. No receipt email was sent."
-    });
-  }
+  const emailResult = await sendPlatformEmail({
+    to: targetEmail,
+    subject,
+    html: htmlContent,
+  });
 
-  try {
-    const transporter = nodemailer.createTransport({
-      host: smtpHost,
-      port: smtpPort,
-      secure: smtpPort === 465,
-      auth: { user: smtpUser, pass: smtpPass },
-    });
-
-    const appName = db.system_settings?.general?.appName || "SmartLink Digital";
-    const subject = `Payment Receipt #${receiptId || reference || Date.now()} - ${serviceName || "Transaction"}`;
-    const htmlContent = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
-        <h2 style="color: #0f172a; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">${appName} Payment Receipt</h2>
-        <p>Dear Customer,</p>
-        <p>Thank you for your transaction. Below is your official payment receipt details:</p>
-        <table style="width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 15px;">
-          <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 8px; font-weight: bold; color: #475569;">Receipt ID:</td><td style="padding: 8px; color: #0f172a;">${receiptId || reference || "N/A"}</td></tr>
-          <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 8px; font-weight: bold; color: #475569;">Service:</td><td style="padding: 8px; color: #0f172a;">${serviceName || "Digital Service"}</td></tr>
-          <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 8px; font-weight: bold; color: #475569;">Amount:</td><td style="padding: 8px; color: #0f172a; font-weight: bold; color: #16a34a;">₦${Number(amount || 0).toLocaleString()}</td></tr>
-          <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 8px; font-weight: bold; color: #475569;">Reference:</td><td style="padding: 8px; color: #0f172a;">${reference || receiptId || "N/A"}</td></tr>
-          <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 8px; font-weight: bold; color: #475569;">Date:</td><td style="padding: 8px; color: #0f172a;">${date || new Date().toLocaleString()}</td></tr>
-        </table>
-        <p style="color: #64748b; font-size: 13px; margin-top: 20px;">If you have any questions or require support, please contact our help desk.</p>
-        <p style="color: #0f172a; font-weight: bold; margin-top: 10px;">Regards,<br/>${appName} Team</p>
-      </div>
-    `;
-
-    const info = await transporter.sendMail({
-      from: `"${smtpConfig.senderName || appName}" <${smtpConfig.replyToAddress || smtpUser}>`,
-      to: targetEmail,
-      subject,
-      html: htmlContent,
-    });
-
-    return res.json({
-      success: true,
-      message: `Digital payment receipt successfully accepted and delivered via live SMTP to ${targetEmail}.`,
-      messageId: info.messageId,
-      recipientEmail: targetEmail
-    });
-  } catch (err: any) {
-    console.error("[ReceiptEmail] SMTP dispatch error:", err);
+  if (!emailResult.success) {
     return res.status(502).json({
       success: false,
-      error: `Failed to dispatch receipt email via SMTP: ${err.message || "Connection error"}`
+      error: `Failed to dispatch receipt email via SMTP: ${emailResult.message || "Connection error"}`,
     });
   }
+
+  return res.json({
+    success: true,
+    message: `Digital payment receipt successfully delivered via live SMTP to ${targetEmail}.`,
+    messageId: emailResult.messageId,
+    recipientEmail: targetEmail
+  });
 });
 
 // Generic Payment Gateway Verification & Self-Test

@@ -22,6 +22,8 @@ import { BillPaymentView } from "./bills/BillPaymentView";
 import { BillCategoryType } from "../types/bills";
 import { VerificationType } from "../types/verification";
 import { normalizePhotoUrl } from "../services/slipOptionsConfig";
+import { ManualServiceFormView } from "./common/ManualServiceFormView";
+import { getManualServiceConfig, isManualService } from "../data/manualServicesConfig";
 
 interface ServiceModalProps {
   service: ServiceItem | null;
@@ -58,6 +60,23 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
     );
   }
 
+  // Intercept Manual Services (CAC Registrations, TIN Registration, NIN/BVN Modifications, Passport, ICT development)
+  const manualServiceConfig = getManualServiceConfig(service.id);
+  if (manualServiceConfig && currentUser) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
+        <div className="w-full max-w-3xl mb-8">
+          <ManualServiceFormView
+            serviceConfig={manualServiceConfig}
+            currentUser={currentUser}
+            onClose={onClose}
+            onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
+          />
+        </div>
+      </div>
+    );
+  }
+
   // Determine if this service belongs to Module 7 Bill Payment Engine
   const serviceCategoryStr = service.category as string;
   const isBillPaymentService =
@@ -74,6 +93,8 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
     service.id.includes("waec") ||
     service.id.includes("neco") ||
     service.id.includes("jamb") ||
+    service.id.includes("nabteb") ||
+    service.id.includes("exam") ||
     service.id.includes("internet");
 
   const getBillCategory = (svcId: string): BillCategoryType => {
@@ -82,7 +103,7 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
     if (svcId.includes("electricity") || svcId.includes("power")) return "ELECTRICITY";
     if (svcId.includes("cable") || svcId.includes("dstv") || svcId.includes("gotv")) return "CABLE_TV";
     if (svcId.includes("internet") || svcId.includes("wifi")) return "INTERNET";
-    if (svcId.includes("waec") || svcId.includes("neco") || svcId.includes("jamb") || svcId.includes("exam")) return "EDUCATION";
+    if (svcId.includes("waec") || svcId.includes("neco") || svcId.includes("jamb") || svcId.includes("nabteb") || svcId.includes("exam")) return "EDUCATION";
     if (svcId.includes("betting") || svcId.includes("bet")) return "BETTING";
     if (svcId.includes("water")) return "WATER";
     if (svcId.includes("waste") || svcId.includes("lawma")) return "WASTE";
@@ -90,14 +111,24 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
     return "AIRTIME";
   };
 
+  const getBillProviderCode = (svcId: string): string | undefined => {
+    if (svcId.includes("waec")) return "WAEC";
+    if (svcId.includes("neco")) return "NECO";
+    if (svcId.includes("jamb")) return "JAMB";
+    if (svcId.includes("nabteb")) return "NABTEB";
+    return undefined;
+  };
+
   if (isBillPaymentService && currentUser) {
     const initialCategory = getBillCategory(service.id);
+    const initialProviderCode = getBillProviderCode(service.id);
     return (
       <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
         <div className="w-full max-w-4xl mb-8">
           <BillPaymentView
             currentUser={currentUser}
             initialCategory={initialCategory}
+            initialProviderCode={initialProviderCode}
             onBackToDashboard={onClose}
             onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
           />
@@ -570,7 +601,7 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
             </div>
           ) : (
             /* Service Entry Form */
-            <form onSubmit={handleSubmit} className="space-y-5 text-left">
+            <form onSubmit={handleSubmit} autoComplete="off" className="space-y-5 text-left">
               {!currentUser && (
                 <div className="p-3 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border border-[#E5E7EB] dark:border-[#0F2D5C] rounded-lg flex items-start gap-2.5 text-xs text-[#0F2D5C] dark:text-[#9CA3AF]">
                   <AlertTriangle className="h-4.5 w-4.5 text-[#0F2D5C] shrink-0 mt-0.5" />
@@ -593,6 +624,12 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
               <div className="space-y-4">
                 {service.fields.map((f) => {
                   const uniqueFieldId = `field-${service.id}-${f.name}`;
+                  const isTaxOrCacService =
+                    service.id.startsWith("cac_") ||
+                    service.id.startsWith("tax_") ||
+                    service.id === "id_tax_id_search" ||
+                    service.id === "id_cac_registration";
+
                   return (
                     <div key={f.name} className="space-y-1.5">
                       <label htmlFor={uniqueFieldId} className="text-xs font-bold text-[#4B5563] flex justify-between">
@@ -608,7 +645,7 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
                           required={f.required}
                           className="w-full px-3 py-2 rounded border border-[#E5E7EB] text-sm focus:outline-none focus:ring-1 focus:ring-[#0F2D5C] focus:border-[#0F2D5C] bg-white"
                         >
-                          <option value="">{f.placeholder}</option>
+                          <option value="">{isTaxOrCacService ? "-- Select --" : f.placeholder}</option>
                           {f.options?.map((opt) => (
                             <option key={opt} value={opt}>
                               {opt}
@@ -620,7 +657,8 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
                           id={uniqueFieldId}
                           value={formData[f.name] || ""}
                           onChange={(e) => handleInputChange(f.name, e.target.value)}
-                          placeholder={f.placeholder}
+                          placeholder={isTaxOrCacService ? undefined : f.placeholder}
+                          autoComplete="off"
                           required={f.required}
                           rows={3}
                           className="w-full px-3 py-2 rounded border border-[#E5E7EB] text-sm focus:outline-none focus:ring-1 focus:ring-[#0F2D5C] focus:border-[#0F2D5C] bg-white"
@@ -631,7 +669,8 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
                           id={uniqueFieldId}
                           value={formData[f.name] || ""}
                           onChange={(e) => handleInputChange(f.name, e.target.value)}
-                          placeholder={f.placeholder}
+                          placeholder={isTaxOrCacService ? undefined : f.placeholder}
+                          autoComplete="off"
                           required={f.required}
                           className="w-full px-3 py-2 rounded border border-[#E5E7EB] text-sm focus:outline-none focus:ring-1 focus:ring-[#0F2D5C] focus:border-[#0F2D5C] bg-white"
                         />

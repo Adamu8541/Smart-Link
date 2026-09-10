@@ -34,6 +34,10 @@ import {
   Smartphone,
   Info,
   ShieldAlert,
+  Paperclip,
+  Upload,
+  UserCheck,
+  FileCode,
 } from "lucide-react";
 import { AdminSession } from "../../../services/adminAuthTypes";
 
@@ -43,7 +47,7 @@ interface AdminNotificationsViewProps {
 }
 
 export function AdminNotificationsView({ session, onNavigate }: AdminNotificationsViewProps) {
-  const [activeTab, setActiveTab] = useState<"OVERVIEW" | "CREATE" | "ANNOUNCEMENTS" | "TEMPLATES" | "HISTORY" | "TEST_SUITE">("OVERVIEW");
+  const [activeTab, setActiveTab] = useState<"OVERVIEW" | "SEND_EMAIL" | "CREATE" | "ANNOUNCEMENTS" | "TEMPLATES" | "HISTORY" | "TEST_SUITE">("OVERVIEW");
   const [loading, setLoading] = useState(false);
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -96,6 +100,185 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
   const [createSuccessMsg, setCreateSuccessMsg] = useState<string | null>(null);
   const [createErrorMsg, setCreateErrorMsg] = useState<string | null>(null);
 
+  // Send Direct Email Form State
+  const [emailForm, setEmailForm] = useState<{
+    recipientMode: "individual" | "selective" | "all";
+    recipients: string[];
+    customEmailInput: string;
+    subject: string;
+    message: string;
+    senderName: string;
+    attachments: Array<{
+      filename: string;
+      base64Content: string;
+      contentType: string;
+      size: number;
+    }>;
+  }>({
+    recipientMode: "individual",
+    recipients: [],
+    customEmailInput: "",
+    subject: "",
+    message: "",
+    senderName: "SmartLink NG",
+    attachments: [],
+  });
+
+  const [usersList, setUsersList] = useState<any[]>([]);
+  const [userSearchTerm, setUserSearchTerm] = useState("");
+  const [emailSending, setEmailSending] = useState(false);
+  const [emailSuccessMsg, setEmailSuccessMsg] = useState<string | null>(null);
+  const [emailErrorMsg, setEmailErrorMsg] = useState<string | null>(null);
+  const [emailPreviewMode, setEmailPreviewMode] = useState(false);
+
+  const fetchUsersList = async () => {
+    try {
+      const res = await fetch("/api/admin/users", {
+        headers: { "x-admin-token": session.sessionToken }
+      });
+      const data = await res.json();
+      if (data.success && Array.isArray(data.users)) {
+        setUsersList(data.users);
+      }
+    } catch (err) {
+      console.error("Failed to load user list for email composer:", err);
+    }
+  };
+
+  const handleFileAttachment = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    Array.from(files).forEach((file: File) => {
+      if (file.size > 15 * 1024 * 1024) {
+        setEmailErrorMsg(`File "${file.name}" exceeds 15MB limit.`);
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (uploadEvent) => {
+        const base64Data = uploadEvent.target?.result as string;
+        setEmailForm((prev) => ({
+          ...prev,
+          attachments: [
+            ...prev.attachments,
+            {
+              filename: file.name,
+              base64Content: base64Data,
+              contentType: file.type || "application/octet-stream",
+              size: file.size,
+            },
+          ],
+        }));
+      };
+      reader.readAsDataURL(file);
+    });
+    e.target.value = "";
+  };
+
+  const handleRemoveAttachment = (index: number) => {
+    setEmailForm((prev) => ({
+      ...prev,
+      attachments: prev.attachments.filter((_, i) => i !== index),
+    }));
+  };
+
+  const toggleUserRecipient = (userEmail: string) => {
+    setEmailForm((prev) => {
+      const exists = prev.recipients.includes(userEmail);
+      return {
+        ...prev,
+        recipients: exists
+          ? prev.recipients.filter((e) => e !== userEmail)
+          : [...prev.recipients, userEmail],
+      };
+    });
+  };
+
+  const handleSelectAllFilteredUsers = (filteredUsers: any[]) => {
+    const emails = filteredUsers.map((u) => u.email).filter(Boolean);
+    setEmailForm((prev) => ({
+      ...prev,
+      recipients: Array.from(new Set([...prev.recipients, ...emails])),
+    }));
+  };
+
+  const handleClearUserSelection = () => {
+    setEmailForm((prev) => ({
+      ...prev,
+      recipients: [],
+    }));
+  };
+
+  const handleSendEmailSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setEmailSending(true);
+    setEmailSuccessMsg(null);
+    setEmailErrorMsg(null);
+
+    try {
+      let finalRecipients: string[] = [];
+
+      if (emailForm.recipientMode === "individual") {
+        if (emailForm.customEmailInput.trim()) {
+          finalRecipients = [emailForm.customEmailInput.trim()];
+        } else if (emailForm.recipients.length > 0) {
+          finalRecipients = [emailForm.recipients[0]];
+        }
+      } else if (emailForm.recipientMode === "selective") {
+        const selectedList = [...emailForm.recipients];
+        if (emailForm.customEmailInput.trim()) {
+          const extra = emailForm.customEmailInput.split(/[\s,;]+/).map((e) => e.trim()).filter((e) => e.includes("@"));
+          selectedList.push(...extra);
+        }
+        finalRecipients = Array.from(new Set(selectedList));
+      }
+
+      if (emailForm.recipientMode !== "all" && finalRecipients.length === 0) {
+        throw new Error("Please select or enter at least one recipient email address.");
+      }
+
+      const res = await fetch("/api/admin/emails/send", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-token": session.sessionToken,
+        },
+        body: JSON.stringify({
+          recipientMode: emailForm.recipientMode,
+          recipients: finalRecipients,
+          subject: emailForm.subject,
+          message: emailForm.message,
+          senderName: emailForm.senderName || "SmartLink NG",
+          attachments: emailForm.attachments.map((att) => ({
+            filename: att.filename,
+            base64Content: att.base64Content,
+            contentType: att.contentType,
+          })),
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || "Failed to dispatch email.");
+      }
+
+      setEmailSuccessMsg(data.message || "Email process completed successfully.");
+      setEmailForm((prev) => ({
+        ...prev,
+        customEmailInput: "",
+        subject: "",
+        message: "",
+        attachments: [],
+      }));
+      fetchHistory();
+    } catch (err: any) {
+      setEmailErrorMsg(err.message || "An error occurred while sending email.");
+    } finally {
+      setEmailSending(false);
+    }
+  };
+
   // Announcement Form Modal State (Create & Edit)
   const [showAnnModal, setShowAnnModal] = useState(false);
   const [editingAnnId, setEditingAnnId] = useState<string | null>(null);
@@ -138,6 +321,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
     fetchAnnouncements();
     fetchTemplates();
     fetchHistory();
+    fetchUsersList();
   }, []);
 
   const fetchSystemSwitches = async () => {
@@ -511,6 +695,13 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
 
         <div className="flex items-center gap-2 shrink-0 flex-wrap">
           <button
+            onClick={() => setActiveTab("SEND_EMAIL")}
+            className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-xs rounded-xl shadow-lg transition-all flex items-center gap-2 cursor-pointer border border-blue-400/30"
+          >
+            <Mail className="w-4 h-4" />
+            <span>Send Direct Email</span>
+          </button>
+          <button
             onClick={() => setActiveTab("CREATE")}
             className="px-4 py-2 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-semibold text-xs rounded-xl shadow-lg transition-all flex items-center gap-2 cursor-pointer"
           >
@@ -737,6 +928,15 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
           <span>Overview</span>
         </button>
         <button
+          onClick={() => setActiveTab("SEND_EMAIL")}
+          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-2 ${
+            activeTab === "SEND_EMAIL" ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md ring-1 ring-blue-400/50" : "text-[#9CA3AF] hover:text-white hover:bg-[#111827]"
+          }`}
+        >
+          <Mail className="w-4 h-4 text-blue-300" />
+          <span>Send Direct Email</span>
+        </button>
+        <button
           onClick={() => setActiveTab("ANNOUNCEMENTS")}
           className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-2 ${
             activeTab === "ANNOUNCEMENTS" ? "bg-[#0F2D5C] text-white shadow-md" : "text-[#9CA3AF] hover:text-white hover:bg-[#111827]"
@@ -788,6 +988,512 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
           <span>Module 9 Tests</span>
         </button>
       </div>
+
+      {/* TAB: SEND DIRECT & BROADCAST EMAIL */}
+      {activeTab === "SEND_EMAIL" && (
+        <div className="space-y-6 max-w-5xl">
+          <div className="bg-[#111827] border border-[#111827] rounded-2xl p-6 text-white space-y-6 shadow-xl">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#111827] pb-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Mail className="w-5 h-5 text-blue-400" />
+                  <h3 className="text-lg font-bold">SmartLink NG Email Dispatcher</h3>
+                </div>
+                <p className="text-xs text-[#9CA3AF] mt-1">
+                  Compose and dispatch custom emails with file attachments to individual users, selective recipient lists, or broadcast to all registered accounts.
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setEmailPreviewMode(!emailPreviewMode)}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition-all flex items-center gap-1.5 cursor-pointer ${
+                    emailPreviewMode
+                      ? "bg-blue-600 text-white border-blue-500 shadow"
+                      : "bg-[#111827] text-[#9CA3AF] border-[#111827] hover:text-white"
+                  }`}
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  <span>{emailPreviewMode ? "Back to Editor" : "Live Email Preview"}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Success Feedback */}
+            {emailSuccessMsg && (
+              <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 rounded-xl text-xs flex items-center justify-between gap-2 animate-fadeIn">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>{emailSuccessMsg}</span>
+                </div>
+                <button
+                  onClick={() => setEmailSuccessMsg(null)}
+                  className="text-emerald-400 hover:text-white p-1 rounded cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+
+            {/* Error Feedback */}
+            {emailErrorMsg && (
+              <div className="p-4 bg-rose-500/10 border border-rose-500/30 text-rose-300 rounded-xl text-xs flex items-center justify-between gap-2 animate-fadeIn">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+                  <span>{emailErrorMsg}</span>
+                </div>
+                <button
+                  onClick={() => setEmailErrorMsg(null)}
+                  className="text-rose-400 hover:text-white p-1 rounded cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+
+            {emailPreviewMode ? (
+              /* LIVE EMAIL PREVIEW BOARD */
+              <div className="space-y-4">
+                <div className="text-xs text-[#9CA3AF] flex items-center justify-between">
+                  <span>Showing rendered HTML preview for recipient email:</span>
+                  <span className="font-mono text-blue-400 font-bold">
+                    {emailForm.recipientMode === "all"
+                      ? `Broadcast (${usersList.length} recipients)`
+                      : emailForm.recipientMode === "individual"
+                      ? (emailForm.customEmailInput || emailForm.recipients[0] || "Target Recipient")
+                      : `${emailForm.recipients.length} Selected Recipient(s)`}
+                  </span>
+                </div>
+
+                <div className="bg-[#F3F4F6] text-[#111827] rounded-2xl p-6 font-sans max-w-2xl mx-auto border border-gray-300 shadow-2xl overflow-hidden">
+                  <div className="bg-[#0F2D5C] text-white p-6 rounded-t-xl text-left">
+                    <h1 className="text-lg font-bold uppercase tracking-tight m-0 text-white">Smart Link NG</h1>
+                    <p className="text-xs text-blue-200 font-medium mt-1">
+                      {emailForm.senderName ? `${emailForm.senderName} • Official Communication` : "Official Customer Notice"}
+                    </p>
+                  </div>
+
+                  {/* BANNER ALERT BOX */}
+                  <div className="bg-[#EFF6FF] border-l-4 border-[#2563EB] p-4 text-left">
+                    <p className="m-0 text-sm font-bold text-[#1E40AF]">
+                      📢 {emailForm.subject || "(No Subject Entered)"}
+                    </p>
+                    <p className="m-0 text-[11px] text-gray-500 mt-1">
+                      Date Dispatched: {new Date().toLocaleDateString("en-NG", { dateStyle: "full" })}
+                    </p>
+                  </div>
+
+                  {/* CONTENT BODY */}
+                  <div className="bg-white p-6 min-h-[180px] text-sm leading-relaxed text-gray-900 border-x border-gray-200 space-y-4">
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: emailForm.message
+                          ? (emailForm.message.includes("<p>") || emailForm.message.includes("<br")
+                              ? emailForm.message
+                              : emailForm.message.replace(/\n/g, "<br/>"))
+                          : "<p class='text-gray-400 italic'>No message content typed yet...</p>",
+                      }}
+                    />
+
+                    {/* ATTACHMENT TABLE */}
+                    {emailForm.attachments.length > 0 && (
+                      <div className="mt-4 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg p-4">
+                        <h3 className="text-xs font-bold uppercase text-[#0F2D5C] mb-2 tracking-wide flex items-center gap-1.5">
+                          <Paperclip className="w-3.5 h-3.5 text-blue-600" />
+                          <span>Attached Documents ({emailForm.attachments.length})</span>
+                        </h3>
+                        <div className="divide-y divide-gray-200 border border-gray-200 rounded-lg overflow-hidden bg-white text-xs">
+                          {emailForm.attachments.map((att, idx) => (
+                            <div key={idx} className="flex items-center justify-between p-2.5 hover:bg-gray-50">
+                              <div className="flex items-center gap-2">
+                                <span className="p-1 bg-blue-50 text-blue-600 rounded">📎</span>
+                                <span className="font-semibold text-gray-800">{att.filename}</span>
+                              </div>
+                              <span className="text-[11px] text-gray-400 font-mono">({(att.size / 1024).toFixed(1)} KB)</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* ACTION / NOTICE BOX */}
+                  <div className="bg-white border-x border-gray-200 px-6 pb-4">
+                    <div className="bg-[#F0FDF4] border border-[#BBF7D0] rounded-lg p-3 text-center">
+                      <p className="m-0 text-xs text-[#166534] font-semibold">
+                        ✓ Official communication dispatched securely via SmartLink Digital Services
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* FOOTER */}
+                  <div className="bg-[#F9FAFB] p-4 border-t border-gray-200 rounded-b-xl text-center text-xs text-gray-500">
+                    <p className="m-0 font-semibold text-gray-700">SmartLink Digital Services • Customer Communications Engine</p>
+                    <p className="m-0 mt-1 text-[11px] text-gray-400">© {new Date().getFullYear()} {emailForm.senderName || "SmartLink Digital Services"}. All rights reserved.</p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* FORM EDITOR */
+              <form onSubmit={handleSendEmailSubmit} className="space-y-6">
+                
+                {/* RECIPIENT MODE SELECTION */}
+                <div className="space-y-3 bg-[#111827]/70 border border-[#111827] rounded-xl p-4">
+                  <label className="text-xs font-bold text-white flex items-center gap-2">
+                    <Users className="w-4 h-4 text-blue-400" />
+                    <span>Recipient Selection Mode *</span>
+                  </label>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setEmailForm({ ...emailForm, recipientMode: "individual" })}
+                      className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex items-center gap-3 ${
+                        emailForm.recipientMode === "individual"
+                          ? "bg-blue-600/20 border-blue-500 text-white shadow"
+                          : "bg-[#111827] border-[#111827] text-[#9CA3AF] hover:text-white"
+                      }`}
+                    >
+                      <div className={`p-2 rounded-lg ${emailForm.recipientMode === "individual" ? "bg-blue-600 text-white" : "bg-[#111827] text-[#9CA3AF]"}`}>
+                        <UserCheck className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold">Individual User</div>
+                        <div className="text-[10px] text-[#9CA3AF]">Send to 1 specific user</div>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setEmailForm({ ...emailForm, recipientMode: "selective" })}
+                      className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex items-center gap-3 ${
+                        emailForm.recipientMode === "selective"
+                          ? "bg-blue-600/20 border-blue-500 text-white shadow"
+                          : "bg-[#111827] border-[#111827] text-[#9CA3AF] hover:text-white"
+                      }`}
+                    >
+                      <div className={`p-2 rounded-lg ${emailForm.recipientMode === "selective" ? "bg-blue-600 text-white" : "bg-[#111827] text-[#9CA3AF]"}`}>
+                        <Users className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold">Selective Users</div>
+                        <div className="text-[10px] text-[#9CA3AF]">Choose multiple users</div>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setEmailForm({ ...emailForm, recipientMode: "all" })}
+                      className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex items-center gap-3 ${
+                        emailForm.recipientMode === "all"
+                          ? "bg-amber-500/20 border-amber-500 text-white shadow"
+                          : "bg-[#111827] border-[#111827] text-[#9CA3AF] hover:text-white"
+                      }`}
+                    >
+                      <div className={`p-2 rounded-lg ${emailForm.recipientMode === "all" ? "bg-amber-500 text-white" : "bg-[#111827] text-[#9CA3AF]"}`}>
+                        <Radio className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold">All Registered Users</div>
+                        <div className="text-[10px] text-[#9CA3AF]">Broadcast to everyone</div>
+                      </div>
+                    </button>
+                  </div>
+
+                  {/* MODE 1: INDIVIDUAL USER PICKER */}
+                  {emailForm.recipientMode === "individual" && (
+                    <div className="pt-3 border-t border-[#111827] grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs font-semibold text-[#E5E7EB] block mb-1">Select Registered User</label>
+                        <select
+                          value={emailForm.recipients[0] || ""}
+                          onChange={(e) => setEmailForm({ ...emailForm, recipients: e.target.value ? [e.target.value] : [], customEmailInput: "" })}
+                          className="w-full px-3 py-2 bg-[#111827] border border-[#111827] rounded-xl text-xs text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        >
+                          <option value="">-- Choose from registered users ({usersList.length}) --</option>
+                          {usersList.map((u) => (
+                            <option key={u.id || u.uid || u.email} value={u.email}>
+                              {u.fullName || u.displayName || u.email} ({u.email})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-semibold text-[#E5E7EB] block mb-1">Or Enter Custom Email</label>
+                        <input
+                          type="email"
+                          placeholder="e.g. client@example.com"
+                          value={emailForm.customEmailInput}
+                          onChange={(e) => setEmailForm({ ...emailForm, customEmailInput: e.target.value })}
+                          className="w-full px-3 py-2 bg-[#111827] border border-[#111827] rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* MODE 2: SELECTIVE MULTI-USER PICKER */}
+                  {emailForm.recipientMode === "selective" && (
+                    <div className="pt-3 border-t border-[#111827] space-y-3">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                        <span className="text-xs font-semibold text-[#E5E7EB]">
+                          Selected Recipient Accounts: <strong className="text-blue-400 font-mono">{emailForm.recipients.length} user(s)</strong>
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const filtered = usersList.filter(u =>
+                                (u.fullName || "").toLowerCase().includes(userSearchTerm.toLowerCase()) ||
+                                (u.email || "").toLowerCase().includes(userSearchTerm.toLowerCase())
+                              );
+                              handleSelectAllFilteredUsers(filtered);
+                            }}
+                            className="px-2.5 py-1 bg-[#111827] hover:bg-[#111827] text-blue-400 border border-[#111827] rounded-lg text-[11px] font-bold cursor-pointer"
+                          >
+                            Select All Filtered
+                          </button>
+                          {emailForm.recipients.length > 0 && (
+                            <button
+                              type="button"
+                              onClick={handleClearUserSelection}
+                              className="px-2.5 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg text-[11px] font-bold cursor-pointer"
+                            >
+                              Clear Selection
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Search Input */}
+                      <div className="relative">
+                        <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-gray-400" />
+                        <input
+                          type="text"
+                          placeholder="Search users by name or email..."
+                          value={userSearchTerm}
+                          onChange={(e) => setUserSearchTerm(e.target.value)}
+                          className="w-full pl-9 pr-3 py-1.5 bg-[#111827] border border-[#111827] rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        />
+                      </div>
+
+                      {/* User list with checkboxes */}
+                      <div className="max-h-48 overflow-y-auto bg-[#111827] border border-[#111827] rounded-xl p-2 space-y-1 divide-y divide-[#111827]/40">
+                        {usersList
+                          .filter((u) =>
+                            (u.fullName || "").toLowerCase().includes(userSearchTerm.toLowerCase()) ||
+                            (u.email || "").toLowerCase().includes(userSearchTerm.toLowerCase())
+                          )
+                          .map((u) => {
+                            const isSelected = emailForm.recipients.includes(u.email);
+                            return (
+                              <div
+                                key={u.id || u.uid || u.email}
+                                onClick={() => toggleUserRecipient(u.email)}
+                                className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all ${
+                                  isSelected ? "bg-blue-600/20 border border-blue-500/40" : "hover:bg-[#111827]"
+                                }`}
+                              >
+                                <div className="flex items-center gap-2.5">
+                                  <input
+                                    type="checkbox"
+                                    checked={isSelected}
+                                    onChange={() => {}}
+                                    className="rounded border-gray-600 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                  />
+                                  <div>
+                                    <div className="text-xs font-bold text-white">{u.fullName || u.displayName || "User"}</div>
+                                    <div className="text-[11px] text-[#9CA3AF] font-mono">{u.email}</div>
+                                  </div>
+                                </div>
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                  u.role === "ADMIN" ? "bg-amber-500/20 text-amber-300" : "bg-blue-500/10 text-blue-400"
+                                }`}>
+                                  {u.role || "USER"}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        {usersList.length === 0 && (
+                          <div className="p-4 text-center text-xs text-gray-500">No registered users found.</div>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-semibold text-[#E5E7EB] block mb-1">Plus Extra Emails (comma or newline separated)</label>
+                        <textarea
+                          rows={2}
+                          placeholder="e.g. external1@gmail.com, external2@yahoo.com"
+                          value={emailForm.customEmailInput}
+                          onChange={(e) => setEmailForm({ ...emailForm, customEmailInput: e.target.value })}
+                          className="w-full px-3 py-2 bg-[#111827] border border-[#111827] rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* MODE 3: ALL USERS BROADCAST NOTICE */}
+                  {emailForm.recipientMode === "all" && (
+                    <div className="pt-3 border-t border-[#111827] bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 flex items-start gap-3">
+                      <Radio className="w-5 h-5 text-amber-400 shrink-0 mt-0.5 animate-pulse" />
+                      <div>
+                        <div className="text-xs font-bold text-amber-300">Broadcast Mode Activated</div>
+                        <div className="text-[11px] text-amber-200/80 mt-0.5">
+                          This email will be dispatched to <strong>ALL registered accounts ({usersList.length || 'all'})</strong> on SmartLink NG. Please verify subject and content before proceeding.
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* SENDER NAME & SUBJECT INPUT FIELDS */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-semibold text-[#E5E7EB] block mb-1">
+                      Sender Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="SmartLink NG"
+                      value={emailForm.senderName}
+                      onChange={(e) => setEmailForm({ ...emailForm, senderName: e.target.value })}
+                      className="w-full px-3.5 py-2.5 bg-[#111827] border border-[#111827] rounded-xl text-xs text-white font-medium focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                    <span className="text-[10px] text-[#9CA3AF] mt-1 block">Default display name in recipient inbox</span>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-[#E5E7EB] block mb-1">
+                      Email Subject *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. SmartLink NG Account Security & Upgrade Notice"
+                      value={emailForm.subject}
+                      onChange={(e) => setEmailForm({ ...emailForm, subject: e.target.value })}
+                      className="w-full px-3.5 py-2.5 bg-[#111827] border border-[#111827] rounded-xl text-xs text-white font-medium focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                {/* MESSAGE CONTENT TEXTAREA */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-semibold text-[#E5E7EB] block">
+                      Message Body Content *
+                    </label>
+                    <span className="text-[10px] text-gray-400">Supports standard line breaks or HTML tags</span>
+                  </div>
+                  <textarea
+                    rows={8}
+                    required
+                    placeholder="Dear Valued Customer,&#10;&#10;We are writing from SmartLink NG to notify you about..."
+                    value={emailForm.message}
+                    onChange={(e) => setEmailForm({ ...emailForm, message: e.target.value })}
+                    className="w-full px-3.5 py-2.5 bg-[#111827] border border-[#111827] rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500 font-sans leading-relaxed"
+                  />
+                </div>
+
+                {/* FILE / FILES UPLOAD ATTACHMENT SECTION */}
+                <div className="bg-[#111827]/60 border border-[#111827] rounded-xl p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-white flex items-center gap-2">
+                      <Paperclip className="w-4 h-4 text-blue-400" />
+                      <span>File Attachments (Upload File / Files)</span>
+                    </label>
+                    <span className="text-[10px] text-[#9CA3AF]">Max 15MB per file</span>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <label className="px-4 py-2 bg-[#111827] hover:bg-[#111827] border border-[#111827] hover:border-blue-500/50 text-white rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2">
+                      <Upload className="w-4 h-4 text-blue-400" />
+                      <span>Select Files to Attach</span>
+                      <input
+                        type="file"
+                        multiple
+                        onChange={handleFileAttachment}
+                        className="hidden"
+                      />
+                    </label>
+                    <span className="text-[11px] text-gray-400 italic">
+                      {emailForm.attachments.length === 0 ? "No files attached yet" : `${emailForm.attachments.length} file(s) attached`}
+                    </span>
+                  </div>
+
+                  {/* ATTACHMENT BADGES */}
+                  {emailForm.attachments.length > 0 && (
+                    <div className="flex flex-wrap gap-2 pt-2 border-t border-[#111827]">
+                      {emailForm.attachments.map((att, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center gap-2 px-3 py-1.5 bg-[#111827] border border-[#111827] rounded-xl text-xs text-white"
+                        >
+                          <Paperclip className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                          <span className="font-medium truncate max-w-[180px]">{att.filename}</span>
+                          <span className="text-[10px] text-gray-400 font-mono">({(att.size / 1024).toFixed(1)} KB)</span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveAttachment(index)}
+                            className="text-gray-400 hover:text-rose-400 p-0.5 rounded cursor-pointer ml-1"
+                            title="Remove Attachment"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* FORM SUBMIT ACTIONS */}
+                <div className="pt-4 border-t border-[#111827] flex flex-col sm:flex-row items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEmailForm({
+                        recipientMode: "individual",
+                        recipients: [],
+                        customEmailInput: "",
+                        subject: "",
+                        message: "",
+                        senderName: "SmartLink NG",
+                        attachments: [],
+                      });
+                      setEmailSuccessMsg(null);
+                      setEmailErrorMsg(null);
+                    }}
+                    className="px-4 py-2.5 bg-[#111827] hover:bg-[#111827] text-gray-400 hover:text-white text-xs font-bold rounded-xl transition-all cursor-pointer w-full sm:w-auto"
+                  >
+                    Clear Form
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={emailSending}
+                    className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer w-full sm:w-auto border border-blue-400/30"
+                  >
+                    {emailSending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Dispatching Email...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        <span>Send Email via SmartLink NG</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+              </form>
+            )}
+
+          </div>
+        </div>
+      )}
 
       {/* TAB 1: OVERVIEW DASHBOARD */}
       {activeTab === "OVERVIEW" && (

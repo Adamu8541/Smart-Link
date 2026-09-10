@@ -336,10 +336,12 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
                 </div>
               </div>
               <button 
+                type="button"
                 onClick={() => setActiveInfoTab(null)}
-                className="p-1.5 hover:bg-black/5 rounded-full transition-colors cursor-pointer text-[#6B7280]"
+                aria-label="Close dialog"
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 hover:bg-black/5 rounded-full transition-colors cursor-pointer text-[#6B7280] hover:text-[#111827] focus:ring-2 focus:ring-[#0F2D5C]"
               >
-                <X className="h-5 w-5" />
+                <X className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
 

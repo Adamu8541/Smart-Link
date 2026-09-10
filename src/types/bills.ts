@@ -53,6 +53,8 @@ export interface BillPlan {
   id: string;
   providerCode: string;
   planName: string;
+  dataType?: "SME" | "GIFTING" | "CORPORATE" | "DIRECT" | string;
+  planCode?: string;
   dataVolume?: string;
   validity?: string;
   amount: number;

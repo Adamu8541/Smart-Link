@@ -116,10 +116,14 @@ export default function AdminLogin({ onLoginSuccess, onNavigateHome }: AdminLogi
       // 1. Try Firebase Email/Password Sign-In
       let idToken: string | null = null;
       try {
-        const userCredential = await signInWithEmailAndPassword(auth, cleanEmail, password);
+        const fbLoginPromise = signInWithEmailAndPassword(auth, cleanEmail, password);
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("Admin Firebase auth timeout")), 4000)
+        );
+        const userCredential = await Promise.race([fbLoginPromise, timeoutPromise]);
         idToken = await userCredential.user.getIdToken();
       } catch (fbErr: any) {
-        console.log("[AdminLogin] Firebase login attempt:", fbErr.code);
+        console.log("[AdminLogin] Firebase login attempt note:", fbErr?.code || fbErr?.message);
       }
 
       if (idToken) {

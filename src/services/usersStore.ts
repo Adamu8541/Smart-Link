@@ -1,6 +1,21 @@
 import { getAdminFirestore } from "./firebaseAdmin";
 import { readDB, writeDB } from "../../server/db";
 
+async function withTimeout<T>(promise: Promise<T>, timeoutMs = 2500): Promise<T> {
+  let timer: any;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error("Database request timed out")), timeoutMs);
+  });
+  try {
+    const result = await Promise.race([promise, timeoutPromise]);
+    clearTimeout(timer);
+    return result;
+  } catch (err) {
+    clearTimeout(timer);
+    throw err;
+  }
+}
+
 export interface UserDoc {
   id?: string;
   uid?: string;
@@ -31,7 +46,7 @@ const COLLECTION_NAME = "users";
 export async function getAllUsers(): Promise<UserDoc[]> {
   try {
     const db = getAdminFirestore();
-    const snapshot = await db.collection(COLLECTION_NAME).get();
+    const snapshot = await withTimeout(db.collection(COLLECTION_NAME).get());
     const users: UserDoc[] = [];
     snapshot.forEach((doc) => {
       const data = doc.data() as UserDoc;
@@ -65,14 +80,14 @@ export async function getUserById(idOrUid: string): Promise<UserDoc | null> {
     const db = getAdminFirestore();
     // Try direct document lookup first
     const docRef = db.collection(COLLECTION_NAME).doc(idOrUid);
-    const docSnap = await docRef.get();
+    const docSnap = await withTimeout(docRef.get());
     if (docSnap.exists) {
       const data = docSnap.data() as UserDoc;
       return { id: docSnap.id, uid: data.uid || docSnap.id, ...data };
     }
 
     // Fallback: Query by uid field
-    const queryUid = await db.collection(COLLECTION_NAME).where("uid", "==", idOrUid).limit(1).get();
+    const queryUid = await withTimeout(db.collection(COLLECTION_NAME).where("uid", "==", idOrUid).limit(1).get());
     if (!queryUid.empty) {
       const doc = queryUid.docs[0];
       const data = doc.data() as UserDoc;
@@ -80,7 +95,7 @@ export async function getUserById(idOrUid: string): Promise<UserDoc | null> {
     }
 
     // Fallback: Query by id field
-    const queryId = await db.collection(COLLECTION_NAME).where("id", "==", idOrUid).limit(1).get();
+    const queryId = await withTimeout(db.collection(COLLECTION_NAME).where("id", "==", idOrUid).limit(1).get());
     if (!queryId.empty) {
       const doc = queryId.docs[0];
       const data = doc.data() as UserDoc;
@@ -111,9 +126,9 @@ export async function getUserByEmail(email: string): Promise<UserDoc | null> {
   const normalizedEmail = cleanEmail.toLowerCase();
   try {
     const db = getAdminFirestore();
-    let querySnap = await db.collection(COLLECTION_NAME).where("email", "==", normalizedEmail).limit(1).get();
+    let querySnap = await withTimeout(db.collection(COLLECTION_NAME).where("email", "==", normalizedEmail).limit(1).get());
     if (querySnap.empty && cleanEmail !== normalizedEmail) {
-      querySnap = await db.collection(COLLECTION_NAME).where("email", "==", cleanEmail).limit(1).get();
+      querySnap = await withTimeout(db.collection(COLLECTION_NAME).where("email", "==", cleanEmail).limit(1).get());
     }
     if (!querySnap.empty) {
       const doc = querySnap.docs[0];
@@ -142,7 +157,7 @@ export async function getUserByPhone(phoneNumber: string): Promise<UserDoc | nul
   if (!cleanPhone) return null;
   try {
     const db = getAdminFirestore();
-    const snapshot = await db.collection(COLLECTION_NAME).where("phoneNumber", "==", cleanPhone).limit(1).get();
+    const snapshot = await withTimeout(db.collection(COLLECTION_NAME).where("phoneNumber", "==", cleanPhone).limit(1).get());
     if (!snapshot.empty) {
       const doc = snapshot.docs[0];
       const data = doc.data() as UserDoc;
@@ -202,7 +217,7 @@ export async function createUser(user: UserDoc): Promise<UserDoc> {
 
   try {
     const docRef = db.collection(COLLECTION_NAME).doc(docId);
-    const snap = await docRef.get();
+    const snap = await withTimeout(docRef.get());
     if (snap.exists) {
       const existingData = snap.data() as UserDoc;
       if (existingData.email && existingData.email.toLowerCase().trim() !== normalizedEmail) {
@@ -210,7 +225,7 @@ export async function createUser(user: UserDoc): Promise<UserDoc> {
       }
       return { id: snap.id, uid: existingData.uid || snap.id, ...existingData };
     }
-    await docRef.set(sanitized);
+    await withTimeout(docRef.set(sanitized));
   } catch (err: any) {
     if (err?.message === "email exist sign in instead" || err?.message?.includes("already linked")) {
       throw err;
@@ -253,7 +268,7 @@ export async function updateUser(idOrUid: string, updates: Partial<UserDoc>): Pr
 
   try {
     const db = getAdminFirestore();
-    await db.collection(COLLECTION_NAME).doc(docId).set(sanitized, { merge: true });
+    await withTimeout(db.collection(COLLECTION_NAME).doc(docId).set(sanitized, { merge: true }));
   } catch (err: any) {
     if (!err?.message?.includes("RESOURCE_EXHAUSTED") && err?.code !== 8) {
       console.log("[usersStore] Firestore updateUser bypassed, updating local database fallback.");
@@ -288,7 +303,7 @@ export async function deleteUser(idOrUid: string): Promise<boolean> {
     if (!existing) return false;
 
     const docId = existing.id || existing.uid || idOrUid;
-    await db.collection(COLLECTION_NAME).doc(docId).delete();
+    await withTimeout(db.collection(COLLECTION_NAME).doc(docId).delete());
   } catch (err) {}
 
   try {
@@ -311,7 +326,7 @@ export async function deleteUser(idOrUid: string): Promise<boolean> {
 export async function seedUsersIfEmpty(defaultUsers: UserDoc[]): Promise<void> {
   try {
     const db = getAdminFirestore();
-    const snap = await db.collection(COLLECTION_NAME).limit(1).get();
+    const snap = await withTimeout(db.collection(COLLECTION_NAME).limit(1).get());
     if (snap.empty && Array.isArray(defaultUsers) && defaultUsers.length > 0) {
       for (const u of defaultUsers) {
         await createUser(u);

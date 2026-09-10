@@ -37,6 +37,7 @@ import webhooksRoutes from "./server/routes/webhooks.routes";
 import legalRoutes from "./server/routes/legal.routes";
 import marketplaceRoutes from "./server/routes/marketplace.routes";
 import virtualAccountRoutes from "./server/routes/virtualAccount.routes";
+import manualServicesRoutes from "./server/routes/manualServices.routes";
 
 // Re-export core helpers for backwards compatibility
 export {
@@ -90,16 +91,41 @@ app.use((req, res, next) => {
   next();
 });
 
-// JSON body parser with rawBody capture for webhook signature verification
+// JSON and URL-encoded body parser with generous limit for document attachments
 app.use(
   express.json({
-    limit: "20mb",
+    limit: "50mb",
     verify: (req: any, _res, buf) => {
       req.rawBody = buf ? buf.toString("utf8") : "";
       req.rawBodyBuffer = buf;
     },
   })
 );
+
+app.use(
+  express.urlencoded({
+    limit: "50mb",
+    extended: true,
+  })
+);
+
+// Body parser error handler: Ensure API requests never receive raw HTML 413 or 400 error pages
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (err && req.path.startsWith("/api/")) {
+    console.warn(`[API Body Error] ${req.method} ${req.path}:`, err.message || err);
+    if (err.type === "entity.too.large" || err.status === 413) {
+      return res.status(413).json({
+        success: false,
+        error: "The uploaded file(s) or submission payload is too large. Please upload smaller documents or photos.",
+      });
+    }
+    return res.status(err.status || 400).json({
+      success: false,
+      error: err.message || "Invalid submission payload.",
+    });
+  }
+  next(err);
+});
 
 // Global Maintenance Mode Middleware
 app.use(maintenanceMiddleware);
@@ -123,6 +149,7 @@ app.use(storageRoutes);
 app.use(legalRoutes);
 app.use(marketplaceRoutes);
 app.use(virtualAccountRoutes);
+app.use(manualServicesRoutes);
 
 // Fallback 404 for all unhandled /api/* routes so they always return JSON and never HTML
 app.all("/api/*", (req, res) => {

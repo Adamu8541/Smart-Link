@@ -39,14 +39,17 @@ import {
   Play,
   FileCode,
   ShieldAlert,
+  ShieldCheck,
   Search,
   Check,
   ChevronRight,
   Plus,
   Trash2,
-  Image as ImageIcon
+  Image as ImageIcon,
+  FileText
 } from "lucide-react";
 import { AdminSession } from "../../../services/adminAuthTypes";
+import { MANUAL_SERVICES_CATALOG, DEFAULT_MANUAL_ADMIN_EMAIL } from "../../../data/manualServicesConfig";
 
 interface AdminSettingsViewProps {
   session: AdminSession;
@@ -85,6 +88,12 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
   const [testResults, setTestResults] = useState<any>(null);
   const [runningTest, setRunningTest] = useState<boolean>(false);
 
+  // Manual Services Email Routing state
+  const [manualDefaultEmail, setManualDefaultEmail] = useState<string>(DEFAULT_MANUAL_ADMIN_EMAIL);
+  const [manualServiceRoutes, setManualServiceRoutes] = useState<{ [serviceId: string]: string }>({});
+  const [savingManualRoutes, setSavingManualRoutes] = useState(false);
+  const [manualRoutesMessage, setManualRoutesMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
   // Fetch settings on load
   const fetchSettings = async () => {
     setLoading(true);
@@ -101,6 +110,18 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
         setCanEdit(data.canEdit !== false);
       } else {
         setMessage({ type: "error", text: data.message || "Failed to load platform settings." });
+      }
+
+      // Fetch manual services email routes
+      try {
+        const manualRes = await fetch("/api/manual-services/config");
+        const manualData = await manualRes.json();
+        if (manualData.success) {
+          if (manualData.defaultRecipient) setManualDefaultEmail(manualData.defaultRecipient);
+          if (manualData.serviceEmailRoutes) setManualServiceRoutes(manualData.serviceEmailRoutes);
+        }
+      } catch (e) {
+        console.warn("Could not load manual services config:", e);
       }
     } catch (err: any) {
       setMessage({ type: "error", text: "Network error loading platform settings." });
@@ -283,6 +304,37 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
     }
   };
 
+  // Save Manual Services Email Routes
+  const handleSaveManualRoutes = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingManualRoutes(true);
+    setManualRoutesMessage(null);
+    try {
+      const res = await fetch("/api/admin/manual-services/email-routes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-token": session.sessionToken || "",
+        },
+        body: JSON.stringify({
+          defaultEmail: manualDefaultEmail,
+          serviceRoutes: manualServiceRoutes,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setManualRoutesMessage({ type: "success", text: "Manual services email dispatch routes saved successfully." });
+        fetchAuditLogs();
+      } else {
+        setManualRoutesMessage({ type: "error", text: data.message || "Failed to update email routes." });
+      }
+    } catch (err) {
+      setManualRoutesMessage({ type: "error", text: "Network error saving manual services email routes." });
+    } finally {
+      setSavingManualRoutes(false);
+    }
+  };
+
   // Run Self-Test
   const handleRunSelfTest = async () => {
     setRunningTest(true);
@@ -347,6 +399,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
     { id: "notifications", label: "Notifications", icon: Bell },
     { id: "security", label: "Security", icon: Shield },
     { id: "email", label: "Email (SMTP)", icon: Mail },
+    { id: "manual_services", label: "Manual Services Routing", icon: FileText },
     { id: "sms", label: "SMS Provider", icon: MessageSquare },
     { id: "maintenance", label: "Maintenance", icon: Wrench },
     { id: "api", label: "API Config", icon: Server },
@@ -2345,6 +2398,210 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                   className="py-2.5 px-6 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-lg shadow-none"
                 >
                   <Save className="h-4 w-4" /> Save Email Config
+                </button>
+              )}
+            </div>
+          </form>
+        )}
+
+        {/* 8B. MANUAL SERVICES EMAIL ROUTING */}
+        {activeTab === "manual_services" && (
+          <form onSubmit={handleSaveManualRoutes} className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-[#111827] pb-4">
+              <div>
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-[#9CA3AF]" /> Manual Services Submission & Email Dispatch Routing
+                </h2>
+                <p className="text-xs text-[#9CA3AF] mt-0.5">
+                  Route submissions and user-uploaded file attachments for offline/manual services directly to dedicated officer Gmail/work emails.
+                </p>
+              </div>
+              {canEdit && (
+                <button
+                  type="submit"
+                  disabled={savingManualRoutes}
+                  className="py-2 px-5 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-lg shadow-none shrink-0"
+                >
+                  <Save className="h-3.5 w-3.5" /> {savingManualRoutes ? "Saving..." : "Save Email Routes"}
+                </button>
+              )}
+            </div>
+
+            {manualRoutesMessage && (
+              <div
+                className={`p-4 rounded-2xl border flex items-center gap-2.5 text-xs font-medium ${
+                  manualRoutesMessage.type === "success"
+                    ? "bg-emerald-950/40 border-emerald-800/80 text-emerald-200"
+                    : "bg-red-950/40 border-red-800/80 text-red-200"
+                }`}
+              >
+                {manualRoutesMessage.type === "success" ? (
+                  <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                ) : (
+                  <AlertTriangle className="h-4 w-4 text-red-400 shrink-0" />
+                )}
+                <span>{manualRoutesMessage.text}</span>
+              </div>
+            )}
+
+            {/* Architecture Highlights Banner */}
+            <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs">
+              <div className="space-y-1">
+                <span className="font-bold text-white flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" /> Firebase Storage Bypass & Zero Data Loss Guarantee
+                </span>
+                <p className="text-[#9CA3AF] leading-relaxed">
+                  All user-uploaded photos, PDF documents, and form data are stored safely on the server's local storage and forwarded directly as high-resolution email attachments. If a submission fails, the user's form is restored locally without losing a single character.
+                </p>
+              </div>
+              <div className="shrink-0 flex items-center gap-2 px-3 py-1.5 bg-[#111827] border border-[#374151] rounded-xl text-[11px] text-gray-300 font-mono">
+                <span>Default:</span>
+                <span className="text-emerald-400 font-bold">{DEFAULT_MANUAL_ADMIN_EMAIL}</span>
+              </div>
+            </div>
+
+            {/* Global Default Recipient Email */}
+            <div className="p-5 bg-[#111827] border border-[#111827] rounded-2xl space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <label className="block text-xs font-bold text-white">
+                    Primary / Fallback Destination Email Address
+                  </label>
+                  <p className="text-[11px] text-[#9CA3AF]">
+                    All manual services that do not have an individual override will be dispatched to this email.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setManualDefaultEmail(DEFAULT_MANUAL_ADMIN_EMAIL)}
+                  className="text-[11px] text-blue-400 hover:text-blue-300 underline font-medium self-start sm:self-auto cursor-pointer"
+                >
+                  Reset to {DEFAULT_MANUAL_ADMIN_EMAIL}
+                </button>
+              </div>
+              <div className="relative">
+                <Mail className="absolute left-3.5 top-3 h-4 w-4 text-gray-500" />
+                <input
+                  type="email"
+                  value={manualDefaultEmail}
+                  onChange={(e) => setManualDefaultEmail(e.target.value)}
+                  disabled={!canEdit}
+                  placeholder="e.g. adamuamuhammad8541@gmail.com"
+                  className="w-full bg-[#111827] border border-[#374151] rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C] font-mono"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Per-Service Routing Overrides */}
+            <div className="space-y-3">
+              <div>
+                <h3 className="text-sm font-bold text-white">
+                  Individual Service Dispatch Routes
+                </h3>
+                <p className="text-xs text-[#9CA3AF]">
+                  Set a specific recipient email for each service (e.g. assign CAC filings to your legal officer and Passports to immigration support). Leave blank to use the primary default email.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {MANUAL_SERVICES_CATALOG.map((svc) => {
+                  const currentOverride = manualServiceRoutes[svc.id] || "";
+                  const activeTarget = currentOverride.trim() || manualDefaultEmail;
+
+                  return (
+                    <div
+                      key={svc.id}
+                      className="p-4 bg-[#111827] border border-[#111827] hover:border-[#374151] rounded-2xl space-y-3 transition-colors"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#0F2D5C] text-blue-300 uppercase font-mono">
+                              {svc.category}
+                            </span>
+                            <span className="text-[10px] text-gray-400">
+                              Fee: <strong className="text-emerald-400">₦{svc.price.toLocaleString()}</strong>
+                            </span>
+                          </div>
+                          <h4 className="text-xs font-bold text-white leading-snug">
+                            {svc.name}
+                          </h4>
+                          <span className="text-[10px] text-gray-400 font-mono block mt-0.5">
+                            ID: {svc.id}
+                          </span>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-950/80 border border-blue-800 text-blue-300 font-mono">
+                            {svc.processingTime}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5 pt-2 border-t border-[#1F2937]">
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="text-gray-300 font-medium">Destination Email:</span>
+                          {currentOverride && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const copy = { ...manualServiceRoutes };
+                                delete copy[svc.id];
+                                setManualServiceRoutes(copy);
+                              }}
+                              className="text-[10px] text-rose-400 hover:text-rose-300 underline cursor-pointer"
+                            >
+                              Clear Override
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="relative">
+                          <input
+                            type="email"
+                            value={currentOverride}
+                            onChange={(e) =>
+                              setManualServiceRoutes({
+                                ...manualServiceRoutes,
+                                [svc.id]: e.target.value,
+                              })
+                            }
+                            disabled={!canEdit}
+                            placeholder={`Inherit (${manualDefaultEmail})`}
+                            className="w-full bg-[#111827] border border-[#374151] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#0F2D5C] font-mono text-[11px]"
+                          />
+                        </div>
+
+                        <div className="flex items-center gap-1.5 text-[10.5px] text-gray-400">
+                          <span>Delivers to:</span>
+                          <span className="font-mono text-emerald-400 font-medium truncate">
+                            {activeTarget}
+                          </span>
+                          {currentOverride.trim() ? (
+                            <span className="text-[9px] px-1.5 py-0.2 bg-amber-500/20 text-amber-300 rounded font-bold">
+                              CUSTOM
+                            </span>
+                          ) : (
+                            <span className="text-[9px] px-1.5 py-0.2 bg-gray-700 text-gray-300 rounded">
+                              DEFAULT
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-[#111827] flex justify-end">
+              {canEdit && (
+                <button
+                  type="submit"
+                  disabled={savingManualRoutes}
+                  className="py-2.5 px-6 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-lg shadow-none"
+                >
+                  <Save className="h-4 w-4" /> {savingManualRoutes ? "Saving Changes..." : "Save All Service Email Routes"}
                 </button>
               )}
             </div>

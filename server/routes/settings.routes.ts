@@ -28,6 +28,7 @@ import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutin
 import { syncFromFirestore, syncToFirestore } from "../../src/services/settingsStore";
 import { loadFirestoreDb, syncDbToFirestore, saveDocToFirestore } from "../../src/services/firestoreStore";
 import * as usersStore from "../../src/services/usersStore";
+import { sendPlatformEmail, getResolvedSmtpConfig } from "../services/email.service";
 import * as walletsStore from "../../src/services/walletsStore";
 import * as securityStore from "../../src/services/securityStore";
 import * as notificationsStore from "../../src/services/notificationsStore";
@@ -275,26 +276,33 @@ app.get("/api/admin/settings", requireAdmin, async (req, res) => {
   const db = readDB();
   await syncFromFirestore(db);
 
-
   seedModule7SettingsIfEmpty(db);
 
   const maintenance = getMaintenanceDetails(db);
-  const branding = db.branding_settings || {};
-  const system = db.system_settings || {};
+  const branding = db.branding_settings || db.brandingSettings || {};
+  const system = db.system_settings || db.systemSettings || {};
+  const platform = db.platform_configuration || db.platformConfig || db.platformConfiguration || {};
 
   return res.json({
     success: true,
+    systemSettings: system,
+    platformConfig: platform,
+    brandingSettings: branding,
+    maintenanceSettings: maintenance,
+    system,
+    branding,
+    maintenance,
+    platform,
     settings: {
       ...system,
+      ...platform,
       branding,
       maintenance,
       maintenanceMode: maintenance.maintenanceMode,
       maintenanceMessage: maintenance.maintenanceMessage,
       maintenanceDetails: maintenance,
     },
-    system,
-    branding,
-    maintenance,
+    canEdit: true,
   });
 });
 
@@ -428,15 +436,54 @@ app.post("/api/admin/settings/test-email", requireAdmin, async (req, res) => {
   const { testEmail, recipientEmail } = req.body;
   const target = testEmail || recipientEmail;
   const db = readDB();
+  await syncFromFirestore(db);
 
   if (!target) {
     return res.status(400).json({ success: false, message: "Recipient email address is required." });
   }
 
+  const { config, fromAddress } = getResolvedSmtpConfig(db);
+  const appName = db.system_settings?.general?.appName || "SmartLink Digital";
+
+  const emailResult = await sendPlatformEmail({
+    to: target,
+    subject: `Test Email Verification — ${appName}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <h1 style="color: #0F2D5C; font-size: 22px; margin: 0;">${appName}</h1>
+          <p style="color: #64748b; font-size: 14px; margin: 4px 0 0 0;">System Email & SMTP Gateway Test</p>
+        </div>
+        <div style="background-color: #f8fafc; border-left: 4px solid #10b981; padding: 16px; border-radius: 6px; margin-bottom: 20px;">
+          <p style="margin: 0; color: #0f172a; font-size: 15px; font-weight: bold;">✅ SMTP Outbound Dispatch Successful!</p>
+          <p style="margin: 6px 0 0 0; color: #334155; font-size: 13px;">This email confirms that your outgoing mail server configuration is fully operational and authenticated.</p>
+        </div>
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #334155; margin-bottom: 20px;">
+          <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 8px 0; font-weight: bold; color: #64748b;">Sender:</td><td style="padding: 8px 0; font-family: monospace;">${fromAddress}</td></tr>
+          <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 8px 0; font-weight: bold; color: #64748b;">Recipient:</td><td style="padding: 8px 0; font-family: monospace;">${target}</td></tr>
+          <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 8px 0; font-weight: bold; color: #64748b;">SMTP Host:</td><td style="padding: 8px 0; font-family: monospace;">${config.smtpHost || "smtp.gmail.com"}</td></tr>
+          <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 8px 0; font-weight: bold; color: #64748b;">Timestamp:</td><td style="padding: 8px 0;">${new Date().toLocaleString("en-NG", { timeZone: "Africa/Lagos" })} WAT</td></tr>
+        </table>
+        <p style="color: #94a3b8; font-size: 12px; margin: 0; text-align: center;">This was triggered from the SmartLink Administration Settings Portal.</p>
+      </div>
+    `,
+    text: `Test Email Verification from ${appName}. If you received this, your SMTP configuration is functioning properly.`,
+  }, db);
+
+  if (!emailResult.success) {
+    return res.status(500).json({
+      success: false,
+      message: `Failed to deliver email: ${emailResult.message}`,
+      error: emailResult.error,
+      smtpHost: config.smtpHost,
+    });
+  }
+
   return res.json({
     success: true,
-    message: `Test email sent successfully to ${target}.`,
+    message: `Test email successfully delivered to ${target} via SMTP server (${config.smtpHost || "smtp.gmail.com"}).`,
     recipient: target,
+    messageId: emailResult.messageId,
     dispatchedAt: new Date().toISOString(),
   });
 });

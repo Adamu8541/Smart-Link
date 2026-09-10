@@ -558,7 +558,7 @@ export default function App() {
     maintenanceMode: false,
     ninFee: 500,
     bvnFee: 500,
-    cacBaseFee: 15000,
+    cacBaseFee: 28000,
   });
 
   useEffect(() => {

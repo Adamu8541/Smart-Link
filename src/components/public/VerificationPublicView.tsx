@@ -309,7 +309,7 @@ export const VerificationPublicView: React.FC<VerificationPublicViewProps> = ({
           <div className="bg-white rounded-3xl border border-gray-200 p-6 sm:p-10 shadow-sm space-y-6">
             <h2 className="text-2xl font-black text-gray-900">SCUML Anti-Money Laundering Certificate Assistance</h2>
             <p className="text-xs sm:text-sm text-gray-600 max-w-2xl leading-relaxed">
-              Assistance for Designated Non-Financial Businesses and Professions (Real Estate, Car Dealerships, Law Firms, Consulting, Hotels, NGOs) to obtain official SCUML AML/CFT compliance certificates from EFCC / NFIU.
+              Assistance for Designated Non-Financial Businesses and Professions (Real Estate, Car Dealerships, Law Firms, Consulting, Hotels, NGOs) to obtain official SCUML AML/CFT compliance certificates.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
@@ -319,7 +319,7 @@ export const VerificationPublicView: React.FC<VerificationPublicViewProps> = ({
               </div>
               <div className="p-5 bg-gray-50 rounded-2xl border border-gray-200 space-y-2">
                 <div className="text-sm font-bold text-gray-900">2. Portal Submission</div>
-                <p className="text-xs text-gray-600">Application filed on official EFCC SCUML portal with tracking reference number.</p>
+                <p className="text-xs text-gray-600">Application filed on official SCUML portal with tracking reference number.</p>
               </div>
               <div className="p-5 bg-gray-50 rounded-2xl border border-gray-200 space-y-2">
                 <div className="text-sm font-bold text-gray-900">3. Certificate Procurement</div>

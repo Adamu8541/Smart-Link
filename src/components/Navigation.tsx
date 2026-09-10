@@ -171,7 +171,8 @@ export default function Navigation({
       title: "CORPORATE FILINGS",
       items: [
         { id: "SRV_cac_registration", label: "CAC Registration", icon: Building2, viewId: "DASHBOARD", serviceId: "id_cac_registration" },
-        { id: "SRV_tax_id_services", label: "Tax ID Services", icon: FileText, viewId: "DASHBOARD", serviceId: "id_tax_id_search" },
+        { id: "SRV_cac_scuml", label: "SCUML Services", icon: ShieldCheck, viewId: "DASHBOARD", serviceId: "cac_scuml" },
+        { id: "SRV_tax_id_services", label: "Tax Identity", icon: FileText, viewId: "DASHBOARD", serviceId: "id_tax_id_search" },
       ]
     },
     {
@@ -320,13 +321,15 @@ export default function Navigation({
                       <span>₦{currentUser.walletBalance.toLocaleString()}</span>
                       {onRefreshUser && (
                         <button
+                          type="button"
                           onClick={handleRefreshBalance}
                           disabled={isRefreshing}
                           title="Refresh balance"
-                          id="btn-nav-desktop-refresh"
-                          className="p-1 hover:bg-[#111827]/80 rounded hover:text-white transition-colors cursor-pointer disabled:opacity-40"
+                          aria-label="Refresh wallet balance"
+                          id="btn-nav-mobile-refresh"
+                          className="min-h-[32px] min-w-[32px] flex items-center justify-center p-1.5 hover:bg-[#111827]/80 rounded hover:text-white transition-colors cursor-pointer disabled:opacity-40"
                         >
-                          <RefreshCw className={`h-2.5 w-2.5 ${isRefreshing ? "animate-spin text-[#9CA3AF]" : ""}`} />
+                          <RefreshCw className={`h-3 w-3 ${isRefreshing ? "animate-spin text-white" : "text-[#9CA3AF]"}`} />
                         </button>
                       )}
                     </div>
@@ -452,13 +455,15 @@ export default function Navigation({
                   <span className="text-[11px] font-bold font-mono text-[#9CA3AF]">₦{currentUser.walletBalance.toLocaleString()}</span>
                   {onRefreshUser && (
                     <button
+                      type="button"
                       onClick={handleRefreshBalance}
                       disabled={isRefreshing}
                       title="Refresh balance"
+                      aria-label="Refresh wallet balance"
                       id="btn-nav-sidebar-refresh"
-                      className="p-1 hover:bg-white/10 rounded text-[#9CA3AF] hover:text-[#0F2D5C] transition-colors cursor-pointer disabled:opacity-40"
+                      className="min-h-[28px] min-w-[28px] flex items-center justify-center p-1 hover:bg-white/10 rounded text-[#9CA3AF] hover:text-white transition-colors cursor-pointer disabled:opacity-40"
                     >
-                      <RefreshCw className={`h-2.5 w-2.5 ${isRefreshing ? "animate-spin text-[#9CA3AF]" : ""}`} />
+                      <RefreshCw className={`h-3 w-3 ${isRefreshing ? "animate-spin text-white" : ""}`} />
                     </button>
                   )}
                 </div>

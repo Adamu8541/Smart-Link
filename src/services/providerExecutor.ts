@@ -360,7 +360,7 @@ export class ProviderExecutor {
     const providerName = provider.name || params.providerName || "Provider";
     const providerCode = provider.id || params.providerCode || "PROV";
 
-    // 2. Check if there's a specialized ProviderAdapter for IDENTITY_API (LumiID, NinBvnPortal, etc.)
+    // 2. Check if there's a specialized ProviderAdapter for IDENTITY_API (LumiID, NinBvnPortal, etc.) or VTU/Bills (Clubkonnect)
     const registeredAdapter = getAdapterForProvider(provider);
     const apiRequests = db.api_requests || [];
     const requestTemplate = apiRequests.find((r: any) =>
@@ -385,6 +385,131 @@ export class ProviderExecutor {
         statusCode: adapterRes.statusCode,
         responseTimeMs: adapterRes.responseTimeMs || (Date.now() - startTime),
       };
+    }
+
+    // Direct routing for Clubkonnect or similar adapters when no explicit custom request template is defined
+    if (registeredAdapter && !requestTemplate) {
+      const cat = (params.category || "").toUpperCase().trim();
+      const targetCustomerId = params.customerId || params.phoneNumber || "";
+      const targetPhoneNumber = params.phoneNumber || params.customerId || "";
+
+      // Airtime
+      if (cat === "AIRTIME" && typeof (registeredAdapter as any).purchaseAirtime === "function") {
+        const net = params.providerCode || params.extraData?.network || "MTN";
+        const res = await (registeredAdapter as any).purchaseAirtime(
+          { network: net, phoneNumber: targetPhoneNumber, amount: params.amount, reference: params.smartlinkReference },
+          provider
+        );
+        return {
+          success: res.success,
+          providerName,
+          providerCode,
+          providerReference: res.orderId || res.reference,
+          transactionId: res.orderId,
+          message: res.message || (res.success ? "Airtime Top-Up Successful" : "Failed"),
+          error: res.error,
+          rawResponse: res.rawResponse,
+          responseTimeMs: Date.now() - startTime,
+        };
+      }
+
+      // Data Bundle
+      if (cat === "DATA" && typeof (registeredAdapter as any).purchaseData === "function") {
+        const net = params.providerCode || params.extraData?.network || "MTN";
+        const plan = params.planId || params.extraData?.planCode || "1000";
+        const res = await (registeredAdapter as any).purchaseData(
+          { network: net, phoneNumber: targetPhoneNumber, planCode: plan, reference: params.smartlinkReference },
+          provider
+        );
+        return {
+          success: res.success,
+          providerName,
+          providerCode,
+          providerReference: res.orderId || res.reference,
+          transactionId: res.orderId,
+          message: res.message || (res.success ? "Data Purchase Successful" : "Failed"),
+          error: res.error,
+          rawResponse: res.rawResponse,
+          responseTimeMs: Date.now() - startTime,
+        };
+      }
+
+      // Electricity Bill
+      if (cat === "ELECTRICITY" && typeof (registeredAdapter as any).payElectricity === "function") {
+        const disco = params.providerCode || params.extraData?.disco || "IKEDC";
+        const res = await (registeredAdapter as any).payElectricity(
+          {
+            electricCompany: disco,
+            meterType: params.meterType || "PREPAID",
+            meterNo: targetCustomerId,
+            amount: params.amount,
+            phoneNumber: targetPhoneNumber,
+            reference: params.smartlinkReference,
+          },
+          provider
+        );
+        return {
+          success: res.success,
+          providerName,
+          providerCode,
+          providerReference: res.orderId || res.reference,
+          transactionId: res.orderId,
+          token: res.token,
+          units: res.units,
+          message: res.message || (res.success ? "Electricity Payment Successful" : "Failed"),
+          error: res.error,
+          rawResponse: res.rawResponse,
+          responseTimeMs: Date.now() - startTime,
+        };
+      }
+
+      // Cable TV
+      if ((cat === "CABLE_TV" || cat === "CABLE") && typeof (registeredAdapter as any).payCableTV === "function") {
+        const cable = params.providerCode || "DSTV";
+        const pkg = params.planId || params.extraData?.packageCode || "";
+        const res = await (registeredAdapter as any).payCableTV(
+          {
+            cableProvider: cable,
+            packageCode: pkg,
+            smartCardNo: targetCustomerId,
+            phoneNumber: targetPhoneNumber,
+            reference: params.smartlinkReference,
+          },
+          provider
+        );
+        return {
+          success: res.success,
+          providerName,
+          providerCode,
+          providerReference: res.orderId || res.reference,
+          transactionId: res.orderId,
+          message: res.message || (res.success ? "Cable Subscription Successful" : "Failed"),
+          error: res.error,
+          rawResponse: res.rawResponse,
+          responseTimeMs: Date.now() - startTime,
+        };
+      }
+
+      // Exam PINs
+      if (cat === "EDUCATION" && typeof (registeredAdapter as any).purchaseExamPin === "function") {
+        const exam = params.providerCode || "WAEC";
+        const res = await (registeredAdapter as any).purchaseExamPin(
+          { examType: exam, quantity: params.extraData?.quantity || 1, reference: params.smartlinkReference },
+          provider
+        );
+        return {
+          success: res.success,
+          providerName,
+          providerCode,
+          providerReference: res.orderId || res.reference,
+          transactionId: res.orderId,
+          pins: res.pins,
+          message: res.message || (res.success ? "Exam PIN Generated" : "Failed"),
+          error: res.error,
+          rawResponse: res.rawResponse,
+          responseTimeMs: Date.now() - startTime,
+        };
+      }
     }
 
     // 3. Construct Context Variables for Template Substitution

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useModalBackHandler } from "../../services/navigationManager";
 import {
   Smartphone,
@@ -37,7 +37,9 @@ import {
   BarChart3,
   Filter,
   Eye,
-  FileText
+  FileText,
+  X,
+  Info
 } from "lucide-react";
 import QRCode from "qrcode";
 import { UserProfile, UserRole } from "../../types";
@@ -58,13 +60,15 @@ export interface BillPaymentViewProps {
   onBackToDashboard: () => void;
   onBalanceUpdate: () => void;
   initialCategory?: BillCategoryType;
+  initialProviderCode?: string;
 }
 
 export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
   currentUser,
   onBackToDashboard,
   onBalanceUpdate,
-  initialCategory
+  initialCategory,
+  initialProviderCode
 }) => {
   // Categories state
   const [categories, setCategories] = useState<BillCategory[]>([]);
@@ -72,10 +76,12 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
 
   // Active Category & Provider selection
   const [selectedCategory, setSelectedCategory] = useState<BillCategory | null>(null);
+  const [providerFilter, setProviderFilter] = useState<string | undefined>(initialProviderCode);
   const [providers, setProviders] = useState<BillProvider[]>([]);
   const [selectedProvider, setSelectedProvider] = useState<BillProvider | null>(null);
   const [plans, setPlans] = useState<BillPlan[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<BillPlan | null>(null);
+  const [selectedDataType, setSelectedDataType] = useState<string>("ALL");
 
   // Form inputs
   const [phoneNumber, setPhoneNumber] = useState<string>(currentUser.phoneNumber || "");
@@ -138,7 +144,7 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
 
     if (initialCategory) {
       const match = catList.find((c) => c.id === initialCategory);
-      if (match) selectCategory(match);
+      if (match) selectCategory(match, initialProviderCode);
     }
   };
 
@@ -173,8 +179,9 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
   };
 
   // Select Category
-  const selectCategory = async (category: BillCategory) => {
+  const selectCategory = async (category: BillCategory, targetProviderCode?: string) => {
     setSelectedCategory(category);
+    setProviderFilter(targetProviderCode);
     setSelectedProvider(null);
     setSelectedPlan(null);
     setCustomerValidation(null);
@@ -187,9 +194,36 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
     const provs = await BillPaymentEngine.getProviders(category.id);
     setProviders(provs);
     if (provs.length > 0) {
-      selectProvider(provs[0], category.id);
+      let matchedProvider = provs[0];
+      if (targetProviderCode) {
+        const found = provs.find(
+          (p) =>
+            p.code.toUpperCase() === targetProviderCode.toUpperCase() ||
+            p.id.toUpperCase() === targetProviderCode.toUpperCase() ||
+            p.name.toUpperCase().includes(targetProviderCode.toUpperCase())
+        );
+        if (found) matchedProvider = found;
+      }
+      selectProvider(matchedProvider, category.id);
     }
   };
+
+  // Filtered Providers: for Education, strictly show only the selected/clicked provider if filtered
+  const displayedProviders = useMemo(() => {
+    if (selectedCategory?.id === "EDUCATION") {
+      const activeFilter = (providerFilter || initialProviderCode || selectedProvider?.code || "").toUpperCase();
+      if (activeFilter) {
+        const filtered = providers.filter(
+          (p) =>
+            p.code.toUpperCase() === activeFilter ||
+            p.id.toUpperCase().includes(activeFilter) ||
+            p.name.toUpperCase().includes(activeFilter)
+        );
+        if (filtered.length > 0) return filtered;
+      }
+    }
+    return providers;
+  }, [providers, selectedCategory, providerFilter, initialProviderCode, selectedProvider]);
 
   // Select Provider
   const selectProvider = async (provider: BillProvider, categoryId?: BillCategoryType) => {
@@ -557,12 +591,36 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
       {viewMode === "CATALOG" && (
         <div className="space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h2 className="text-lg font-bold text-[#111827] dark:text-white">Supported Payment Categories</h2>
-              <p className="text-xs text-[#6B7280]">Select a service category to initiate instant bill settlement.</p>
+            <div className="flex items-center gap-3">
+              {onBackToDashboard && (
+                <button
+                  type="button"
+                  onClick={onBackToDashboard}
+                  className="p-2.5 rounded-xl bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#4B5563] text-[#4B5563] dark:text-[#E5E7EB] hover:bg-[#F5F7FA] transition-colors cursor-pointer"
+                  title="Back to Services"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </button>
+              )}
+              <div>
+                <h2 className="text-lg font-bold text-[#111827] dark:text-white">Supported Payment Categories</h2>
+                <p className="text-xs text-[#6B7280]">Select a service category to initiate instant bill settlement.</p>
+              </div>
             </div>
-            <div className="flex items-center gap-2 text-xs font-medium text-[#6B7280]">
-              <span className="h-2 w-2 rounded-full bg-[#0F2D5C]"></span> 100% Provider API Gateway Online
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 text-xs font-medium text-[#6B7280]">
+                <span className="h-2 w-2 rounded-full bg-[#0F2D5C]"></span> 100% Provider API Gateway Online
+              </div>
+              {onBackToDashboard && (
+                <button
+                  type="button"
+                  onClick={onBackToDashboard}
+                  className="p-2 rounded-xl text-[#9CA3AF] hover:text-[#4B5563] dark:hover:text-white hover:bg-[#E5E7EB] dark:hover:bg-[#111827] transition-colors cursor-pointer"
+                  title="Close"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              )}
             </div>
           </div>
 
@@ -621,8 +679,16 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
           <div className="flex items-center justify-between border-b border-[#E5E7EB] dark:border-[#111827] pb-5">
             <div className="flex items-center gap-3">
               <button
-                onClick={() => setViewMode("CATALOG")}
+                type="button"
+                onClick={() => {
+                  if (onBackToDashboard) {
+                    onBackToDashboard();
+                  } else {
+                    setViewMode("CATALOG");
+                  }
+                }}
                 className="p-2.5 rounded-xl bg-[#E5E7EB] dark:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB] hover:bg-[#E5E7EB] transition-colors cursor-pointer"
+                title="Back to Services"
               >
                 <ArrowLeft className="h-4 w-4" />
               </button>
@@ -632,11 +698,27 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
                     Category: {selectedCategory.id}
                   </span>
                 </div>
-                <h2 className="text-xl font-bold text-[#111827] dark:text-white">{selectedCategory.name}</h2>
+                <h2 className="text-xl font-bold text-[#111827] dark:text-white">
+                  {selectedCategory.id === "EDUCATION" && selectedProvider
+                    ? selectedProvider.name
+                    : selectedCategory.name}
+                </h2>
               </div>
             </div>
-            <div className="hidden sm:flex items-center gap-1.5 text-xs text-[#6B7280] bg-[#F5F7FA] dark:bg-[#111827]/50 px-3 py-1.5 rounded-xl border border-[#E5E7EB] dark:border-[#4B5563]">
-              <Clock className="h-3.5 w-3.5 text-[#0F2D5C]" /> Estimated: {selectedCategory.estimatedProcessingTime}
+            <div className="flex items-center gap-3">
+              <div className="hidden sm:flex items-center gap-1.5 text-xs text-[#6B7280] bg-[#F5F7FA] dark:bg-[#111827]/50 px-3 py-1.5 rounded-xl border border-[#E5E7EB] dark:border-[#4B5563]">
+                <Clock className="h-3.5 w-3.5 text-[#0F2D5C]" /> Estimated: {selectedCategory.estimatedProcessingTime}
+              </div>
+              {onBackToDashboard && (
+                <button
+                  type="button"
+                  onClick={onBackToDashboard}
+                  className="p-2 rounded-xl text-[#9CA3AF] hover:text-[#4B5563] dark:hover:text-white hover:bg-[#E5E7EB] dark:hover:bg-[#111827] transition-colors cursor-pointer"
+                  title="Close"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              )}
             </div>
           </div>
 
@@ -650,24 +732,71 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
           <form onSubmit={handleInitiatePayment} className="space-y-6">
             {/* Step 1: Select Provider */}
             <div className="space-y-2">
-              <label className="text-xs font-bold text-[#111827] dark:text-[#E5E7EB] uppercase tracking-wider">
-                1. Select Provider / Service Network
+              <label className="text-xs font-bold text-[#111827] dark:text-[#E5E7EB] uppercase tracking-wider flex items-center justify-between">
+                <span>
+                  {selectedCategory.id === "EDUCATION"
+                    ? "1. Examination Board / Service"
+                    : "1. Select Network / Provider"}
+                </span>
+                {selectedProvider && (
+                  <span className="text-[11px] font-medium text-[#0F2D5C] dark:text-[#9CA3AF] capitalize">
+                    Selected: {selectedProvider.name}
+                  </span>
+                )}
               </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {providers.map((prov) => (
-                  <button
-                    key={prov.id}
-                    type="button"
-                    onClick={() => selectProvider(prov)}
-                    className={`p-3.5 rounded-xl border font-bold text-xs transition-all text-center cursor-pointer ${
-                      selectedProvider?.code === prov.code
-                        ? "bg-[#0F2D5C] text-white border-[#0F2D5C] shadow-md shadow-indigo-600/20"
-                        : "bg-[#F5F7FA] dark:bg-[#111827]/50 text-[#4B5563] dark:text-[#E5E7EB] border-[#E5E7EB] dark:border-[#4B5563] hover:border-[#E5E7EB]"
-                    }`}
-                  >
-                    {prov.name}
-                  </button>
-                ))}
+              <div
+                className={`grid gap-3 ${
+                  displayedProviders.length === 1
+                    ? "grid-cols-1 sm:grid-cols-2"
+                    : "grid-cols-2 sm:grid-cols-4"
+                }`}
+              >
+                {displayedProviders.map((prov) => {
+                  const isSelected = selectedProvider?.code === prov.code;
+                  const provCode = prov.code.toUpperCase();
+                  let brandBorder = "border-[#E5E7EB] dark:border-[#4B5563]";
+                  let brandBg = "bg-[#F5F7FA] dark:bg-[#111827]/50";
+                  let brandDot = "bg-gray-400";
+
+                  if (provCode.includes("MTN")) {
+                    brandDot = "bg-amber-400";
+                  } else if (provCode.includes("GLO")) {
+                    brandDot = "bg-emerald-500";
+                  } else if (provCode.includes("AIRTEL")) {
+                    brandDot = "bg-red-500";
+                  } else if (provCode.includes("9MOBILE") || provCode.includes("ETISALAT")) {
+                    brandDot = "bg-teal-500";
+                  } else if (provCode.includes("WAEC")) {
+                    brandDot = "bg-blue-600";
+                  } else if (provCode.includes("NECO")) {
+                    brandDot = "bg-emerald-600";
+                  } else if (provCode.includes("JAMB")) {
+                    brandDot = "bg-amber-600";
+                  } else if (provCode.includes("NABTEB")) {
+                    brandDot = "bg-purple-600";
+                  }
+
+                  return (
+                    <button
+                      key={prov.id}
+                      type="button"
+                      onClick={() => {
+                        selectProvider(prov);
+                        setSelectedDataType("ALL");
+                      }}
+                      className={`p-3.5 rounded-xl border font-bold text-xs transition-all text-center cursor-pointer flex flex-col items-center justify-center gap-1.5 relative ${
+                        isSelected
+                          ? "bg-[#0F2D5C] text-white border-[#0F2D5C] shadow-md shadow-indigo-600/20"
+                          : `${brandBg} text-[#4B5563] dark:text-[#E5E7EB] ${brandBorder} hover:border-[#E5E7EB]`
+                      }`}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <span className={`h-2 w-2 rounded-full ${brandDot}`}></span>
+                        <span>{prov.name}</span>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -701,37 +830,122 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
 
             {/* Step 2: Data Plans catalog selector if DATA or CABLE or EDUCATION */}
             {plans.length > 0 && (
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-[#111827] dark:text-[#E5E7EB] uppercase tracking-wider">
-                  Select Plan / Package
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {plans.map((p) => (
-                    <div
-                      key={p.id}
-                      onClick={() => {
-                        setSelectedPlan(p);
-                        setAmount(p.amount.toString());
-                      }}
-                      className={`p-4 rounded-2xl border transition-all cursor-pointer space-y-2 ${
-                        selectedPlan?.id === p.id
-                          ? "bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border-[#0F2D5C] ring-2 ring-[#0F2D5C]/20"
-                          : "bg-[#F5F7FA] dark:bg-[#111827]/30 border-[#E5E7EB] dark:border-[#4B5563] hover:border-[#E5E7EB]"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-xs text-[#111827] dark:text-white">{p.planName}</span>
-                        <span className="text-xs font-mono font-black text-[#0F2D5C] dark:text-[#9CA3AF]">
-                          ₦{p.amount.toLocaleString()}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between text-[11px] text-[#6B7280]">
-                        <span>Validity: {p.validity || "Standard"}</span>
-                        <span>{p.dataVolume || "Instant"}</span>
-                      </div>
+              <div className="space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <label className="text-xs font-bold text-[#111827] dark:text-[#E5E7EB] uppercase tracking-wider">
+                    2. Select Plan / Package
+                  </label>
+
+                  {/* Data Type Sub-Category Filter Tabs (e.g. All, SME, Corporate Gifting, Direct) */}
+                  {selectedCategory.id === "DATA" && (
+                    <div className="flex items-center gap-1.5 overflow-x-auto text-[11px] font-bold bg-[#F5F7FA] dark:bg-[#111827]/70 p-1 rounded-xl border border-[#E5E7EB] dark:border-[#4B5563]">
+                      {[
+                        { id: "ALL", label: "All Plans" },
+                        { id: "SME", label: "💼 SME Data" },
+                        { id: "CORPORATE", label: "🏢 Corporate (CG)" },
+                        { id: "GIFTING", label: "🎁 Gifting" },
+                        { id: "DIRECT", label: "⚡ Direct" },
+                      ].map((tab) => {
+                        const hasPlansForTab =
+                          tab.id === "ALL" || plans.some((p) => p.dataType === tab.id);
+                        if (!hasPlansForTab && tab.id !== "ALL") return null;
+
+                        const active = selectedDataType === tab.id;
+                        return (
+                          <button
+                            key={tab.id}
+                            type="button"
+                            onClick={() => setSelectedDataType(tab.id)}
+                            className={`px-3 py-1 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
+                              active
+                                ? "bg-[#0F2D5C] text-white shadow-sm"
+                                : "text-[#6B7280] dark:text-[#9CA3AF] hover:text-[#111827] dark:hover:text-white"
+                            }`}
+                          >
+                            {tab.label}
+                          </button>
+                        );
+                      })}
                     </div>
-                  ))}
+                  )}
                 </div>
+
+                {/* Filtered Plans Grid */}
+                {(() => {
+                  const filteredPlans =
+                    selectedCategory.id === "DATA" && selectedDataType !== "ALL"
+                      ? plans.filter((p) => p.dataType === selectedDataType)
+                      : plans;
+
+                  if (filteredPlans.length === 0) {
+                    return (
+                      <div className="p-6 text-center rounded-2xl border border-dashed border-[#E5E7EB] dark:border-[#4B5563] text-xs text-[#6B7280]">
+                        No data plans found for this category. Please choose "All Plans".
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {filteredPlans.map((p) => {
+                        const isSelected = selectedPlan?.id === p.id;
+                        let typeTagBg = "bg-blue-500/10 text-blue-400 border-blue-500/20";
+                        if (p.dataType === "SME") {
+                          typeTagBg = "bg-amber-500/10 text-amber-400 border-amber-500/20";
+                        } else if (p.dataType === "CORPORATE") {
+                          typeTagBg = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+                        } else if (p.dataType === "GIFTING" || p.dataType === "DIRECT") {
+                          typeTagBg = "bg-purple-500/10 text-purple-400 border-purple-500/20";
+                        }
+
+                        return (
+                          <div
+                            key={p.id}
+                            onClick={() => {
+                              setSelectedPlan(p);
+                              setAmount(p.amount.toString());
+                            }}
+                            className={`p-4 rounded-2xl border transition-all cursor-pointer space-y-2.5 relative ${
+                              isSelected
+                                ? "bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border-[#0F2D5C] ring-2 ring-[#0F2D5C]/30 shadow-sm"
+                                : "bg-[#F5F7FA] dark:bg-[#111827]/30 border-[#E5E7EB] dark:border-[#4B5563] hover:border-[#E5E7EB]"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="font-bold text-xs text-[#111827] dark:text-white">
+                                {p.planName}
+                              </span>
+                              <span className="text-xs font-mono font-black text-[#0F2D5C] dark:text-[#9CA3AF] shrink-0">
+                                ₦{p.amount.toLocaleString()}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center justify-between text-[11px] text-[#6B7280]">
+                              {selectedCategory.id === "EDUCATION" ? (
+                                <span className="flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
+                                  <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                                  <span>Instant ePIN Delivery</span>
+                                </span>
+                              ) : (p.validity || selectedCategory.id === "DATA") ? (
+                                <span className="flex items-center gap-1">
+                                  <Clock className="h-3 w-3 text-[#9CA3AF]" />
+                                  {p.validity || "30 Days"}
+                                </span>
+                              ) : null}
+                              {p.dataType && (
+                                <span
+                                  className={`px-2 py-0.5 rounded-full border text-[10px] font-bold uppercase tracking-wider ${typeTagBg}`}
+                                >
+                                  {p.dataType === "CORPORATE" ? "CG" : p.dataType}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
               </div>
             )}
 
@@ -800,7 +1014,23 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
                         setCustomerId(e.target.value);
                         setCustomerValidation(null);
                       }}
-                      placeholder="e.g. 45019283921"
+                      placeholder={
+                        selectedCategory.id === "EDUCATION"
+                          ? selectedProvider?.code === "WAEC"
+                            ? "e.g. WAEC Candidate Exam No. / Delivery Phone"
+                            : selectedProvider?.code === "NECO"
+                            ? "e.g. NECO Candidate Exam / Reg No."
+                            : selectedProvider?.code === "JAMB"
+                            ? "e.g. JAMB Profile Code / Reg No."
+                            : selectedProvider?.code === "NABTEB"
+                            ? "e.g. NABTEB Candidate Exam No. / Phone"
+                            : "e.g. Candidate Exam Number / Phone"
+                          : selectedCategory.id === "ELECTRICITY"
+                          ? "e.g. 45019283921"
+                          : selectedCategory.id === "CABLE_TV"
+                          ? "e.g. 1029384756"
+                          : "e.g. 45019283921"
+                      }
                       className="w-full px-4 py-3 border border-[#E5E7EB] dark:border-[#4B5563] rounded-xl text-sm outline-none transition-all bg-white dark:bg-[#111827] text-[#111827] dark:text-white focus:border-[#0F2D5C] focus:ring-4 focus:ring-[#F5F7FA] font-mono"
                     />
                   </div>
@@ -818,12 +1048,34 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
                     <input
                       type="number"
                       required
+                      min="50"
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
-                      placeholder="e.g. 5000"
+                      placeholder="e.g. 1000"
                       className="w-full pl-9 pr-4 py-3 border border-[#E5E7EB] dark:border-[#4B5563] rounded-xl text-sm outline-none transition-all bg-white dark:bg-[#111827] text-[#111827] dark:text-white focus:border-[#0F2D5C] focus:ring-4 focus:ring-[#F5F7FA]"
                     />
                   </div>
+
+                  {/* Quick Airtime Denomination Buttons */}
+                  {selectedCategory.id === "AIRTIME" && (
+                    <div className="flex items-center gap-1.5 pt-1.5 overflow-x-auto text-xs font-bold">
+                      <span className="text-[10px] text-[#9CA3AF] font-medium shrink-0">Quick:</span>
+                      {[100, 200, 500, 1000, 2000, 5000].map((quickAmt) => (
+                        <button
+                          key={quickAmt}
+                          type="button"
+                          onClick={() => setAmount(quickAmt.toString())}
+                          className={`px-2.5 py-1 rounded-lg border transition-all cursor-pointer whitespace-nowrap text-[11px] ${
+                            amount === quickAmt.toString()
+                              ? "bg-[#0F2D5C] text-white border-[#0F2D5C]"
+                              : "bg-[#F5F7FA] dark:bg-[#111827]/60 text-[#4B5563] dark:text-[#E5E7EB] border-[#E5E7EB] dark:border-[#4B5563] hover:border-[#0F2D5C]"
+                          }`}
+                        >
+                          ₦{quickAmt.toLocaleString()}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -1022,11 +1274,54 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
               )}
 
               {paymentResult.pins && paymentResult.pins.length > 0 && (
-                <div className="p-5 rounded-2xl bg-[#0F2D5C] text-white space-y-2 border border-[#0F2D5C]">
-                  <span className="text-[10px] uppercase font-bold text-[#9CA3AF]">Exam PIN Voucher Details</span>
-                  <div className="font-mono text-sm space-y-1">
-                    <p>PIN: <strong className="text-[#9CA3AF] text-lg">{paymentResult.pins[0].pin}</strong></p>
-                    <p>Serial: {paymentResult.pins[0].serial}</p>
+                <div className="p-6 rounded-2xl bg-gradient-to-br from-[#0F2D5C] to-[#1E293B] text-white space-y-4 shadow-xl border border-[#0F2D5C]/40">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase font-bold text-[#9CA3AF] tracking-wider flex items-center gap-1.5">
+                      <GraduationCap className="h-4 w-4 text-[#9CA3AF]" /> Official Examination ePIN Voucher ({paymentResult.pins.length} {paymentResult.pins.length > 1 ? "PINs" : "PIN"})
+                    </span>
+                    <span className="text-xs bg-emerald-500/20 text-emerald-300 font-bold px-2.5 py-0.5 rounded-full border border-emerald-500/30">
+                      Active / Ready to Use
+                    </span>
+                  </div>
+
+                  <div className="space-y-3">
+                    {paymentResult.pins.map((pinObj, index) => (
+                      <div key={index} className="p-4 rounded-xl bg-black/30 border border-white/10 space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <div>
+                            <span className="text-[10px] uppercase text-[#9CA3AF]">Voucher PIN #{index + 1}</span>
+                            <div className="text-xl md:text-2xl font-mono font-black text-[#9CA3AF] tracking-wider">
+                              {pinObj.pin}
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => copyToClipboard(pinObj.pin, `pin-${index}`)}
+                            className="px-3 py-1.5 bg-[#0F2D5C] hover:bg-[#0F2D5C]/80 text-white font-bold rounded-lg text-xs transition-all cursor-pointer flex items-center gap-1 shrink-0"
+                          >
+                            {copiedText === `pin-${index}` ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                            <span>{copiedText === `pin-${index}` ? "Copied" : "Copy PIN"}</span>
+                          </button>
+                        </div>
+                        {pinObj.serial && (
+                          <div className="text-xs text-[#9CA3AF] font-mono flex items-center gap-2">
+                            <span>Serial Number:</span>
+                            <strong className="text-white">{pinObj.serial}</strong>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Usage Guide */}
+                  <div className="text-[11px] text-[#9CA3AF] bg-white/5 p-3 rounded-xl border border-white/10 flex items-start gap-2">
+                    <Info className="h-4 w-4 text-[#9CA3AF] shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold text-white">How to Check Results / Register:</p>
+                      <p className="text-gray-300 mt-0.5">
+                        Visit the official exam board portal (e.g., <strong>waecdirect.org</strong>, <strong>result.neco.gov.ng</strong>, <strong>portal.jamb.gov.ng</strong>), enter candidate details and this PIN.
+                      </p>
+                    </div>
                   </div>
                 </div>
               )}

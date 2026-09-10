@@ -206,13 +206,13 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
     };
   }, [isVerifyingEmail, verificationEmail, onAuthSuccess, setToast]);
 
-  // Direct login form submission
+  // Direct login form submission - Strictly Firebase Authentication Only
   const handleDirectLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!authEmail || !authPassword) {
       soundFx.playErrorSound();
-      setAuthError("Email and password are required.");
+      setAuthError("Both email and password are required to sign in.");
       return;
     }
 
@@ -222,66 +222,41 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
     setAuthSuccessState(null);
 
     try {
-      let user: any = null;
-      let loginUser: any = null;
+      // 1. Authenticate both email and password strictly via Firebase Authentication
+      const userCredential = await signInWithEmailAndPassword(auth, cleanEmail, authPassword);
+      const fbUser = userCredential.user;
 
-      if (isFirebaseConfigured) {
-        try {
-          const userCredential = await signInWithEmailAndPassword(auth, cleanEmail, authPassword);
-          const fbUser = userCredential.user;
-
-          if (fbUser) {
-            user = {
-              uid: fbUser.uid,
-              email: fbUser.email || cleanEmail,
-              displayName: fbUser.displayName,
-              emailVerified: fbUser.emailVerified,
-            };
-
-            const syncResult = await safeFetchJson("/api/auth/sync-firebase-user", {
-              method: "POST",
-              body: JSON.stringify({
-                uid: fbUser.uid,
-                email: fbUser.email || cleanEmail,
-                isVerified: fbUser.emailVerified || true,
-              }),
-            });
-            loginUser = syncResult.data?.user;
-          }
-        } catch (fbLoginErr: any) {
-          const isNetworkOrConfigErr =
-            fbLoginErr?.code === "auth/network-request-failed" ||
-            fbLoginErr?.code === "auth/invalid-api-key" ||
-            String(fbLoginErr?.message || "").toLowerCase().includes("network-request-failed") ||
-            String(fbLoginErr?.message || "").toLowerCase().includes("invalid-api-key");
-
-          if (!isNetworkOrConfigErr) {
-            throw fbLoginErr;
-          }
-        }
+      if (!fbUser || !fbUser.uid) {
+        throw new Error("Firebase authentication failed. Unable to verify user credentials.");
       }
 
-      if (!loginUser) {
-        const loginRes = await safeFetchJson("/api/auth/login", {
-          method: "POST",
-          body: JSON.stringify({
-            email: cleanEmail,
-            password: authPassword,
-          }),
-        });
+      // 2. Fetch / Sync user profile using verified Firebase UID & email
+      let loginUser: any = null;
+      const syncResult = await safeFetchJson("/api/auth/sync-firebase-user", {
+        method: "POST",
+        body: JSON.stringify({
+          uid: fbUser.uid,
+          email: fbUser.email || cleanEmail,
+          isVerified: fbUser.emailVerified || true,
+        }),
+      });
 
-        if (!loginRes.ok || !loginRes.data?.user) {
-          throw new Error(loginRes.error || "Authentication failed.");
-        }
-
-        loginUser = loginRes.data.user;
-        user = {
-          uid: loginUser.uid || loginUser.id,
-          email: loginUser.email,
-          displayName: loginUser.fullName,
+      if (syncResult.ok && syncResult.data?.user) {
+        loginUser = syncResult.data.user;
+      } else {
+        loginUser = {
+          uid: fbUser.uid,
+          email: fbUser.email || cleanEmail,
+          fullName: fbUser.displayName || cleanEmail.split("@")[0] || "Smart Link User",
+          role: "CUSTOMER",
+          walletBalance: 0.0,
+          referralCode: "SL" + Math.floor(1000 + Math.random() * 9000),
+          isVerified: fbUser.emailVerified || true,
+          createdAt: new Date().toISOString(),
         };
       }
 
+      // 3. Verify user status
       if (
         loginUser?.status === "SUSPENDED" ||
         loginUser?.status === "INACTIVE" ||
@@ -292,13 +267,13 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
         );
       }
 
-      // Update Firestore user document in background
-      if (isFirebaseConfigured && user?.uid) {
+      // 4. Update Firestore user record in background
+      if (isFirebaseConfigured && fbUser?.uid) {
         setDoc(
-          doc(db, "users", user.uid),
+          doc(db, "users", fbUser.uid),
           {
-            uid: user.uid,
-            email: user.email || cleanEmail,
+            uid: fbUser.uid,
+            email: fbUser.email || cleanEmail,
             isVerified: true,
             updatedAt: new Date().toISOString(),
           },
@@ -315,7 +290,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
       setAuthPassword("");
       setAuthSuccessState(null);
       setToast({
-        message: "Successfully authenticated! Welcome to your Smart Link Nigeria portal.",
+        message: "Successfully authenticated via Firebase! Welcome to your Smart Link Nigeria portal.",
         type: "success",
       });
     } catch (err: any) {
@@ -388,95 +363,52 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
         return;
       }
 
-      let activeUser: any = null;
-      let firebaseUid: string = "";
+      // Register account strictly using Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(auth, cleanEmail, regPassword);
+      const fbUser = userCredential.user;
+      const firebaseUid = fbUser.uid;
 
-      try {
-        const userCredential = await createUserWithEmailAndPassword(auth, cleanEmail, regPassword);
-        const fbUser = userCredential.user;
-        firebaseUid = fbUser.uid;
-
-        const syncRes = await safeFetchJson("/api/auth/sync-firebase-user", {
-          method: "POST",
-          body: JSON.stringify({
-            uid: fbUser.uid,
-            email: cleanEmail,
-            fullName: regFullName.trim(),
-            phoneNumber: cleanPhone,
-            referralCode: regReferralCode.trim(),
-            isVerified: true,
-          }),
-        });
-
-        activeUser = syncRes.data?.user || {
+      const syncRes = await safeFetchJson("/api/auth/sync-firebase-user", {
+        method: "POST",
+        body: JSON.stringify({
           uid: fbUser.uid,
           email: cleanEmail,
           fullName: regFullName.trim(),
           phoneNumber: cleanPhone,
-          role: UserRole.CUSTOMER,
-          walletBalance: 0.0,
-          referralCode: "SL" + Math.floor(1000 + Math.random() * 9000),
+          referralCode: regReferralCode.trim(),
           isVerified: true,
-          createdAt: new Date().toISOString(),
-        };
+        }),
+      });
 
-        if (isFirebaseConfigured && fbUser?.uid) {
-          setDoc(
-            doc(db, "users", fbUser.uid),
-            {
-              uid: fbUser.uid,
-              email: cleanEmail,
-              fullName: regFullName.trim(),
-              phoneNumber: cleanPhone,
-              role: "CUSTOMER",
-              walletBalance: 0.0,
-              referralCode: activeUser.referralCode,
-              isVerified: true,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-            },
-            { merge: true }
-          ).catch(() => {});
-        }
-      } catch (fbCreateErr: any) {
-        if (
-          fbCreateErr?.code === "auth/email-already-in-use" ||
-          fbCreateErr?.code === "auth/email-already-exists" ||
-          fbCreateErr?.message?.includes("email-already-in-use")
-        ) {
-          soundFx.playErrorSound();
-          setAuthError("email exist sign in instead");
-          setAuthLoading(false);
-          return;
-        }
+      const activeUser = syncRes.data?.user || {
+        uid: fbUser.uid,
+        email: cleanEmail,
+        fullName: regFullName.trim(),
+        phoneNumber: cleanPhone,
+        role: UserRole.CUSTOMER,
+        walletBalance: 0.0,
+        referralCode: "SL" + Math.floor(1000 + Math.random() * 9000),
+        isVerified: true,
+        createdAt: new Date().toISOString(),
+      };
 
-        const apiRes = await safeFetchJson("/api/auth/register", {
-          method: "POST",
-          body: JSON.stringify({
+      if (isFirebaseConfigured && fbUser?.uid) {
+        setDoc(
+          doc(db, "users", fbUser.uid),
+          {
+            uid: fbUser.uid,
             email: cleanEmail,
-            password: regPassword,
             fullName: regFullName.trim(),
             phoneNumber: cleanPhone,
-            referralCode: regReferralCode.trim(),
-          }),
-        });
-
-        if (!apiRes.ok || !apiRes.data?.user) {
-          soundFx.playErrorSound();
-          const errMsg = apiRes.error || getFriendlyErrorMessage(fbCreateErr);
-          setAuthError(errMsg);
-          setAuthLoading(false);
-          return;
-        }
-
-        activeUser = apiRes.data.user;
-        firebaseUid = activeUser.uid;
-
-        if (isFirebaseConfigured) {
-          try {
-            await signInWithEmailAndPassword(auth, cleanEmail, regPassword);
-          } catch {}
-        }
+            role: "CUSTOMER",
+            walletBalance: 0.0,
+            referralCode: activeUser.referralCode,
+            isVerified: true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+          { merge: true }
+        ).catch(() => {});
       }
 
       // Record NDPR legal agreements

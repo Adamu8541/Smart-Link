@@ -109,6 +109,53 @@ export function AdminProvidersView() {
   const [addEnvironment, setAddEnvironment] = useState("Production");
   const [addIsDefault, setAddIsDefault] = useState(false);
 
+  const applyProviderPreset = (preset: "clubkonnect" | "aspfiy" | "lumiid" | "ninbvnportal" | "verifyng") => {
+    if (preset === "clubkonnect") {
+      setAddName("Clubkonnect VTU & Bill Payment");
+      setAddCategory("TELECOM_VTU");
+      setAddDescription("Clubkonnect Airtime, Data Bundles, Cable TV, Electricity Bills & Exam PINs API");
+      setAddBaseUrl("https://www.clubkonnect.com/API");
+      setAddApiVersion("v1.0");
+      setAddAuthMethod("API_KEY");
+      setAddSupportsWalletFunding(false);
+      setAddSupportsBankTransfer(false);
+      setAddSupportsCardPayment(false);
+      setAddSupportsVirtualAccount(false);
+      setAddSupportsPaymentLink(false);
+      setAddSupportsPayout(false);
+      setAddSupportsRefund(false);
+      setAddSupportsTxVerification(true);
+      setAddEnvironment("Production");
+      setAddStatus("ENABLED");
+      setToast("Clubkonnect preset applied. Please fill in your UserID (Merchant ID) and APIKey in API Credentials.");
+    } else if (preset === "aspfiy") {
+      setAddName("Aspfiy Payment Gateway");
+      setAddCategory("PAYMENT_GATEWAY");
+      setAddDescription("Aspfiy Reserved Virtual Accounts & Bank Transfer Gateway");
+      setAddBaseUrl("https://api-v1.aspfiy.com");
+      setAddApiVersion("v1.0");
+      setAddAuthMethod("BEARER_TOKEN");
+      setAddSupportsWalletFunding(true);
+      setAddSupportsBankTransfer(true);
+      setAddSupportsVirtualAccount(true);
+      setAddSupportsTxVerification(true);
+      setToast("Aspfiy preset applied.");
+    } else if (preset === "lumiid") {
+      setAddName("LumiID Identity Verification");
+      setAddCategory("IDENTITY_API");
+      setAddDescription("LumiID Official Identity & Verification Gateway");
+      setAddBaseUrl("https://api.lumiid.com");
+      setAddAuthMethod("API_KEY");
+      setToast("LumiID preset applied.");
+    } else if (preset === "ninbvnportal") {
+      setAddName("NIN BVN Portal");
+      setAddCategory("IDENTITY_API");
+      setAddDescription("Direct Identity Verification Portal for NIN and BVN");
+      setAddBaseUrl("https://ninbvnportal.com/api");
+      setToast("NIN BVN Portal preset applied.");
+    }
+  };
+
   // Toast
   const [toast, setToast] = useState<string | null>(null);
 
@@ -744,6 +791,39 @@ export function AdminProvidersView() {
                 className="p-2 bg-[#111827] hover:bg-[#4B5563] text-[#9CA3AF] hover:text-white rounded-xl cursor-pointer"
               >
                 <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Quick Presets Bar */}
+            <div className="px-6 py-2.5 bg-[#1F2937]/50 border-b border-[#111827] flex items-center gap-2 overflow-x-auto text-xs">
+              <span className="text-[#9CA3AF] font-bold shrink-0">Quick Presets:</span>
+              <button
+                type="button"
+                onClick={() => applyProviderPreset("clubkonnect")}
+                className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 rounded-lg font-medium transition cursor-pointer shrink-0 flex items-center gap-1"
+              >
+                ⚡ Clubkonnect (VTU & Bills)
+              </button>
+              <button
+                type="button"
+                onClick={() => applyProviderPreset("aspfiy")}
+                className="px-2.5 py-1 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-300 rounded-lg font-medium transition cursor-pointer shrink-0"
+              >
+                💳 Aspfiy (Gateway)
+              </button>
+              <button
+                type="button"
+                onClick={() => applyProviderPreset("lumiid")}
+                className="px-2.5 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 rounded-lg font-medium transition cursor-pointer shrink-0"
+              >
+                🆔 LumiID (Identity)
+              </button>
+              <button
+                type="button"
+                onClick={() => applyProviderPreset("ninbvnportal")}
+                className="px-2.5 py-1 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-300 rounded-lg font-medium transition cursor-pointer shrink-0"
+              >
+                🛡️ NIN BVN Portal
               </button>
             </div>
 

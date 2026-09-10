@@ -23,7 +23,9 @@ import {
   Mail,
   Phone,
   HelpCircle,
-  FileText
+  FileText,
+  Paperclip,
+  Upload
 } from "lucide-react";
 import { UserProfile, UserRole } from "../../../types";
 import { AdminSession } from "../../../services/adminAuthTypes";

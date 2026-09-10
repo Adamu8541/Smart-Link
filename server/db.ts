@@ -127,8 +127,8 @@ export function initializeDB() {
       phoneToNinFee: 1000
     },
     cacRates: {
-      businessNameFee: 15000,
-      companyFee: 25000,
+      businessNameFee: 28000,
+      companyFee: 35000,
       ngoFee: 35000,
       reservationFee: 2000
     },
@@ -271,7 +271,7 @@ export function readDB(): any {
   if (!currentDbMemory.priceMatrix) {
     currentDbMemory.priceMatrix = {
       identityRates: { ninFee: 500, bvnFee: 500, ipeFee: 1500, phoneToNinFee: 1000 },
-      cacRates: { businessNameFee: 15000, companyFee: 25000, ngoFee: 35000, reservationFee: 2000 },
+      cacRates: { businessNameFee: 28000, companyFee: 35000, ngoFee: 35000, reservationFee: 2000 },
       dataPlans: [
         { id: "mtn_sme_1gb", network: "MTN", type: "SME", planName: "MTN SME 1GB (30 Days)", validity: "30 Days", customerPrice: 260, agentPrice: 240, isActive: true },
         { id: "mtn_sme_2gb", network: "MTN", type: "SME", planName: "MTN SME 2GB (30 Days)", validity: "30 Days", customerPrice: 520, agentPrice: 480, isActive: true },
