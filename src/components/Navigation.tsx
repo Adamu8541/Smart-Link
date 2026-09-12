@@ -138,6 +138,7 @@ export default function Navigation({
       items: [
         { id: "DASHBOARD", label: "Dashboard", icon: LayoutDashboard, viewId: "DASHBOARD", tabId: "OVERVIEW" },
         { id: "WALLET_FINANCE", label: "Wallet & Finance", icon: Wallet, viewId: "DASHBOARD", tabId: "OVERVIEW" },
+        { id: "ACCOUNT_SECURITY", label: "Account & Security", icon: Shield, viewId: "ACCOUNT_SECURITY" },
         { id: "USER_NOTIFICATIONS", label: "Notifications", icon: Bell, viewId: "USER_NOTIFICATIONS" },
         { id: "SERVICES_HISTORY", label: "Services History", icon: Clock, viewId: "DASHBOARD", tabId: "ACTIVITY_FEED" },
       ]

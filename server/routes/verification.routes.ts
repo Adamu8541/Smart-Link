@@ -4,7 +4,7 @@ import fs from "fs";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 import { readDB, writeDB, initializeDB, DB_DIR, DB_FILE, UPLOADS_DIR, SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD, hashPassword, safeCompareHash, generateSalt, isMaskedValue } from "../db";
-import { verifyUserOrAdminSession } from "../middleware/auth";
+import { verifyUserOrAdminSession, requireAdmin, requireAuth } from "../middleware/auth";
 import { isMaintenanceModeActive, getMaintenanceDetails, getValueByJsonPath, seedModule7SettingsIfEmpty, sanitizePublicSettings } from "../middleware/maintenance";
 import { getAI } from "../services/ai";
 import { 
@@ -35,8 +35,6 @@ import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
 import * as securityStore from "../../src/services/securityStore";
 import * as notificationsStore from "../../src/services/notificationsStore";
-import { getAuth } from "firebase-admin/auth";
-import { getAdminFirestore } from "../../src/services/firebaseAdmin";
 import { signQRPayload } from "../services/qrSecurity";
 
 
@@ -47,6 +45,13 @@ app.post("/api/cac/apply", async (req, res) => {
   const { userId, type, proposedNames, businessType, objective, address, proprietors } = req.body;
   const db = readDB();
 
+  const authCheck = await verifyUserOrAdminSession(req, userId, db);
+  if (!authCheck.authorized) {
+    return res.status(authCheck.reason?.includes("Authentication required") ? 401 : 403).json({ error: authCheck.reason || "Forbidden" });
+  }
+
+  const effectiveUserId = authCheck.isAdmin ? userId : authCheck.authenticatedUid!;
+
   let fee = 28000;
   if (type === "COMPANY" || type === "LTD") fee = 35000;
   if (type === "NGO" || type === "TRUSTEE") fee = 35000;
@@ -55,7 +60,7 @@ app.post("/api/cac/apply", async (req, res) => {
 
   try {
     const debitRes = await ServerWalletEngine.debitWallet(db, {
-      userId,
+      userId: effectiveUserId,
       amount: fee,
       serviceName: `CAC ${type} Application`,
       provider: "CAC E-Portal Engine",
@@ -68,7 +73,7 @@ app.post("/api/cac/apply", async (req, res) => {
     const appId = "cac_" + Math.random().toString(36).substring(2, 9);
     const newApp = {
       id: appId,
-      userId,
+      userId: effectiveUserId,
       type,
       proposedNames,
       businessType,
@@ -102,12 +107,12 @@ app.get("/api/cac/user/:userId", async (req, res) => {
   res.json({ applications: apps });
 });
 
-app.get("/api/cac/all", async (req, res) => {
+app.get("/api/cac/all", requireAdmin, async (req, res) => {
   const db = readDB();
-  res.json({ applications: db.cacApplications });
+  res.json({ applications: db.cacApplications || [] });
 });
 
-app.put("/api/cac/:id", async (req, res) => {
+app.put("/api/cac/:id", requireAdmin, async (req, res) => {
   const { id } = req.params;
   const { status, approvedName, comments } = req.body;
   const db = readDB();
@@ -130,6 +135,13 @@ app.post("/api/verify/identity", async (req, res) => {
   const { userId, type, idNumber, faceImage, fullName } = req.body;
   const db = readDB();
 
+  const authCheck = await verifyUserOrAdminSession(req, userId, db);
+  if (!authCheck.authorized) {
+    return res.status(authCheck.reason?.includes("Authentication required") ? 401 : 403).json({ error: authCheck.reason || "Forbidden" });
+  }
+
+  const effectiveUserId = authCheck.isAdmin ? userId : authCheck.authenticatedUid!;
+
   const verificationFee = 500.0;
   const reference = `SML-VER-${type}-${Math.floor(100000 + Math.random() * 900000)}`;
   const txType = type === "NIN" ? "NIN_VERIFICATION" : "BVN_VERIFICATION";
@@ -139,7 +151,7 @@ app.post("/api/verify/identity", async (req, res) => {
     category: "IDENTITY_API",
     providerName: req.body.provider || undefined,
     customerId: idNumber,
-    userId,
+    userId: effectiveUserId,
     amount: verificationFee,
     smartlinkReference: reference,
     extraData: { idNumber, fullName, type, faceImage },
@@ -205,25 +217,7 @@ async function getActiveSecondaryIdentityProviderAndMapping(db: any) {
   let secondaryProvider: any = null;
   let mapping: any = null;
 
-  try {
-    const fsDb = getAdminFirestore();
-    const snap = await fsDb.collection("api_providers").get();
-    if (!snap.empty) {
-      const providers = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      secondaryProvider = providers.find((p: any) => {
-        const name = (p.name || "").toLowerCase();
-        const id = (p.id || "").toLowerCase();
-        const isAspfiy = name.includes("aspfiy") || id === "prov_aspfiy";
-        const isIdentity = p.category === "IDENTITY_API" || p.providerType === "IDENTITY_API";
-        const isActive = p.status === "Active" || p.isActive === true || p.enabled === true;
-        return !isAspfiy && isIdentity && isActive;
-      });
-    }
-  } catch (err) {
-    console.warn("[Identity Engine] Error querying Firestore api_providers:", err);
-  }
-
-  if (!secondaryProvider && db.api_providers) {
+  if (db.api_providers) {
     secondaryProvider = db.api_providers.find((p: any) => {
       const name = (p.name || "").toLowerCase();
       const id = (p.id || "").toLowerCase();
@@ -236,23 +230,7 @@ async function getActiveSecondaryIdentityProviderAndMapping(db: any) {
 
   if (secondaryProvider) {
     const provName = (secondaryProvider.name || "").trim().toLowerCase();
-    try {
-      const fsDb = getAdminFirestore();
-      const snap = await fsDb.collection("api_response_mappings").get();
-      if (!snap.empty) {
-        const mappings = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-        mapping = mappings.find((m: any) => {
-          const mProv = (m.provider || "").trim().toLowerCase();
-          const mName = (m.mappingName || "").trim().toLowerCase();
-          const mStatus = m.status !== "DISABLED";
-          return mStatus && (mProv === provName || mName.includes(provName) || m.provider === secondaryProvider.id);
-        });
-      }
-    } catch (err) {
-      console.warn("[Identity Engine] Error querying Firestore api_response_mappings:", err);
-    }
-
-    if (!mapping && db.api_response_mappings) {
+    if (db.api_response_mappings) {
       mapping = db.api_response_mappings.find((m: any) => {
         const mProv = (m.provider || "").trim().toLowerCase();
         const mName = (m.mappingName || "").trim().toLowerCase();
@@ -350,10 +328,17 @@ app.post("/api/verify/engine", async (req, res) => {
   const { userId, service, targetId, extraFields = {}, fee } = req.body;
   const db = readDB();
 
+  const authCheck = await verifyUserOrAdminSession(req, userId, db);
+  if (!authCheck.authorized) {
+    return res.status(authCheck.reason?.includes("Authentication required") ? 401 : 403).json({ error: authCheck.reason || "Forbidden", errorCode: "AUTH_ERROR" });
+  }
+
+  const effectiveUserId = authCheck.isAdmin ? userId : authCheck.authenticatedUid!;
+
   // Explicit conditional guard clause for Aspfiy
   if (req.body.provider === "Aspfiy" || req.body.providerName === "Aspfiy" || req.body.provider === "prov_aspfiy") {
     // Execute original, untouched Aspfiy pipeline blocks exactly as currently written in the file.
-    if (!userId) {
+    if (!effectiveUserId) {
       return res.status(401).json({ error: "User authentication required.", errorCode: "AUTH_ERROR" });
     }
 
@@ -376,7 +361,7 @@ app.post("/api/verify/engine", async (req, res) => {
       category: "IDENTITY_API",
       providerName: req.body.providerName || undefined,
       customerId: targetId,
-      userId,
+      userId: effectiveUserId,
       amount: serviceFee,
       smartlinkReference: reference,
       extraData: { ...extraFields, service: sType, targetId, consent: extraFields.consent === true || extraFields.consent === "true" || req.body.consent === true },
@@ -774,11 +759,19 @@ app.post("/api/verify/engine", async (req, res) => {
 app.post("/api/services/nin-verify", async (req, res) => {
   const startTime = Date.now();
   const { userId, nin, fullName, consent } = req.body;
+  const db = readDB();
+
+  const authCheck = await verifyUserOrAdminSession(req, userId, db);
+  if (!authCheck.authorized) {
+    return res.status(authCheck.reason?.includes("Authentication required") ? 401 : 403).json({ error: authCheck.reason || "Forbidden", errorCode: "AUTH_ERROR" });
+  }
+
+  const effectiveUserId = authCheck.isAdmin ? userId : authCheck.authenticatedUid!;
 
   // Explicit conditional guard clause for Aspfiy
   if (req.body.provider === "Aspfiy" || req.body.providerName === "Aspfiy" || req.body.provider === "prov_aspfiy") {
     // Execute original, untouched Aspfiy pipeline blocks exactly as currently written in the file.
-    if (!userId) {
+    if (!effectiveUserId) {
       return res.status(401).json({ error: "User authentication required.", errorCode: "AUTH_ERROR" });
     }
 
@@ -995,7 +988,6 @@ app.post("/api/services/nin-verify", async (req, res) => {
     });
   }
 
-  const db = readDB();
   const fee = 500;
   const reference = `SML-VER-NIN-${Math.floor(100000 + Math.random() * 900000)}`;
 
@@ -1170,11 +1162,19 @@ app.post("/api/services/nin-verify", async (req, res) => {
 app.post("/api/services/bvn-verify", async (req, res) => {
   const startTime = Date.now();
   const { userId, bvn, fullName, consent, referenceNote, verificationPurpose } = req.body;
+  const db = readDB();
+
+  const authCheck = await verifyUserOrAdminSession(req, userId, db);
+  if (!authCheck.authorized) {
+    return res.status(authCheck.reason?.includes("Authentication required") ? 401 : 403).json({ error: authCheck.reason || "Forbidden", errorCode: "AUTH_ERROR" });
+  }
+
+  const effectiveUserId = authCheck.isAdmin ? userId : authCheck.authenticatedUid!;
 
   // Explicit conditional guard clause for Aspfiy
   if (req.body.provider === "Aspfiy" || req.body.providerName === "Aspfiy" || req.body.provider === "prov_aspfiy") {
     // Execute original, untouched Aspfiy pipeline blocks exactly as currently written in the file.
-    if (!userId) {
+    if (!effectiveUserId) {
       return res.status(401).json({ error: "User authentication required.", errorCode: "AUTH_ERROR" });
     }
 
@@ -1382,7 +1382,6 @@ app.post("/api/services/bvn-verify", async (req, res) => {
     });
   }
 
-  const db = readDB();
   const fee = 500;
   const reference = `SML-VER-BVN-${Math.floor(100000 + Math.random() * 900000)}`;
 
@@ -1555,10 +1554,14 @@ app.post("/api/services/cac-verify", async (req, res) => {
     referenceNote = "",
     verificationPurpose = "Corporate Due Diligence",
   } = req.body;
+  const db = readDB();
 
-  if (!userId) {
-    return res.status(401).json({ error: "User authentication required.", errorCode: "AUTH_ERROR" });
+  const authCheck = await verifyUserOrAdminSession(req, userId, db);
+  if (!authCheck.authorized) {
+    return res.status(authCheck.reason?.includes("Authentication required") ? 401 : 403).json({ error: authCheck.reason || "Forbidden", errorCode: "AUTH_ERROR" });
   }
+
+  const effectiveUserId = authCheck.isAdmin ? userId : authCheck.authenticatedUid!;
 
   const cleanRegNo = (registrationNumber || "").replace(/\s+/g, " ").trim();
   const cleanBizName = (businessName || "").trim();
@@ -1589,7 +1592,6 @@ app.post("/api/services/cac-verify", async (req, res) => {
     });
   }
 
-  const db = readDB();
   const fee = 1000;
   const reference = `SML-VER-CAC-${Math.floor(100000 + Math.random() * 900000)}`;
   const targetId = verificationType === "BUSINESS_NAME" ? cleanBizName : cleanRegNo;
@@ -1779,10 +1781,14 @@ app.post("/api/services/tin-verify", async (req, res) => {
     referenceNote = "",
     verificationPurpose = "Tax Compliance & Filing Audit",
   } = req.body;
+  const db = readDB();
 
-  if (!userId) {
-    return res.status(401).json({ error: "User authentication required.", errorCode: "AUTH_ERROR" });
+  const authCheck = await verifyUserOrAdminSession(req, userId, db);
+  if (!authCheck.authorized) {
+    return res.status(authCheck.reason?.includes("Authentication required") ? 401 : 403).json({ error: authCheck.reason || "Forbidden", errorCode: "AUTH_ERROR" });
   }
+
+  const effectiveUserId = authCheck.isAdmin ? userId : authCheck.authenticatedUid!;
 
   const cleanTin = (tinNumber || "").replace(/\s+/g, "").trim();
   const cleanBizName = (businessName || "").trim();
@@ -1822,7 +1828,6 @@ app.post("/api/services/tin-verify", async (req, res) => {
     });
   }
 
-  const db = readDB();
   const fee = 500;
   const reference = `SML-VER-TIN-${Math.floor(100000 + Math.random() * 900000)}`;
 
@@ -2046,10 +2051,14 @@ app.post("/api/services/bank-account-verify", async (req, res) => {
     referenceNote = "",
     verificationPurpose = "KYC & Account Onboarding",
   } = req.body;
+  const db = readDB();
 
-  if (!userId) {
-    return res.status(401).json({ error: "User authentication required.", errorCode: "AUTH_ERROR" });
+  const authCheck = await verifyUserOrAdminSession(req, userId, db);
+  if (!authCheck.authorized) {
+    return res.status(authCheck.reason?.includes("Authentication required") ? 401 : 403).json({ error: authCheck.reason || "Forbidden", errorCode: "AUTH_ERROR" });
   }
+
+  const effectiveUserId = authCheck.isAdmin ? userId : authCheck.authenticatedUid!;
 
   const cleanAccount = (accountNumber || "").replace(/\s+/g, "").trim();
 
@@ -2069,7 +2078,6 @@ app.post("/api/services/bank-account-verify", async (req, res) => {
     });
   }
 
-  const db = readDB();
   const fee = 100;
   const reference = `SML-VER-ACC-${Math.floor(100000 + Math.random() * 900000)}`;
   const displayTarget = `${bankName} (${bankCode}) - ${cleanAccount.substring(0, 3)}****${cleanAccount.substring(7)}`;
@@ -2517,6 +2525,11 @@ app.post("/api/verification/send-email-slip", async (req, res) => {
       return res.status(400).json({ success: false, error: "User ID is required." });
     }
 
+    const authCheck = await verifyUserOrAdminSession(req, userId, db);
+    if (!authCheck.authorized) {
+      return res.status(authCheck.reason?.includes("Authentication required") ? 401 : 403).json({ error: authCheck.reason || "Forbidden" });
+    }
+
     // Resolve user's registered email
     const allUsers = db.users || [];
     const matchedUser = allUsers.find((u: any) => u.id === userId || u.uid === userId || u.email === recipientEmail);
@@ -2657,6 +2670,11 @@ app.get("/api/verification/slip-email-logs/:userId", async (req, res) => {
   const { userId } = req.params;
   const db = readDB();
 
+  const authCheck = await verifyUserOrAdminSession(req, userId, db);
+  if (!authCheck.authorized) {
+    return res.status(authCheck.reason?.includes("Authentication required") ? 401 : 403).json({ error: authCheck.reason || "Forbidden" });
+  }
+
   const userLogs = (db.slip_email_logs || []).filter((l: any) => l.userId === userId || l.registeredEmail === userId);
   return res.json({ success: true, logs: userLogs });
 });
@@ -2668,6 +2686,11 @@ app.post("/api/verification/user-email-preferences", async (req, res) => {
 
   if (!userId) {
     return res.status(400).json({ success: false, error: "User ID is required." });
+  }
+
+  const authCheck = await verifyUserOrAdminSession(req, userId, db);
+  if (!authCheck.authorized) {
+    return res.status(authCheck.reason?.includes("Authentication required") ? 401 : 403).json({ error: authCheck.reason || "Forbidden" });
   }
 
   if (!db.user_email_preferences) db.user_email_preferences = {};
@@ -2691,6 +2714,11 @@ app.post("/api/verification/user-email-preferences", async (req, res) => {
 app.get("/api/verification/user-email-preferences/:userId", async (req, res) => {
   const { userId } = req.params;
   const db = readDB();
+
+  const authCheck = await verifyUserOrAdminSession(req, userId, db);
+  if (!authCheck.authorized) {
+    return res.status(authCheck.reason?.includes("Authentication required") ? 401 : 403).json({ error: authCheck.reason || "Forbidden" });
+  }
 
   const prefs = db.user_email_preferences?.[userId] || {
     userId,

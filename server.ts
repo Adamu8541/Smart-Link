@@ -14,7 +14,6 @@ import { readDB, writeDB, initializeDB } from "./server/db";
 import { maintenanceMiddleware, isMaintenanceModeActive, getMaintenanceDetails, sanitizePublicSettings, seedModule7SettingsIfEmpty, getValueByJsonPath } from "./server/middleware/maintenance";
 import { verifyUserOrAdminSession } from "./server/middleware/auth";
 import { getAI } from "./server/services/ai";
-import { connectRedis } from "./server/redis";
 
 import { resolveSEOMetadata, injectSEOTags, generateSitemapXml, generateRobotsTxt } from "./server/services/seo.service";
 
@@ -38,6 +37,7 @@ import legalRoutes from "./server/routes/legal.routes";
 import marketplaceRoutes from "./server/routes/marketplace.routes";
 import virtualAccountRoutes from "./server/routes/virtualAccount.routes";
 import manualServicesRoutes from "./server/routes/manualServices.routes";
+import tursoRoutes from "./server/routes/turso.routes";
 
 // Re-export core helpers for backwards compatibility
 export {
@@ -150,6 +150,7 @@ app.use(legalRoutes);
 app.use(marketplaceRoutes);
 app.use(virtualAccountRoutes);
 app.use(manualServicesRoutes);
+app.use(tursoRoutes);
 
 // Fallback 404 for all unhandled /api/* routes so they always return JSON and never HTML
 app.all("/api/*", (req, res) => {
@@ -190,7 +191,6 @@ app.get(["/sitemap.xml", "/sitemap_index.xml"], (req, res) => {
 let serverInstance: any = null;
 
 async function startServer() {
-  // await connectRedis(); // Temporarily disabled due to missing Redis service in this environment
   const isProductionMode = process.env.NODE_ENV === "production" || fs.existsSync(path.join(process.cwd(), "dist", "index.html"));
   if (!isProductionMode) {
     const vite = await createViteServer({

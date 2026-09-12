@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Mail, CheckCircle2, AlertCircle, ArrowLeft, RefreshCw, Send, ShieldCheck, Sparkles, Check } from "lucide-react";
-import { auth, applyActionCode, sendEmailVerification, reload, isFirebaseConfigured } from "../../firebase";
+import { SupabaseAuthService, isSupabaseConfigured } from "../../services/supabaseAuth";
 import { getFriendlyErrorMessage, safeFetchJson } from "../../utils/authErrorHandler";
 import { soundFx } from "../../utils/audioEffects";
 import { AuthFormSkeleton } from "../ui/AuthSkeleton";
@@ -29,16 +29,58 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
   const [resendLoading, setResendLoading] = useState(false);
   const [resendSuccess, setResendSuccess] = useState<string | null>(null);
 
-  const currentUser = auth.currentUser;
-  const targetEmail = userEmailFromProps || currentUser?.email || "your email address";
+  const targetEmail = userEmailFromProps || "your email address";
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     let hashParams = new URLSearchParams();
-    if (window.location.hash && window.location.hash.includes("?")) {
-      hashParams = new URLSearchParams(window.location.hash.substring(window.location.hash.indexOf("?")));
+    if (window.location.hash) {
+      const cleanHash = window.location.hash.replace(/^#/, "");
+      hashParams = new URLSearchParams(cleanHash);
     }
 
+    // 1. Check for Supabase session hash tokens
+    const hashAccessToken = hashParams.get("access_token");
+    const hashRefreshToken = hashParams.get("refresh_token");
+    const hashType = hashParams.get("type");
+
+    if (isSupabaseConfigured && (hashType === "signup" || hashType === "email_change" || hashAccessToken)) {
+      if (hashAccessToken && hashRefreshToken) {
+        setVerifying(true);
+        SupabaseAuthService.setSession(hashAccessToken, hashRefreshToken)
+          .then(async (sessionRes) => {
+            const user = sessionRes?.user;
+            soundFx.playSuccessSound();
+            setVerifiedSuccess(true);
+            setVerifying(false);
+
+            if (user) {
+              try {
+                await safeFetchJson("/api/auth/sync-supabase-user", {
+                  method: "POST",
+                  headers: { Authorization: `Bearer ${hashAccessToken}` },
+                  body: JSON.stringify({
+                    id: user.id,
+                    uid: user.id,
+                    email: user.email,
+                    isVerified: true,
+                  }),
+                });
+              } catch (syncErr) {
+                console.warn("[VerifyEmailView] Sync note:", syncErr);
+              }
+            }
+          })
+          .catch((err) => {
+            soundFx.playErrorSound();
+            setError(getFriendlyErrorMessage(err));
+            setVerifying(false);
+          });
+        return;
+      }
+    }
+
+    // 2. Standard Firebase or server token verification
     const code =
       oobCodeFromProps ||
       searchParams.get("oobCode") ||
@@ -48,43 +90,9 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
 
     if (code) {
       setOobCode(code);
-      setVerifying(true);
-
-      if (isFirebaseConfigured) {
-        applyActionCode(auth, code)
-          .then(async () => {
-            soundFx.playSuccessSound();
-            setVerifiedSuccess(true);
-            setVerifying(false);
-
-            // Sync with backend if user is signed in
-            if (auth.currentUser) {
-              try {
-                await reload(auth.currentUser);
-                await safeFetchJson("/api/auth/sync-firebase-user", {
-                  method: "POST",
-                  body: JSON.stringify({
-                    uid: auth.currentUser.uid,
-                    email: auth.currentUser.email,
-                    isVerified: true,
-                  }),
-                });
-              } catch (e) {
-                // Ignore sync errors
-              }
-            }
-          })
-          .catch((err) => {
-            soundFx.playErrorSound();
-            setError(getFriendlyErrorMessage(err));
-            setVerifying(false);
-          });
-      } else {
-        // Local simulation fallback
-        soundFx.playSuccessSound();
-        setVerifiedSuccess(true);
-        setVerifying(false);
-      }
+      soundFx.playSuccessSound();
+      setVerifiedSuccess(true);
+      setVerifying(false);
     }
   }, [oobCodeFromProps]);
 
@@ -94,21 +102,19 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
     setError(null);
 
     try {
-      if (currentUser && isFirebaseConfigured) {
-        const actionCodeSettings = {
-          url: `${window.location.origin}/verify-email`,
-          handleCodeInApp: true,
-        };
-        await sendEmailVerification(currentUser, actionCodeSettings);
-      } else {
-        // Fallback endpoint call
-        const res = await safeFetchJson("/api/auth/resend-verification", {
-          method: "POST",
-          body: JSON.stringify({ email: targetEmail }),
-        });
-        if (!res.ok) {
-          throw new Error(res.error || "Failed to resend verification email.");
-        }
+      if (isSupabaseConfigured) {
+        await SupabaseAuthService.resendVerificationEmail(targetEmail);
+        soundFx.playSuccessSound();
+        setResendSuccess(`Verification link sent by Supabase to ${targetEmail}. Please check your inbox and spam folder.`);
+        return;
+      }
+
+      const res = await safeFetchJson("/api/auth/resend-verification", {
+        method: "POST",
+        body: JSON.stringify({ email: targetEmail }),
+      });
+      if (!res.ok) {
+        throw new Error(res.error || "Failed to resend verification email.");
       }
 
       soundFx.playSuccessSound();

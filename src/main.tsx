@@ -2,6 +2,7 @@ import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
 import { SiteConfigProvider } from './context/SiteConfigContext.tsx';
+import { AuthProvider } from './context/AuthContext.tsx';
 import { RootErrorBoundary } from './components/common/RootErrorBoundary.tsx';
 import './index.css';
 
@@ -90,7 +91,9 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <RootErrorBoundary>
       <SiteConfigProvider>
-        <App />
+        <AuthProvider>
+          <App />
+        </AuthProvider>
       </SiteConfigProvider>
     </RootErrorBoundary>
   </StrictMode>,

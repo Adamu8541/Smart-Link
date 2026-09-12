@@ -1,5 +1,4 @@
-import { getAdminFirestore } from "./firebaseAdmin";
-import { readDB } from "../../server/db";
+import { readDB, writeDB } from "../../server/db";
 
 export interface AdminConfigDoc {
   system_settings?: any;
@@ -17,59 +16,44 @@ export interface AdminConfigDoc {
 
 export async function getSettingsDoc(): Promise<AdminConfigDoc | null> {
   try {
-    const adminDb = getAdminFirestore();
-    const docRef = adminDb.collection("system").doc("adminConfig");
-    const snapshot = await docRef.get();
-    if (snapshot.exists) {
-      return snapshot.data() as AdminConfigDoc;
+    const db = readDB();
+    if (db) {
+      return {
+        system_settings: db.system_settings,
+        branding_settings: db.branding_settings,
+        maintenance_settings: db.maintenance_settings,
+        platform_configuration: db.platform_configuration,
+        apiProviders: db.api_providers || db.apiProviders || [],
+        api_providers: db.api_providers || db.apiProviders || [],
+        servicesCatalog: db.servicesCatalog || [],
+        services_catalog: db.servicesCatalog || [],
+        priceMatrix: db.priceMatrix,
+        siteSettings: db.siteSettings,
+        settings_audit_logs: db.settings_audit_logs || [],
+      };
     }
-  } catch (err: any) {
-    if (!err?.message?.includes("RESOURCE_EXHAUSTED") && err?.code !== 8) {
-      console.log("[settingsStore] Firestore unavailable, using local database fallback.");
-    }
-    try {
-      const db = readDB();
-      if (db) {
-        return {
-          system_settings: db.system_settings,
-          branding_settings: db.branding_settings,
-          maintenance_settings: db.maintenance_settings,
-          platform_configuration: db.platform_configuration,
-          apiProviders: db.api_providers || db.apiProviders || [],
-          api_providers: db.api_providers || db.apiProviders || [],
-          servicesCatalog: db.servicesCatalog || [],
-          services_catalog: db.servicesCatalog || [],
-          priceMatrix: db.priceMatrix,
-          siteSettings: db.siteSettings,
-          settings_audit_logs: db.settings_audit_logs || [],
-        };
-      }
-    } catch (fallbackErr) {}
-  }
+  } catch (err) {}
   return null;
 }
 
 export async function saveSettingsDoc(data: AdminConfigDoc): Promise<boolean> {
   try {
-    const adminDb = getAdminFirestore();
-    const docRef = adminDb.collection("system").doc("adminConfig");
-    // Sanitize to remove any undefined values before writing to Firestore
-    const sanitized = JSON.parse(
-      JSON.stringify({
-        system_settings: data.system_settings ?? {},
-        branding_settings: data.branding_settings ?? {},
-        maintenance_settings: data.maintenance_settings ?? {},
-        platform_configuration: data.platform_configuration ?? {},
-        apiProviders: data.apiProviders ?? data.api_providers ?? [],
-        api_providers: data.api_providers ?? data.apiProviders ?? [],
-        servicesCatalog: data.servicesCatalog ?? data.services_catalog ?? [],
-        services_catalog: data.services_catalog ?? data.servicesCatalog ?? [],
-        priceMatrix: data.priceMatrix ?? {},
-        siteSettings: data.siteSettings ?? {},
-        settings_audit_logs: data.settings_audit_logs ?? [],
-      })
-    );
-    await docRef.set(sanitized, { merge: true });
+    const db = readDB();
+    if (data.system_settings) db.system_settings = data.system_settings;
+    if (data.branding_settings) db.branding_settings = data.branding_settings;
+    if (data.maintenance_settings) db.maintenance_settings = data.maintenance_settings;
+    if (data.platform_configuration) db.platform_configuration = data.platform_configuration;
+    if (data.api_providers || data.apiProviders) {
+      db.api_providers = data.api_providers || data.apiProviders;
+      db.apiProviders = db.api_providers;
+    }
+    if (data.servicesCatalog || data.services_catalog) {
+      db.servicesCatalog = data.servicesCatalog || data.services_catalog;
+    }
+    if (data.priceMatrix) db.priceMatrix = data.priceMatrix;
+    if (data.siteSettings) db.siteSettings = data.siteSettings;
+    if (data.settings_audit_logs) db.settings_audit_logs = data.settings_audit_logs;
+    writeDB(db);
     return true;
   } catch (err) {
     console.error("[settingsStore] saveSettingsDoc failed:", err);
@@ -77,10 +61,6 @@ export async function saveSettingsDoc(data: AdminConfigDoc): Promise<boolean> {
   }
 }
 
-/**
- * Hydrates in-memory db object with Firestore settings, services & providers if available.
- * Makes db.api_providers the single canonical runtime provider collection.
- */
 export async function syncFromFirestore(dbObj: any): Promise<void> {
   const fsDoc = await getSettingsDoc();
   if (fsDoc) {
@@ -102,33 +82,9 @@ export async function syncFromFirestore(dbObj: any): Promise<void> {
     if (fsDoc.siteSettings && Object.keys(fsDoc.siteSettings).length > 0) {
       dbObj.siteSettings = fsDoc.siteSettings;
     }
-    const fsServices = (Array.isArray(fsDoc.servicesCatalog) && fsDoc.servicesCatalog.length > 0)
-      ? fsDoc.servicesCatalog
-      : (Array.isArray(fsDoc.services_catalog) && fsDoc.services_catalog.length > 0 ? fsDoc.services_catalog : null);
-    if (fsServices) {
-      dbObj.servicesCatalog = fsServices;
-    }
-    const fsProviders = (Array.isArray(fsDoc.apiProviders) && fsDoc.apiProviders.length > 0)
-      ? fsDoc.apiProviders
-      : (Array.isArray((fsDoc as any).api_providers) && (fsDoc as any).api_providers.length > 0 ? (fsDoc as any).api_providers : null);
-    if (fsProviders) {
-      dbObj.api_providers = fsProviders;
-      // Keep alias in sync for any external reader
-      dbObj.apiProviders = dbObj.api_providers;
-    } else if (Array.isArray(dbObj.apiProviders) && dbObj.apiProviders.length > 0 && (!dbObj.api_providers || dbObj.api_providers.length === 0)) {
-      // Migrate legacy apiProviders to api_providers
-      dbObj.api_providers = dbObj.apiProviders;
-    }
-    if (Array.isArray(fsDoc.settings_audit_logs)) {
-      dbObj.settings_audit_logs = fsDoc.settings_audit_logs;
-    }
   }
 }
 
-/**
- * Persists in-memory settings, services & providers to Firestore adminConfig document.
- * Always persists canonical db.api_providers and db.servicesCatalog.
- */
 export async function syncToFirestore(dbObj: any): Promise<void> {
   const providers = (Array.isArray(dbObj.api_providers) && dbObj.api_providers.length > 0)
     ? dbObj.api_providers

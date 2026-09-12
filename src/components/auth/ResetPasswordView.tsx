@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Lock, Eye, EyeOff, CheckCircle2, AlertCircle, ArrowLeft, KeyRound, ShieldCheck, Check, Sparkles } from "lucide-react";
-import { auth, verifyPasswordResetCode, confirmPasswordReset, isFirebaseConfigured } from "../../firebase";
+import { SupabaseAuthService, isSupabaseConfigured } from "../../services/supabaseAuth";
 import { getFriendlyErrorMessage } from "../../utils/authErrorHandler";
 import { soundFx } from "../../utils/audioEffects";
 import { AuthFormSkeleton } from "../ui/AuthSkeleton";
@@ -85,12 +85,41 @@ export const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({
   const [resetSuccess, setResetSuccess] = useState(false);
   const [countdown, setCountdown] = useState(5);
 
-  // Parse and verify oobCode on mount
+  const [isSupabaseRecovery, setIsSupabaseRecovery] = useState(false);
+
+  // Parse and verify oobCode or Supabase tokens on mount
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     let hashParams = new URLSearchParams();
-    if (window.location.hash && window.location.hash.includes("?")) {
-      hashParams = new URLSearchParams(window.location.hash.substring(window.location.hash.indexOf("?")));
+    if (window.location.hash) {
+      const cleanHash = window.location.hash.replace(/^#/, "");
+      hashParams = new URLSearchParams(cleanHash);
+    }
+
+    // 1. Check for Supabase recovery hash tokens
+    const hashAccessToken = hashParams.get("access_token");
+    const hashRefreshToken = hashParams.get("refresh_token");
+    const hashType = hashParams.get("type");
+
+    if (isSupabaseConfigured && (hashType === "recovery" || (hashAccessToken && hashRefreshToken))) {
+      if (hashAccessToken && hashRefreshToken) {
+        setIsSupabaseRecovery(true);
+        setOobCode("supabase_session");
+        SupabaseAuthService.setSession(hashAccessToken, hashRefreshToken)
+          .then(async (res) => {
+            const user = res?.user || (await SupabaseAuthService.getUser());
+            if (user?.email) {
+              setTargetEmail(user.email);
+            }
+            setVerifyingCode(false);
+          })
+          .catch((err) => {
+            soundFx.playErrorSound();
+            setError(getFriendlyErrorMessage(err));
+            setVerifyingCode(false);
+          });
+        return;
+      }
     }
 
     const code =
@@ -109,23 +138,8 @@ export const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({
     }
 
     setOobCode(code);
-
-    if (isFirebaseConfigured) {
-      verifyPasswordResetCode(auth, code)
-        .then((email) => {
-          setTargetEmail(email);
-          setVerifyingCode(false);
-        })
-        .catch((err) => {
-          soundFx.playErrorSound();
-          setError(getFriendlyErrorMessage(err));
-          setVerifyingCode(false);
-        });
-    } else {
-      // Dev mode or simulation fallback
-      setTargetEmail("user@smartlinkng.com.ng");
-      setVerifyingCode(false);
-    }
+    setTargetEmail("user@smartlinkng.com.ng");
+    setVerifyingCode(false);
   }, [oobCodeFromProps]);
 
   // Auto-redirect countdown after success
@@ -170,10 +184,10 @@ export const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({
     setLoading(true);
 
     try {
-      if (isFirebaseConfigured) {
-        await confirmPasswordReset(auth, oobCode, newPassword);
+      if (isSupabaseRecovery || oobCode === "supabase_session") {
+        await SupabaseAuthService.updatePassword(newPassword);
       } else {
-        // Dev server API fallback
+        // Backend API
         const res = await fetch("/api/auth/reset-password", {
           method: "POST",
           headers: { "Content-Type": "application/json" },

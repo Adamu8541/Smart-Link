@@ -44,6 +44,16 @@ export const AuthActionHandler: React.FC<AuthActionHandlerProps> = ({
       hashParams.get("mode") ||
       continueParams.get("mode");
 
+    // Supabase auth link types (recovery or signup)
+    let supaType = searchParams.get("type");
+    if (window.location.hash) {
+      const cleanHash = window.location.hash.replace(/^#/, "");
+      const directHashParams = new URLSearchParams(cleanHash);
+      if (directHashParams.get("type")) {
+        supaType = directHashParams.get("type");
+      }
+    }
+
     const codeParam =
       searchParams.get("oobCode") ||
       searchParams.get("resetToken") ||
@@ -55,7 +65,13 @@ export const AuthActionHandler: React.FC<AuthActionHandlerProps> = ({
       continueParams.get("resetToken") ||
       continueParams.get("token");
 
-    setMode(modeParam);
+    if (supaType === "recovery") {
+      setMode("resetPassword");
+    } else if (supaType === "signup" || supaType === "email_change") {
+      setMode("verifyEmail");
+    } else {
+      setMode(modeParam);
+    }
     setOobCode(codeParam);
   }, []);
 

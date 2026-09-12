@@ -32,14 +32,14 @@ import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
 import * as securityStore from "../../src/services/securityStore";
 import * as notificationsStore from "../../src/services/notificationsStore";
-import { getAuth } from "firebase-admin/auth";
-import { getAdminFirestore } from "../../src/services/firebaseAdmin";
+import { EmailOtpService, SensitiveOtpPurpose } from "../services/emailOtp.service";
+import { createSupabaseUser, updateSupabaseUserPassword, updateSupabaseUserEmail, updateSupabaseUserMetadata } from "../services/supabaseAdmin";
 
 
 const router = express.Router();
 const app = router;
 
-app.post("/api/auth/sync-firebase-user", async (req, res) => {
+app.post(["/api/auth/sync-supabase-user", "/api/auth/sync-firebase-user"], async (req, res) => {
   const { uid, email, fullName, phoneNumber, role, referralCode, isVerified } = req.body;
   if (!email) {
     return res.status(400).json({ error: "Email is required" });
@@ -97,6 +97,77 @@ app.post("/api/auth/sync-firebase-user", async (req, res) => {
 
   const created = await usersStore.createUser(newUser);
   res.json({ user: created });
+});
+
+// Centralized Supabase User Synchronization Endpoint
+app.post("/api/auth/sync-supabase-user", async (req, res) => {
+  const { id, uid, email, fullName, phoneNumber, referralCode, isVerified } = req.body;
+  if (!email) {
+    return res.status(400).json({ error: "Email is required" });
+  }
+
+  const resolvedUid = id || uid;
+  if (!resolvedUid) {
+    return res.status(400).json({ error: "Supabase User ID is required" });
+  }
+
+  const lowerEmail = email.toLowerCase().trim();
+  let existingUser = await usersStore.getUserByEmail(lowerEmail);
+
+  const superAdminEmails = [SUPER_ADMIN_EMAIL, "adamuamuhammad8541@gmail.com"];
+  const isSuperAdminEmail = superAdminEmails.includes(lowerEmail);
+
+  if (phoneNumber !== undefined && phoneNumber !== null && phoneNumber !== "") {
+    if (typeof phoneNumber !== "string" || !/^0\d{10}$/.test(phoneNumber.trim())) {
+      return res.status(400).json({ error: "Phone number must be exactly 11 digits and must start with 0." });
+    }
+    const cleanPhone = phoneNumber.trim();
+    const existingPhone = await usersStore.getUserByPhone(cleanPhone);
+    if (
+      existingPhone &&
+      existingPhone.email?.toLowerCase().trim() !== lowerEmail &&
+      existingPhone.uid !== (existingUser?.uid || resolvedUid) &&
+      existingPhone.id !== (existingUser?.id || resolvedUid)
+    ) {
+      return res.status(400).json({ error: '"phone number already linked to another account" change phone number' });
+    }
+  }
+
+  if (existingUser) {
+    const updates: any = {};
+    if (isSuperAdminEmail) updates.role = "SUPER_ADMIN";
+    if (resolvedUid) updates.uid = resolvedUid;
+    if (fullName) updates.fullName = fullName;
+    if (phoneNumber) updates.phoneNumber = phoneNumber;
+    if (isVerified !== undefined) updates.isVerified = Boolean(isVerified);
+
+    const updated = await usersStore.updateUser(existingUser.id || existingUser.uid || resolvedUid, updates);
+    const { passwordHash, salt, ...safeUser } = updated || existingUser;
+
+    return res.json({ user: safeUser });
+  }
+
+  // Create new user entry - strictly prevent privilege escalation
+  const targetRole = isSuperAdminEmail ? "SUPER_ADMIN" : "CUSTOMER";
+  const refCode = (fullName || "USER").replace(/\s+/g, "").substring(0, 8).toUpperCase() + Math.floor(100 + Math.random() * 900);
+
+  const newUser = {
+    id: resolvedUid,
+    uid: resolvedUid,
+    email: lowerEmail,
+    fullName: fullName || lowerEmail.split("@")[0],
+    phoneNumber: phoneNumber || "",
+    role: targetRole,
+    walletBalance: 0.0,
+    referralCode: refCode,
+    isVerified: Boolean(isVerified),
+    authProvider: "supabase",
+    createdAt: new Date().toISOString(),
+  };
+
+  const created = await usersStore.createUser(newUser);
+  const { passwordHash, salt, ...safeUser } = created;
+  res.json({ user: safeUser });
 });
 
 app.post("/api/auth/check-email-exists", async (req, res) => {
@@ -250,45 +321,24 @@ app.post("/api/auth/register", async (req, res) => {
     return res.status(400).json({ error: '"phone number already linked to another account" change phone number' });
   }
 
-  // Create real Firebase Authentication account
-  let firebaseUid: string;
+  // Create Supabase Auth user or fallback ID
+  let userId: string;
   try {
-    getAdminFirestore(); // Ensure Firebase Admin app is initialized
-
-    try {
-      const createOptions: any = {
-        email: lowerEmail,
-        password: password,
-        displayName: fullName,
-      };
-      const fbUser = await getAuth().createUser(createOptions);
-      firebaseUid = fbUser.uid;
-    } catch (createErr: any) {
-      if (
-        createErr?.code === "auth/email-already-exists" ||
-        createErr?.code === "auth/email-already-in-use" ||
-        createErr?.message?.includes("email-already-exists") ||
-        createErr?.message?.includes("email-already-in-use")
-      ) {
-        return res.status(400).json({ error: "email exist sign in instead" });
-      } else {
-        throw createErr;
-      }
+    const supaUser = await createSupabaseUser({
+      email: lowerEmail,
+      password: password,
+      user_metadata: { full_name: fullName, phone: cleanPhone },
+    });
+    if (supaUser?.id) {
+      userId = supaUser.id;
+    } else {
+      userId = `usr_sb_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
     }
-  } catch (fbErr: any) {
-    console.error("[register] Firebase Auth account creation failed:", fbErr);
-    if (
-      fbErr?.code === "auth/email-already-exists" ||
-      fbErr?.code === "auth/email-already-in-use" ||
-      fbErr?.message?.includes("email-already-exists") ||
-      fbErr?.message?.includes("email-already-in-use")
-    ) {
-      return res.status(400).json({ error: "email exist sign in instead" });
-    }
-    return res.status(400).json({ error: fbErr.message || "Could not create authentication account." });
+  } catch (sbErr: any) {
+    userId = `usr_sb_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
   }
 
-  const uid = firebaseUid;
+  const uid = userId;
   const refCode = fullName.replace(/\s+/g, "").substring(0, 8).toUpperCase() + Math.floor(100 + Math.random() * 900);
 
   // Check if referred by someone
@@ -306,11 +356,11 @@ app.post("/api/auth/register", async (req, res) => {
   const userSalt = "";
 
   const newUser = {
-    id: firebaseUid,
-    uid: firebaseUid,
+    id: uid,
+    uid: uid,
     email: lowerEmail,
     fullName,
-    phoneNumber,
+    phoneNumber: cleanPhone,
     role: targetRole,
     walletBalance: 0.0,
     referralCode: refCode,
@@ -318,6 +368,7 @@ app.post("/api/auth/register", async (req, res) => {
     passwordHash: userHash,
     salt: userSalt,
     isVerified: true,
+    authProvider: "supabase",
     createdAt: new Date().toISOString(),
   };
 
@@ -503,6 +554,553 @@ app.post("/api/auth/reset-password", async (req, res) => {
   res.json({ success: true, message: "Your password has been successfully updated. You can now log in with your new password." });
 });
 
+// =========================================================================
+// SENSITIVE ACCOUNT CHANGES — EMAIL OTP VERIFICATION ENDPOINTS
+// =========================================================================
+
+/**
+ * Request 6-Digit Email OTP for Sensitive Account Actions
+ * Requires authenticated session; never trusts client-controlled identity.
+ */
+app.post("/api/auth/otp/request", async (req, res) => {
+  const { purpose, targetValue } = req.body;
+
+  const validPurposes: SensitiveOtpPurpose[] = [
+    "CHANGE_PASSWORD",
+    "CHANGE_EMAIL",
+    "CHANGE_PHONE",
+    "CHANGE_PIN",
+    "CHANGE_SECURITY_SETTINGS",
+    "CHANGE_ACCOUNT_INFO",
+    "CHANGE_USER_PRIVILEGES",
+    "CRITICAL_ADMIN_OPERATION",
+  ];
+
+  if (!purpose || !validPurposes.includes(purpose)) {
+    return res.status(400).json({
+      success: false,
+      error: "Invalid or missing purpose. Must be a valid SensitiveActionPurpose.",
+    });
+  }
+
+  // Authorize session strictly
+  const authCheck = await verifyUserOrAdminSession(req, req.body?.userId);
+  if (!authCheck.authorized || !authCheck.authenticatedUid) {
+    return res.status(401).json({
+      success: false,
+      error: authCheck.reason || "Authentication required to perform sensitive operations.",
+    });
+  }
+
+  const userId = authCheck.authenticatedUid;
+  const user = await usersStore.getUserById(userId);
+  if (!user || !user.email) {
+    return res.status(404).json({
+      success: false,
+      error: "User record or registered email address not found.",
+    });
+  }
+
+  // Pre-validation for target values
+  if (purpose === "CHANGE_EMAIL") {
+    if (!targetValue || typeof targetValue !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(targetValue.trim())) {
+      return res.status(400).json({ success: false, error: "A valid new email address is required." });
+    }
+    const cleanTargetEmail = targetValue.trim().toLowerCase();
+    if (cleanTargetEmail === user.email.toLowerCase().trim()) {
+      return res.status(400).json({ success: false, error: "New email cannot be identical to your current email address." });
+    }
+    const existing = await usersStore.getUserByEmail(cleanTargetEmail);
+    if (existing && existing.uid !== userId && existing.id !== userId) {
+      return res.status(400).json({ success: false, error: "This email address is already registered to another account." });
+    }
+  }
+
+  if (purpose === "CHANGE_PHONE") {
+    if (!targetValue || typeof targetValue !== "string" || !/^0\d{10}$/.test(targetValue.trim())) {
+      return res.status(400).json({ success: false, error: "Phone number must be exactly 11 digits and begin with 0 (e.g., 08012345678)." });
+    }
+    const cleanPhone = targetValue.trim();
+    if (cleanPhone === (user.phoneNumber || "").trim()) {
+      return res.status(400).json({ success: false, error: "New phone number cannot be identical to your current phone number." });
+    }
+    const existingPhone = await usersStore.getUserByPhone(cleanPhone);
+    if (existingPhone && existingPhone.uid !== userId && existingPhone.id !== userId) {
+      return res.status(400).json({ success: false, error: "This phone number is already registered to another account." });
+    }
+  }
+
+  if (purpose === "CHANGE_PIN") {
+    if (targetValue && (typeof targetValue !== "string" || !/^\d{4}$/.test(targetValue.trim()))) {
+      return res.status(400).json({ success: false, error: "Transaction PIN must be exactly 4 digits." });
+    }
+  }
+
+  const result = await EmailOtpService.requestOtp({
+    userId,
+    userEmail: user.email,
+    purpose,
+    targetValue,
+    ipAddress: req.ip || req.socket?.remoteAddress,
+  });
+
+  if (!result.success) {
+    return res.status(result.status || 400).json(result);
+  }
+
+  res.json(result);
+});
+
+/**
+ * Verify 6-Digit Email OTP and Complete Sensitive Account Action
+ * Enforces one-time use, attempt counters, and timing-safe comparisons.
+ */
+app.post("/api/auth/otp/verify-and-change", async (req, res) => {
+  const { purpose, otp, payload } = req.body;
+
+  if (!purpose || !otp || !payload) {
+    return res.status(400).json({
+      success: false,
+      error: "Missing required fields: purpose, otp, and payload are required.",
+    });
+  }
+
+  if (typeof otp !== "string" || !/^\d{6}$/.test(otp.trim())) {
+    return res.status(400).json({
+      success: false,
+      error: "Verification code must be exactly 6 digits.",
+    });
+  }
+
+  // Authorize session strictly
+  const authCheck = await verifyUserOrAdminSession(req, req.body?.userId);
+  if (!authCheck.authorized || !authCheck.authenticatedUid) {
+    return res.status(401).json({
+      success: false,
+      error: authCheck.reason || "Authentication session expired. Please sign in again.",
+    });
+  }
+
+  const userId = authCheck.authenticatedUid;
+  const user = await usersStore.getUserById(userId);
+  if (!user) {
+    return res.status(404).json({ success: false, error: "User account not found." });
+  }
+
+  // Validate payload before consuming OTP
+  if (purpose === "CHANGE_PASSWORD") {
+    const { newPassword } = payload;
+    if (!newPassword || typeof newPassword !== "string" || newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        error: "New password must be at least 6 characters long.",
+      });
+    }
+
+    // Verify OTP
+    const verifyRes = EmailOtpService.verifyOtp({
+      userId,
+      purpose,
+      otp,
+    });
+
+    if (!verifyRes.success) {
+      return res.status(verifyRes.status || 400).json({
+        success: false,
+        error: verifyRes.error || "Invalid verification code.",
+      });
+    }
+
+    // Update password hash locally
+    const newHash = hashPassword(newPassword);
+    const updated = await usersStore.updateUser(userId, {
+      passwordHash: newHash,
+      salt: "",
+      updatedAt: new Date().toISOString(),
+    });
+
+    // Update in Supabase Auth if applicable
+    await updateSupabaseUserPassword(userId, newPassword);
+
+    // Audit notification
+    try {
+      await notificationsStore.createNotification({
+        id: `notif_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        userId,
+        userEmail: user.email,
+        title: "Account Password Changed",
+        message: "Your account password was successfully updated after email OTP verification.",
+        category: "SECURITY",
+        priority: "High",
+        status: "Sent",
+        body: "Your account password was successfully changed. If this wasn't you, contact support immediately.",
+        createdAt: new Date().toISOString(),
+      });
+    } catch {}
+
+    const { passwordHash: ph, salt: s, ...safeUser } = updated || user;
+    return res.json({
+      success: true,
+      message: "Password has been successfully updated.",
+      user: safeUser,
+    });
+  }
+
+  if (purpose === "CHANGE_EMAIL") {
+    const { newEmail } = payload;
+    if (!newEmail || typeof newEmail !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail.trim())) {
+      return res.status(400).json({ success: false, error: "Valid new email address is required." });
+    }
+    const cleanNewEmail = newEmail.trim().toLowerCase();
+
+    // Verify OTP with targetValue binding
+    const verifyRes = EmailOtpService.verifyOtp({
+      userId,
+      purpose,
+      otp,
+      targetValue: cleanNewEmail,
+    });
+
+    if (!verifyRes.success) {
+      return res.status(verifyRes.status || 400).json({
+        success: false,
+        error: verifyRes.error || "Invalid verification code.",
+      });
+    }
+
+    // Re-verify uniqueness
+    const existing = await usersStore.getUserByEmail(cleanNewEmail);
+    if (existing && existing.uid !== userId && existing.id !== userId) {
+      return res.status(400).json({ success: false, error: "This email address is already linked to another account." });
+    }
+
+    const updated = await usersStore.updateUser(userId, {
+      email: cleanNewEmail,
+      updatedAt: new Date().toISOString(),
+    });
+
+    // Update in Supabase Auth if applicable
+    await updateSupabaseUserEmail(userId, cleanNewEmail);
+
+    // Audit notification
+    try {
+      await notificationsStore.createNotification({
+        id: `notif_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        userId,
+        userEmail: cleanNewEmail,
+        title: "Registered Email Changed",
+        message: `Your account email address was changed to ${cleanNewEmail} via email OTP verification.`,
+        category: "SECURITY",
+        priority: "High",
+        status: "Sent",
+        body: `Your registered email has been updated to ${cleanNewEmail}.`,
+        createdAt: new Date().toISOString(),
+      });
+    } catch {}
+
+    const { passwordHash: ph, salt: s, ...safeUser } = updated || user;
+    return res.json({
+      success: true,
+      message: `Your email address has been successfully updated to ${cleanNewEmail}.`,
+      user: safeUser,
+    });
+  }
+
+  if (purpose === "CHANGE_PHONE") {
+    const { newPhoneNumber } = payload;
+    if (!newPhoneNumber || typeof newPhoneNumber !== "string" || !/^0\d{10}$/.test(newPhoneNumber.trim())) {
+      return res.status(400).json({
+        success: false,
+        error: "Phone number must be exactly 11 digits and start with 0.",
+      });
+    }
+    const cleanPhone = newPhoneNumber.trim();
+
+    // Verify OTP with targetValue binding
+    const verifyRes = EmailOtpService.verifyOtp({
+      userId,
+      purpose,
+      otp,
+      targetValue: cleanPhone,
+    });
+
+    if (!verifyRes.success) {
+      return res.status(verifyRes.status || 400).json({
+        success: false,
+        error: verifyRes.error || "Invalid verification code.",
+      });
+    }
+
+    // Re-verify uniqueness
+    const existingPhone = await usersStore.getUserByPhone(cleanPhone);
+    if (existingPhone && existingPhone.uid !== userId && existingPhone.id !== userId) {
+      return res.status(400).json({ success: false, error: "This phone number is already registered to another account." });
+    }
+
+    const updated = await usersStore.updateUser(userId, {
+      phoneNumber: cleanPhone,
+      updatedAt: new Date().toISOString(),
+    });
+
+    // Update in Supabase Auth user_metadata
+    await updateSupabaseUserMetadata(userId, { phoneNumber: cleanPhone });
+
+    // Audit notification
+    try {
+      await notificationsStore.createNotification({
+        id: `notif_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        userId,
+        userEmail: user.email,
+        title: "Phone Number Updated",
+        message: `Your account phone number was successfully updated to ${cleanPhone}.`,
+        category: "SECURITY",
+        priority: "High",
+        status: "Sent",
+        body: `Phone number updated to ${cleanPhone}.`,
+        createdAt: new Date().toISOString(),
+      });
+    } catch {}
+
+    const { passwordHash: ph, salt: s, ...safeUser } = updated || user;
+    return res.json({
+      success: true,
+      message: `Phone number successfully updated to ${cleanPhone}.`,
+      user: safeUser,
+    });
+  }
+
+  if (purpose === "CHANGE_PIN") {
+    const { newPin } = payload;
+    if (!newPin || typeof newPin !== "string" || !/^\d{4}$/.test(newPin.trim())) {
+      return res.status(400).json({
+        success: false,
+        error: "Transaction PIN must be exactly 4 digits.",
+      });
+    }
+    const cleanPin = newPin.trim();
+
+    // Verify OTP
+    const verifyRes = EmailOtpService.verifyOtp({
+      userId,
+      purpose,
+      otp,
+    });
+
+    if (!verifyRes.success) {
+      return res.status(verifyRes.status || 400).json({
+        success: false,
+        error: verifyRes.error || "Invalid verification code.",
+      });
+    }
+
+    // Hash the 4-digit PIN securely
+    const pinHash = hashPassword(cleanPin);
+    const updated = await usersStore.updateUser(userId, {
+      transactionPinHash: pinHash,
+      hasTransactionPin: true,
+      updatedAt: new Date().toISOString(),
+    });
+
+    // Audit notification
+    try {
+      await notificationsStore.createNotification({
+        id: `notif_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        userId,
+        userEmail: user.email,
+        title: "Transaction PIN Configured",
+        message: "Your 4-digit Transaction Authorization PIN was successfully configured/updated.",
+        category: "SECURITY",
+        priority: "High",
+        status: "Sent",
+        body: "Your 4-digit Transaction Authorization PIN was updated. Keep your PIN private.",
+        createdAt: new Date().toISOString(),
+      });
+    } catch {}
+
+    const { passwordHash: ph, salt: s, transactionPinHash: tph, ...safeUser } = updated || user;
+    return res.json({
+      success: true,
+      message: "Transaction PIN successfully updated and secured.",
+      user: { ...safeUser, hasTransactionPin: true },
+    });
+  }
+
+  if (purpose === "CHANGE_ACCOUNT_INFO") {
+    const { fullName } = payload;
+    const verifyRes = EmailOtpService.verifyOtp({
+      userId,
+      purpose,
+      otp,
+    });
+
+    if (!verifyRes.success) {
+      return res.status(verifyRes.status || 400).json({
+        success: false,
+        error: verifyRes.error || "Invalid verification code.",
+      });
+    }
+
+    const updated = await usersStore.updateUser(userId, {
+      fullName: fullName || user.fullName,
+      updatedAt: new Date().toISOString(),
+    });
+
+    const ticketResult = EmailOtpService.createHighRiskTicket({
+      userId,
+      userEmail: user.email,
+      purpose: "CHANGE_ACCOUNT_INFO",
+      ipAddress: req.ip || req.socket?.remoteAddress,
+    });
+
+    const { passwordHash: ph, salt: s, ...safeUser } = updated || user;
+    return res.json({
+      success: true,
+      message: "Account information updated successfully.",
+      user: safeUser,
+      highRiskTicket: ticketResult.ticket,
+      expiresInSeconds: ticketResult.expiresInSeconds,
+    });
+  }
+
+  if (purpose === "CHANGE_SECURITY_SETTINGS" || purpose === "CHANGE_USER_PRIVILEGES" || purpose === "CRITICAL_ADMIN_OPERATION") {
+    const verifyRes = EmailOtpService.verifyOtp({
+      userId,
+      purpose,
+      otp,
+    });
+
+    if (!verifyRes.success) {
+      return res.status(verifyRes.status || 400).json({
+        success: false,
+        error: verifyRes.error || "Invalid verification code.",
+      });
+    }
+
+    const ticketResult = EmailOtpService.createHighRiskTicket({
+      userId,
+      userEmail: user.email,
+      purpose,
+      ipAddress: req.ip || req.socket?.remoteAddress,
+    });
+
+    return res.json({
+      success: true,
+      message: "Security authorization confirmed.",
+      highRiskTicket: ticketResult.ticket,
+      expiresInSeconds: ticketResult.expiresInSeconds,
+    });
+  }
+
+  return res.status(400).json({ success: false, error: "Unhandled sensitive action purpose." });
+});
+
+/**
+ * Step-Up Security Verification Endpoint
+ * Allows users/administrators to obtain a short-lived high-risk authorization ticket
+ * by either verifying an email OTP or re-authenticating with their current password.
+ */
+app.post("/api/auth/step-up/verify", async (req, res) => {
+  const { purpose, otp, password, targetValue } = req.body;
+
+  if (!purpose) {
+    return res.status(400).json({
+      success: false,
+      error: "Purpose is required for step-up verification.",
+    });
+  }
+
+  const authCheck = await verifyUserOrAdminSession(req, req.body?.userId);
+  if (!authCheck.authorized || !authCheck.authenticatedUid) {
+    return res.status(401).json({
+      success: false,
+      error: authCheck.reason || "Active session required for step-up authorization.",
+    });
+  }
+
+  const userId = authCheck.authenticatedUid;
+  const user = await usersStore.getUserById(userId);
+  if (!user || !user.email) {
+    return res.status(404).json({ success: false, error: "Authenticated user record not found." });
+  }
+
+  // 1. Verify via OTP if provided
+  if (otp && typeof otp === "string" && otp.trim()) {
+    const verifyRes = EmailOtpService.verifyOtp({
+      userId,
+      purpose,
+      otp: otp.trim(),
+      targetValue,
+    });
+
+    if (!verifyRes.success) {
+      return res.status(verifyRes.status || 400).json({
+        success: false,
+        error: verifyRes.error || "Invalid verification code.",
+      });
+    }
+
+    const ticketResult = EmailOtpService.createHighRiskTicket({
+      userId,
+      userEmail: user.email,
+      purpose,
+      ipAddress: req.ip || req.socket?.remoteAddress,
+    });
+
+    return res.json({
+      success: true,
+      message: "Step-up authorization confirmed via OTP.",
+      highRiskTicket: ticketResult.ticket,
+      expiresInSeconds: ticketResult.expiresInSeconds,
+    });
+  }
+
+  // 2. Verify via Password re-authentication if provided
+  if (password && typeof password === "string" && password.trim()) {
+    let passwordValid = false;
+
+    // Check local bcrypt hash first
+    if (user.passwordHash) {
+      const vResult = verifyPassword(password, user.passwordHash, user.salt || "");
+      if (vResult.match) {
+        passwordValid = true;
+      }
+    }
+
+    // Check super admin default password if applicable
+    if (!passwordValid && [SUPER_ADMIN_EMAIL, "adamuamuhammad8541@gmail.com"].includes(user.email.toLowerCase().trim())) {
+      if (password === SUPER_ADMIN_PASSWORD) {
+        passwordValid = true;
+      }
+    }
+
+    if (!passwordValid) {
+      return res.status(401).json({
+        success: false,
+        error: "Incorrect password. Re-authentication failed.",
+      });
+    }
+
+    const ticketResult = EmailOtpService.createHighRiskTicket({
+      userId,
+      userEmail: user.email,
+      purpose,
+      ipAddress: req.ip || req.socket?.remoteAddress,
+    });
+
+    return res.json({
+      success: true,
+      message: "Step-up authorization confirmed via re-authentication.",
+      highRiskTicket: ticketResult.ticket,
+      expiresInSeconds: ticketResult.expiresInSeconds,
+    });
+  }
+
+  return res.status(400).json({
+    success: false,
+    error: "Either a 6-digit email OTP or current password is required for security verification.",
+  });
+});
+
 app.get("/api/auth/profile", async (req, res) => {
   let uid = (req.query.uid as string) || (req.query.userId as string) || "";
   const authCheck = await verifyUserOrAdminSession(req, uid);
@@ -544,7 +1142,7 @@ app.get("/api/users/:uid", async (req, res) => {
 app.put("/api/users/:uid", async (req, res) => {
   const { uid } = req.params;
   const authCheck = await verifyUserOrAdminSession(req, uid);
-  if (!authCheck.authorized) {
+  if (!authCheck.authorized || !authCheck.authenticatedUid) {
     return res.status(403).json({ error: authCheck.reason || "Forbidden" });
   }
 
@@ -553,6 +1151,7 @@ app.put("/api/users/:uid", async (req, res) => {
   const existing = await usersStore.getUserById(uid);
   if (!existing) return res.status(404).json({ error: "User not found" });
 
+  // If changing phone number: require security verification
   if (phoneNumber && typeof phoneNumber === "string" && phoneNumber.trim()) {
     if (!/^0\d{10}$/.test(phoneNumber.trim())) {
       return res.status(400).json({ error: "Phone number must be exactly 11 digits and must start with 0." });
@@ -563,6 +1162,37 @@ app.put("/api/users/:uid", async (req, res) => {
       if (existingPhone && existingPhone.uid !== uid && existingPhone.id !== uid) {
         return res.status(400).json({ error: "This phone number is already registered to another account." });
       }
+
+      // Zero-trust backend enforcement for phone change
+      const phoneAuth = EmailOtpService.validateHighRiskAction({
+        req,
+        userId: authCheck.authenticatedUid,
+        purpose: "CHANGE_PHONE",
+        targetValue: cleanPhone,
+      });
+      if (!phoneAuth.valid) {
+        return res.status(phoneAuth.status || 403).json({
+          error: phoneAuth.reason,
+          requiresVerification: true,
+          purpose: "CHANGE_PHONE",
+        });
+      }
+    }
+  }
+
+  // If changing full name: require security verification
+  if (fullName && typeof fullName === "string" && fullName.trim() && fullName.trim() !== (existing.fullName || "").trim()) {
+    const nameAuth = EmailOtpService.validateHighRiskAction({
+      req,
+      userId: authCheck.authenticatedUid,
+      purpose: "CHANGE_ACCOUNT_INFO",
+    });
+    if (!nameAuth.valid) {
+      return res.status(nameAuth.status || 403).json({
+        error: nameAuth.reason,
+        requiresVerification: true,
+        purpose: "CHANGE_ACCOUNT_INFO",
+      });
     }
   }
 

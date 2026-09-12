@@ -4,7 +4,7 @@ import fs from "fs";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 import { readDB, writeDB, initializeDB, DB_DIR, DB_FILE, UPLOADS_DIR, SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD, hashPassword, safeCompareHash, generateSalt, isMaskedValue } from "../db";
-import { verifyUserOrAdminSession, requireAdmin } from "../middleware/auth";
+import { verifyUserOrAdminSession, requireAdmin, requireAuth, verifySessionToken } from "../middleware/auth";
 import { isMaintenanceModeActive, getMaintenanceDetails, getValueByJsonPath, seedModule7SettingsIfEmpty, sanitizePublicSettings } from "../middleware/maintenance";
 import { getAI } from "../services/ai";
 import { 
@@ -31,8 +31,6 @@ import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
 import * as securityStore from "../../src/services/securityStore";
 import * as notificationsStore from "../../src/services/notificationsStore";
-import { getAuth } from "firebase-admin/auth";
-import { getAdminFirestore, getAdminAuth } from "../../src/services/firebaseAdmin";
 
 
 const router = express.Router();
@@ -173,25 +171,18 @@ app.get("/api/admin/provider-logs", requireAdmin, async (req, res) => {
 // 1. Initiate Transaction & Balance Check / Hold
 app.post("/api/transaction/initiate", async (req, res) => {
   const authHeader = (req.headers["authorization"] || req.headers["Authorization"]) as string;
-  const rawBearerToken = authHeader && authHeader.startsWith("Bearer ") ? authHeader.substring(7).trim() : null;
+  const rawBearerToken = authHeader && authHeader.startsWith("Bearer ") ? authHeader.substring(7).trim() : (req.headers["x-admin-token"] as string || req.body.token);
 
   if (!rawBearerToken) {
     return res.status(401).json({ success: false, error: "Unauthenticated request. Missing authorization token." });
   }
 
-  let decodedToken: any;
-  try {
-    const adminAuth = getAdminAuth();
-    decodedToken = await adminAuth.verifyIdToken(rawBearerToken);
-  } catch (err: any) {
+  const session = await verifySessionToken(rawBearerToken);
+  if (!session || !session.uid) {
     return res.status(401).json({ success: false, error: "Unauthenticated request. Invalid or expired token." });
   }
 
-  if (!decodedToken || !decodedToken.uid) {
-    return res.status(401).json({ success: false, error: "Unauthenticated request. Invalid user identity." });
-  }
-
-  const authenticatedUid = decodedToken.uid;
+  const authenticatedUid = session.uid;
   const { service, amount, charge, totalDeduction, recipient, provider, smartlinkReference, description, paymentMethod } = req.body;
 
   // Verify ownership / prevent supplying another user's identity
@@ -537,22 +528,22 @@ app.post("/api/transaction/refund", requireAdmin, async (req, res) => {
   });
 });
 
-// 4. Get Filtered Transaction History
+// 4. Get Filtered Transaction History (Strictly Scoped by User or Admin)
 app.get("/api/transaction/history", async (req, res) => {
   const { userId, searchQuery, status, serviceType, startDate, endDate, page = 1, pageSize = 20 } = req.query;
   const db = readDB();
 
-  if (userId) {
-    const authCheck = await verifyUserOrAdminSession(req, userId as string, db);
-    if (!authCheck.authorized) {
-      return res.status(403).json({ error: authCheck.reason || "Forbidden" });
-    }
+  const authCheck = await verifyUserOrAdminSession(req, (userId as string) || undefined, db);
+  if (!authCheck.authorized) {
+    return res.status(authCheck.reason?.includes("Authentication required") ? 401 : 403).json({ error: authCheck.reason || "Forbidden" });
   }
+
+  const targetUserScope = authCheck.isAdmin ? (userId as string) : authCheck.authenticatedUid;
 
   let list = db.transactions || [];
 
-  if (userId) {
-    list = list.filter((t: any) => t.userId === userId);
+  if (targetUserScope) {
+    list = list.filter((t: any) => t.userId === targetUserScope || t.uid === targetUserScope);
   }
 
   if (status && status !== "ALL") {
@@ -645,8 +636,8 @@ app.get("/api/admin/transactions/stats", requireAdmin, async (req, res) => {
 // MONNIFY MODULE 4: WALLET TRANSACTIONS, RECEIPTS & DASHBOARD INTEGRATION
 // ==========================================
 
-// Generic Wallet Analytics & Transactions
-app.get("/api/analytics/summary", async (req, res) => {
+// Generic Wallet Analytics & Transactions (Admin Only)
+app.get("/api/analytics/summary", requireAdmin, async (req, res) => {
   const db = readDB();
   try {
     const txs = db.reconciliation_records || db.transactions || [];
@@ -670,8 +661,16 @@ app.get("/api/transactions/history", async (req, res) => {
   const db = readDB();
   try {
     const { userId, searchQuery, status } = req.query as any;
+
+    const authCheck = await verifyUserOrAdminSession(req, userId, db);
+    if (!authCheck.authorized) {
+      return res.status(authCheck.reason?.includes("Authentication required") ? 401 : 403).json({ error: authCheck.reason || "Forbidden" });
+    }
+
+    const targetUserScope = authCheck.isAdmin ? userId : authCheck.authenticatedUid;
+
     let records = db.reconciliation_records || db.transactions || [];
-    if (userId) records = records.filter((r: any) => r.userId === userId);
+    if (targetUserScope) records = records.filter((r: any) => r.userId === targetUserScope);
     if (status) records = records.filter((r: any) => (r.status || "").toUpperCase() === String(status).toUpperCase());
     if (searchQuery) {
       const q = String(searchQuery).toLowerCase();
@@ -689,8 +688,8 @@ app.get("/api/transactions/history", async (req, res) => {
   }
 });
 
-// Generic Reconciliation & Settlement Endpoints
-app.post("/api/reconciliation/run", async (req, res) => {
+// Generic Reconciliation & Settlement Endpoints (Admin Only)
+app.post("/api/reconciliation/run", requireAdmin, async (req, res) => {
   const db = readDB();
   const records = db.reconciliation_records || [];
   const unmatched = db.unmatched_payments || [];
@@ -711,7 +710,7 @@ app.post("/api/reconciliation/run", async (req, res) => {
   });
 });
 
-app.get("/api/reconciliation/reports", async (req, res) => {
+app.get("/api/reconciliation/reports", requireAdmin, async (req, res) => {
   const db = readDB();
   res.json({
     success: true,
@@ -720,7 +719,7 @@ app.get("/api/reconciliation/reports", async (req, res) => {
 });
 
 // --- ADMIN DASHBOARD LIVE METRICS (FIRESTORE DATA SOURCE OF TRUTH) ---
-app.get("/api/admin/dashboard/stats", async (req, res) => {
+app.get("/api/admin/dashboard/stats", requireAdmin, async (req, res) => {
   try {
     const db = readDB();
     const users = db.users || [];
@@ -780,7 +779,7 @@ app.get("/api/admin/dashboard/stats", async (req, res) => {
 });
 
 // --- ADMIN REFUNDS MANAGEMENT (FIRESTORE BACKED) ---
-app.get("/api/admin/refunds", async (req, res) => {
+app.get("/api/admin/refunds", requireAdmin, async (req, res) => {
   const db = readDB();
   res.json({
     success: true,
@@ -788,7 +787,7 @@ app.get("/api/admin/refunds", async (req, res) => {
   });
 });
 
-app.post("/api/admin/refunds/request", async (req, res) => {
+app.post("/api/admin/refunds/request", requireAdmin, async (req, res) => {
   const { userId, transactionId, reason, amount, userEmail } = req.body;
   const db = readDB();
 
@@ -817,7 +816,7 @@ app.post("/api/admin/refunds/request", async (req, res) => {
   }
 });
 
-app.post("/api/admin/refunds/:id/approve", async (req, res) => {
+app.post("/api/admin/refunds/:id/approve", requireAdmin, async (req, res) => {
   const { id } = req.params;
   const { adminNotes } = req.body;
   const db = readDB();
@@ -869,7 +868,7 @@ app.post("/api/admin/refunds/:id/approve", async (req, res) => {
     db.auditLogs.unshift({
       id: `audit_${Date.now()}`,
       action: "REFUND_APPROVED",
-      performedBy: "Admin",
+      performedBy: (req as any).admin?.email || "Admin",
       details: `Approved refund #${refund.id} of ₦${refund.amount} for user ${refund.userId || refund.userEmail}`,
       timestamp: new Date().toISOString(),
     });
@@ -885,7 +884,7 @@ app.post("/api/admin/refunds/:id/approve", async (req, res) => {
   }
 });
 
-app.post("/api/admin/refunds/:id/reject", async (req, res) => {
+app.post("/api/admin/refunds/:id/reject", requireAdmin, async (req, res) => {
   const { id } = req.params;
   const { reason, adminNotes } = req.body;
   const db = readDB();
@@ -929,11 +928,18 @@ app.post("/api/refunds/request", async (req, res) => {
   const { userId, transactionId, reason, amount } = req.body;
   const db = readDB();
 
+  const authCheck = await verifyUserOrAdminSession(req, userId, db);
+  if (!authCheck.authorized) {
+    return res.status(authCheck.reason?.includes("Authentication required") ? 401 : 403).json({ error: authCheck.reason || "Forbidden" });
+  }
+
+  const effectiveUserId = authCheck.isAdmin ? userId : authCheck.authenticatedUid!;
+
   try {
     if (!db.refunds) db.refunds = [];
     const refund = {
       id: `ref_${Date.now()}`,
-      userId,
+      userId: effectiveUserId,
       transactionId,
       reason,
       amount: Number(amount) || 0,
@@ -955,14 +961,24 @@ app.post("/api/refunds/request", async (req, res) => {
 
 app.get("/api/refunds", async (req, res) => {
   const db = readDB();
+  const authCheck = await verifyUserOrAdminSession(req, undefined, db);
+  if (!authCheck.authorized) {
+    return res.status(401).json({ error: "Authentication required" });
+  }
+
+  let refunds = db.refunds || [];
+  if (!authCheck.isAdmin) {
+    refunds = refunds.filter((r: any) => r.userId === authCheck.authenticatedUid);
+  }
+
   res.json({
     success: true,
-    refunds: db.refunds || [],
+    refunds,
   });
 });
 
 // --- ADMIN SETTLEMENTS & FINANCIAL REPORTS (FIRESTORE BACKED) ---
-app.get("/api/admin/reports", async (req, res) => {
+app.get("/api/admin/reports", requireAdmin, async (req, res) => {
   try {
     const db = readDB();
     const txns = db.transactions || [];
@@ -1040,7 +1056,7 @@ app.get("/api/admin/reports", async (req, res) => {
   }
 });
 
-app.get("/api/settlements/reports", async (req, res) => {
+app.get("/api/settlements/reports", requireAdmin, async (req, res) => {
   const db = readDB();
   res.json({
     success: true,
@@ -1049,7 +1065,7 @@ app.get("/api/settlements/reports", async (req, res) => {
 });
 
 // --- ADMIN SYSTEM HEALTH & LOGS (FIRESTORE & RUNTIME BACKED) ---
-app.get("/api/admin/system/health", async (req, res) => {
+app.get("/api/admin/system/health", requireAdmin, async (req, res) => {
   try {
     const mem = process.memoryUsage();
     const uptimeSec = Math.floor(process.uptime());
@@ -1081,7 +1097,7 @@ app.get("/api/admin/system/health", async (req, res) => {
   }
 });
 
-app.get("/api/admin/system/logs", async (req, res) => {
+app.get("/api/admin/system/logs", requireAdmin, async (req, res) => {
   const db = readDB();
   const rawLogs = [
     ...(db.auditLogs || []),

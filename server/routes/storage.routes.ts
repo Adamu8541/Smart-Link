@@ -4,7 +4,6 @@ import fs from "fs";
 import crypto from "crypto";
 import { readDB, writeDB, DB_DIR, UPLOADS_DIR } from "../db";
 import { verifyUserOrAdminSession, requireAdmin, requireAuth } from "../middleware/auth";
-import { getAdminFirestore } from "../../src/services/firebaseAdmin";
 import * as usersStore from "../../src/services/usersStore";
 
 const router = express.Router();
@@ -109,21 +108,7 @@ app.post("/api/storage/upload", requireAuth, async (req, res) => {
 
     fs.writeFileSync(filePath, buffer);
 
-    // Save metadata to Firestore cloud_storage_files (without base64 data)
-    try {
-      const adminDb = getAdminFirestore();
-      await adminDb.collection("cloud_storage_files").doc(savedFileName).set({
-        savedFileName,
-        originalName: fileName || cleanName,
-        mimeType: cleanMimeType,
-        sizeBytes: buffer.length,
-        category: category || "GENERAL",
-        userId: effectiveUserId,
-        createdAt: new Date().toISOString(),
-      }, { merge: true });
-    } catch (fsErr) {
-      console.warn("[storage.routes] Could not save file metadata to Firestore:", fsErr);
-    }
+    // File saved locally and in DB
 
     const fileUrl = `/api/storage/file/${savedFileName}`;
 
@@ -177,19 +162,6 @@ app.get("/api/storage/file/:savedFileName", async (req, res) => {
     fileOwnerId = fileRecord.userId;
     fileMetadata = fileRecord;
   } else {
-    try {
-      const adminDb = getAdminFirestore();
-      const docSnap = await adminDb.collection("cloud_storage_files").doc(savedFileName).get();
-      if (docSnap.exists) {
-        const data = docSnap.data();
-        fileOwnerId = data?.userId || "";
-        fileMetadata = data;
-      }
-    } catch (fsErr: any) {
-      if (!fsErr?.message?.includes("RESOURCE_EXHAUSTED") && fsErr?.code !== 8) {
-        console.warn("[storage.routes] Firestore lookup failed for file metadata:", savedFileName);
-      }
-    }
   }
 
   // Fallback for system logo files
@@ -306,14 +278,6 @@ app.delete("/api/storage/file/:savedFileName", async (req, res) => {
     } catch (e) {
       console.error("Failed to delete file from disk:", e);
     }
-  }
-
-  // Delete from Firestore
-  try {
-    const adminDb = getAdminFirestore();
-    await adminDb.collection("cloud_storage_files").doc(savedFileName).delete();
-  } catch (fsErr) {
-    console.warn("Failed to delete file document from Firestore:", fsErr);
   }
 
   // Delete from DB

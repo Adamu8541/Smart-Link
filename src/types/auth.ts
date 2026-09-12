@@ -46,4 +46,84 @@ export interface AuthSession {
   claims: FirebaseCustomClaims;
   lastActive: string;
   rememberMe: boolean;
+  provider?: "supabase" | "local" | "turso";
+  accessToken?: string;
 }
+
+export interface SupabaseAuthUserMetadata {
+  fullName?: string;
+  phoneNumber?: string;
+  referralCode?: string;
+  role?: UserRole;
+  [key: string]: any;
+}
+
+export interface AuthState {
+  user: any | null;
+  session: any | null;
+  loading: boolean;
+  isVerified: boolean;
+  authProvider: "supabase" | "local" | "turso" | null;
+}
+
+export type SensitiveActionPurpose =
+  | "CHANGE_PASSWORD"
+  | "CHANGE_EMAIL"
+  | "CHANGE_PHONE"
+  | "CHANGE_PIN"
+  | "CHANGE_SECURITY_SETTINGS"
+  | "CHANGE_ACCOUNT_INFO"
+  | "CHANGE_USER_PRIVILEGES"
+  | "CRITICAL_ADMIN_OPERATION";
+
+export interface OtpRequestPayload {
+  purpose: SensitiveActionPurpose;
+  targetValue?: string; // New email or phone if applicable
+}
+
+export interface OtpRequestResponse {
+  success: boolean;
+  message: string;
+  emailMasked?: string;
+  resendCooldownSeconds: number;
+  expiresInSeconds: number;
+  error?: string;
+}
+
+export interface OtpVerifyAndChangePayload {
+  purpose: SensitiveActionPurpose;
+  otp: string;
+  payload: {
+    newPassword?: string;
+    newEmail?: string;
+    newPhoneNumber?: string;
+    newPin?: string;
+    fullName?: string;
+    securitySettings?: Record<string, any>;
+  };
+}
+
+export interface OtpVerifyResponse {
+  success: boolean;
+  message: string;
+  user?: any;
+  highRiskTicket?: string;
+  expiresInSeconds?: number;
+  error?: string;
+}
+
+export interface StepUpVerifyPayload {
+  purpose: SensitiveActionPurpose;
+  otp?: string;
+  password?: string;
+  targetValue?: string;
+}
+
+export interface StepUpVerifyResponse {
+  success: boolean;
+  message: string;
+  highRiskTicket?: string;
+  expiresInSeconds?: number;
+  error?: string;
+}
+

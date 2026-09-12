@@ -32,8 +32,6 @@ import { sendPlatformEmail, getResolvedSmtpConfig } from "../services/email.serv
 import * as walletsStore from "../../src/services/walletsStore";
 import * as securityStore from "../../src/services/securityStore";
 import * as notificationsStore from "../../src/services/notificationsStore";
-import { getAuth } from "firebase-admin/auth";
-import { getAdminFirestore } from "../../src/services/firebaseAdmin";
 
 
 const router = express.Router();

@@ -21,8 +21,6 @@ import { SmartLinkLogoMark } from "../ui/SmartLinkLogoMark";
 import { useSiteConfig } from "../../context/SiteConfigContext";
 import { DEFAULT_LOGO_URL, handleLogoError } from "../../utils/brandLogo";
 const logoImg = DEFAULT_LOGO_URL;
-import { auth } from "../../firebase";
-import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 
 interface AdminLoginProps {
   onLoginSuccess: (session: any) => void;
@@ -68,7 +66,6 @@ export default function AdminLogin({ onLoginSuccess, onNavigateHome }: AdminLogi
         }
         setErrorMessage(data.error || data.message || "Access Denied: Your account does not have administrative privileges.");
         setLoading(false);
-        try { await auth.signOut(); } catch {}
         return;
       }
 
@@ -113,25 +110,7 @@ export default function AdminLogin({ onLoginSuccess, onNavigateHome }: AdminLogi
     setLoading(true);
 
     try {
-      // 1. Try Firebase Email/Password Sign-In
-      let idToken: string | null = null;
-      try {
-        const fbLoginPromise = signInWithEmailAndPassword(auth, cleanEmail, password);
-        const timeoutPromise = new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error("Admin Firebase auth timeout")), 4000)
-        );
-        const userCredential = await Promise.race([fbLoginPromise, timeoutPromise]);
-        idToken = await userCredential.user.getIdToken();
-      } catch (fbErr: any) {
-        console.log("[AdminLogin] Firebase login attempt note:", fbErr?.code || fbErr?.message);
-      }
-
-      if (idToken) {
-        await establishAdminSession(idToken);
-        return;
-      }
-
-      // 2. Fallback to Direct Backend Admin Login (Email & Password Credentials)
+      // Direct Backend Admin Login (Email & Password Credentials)
       const res = await fetch("/api/admin/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -161,18 +140,13 @@ export default function AdminLogin({ onLoginSuccess, onNavigateHome }: AdminLogi
     setForgotResponse(null);
 
     try {
-      try {
-        await sendPasswordResetEmail(auth, forgotEmail.trim());
-        setForgotResponse("Password reset email sent. Please check your inbox.");
-      } catch {
-        const res = await fetch("/api/admin/auth/forgot-password", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: forgotEmail.trim() }),
-        });
-        const data = await res.json();
-        setForgotResponse(data.message || "Password reset instructions dispatched.");
-      }
+      const res = await fetch("/api/admin/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: forgotEmail.trim() }),
+      });
+      const data = await res.json();
+      setForgotResponse(data.message || "Password reset instructions dispatched.");
     } catch (err: any) {
       setForgotResponse("Failed to send reset instructions. Please contact technical support.");
     } finally {

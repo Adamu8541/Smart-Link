@@ -1,4 +1,4 @@
-import { getAdminFirestore } from "./firebaseAdmin";
+import { readDB, writeDB } from "../../server/db";
 
 export interface NotificationDoc {
   id: string;
@@ -58,9 +58,6 @@ export interface NotificationHistoryDoc {
   [key: string]: any;
 }
 
-const NOTIFICATIONS_COLL = "notifications";
-const HISTORY_COLL = "notification_history";
-
 export async function getNotifications(filters?: {
   userId?: string;
   userEmail?: string;
@@ -75,29 +72,24 @@ export async function getNotifications(filters?: {
   pageSize?: number;
 }): Promise<{ notifications: NotificationDoc[]; total: number; unreadCount: number }> {
   try {
-    const db = getAdminFirestore();
-    let query: any = db.collection(NOTIFICATIONS_COLL);
+    const localDb = readDB();
+    let rawList: any[] = Array.isArray(localDb?.notifications) ? localDb.notifications : [];
+    
+    let list: NotificationDoc[] = rawList.map((item: any) => ({
+      ...item,
+      id: item.id || item.notificationId,
+      notificationId: item.notificationId || item.id,
+      message: item.message || item.body || "",
+      body: item.body || item.message || "",
+      read: item.read !== undefined ? item.read : (item.isRead !== undefined ? item.isRead : false),
+      isRead: item.isRead !== undefined ? item.isRead : (item.read !== undefined ? item.read : false),
+    }));
 
     if (filters?.userId) {
-      query = query.where("userId", "==", filters.userId);
+      list = list.filter((n) => n.userId === filters.userId);
     } else if (filters?.userEmail) {
-      query = query.where("userEmail", "==", filters.userEmail);
+      list = list.filter((n) => n.userEmail === filters.userEmail || n.targetEmail === filters.userEmail);
     }
-
-    const snapshot = await query.get();
-    let list: NotificationDoc[] = [];
-    snapshot.forEach((doc: any) => {
-      const data = doc.data();
-      list.push({
-        ...data,
-        id: doc.id,
-        notificationId: data.notificationId || doc.id,
-        message: data.message || data.body || "",
-        body: data.body || data.message || "",
-        read: data.read !== undefined ? data.read : (data.isRead !== undefined ? data.isRead : false),
-        isRead: data.isRead !== undefined ? data.isRead : (data.read !== undefined ? data.read : false),
-      } as NotificationDoc);
-    });
 
     if (filters?.category) {
       list = list.filter((n) => n.category === filters.category);
@@ -125,7 +117,6 @@ export async function getNotifications(filters?: {
       );
     }
 
-    // Sort newest first
     list.sort((a, b) => ((b.createdAt || "") > (a.createdAt || "") ? 1 : -1));
 
     const unreadCount = list.filter((n) => !n.read).length;
@@ -153,41 +144,14 @@ export async function getAllNotifications(filters?: {
   limit?: number;
 }): Promise<NotificationDoc[]> {
   try {
-    const db = getAdminFirestore();
-    const limitNum = typeof filters === "number" ? filters : filters?.limit || 200;
-    const snapshot = await db.collection(NOTIFICATIONS_COLL).limit(limitNum).get();
-    let list: NotificationDoc[] = [];
-    snapshot.forEach((doc: any) => {
-      const data = doc.data();
-      list.push({
-        ...data,
-        id: doc.id,
-        notificationId: data.notificationId || doc.id,
-        message: data.message || data.body || "",
-        body: data.body || data.message || "",
-        read: data.read !== undefined ? data.read : (data.isRead !== undefined ? data.isRead : false),
-        isRead: data.isRead !== undefined ? data.isRead : (data.read !== undefined ? data.read : false),
-      } as NotificationDoc);
+    const res = await getNotifications({
+      category: filters?.category !== "ALL" ? filters?.category : undefined,
+      priority: filters?.priority !== "ALL" ? filters?.priority : undefined,
+      status: filters?.status !== "ALL" ? filters?.status : undefined,
+      searchQuery: filters?.search,
+      limit: filters?.limit || 200,
     });
-
-    if (typeof filters === "object") {
-      if (filters.category && filters.category !== "ALL") list = list.filter((n) => n.category === filters.category);
-      if (filters.priority && filters.priority !== "ALL") list = list.filter((n) => n.priority === filters.priority);
-      if (filters.status && filters.status !== "ALL") list = list.filter((n) => n.status === filters.status);
-      if (filters.search) {
-        const q = filters.search.toLowerCase();
-        list = list.filter(
-          (n) =>
-            (n.title && n.title.toLowerCase().includes(q)) ||
-            (n.message && n.message.toLowerCase().includes(q)) ||
-            (n.body && n.body.toLowerCase().includes(q)) ||
-            (n.createdBy && n.createdBy.toLowerCase().includes(q))
-        );
-      }
-    }
-
-    list.sort((a, b) => ((b.createdAt || "") > (a.createdAt || "") ? 1 : -1));
-    return list;
+    return res.notifications;
   } catch (err) {
     console.error("[notificationsStore] getAllNotifications error:", err);
     return [];
@@ -197,36 +161,19 @@ export async function getAllNotifications(filters?: {
 export async function getNotificationById(id: string): Promise<NotificationDoc | null> {
   if (!id) return null;
   try {
-    const db = getAdminFirestore();
-    const docRef = db.collection(NOTIFICATIONS_COLL).doc(id);
-    const docSnap = await docRef.get();
-    if (docSnap.exists) {
-      const data = docSnap.data();
+    const localDb = readDB();
+    const list = Array.isArray(localDb?.notifications) ? localDb.notifications : [];
+    const found = list.find((n: any) => n.id === id || n.notificationId === id);
+    if (found) {
       return {
-        ...data,
-        id: docSnap.id,
-        notificationId: data?.notificationId || docSnap.id,
-        message: data?.message || data?.body || "",
-        body: data?.body || data?.message || "",
-        read: data?.read !== undefined ? data.read : (data?.isRead !== undefined ? data.isRead : false),
-        isRead: data?.isRead !== undefined ? data.isRead : (data?.read !== undefined ? data.read : false),
-      } as NotificationDoc;
-    }
-
-    // Try query by notificationId
-    const querySnap = await db.collection(NOTIFICATIONS_COLL).where("notificationId", "==", id).limit(1).get();
-    if (!querySnap.empty) {
-      const foundDoc = querySnap.docs[0];
-      const data = foundDoc.data();
-      return {
-        ...data,
-        id: foundDoc.id,
-        notificationId: data.notificationId || foundDoc.id,
-        message: data.message || data.body || "",
-        body: data.body || data.message || "",
-        read: data.read !== undefined ? data.read : (data.isRead !== undefined ? data.isRead : false),
-        isRead: data.isRead !== undefined ? data.isRead : (data.read !== undefined ? data.read : false),
-      } as NotificationDoc;
+        ...found,
+        id: found.id || found.notificationId,
+        notificationId: found.notificationId || found.id,
+        message: found.message || found.body || "",
+        body: found.body || found.message || "",
+        read: found.read !== undefined ? found.read : (found.isRead !== undefined ? found.isRead : false),
+        isRead: found.isRead !== undefined ? found.isRead : (found.read !== undefined ? found.read : false),
+      };
     }
   } catch (err) {
     console.error("[notificationsStore] getNotificationById error:", err);
@@ -251,9 +198,17 @@ export async function createNotification(notif: Partial<NotificationDoc>): Promi
     updatedAt: now,
   };
   try {
-    const db = getAdminFirestore();
-    const sanitized = JSON.parse(JSON.stringify(clean));
-    await db.collection(NOTIFICATIONS_COLL).doc(docId).set(sanitized, { merge: true });
+    const localDb = readDB();
+    if (!Array.isArray(localDb.notifications)) {
+      localDb.notifications = [];
+    }
+    const idx = localDb.notifications.findIndex((n: any) => n.id === docId || n.notificationId === docId);
+    if (idx >= 0) {
+      localDb.notifications[idx] = clean;
+    } else {
+      localDb.notifications.unshift(clean);
+    }
+    writeDB(localDb);
   } catch (err) {
     console.error("[notificationsStore] createNotification error:", err);
   }
@@ -262,13 +217,15 @@ export async function createNotification(notif: Partial<NotificationDoc>): Promi
 
 export async function updateNotification(id: string, updates: Partial<NotificationDoc>): Promise<NotificationDoc | null> {
   try {
-    const db = getAdminFirestore();
-    const existing = await getNotificationById(id);
-    if (!existing) return null;
+    const localDb = readDB();
+    if (!Array.isArray(localDb.notifications)) return null;
 
-    const merged = { ...existing, ...updates, updatedAt: new Date().toISOString() };
-    const sanitized = JSON.parse(JSON.stringify(merged));
-    await db.collection(NOTIFICATIONS_COLL).doc(existing.id).set(sanitized, { merge: true });
+    const idx = localDb.notifications.findIndex((n: any) => n.id === id || n.notificationId === id);
+    if (idx < 0) return null;
+
+    const merged = { ...localDb.notifications[idx], ...updates, updatedAt: new Date().toISOString() };
+    localDb.notifications[idx] = merged;
+    writeDB(localDb);
     return merged;
   } catch (err) {
     console.error("[notificationsStore] updateNotification error:", err);
@@ -278,11 +235,11 @@ export async function updateNotification(id: string, updates: Partial<Notificati
 
 export async function deleteNotification(id: string): Promise<boolean> {
   try {
-    const db = getAdminFirestore();
-    const existing = await getNotificationById(id);
-    if (!existing) return false;
+    const localDb = readDB();
+    if (!Array.isArray(localDb.notifications)) return false;
 
-    await db.collection(NOTIFICATIONS_COLL).doc(existing.id).delete();
+    localDb.notifications = localDb.notifications.filter((n: any) => n.id !== id && n.notificationId !== id);
+    writeDB(localDb);
     return true;
   } catch (err) {
     console.error("[notificationsStore] deleteNotification error:", err);
@@ -313,14 +270,10 @@ export async function markAllNotificationsAsRead(userId: string): Promise<boolea
 
 export async function getNotificationHistory(limit: number = 50): Promise<NotificationHistoryDoc[]> {
   try {
-    const db = getAdminFirestore();
-    const snapshot = await db.collection(HISTORY_COLL).limit(limit).get();
-    const list: NotificationHistoryDoc[] = [];
-    snapshot.forEach((doc: any) => {
-      list.push({ id: doc.id, ...doc.data() } as NotificationHistoryDoc);
-    });
+    const localDb = readDB();
+    let list: NotificationHistoryDoc[] = Array.isArray(localDb?.notificationHistory) ? localDb.notificationHistory : [];
     list.sort((a, b) => ((b.sentDate || b.sentAt || "") > (a.sentDate || a.sentAt || "") ? 1 : -1));
-    return list;
+    return list.slice(0, limit);
   } catch (err) {
     console.error("[notificationsStore] getNotificationHistory error:", err);
     return [];
@@ -335,9 +288,12 @@ export async function addNotificationHistory(record: NotificationHistoryDoc): Pr
     sentAt: record.sentAt || record.sentDate || new Date().toISOString(),
   };
   try {
-    const db = getAdminFirestore();
-    const sanitized = JSON.parse(JSON.stringify(clean));
-    await db.collection(HISTORY_COLL).doc(docId).set(sanitized, { merge: true });
+    const localDb = readDB();
+    if (!Array.isArray(localDb.notificationHistory)) {
+      localDb.notificationHistory = [];
+    }
+    localDb.notificationHistory.unshift(clean);
+    writeDB(localDb);
   } catch (err) {
     console.error("[notificationsStore] addNotificationHistory error:", err);
   }
@@ -349,9 +305,8 @@ export async function seedNotificationsIfEmpty(
   initialHistory?: NotificationHistoryDoc[]
 ): Promise<void> {
   try {
-    const db = getAdminFirestore();
-    const snap = await db.collection(NOTIFICATIONS_COLL).limit(1).get();
-    if (snap.empty) {
+    const localDb = readDB();
+    if (!localDb.notifications || localDb.notifications.length === 0) {
       if (initialNotifs && initialNotifs.length > 0) {
         for (const n of initialNotifs) await createNotification(n);
       }

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { X, Download, Printer, ShieldCheck, FileText, CheckCircle2, QrCode, CreditCard, Mail, Send, Check } from "lucide-react";
 import { StandardizedVerificationResult } from "../../types/verification";
 import { EmailSlipService } from "../../services/emailSlipService";
-import { auth } from "../../firebase";
+
 
 interface VerificationReceiptProps {
   result: StandardizedVerificationResult;
@@ -24,9 +24,16 @@ export const VerificationReceipt: React.FC<VerificationReceiptProps> = ({
   };
 
   const handleQuickEmailDispatch = async () => {
-    const user = auth.currentUser;
-    const userId = user?.uid || "guest_user";
-    const userEmail = user?.email || "adamuamuhammad8541@gmail.com";
+    let userId = "guest_user";
+    let userEmail = "adamuamuhammad8541@gmail.com";
+    try {
+      const stored = localStorage.getItem("smart_link_user");
+      if (stored) {
+        const u = JSON.parse(stored);
+        userId = u.uid || u.id || userId;
+        userEmail = u.email || userEmail;
+      }
+    } catch {}
 
     setIsSendingEmail(true);
     setEmailStatusMsg(null);

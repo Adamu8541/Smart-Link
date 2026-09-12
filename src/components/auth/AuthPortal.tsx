@@ -20,18 +20,7 @@ import { soundFx } from "../../utils/audioEffects";
 import { UserProfile, UserRole } from "../../types";
 import { LegalConsentBox } from "../legal";
 import { legalConsentService } from "../../services/legalConsentService";
-import {
-  auth,
-  db,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  sendEmailVerification,
-  reload,
-  doc,
-  setDoc,
-  updateDoc,
-  isFirebaseConfigured,
-} from "../../firebase";
+import { SupabaseAuthService, isSupabaseConfigured } from "../../services/supabaseAuth";
 
 interface PasswordStrength {
   score: number;
@@ -153,39 +142,6 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
     if (isVerifyingEmail && verificationEmail) {
       intervalId = setInterval(async () => {
         try {
-          const currentUserObj = auth.currentUser;
-          if (currentUserObj) {
-            try {
-              await reload(currentUserObj);
-              if (currentUserObj.emailVerified) {
-                try {
-                  await updateDoc(doc(db, "users", currentUserObj.uid), { isVerified: true });
-                } catch (e) {}
-
-                const syncRes = await fetch("/api/auth/sync-firebase-user", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    uid: currentUserObj.uid,
-                    email: currentUserObj.email,
-                    isVerified: true,
-                  }),
-                });
-                if (syncRes.ok) {
-                  const syncData = await syncRes.json();
-                  onAuthSuccess(syncData.user);
-                  setIsVerifyingEmail(false);
-                  setVerificationEmail("");
-                  setToast({
-                    message: "Email successfully verified! Welcome to Smart Link Nigeria.",
-                    type: "success",
-                  });
-                  return;
-                }
-              }
-            } catch (fbErr) {}
-          }
-
           const res = await fetch(`/api/auth/check-verification-status?email=${encodeURIComponent(verificationEmail)}`);
           if (!res.ok) return;
           const data = await res.json();
@@ -205,8 +161,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
       if (intervalId) clearInterval(intervalId);
     };
   }, [isVerifyingEmail, verificationEmail, onAuthSuccess, setToast]);
-
-  // Direct login form submission - Strictly Firebase Authentication Only
+  // Direct login form submission
   const handleDirectLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -222,41 +177,88 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
     setAuthSuccessState(null);
 
     try {
-      // 1. Authenticate both email and password strictly via Firebase Authentication
-      const userCredential = await signInWithEmailAndPassword(auth, cleanEmail, authPassword);
-      const fbUser = userCredential.user;
+      // If Supabase is configured, authenticate via Supabase Auth
+      if (isSupabaseConfigured) {
+        const supaLogin = await SupabaseAuthService.signIn(cleanEmail, authPassword);
+        if (!supaLogin.user) {
+          throw new Error("Authentication failed. Please check your email and password.");
+        }
 
-      if (!fbUser || !fbUser.uid) {
-        throw new Error("Firebase authentication failed. Unable to verify user credentials.");
+        // Email verification check
+        if (!supaLogin.isEmailVerified) {
+          setVerificationEmail(cleanEmail);
+          setIsVerifyingEmail(true);
+          setAuthLoading(false);
+          setToast({
+            message: "Your email is not verified yet. Please check your inbox for the confirmation link sent by Supabase.",
+            type: "info",
+          });
+          return;
+        }
+
+        // Fetch / Sync user profile using verified Supabase ID & email
+        const syncResult = await safeFetchJson("/api/auth/sync-supabase-user", {
+          method: "POST",
+          headers: supaLogin.session?.access_token ? { Authorization: `Bearer ${supaLogin.session.access_token}` } : undefined,
+          body: JSON.stringify({
+            id: supaLogin.user.id,
+            uid: supaLogin.user.id,
+            email: cleanEmail,
+            isVerified: true,
+          }),
+        });
+
+        let loginUser: any = syncResult.ok && syncResult.data?.user ? syncResult.data.user : null;
+        if (!loginUser) {
+          loginUser = {
+            uid: supaLogin.user.id,
+            email: cleanEmail,
+            fullName: supaLogin.user.user_metadata?.full_name || cleanEmail.split("@")[0] || "Smart Link User",
+            role: "CUSTOMER",
+            walletBalance: 0.0,
+            referralCode: supaLogin.user.user_metadata?.referral_code || "SL" + Math.floor(1000 + Math.random() * 9000),
+            isVerified: true,
+            createdAt: new Date().toISOString(),
+          };
+        }
+
+        // Verify account status
+        if (
+          loginUser?.status === "SUSPENDED" ||
+          loginUser?.status === "INACTIVE" ||
+          loginUser?.status === "BLOCKED"
+        ) {
+          throw new Error(
+            "Your account has been strictly blocked or suspended by security administration. Access to the dashboard is denied."
+          );
+        }
+
+        localStorage.setItem("smart_link_user", JSON.stringify(loginUser));
+        soundFx.playSuccessSound();
+        setAuthSuccessState("login");
+
+        onAuthSuccess(loginUser);
+        setAuthEmail("");
+        setAuthPassword("");
+        setAuthSuccessState(null);
+        setToast({
+          message: "Successfully signed in via Supabase! Welcome to your Smart Link Nigeria portal.",
+          type: "success",
+        });
+        return;
       }
 
-      // 2. Fetch / Sync user profile using verified Firebase UID & email
-      let loginUser: any = null;
-      const syncResult = await safeFetchJson("/api/auth/sync-firebase-user", {
+      // Fallback API authentication if Supabase is not directly connected in client
+      const res = await safeFetchJson("/api/auth/login", {
         method: "POST",
-        body: JSON.stringify({
-          uid: fbUser.uid,
-          email: fbUser.email || cleanEmail,
-          isVerified: fbUser.emailVerified || true,
-        }),
+        body: JSON.stringify({ email: cleanEmail, password: authPassword }),
       });
 
-      if (syncResult.ok && syncResult.data?.user) {
-        loginUser = syncResult.data.user;
-      } else {
-        loginUser = {
-          uid: fbUser.uid,
-          email: fbUser.email || cleanEmail,
-          fullName: fbUser.displayName || cleanEmail.split("@")[0] || "Smart Link User",
-          role: "CUSTOMER",
-          walletBalance: 0.0,
-          referralCode: "SL" + Math.floor(1000 + Math.random() * 9000),
-          isVerified: fbUser.emailVerified || true,
-          createdAt: new Date().toISOString(),
-        };
+      if (!res.ok || !res.data?.user) {
+        throw new Error(res.data?.message || res.data?.error || "Authentication failed. Please check your email and password.");
       }
 
-      // 3. Verify user status
+      const loginUser = res.data.user;
       if (
         loginUser?.status === "SUSPENDED" ||
         loginUser?.status === "INACTIVE" ||
@@ -265,20 +267,6 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
         throw new Error(
           "Your account has been strictly blocked or suspended by security administration. Access to the dashboard is denied."
         );
-      }
-
-      // 4. Update Firestore user record in background
-      if (isFirebaseConfigured && fbUser?.uid) {
-        setDoc(
-          doc(db, "users", fbUser.uid),
-          {
-            uid: fbUser.uid,
-            email: fbUser.email || cleanEmail,
-            isVerified: true,
-            updatedAt: new Date().toISOString(),
-          },
-          { merge: true }
-        ).catch(() => {});
       }
 
       localStorage.setItem("smart_link_user", JSON.stringify(loginUser));
@@ -290,7 +278,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
       setAuthPassword("");
       setAuthSuccessState(null);
       setToast({
-        message: "Successfully authenticated via Firebase! Welcome to your Smart Link Nigeria portal.",
+        message: "Successfully signed in! Welcome to your Smart Link Nigeria portal.",
         type: "success",
       });
     } catch (err: any) {
@@ -363,58 +351,96 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
         return;
       }
 
-      // Register account strictly using Firebase Authentication
-      const userCredential = await createUserWithEmailAndPassword(auth, cleanEmail, regPassword);
-      const fbUser = userCredential.user;
-      const firebaseUid = fbUser.uid;
-
-      const syncRes = await safeFetchJson("/api/auth/sync-firebase-user", {
-        method: "POST",
-        body: JSON.stringify({
-          uid: fbUser.uid,
+      // If Supabase is configured, register user via Supabase Auth
+      if (isSupabaseConfigured) {
+        const supaReg = await SupabaseAuthService.signUp({
           email: cleanEmail,
+          password: regPassword,
           fullName: regFullName.trim(),
           phoneNumber: cleanPhone,
           referralCode: regReferralCode.trim(),
-          isVerified: true,
-        }),
-      });
+          redirectTo: `${window.location.origin}/verify-email`,
+        });
 
-      const activeUser = syncRes.data?.user || {
-        uid: fbUser.uid,
-        email: cleanEmail,
-        fullName: regFullName.trim(),
-        phoneNumber: cleanPhone,
-        role: UserRole.CUSTOMER,
-        walletBalance: 0.0,
-        referralCode: "SL" + Math.floor(1000 + Math.random() * 9000),
-        isVerified: true,
-        createdAt: new Date().toISOString(),
-      };
+        const supaUser = supaReg.user;
+        if (!supaUser) {
+          throw new Error("Registration failed. Unable to create Supabase user account.");
+        }
 
-      if (isFirebaseConfigured && fbUser?.uid) {
-        setDoc(
-          doc(db, "users", fbUser.uid),
-          {
-            uid: fbUser.uid,
+        // Record NDPR legal agreements
+        try {
+          await legalConsentService.recordBatchAcceptances({
+            userId: supaUser.id,
+            userEmail: cleanEmail,
+            acceptances: [
+              { documentId: "terms-of-service", documentTitle: "Terms of Service", documentVersion: "2.4.0" },
+              { documentId: "privacy-policy", documentTitle: "Privacy Policy", documentVersion: "2.4.0" },
+              { documentId: "wallet-terms", documentTitle: "Wallet Terms", documentVersion: "2.0.0" },
+              { documentId: "kyc-notice", documentTitle: "KYC Policy", documentVersion: "2.0.0" },
+            ],
+            acceptanceType: "REGISTRATION_SIGNUP",
+            workflow: "NEW_USER_REGISTRATION",
+            metadata: {
+              fullName: regFullName.trim(),
+              phoneNumber: cleanPhone,
+              marketingConsent: regMarketingAccepted,
+              agreedPrivacy: regAgreedPrivacy,
+              agreedKyc: regAgreedKyc,
+            },
+          });
+        } catch (legalRecErr) {
+          console.warn("Legal consent acceptance recording note:", legalRecErr);
+        }
+
+        // Sync Supabase user with backend and Firestore mirror
+        await safeFetchJson("/api/auth/sync-supabase-user", {
+          method: "POST",
+          headers: supaReg.session?.access_token ? { Authorization: `Bearer ${supaReg.session.access_token}` } : undefined,
+          body: JSON.stringify({
+            id: supaUser.id,
+            uid: supaUser.id,
             email: cleanEmail,
             fullName: regFullName.trim(),
             phoneNumber: cleanPhone,
-            role: "CUSTOMER",
-            walletBalance: 0.0,
-            referralCode: activeUser.referralCode,
-            isVerified: true,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-          { merge: true }
-        ).catch(() => {});
+            referralCode: regReferralCode.trim(),
+            isVerified: !supaReg.needsEmailConfirmation,
+          }),
+        });
+
+        soundFx.playSuccessSound();
+        setAuthLoading(false);
+        setVerificationEmail(cleanEmail);
+        setIsVerifyingEmail(true);
+        setIsRegistering(false);
+        setToast({
+          message: "Registration successful! A verification link has been sent to your email. Please click the link to activate your account.",
+          type: "success",
+        });
+        return;
       }
+
+      // Fallback API registration if Supabase is not directly configured in client
+      const regRes = await safeFetchJson("/api/auth/register", {
+        method: "POST",
+        body: JSON.stringify({
+          email: cleanEmail,
+          password: regPassword,
+          fullName: regFullName.trim(),
+          phoneNumber: cleanPhone,
+          referralCode: regReferralCode.trim(),
+        }),
+      });
+
+      if (!regRes.ok || !regRes.data?.user) {
+        throw new Error(regRes.data?.message || regRes.data?.error || "Registration failed. Unable to create user account.");
+      }
+
+      const activeUser = regRes.data.user;
 
       // Record NDPR legal agreements
       try {
         await legalConsentService.recordBatchAcceptances({
-          userId: firebaseUid || activeUser.uid,
+          userId: activeUser.id || activeUser.uid,
           userEmail: cleanEmail,
           acceptances: [
             { documentId: "terms-of-service", documentTitle: "Terms of Service", documentVersion: "2.4.0" },
@@ -470,34 +496,63 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
     setAuthLoading(true);
     setAuthError(null);
     try {
-      const currentUserObj = auth.currentUser;
-      if (currentUserObj) {
-        await reload(currentUserObj);
-        if (currentUserObj.emailVerified) {
-          try {
-            await updateDoc(doc(db, "users", currentUserObj.uid), { isVerified: true });
-          } catch (e) {}
-
-          const syncResult = await safeFetchJson("/api/auth/sync-firebase-user", {
+      if (isSupabaseConfigured) {
+        const supaUser = await SupabaseAuthService.getUser();
+        if (supaUser && supaUser.email_confirmed_at) {
+          const syncResult = await safeFetchJson("/api/auth/sync-supabase-user", {
             method: "POST",
             body: JSON.stringify({
-              uid: currentUserObj.uid,
-              email: currentUserObj.email,
+              id: supaUser.id,
+              uid: supaUser.id,
+              email: supaUser.email,
               isVerified: true,
             }),
           });
 
-          if (syncResult.data?.user) {
-            onAuthSuccess(syncResult.data.user);
-            setIsVerifyingEmail(false);
-            setVerificationEmail("");
-            soundFx.playSuccessSound();
-            setToast({
-              message: "Email verification confirmed! Welcome to Smart Link Nigeria.",
-              type: "success",
-            });
-            return;
-          }
+          const userProfile = syncResult.data?.user || {
+            uid: supaUser.id,
+            email: supaUser.email,
+            fullName: supaUser.user_metadata?.full_name || supaUser.email?.split("@")[0] || "Smart Link User",
+            role: "CUSTOMER",
+            walletBalance: 0.0,
+            referralCode: supaUser.user_metadata?.referral_code || "SL" + Math.floor(1000 + Math.random() * 9000),
+            isVerified: true,
+            createdAt: new Date().toISOString(),
+          };
+
+          onAuthSuccess(userProfile);
+          setIsVerifyingEmail(false);
+          setVerificationEmail("");
+          soundFx.playSuccessSound();
+          setToast({
+            message: "Email verification confirmed! Welcome to Smart Link Nigeria.",
+            type: "success",
+          });
+          return;
+        }
+      }
+
+      const currentUserObj = await SupabaseAuthService.getProfile();
+      if (currentUserObj) {
+        const syncResult = await safeFetchJson("/api/auth/sync-supabase-user", {
+          method: "POST",
+          body: JSON.stringify({
+            uid: currentUserObj.id,
+            email: currentUserObj.email,
+            isVerified: true,
+          }),
+        });
+
+        if (syncResult.data?.user) {
+          onAuthSuccess(syncResult.data.user);
+          setIsVerifyingEmail(false);
+          setVerificationEmail("");
+          soundFx.playSuccessSound();
+          setToast({
+            message: "Email verification confirmed! Welcome to Smart Link Nigeria.",
+            type: "success",
+          });
+          return;
         }
       }
 
@@ -519,6 +574,32 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
           type: "info",
         });
       }
+    } catch (err: any) {
+      soundFx.playErrorSound();
+      setAuthError(getFriendlyErrorMessage(err));
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleResendSupabaseVerification = async () => {
+    if (!verificationEmail) return;
+    setAuthLoading(true);
+    setAuthError(null);
+    try {
+      if (isSupabaseConfigured) {
+        await SupabaseAuthService.resendVerificationEmail(verificationEmail);
+      } else {
+        await safeFetchJson("/api/auth/resend-verification", {
+          method: "POST",
+          body: JSON.stringify({ email: verificationEmail }),
+        });
+      }
+      soundFx.playSuccessSound();
+      setToast({
+        message: `Verification link resent to ${verificationEmail}. Please check your inbox and spam folder.`,
+        type: "success",
+      });
     } catch (err: any) {
       soundFx.playErrorSound();
       setAuthError(getFriendlyErrorMessage(err));
@@ -613,6 +694,16 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                     I've Clicked the Verification Link
                   </>
                 )}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleResendSupabaseVerification}
+                disabled={authLoading}
+                className="w-full py-3 bg-[#F5F7FA] hover:bg-[#E5E7EB] text-[#111827] font-semibold rounded-xl text-xs transition-all flex items-center justify-center gap-2 cursor-pointer border border-[#E5E7EB] disabled:opacity-50"
+              >
+                <Mail className="h-3.5 w-3.5 text-[#0F2D5C]" />
+                Resend Verification Link
               </button>
             </div>
 

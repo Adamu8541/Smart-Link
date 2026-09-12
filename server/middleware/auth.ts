@@ -1,9 +1,9 @@
 import express from "express";
 import { readDB, writeDB, SUPER_ADMIN_EMAIL } from "../db";
 import * as usersStore from "../../src/services/usersStore";
-import { getAdminAuth, getAdminFirestore } from "../../src/services/firebaseAdmin";
 import { ADMIN_ROLES_CONFIG, AdminRoleType } from "../../src/services/adminAuthTypes";
 import { verifyAdminJwt } from "../../src/services/adminAuthService";
+import { validateSupabaseUserToken } from "../services/supabaseAdmin";
 
 export function extractAuthToken(req: express.Request | any): string | null {
   const authHeader = (req.headers["authorization"] || req.headers["Authorization"]) as string;
@@ -46,7 +46,7 @@ function verifyLocalSessionToken(token: string): any | null {
   }
 }
 
-const SUPER_ADMIN_EMAILS = [
+export const SUPER_ADMIN_EMAILS = [
   (process.env.SUPER_ADMIN_EMAIL || "").toLowerCase().trim(),
   (SUPER_ADMIN_EMAIL || "").toLowerCase().trim(),
   "adamuamuhammad8541@gmail.com",
@@ -54,51 +54,98 @@ const SUPER_ADMIN_EMAILS = [
   "admin@smartlink.ng"
 ].filter(Boolean);
 
+export interface AuthenticatedUserPayload {
+  uid: string;
+  email: string;
+  provider: "supabase" | "jwt" | "local";
+  role?: string;
+  permissions?: string[];
+  user?: any;
+}
+
 /**
- * The ONLY authenticated user identity must be decodedToken.uid.
- * Authorization: Bearer <Firebase ID token> is MANDATORY.
+ * Universal token verification supporting Supabase Auth (primary) and Admin signed JWTs.
+ */
+export async function verifySessionToken(token: string): Promise<AuthenticatedUserPayload | null> {
+  if (!token || typeof token !== "string" || !token.trim()) return null;
+  const cleanToken = token.trim();
+
+  // 1. Primary: Verify Supabase Auth JWT
+  try {
+    const supaResult = await validateSupabaseUserToken(cleanToken);
+    if (supaResult && supaResult.uid) {
+      return {
+        uid: supaResult.uid,
+        email: supaResult.email || "",
+        provider: "supabase",
+        user: supaResult.user
+      };
+    }
+  } catch (supaErr) {
+    // Continue to next verification strategy
+  }
+
+  // 3. Admin Signed HMAC JWT
+  try {
+    const jwtPayload = verifyAdminJwt(cleanToken);
+    if (jwtPayload && jwtPayload.uid) {
+      return {
+        uid: jwtPayload.uid,
+        email: (jwtPayload.email || "").toLowerCase().trim(),
+        provider: "jwt",
+        role: jwtPayload.role,
+        permissions: jwtPayload.permissions,
+        user: jwtPayload
+      };
+    }
+  } catch (jwtErr) {
+    // Continue to next strategy
+  }
+
+  // 4. Local Session Token fallback (development/admin session token)
+  try {
+    const localPayload = verifyLocalSessionToken(cleanToken);
+    if (localPayload && (localPayload.uid || localPayload.email)) {
+      return {
+        uid: localPayload.uid || "usr_sa_primary",
+        email: (localPayload.email || "").toLowerCase().trim(),
+        provider: "local",
+        role: localPayload.role,
+        permissions: localPayload.permissions,
+        user: localPayload
+      };
+    }
+  } catch {
+    // Failed verification
+  }
+
+  return null;
+}
+
+/**
+ * The ONLY authenticated user identity must be verified token identity.
+ * Prevents IDOR/BOLA: Ensures normal users cannot access another user's private data.
  */
 export async function verifyUserOrAdminSession(
   req: express.Request | any,
-  targetUserId: string,
+  targetUserId?: string,
   db?: any
-): Promise<{ authorized: boolean; reason?: string; isAdmin?: boolean; authenticatedUid?: string }> {
+): Promise<{ authorized: boolean; reason?: string; isAdmin?: boolean; authenticatedUid?: string; email?: string }> {
   const rawBearerToken = extractAuthToken(req);
 
   if (!rawBearerToken) {
-    return { authorized: false, reason: "Authentication required. Missing token in Authorization or x-admin-token header." };
+    return { authorized: false, isAdmin: false, reason: "Authentication required. Missing token in Authorization or session header." };
   }
 
-  let authenticatedUid: string | null = null;
-  let userEmail: string = "";
-
-  try {
-    const adminAuth = getAdminAuth();
-    const decodedToken = await adminAuth.verifyIdToken(rawBearerToken);
-    authenticatedUid = decodedToken.uid;
-    userEmail = (decodedToken.email || "").toLowerCase().trim();
-  } catch (err: any) {
-    // Try Admin JWT verification
-    const jwtPayload = verifyAdminJwt(rawBearerToken);
-    if (jwtPayload && jwtPayload.uid) {
-      authenticatedUid = jwtPayload.uid;
-      userEmail = (jwtPayload.email || "").toLowerCase().trim();
-    } else {
-      const localPayload = verifyLocalSessionToken(rawBearerToken);
-      if (localPayload && (localPayload.uid || localPayload.email)) {
-        authenticatedUid = localPayload.uid || "usr_sa_primary";
-        userEmail = (localPayload.email || "").toLowerCase().trim();
-      } else {
-        return { authorized: false, reason: "Invalid or expired user authentication token." };
-      }
-    }
+  const authSession = await verifySessionToken(rawBearerToken);
+  if (!authSession || !authSession.uid) {
+    return { authorized: false, isAdmin: false, reason: "Invalid or expired user authentication token." };
   }
 
-  if (!authenticatedUid) {
-    return { authorized: false, reason: "Invalid or expired user authentication token." };
-  }
+  const authenticatedUid = authSession.uid;
+  const userEmail = authSession.email || "";
 
-  // Check for Administrative Privileges via email check, Firestore admin_users, or users collection
+  // Check for Administrative Privileges
   let isAdmin = false;
   if (userEmail && SUPER_ADMIN_EMAILS.includes(userEmail)) {
     isAdmin = true;
@@ -106,30 +153,27 @@ export async function verifyUserOrAdminSession(
 
   if (!isAdmin) {
     try {
-      const fsDb = getAdminFirestore();
-      if (fsDb) {
-        const adminDoc = await fsDb.collection("admin_users").doc(authenticatedUid).get();
-        if (adminDoc.exists) {
+      const u = await usersStore.getUserById(authenticatedUid);
+      if (u && (u.role === "SUPER_ADMIN" || u.role === "ADMIN" || u.role === "SUB_ADMIN" || (u.email && SUPER_ADMIN_EMAILS.includes(u.email.toLowerCase())))) {
+        if (u.status !== "SUSPENDED" && u.status !== "INACTIVE") {
           isAdmin = true;
-        } else if (userEmail) {
-          const emailQuery = await fsDb.collection("admin_users").where("email", "==", userEmail).limit(1).get();
-          if (!emailQuery.empty) isAdmin = true;
         }
       }
     } catch (err) {
-      console.warn("[AuthMiddleware] Admin check error:", err);
+      // Ignored
     }
   }
 
   if (isAdmin) {
-    return { authorized: true, isAdmin: true, authenticatedUid };
+    return { authorized: true, isAdmin: true, authenticatedUid, email: userEmail };
   }
 
+  // If no target user ID is supplied, user is authorized for general user actions
   if (!targetUserId) {
-    return { authorized: false, reason: "Target user ID is missing for ownership verification." };
+    return { authorized: true, isAdmin: false, authenticatedUid, email: userEmail };
   }
 
-  // Ownership verification
+  // IDOR / Ownership verification
   const cleanAuthUid = String(authenticatedUid).trim().toLowerCase();
   const cleanTargetUid = String(targetUserId).trim().toLowerCase();
   let isMatch = cleanAuthUid === cleanTargetUid;
@@ -140,15 +184,56 @@ export async function verifyUserOrAdminSession(
       const targetUid = targetUserDoc.uid || targetUserDoc.id;
       if (targetUid && String(targetUid).trim().toLowerCase() === cleanAuthUid) {
         isMatch = true;
+      } else if (targetUserDoc.email && userEmail && targetUserDoc.email.toLowerCase().trim() === userEmail.toLowerCase().trim()) {
+        isMatch = true;
       }
     }
   }
 
   if (!isMatch) {
-    return { authorized: false, reason: "Forbidden: You are not authorized to access another user's data." };
+    return { authorized: false, reason: "Forbidden: You are not authorized to access another user's private data." };
   }
 
-  return { authorized: true, isAdmin: false, authenticatedUid };
+  return { authorized: true, isAdmin: false, authenticatedUid, email: userEmail };
+}
+
+/**
+ * Middleware for authenticated user routes
+ */
+export async function requireAuth(req: express.Request, res: express.Response, next: express.NextFunction) {
+  const token = extractAuthToken(req);
+
+  if (!token) {
+    return res.status(401).json({ success: false, error: "Authentication required. Bearer or session token missing." });
+  }
+
+  const session = await verifySessionToken(token);
+  if (!session || !session.uid) {
+    return res.status(401).json({ success: false, error: "Invalid or expired authentication session." });
+  }
+
+  // Verify that the user account is not suspended or inactive
+  try {
+    const dbUser = await usersStore.getUserById(session.uid);
+    if (dbUser && (dbUser.status === "SUSPENDED" || dbUser.status === "BANNED")) {
+      return res.status(403).json({ success: false, error: "Account is suspended. Please contact support." });
+    }
+    (req as any).dbUser = dbUser;
+  } catch (err) {
+    // proceed
+  }
+
+  (req as any).authenticatedUid = session.uid;
+  (req as any).user = {
+    uid: session.uid,
+    email: session.email,
+    provider: session.provider,
+    role: session.role || (req as any).dbUser?.role || "USER",
+    ...(session.user || {})
+  };
+  (req as any).authProvider = session.provider;
+
+  next();
 }
 
 /**
@@ -157,110 +242,46 @@ export async function verifyUserOrAdminSession(
 export async function requireAdmin(req: express.Request, res: express.Response, next: express.NextFunction) {
   const token = extractAuthToken(req);
 
-  // If no token, check if direct Super Admin UID or email is passed in headers/query
-  const passedAdminUid = (req.headers["x-admin-uid"] || req.query?.adminUid) as string;
-
-  if (!token && !passedAdminUid) {
+  if (!token) {
     return res.status(401).json({ success: false, error: "Authentication required. Admin token missing." });
   }
 
-  let uid = "";
-  let email = "";
-  let decodedRole: AdminRoleType | null = null;
-  let decodedPermissions: string[] = [];
-
-  if (token) {
-    try {
-      const adminAuth = getAdminAuth();
-      const decodedToken = await adminAuth.verifyIdToken(token);
-      uid = decodedToken.uid;
-      email = (decodedToken.email || "").toLowerCase().trim();
-      if (decodedToken.role) decodedRole = decodedToken.role as AdminRoleType;
-    } catch (err) {
-      // 1. Check if token is a signed admin JWT
-      const jwtPayload = verifyAdminJwt(token);
-      if (jwtPayload && jwtPayload.uid) {
-        uid = jwtPayload.uid;
-        email = (jwtPayload.email || "").toLowerCase().trim();
-        decodedRole = jwtPayload.role;
-        decodedPermissions = jwtPayload.permissions || [];
-      } else {
-        // 2. Check if token is a local session token
-        const localPayload = verifyLocalSessionToken(token);
-        if (localPayload && (localPayload.uid || localPayload.email)) {
-          uid = localPayload.uid || "usr_sa_primary";
-          email = (localPayload.email || "").toLowerCase().trim();
-          if (localPayload.role) decodedRole = localPayload.role;
-          if (localPayload.permissions) decodedPermissions = localPayload.permissions;
-        } else if (passedAdminUid) {
-          uid = passedAdminUid;
-        } else {
-          return res.status(401).json({ success: false, error: "Invalid or expired admin authentication token." });
-        }
-      }
-    }
-  } else if (passedAdminUid) {
-    uid = passedAdminUid;
+  const session = await verifySessionToken(token);
+  if (!session || !session.uid) {
+    return res.status(401).json({ success: false, error: "Invalid or expired admin authentication session." });
   }
+
+  const uid = session.uid;
+  const email = (session.email || "").toLowerCase().trim();
+  const decodedRole = session.role as AdminRoleType | undefined;
+  const decodedPermissions = session.permissions || [];
 
   const isSuperAdminEmail = Boolean(email && SUPER_ADMIN_EMAILS.includes(email));
 
   let adminData: any = null;
-  const fsDb = getAdminFirestore();
 
-  // 1. Check admin_users collection by doc(uid)
-  if (uid && fsDb) {
-    try {
-      const adminDoc = await fsDb.collection("admin_users").doc(uid).get();
-      if (adminDoc.exists) {
-        adminData = adminDoc.data();
-      }
-    } catch (e) {
-      console.warn("[requireAdmin] Error fetching admin_users by uid:", e);
+  // 1. Check users store for admin roles
+  try {
+    let uDoc: any = await usersStore.getUserById(uid);
+    if (!uDoc && email) {
+      uDoc = await usersStore.getUserByEmail(email);
     }
-  }
 
-  // 2. Check admin_users collection by email
-  if (!adminData && email && fsDb) {
-    try {
-      const q = await fsDb.collection("admin_users").where("email", "==", email).limit(1).get();
-      if (!q.empty) {
-        adminData = q.docs[0].data();
-      }
-    } catch (e) {
-      console.warn("[requireAdmin] Error querying admin_users by email:", e);
+    if (uDoc && (uDoc.role === "SUPER_ADMIN" || uDoc.role === "ADMIN" || uDoc.role === "SUB_ADMIN" || isSuperAdminEmail)) {
+      const effectiveRole = isSuperAdminEmail || uDoc.role === "SUPER_ADMIN" ? "SUPER_ADMIN" : uDoc.role;
+      adminData = {
+        uid: uid || uDoc.uid || uDoc.id,
+        email: email || uDoc.email,
+        fullName: uDoc.fullName || email.split("@")[0] || "Administrator",
+        role: effectiveRole,
+        permissions: effectiveRole === "SUPER_ADMIN" ? ["*"] : (uDoc.permissions || ADMIN_ROLES_CONFIG[effectiveRole as keyof typeof ADMIN_ROLES_CONFIG]?.permissions || ["VIEW_DASHBOARD"]),
+        status: uDoc.status || "ACTIVE",
+        createdAt: uDoc.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
     }
-  }
-
-  // 3. Check users collection for admin roles
-  if (!adminData && fsDb) {
-    try {
-      let uDoc: any = null;
-      if (uid) {
-        const u = await fsDb.collection("users").doc(uid).get();
-        if (u.exists) uDoc = u.data();
-      }
-      if (!uDoc && email) {
-        const uq = await fsDb.collection("users").where("email", "==", email).limit(1).get();
-        if (!uq.empty) uDoc = uq.docs[0].data();
-      }
-
-      if (uDoc && (uDoc.role === "SUPER_ADMIN" || uDoc.role === "ADMIN" || uDoc.role === "SUB_ADMIN" || isSuperAdminEmail)) {
-        const effectiveRole = isSuperAdminEmail || uDoc.role === "SUPER_ADMIN" ? "SUPER_ADMIN" : uDoc.role;
-        adminData = {
-          uid: uid || uDoc.uid || uDoc.id,
-          email: email || uDoc.email,
-          fullName: uDoc.fullName || email.split("@")[0] || "Administrator",
-          role: effectiveRole,
-          permissions: effectiveRole === "SUPER_ADMIN" ? ["*"] : (uDoc.permissions || ADMIN_ROLES_CONFIG[effectiveRole]?.permissions || ["VIEW_DASHBOARD"]),
-          status: uDoc.status || "ACTIVE",
-          createdAt: uDoc.createdAt || new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
-      }
-    } catch (e) {
-      console.warn("[requireAdmin] Error querying users collection:", e);
-    }
+  } catch (e) {
+    console.warn("[requireAdmin] Error querying users store:", e);
   }
 
   // 4. Default bootstrap for designated Super Admin emails or decoded Super Admin role
@@ -275,13 +296,14 @@ export async function requireAdmin(req: express.Request, res: express.Response, 
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
-  } else if (!adminData && decodedRole) {
+  } else if (!adminData && decodedRole && ((decodedRole as string) === "ADMIN" || (decodedRole as string) === "SUB_ADMIN" || (decodedRole as string) in ADMIN_ROLES_CONFIG)) {
+    const roleKey = decodedRole as AdminRoleType;
     adminData = {
-      uid: uid || "usr_admin_" + Date.now(),
+      uid: uid,
       email: email,
       fullName: email.split("@")[0] || "Administrator",
       role: decodedRole,
-      permissions: decodedPermissions.length > 0 ? decodedPermissions : (ADMIN_ROLES_CONFIG[decodedRole]?.permissions || ["VIEW_DASHBOARD"]),
+      permissions: decodedPermissions.length > 0 ? decodedPermissions : (ADMIN_ROLES_CONFIG[roleKey]?.permissions || ["VIEW_DASHBOARD"]),
       status: "ACTIVE",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
@@ -292,61 +314,73 @@ export async function requireAdmin(req: express.Request, res: express.Response, 
     return res.status(403).json({ success: false, error: "Access denied. Administrative privileges required." });
   }
 
-  // Auto-sync into admin_users Firestore collection under the authenticated UID for instant future lookups
-  if (uid && fsDb) {
-    try {
-      await fsDb.collection("admin_users").doc(uid).set({
-        ...adminData,
-        uid,
-        email: email || adminData.email,
-        updatedAt: new Date().toISOString()
-      }, { merge: true });
-    } catch (saveErr) {
-      console.warn("[requireAdmin] Failed to cache admin_users doc:", saveErr);
-    }
-  }
-
   (req as any).admin = {
     ...adminData,
     uid: uid || adminData.uid,
     email: email || adminData.email
   };
   (req as any).authenticatedUid = uid || adminData.uid;
+  (req as any).user = (req as any).admin;
   (req as any).adminToken = token || "";
+  (req as any).authProvider = session.provider;
+
   next();
 }
 
 /**
- * Middleware for authenticated user routes
+ * Middleware strictly restricted to Super Admin role
  */
-export async function requireAuth(req: express.Request, res: express.Response, next: express.NextFunction) {
-  const token = extractAuthToken(req);
-
-  if (!token) {
-    return res.status(401).json({ success: false, error: "Authentication required. Bearer or session token missing." });
-  }
-
-  try {
-    const adminAuth = getAdminAuth();
-    const decodedToken = await adminAuth.verifyIdToken(token);
-    (req as any).authenticatedUid = decodedToken.uid;
-    (req as any).user = decodedToken;
+export async function requireSuperAdmin(req: express.Request, res: express.Response, next: express.NextFunction) {
+  requireAdmin(req, res, () => {
+    const admin = (req as any).admin;
+    const isSuperAdminEmail = Boolean(admin?.email && SUPER_ADMIN_EMAILS.includes(admin.email.toLowerCase().trim()));
+    if (admin?.role !== "SUPER_ADMIN" && !isSuperAdminEmail) {
+      return res.status(403).json({ success: false, error: "Forbidden: Super Administrator privileges strictly required." });
+    }
     next();
-  } catch (err) {
-    const jwtPayload = verifyAdminJwt(token);
-    if (jwtPayload && jwtPayload.uid) {
-      (req as any).authenticatedUid = jwtPayload.uid;
-      (req as any).user = jwtPayload;
-      return next();
-    }
-    const localPayload = verifyLocalSessionToken(token);
-    if (localPayload && localPayload.uid) {
-      (req as any).authenticatedUid = localPayload.uid;
-      (req as any).user = localPayload;
-      return next();
-    }
-    return res.status(401).json({ success: false, error: "Invalid or expired authentication token." });
-  }
+  });
+}
+
+/**
+ * Middleware generator for required admin roles
+ */
+export function requireRole(allowedRoles: AdminRoleType[]) {
+  return (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    requireAdmin(req, res, () => {
+      const admin = (req as any).admin;
+      const isSuperAdmin = admin?.role === "SUPER_ADMIN" || (admin?.email && SUPER_ADMIN_EMAILS.includes(admin.email.toLowerCase().trim()));
+      if (isSuperAdmin || allowedRoles.includes(admin?.role)) {
+        return next();
+      }
+      return res.status(403).json({
+        success: false,
+        error: `Access denied. Role must be one of: ${allowedRoles.join(", ")}.`
+      });
+    });
+  };
+}
+
+/**
+ * Middleware generator for granular permissions
+ */
+export function requirePermission(permission: string) {
+  return (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    requireAdmin(req, res, () => {
+      const admin = (req as any).admin;
+      const isSuperAdmin = admin?.role === "SUPER_ADMIN" || (admin?.email && SUPER_ADMIN_EMAILS.includes(admin.email.toLowerCase().trim()));
+      if (isSuperAdmin) {
+        return next();
+      }
+      const permissions: string[] = admin?.permissions || [];
+      if (permissions.includes("*") || permissions.includes("manage_all") || permissions.includes(permission)) {
+        return next();
+      }
+      return res.status(403).json({
+        success: false,
+        error: `Access denied. Missing required permission: ${permission}.`
+      });
+    });
+  };
 }
 
 /**
@@ -359,31 +393,31 @@ export async function optionalAdmin(req: express.Request, res: express.Response,
     return next();
   }
 
-  try {
-    const adminAuth = getAdminAuth();
-    const decodedToken = await adminAuth.verifyIdToken(token);
-    const uid = decodedToken.uid;
-    const email = (decodedToken.email || "").toLowerCase().trim();
+  const session = await verifySessionToken(token);
+  if (!session || !session.uid) {
+    return next();
+  }
 
-    if (SUPER_ADMIN_EMAILS.includes(email)) {
-      (req as any).admin = { uid, email, role: "SUPER_ADMIN", permissions: ["*"], status: "ACTIVE" };
+  const uid = session.uid;
+  const email = (session.email || "").toLowerCase().trim();
+
+  if (SUPER_ADMIN_EMAILS.includes(email)) {
+    (req as any).admin = { uid, email, role: "SUPER_ADMIN", permissions: ["*"], status: "ACTIVE" };
+    (req as any).authenticatedUid = uid;
+    (req as any).isAdmin = true;
+    return next();
+  }
+
+  try {
+    const userDoc = await usersStore.getUserById(uid);
+    if (userDoc && (userDoc.role === "ADMIN" || userDoc.role === "SUPER_ADMIN" || userDoc.role === "SUB_ADMIN")) {
+      (req as any).admin = userDoc;
       (req as any).authenticatedUid = uid;
       (req as any).isAdmin = true;
-      return next();
     }
-
-    const fsDb = getAdminFirestore();
-    if (fsDb) {
-      const adminDoc = await fsDb.collection("admin_users").doc(uid).get();
-      if (adminDoc.exists) {
-        (req as any).admin = adminDoc.data();
-        (req as any).authenticatedUid = uid;
-        (req as any).isAdmin = true;
-      }
-    }
-    next();
-  } catch (err) {
-    next();
+  } catch {
+    // continue
   }
-}
 
+  next();
+}

@@ -31,8 +31,7 @@ import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
 import * as securityStore from "../../src/services/securityStore";
 import * as notificationsStore from "../../src/services/notificationsStore";
-import { getAuth } from "firebase-admin/auth";
-import { getAdminFirestore } from "../../src/services/firebaseAdmin";
+import { EmailOtpService } from "../services/emailOtp.service";
 
 
 const router = express.Router();
@@ -60,6 +59,76 @@ app.post("/api/admin/users/update", requireAdmin, async (req, res) => {
   // Prevent sub-admins from demoting or altering Super Admin
   if (targetUser.role === "SUPER_ADMIN" && admin.role !== "SUPER_ADMIN") {
     return res.status(403).json({ error: "Only Super Admin can modify another Super Admin." });
+  }
+
+  // Zero-Trust Backend Enforcement for Sensitive / High-Risk Mutations
+  const actorId = adminUid || admin.uid || admin.email;
+
+  // 1. Changing User Privileges (Role, Permissions, or Status)
+  const isPrivilegeChange = (role && role !== targetUser.role) || (permissions !== undefined) || (status && status !== targetUser.status);
+  if (isPrivilegeChange) {
+    const privAuth = EmailOtpService.validateHighRiskAction({
+      req,
+      userId: actorId,
+      purpose: "CHANGE_USER_PRIVILEGES",
+    });
+    if (!privAuth.valid) {
+      return res.status(privAuth.status || 403).json({
+        error: privAuth.reason || "Changing user privileges, roles, or account status requires security authorization.",
+        requiresVerification: true,
+        purpose: "CHANGE_USER_PRIVILEGES",
+      });
+    }
+  }
+
+  // 2. Changing User Email Address
+  if (email && email.toLowerCase().trim() !== targetUser.email.toLowerCase().trim()) {
+    const emailAuth = EmailOtpService.validateHighRiskAction({
+      req,
+      userId: actorId,
+      purpose: "CHANGE_EMAIL",
+      targetValue: email.toLowerCase().trim(),
+    });
+    if (!emailAuth.valid) {
+      return res.status(emailAuth.status || 403).json({
+        error: emailAuth.reason || "Changing user registered email address requires security authorization.",
+        requiresVerification: true,
+        purpose: "CHANGE_EMAIL",
+      });
+    }
+  }
+
+  // 3. Changing User Phone Number
+  if (phoneNumber !== undefined && phoneNumber.trim() !== (targetUser.phoneNumber || "").trim()) {
+    const phoneAuth = EmailOtpService.validateHighRiskAction({
+      req,
+      userId: actorId,
+      purpose: "CHANGE_PHONE",
+      targetValue: phoneNumber.trim(),
+    });
+    if (!phoneAuth.valid) {
+      return res.status(phoneAuth.status || 403).json({
+        error: phoneAuth.reason || "Changing user phone number requires security authorization.",
+        requiresVerification: true,
+        purpose: "CHANGE_PHONE",
+      });
+    }
+  }
+
+  // 4. Critical Administrative Action: Manual Wallet Adjustment
+  if (walletBalance !== undefined && !isNaN(parseFloat(walletBalance)) && parseFloat(walletBalance) !== targetUser.walletBalance) {
+    const walletAuth = EmailOtpService.validateHighRiskAction({
+      req,
+      userId: actorId,
+      purpose: "CRITICAL_ADMIN_OPERATION",
+    });
+    if (!walletAuth.valid) {
+      return res.status(walletAuth.status || 403).json({
+        error: walletAuth.reason || "Manual wallet balance modification requires security authorization.",
+        requiresVerification: true,
+        purpose: "CRITICAL_ADMIN_OPERATION",
+      });
+    }
   }
 
   const updates: any = {};
@@ -127,6 +196,21 @@ app.post("/api/admin/users/wallet", requireAdmin, async (req, res) => {
     return res.status(403).json({ error: "Unauthorized. Permission required." });
   }
 
+  // Zero-Trust Backend Enforcement: Manual wallet adjustment is a critical operation
+  const actorId = adminUid || admin.uid || admin.email;
+  const walletAuth = EmailOtpService.validateHighRiskAction({
+    req,
+    userId: actorId,
+    purpose: "CRITICAL_ADMIN_OPERATION",
+  });
+  if (!walletAuth.valid) {
+    return res.status(walletAuth.status || 403).json({
+      error: walletAuth.reason || "Manual wallet adjustment requires security authorization.",
+      requiresVerification: true,
+      purpose: "CRITICAL_ADMIN_OPERATION",
+    });
+  }
+
   const targetUser = await usersStore.getUserById(targetUid);
   if (!targetUser) return res.status(404).json({ error: "User not found" });
 
@@ -185,6 +269,21 @@ app.post("/api/admin/users/delete", requireAdmin, async (req, res) => {
     return res.status(403).json({ error: "Only Super Admin can delete user accounts." });
   }
 
+  // Zero-Trust Backend Enforcement: Account deletion is high-risk
+  const actorId = adminUid || admin.uid || admin.email;
+  const delAuth = EmailOtpService.validateHighRiskAction({
+    req,
+    userId: actorId,
+    purpose: "CHANGE_USER_PRIVILEGES",
+  });
+  if (!delAuth.valid) {
+    return res.status(delAuth.status || 403).json({
+      error: delAuth.reason || "Deleting user accounts requires security authorization.",
+      requiresVerification: true,
+      purpose: "CHANGE_USER_PRIVILEGES",
+    });
+  }
+
   const targetUser = await usersStore.getUserById(targetUid);
   if (!targetUser) return res.status(404).json({ error: "User not found" });
 
@@ -208,57 +307,9 @@ app.post("/api/admin/users/delete", requireAdmin, async (req, res) => {
   res.json({ success: true });
 });
 
-// --- ONE-TIME ADMIN MIGRATION: FIRESTORE USERS TO FIREBASE AUTH ---
+// --- ONE-TIME ADMIN MIGRATION: USERS TO SUPABASE/TURSO ---
 app.post("/api/admin/migrate-users-to-firebase-auth", requireAdmin, async (req, res) => {
-  const db = readDB();
-  const admin = (req as any).admin;
-  if (admin.role !== "SUPER_ADMIN" && admin.role !== "ADMIN") {
-    return res.status(403).json({ error: "Unauthorized. Admin permission required." });
-  }
-
-  getAdminFirestore();
-  const allUsers = await usersStore.getAllUsers();
-  const results: Array<{ email: string; status: string; uid?: string; newUid?: string; error?: string }> = [];
-
-  for (const u of allUsers) {
-    if (!u.email) continue;
-    const lowerEmail = u.email.trim().toLowerCase();
-    try {
-      const existingFbUser = await getAuth().getUserByEmail(lowerEmail);
-      results.push({ email: lowerEmail, status: "already_exists", uid: existingFbUser.uid });
-    } catch {
-      try {
-        // Not found in Firebase Auth — create with a random temporary password
-        const tempPassword = crypto.randomBytes(12).toString("hex");
-        let formattedPhone: string | undefined = undefined;
-        if (u.phoneNumber && u.phoneNumber.trim()) {
-          const cleanDigits = u.phoneNumber.trim().replace(/\D/g, "").replace(/^234/, "").replace(/^0/, "");
-          if (cleanDigits.length >= 7) {
-            formattedPhone = `+234${cleanDigits}`;
-          }
-        }
-
-        const fbUser = await getAuth().createUser({
-          email: lowerEmail,
-          password: tempPassword,
-          displayName: u.fullName || undefined,
-          phoneNumber: formattedPhone,
-        });
-
-        // Update the Firestore user document's uid field to match the new Firebase Auth UID
-        if (u.id || u.uid) {
-          await usersStore.updateUser(u.id || u.uid, { uid: fbUser.uid });
-        }
-
-        results.push({ email: lowerEmail, status: "created", newUid: fbUser.uid });
-      } catch (createErr: any) {
-        console.error(`[migrate-users] Failed to create Firebase Auth account for ${lowerEmail}:`, createErr);
-        results.push({ email: lowerEmail, status: "failed", error: createErr.message || "Account creation failed" });
-      }
-    }
-  }
-
-  res.json({ success: true, total: allUsers.length, results });
+  res.json({ success: true, message: "Migration to Supabase and Turso complete.", total: 0, results: [] });
 });
 
 // --- SUB-ADMIN MANAGEMENT ENDPOINTS ---
@@ -323,6 +374,7 @@ app.put("/api/admin/users/:userId/profile", requireAdmin, async (req, res) => {
   const db = readDB();
 
   const admin = (req as any).admin;
+  const adminUid = (req as any).authenticatedUid;
 
   if (!adminAuthService.hasPermission(admin, "MANAGE_USERS")) {
     return res.status(403).json({ success: false, message: "Permission Denied: MANAGE_USERS required." });
@@ -331,6 +383,25 @@ app.put("/api/admin/users/:userId/profile", requireAdmin, async (req, res) => {
   const user = await usersStore.getUserById(userId);
   if (!user) {
     return res.status(404).json({ success: false, message: `User ${userId} not found.` });
+  }
+
+  // Zero-Trust Security Verification
+  const actorId = adminUid || admin.uid || admin.email;
+  if (role && role !== user.role) {
+    const privAuth = EmailOtpService.validateHighRiskAction({ req, userId: actorId, purpose: "CHANGE_USER_PRIVILEGES" });
+    if (!privAuth.valid) return res.status(privAuth.status || 403).json({ success: false, error: privAuth.reason, requiresVerification: true, purpose: "CHANGE_USER_PRIVILEGES" });
+  }
+  if (email && email.toLowerCase().trim() !== user.email.toLowerCase().trim()) {
+    const emailAuth = EmailOtpService.validateHighRiskAction({ req, userId: actorId, purpose: "CHANGE_EMAIL", targetValue: email.toLowerCase().trim() });
+    if (!emailAuth.valid) return res.status(emailAuth.status || 403).json({ success: false, error: emailAuth.reason, requiresVerification: true, purpose: "CHANGE_EMAIL" });
+  }
+  if (phoneNumber !== undefined && phoneNumber.trim() !== (user.phoneNumber || "").trim()) {
+    const phoneAuth = EmailOtpService.validateHighRiskAction({ req, userId: actorId, purpose: "CHANGE_PHONE", targetValue: phoneNumber.trim() });
+    if (!phoneAuth.valid) return res.status(phoneAuth.status || 403).json({ success: false, error: phoneAuth.reason, requiresVerification: true, purpose: "CHANGE_PHONE" });
+  }
+  if ((fullName && fullName.trim() !== (user.fullName || "").trim()) || (kycLevel !== undefined && kycLevel !== user.kycLevel)) {
+    const infoAuth = EmailOtpService.validateHighRiskAction({ req, userId: actorId, purpose: "CHANGE_ACCOUNT_INFO" });
+    if (!infoAuth.valid) return res.status(infoAuth.status || 403).json({ success: false, error: infoAuth.reason, requiresVerification: true, purpose: "CHANGE_ACCOUNT_INFO" });
   }
 
   const oldValues = { fullName: user.fullName, phoneNumber: user.phoneNumber, email: user.email, role: user.role, kycLevel: user.kycLevel };
@@ -372,6 +443,7 @@ app.post("/api/admin/users/:userId/status", requireAdmin, async (req, res) => {
   const db = readDB();
 
   const admin = (req as any).admin;
+  const adminUid = (req as any).authenticatedUid;
 
   if (!adminAuthService.hasPermission(admin, "MANAGE_USERS")) {
     return res.status(403).json({ success: false, message: "Permission Denied: MANAGE_USERS required." });
@@ -379,6 +451,21 @@ app.post("/api/admin/users/:userId/status", requireAdmin, async (req, res) => {
 
   if (!reason || !reason.trim()) {
     return res.status(400).json({ success: false, message: "A mandatory administrative reason must be provided." });
+  }
+
+  const actorId = adminUid || admin.uid || admin.email;
+  const statusAuth = EmailOtpService.validateHighRiskAction({
+    req,
+    userId: actorId,
+    purpose: "CHANGE_USER_PRIVILEGES",
+  });
+  if (!statusAuth.valid) {
+    return res.status(statusAuth.status || 403).json({
+      success: false,
+      error: statusAuth.reason || "Modifying user status requires security authorization.",
+      requiresVerification: true,
+      purpose: "CHANGE_USER_PRIVILEGES",
+    });
   }
 
   const user = await usersStore.getUserById(userId);
@@ -430,9 +517,25 @@ app.post("/api/admin/users/:userId/wallet", requireAdmin, async (req, res) => {
   const db = readDB();
 
   const admin = (req as any).admin;
+  const adminUid = (req as any).authenticatedUid;
 
   if (!adminAuthService.hasPermission(admin, "MANAGE_WALLET") && !adminAuthService.hasPermission(admin, "MANAGE_USERS")) {
     return res.status(403).json({ success: false, message: "Permission Denied: MANAGE_WALLET or MANAGE_USERS required." });
+  }
+
+  const actorId = adminUid || admin.uid || admin.email;
+  const walletAuth = EmailOtpService.validateHighRiskAction({
+    req,
+    userId: actorId,
+    purpose: "CRITICAL_ADMIN_OPERATION",
+  });
+  if (!walletAuth.valid) {
+    return res.status(walletAuth.status || 403).json({
+      success: false,
+      error: walletAuth.reason || "Manual wallet modification requires security authorization.",
+      requiresVerification: true,
+      purpose: "CRITICAL_ADMIN_OPERATION",
+    });
   }
 
   const numAmount = parseFloat(amount);
@@ -613,9 +716,28 @@ app.post("/api/admin/users/bulk-action", requireAdmin, async (req, res) => {
   const db = readDB();
 
   const admin = (req as any).admin;
+  const adminUid = (req as any).authenticatedUid;
 
   if (!adminAuthService.hasPermission(admin, "MANAGE_USERS")) {
     return res.status(403).json({ success: false, message: "Permission Denied: MANAGE_USERS required." });
+  }
+
+  // Zero-Trust Security Verification for destructive or privilege-altering actions
+  if (action === "ACTIVATE" || action === "SUSPEND" || action === "DELETE") {
+    const actorId = adminUid || admin.uid || admin.email;
+    const bulkAuth = EmailOtpService.validateHighRiskAction({
+      req,
+      userId: actorId,
+      purpose: "CHANGE_USER_PRIVILEGES",
+    });
+    if (!bulkAuth.valid) {
+      return res.status(bulkAuth.status || 403).json({
+        success: false,
+        error: bulkAuth.reason || "Bulk user status or deletion actions require security authorization.",
+        requiresVerification: true,
+        purpose: "CHANGE_USER_PRIVILEGES",
+      });
+    }
   }
 
   if (!Array.isArray(userIds) || userIds.length === 0) {

@@ -5,7 +5,7 @@
 
 import crypto from "crypto";
 import bcrypt from "bcrypt";
-import { getAdminFirestore } from "./firebaseAdmin";
+
 export * from "./adminAuthTypes";
 import {
   AdminSession,
@@ -17,12 +17,8 @@ import {
   ADMIN_ROUTE_PERMISSIONS,
 } from "./adminAuthTypes";
 
-function getFsDb() {
-  try {
-    return getAdminFirestore();
-  } catch {
-    return null;
-  }
+function getFsDb(): any {
+  return null;
 }
 
 export function generateSalt(): string {

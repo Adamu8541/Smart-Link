@@ -29,7 +29,7 @@ import {
   SlipFormatType,
   StandardizedVerificationResult,
 } from "../../../types/verification";
-import { FirestoreSlipService } from "../../../services/firestoreSlipService";
+import { SlipService as FirestoreSlipService } from "../../../services/slipService";
 import { SlipPrintEngine } from "../../../services/slipPrintEngine";
 import { EmailSlipService } from "../../../services/emailSlipService";
 

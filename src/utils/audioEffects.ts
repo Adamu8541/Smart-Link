@@ -130,6 +130,32 @@ class AudioSynthesizer {
       console.warn("Audio play error:", e);
     }
   }
+
+  /**
+   * Play a crisp, subtle click/tap tone
+   */
+  public playTapSound() {
+    const ctx = this.getAudioContext();
+    if (!ctx) return;
+
+    try {
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(800, now);
+      gain.gain.setValueAtTime(0.04, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.05);
+    } catch (e) {
+      console.warn("Audio play error:", e);
+    }
+  }
 }
 
 export const soundFx = new AudioSynthesizer();

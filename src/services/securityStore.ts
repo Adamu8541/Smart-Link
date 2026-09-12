@@ -1,4 +1,4 @@
-import { getAdminFirestore } from "./firebaseAdmin";
+import { readDB, writeDB } from "../../server/db";
 
 export interface ActiveSessionDoc {
   id: string;
@@ -78,29 +78,17 @@ export interface SecurityAlertDoc {
   [key: string]: any;
 }
 
-const SESSIONS_COLL = "active_sessions";
-const BLOCKED_IPS_COLL = "blocked_ips";
-const BLOCKED_DEVICES_COLL = "blocked_devices";
-const ACCOUNT_LOCKS_COLL = "account_locks";
-const SUSPICIOUS_COLL = "suspicious_activities";
-const ALERTS_COLL = "security_alerts";
-
 // --- Active Sessions ---
 export async function getActiveSessions(filters?: { userId?: string; status?: string }): Promise<ActiveSessionDoc[]> {
   try {
-    const db = getAdminFirestore();
-    let query: any = db.collection(SESSIONS_COLL);
+    const db = readDB();
+    let list: ActiveSessionDoc[] = Array.isArray(db?.activeSessions) ? db.activeSessions : [];
     if (filters?.userId) {
-      query = query.where("userId", "==", filters.userId);
+      list = list.filter((s) => s.userId === filters.userId);
     }
     if (filters?.status) {
-      query = query.where("status", "==", filters.status);
+      list = list.filter((s) => s.status === filters.status);
     }
-    const snapshot = await query.get();
-    const list: ActiveSessionDoc[] = [];
-    snapshot.forEach((doc: any) => {
-      list.push({ id: doc.id, ...doc.data() } as ActiveSessionDoc);
-    });
     return list;
   } catch (err) {
     console.error("[securityStore] getActiveSessions error:", err);
@@ -109,24 +97,26 @@ export async function getActiveSessions(filters?: { userId?: string; status?: st
 }
 
 export async function saveSession(session: ActiveSessionDoc): Promise<ActiveSessionDoc> {
-  const db = getAdminFirestore();
+  const db = readDB();
   const docId = session.sessionId || session.id || `SESS_${Date.now()}`;
   const clean: ActiveSessionDoc = { ...session, id: docId, sessionId: session.sessionId || docId };
-  const sanitized = JSON.parse(JSON.stringify(clean));
-  await db.collection(SESSIONS_COLL).doc(docId).set(sanitized, { merge: true });
+  if (!Array.isArray(db.activeSessions)) db.activeSessions = [];
+  const idx = db.activeSessions.findIndex((s: any) => s.id === docId || s.sessionId === docId);
+  if (idx >= 0) db.activeSessions[idx] = clean;
+  else db.activeSessions.push(clean);
+  writeDB(db);
   return clean;
 }
 
 export async function updateSession(sessionId: string, updates: Partial<ActiveSessionDoc>): Promise<ActiveSessionDoc | null> {
   try {
-    const db = getAdminFirestore();
-    const docRef = db.collection(SESSIONS_COLL).doc(sessionId);
-    const docSnap = await docRef.get();
-    if (!docSnap.exists) return null;
-
-    const merged = { ...docSnap.data(), ...updates, lastActive: new Date().toISOString() };
-    const sanitized = JSON.parse(JSON.stringify(merged));
-    await docRef.set(sanitized, { merge: true });
+    const db = readDB();
+    if (!Array.isArray(db.activeSessions)) return null;
+    const idx = db.activeSessions.findIndex((s: any) => s.id === sessionId || s.sessionId === sessionId);
+    if (idx < 0) return null;
+    const merged = { ...db.activeSessions[idx], ...updates, lastActive: new Date().toISOString() };
+    db.activeSessions[idx] = merged;
+    writeDB(db);
     return merged as ActiveSessionDoc;
   } catch (err) {
     console.error("[securityStore] updateSession error:", err);
@@ -136,7 +126,6 @@ export async function updateSession(sessionId: string, updates: Partial<ActiveSe
 
 export async function terminateAllUserSessions(userId: string): Promise<boolean> {
   try {
-    const db = getAdminFirestore();
     const active = await getActiveSessions({ userId, status: "Active" });
     for (const s of active) {
       await updateSession(s.id, { status: "Terminated" });
@@ -151,13 +140,8 @@ export async function terminateAllUserSessions(userId: string): Promise<boolean>
 // --- Blocked IPs ---
 export async function getBlockedIps(): Promise<BlockedIpDoc[]> {
   try {
-    const db = getAdminFirestore();
-    const snapshot = await db.collection(BLOCKED_IPS_COLL).get();
-    const list: BlockedIpDoc[] = [];
-    snapshot.forEach((doc: any) => {
-      list.push({ id: doc.id, ...doc.data() } as BlockedIpDoc);
-    });
-    return list;
+    const db = readDB();
+    return Array.isArray(db?.blockedIps) ? db.blockedIps : [];
   } catch (err) {
     console.error("[securityStore] getBlockedIps error:", err);
     return [];
@@ -165,21 +149,23 @@ export async function getBlockedIps(): Promise<BlockedIpDoc[]> {
 }
 
 export async function addBlockedIp(doc: BlockedIpDoc): Promise<BlockedIpDoc> {
-  const db = getAdminFirestore();
+  const db = readDB();
   const docId = doc.id || doc.ipAddress.replace(/[^a-zA-Z0-9]/g, "_");
   const clean: BlockedIpDoc = { ...doc, id: docId };
-  const sanitized = JSON.parse(JSON.stringify(clean));
-  await db.collection(BLOCKED_IPS_COLL).doc(docId).set(sanitized, { merge: true });
+  if (!Array.isArray(db.blockedIps)) db.blockedIps = [];
+  const idx = db.blockedIps.findIndex((i: any) => i.id === docId || i.ipAddress === doc.ipAddress);
+  if (idx >= 0) db.blockedIps[idx] = clean;
+  else db.blockedIps.push(clean);
+  writeDB(db);
   return clean;
 }
 
 export async function removeBlockedIp(ipAddressOrId: string): Promise<boolean> {
   try {
-    const db = getAdminFirestore();
-    const all = await getBlockedIps();
-    const target = all.find((i) => i.ipAddress === ipAddressOrId || i.id === ipAddressOrId);
-    if (!target) return false;
-    await db.collection(BLOCKED_IPS_COLL).doc(target.id).delete();
+    const db = readDB();
+    if (!Array.isArray(db.blockedIps)) return false;
+    db.blockedIps = db.blockedIps.filter((i: any) => i.ipAddress !== ipAddressOrId && i.id !== ipAddressOrId);
+    writeDB(db);
     return true;
   } catch (err) {
     console.error("[securityStore] removeBlockedIp error:", err);
@@ -190,13 +176,8 @@ export async function removeBlockedIp(ipAddressOrId: string): Promise<boolean> {
 // --- Blocked Devices ---
 export async function getBlockedDevices(): Promise<BlockedDeviceDoc[]> {
   try {
-    const db = getAdminFirestore();
-    const snapshot = await db.collection(BLOCKED_DEVICES_COLL).get();
-    const list: BlockedDeviceDoc[] = [];
-    snapshot.forEach((doc: any) => {
-      list.push({ id: doc.id, ...doc.data() } as BlockedDeviceDoc);
-    });
-    return list;
+    const db = readDB();
+    return Array.isArray(db?.blockedDevices) ? db.blockedDevices : [];
   } catch (err) {
     console.error("[securityStore] getBlockedDevices error:", err);
     return [];
@@ -204,21 +185,23 @@ export async function getBlockedDevices(): Promise<BlockedDeviceDoc[]> {
 }
 
 export async function addBlockedDevice(doc: BlockedDeviceDoc): Promise<BlockedDeviceDoc> {
-  const db = getAdminFirestore();
+  const db = readDB();
   const docId = doc.id || doc.deviceId;
   const clean: BlockedDeviceDoc = { ...doc, id: docId };
-  const sanitized = JSON.parse(JSON.stringify(clean));
-  await db.collection(BLOCKED_DEVICES_COLL).doc(docId).set(sanitized, { merge: true });
+  if (!Array.isArray(db.blockedDevices)) db.blockedDevices = [];
+  const idx = db.blockedDevices.findIndex((d: any) => d.id === docId || d.deviceId === doc.deviceId);
+  if (idx >= 0) db.blockedDevices[idx] = clean;
+  else db.blockedDevices.push(clean);
+  writeDB(db);
   return clean;
 }
 
 export async function removeBlockedDevice(deviceIdOrId: string): Promise<boolean> {
   try {
-    const db = getAdminFirestore();
-    const all = await getBlockedDevices();
-    const target = all.find((d) => d.deviceId === deviceIdOrId || d.id === deviceIdOrId);
-    if (!target) return false;
-    await db.collection(BLOCKED_DEVICES_COLL).doc(target.id).delete();
+    const db = readDB();
+    if (!Array.isArray(db.blockedDevices)) return false;
+    db.blockedDevices = db.blockedDevices.filter((d: any) => d.deviceId !== deviceIdOrId && d.id !== deviceIdOrId);
+    writeDB(db);
     return true;
   } catch (err) {
     console.error("[securityStore] removeBlockedDevice error:", err);
@@ -229,19 +212,14 @@ export async function removeBlockedDevice(deviceIdOrId: string): Promise<boolean
 // --- Account Locks ---
 export async function getAccountLocks(filters?: { userId?: string; status?: string }): Promise<AccountLockDoc[]> {
   try {
-    const db = getAdminFirestore();
-    let query: any = db.collection(ACCOUNT_LOCKS_COLL);
+    const db = readDB();
+    let list: AccountLockDoc[] = Array.isArray(db?.accountLocks) ? db.accountLocks : [];
     if (filters?.userId) {
-      query = query.where("userId", "==", filters.userId);
+      list = list.filter((l) => l.userId === filters.userId);
     }
     if (filters?.status) {
-      query = query.where("status", "==", filters.status);
+      list = list.filter((l) => l.status === filters.status);
     }
-    const snapshot = await query.get();
-    const list: AccountLockDoc[] = [];
-    snapshot.forEach((doc: any) => {
-      list.push({ id: doc.id, ...doc.data() } as AccountLockDoc);
-    });
     return list;
   } catch (err) {
     console.error("[securityStore] getAccountLocks error:", err);
@@ -250,23 +228,25 @@ export async function getAccountLocks(filters?: { userId?: string; status?: stri
 }
 
 export async function addAccountLock(doc: AccountLockDoc): Promise<AccountLockDoc> {
-  const db = getAdminFirestore();
+  const db = readDB();
   const docId = doc.id || `LOCK_${Date.now()}`;
   const clean: AccountLockDoc = { ...doc, id: docId };
-  const sanitized = JSON.parse(JSON.stringify(clean));
-  await db.collection(ACCOUNT_LOCKS_COLL).doc(docId).set(sanitized, { merge: true });
+  if (!Array.isArray(db.accountLocks)) db.accountLocks = [];
+  const idx = db.accountLocks.findIndex((l: any) => l.id === docId);
+  if (idx >= 0) db.accountLocks[idx] = clean;
+  else db.accountLocks.push(clean);
+  writeDB(db);
   return clean;
 }
 
 export async function unlockAccount(lockIdOrEmailOrUserId: string): Promise<boolean> {
   try {
-    const db = getAdminFirestore();
-    const locks = await getAccountLocks({ status: "Locked" });
-    const lock = locks.find((l) => l.id === lockIdOrEmailOrUserId || l.userEmail === lockIdOrEmailOrUserId || l.userId === lockIdOrEmailOrUserId);
-    if (!lock) return false;
-
-    const sanitized = JSON.parse(JSON.stringify({ ...lock, status: "Unlocked", unlockAt: new Date().toISOString() }));
-    await db.collection(ACCOUNT_LOCKS_COLL).doc(lock.id).set(sanitized, { merge: true });
+    const db = readDB();
+    if (!Array.isArray(db.accountLocks)) return false;
+    const idx = db.accountLocks.findIndex((l: any) => l.id === lockIdOrEmailOrUserId || l.userEmail === lockIdOrEmailOrUserId || l.userId === lockIdOrEmailOrUserId);
+    if (idx < 0) return false;
+    db.accountLocks[idx] = { ...db.accountLocks[idx], status: "Unlocked", unlockAt: new Date().toISOString() };
+    writeDB(db);
     return true;
   } catch (err) {
     console.error("[securityStore] unlockAccount error:", err);
@@ -277,20 +257,15 @@ export async function unlockAccount(lockIdOrEmailOrUserId: string): Promise<bool
 // --- Suspicious Activities ---
 export async function getSuspiciousActivities(filters?: { userId?: string; limit?: number }): Promise<SuspiciousActivityDoc[]> {
   try {
-    const db = getAdminFirestore();
-    let query: any = db.collection(SUSPICIOUS_COLL);
+    const db = readDB();
+    let list: SuspiciousActivityDoc[] = Array.isArray(db?.suspiciousActivities) ? db.suspiciousActivities : [];
     if (filters?.userId) {
-      query = query.where("userId", "==", filters.userId);
+      list = list.filter((a) => a.userId === filters.userId);
     }
-    if (filters?.limit) {
-      query = query.limit(filters.limit);
-    }
-    const snapshot = await query.get();
-    const list: SuspiciousActivityDoc[] = [];
-    snapshot.forEach((doc: any) => {
-      list.push({ id: doc.id, ...doc.data() } as SuspiciousActivityDoc);
-    });
     list.sort((a, b) => (a.timestamp < b.timestamp ? 1 : -1));
+    if (filters?.limit) {
+      list = list.slice(0, filters.limit);
+    }
     return list;
   } catch (err) {
     console.error("[securityStore] getSuspiciousActivities error:", err);
@@ -299,30 +274,26 @@ export async function getSuspiciousActivities(filters?: { userId?: string; limit
 }
 
 export async function addSuspiciousActivity(doc: SuspiciousActivityDoc): Promise<SuspiciousActivityDoc> {
-  const db = getAdminFirestore();
+  const db = readDB();
   const docId = doc.id || `ACT_${Date.now()}`;
   const clean: SuspiciousActivityDoc = { ...doc, id: docId };
-  const sanitized = JSON.parse(JSON.stringify(clean));
-  await db.collection(SUSPICIOUS_COLL).doc(docId).set(sanitized, { merge: true });
+  if (!Array.isArray(db.suspiciousActivities)) db.suspiciousActivities = [];
+  db.suspiciousActivities.unshift(clean);
+  writeDB(db);
   return clean;
 }
 
 // --- Security Alerts ---
 export async function getSecurityAlerts(filters?: { status?: string; limit?: number }): Promise<SecurityAlertDoc[]> {
   try {
-    const db = getAdminFirestore();
-    let query: any = db.collection(ALERTS_COLL);
+    const db = readDB();
+    let list: SecurityAlertDoc[] = Array.isArray(db?.securityAlerts) ? db.securityAlerts : [];
     if (filters?.status) {
-      query = query.where("status", "==", filters.status);
+      list = list.filter((a) => a.status === filters.status);
     }
     if (filters?.limit) {
-      query = query.limit(filters.limit);
+      list = list.slice(0, filters.limit);
     }
-    const snapshot = await query.get();
-    const list: SecurityAlertDoc[] = [];
-    snapshot.forEach((doc: any) => {
-      list.push({ id: doc.id, ...doc.data() } as SecurityAlertDoc);
-    });
     return list;
   } catch (err) {
     console.error("[securityStore] getSecurityAlerts error:", err);
@@ -331,11 +302,12 @@ export async function getSecurityAlerts(filters?: { status?: string; limit?: num
 }
 
 export async function addSecurityAlert(doc: SecurityAlertDoc): Promise<SecurityAlertDoc> {
-  const db = getAdminFirestore();
+  const db = readDB();
   const docId = doc.id || `ALT_${Date.now()}`;
   const clean: SecurityAlertDoc = { ...doc, id: docId };
-  const sanitized = JSON.parse(JSON.stringify(clean));
-  await db.collection(ALERTS_COLL).doc(docId).set(sanitized, { merge: true });
+  if (!Array.isArray(db.securityAlerts)) db.securityAlerts = [];
+  db.securityAlerts.unshift(clean);
+  writeDB(db);
   return clean;
 }
 
@@ -348,9 +320,8 @@ export async function seedSecurityIfEmpty(initialData: {
   securityAlerts?: SecurityAlertDoc[];
 }): Promise<void> {
   try {
-    const db = getAdminFirestore();
-    const snap = await db.collection(SESSIONS_COLL).limit(1).get();
-    if (snap.empty) {
+    const db = readDB();
+    if (!db.activeSessions || db.activeSessions.length === 0) {
       if (initialData.sessions) {
         for (const s of initialData.sessions) await saveSession(s);
       }

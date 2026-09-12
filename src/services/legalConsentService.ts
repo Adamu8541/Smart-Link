@@ -3,19 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {
-  db,
-  auth,
-  isFirebaseConfigured,
-  doc,
-  setDoc,
-  getDocs,
-  collection,
-  query,
-  where,
-  orderBy,
-  handleFirestoreError
-} from "../firebase";
 import { safeFetchJson } from "../utils/authErrorHandler";
 import {
   LegalAcceptanceRecord,
@@ -75,7 +62,7 @@ export class LegalConsentService {
     const record: LegalAcceptanceRecord = {
       id: recordId,
       userId,
-      userEmail: userEmail || auth.currentUser?.email || "",
+      userEmail: userEmail || "",
       documentId,
       documentTitle: documentTitle || documentId,
       documentVersion,
@@ -86,14 +73,6 @@ export class LegalConsentService {
       platform: "web",
       metadata
     };
-
-    // 1. Write to Firestore asynchronously if configured (non-blocking)
-    if (isFirebaseConfigured && db) {
-      const docRef = doc(db, "legal_acceptances", recordId);
-      setDoc(docRef, record).catch((fsErr) => {
-        console.warn("[LegalConsentService] Client Firestore write note:", fsErr);
-      });
-    }
 
     // 2. Write to backend API
     try {
@@ -189,22 +168,6 @@ export class LegalConsentService {
         return res.data.acceptances;
       }
     } catch {}
-
-    // Firestore fallback
-    if (isFirebaseConfigured && db) {
-      try {
-        const q = query(
-          collection(db, "legal_acceptances"),
-          where("userId", "==", userId)
-        );
-        const snap = await getDocs(q);
-        const list: LegalAcceptanceRecord[] = [];
-        snap.forEach((d) => list.push(d.data() as LegalAcceptanceRecord));
-        return list.sort((a, b) => new Date(b.acceptedAt).getTime() - new Date(a.acceptedAt).getTime());
-      } catch (fsErr) {
-        console.warn("[LegalConsentService] Firestore read error:", fsErr);
-      }
-    }
 
     // LocalStorage fallback
     try {

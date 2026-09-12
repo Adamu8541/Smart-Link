@@ -1,5 +1,4 @@
 import { readDB, writeDB } from "../db";
-import { getAdminFirestore } from "../../src/services/firebaseAdmin";
 import { adminAuthService } from "../../src/services/adminAuthService";
 import { getActiveProviderAndAdapter } from "../../src/services/providerGateway";
 import * as usersStore from "../../src/services/usersStore";
@@ -406,20 +405,7 @@ export async function resolveVtuPlanAndPricing(
   const { type, provider = "", extra = "", amount } = options;
   const isAirtime = type === "AIRTIME" || type === "VTU_AIRTIME";
   let priceMatrix = db.priceMatrix || {};
-  let globalSettings: any = {};
-
-  try {
-    const fsDb = getAdminFirestore();
-    const globalSnap = await fsDb.collection("app_settings").doc("global").get();
-    if (globalSnap.exists) {
-      globalSettings = globalSnap.data() || {};
-      if (globalSettings.priceMatrix) {
-        priceMatrix = { ...priceMatrix, ...globalSettings.priceMatrix };
-      }
-    }
-  } catch (err) {
-    console.warn("[VTU Pricing] Error fetching /app_settings/global from Firestore:", err);
-  }
+  let globalSettings: any = db.siteSettings || {};
 
   let markupFee = 20.0;
   if (typeof globalSettings?.vtuMarkupMargin === "number") {

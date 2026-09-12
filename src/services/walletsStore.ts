@@ -1,4 +1,3 @@
-import { getAdminFirestore } from "./firebaseAdmin";
 import { usersStore } from "./usersStore";
 import { readDB, writeDB } from "../../server/db";
 
@@ -19,8 +18,6 @@ export interface WalletDbRecord {
   [key: string]: any;
 }
 
-const COLLECTION_NAME = "wallets";
-
 function sanitizeWalletRecord(docId: string, data: WalletDbRecord): WalletDbRecord {
   const userId = data.userId || docId;
   const bal = typeof data.balance === "number" && !isNaN(data.balance) ? data.balance : 0;
@@ -31,7 +28,7 @@ function sanitizeWalletRecord(docId: string, data: WalletDbRecord): WalletDbReco
     balance: bal,
     currentBalance: typeof data.currentBalance === "number" && !isNaN(data.currentBalance) ? data.currentBalance : bal,
     heldBalance: typeof data.heldBalance === "number" && !isNaN(data.heldBalance) ? data.heldBalance : 0,
-    totalCredits: typeof data.totalCredits === "number" && !isNaN(data.totalCredits) ? data.totalCredits : bal,
+    totalCredits: typeof data.totalCredits === "number" && !isNaN(data.totalCredits) ? data.totalCredits : 0,
     totalDebits: typeof data.totalDebits === "number" && !isNaN(data.totalDebits) ? data.totalDebits : 0,
     status: data.status || data.walletStatus || "ACTIVE",
     walletStatus: data.walletStatus || data.status || "ACTIVE",
@@ -43,67 +40,24 @@ function sanitizeWalletRecord(docId: string, data: WalletDbRecord): WalletDbReco
 }
 
 /**
- * Get all wallets from Firestore "wallets" collection with local fallback.
+ * Get all wallets from Turso database.
  */
 export async function getAllWallets(): Promise<WalletDbRecord[]> {
   try {
-    const db = getAdminFirestore();
-    const snapshot = await db.collection(COLLECTION_NAME).get();
-    const wallets: WalletDbRecord[] = [];
-    snapshot.forEach((doc) => {
-      const data = doc.data() as WalletDbRecord;
-      wallets.push(sanitizeWalletRecord(doc.id, data));
-    });
-    return wallets;
-  } catch (err: any) {
-    if (!err?.message?.includes("RESOURCE_EXHAUSTED") && err?.code !== 8) {
-      console.warn("[walletsStore] Firestore getAllWallets unavailable, using local database fallback.");
-    }
-    try {
-      const localDb = readDB();
-      return Array.isArray(localDb?.wallets)
-        ? localDb.wallets.map((w: any) => sanitizeWalletRecord(w.userId || w.id, w))
-        : [];
-    } catch (dbErr) {
-      return [];
-    }
+    const localDb = readDB();
+    return Array.isArray(localDb?.wallets)
+      ? localDb.wallets.map((w: any) => sanitizeWalletRecord(w.userId || w.id, w))
+      : [];
+  } catch (dbErr) {
+    return [];
   }
 }
 
 /**
- * Get a wallet by userId with local fallback.
+ * Get a wallet by userId from Turso database.
  */
 export async function getWalletByUserId(userId: string): Promise<WalletDbRecord | null> {
   if (!userId) return null;
-  try {
-    const db = getAdminFirestore();
-    // Direct doc lookup with doc ID = userId
-    const docRef = db.collection(COLLECTION_NAME).doc(userId);
-    const docSnap = await docRef.get();
-    if (docSnap.exists) {
-      const data = docSnap.data() as WalletDbRecord;
-      return sanitizeWalletRecord(userId, data);
-    }
-
-    // Query fallback: userId field or walletId field
-    const qUser = await db.collection(COLLECTION_NAME).where("userId", "==", userId).limit(1).get();
-    if (!qUser.empty) {
-      const doc = qUser.docs[0];
-      return sanitizeWalletRecord(doc.id, doc.data() as WalletDbRecord);
-    }
-
-    const qWal = await db.collection(COLLECTION_NAME).where("walletId", "==", userId).limit(1).get();
-    if (!qWal.empty) {
-      const doc = qWal.docs[0];
-      return sanitizeWalletRecord(doc.id, doc.data() as WalletDbRecord);
-    }
-  } catch (err: any) {
-    if (!err?.message?.includes("RESOURCE_EXHAUSTED") && err?.code !== 8) {
-      console.warn(`[walletsStore] Firestore getWalletByUserId error for ${userId}:`, err?.message || err);
-    }
-  }
-
-  // Local DB Fallback
   try {
     const localDb = readDB();
     const found = (localDb?.wallets || []).find(
@@ -118,7 +72,7 @@ export async function getWalletByUserId(userId: string): Promise<WalletDbRecord 
 }
 
 /**
- * Create a new wallet in "wallets" collection with local DB fallback.
+ * Create a new wallet in Turso database.
  */
 export async function createWallet(wallet: WalletDbRecord): Promise<WalletDbRecord> {
   const docId = wallet.userId;
@@ -131,98 +85,33 @@ export async function createWallet(wallet: WalletDbRecord): Promise<WalletDbReco
   });
 
   try {
-    const db = getAdminFirestore();
-    const sanitized = JSON.parse(JSON.stringify(cleanWallet));
-    await db.collection(COLLECTION_NAME).doc(docId).set(sanitized, { merge: true });
-  } catch (err: any) {
-    if (!err?.message?.includes("RESOURCE_EXHAUSTED") && err?.code !== 8) {
-      console.warn("[walletsStore] Firestore createWallet bypassed, saving to local database fallback.");
-    }
-  }
-
-  // Persist to local JSON DB
-  try {
     const localDb = readDB();
-    if (Array.isArray(localDb.wallets)) {
-      const idx = localDb.wallets.findIndex((w: any) => w.userId === docId || w.walletId === cleanWallet.walletId);
-      if (idx >= 0) {
-        localDb.wallets[idx] = { ...localDb.wallets[idx], ...cleanWallet };
-      } else {
-        localDb.wallets.push(cleanWallet);
-      }
-      writeDB(localDb);
+    if (!Array.isArray(localDb.wallets)) {
+      localDb.wallets = [];
     }
+    const idx = localDb.wallets.findIndex((w: any) => w.userId === docId || w.walletId === cleanWallet.walletId);
+    if (idx >= 0) {
+      localDb.wallets[idx] = { ...localDb.wallets[idx], ...cleanWallet };
+    } else {
+      localDb.wallets.push(cleanWallet);
+    }
+    writeDB(localDb);
   } catch (dbErr) {}
 
   return cleanWallet;
 }
 
 /**
- * Update a wallet document in Firestore.
- * Uses Firestore runTransaction() with local database fallback.
+ * Update a wallet document in Turso database.
  */
 export async function updateWallet(
-  userId: string,
-  updates: Partial<WalletDbRecord>
+  userIdOrWallet: string | Partial<WalletDbRecord>,
+  updates?: Partial<WalletDbRecord>
 ): Promise<WalletDbRecord | null> {
+  const userId = typeof userIdOrWallet === "string" ? userIdOrWallet : (userIdOrWallet.userId || userIdOrWallet.id || userIdOrWallet.walletId || "");
+  const cleanUpdates = typeof userIdOrWallet === "string" ? (updates || {}) : userIdOrWallet;
   if (!userId) return null;
 
-  try {
-    const db = getAdminFirestore();
-    const docRef = db.collection(COLLECTION_NAME).doc(userId);
-
-    const updated = await db.runTransaction(async (transaction) => {
-      const docSnap = await transaction.get(docRef);
-      let existing: WalletDbRecord | null = null;
-      let targetRef = docRef;
-
-      if (docSnap.exists) {
-        existing = docSnap.data() as WalletDbRecord;
-      } else {
-        const qUser = await db.collection(COLLECTION_NAME).where("userId", "==", userId).limit(1).get();
-        if (!qUser.empty) {
-          const doc = qUser.docs[0];
-          existing = doc.data() as WalletDbRecord;
-          targetRef = db.collection(COLLECTION_NAME).doc(doc.id);
-        }
-      }
-
-      if (!existing) {
-        return null;
-      }
-
-      const now = new Date().toISOString();
-      const currentBal = typeof updates.balance === "number" ? updates.balance : (existing.balance || 0);
-
-      const merged: WalletDbRecord = sanitizeWalletRecord(userId, {
-        ...existing,
-        ...updates,
-        balance: currentBal,
-        currentBalance: typeof updates.currentBalance === "number" ? updates.currentBalance : currentBal,
-        updatedAt: now,
-        lastUpdated: now,
-      });
-
-      const sanitized = JSON.parse(JSON.stringify(merged));
-      transaction.set(targetRef, sanitized, { merge: true });
-
-      return merged;
-    });
-
-    if (updated && (updates.balance !== undefined || updates.currentBalance !== undefined)) {
-      await usersStore.updateUser(userId, { walletBalance: updated.balance }).catch(() => {});
-    }
-
-    if (updated) {
-      return updated;
-    }
-  } catch (err: any) {
-    if (!err?.message?.includes("RESOURCE_EXHAUSTED") && err?.code !== 8) {
-      console.warn("[walletsStore] updateWallet Firestore transaction error:", err?.message || err);
-    }
-  }
-
-  // Local DB Fallback
   try {
     const localDb = readDB();
     const existingIdx = (localDb?.wallets || []).findIndex(
@@ -231,12 +120,12 @@ export async function updateWallet(
     if (existingIdx >= 0) {
       const existing = localDb.wallets[existingIdx];
       const now = new Date().toISOString();
-      const currentBal = typeof updates.balance === "number" ? updates.balance : (existing.balance || 0);
+      const currentBal = typeof cleanUpdates.balance === "number" ? cleanUpdates.balance : (existing.balance || 0);
       const merged: WalletDbRecord = sanitizeWalletRecord(userId, {
         ...existing,
-        ...updates,
+        ...cleanUpdates,
         balance: currentBal,
-        currentBalance: typeof updates.currentBalance === "number" ? updates.currentBalance : currentBal,
+        currentBalance: typeof cleanUpdates.currentBalance === "number" ? cleanUpdates.currentBalance : currentBal,
         updatedAt: now,
         lastUpdated: now,
       });
@@ -251,7 +140,7 @@ export async function updateWallet(
 }
 
 /**
- * Atomically modify wallet financial parameters using Firestore or local fallback.
+ * Atomically modify wallet financial parameters using Turso database.
  */
 export async function updateWalletAtomic(
   userId: string,
@@ -260,58 +149,6 @@ export async function updateWalletAtomic(
   if (!userId) return null;
 
   try {
-    const db = getAdminFirestore();
-    const docRef = db.collection(COLLECTION_NAME).doc(userId);
-
-    const updated = await db.runTransaction(async (transaction) => {
-      const docSnap = await transaction.get(docRef);
-      let existing: WalletDbRecord | null = null;
-      let targetRef = docRef;
-
-      if (docSnap.exists) {
-        existing = docSnap.data() as WalletDbRecord;
-      } else {
-        const qUser = await db.collection(COLLECTION_NAME).where("userId", "==", userId).limit(1).get();
-        if (!qUser.empty) {
-          const doc = qUser.docs[0];
-          existing = doc.data() as WalletDbRecord;
-          targetRef = db.collection(COLLECTION_NAME).doc(doc.id);
-        }
-      }
-
-      if (!existing) {
-        return null;
-      }
-
-      const sanitizedExisting = sanitizeWalletRecord(userId, existing);
-      const changes = modifier(sanitizedExisting);
-      const now = new Date().toISOString();
-
-      const merged: WalletDbRecord = sanitizeWalletRecord(userId, {
-        ...sanitizedExisting,
-        ...changes,
-        updatedAt: now,
-        lastUpdated: now,
-      });
-
-      const sanitized = JSON.parse(JSON.stringify(merged));
-      transaction.set(targetRef, sanitized, { merge: true });
-
-      return merged;
-    });
-
-    if (updated) {
-      await usersStore.updateUser(userId, { walletBalance: updated.balance }).catch(() => {});
-      return updated;
-    }
-  } catch (err: any) {
-    if (!err?.message?.includes("RESOURCE_EXHAUSTED") && err?.code !== 8) {
-      console.warn("[walletsStore] updateWalletAtomic Firestore error:", err?.message || err);
-    }
-  }
-
-  // Local DB Fallback
-  try {
     const localDb = readDB();
     const existingIdx = (localDb?.wallets || []).findIndex(
       (w: any) => w.userId === userId || w.walletId === userId || w.id === userId
@@ -339,23 +176,9 @@ export async function updateWalletAtomic(
 }
 
 /**
- * Delete all wallets from "wallets" collection (for admin reset).
+ * Delete all wallets from Turso database (for admin reset).
  */
 export async function deleteAllWallets(): Promise<boolean> {
-  try {
-    const db = getAdminFirestore();
-    const snapshot = await db.collection(COLLECTION_NAME).get();
-    const batch = db.batch();
-    snapshot.forEach((doc) => {
-      batch.delete(doc.ref);
-    });
-    await batch.commit();
-  } catch (err: any) {
-    if (!err?.message?.includes("RESOURCE_EXHAUSTED") && err?.code !== 8) {
-      console.warn("[walletsStore] deleteAllWallets Firestore error:", err?.message || err);
-    }
-  }
-
   try {
     const localDb = readDB();
     localDb.wallets = [];

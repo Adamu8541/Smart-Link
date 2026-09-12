@@ -7,8 +7,8 @@ import fs from "fs";
 import crypto from "crypto";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
-import { loadFirestoreDb, syncDbToFirestore, saveDocToFirestore } from "../src/services/firestoreStore";
 import { adminAuthService } from "../src/services/adminAuthService";
+import { testTursoConnection } from "./turso/client";
 
 dotenv.config();
 
@@ -213,18 +213,16 @@ initializeDB();
 
 let currentDbMemory: any = null;
 
-// Initial background load from Firestore
-loadFirestoreDb(true)
-  .then((loaded) => {
-    currentDbMemory = loaded;
-    console.log("[server] Loaded full dataset from Firestore into memory cache.");
-    adminAuthService.seedAdminUsers(currentDbMemory).catch((err) => {
-      console.warn("[server] Super Admin Firestore seed failed:", err);
-    });
-  })
-  .catch((e) => {
-    console.warn("[server] Initial Firestore load failed:", e);
-  });
+// Verify Turso database connection on startup
+testTursoConnection().then((conn) => {
+  if (conn.ok) {
+    console.log(`[server] Turso Database connected successfully (${conn.isLocal ? "Local libSQL" : "Remote Turso"}).`);
+  } else {
+    console.warn("[server] Turso DB connection note:", conn.error);
+  }
+}).catch((err) => {
+  console.warn("[server] Turso initialization check note:", err);
+});
 
 export function readDB(): any {
   if (currentDbMemory) {
@@ -315,16 +313,11 @@ export function readDB(): any {
   return currentDbMemory;
 }
 
-export function writeDB(data: any, collectionsToSync?: string[]) {
+export function writeDB(data: any, _collectionsToSync?: string[]) {
   currentDbMemory = data;
-  syncDbToFirestore(data, collectionsToSync).catch((err) => {
-    console.warn("[server] Background syncDbToFirestore warning:", err);
-  });
-  if (process.env.NODE_ENV === "development") {
-    try {
-      fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), "utf8");
-    } catch (err) {
-      // Ignore local dev filesystem write failure
-    }
+  try {
+    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), "utf8");
+  } catch (err) {
+    // Ignore filesystem write warning
   }
 }

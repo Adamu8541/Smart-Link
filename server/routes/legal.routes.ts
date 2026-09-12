@@ -6,7 +6,6 @@
 import express from "express";
 import { readDB, writeDB } from "../db";
 import { verifyUserOrAdminSession } from "../middleware/auth";
-import { getAdminFirestore } from "../../src/services/firebaseAdmin";
 import { LegalAcceptanceRecord, LegalPolicyVersion, MarketingConsentSettings } from "../../src/types/legal";
 
 const router = express.Router();
@@ -233,16 +232,6 @@ router.post("/api/legal/accept", async (req, res) => {
     db.legalAcceptances.push(newRecord);
     writeDB(db);
 
-    // Save to Firestore admin collection if configured
-    try {
-      const fsAdmin = getAdminFirestore();
-      if (fsAdmin) {
-        await fsAdmin.collection("legal_acceptances").doc(recordId).set(newRecord);
-      }
-    } catch (fsErr) {
-      console.warn("[LegalRoutes] Firestore acceptance sync warning (local fallback succeeded):", fsErr);
-    }
-
     res.json({ success: true, record: newRecord });
   } catch (error: any) {
     console.error("[LegalRoutes] Error recording acceptance:", error);
@@ -279,10 +268,7 @@ router.post("/api/legal/batch-accept", async (req, res) => {
       db.legalAcceptances = [];
     }
 
-    let fsAdmin: any = null;
-    try {
-      fsAdmin = getAdminFirestore();
-    } catch {}
+
 
     for (let i = 0; i < acceptances.length; i++) {
       const item = acceptances[i];
@@ -306,13 +292,7 @@ router.post("/api/legal/batch-accept", async (req, res) => {
       db.legalAcceptances.push(rec);
       createdRecords.push(rec);
 
-      if (fsAdmin) {
-        try {
-          await fsAdmin.collection("legal_acceptances").doc(recordId).set(rec);
-        } catch (err) {
-          console.warn("[LegalRoutes] Firestore single doc write error:", err);
-        }
-      }
+
     }
 
     writeDB(db);
@@ -442,16 +422,6 @@ router.post("/api/legal/admin/update-policy", async (req, res) => {
     db.legalPolicies = policies;
     writeDB(db);
 
-    // Sync to Firestore
-    try {
-      const fsAdmin = getAdminFirestore();
-      if (fsAdmin) {
-        await fsAdmin.collection("legal_policies").doc(documentId).set(updatedPolicy);
-      }
-    } catch (fsErr) {
-      console.warn("[LegalRoutes] Firestore policy sync error:", fsErr);
-    }
-
     res.json({ success: true, policy: updatedPolicy });
   } catch (error: any) {
     console.error("[LegalRoutes] Error updating policy:", error);
@@ -501,14 +471,6 @@ router.post("/api/legal/marketing-consent", async (req, res) => {
 
     db.marketingConsents[userId] = consentData;
     writeDB(db);
-
-    // Sync to Firestore if available
-    try {
-      const fsAdmin = getAdminFirestore();
-      if (fsAdmin) {
-        await fsAdmin.collection("marketing_consents").doc(userId).set(consentData);
-      }
-    } catch {}
 
     res.json({ success: true, consent: consentData });
   } catch (error: any) {

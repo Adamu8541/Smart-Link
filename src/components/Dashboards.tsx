@@ -38,7 +38,9 @@ import {
   CheckCircle2,
   ShieldCheck,
   Copy,
-  Check
+  Check,
+  LayoutDashboard,
+  Bell
 } from "lucide-react";
 import { UserProfile, UserRole, Transaction, CACApplication } from "../types";
 import { ProviderService, getAuthHeaders } from "../services/providerService";
@@ -846,7 +848,7 @@ export default function Dashboards({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
 
         {/* User Full Name Header */}
-        <div className="flex items-center justify-between text-left">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-left">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-[#111827] tracking-tight">
               {currentUser.fullName}
@@ -854,6 +856,53 @@ export default function Dashboards({
             <p className="text-xs text-[#6B7280] font-medium mt-0.5">
               Account Overview & Services
             </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2" id="user-dashboard-nav-list">
+            <button
+              type="button"
+              onClick={() => onSwitchView && onSwitchView("DASHBOARD")}
+              className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-[#6B7280] hover:text-[#0F2D5C] bg-white border border-[#E5E7EB] hover:bg-[#F3F4F6] transition-all cursor-pointer"
+            >
+              <LayoutDashboard className="h-4 w-4 text-[#6B7280]" />
+              <span>Overview</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleOpenFundWallet}
+              className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-[#6B7280] hover:text-[#0F2D5C] bg-white border border-[#E5E7EB] hover:bg-[#F3F4F6] transition-all cursor-pointer"
+            >
+              <Wallet className="h-4 w-4 text-[#6B7280]" />
+              <span>Fund Wallet</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onSwitchView && onSwitchView("ACCOUNT_SECURITY")}
+              className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold text-[#0F2D5C] bg-white border border-[#E5E7EB] hover:bg-[#F3F4F6] transition-all shadow-xs cursor-pointer"
+              id="btn-account-security-settings"
+            >
+              <Shield className="h-4 w-4 text-[#0F2D5C]" />
+              <span>Account Security</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onSwitchView && onSwitchView("USER_NOTIFICATIONS")}
+              className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-[#6B7280] hover:text-[#0F2D5C] bg-white border border-[#E5E7EB] hover:bg-[#F3F4F6] transition-all cursor-pointer"
+            >
+              <Bell className="h-4 w-4 text-[#6B7280]" />
+              <span>Notifications</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                sessionStorage.setItem("dashboard_tab", "ACTIVITY_FEED");
+                setActiveTab("ACTIVITY_FEED");
+                window.dispatchEvent(new Event("dashboard_tab_changed"));
+              }}
+              className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-[#6B7280] hover:text-[#0F2D5C] bg-white border border-[#E5E7EB] hover:bg-[#F3F4F6] transition-all cursor-pointer"
+            >
+              <Clock className="h-4 w-4 text-[#6B7280]" />
+              <span>History</span>
+            </button>
           </div>
         </div>
 

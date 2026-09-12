@@ -1,18 +1,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Mail, ArrowLeft, CheckCircle2, AlertCircle, Sparkles, KeyRound, UserPlus } from "lucide-react";
-import {
-  auth,
-  db,
-  sendPasswordResetEmail,
-  collection,
-  query,
-  where,
-  limit,
-  getDocs,
-  withTimeout,
-  isFirebaseConfigured
-} from "../../firebase";
+import { SupabaseAuthService, isSupabaseConfigured } from "../../services/supabaseAuth";
 import { SmartLinkLogoMark } from "../ui/SmartLinkLogoMark";
 import { getFriendlyErrorMessage } from "../../utils/authErrorHandler";
 import { soundFx } from "../../utils/audioEffects";
@@ -72,22 +61,24 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({
       }
 
       let sent = false;
-      if (isFirebaseConfigured) {
+      if (isSupabaseConfigured) {
         try {
-          await sendPasswordResetEmail(auth, cleanEmail);
+          await SupabaseAuthService.resetPasswordForEmail(
+            cleanEmail,
+            `${window.location.origin}/reset-password`
+          );
           sent = true;
-        } catch (fbErr: any) {
+        } catch (supaErr: any) {
           if (
-            fbErr?.code === "auth/user-not-found" ||
-            fbErr?.message?.includes("user-not-found") ||
-            fbErr?.message?.includes("User not found")
+            supaErr?.message?.toLowerCase().includes("not found") ||
+            supaErr?.message?.toLowerCase().includes("user not registered")
           ) {
             soundFx.playErrorSound();
             setError("email not found or not registered, register instead");
             setLoading(false);
             return;
           }
-          throw fbErr;
+          throw supaErr;
         }
       }
 

@@ -32,8 +32,6 @@ import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
 import * as securityStore from "../../src/services/securityStore";
 import * as notificationsStore from "../../src/services/notificationsStore";
-import { getAuth } from "firebase-admin/auth";
-import { getAdminFirestore } from "../../src/services/firebaseAdmin";
 
 
 const router = express.Router();
@@ -265,13 +263,6 @@ app.post("/api/services/vtu", async (req, res) => {
 
   if (!db.providerLogs) db.providerLogs = [];
   db.providerLogs.unshift(providerLogEntry);
-
-  try {
-    const fsDb = getAdminFirestore();
-    await fsDb.collection("provider_logs").doc(providerLogEntry.id).set(providerLogEntry);
-  } catch (fsErr) {
-    console.warn("[VTU Engine] Failed to write providerLog to Firestore:", fsErr);
-  }
 
   // Process referral bonus if applicable
   const user = await usersStore.getUserById(userId);

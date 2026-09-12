@@ -50,6 +50,7 @@ const ExploreServicesPublicView = lazyWithRetry(() => import("./components/publi
 const BillsPublicView = lazyWithRetry(() => import("./components/public/BillsPublicView").then(m => ({ default: m.BillsPublicView })), "BillsPublicView");
 const VerificationPublicView = lazyWithRetry(() => import("./components/public/VerificationPublicView").then(m => ({ default: m.VerificationPublicView })), "VerificationPublicView");
 const ApiDocsPublicView = lazyWithRetry(() => import("./components/public/ApiDocsPublicView").then(m => ({ default: m.ApiDocsPublicView })), "ApiDocsPublicView");
+import { AccountSecurityView } from "./components/account/AccountSecurityView";
 
 import { ServiceItem } from "./data/servicesData";
 import { AdminSession, getStoredAdminSession, clearAdminSession } from "./services/adminAuthTypes";
@@ -68,16 +69,7 @@ import { AuthFormSkeleton } from "./components/ui/AuthSkeleton";
 import { useSiteConfig } from "./context/SiteConfigContext";
 import { MaintenanceScreen } from "./components/maintenance/MaintenanceScreen";
 import { legalConsentService } from "./services/legalConsentService";
-import {
-  auth,
-  db,
-  doc,
-  setDoc,
-  signOut,
-  onAuthStateChanged,
-  onSnapshot,
-  isFirebaseConfigured,
-} from "./firebase";
+import { SupabaseAuthService, isSupabaseConfigured } from "./services/supabaseAuth";
 
 const docIdToViewMap: Record<string, string> = {
   "privacy-policy": "LEGAL_DOCUMENT_PRIVACY",
@@ -115,20 +107,16 @@ const viewToDocIdMap: Record<string, string> = {
 
 async function getAuthHeaders(): Promise<Record<string, string>> {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
+
+  // 1. Check Supabase active session token first
   try {
-    const { auth } = await import("./firebase");
-    if (auth.authStateReady) {
-      try {
-        await auth.authStateReady();
-      } catch {}
-    }
-    const user = auth.currentUser;
-    if (user) {
-      try {
-        const idToken = await user.getIdToken();
-        headers["Authorization"] = `Bearer ${idToken}`;
+    const { SupabaseAuthService, isSupabaseConfigured } = await import("./services/supabaseAuth");
+    if (isSupabaseConfigured) {
+      const supaSession = await SupabaseAuthService.getSession();
+      if (supaSession?.access_token) {
+        headers["Authorization"] = `Bearer ${supaSession.access_token}`;
         return headers;
-      } catch {}
+      }
     }
   } catch {}
 
@@ -292,6 +280,7 @@ export default function App() {
         : path.replace("/", "");
       return docIdToViewMap[docId] || "LEGAL_DOCUMENT";
     }
+    if (path === "/account-security" || path === "/security-settings") return "ACCOUNT_SECURITY";
     if (path === "/dashboard") return "DASHBOARD";
     if (path === "/services") return "SERVICES";
     if (path === "/admin/login" || path.startsWith("/admin")) return "ADMIN_DASHBOARD";
@@ -326,6 +315,8 @@ export default function App() {
     "/developer-api": "PUBLIC_API_DOCS",
     "/docs": "PUBLIC_API_DOCS",
     "/dashboard": "DASHBOARD",
+    "/account-security": "ACCOUNT_SECURITY",
+    "/security-settings": "ACCOUNT_SECURITY",
     "/services": "SERVICES",
     "/notifications": "NOTIFICATIONS",
     "/admin/login": "ADMIN_LOGIN",
@@ -400,6 +391,7 @@ export default function App() {
     PUBLIC_VERIFICATION: "/verification",
     PUBLIC_API_DOCS: "/api-docs",
     DASHBOARD: "/dashboard",
+    ACCOUNT_SECURITY: "/account-security",
     SERVICES: "/services",
     NOTIFICATIONS: "/notifications",
     ADMIN_LOGIN: "/admin/login",
@@ -574,24 +566,6 @@ export default function App() {
       .catch(() => {
         // Quiet fallback
       });
-
-    // Real-time Firestore sync for global service pricing
-    const unsubPrices = onSnapshot(doc(db, "service_pricing", "global"), (snap) => {
-      if (snap.exists()) {
-        const pData = snap.data();
-        setSiteSettings((prev: any) => ({
-          ...prev,
-          priceMatrix: pData,
-          ninFee: pData.identityRates?.ninFee ?? prev?.ninFee,
-          bvnFee: pData.identityRates?.bvnFee ?? prev?.bvnFee,
-          cacBaseFee: pData.cacRates?.businessNameFee ?? prev?.cacBaseFee
-        }));
-      }
-    }, (err) => {
-      console.warn("Firestore client price sync note:", err);
-    });
-
-    return () => unsubPrices();
   }, []);
 
   useEffect(() => {
@@ -831,89 +805,6 @@ export default function App() {
     };
   }, []);
 
-  // Continuous Firebase Authentication & Firestore Synchronization Listener
-  useEffect(() => {
-    if (!isFirebaseConfigured) return;
-
-    const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
-      if (fbUser) {
-        const email = (fbUser.email || "").toLowerCase().trim();
-        const fullName = fbUser.displayName || email.split("@")[0] || "Smart Link User";
-        const phone = fbUser.phoneNumber || "";
-
-        try {
-          // 1. Sync with server database / usersStore
-          const syncRes = await safeFetchJson("/api/auth/sync-firebase-user", {
-            method: "POST",
-            body: JSON.stringify({
-              uid: fbUser.uid,
-              email: email,
-              fullName: fullName,
-              phoneNumber: phone,
-              isVerified: true,
-            }),
-          });
-
-          let userObj = syncRes.ok && syncRes.data?.user ? syncRes.data.user : null;
-
-          if (!userObj) {
-            userObj = {
-              uid: fbUser.uid,
-              email: email,
-              fullName: fullName,
-              phoneNumber: phone,
-              role: UserRole.CUSTOMER,
-              walletBalance: 0.0,
-              referralCode: "SL" + Math.floor(1000 + Math.random() * 9000),
-              isVerified: true,
-              createdAt: new Date().toISOString(),
-            };
-          }
-
-          // 2. Ensure Firestore users document is merged (non-blocking async)
-          setDoc(
-            doc(db, "users", fbUser.uid),
-            {
-              uid: fbUser.uid,
-              email: email,
-              fullName: fullName,
-              phoneNumber: phone || userObj.phoneNumber || "",
-              isVerified: true,
-              role: userObj.role || "CUSTOMER",
-              walletBalance: userObj.walletBalance ?? 0.0,
-              referralCode: userObj.referralCode || "SL" + Math.floor(1000 + Math.random() * 9000),
-              updatedAt: new Date().toISOString(),
-            },
-            { merge: true }
-          ).catch((fsErr) => {
-            console.warn("[onAuthStateChanged] Firestore sync note:", fsErr);
-          });
-
-          setCurrentUser(userObj);
-          localStorage.setItem("smart_link_user", JSON.stringify(userObj));
-
-          // Ensure authenticated users are directed to DASHBOARD
-          const currentViewName = currentViewRef.current;
-          const currentPath = window.location.pathname;
-          if (
-            currentViewName === "DASHBOARD" ||
-            currentViewName === "HOME" ||
-            currentViewName === "LOGIN" ||
-            currentViewName === "REGISTER" ||
-            currentPath === "/" ||
-            currentPath === "/dashboard"
-          ) {
-            navigateToView("DASHBOARD");
-          }
-        } catch (e) {
-          console.warn("[onAuthStateChanged] Error syncing auth user:", e);
-        }
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
-
   const fetchUserProfile = async (uid: string) => {
     if (!uid) return;
     try {
@@ -933,6 +824,109 @@ export default function App() {
       console.warn("Notice loading user profile:", err);
     }
   };
+
+  // Continuous Supabase Authentication & Session Synchronization Listener
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+
+    // Check existing session
+    SupabaseAuthService.getSession().then(async (session) => {
+      if (session?.user) {
+        const supaUser = session.user;
+        const email = (supaUser.email || "").toLowerCase().trim();
+        const fullName = supaUser.user_metadata?.full_name || email.split("@")[0] || "Smart Link User";
+        const phone = supaUser.user_metadata?.phone_number || supaUser.phone || "";
+        const isVerified = !!supaUser.email_confirmed_at;
+
+        try {
+          const syncRes = await safeFetchJson("/api/auth/sync-supabase-user", {
+            method: "POST",
+            headers: session.access_token ? { Authorization: `Bearer ${session.access_token}` } : undefined,
+            body: JSON.stringify({
+              id: supaUser.id,
+              uid: supaUser.id,
+              email: email,
+              fullName: fullName,
+              phoneNumber: phone,
+              isVerified: isVerified,
+            }),
+          });
+
+          let userObj = syncRes.ok && syncRes.data?.user ? syncRes.data.user : null;
+          if (!userObj) {
+            userObj = {
+              uid: supaUser.id,
+              email: email,
+              fullName: fullName,
+              phoneNumber: phone,
+              role: UserRole.CUSTOMER,
+              walletBalance: 0.0,
+              referralCode: supaUser.user_metadata?.referral_code || "SL" + Math.floor(1000 + Math.random() * 9000),
+              isVerified: isVerified,
+              createdAt: supaUser.created_at || new Date().toISOString(),
+            };
+          }
+
+          setCurrentUser(userObj);
+          localStorage.setItem("smart_link_user", JSON.stringify(userObj));
+        } catch (err) {
+          console.warn("[Supabase session restore note]:", err);
+        }
+      }
+    });
+
+    const { data: authSubscription } = SupabaseAuthService.onAuthStateChange(async (event, session) => {
+      if (event === "SIGNED_IN" && session?.user) {
+        const supaUser = session.user;
+        const email = (supaUser.email || "").toLowerCase().trim();
+        const fullName = supaUser.user_metadata?.full_name || email.split("@")[0] || "Smart Link User";
+        const phone = supaUser.user_metadata?.phone_number || supaUser.phone || "";
+        const isVerified = !!supaUser.email_confirmed_at;
+
+        try {
+          const syncRes = await safeFetchJson("/api/auth/sync-supabase-user", {
+            method: "POST",
+            headers: session.access_token ? { Authorization: `Bearer ${session.access_token}` } : undefined,
+            body: JSON.stringify({
+              id: supaUser.id,
+              uid: supaUser.id,
+              email: email,
+              fullName: fullName,
+              phoneNumber: phone,
+              isVerified: isVerified,
+            }),
+          });
+
+          let userObj = syncRes.ok && syncRes.data?.user ? syncRes.data.user : null;
+          if (!userObj) {
+            userObj = {
+              uid: supaUser.id,
+              email: email,
+              fullName: fullName,
+              phoneNumber: phone,
+              role: UserRole.CUSTOMER,
+              walletBalance: 0.0,
+              referralCode: supaUser.user_metadata?.referral_code || "SL" + Math.floor(1000 + Math.random() * 9000),
+              isVerified: isVerified,
+              createdAt: supaUser.created_at || new Date().toISOString(),
+            };
+          }
+
+          setCurrentUser(userObj);
+          localStorage.setItem("smart_link_user", JSON.stringify(userObj));
+        } catch (err) {
+          console.warn("[Supabase onAuthStateChange note]:", err);
+        }
+      } else if (event === "SIGNED_OUT") {
+        setCurrentUser(null);
+        localStorage.removeItem("smart_link_user");
+      }
+    });
+
+    return () => {
+      authSubscription?.subscription?.unsubscribe?.();
+    };
+  }, []);
 
   // Real-Time Webhook Credit Monitor & Wallet Balance Listeners
   const prevBalanceRef = useRef<number | null>(null);
@@ -1053,8 +1047,8 @@ export default function App() {
     const destView = pendingNavigationRef.current || "HOME";
     pendingNavigationRef.current = null;
 
-    if (isFirebaseConfigured) {
-      signOut(auth).catch(() => {});
+    if (isSupabaseConfigured) {
+      SupabaseAuthService.signOut().catch(() => {});
     }
 
     localStorage.removeItem("smart_link_user");
@@ -1672,6 +1666,32 @@ export default function App() {
                 onToggleDarkMode={handleToggleDarkMode}
                 onSelectService={setSelectedService}
               />
+            )}
+
+            {currentView === "ACCOUNT_SECURITY" && currentUser && (
+              <AccountSecurityView
+                currentUser={currentUser}
+                onBack={() => {
+                  window.history.pushState({}, "", "/dashboard");
+                  setCurrentView("DASHBOARD");
+                }}
+                onRefreshUser={fetchUserProfile}
+                isDarkMode={isDarkMode}
+              />
+            )}
+            {currentView === "ACCOUNT_SECURITY" && !currentUser && (
+              <div className="py-16 px-4 max-w-md mx-auto text-center space-y-4">
+                <p className="text-sm text-[#4B5563]">Authentication required to access account security settings.</p>
+                <button
+                  onClick={() => {
+                    window.history.pushState({}, "", "/");
+                    setCurrentView("HOME");
+                  }}
+                  className="px-4 py-2 bg-[#0F2D5C] text-white rounded-xl text-xs font-bold cursor-pointer"
+                >
+                  Sign In to Continue
+                </button>
+              </div>
             )}
 
             {currentView === "USER_NOTIFICATIONS" && (

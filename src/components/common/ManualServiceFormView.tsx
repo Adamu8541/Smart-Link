@@ -30,7 +30,7 @@ import {
   Copy
 } from "lucide-react";
 import { WhatsAppOfficialLogo } from "./ScreenshotServiceLogos";
-import { auth } from "../../firebase";
+
 import {
   ManualServiceConfig,
   ManualFieldDefinition,
@@ -507,10 +507,12 @@ export function ManualServiceFormView({
     try {
       let idToken: string | null = null;
       try {
-        idToken = await auth.currentUser?.getIdToken();
-      } catch (tokenErr) {
-        console.warn("Could not retrieve Firebase token:", tokenErr);
-      }
+        const stored = localStorage.getItem("smart_link_user");
+        if (stored) {
+          const u = JSON.parse(stored);
+          idToken = u.uid || u.id;
+        }
+      } catch (tokenErr) {}
 
       const headers: Record<string, string> = {
         "Content-Type": "application/json",

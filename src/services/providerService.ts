@@ -8,24 +8,20 @@
  * route requests through this central Provider Service.
  */
 
-import { auth } from "../firebase";
+import { SupabaseAuthService, isSupabaseConfigured } from "./supabaseAuth";
 
 export async function getAuthHeaders(userId?: string): Promise<Record<string, string>> {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
-  if (auth.authStateReady) {
+
+  // 1. Check Supabase active session token
+  if (isSupabaseConfigured) {
     try {
-      await auth.authStateReady();
+      const supaSession = await SupabaseAuthService.getSession();
+      if (supaSession?.access_token) {
+        headers["Authorization"] = `Bearer ${supaSession.access_token}`;
+        return headers;
+      }
     } catch {}
-  }
-  const user = auth.currentUser;
-  if (user) {
-    try {
-      const idToken = await user.getIdToken();
-      headers["Authorization"] = `Bearer ${idToken}`;
-      return headers;
-    } catch {
-      // ignore
-    }
   }
 
   // Check admin session token
