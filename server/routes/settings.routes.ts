@@ -25,13 +25,13 @@ import { PaymentVerificationReconciliationEngine } from "../../src/services/paym
 import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerGateway";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
 import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
-import { syncFromFirestore, syncToFirestore } from "../../src/services/settingsStore";
-import { loadFirestoreDb, syncDbToFirestore, saveDocToFirestore } from "../../src/services/firestoreStore";
+import { syncFromStorage, syncToStorage } from "../../src/services/settingsStore";
 import * as usersStore from "../../src/services/usersStore";
 import { sendPlatformEmail, getResolvedSmtpConfig } from "../services/email.service";
 import * as walletsStore from "../../src/services/walletsStore";
 import * as securityStore from "../../src/services/securityStore";
 import * as notificationsStore from "../../src/services/notificationsStore";
+import { createClient as createLibsqlClient } from "@libsql/client";
 
 
 const router = express.Router();
@@ -272,7 +272,7 @@ app.post("/api/admin/module2/test", requireAdmin, async (req, res) => {
 // 1. GET /api/admin/settings - Retrieve Full Settings Bundle
 app.get("/api/admin/settings", requireAdmin, async (req, res) => {
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
 
   seedModule7SettingsIfEmpty(db);
 
@@ -308,7 +308,7 @@ app.get("/api/admin/settings", requireAdmin, async (req, res) => {
 app.get("/api/admin/settings/:category", requireAdmin, async (req, res) => {
   const { category } = req.params;
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
 
   seedModule7SettingsIfEmpty(db);
 
@@ -329,7 +329,7 @@ app.put("/api/admin/settings/:category", requireAdmin, async (req, res) => {
   const { category } = req.params;
   const updates = req.body;
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
 
   const admin = (req as any).admin;
 
@@ -349,6 +349,14 @@ app.put("/api/admin/settings/:category", requireAdmin, async (req, res) => {
       versionNumber: ((db.branding_settings?.versionNumber || 0) + 1),
     };
   } else if (category === "maintenance") {
+    const isSuperAdmin = admin.role === "SUPER_ADMIN" || admin.isSuperAdmin || admin.email?.toLowerCase() === "adamuamuhammad8541@gmail.com";
+    if (!isSuperAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: "Permission Denied: Only Super Administrators can view, enable, or modify Maintenance Mode settings."
+      });
+    }
+
     db.maintenance_settings = {
       ...(db.maintenance_settings || {}),
       ...updates,
@@ -382,7 +390,7 @@ app.put("/api/admin/settings/:category", requireAdmin, async (req, res) => {
   });
 
   writeDB(db);
-  await syncToFirestore(db);
+  await syncToStorage(db);
 
   return res.json({
     success: true,
@@ -396,7 +404,7 @@ app.put("/api/admin/settings/:category", requireAdmin, async (req, res) => {
 app.post("/api/admin/settings/reset/:category", requireAdmin, async (req, res) => {
   const { category } = req.params;
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
 
   const admin = (req as any).admin;
 
@@ -412,7 +420,7 @@ app.post("/api/admin/settings/reset/:category", requireAdmin, async (req, res) =
 
   seedModule7SettingsIfEmpty(db);
   writeDB(db);
-  await syncToFirestore(db);
+  await syncToStorage(db);
 
   return res.json({
     success: true,
@@ -423,7 +431,7 @@ app.post("/api/admin/settings/reset/:category", requireAdmin, async (req, res) =
 // 5. GET /api/admin/settings/audit-logs - Settings Audit Trail
 app.get("/api/admin/settings/audit-logs", requireAdmin, async (req, res) => {
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
 
   const logs = (db.settings_audit_logs || []).slice(0, 100);
   return res.json({ success: true, logs });
@@ -434,7 +442,7 @@ app.post("/api/admin/settings/test-email", requireAdmin, async (req, res) => {
   const { testEmail, recipientEmail } = req.body;
   const target = testEmail || recipientEmail;
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
 
   if (!target) {
     return res.status(400).json({ success: false, message: "Recipient email address is required." });
@@ -508,7 +516,7 @@ app.post("/api/admin/settings/test-sms", requireAdmin, async (req, res) => {
 // 8. GET /api/admin/settings/export - Export Settings JSON Bundle
 app.get("/api/admin/settings/export", requireAdmin, async (req, res) => {
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
   const admin = (req as any).admin;
 
 
@@ -529,7 +537,7 @@ app.get("/api/admin/settings/export", requireAdmin, async (req, res) => {
 app.post("/api/admin/settings/import", requireAdmin, async (req, res) => {
   const { settingsData } = req.body;
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
   const admin = (req as any).admin;
 
   if (!adminAuthService.hasPermission(admin, "MANAGE_SYSTEM_SETTINGS")) {
@@ -545,7 +553,7 @@ app.post("/api/admin/settings/import", requireAdmin, async (req, res) => {
   if (settingsData.maintenance) db.maintenance_settings = settingsData.maintenance;
 
   writeDB(db);
-  await syncToFirestore(db);
+  await syncToStorage(db);
 
   return res.json({ success: true, message: "Settings backup successfully imported." });
 });
@@ -553,7 +561,7 @@ app.post("/api/admin/settings/import", requireAdmin, async (req, res) => {
 // 10. POST /api/admin/module7/test - Module 7 Self-Test Diagnostic
 app.post("/api/admin/module7/test", requireAdmin, async (req, res) => {
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
 
 
   seedModule7SettingsIfEmpty(db);
@@ -571,6 +579,148 @@ app.post("/api/admin/module7/test", requireAdmin, async (req, res) => {
   });
 });
 
+// 11. POST /api/admin/settings/clear-local-records - Wipe all local records & backup files
+app.post("/api/admin/settings/clear-local-records", requireAdmin, async (req, res) => {
+  const admin = (req as any).admin;
+  if (admin.role !== "SUPER_ADMIN") {
+    return res.status(403).json({ success: false, message: "Permission Denied: Only Super Admins can clear local records." });
+  }
 
+  try {
+    const db = readDB();
+    const cleanSuperAdminEmail = SUPER_ADMIN_EMAIL.toLowerCase().trim();
+
+    // 1. Clean db.json arrays
+    const superAdminUser = (db.users || []).find((u: any) => (u.email || "").toLowerCase().trim() === cleanSuperAdminEmail) || {
+      uid: "usr_superadmin",
+      email: cleanSuperAdminEmail,
+      fullName: "Adamu A. Muhammad",
+      phoneNumber: "+2348000000000",
+      role: "SUPER_ADMIN",
+      walletBalance: 0,
+      referralCode: "SUPER1",
+      isVerified: true,
+      status: "ACTIVE",
+      createdAt: new Date().toISOString()
+    };
+    superAdminUser.walletBalance = 0;
+    db.users = [superAdminUser];
+
+    const superAdminObj = (db.admin_users || []).find((u: any) => (u.email || "").toLowerCase().trim() === cleanSuperAdminEmail) || {
+      uid: superAdminUser.uid || "usr_superadmin",
+      email: cleanSuperAdminEmail,
+      fullName: superAdminUser.fullName || "Adamu A. Muhammad",
+      role: "SUPER_ADMIN",
+      status: "ACTIVE",
+      createdAt: new Date().toISOString()
+    };
+    db.admin_users = [superAdminObj];
+
+    const arrayFieldsToClear = [
+      "transactions",
+      "cacApplications",
+      "vendorServices",
+      "auditLogs",
+      "activityLogs",
+      "admin_activity_logs",
+      "admin_user_actions",
+      "receipts",
+      "notifications",
+      "announcement_posts",
+      "admin_sessions",
+      "active_sessions",
+      "blocked_devices",
+      "blocked_ips",
+      "security_alerts",
+      "account_locks",
+      "suspicious_activities",
+      "login_history",
+      "loginHistory",
+      "api_requests",
+      "api_request_logs",
+      "api_response_mappings",
+      "api_response_mapping_logs",
+      "virtualAccounts",
+      "virtual_accounts",
+      "walletAccounts",
+      "walletLogs",
+      "wallets",
+      "providerLogs",
+      "provider_logs",
+      "webhooks",
+      "webhookLogs",
+      "reconciliation_records",
+      "reconciliationRecords",
+      "processed_provider_tx_ids",
+      "processed_payment_references",
+      "settings_audit_logs",
+      "legalAcceptances"
+    ];
+
+    for (const f of arrayFieldsToClear) {
+      db[f] = [];
+    }
+
+    writeDB(db);
+
+    // 2. Clean smartlink.db (local SQLite/libSQL)
+    const localDbPath = path.join(process.cwd(), "src", "data", "smartlink.db");
+    if (fs.existsSync(localDbPath)) {
+      try {
+        const client = createLibsqlClient({ url: `file:${localDbPath}` });
+        await client.execute("PRAGMA foreign_keys = OFF;");
+        const tablesToClear = [
+          "wallet_ledger", "refunds", "reconciliations", "unmatched_payments",
+          "payments", "transactions", "user_virtual_accounts", "verification_records",
+          "cac_applications", "slip_logs", "wallets", "users", "audit_logs", "webhook_events"
+        ];
+        for (const tbl of tablesToClear) {
+          try {
+            await client.execute(`DELETE FROM ${tbl};`);
+          } catch {}
+        }
+        await client.execute({
+          sql: "DELETE FROM admin_users WHERE LOWER(TRIM(email)) != LOWER(TRIM(?));",
+          args: [cleanSuperAdminEmail]
+        });
+        await client.execute("PRAGMA foreign_keys = ON;");
+        await client.execute("VACUUM;");
+      } catch (sqlErr) {
+        console.warn("[settings] SQLite cleanup note:", sqlErr);
+      }
+    }
+
+    // 3. Clear backup snapshot files
+    let backupsRemoved = 0;
+    const searchDirs = [path.join(process.cwd(), "src", "data"), process.cwd(), "/tmp"];
+    for (const dir of searchDirs) {
+      if (!fs.existsSync(dir)) continue;
+      const files = fs.readdirSync(dir);
+      for (const file of files) {
+        if (file.startsWith("db_backup_") || file.startsWith("system_settings_backup_") || file === "smartlink_settings_backup.json" || (file.endsWith(".bak") && !file.includes("node_modules"))) {
+          try {
+            fs.unlinkSync(path.join(dir, file));
+            backupsRemoved++;
+          } catch {}
+        }
+      }
+    }
+
+    return res.json({
+      success: true,
+      message: "All local records and backup records have been cleared successfully.",
+      details: {
+        usersPreserved: 1,
+        transactionsCleared: true,
+        auditLogsCleared: true,
+        walletsCleared: true,
+        backupsRemoved
+      }
+    });
+  } catch (err: any) {
+    console.error("Error clearing local records:", err);
+    return res.status(500).json({ success: false, message: "Failed to clear records: " + (err.message || String(err)) });
+  }
+});
 
 export default router;

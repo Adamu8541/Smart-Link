@@ -3,7 +3,7 @@ import { readDB, writeDB } from "../db";
 import { verifyUserOrAdminSession } from "../middleware/auth";
 import { ServerWalletEngine } from "../../src/services/serverWalletEngine";
 import * as usersStore from "../../src/services/usersStore";
-import { syncToFirestore } from "../../src/services/settingsStore";
+import { syncToStorage } from "../../src/services/settingsStore";
 
 const router = express.Router();
 const app = router;
@@ -108,7 +108,7 @@ app.post("/api/marketplace/services", async (req, res) => {
   if (!db.vendorServices) db.vendorServices = [];
   db.vendorServices.push(newService);
   writeDB(db);
-  await syncToFirestore(db);
+  await syncToStorage(db);
 
   return res.json({ success: true, service: newService });
 });

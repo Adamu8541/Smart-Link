@@ -82,8 +82,8 @@ export class Repository<T extends StandardBaseDocument> {
 }
 
 // Backwards compatibility alias
-export const FirestoreRepository = Repository;
-export const handleFirestoreError = (err: unknown) => {
+export const StorageRepository = Repository;
+export const handleStorageError = (err: unknown) => {
   console.error("[DbManager Error]:", err);
   throw err;
 };

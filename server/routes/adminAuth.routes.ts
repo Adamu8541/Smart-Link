@@ -25,12 +25,12 @@ import { PaymentVerificationReconciliationEngine } from "../../src/services/paym
 import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerGateway";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
 import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
-import { syncFromFirestore, syncToFirestore } from "../../src/services/settingsStore";
-import { loadFirestoreDb, syncDbToFirestore, saveDocToFirestore } from "../../src/services/firestoreStore";
+import { syncFromStorage, syncToStorage } from "../../src/services/settingsStore";
 import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
 import * as securityStore from "../../src/services/securityStore";
 import * as notificationsStore from "../../src/services/notificationsStore";
+import { authenticateWithSupabase } from "../services/supabaseAdmin";
 
 
 const router = express.Router();
@@ -227,7 +227,7 @@ app.post("/api/admin/subadmins/revoke", requireAdmin, async (req, res) => {
 // SMARTLINK ADMIN PANEL — MODULE 1: AUTH & RBAC ENDPOINTS
 // ==========================================
 
-// Direct Admin Login Endpoint (Email + Password fallback for Super Admins and Staff)
+// Direct Admin Login Endpoint (Email + Password with Supabase check and fallback)
 app.post("/api/admin/auth/login", async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
@@ -238,7 +238,17 @@ app.post("/api/admin/auth/login", async (req, res) => {
   const db = readDB();
   const ipAddress = req.ip || req.socket.remoteAddress || "127.0.0.1";
 
-  const result = await adminAuthService.loginAdmin(db, cleanEmail, password, ipAddress);
+  let isSupabaseAuthed = false;
+  try {
+    const supaResult = await authenticateWithSupabase(cleanEmail, password);
+    if (supaResult && supaResult.success) {
+      isSupabaseAuthed = true;
+    }
+  } catch (err) {
+    console.warn("[AdminAuth] Supabase login authentication skipped or failed:", err);
+  }
+
+  const result = await adminAuthService.loginAdmin(db, cleanEmail, password, ipAddress, isSupabaseAuthed);
 
   if (!result.success || !result.session) {
     return res.status(401).json({
@@ -253,7 +263,9 @@ app.post("/api/admin/auth/login", async (req, res) => {
     success: true,
     session: result.session,
     user: result.adminUser,
-    message: "Administrative login successful.",
+    message: isSupabaseAuthed
+      ? "Administrative login successful via Supabase Auth."
+      : "Administrative login successful.",
   });
 });
 

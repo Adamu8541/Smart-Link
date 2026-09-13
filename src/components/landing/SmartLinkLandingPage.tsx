@@ -12,6 +12,7 @@ const LandingTrustSection = lazy(() => import("./LandingTrustSection"));
 const LandingServicesPreview = lazy(() => import("./LandingServicesPreview"));
 const LandingHowItWorks = lazy(() => import("./LandingHowItWorks"));
 const LandingFAQSection = lazy(() => import("./LandingFAQSection"));
+const LandingContactSection = lazy(() => import("./LandingContactSection"));
 const LandingCTASection = lazy(() => import("./LandingCTASection"));
 const LandingFooter = lazy(() => import("./LandingFooter"));
 const UserAnnouncementBanner = lazy(() => import("../notification/UserAnnouncementBanner").then(m => ({ default: m.UserAnnouncementBanner })));
@@ -49,8 +50,13 @@ export const SmartLinkLandingPage: React.FC<SmartLinkLandingPageProps> = ({
       setActiveInfoTab("about");
       return;
     }
-    if (sectionId === "contact-section") {
-      setActiveInfoTab("contact");
+    if (sectionId === "contact-section" || sectionId === "contact") {
+      const el = document.getElementById("contact-section");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+      } else {
+        setActiveInfoTab("contact");
+      }
       return;
     }
     const el = document.getElementById(sectionId);
@@ -138,6 +144,13 @@ export const SmartLinkLandingPage: React.FC<SmartLinkLandingPageProps> = ({
             <LandingFAQSection 
               onContactSupport={handleContactSales}
               onGetStarted={onGetStarted}
+            />
+          </div>
+
+          {/* Contact Section */}
+          <div className="content-visibility-auto">
+            <LandingContactSection 
+              onNavigateFAQ={() => handleNavigateSection("faq-section")}
             />
           </div>
 

@@ -3,6 +3,7 @@ import { Search, Filter, History, X, Download, CheckCircle2, AlertCircle, Clock,
 import { WalletTransaction } from "../../types";
 import { TransactionItem } from "./TransactionItem";
 import { TransactionStatusBadge } from "./TransactionStatus";
+import { formatNaira, formatSafeDateTime } from "../../utils/formatUtils";
 
 interface WalletHistoryProps {
   transactions: WalletTransaction[];
@@ -170,7 +171,7 @@ export const WalletHistory: React.FC<WalletHistoryProps> = ({
               <div className="flex justify-between items-center">
                 <span className="text-[#6B7280] dark:text-[#9CA3AF]">Amount Paid</span>
                 <span className="font-mono font-extrabold text-[#111827] dark:text-white text-sm">
-                  ₦{selectedTx.amount.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+                  {formatNaira(selectedTx.amount ?? 0)}
                 </span>
               </div>
 
@@ -178,7 +179,7 @@ export const WalletHistory: React.FC<WalletHistoryProps> = ({
                 <div className="flex justify-between items-center">
                   <span className="text-[#6B7280] dark:text-[#9CA3AF]">Balance Before</span>
                   <span className="font-mono text-[#4B5563] dark:text-[#E5E7EB]">
-                    ₦{selectedTx.walletBalanceBefore.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+                    {formatNaira(selectedTx.walletBalanceBefore)}
                   </span>
                 </div>
               )}
@@ -187,7 +188,7 @@ export const WalletHistory: React.FC<WalletHistoryProps> = ({
                 <div className="flex justify-between items-center">
                   <span className="text-[#6B7280] dark:text-[#9CA3AF]">Balance After</span>
                   <span className="font-mono text-[#4B5563] dark:text-[#E5E7EB]">
-                    ₦{selectedTx.walletBalanceAfter.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+                    {formatNaira(selectedTx.walletBalanceAfter)}
                   </span>
                 </div>
               )}
@@ -195,7 +196,7 @@ export const WalletHistory: React.FC<WalletHistoryProps> = ({
               <div className="flex justify-between items-center pt-2 border-t border-[#E5E7EB] dark:border-[#4B5563] text-[11px]">
                 <span className="text-[#6B7280] dark:text-[#9CA3AF]">Date & Time</span>
                 <span className="text-[#4B5563] dark:text-[#E5E7EB] font-mono">
-                  {new Date(selectedTx.createdAt).toLocaleString("en-NG")}
+                  {formatSafeDateTime(selectedTx.createdAt)}
                 </span>
               </div>
             </div>

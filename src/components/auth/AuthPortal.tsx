@@ -96,6 +96,8 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
   const [isVerifyingEmail, setIsVerifyingEmail] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState("");
 
+  const useSupabase = isSupabaseConfigured;
+
   // Login Form State
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
@@ -178,22 +180,22 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
 
     try {
       // If Supabase is configured, authenticate via Supabase Auth
-      if (isSupabaseConfigured) {
+      if (useSupabase) {
         const supaLogin = await SupabaseAuthService.signIn(cleanEmail, authPassword);
-        if (!supaLogin.user) {
-          throw new Error("Authentication failed. Please check your email and password.");
-        }
-
+        
         // Email verification check
-        if (!supaLogin.isEmailVerified) {
-          setVerificationEmail(cleanEmail);
-          setIsVerifyingEmail(true);
-          setAuthLoading(false);
-          setToast({
-            message: "Your email is not verified yet. Please check your inbox for the confirmation link sent by Supabase.",
-            type: "info",
-          });
-          return;
+        if (supaLogin.emailNotConfirmed || !supaLogin.isEmailVerified || !supaLogin.user) {
+          if (supaLogin.emailNotConfirmed || !supaLogin.isEmailVerified) {
+            setVerificationEmail(cleanEmail);
+            setIsVerifyingEmail(true);
+            setAuthLoading(false);
+            setToast({
+              message: "Your email is not verified yet. Please check your inbox for the confirmation link sent by Supabase, or click 'Resend Verification Link'.",
+              type: "info",
+            });
+            return;
+          }
+          throw new Error("Authentication failed. Please check your email and password.");
         }
 
         // Fetch / Sync user profile using verified Supabase ID & email
@@ -255,7 +257,17 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
       });
 
       if (!res.ok || !res.data?.user) {
-        throw new Error(res.data?.message || res.data?.error || "Authentication failed. Please check your email and password.");
+        if (res.data?.emailNotConfirmed || res.error?.toLowerCase().includes("not verified") || res.error?.toLowerCase().includes("confirmation link")) {
+          setVerificationEmail(cleanEmail);
+          setIsVerifyingEmail(true);
+          setAuthLoading(false);
+          setToast({
+            message: "Your email is not verified yet. Please check your inbox for the verification link or click 'Resend Verification Link'.",
+            type: "info",
+          });
+          return;
+        }
+        throw new Error(res.data?.message || res.data?.error || res.error || "Authentication failed. Please check your email and password.");
       }
 
       const loginUser = res.data.user;
@@ -283,9 +295,24 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
       });
     } catch (err: any) {
       soundFx.playErrorSound();
-      const friendlyMsg = getFriendlyErrorMessage(err);
-      setAuthError(friendlyMsg);
-      setAuthPassword("");
+      const rawMsg = (err?.message || err?.error || err || "").toLowerCase();
+      if (
+        rawMsg.includes("email not confirmed") ||
+        rawMsg.includes("not confirmed") ||
+        rawMsg.includes("not verified") ||
+        rawMsg.includes("email is not verify")
+      ) {
+        setVerificationEmail(cleanEmail);
+        setIsVerifyingEmail(true);
+        setToast({
+          message: "Your email is not verified yet. Please check your inbox or click 'Resend Verification Link'.",
+          type: "info",
+        });
+      } else {
+        const friendlyMsg = getFriendlyErrorMessage(err);
+        setAuthError(friendlyMsg);
+        setAuthPassword("");
+      }
     } finally {
       setAuthLoading(false);
     }
@@ -352,7 +379,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
       }
 
       // If Supabase is configured, register user via Supabase Auth
-      if (isSupabaseConfigured) {
+      if (useSupabase) {
         const supaReg = await SupabaseAuthService.signUp({
           email: cleanEmail,
           password: regPassword,
@@ -392,7 +419,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
           console.warn("Legal consent acceptance recording note:", legalRecErr);
         }
 
-        // Sync Supabase user with backend and Firestore mirror
+        // Sync Supabase user with backend and Storage mirror
         await safeFetchJson("/api/auth/sync-supabase-user", {
           method: "POST",
           headers: supaReg.session?.access_token ? { Authorization: `Bearer ${supaReg.session.access_token}` } : undefined,
@@ -462,6 +489,19 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
         console.warn("Legal consent acceptance recording note:", legalRecErr);
       }
 
+      if (regRes.data?.needsEmailConfirmation || !activeUser.isVerified) {
+        soundFx.playSuccessSound();
+        setAuthLoading(false);
+        setVerificationEmail(cleanEmail);
+        setIsVerifyingEmail(true);
+        setIsRegistering(false);
+        setToast({
+          message: "Registration successful! A verification link has been dispatched to your email. Please click the link to activate your account.",
+          type: "success",
+        });
+        return;
+      }
+
       localStorage.setItem("smart_link_user", JSON.stringify(activeUser));
       soundFx.playSuccessSound();
       setAuthSuccessState("register");
@@ -496,7 +536,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
     setAuthLoading(true);
     setAuthError(null);
     try {
-      if (isSupabaseConfigured) {
+      if (useSupabase) {
         const supaUser = await SupabaseAuthService.getUser();
         if (supaUser && supaUser.email_confirmed_at) {
           const syncResult = await safeFetchJson("/api/auth/sync-supabase-user", {
@@ -587,7 +627,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
     setAuthLoading(true);
     setAuthError(null);
     try {
-      if (isSupabaseConfigured) {
+      if (useSupabase) {
         await SupabaseAuthService.resendVerificationEmail(verificationEmail);
       } else {
         await safeFetchJson("/api/auth/resend-verification", {
@@ -705,6 +745,8 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                 <Mail className="h-3.5 w-3.5 text-[#0F2D5C]" />
                 Resend Verification Link
               </button>
+
+
             </div>
 
             <div className="pt-2 text-center">
@@ -837,6 +879,26 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                 <AlertCircle className="h-4 w-4 text-[#0F2D5C] shrink-0 mt-0.5" />
                 <div className="flex-1 leading-relaxed">
                   <div>{authError}</div>
+                  {(authError.toLowerCase().includes("not verified") || authError.toLowerCase().includes("email is not verify") || authError.toLowerCase().includes("confirmation link")) && (
+                    <div className="mt-2 pt-2 border-t border-[#E5E7EB]/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                      <span className="text-[11px] text-[#4B5563] font-normal">Need the verification link resent?</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (authEmail) {
+                            setVerificationEmail(authEmail.trim());
+                            setIsVerifyingEmail(true);
+                            handleResendSupabaseVerification();
+                          } else {
+                            setIsVerifyingEmail(true);
+                          }
+                        }}
+                        className="text-xs font-bold text-[#0F2D5C] hover:text-[#17407E] underline flex items-center gap-1 cursor-pointer bg-transparent border-none p-0 focus:outline-none"
+                      >
+                        Send verify link to email →
+                      </button>
+                    </div>
+                  )}
                   {(authError.includes("sign up if not register before") || authError.includes("check email and try again") || authError.includes("register please") || authError.includes("sign up")) && (
                     <div className="mt-2 pt-2 border-t border-[#E5E7EB]/80 flex items-center justify-between">
                       <span className="text-[11px] text-[#4B5563] font-normal">Need an account?</span>
@@ -921,6 +983,8 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                   </button>
                 )}
               </div>
+
+
 
               <button
                 type="submit"
@@ -1137,6 +1201,8 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                   showError={!!authError && (!regAgreedTerms || !regAgreedPrivacy || !regAgreedKyc)}
                 />
               </div>
+
+
 
               <button
                 type="submit"

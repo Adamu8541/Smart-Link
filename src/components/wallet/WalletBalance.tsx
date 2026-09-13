@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Eye, EyeOff, Wallet as WalletIcon, ShieldCheck, RefreshCw } from "lucide-react";
+import { formatNaira } from "../../utils/formatUtils";
 
 interface WalletBalanceProps {
   balance: number;
@@ -24,7 +25,9 @@ export const WalletBalance: React.FC<WalletBalanceProps> = ({
 }) => {
   const [hidden, setHidden] = useState(false);
 
-  const availableBalance = Math.max(0, balance - heldBalance);
+  const safeBalance = Number(balance) || 0;
+  const safeHeld = Number(heldBalance) || 0;
+  const availableBalance = Math.max(0, safeBalance - safeHeld);
   const symbol = currency === "NGN" ? "₦" : "$";
 
   const sizeClasses = {
@@ -69,10 +72,9 @@ export const WalletBalance: React.FC<WalletBalanceProps> = ({
         <span className={`${sizeClasses} text-[#111827] dark:text-white font-mono tracking-tight`}>
           {hidden
             ? "••••••••"
-            : `${symbol}${availableBalance.toLocaleString("en-NG", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}`}
+            : currency === "NGN"
+            ? formatNaira(availableBalance)
+            : `${symbol}${availableBalance.toFixed(2)}`}
         </span>
 
         {status === "ACTIVE" ? (
@@ -87,10 +89,9 @@ export const WalletBalance: React.FC<WalletBalanceProps> = ({
         )}
       </div>
 
-      {heldBalance > 0 && !hidden && (
+      {safeHeld > 0 && !hidden && (
         <div className="text-[11px] text-[#0F2D5C] dark:text-[#9CA3AF] font-medium">
-          Held in escrow: {symbol}
-          {heldBalance.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+          Held in escrow: {currency === "NGN" ? formatNaira(safeHeld) : `${symbol}${safeHeld.toFixed(2)}`}
         </div>
       )}
     </div>

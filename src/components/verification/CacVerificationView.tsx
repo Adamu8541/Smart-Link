@@ -36,6 +36,7 @@ import { VerificationLoader } from "./VerificationLoader";
 import { VerificationError } from "./VerificationError";
 import { VerificationSuccess } from "./VerificationSuccess";
 import { VerificationReceipt } from "./VerificationReceipt";
+import { formatNaira, formatSafeDateTime } from "../../utils/formatUtils";
 
 interface CacVerificationViewProps {
   userId: string;
@@ -316,14 +317,14 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
             <div className="text-right">
               <span className="text-[10px] uppercase font-bold text-[#9CA3AF] block">Wallet Balance</span>
               <span className="font-mono text-sm font-extrabold text-[#0F2D5C] dark:text-[#9CA3AF]">
-                ₦{userBalance.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+                {formatNaira(userBalance)}
               </span>
             </div>
             <div className="h-8 w-px bg-[#E5E7EB] dark:bg-[#4B5563]" />
             <div className="text-right">
               <span className="text-[10px] uppercase font-bold text-[#9CA3AF] block">Fee</span>
               <span className="font-mono text-sm font-extrabold text-[#0F2D5C] dark:text-[#9CA3AF]">
-                ₦{cacFee.toLocaleString()}
+                {formatNaira(cacFee)}
               </span>
             </div>
             <div className="h-8 w-px bg-[#E5E7EB] dark:bg-[#4B5563]" />
@@ -604,7 +605,7 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
                   className="flex-1 py-3.5 px-6 bg-[#0F2D5C] hover:bg-[#0F2D5C] active:scale-98 text-white font-extrabold rounded-2xl text-xs transition-all shadow-md shadow-amber-600/20 cursor-pointer flex items-center justify-center gap-2"
                 >
                   <Lock className="h-4 w-4" />
-                  <span>Verify Business (₦{cacFee.toLocaleString()})</span>
+                  <span>Verify Business ({formatNaira(cacFee)})</span>
                 </button>
               </div>
             </div>
@@ -716,14 +717,14 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
                         <span>•</span>
                         <span>Ref: #{item.reference}</span>
                         <span>•</span>
-                        <span>{new Date(item.createdAt).toLocaleString()}</span>
+                        <span>{formatSafeDateTime(item.createdAt, "Recently")}</span>
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-3 self-end sm:self-auto">
                     <span className="font-mono text-xs font-bold text-[#4B5563] dark:text-[#E5E7EB]">
-                      ₦{item.fee.toLocaleString()}
+                      {formatNaira(item.fee ?? 0)}
                     </span>
                     <button
                       type="button"

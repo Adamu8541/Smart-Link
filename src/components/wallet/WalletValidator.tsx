@@ -2,6 +2,7 @@ import React from "react";
 import { CheckCircle2, AlertTriangle, AlertCircle, Wallet, Plus, ShieldAlert } from "lucide-react";
 import { WalletValidationResult, WalletErrorCode } from "../../types";
 import { SmartLinkLogoMark } from "../ui/SmartLinkLogoMark";
+import { formatNaira } from "../../utils/formatUtils";
 
 interface WalletValidatorProps {
   validationResult: WalletValidationResult | null;
@@ -40,11 +41,11 @@ export const WalletValidator: React.FC<WalletValidatorProps> = ({
             <span className="font-bold">Wallet Validated & Ready</span>
           </div>
           <span className="font-mono text-[11px] font-semibold bg-[#E5E7EB] dark:bg-[#0F2D5C]/60 px-2 py-0.5 rounded-md">
-            Available: ₦{(availableBalance ?? 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+            Available: {formatNaira(availableBalance ?? 0)}
           </span>
         </div>
         <p className="text-[11px] text-[#0F2D5C] dark:text-[#9CA3AF]/90 leading-relaxed">
-          Your wallet has sufficient funds (₦{itemPrice.toLocaleString()}) to complete this transaction securely.
+          Your wallet has sufficient funds ({formatNaira(itemPrice ?? 0)}) to complete this transaction securely.
         </p>
       </div>
     );
@@ -52,7 +53,7 @@ export const WalletValidator: React.FC<WalletValidatorProps> = ({
 
   // Handle Insufficient Balance
   if (errorCode === "INSUFFICIENT_BALANCE") {
-    const shortage = itemPrice - (availableBalance ?? 0);
+    const shortage = Math.max(0, (itemPrice ?? 0) - (availableBalance ?? 0));
 
     return (
       <div className={`p-4 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border border-[#E5E7EB] dark:border-[#0F2D5C]/60 rounded-xl space-y-3 text-xs text-[#0F2D5C] dark:text-[#9CA3AF] ${className}`}>
@@ -70,7 +71,7 @@ export const WalletValidator: React.FC<WalletValidatorProps> = ({
           <div>
             <span className="text-[#6B7280] dark:text-[#9CA3AF]">Shortage Amount:</span>{" "}
             <strong className="font-mono text-[#0F2D5C] dark:text-[#9CA3AF] font-bold">
-              ₦{shortage > 0 ? shortage.toLocaleString("en-NG", { minimumFractionDigits: 2 }) : "0.00"}
+              {formatNaira(shortage)}
             </strong>
           </div>
 

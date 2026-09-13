@@ -29,8 +29,7 @@ import { NinBvnPortalAdapter } from "../../src/services/providers/ninBvnPortalAd
 import { VerifyNGAdapter } from "../../src/services/providers/verifyNgAdapter";
 import { ClubkonnectAdapter } from "../../src/services/providers/clubkonnectAdapter";
 import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
-import { syncFromFirestore, syncToFirestore } from "../../src/services/settingsStore";
-import { loadFirestoreDb, syncDbToFirestore, saveDocToFirestore } from "../../src/services/firestoreStore";
+import { syncFromStorage, syncToStorage } from "../../src/services/settingsStore";
 import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
 import * as securityStore from "../../src/services/securityStore";
@@ -42,7 +41,7 @@ const app = router;
 
 app.get("/api/admin/payment-providers", requireAdmin, async (req, res) => {
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
   if (!db.api_providers) db.api_providers = [];
   if (Array.isArray(db.apiProviders) && db.apiProviders.length > 0 && db.api_providers.length === 0) {
     db.api_providers = [...db.apiProviders];
@@ -54,7 +53,7 @@ app.get("/api/admin/payment-providers", requireAdmin, async (req, res) => {
 // 2. Add Payment Provider
 app.post("/api/admin/payment-providers", requireAdmin, async (req, res) => {
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
   const admin = (req as any).admin;
   const adminUid = (req as any).authenticatedUid;
   const {
@@ -167,7 +166,7 @@ app.post("/api/admin/payment-providers", requireAdmin, async (req, res) => {
   }
 
   writeDB(db);
-  await syncToFirestore(db);
+  await syncToStorage(db);
   res.json({ success: true, provider: newProvider, paymentProviders: db.api_providers });
 });
 
@@ -175,7 +174,7 @@ app.post("/api/admin/payment-providers", requireAdmin, async (req, res) => {
 app.put("/api/admin/payment-providers/:id", requireAdmin, async (req, res) => {
   const { id } = req.params;
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
   const admin = (req as any).admin;
   const adminUid = (req as any).authenticatedUid;
   const body = req.body || {};
@@ -400,8 +399,8 @@ app.put("/api/admin/payment-providers/:id", requireAdmin, async (req, res) => {
   db.auditLogs.unshift(auditEntry);
 
   writeDB(db);
-  await syncToFirestore(db);
-  await saveDocToFirestore("audit_logs", auditEntry.id, auditEntry);
+  await syncToStorage(db);
+  Promise.resolve();
 
   res.json({
     success: true,
@@ -417,7 +416,7 @@ app.put("/api/admin/payment-providers/:id", requireAdmin, async (req, res) => {
 app.delete("/api/admin/payment-providers/:id", requireAdmin, async (req, res) => {
   const { id } = req.params;
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
 
   const admin = (req as any).admin;
   const adminUid = (req as any).authenticatedUid;
@@ -446,7 +445,7 @@ app.delete("/api/admin/payment-providers/:id", requireAdmin, async (req, res) =>
   }
 
   writeDB(db);
-  await syncToFirestore(db);
+  await syncToStorage(db);
   res.json({ success: true, paymentProviders: db.api_providers });
 });
 
@@ -454,7 +453,7 @@ app.delete("/api/admin/payment-providers/:id", requireAdmin, async (req, res) =>
 app.post("/api/admin/payment-providers/:id/activate", requireAdmin, async (req, res) => {
   const { id } = req.params;
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
 
   const admin = (req as any).admin;
   const adminUid = (req as any).authenticatedUid;
@@ -871,7 +870,7 @@ app.get("/api/wallet/payment-status/:reference", async (req, res) => {
 app.post("/api/admin/payment-providers/:id/deactivate", requireAdmin, async (req, res) => {
   const { id } = req.params;
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
 
   const admin = (req as any).admin;
   const adminUid = (req as any).authenticatedUid;
@@ -903,7 +902,7 @@ app.post("/api/admin/payment-providers/:id/deactivate", requireAdmin, async (req
   }
 
   writeDB(db);
-  await syncToFirestore(db);
+  await syncToStorage(db);
   res.json({ success: true, provider: targetProvider, paymentProviders: db.api_providers });
 });
 
@@ -912,7 +911,7 @@ app.post("/api/admin/payment-providers/:id/test-connection", requireAdmin, async
   const { id } = req.params;
   const startTime = Date.now();
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
 
   const adminUser = (req as any).admin;
   const adminUid = (req as any).authenticatedUid;
@@ -1152,7 +1151,7 @@ app.post("/api/admin/gateway-routing", async (req, res) => {
   }
 
   writeDB(db);
-  await syncToFirestore(db);
+  await syncToStorage(db);
 
   return res.json({
     success: true,
@@ -1204,7 +1203,7 @@ app.post("/api/admin/background-jobs/process", async (req, res) => {
   const db = readDB();
   const result = await MultiGatewayRoutingEngine.processBackgroundJobs(db);
   writeDB(db);
-  await syncToFirestore(db);
+  await syncToStorage(db);
 
   return res.json({
     success: true,
@@ -1240,7 +1239,7 @@ app.post("/api/admin/background-jobs/queue", async (req, res) => {
   });
 
   writeDB(db);
-  await syncToFirestore(db);
+  await syncToStorage(db);
 
   return res.json({
     success: true,
@@ -1427,7 +1426,7 @@ function seedModule6ProvidersIfEmpty(db: any) {
 // 1. GET /api/admin/providers — List Providers with Search, Filter, Sort, Pagination & Metrics
 app.get("/api/admin/providers", requireAdmin, async (req, res) => {
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
 
   seedModule6ProvidersIfEmpty(db);
 
@@ -1529,7 +1528,7 @@ app.get("/api/admin/providers", requireAdmin, async (req, res) => {
 app.get("/api/admin/providers/:providerId", requireAdmin, async (req, res) => {
   const { providerId } = req.params;
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
 
   seedModule6ProvidersIfEmpty(db);
 
@@ -1554,7 +1553,7 @@ app.put("/api/admin/providers/:providerId", requireAdmin, async (req, res) => {
   const { providerId } = req.params;
   const body = req.body || {};
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
 
   const admin = (req as any).admin;
   const adminUid = (req as any).authenticatedUid;
@@ -1675,8 +1674,8 @@ app.put("/api/admin/providers/:providerId", requireAdmin, async (req, res) => {
   db.auditLogs.unshift(auditEntry);
 
   writeDB(db);
-  await syncToFirestore(db);
-  await saveDocToFirestore("audit_logs", auditEntry.id, auditEntry);
+  await syncToStorage(db);
+  Promise.resolve();
 
   res.json({
     success: true,
@@ -1689,7 +1688,7 @@ app.put("/api/admin/providers/:providerId", requireAdmin, async (req, res) => {
 app.delete("/api/admin/providers/:providerId", requireAdmin, async (req, res) => {
   const { providerId } = req.params;
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
 
 
   seedModule6ProvidersIfEmpty(db);
@@ -1700,7 +1699,7 @@ app.delete("/api/admin/providers/:providerId", requireAdmin, async (req, res) =>
   db.apiProviders = db.api_providers;
 
   writeDB(db);
-  await syncToFirestore(db);
+  await syncToStorage(db);
 
   res.json({
     success: true,
@@ -1712,7 +1711,7 @@ app.delete("/api/admin/providers/:providerId", requireAdmin, async (req, res) =>
 app.post("/api/admin/providers/:providerId/set-default", async (req, res) => {
   const { providerId } = req.params;
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
   seedModule6ProvidersIfEmpty(db);
 
   const provider = (db.api_providers || []).find((p: any) => p.id === providerId);
@@ -1727,7 +1726,7 @@ app.post("/api/admin/providers/:providerId/set-default", async (req, res) => {
   db.apiProviders = db.api_providers;
 
   writeDB(db);
-  await syncToFirestore(db);
+  await syncToStorage(db);
 
   res.json({
     success: true,
@@ -1740,7 +1739,7 @@ app.post("/api/admin/providers/:providerId/set-default", async (req, res) => {
 app.post("/api/admin/providers/add", requireAdmin, async (req, res) => {
   const body = req.body || {};
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
 
 
   seedModule6ProvidersIfEmpty(db);
@@ -1816,7 +1815,7 @@ app.post("/api/admin/providers/add", requireAdmin, async (req, res) => {
   db.apiProviders = db.api_providers;
 
   writeDB(db);
-  await syncToFirestore(db);
+  await syncToStorage(db);
   res.json({ success: true, provider: APIProviderManager.sanitizeConfig(newProviderConfig) });
 });
 
@@ -1825,7 +1824,7 @@ app.post("/api/admin/providers/:providerId/toggle", requireAdmin, async (req, re
   const { providerId } = req.params;
   const body = req.body || {};
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
 
 
   seedModule6ProvidersIfEmpty(db);
@@ -1848,7 +1847,7 @@ app.post("/api/admin/providers/:providerId/toggle", requireAdmin, async (req, re
   if (p2) Object.assign(p2, target);
 
   writeDB(db);
-  await syncToFirestore(db);
+  await syncToStorage(db);
   res.json({ success: true, enabled: newEnabled, status: target.status, provider: target });
 });
 
@@ -1856,7 +1855,7 @@ app.post("/api/admin/providers/:providerId/toggle", requireAdmin, async (req, re
 app.post("/api/admin/providers/:providerId/test-connection", requireAdmin, async (req, res) => {
   const { providerId } = req.params;
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
   const admin = (req as any).admin;
 
   seedModule6ProvidersIfEmpty(db);
@@ -1911,7 +1910,7 @@ app.post("/api/admin/providers/:providerId/test-connection", requireAdmin, async
   });
 
   writeDB(db);
-  await syncToFirestore(db);
+  await syncToStorage(db);
 
   return res.json({
     success: testResult.ok,
@@ -1932,7 +1931,7 @@ app.post("/api/admin/providers/:providerId/test-connection", requireAdmin, async
 app.get("/api/admin/providers/:providerId/balance", requireAdmin, async (req, res) => {
   const { providerId } = req.params;
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
 
   seedModule6ProvidersIfEmpty(db);
 
@@ -1971,7 +1970,7 @@ app.post("/api/admin/providers/failover", requireAdmin, async (req, res) => {
   } = req.body;
 
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
 
   const admin = (req as any).admin;
   if (!adminAuthService.hasPermission(admin, "MANAGE_PROVIDERS")) {
@@ -2031,7 +2030,7 @@ app.post("/api/admin/providers/failover", requireAdmin, async (req, res) => {
     });
 
     writeDB(db);
-    await syncToFirestore(db);
+    await syncToStorage(db);
 
     return res.json({
       success: true,
@@ -2043,7 +2042,7 @@ app.post("/api/admin/providers/failover", requireAdmin, async (req, res) => {
   }
 
   writeDB(db);
-  await syncToFirestore(db);
+  await syncToStorage(db);
 
   return res.json({
     success: true,

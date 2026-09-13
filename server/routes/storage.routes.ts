@@ -153,7 +153,7 @@ app.get("/api/storage/file/:savedFileName", async (req, res) => {
 
   const db = readDB();
 
-  // Find file owner / metadata from db.files or Firestore cloud_storage_files
+  // Find file owner / metadata from db.files or Storage cloud_storage_files
   let fileOwnerId = "";
   let fileMetadata: any = null;
 

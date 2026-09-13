@@ -74,8 +74,15 @@ export const VerificationReceipt: React.FC<VerificationReceiptProps> = ({
           `Provider: ${result.providerName}\n` +
           `Verified Target ID: ${result.maskedId}\n` +
           `Status: ${result.status}\n` +
-          `Verification Fee: ₦${result.fee.toLocaleString()}\n` +
-          `Timestamp: ${new Date(result.timestamp).toLocaleString()}\n` +
+          `Verification Fee: ₦${(result.fee ?? 0).toLocaleString()}\n` +
+          `Timestamp: ${(() => {
+            try {
+              const d = new Date(result.timestamp || Date.now());
+              return isNaN(d.getTime()) ? new Date().toISOString() : d.toLocaleString();
+            } catch {
+              return new Date().toISOString();
+            }
+          })()}\n` +
           `Response Time: ${result.responseTime}ms\n` +
           `==========================================\n` +
           `Authenticity secured by SmartLink API Gateway.\n`
@@ -167,19 +174,26 @@ export const VerificationReceipt: React.FC<VerificationReceiptProps> = ({
           <div className="flex justify-between items-center pt-2 border-t border-[#E5E7EB]/80 dark:border-[#4B5563]/80">
             <span className="text-[#6B7280] dark:text-[#9CA3AF] font-semibold">Verification Fee</span>
             <span className="font-mono text-sm font-extrabold text-[#111827] dark:text-white">
-              ₦{result.fee.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+              ₦{(result.fee ?? 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}
             </span>
           </div>
 
           <div className="flex justify-between items-center pt-1 text-[11px] text-[#9CA3AF]">
             <span>Query Response Time</span>
-            <span className="font-mono text-[#4B5563] dark:text-[#E5E7EB]">{result.responseTime}ms</span>
+            <span className="font-mono text-[#4B5563] dark:text-[#E5E7EB]">{result.responseTime || 0}ms</span>
           </div>
 
           <div className="flex justify-between items-center text-[11px] text-[#9CA3AF]">
             <span>Issued Date & Time</span>
             <span className="font-mono text-[#4B5563] dark:text-[#E5E7EB]">
-              {new Date(result.timestamp).toLocaleString("en-NG")}
+              {(() => {
+                try {
+                  const d = new Date(result.timestamp || Date.now());
+                  return isNaN(d.getTime()) ? "Recently" : d.toLocaleString("en-NG");
+                } catch {
+                  return "Recently";
+                }
+              })()}
             </span>
           </div>
         </div>

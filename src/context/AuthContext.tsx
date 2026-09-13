@@ -1,6 +1,6 @@
 /**
  * SmartLink Nigeria — Centralized Authentication Context
- * Unifies Supabase Auth with existing user session management and Firebase compatibility.
+ * Unifies Supabase Auth with existing user session management.
  */
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
@@ -97,7 +97,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   /**
-   * Initial mount: Detect Supabase session, handle URL hash tokens, or fall back to Firebase
+   * Initial mount: Detect Supabase session, handle URL hash tokens, or fall back to local session
    */
   useEffect(() => {
     let isMounted = true;

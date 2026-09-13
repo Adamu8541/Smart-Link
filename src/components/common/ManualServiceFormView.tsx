@@ -39,6 +39,7 @@ import {
   CAC_SERVICES_LIST,
 } from "../../data/manualServicesConfig";
 import { UserProfile } from "../../types";
+import { formatNaira } from "../../utils/formatUtils";
 
 // Helper function to compress images before base64 encoding (prevents payload size limit issues)
 async function compressImageFile(file: File): Promise<{ fileName: string; mimeType: string; base64: string; size: number }> {
@@ -136,7 +137,7 @@ export function ManualServiceFormView({
 
   // Form input state
   const [formData, setFormData] = useState<{ [key: string]: any }>({});
-  // File uploads state: stores metadata and base64 strings locally in state (never sent to Firebase)
+  // File uploads state: stores metadata and base64 strings locally in state (never sent to cloud storage)
   const [filesData, setFilesData] = useState<{
     [fieldName: string]: { fileName: string; mimeType: string; base64: string; size: number };
   }>({});
@@ -495,9 +496,11 @@ export function ManualServiceFormView({
     }
 
     // Wallet balance verification
-    if (activeServiceConfig.price > 0 && currentUser.walletBalance < activeServiceConfig.price) {
+    const serviceFee = activeServiceConfig.price ?? 0;
+    const currentBal = currentUser.walletBalance ?? 0;
+    if (serviceFee > 0 && currentBal < serviceFee) {
       setError(
-        `Insufficient wallet balance. Total fee is ₦${activeServiceConfig.price.toLocaleString()}, but your balance is ₦${currentUser.walletBalance.toLocaleString()}. Please fund your wallet first.`
+        `Insufficient wallet balance. Total fee is ${formatNaira(serviceFee)}, but your balance is ${formatNaira(currentBal)}. Please fund your wallet first.`
       );
       return;
     }
@@ -530,7 +533,7 @@ export function ManualServiceFormView({
           serviceName: activeServiceConfig.name,
           fee: activeServiceConfig.price,
           formData,
-          filesData, // Sent directly to backend mailer and local storage, NOT to Firebase
+          filesData, // Sent directly to backend mailer and local storage, NOT to cloud storage
         }),
       });
 
@@ -937,7 +940,7 @@ export function ManualServiceFormView({
               <div>
                 <span className="text-[11px] font-semibold text-[#6B7280] dark:text-[#9CA3AF] uppercase">Filing Fee</span>
                 <p className="text-lg font-black text-[#0F2D5C] dark:text-[#60A5FA]">
-                  {activeServiceConfig.price > 0 ? `₦${activeServiceConfig.price.toLocaleString()}` : "Free Application"}
+                  {(activeServiceConfig.price ?? 0) > 0 ? formatNaira(activeServiceConfig.price) : "Free Application"}
                 </p>
               </div>
             </div>
@@ -945,8 +948,8 @@ export function ManualServiceFormView({
             {currentUser && (
               <div className="text-right">
                 <span className="text-[11px] font-semibold text-[#6B7280] dark:text-[#9CA3AF] uppercase">Your Wallet</span>
-                <p className={`text-sm font-bold ${currentUser.walletBalance < activeServiceConfig.price ? "text-red-500" : "text-emerald-600 dark:text-emerald-400"}`}>
-                  ₦{currentUser.walletBalance.toLocaleString()}
+                <p className={`text-sm font-bold ${(currentUser.walletBalance ?? 0) < (activeServiceConfig.price ?? 0) ? "text-red-500" : "text-emerald-600 dark:text-emerald-400"}`}>
+                  {formatNaira(currentUser.walletBalance)}
                 </p>
               </div>
             )}

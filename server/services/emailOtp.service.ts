@@ -6,6 +6,7 @@ export type SensitiveOtpPurpose =
   | "CHANGE_EMAIL"
   | "CHANGE_PHONE"
   | "CHANGE_PIN"
+  | "TOGGLE_PIN_REQUIREMENT"
   | "CHANGE_SECURITY_SETTINGS"
   | "CHANGE_ACCOUNT_INFO"
   | "CHANGE_USER_PRIVILEGES"
@@ -171,6 +172,7 @@ export class EmailOtpService {
       CHANGE_EMAIL: "Email Address Change Verification",
       CHANGE_PHONE: "Phone Number Change Verification",
       CHANGE_PIN: "Transaction PIN Security Update",
+      TOGGLE_PIN_REQUIREMENT: "Transaction PIN Security Preference",
       CHANGE_SECURITY_SETTINGS: "Security Settings Authorization",
       CHANGE_ACCOUNT_INFO: "Critical Account Information Update",
       CHANGE_USER_PRIVILEGES: "User Privileges & Role Authorization",
@@ -182,6 +184,7 @@ export class EmailOtpService {
       CHANGE_EMAIL: `change the registered email address for your Smart Link NG account${targetValue ? ` to ${targetValue}` : ""}`,
       CHANGE_PHONE: `update your registered phone number on Smart Link NG${targetValue ? ` to ${targetValue}` : ""}`,
       CHANGE_PIN: "set or modify your 4-digit Transaction Authorization PIN",
+      TOGGLE_PIN_REQUIREMENT: "update your Transaction PIN requirement preference (ON/OFF) for transactions and payments",
       CHANGE_SECURITY_SETTINGS: "update platform security settings or system configurations",
       CHANGE_ACCOUNT_INFO: "modify important identity or account records",
       CHANGE_USER_PRIVILEGES: "modify user roles, administrative permissions, or account access status",
@@ -251,6 +254,8 @@ export class EmailOtpService {
     } catch (mailErr) {
       console.error("[EmailOtpService] SMTP dispatch error:", mailErr);
     }
+
+    console.log(`[EmailOtpService] OTP code generated for ${cleanEmail} (${actionTitle}): ${rawOtp}`);
 
     return {
       success: true,

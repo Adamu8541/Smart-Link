@@ -35,9 +35,17 @@ export interface GeneralConfig {
 
 export interface MaintenanceConfig {
   maintenanceMode?: boolean;
+  loginMaintenanceMode?: boolean;
+  signupMaintenanceMode?: boolean;
+  servicesMaintenanceMode?: boolean;
+  maintenanceModeAllServices?: boolean;
+  maintenanceServices?: string[];
   maintenanceMessage?: string;
-  allowAdminBypass?: boolean;
+  startDate?: string | null;
   scheduledEndTime?: string | null;
+  allowAdminBypass?: boolean;
+  supportContact?: string;
+  scope?: string;
 }
 
 export interface ServiceCatalogItem {
@@ -81,6 +89,7 @@ interface SiteConfigContextType {
   getServicePrice: (codeOrId: string, defaultPrice?: number) => number;
   getServiceCharge: (codeOrId: string, defaultCharge?: number) => number;
   getServiceItem: (codeOrId: string) => ServiceCatalogItem | undefined;
+  isServiceUnderMaintenance: (serviceCode: string) => boolean;
 }
 
 const DEFAULT_CONFIG: SiteConfig = {
@@ -131,6 +140,7 @@ const SiteConfigContext = createContext<SiteConfigContextType>({
   getServicePrice: () => 500,
   getServiceCharge: () => 0,
   getServiceItem: () => undefined,
+  isServiceUnderMaintenance: () => false,
 });
 
 export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -322,6 +332,24 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
     [getServiceItem]
   );
 
+  const isServiceUnderMaintenance = useCallback(
+    (serviceCode: string): boolean => {
+      if (!serviceCode) return false;
+      const m = config.maintenance || {};
+      if (m.maintenanceMode) return true;
+      if (!m.servicesMaintenanceMode) return false;
+      if (m.maintenanceModeAllServices) return true;
+      const list = m.maintenanceServices || [];
+      const codeUpper = String(serviceCode).toUpperCase().trim();
+      return list.some((item) => {
+        if (!item) return false;
+        const itemUpper = String(item).toUpperCase().trim();
+        return itemUpper === codeUpper || codeUpper.includes(itemUpper) || itemUpper.includes(codeUpper);
+      });
+    },
+    [config.maintenance]
+  );
+
   return (
     <SiteConfigContext.Provider
       value={{
@@ -335,6 +363,7 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
         getServicePrice,
         getServiceCharge,
         getServiceItem,
+        isServiceUnderMaintenance,
       }}
     >
       {children}

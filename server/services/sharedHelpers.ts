@@ -3,6 +3,8 @@ import { adminAuthService } from "../../src/services/adminAuthService";
 import { getActiveProviderAndAdapter } from "../../src/services/providerGateway";
 import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
+import { VirtualAccountRepository } from "../turso/repositories";
+import { executeTurso } from "../turso/client";
 
 export const DEFAULT_SERVICES_CATALOG = [
   {
@@ -126,7 +128,7 @@ export function seedDefaultServicesCatalogIfEmpty(db: any) {
 }
 
 export function seedDefaultUsersIfEmpty(db: any) {
-  // No-op: users are stored in Firestore via usersStore
+  // No-op: users are stored in Storage via usersStore
 }
 
 export function seedDefaultTransactionsIfEmpty(db: any) {
@@ -186,7 +188,64 @@ export async function getOrCreateUserVirtualAccount(
 
   const forceRegenerate = Boolean(options?.forceRegenerate);
 
-  // 1. Check in-memory / JSON database (unless forceRegenerate is true)
+  // 1. Check Turso Database first for persistent user virtual account (unless forceRegenerate is true)
+  if (!forceRegenerate) {
+    try {
+      const tursoVa = await VirtualAccountRepository.findByUserId(userId);
+      if (tursoVa && (tursoVa.account_number || (tursoVa as any).accountNumber)) {
+        const accNum = String(tursoVa.account_number || (tursoVa as any).accountNumber).trim();
+        const exactAccName = tursoVa.account_name || (tursoVa as any).accountName || userFallback?.fullName || "Customer";
+        const bankName = tursoVa.bank_name || (tursoVa as any).bankName || "PalmPay";
+        const providerName = String(tursoVa.provider || "").toLowerCase().includes("aspfiy")
+          ? "Aspfiy Payment Gateway"
+          : (tursoVa.provider || "Aspfiy Payment Gateway");
+
+        const existingAccount = {
+          id: tursoVa.id || `va_${tursoVa.provider || "aspfiy"}_${userId}`,
+          userId: tursoVa.user_id || userId,
+          userEmail: userFallback?.email || "",
+          userName: userFallback?.fullName || exactAccName,
+          provider: tursoVa.provider || "prov_aspfiy",
+          providerId: tursoVa.provider || "prov_aspfiy",
+          providerName,
+          bankName,
+          accountNumber: accNum,
+          accountName: exactAccName, // EXACT account name from Turso as returned by provider
+          reference: tursoVa.reference || `SL-${userId}`,
+          providerReference: tursoVa.reference || `SL-${userId}`,
+          accounts: [{ bankName, accountNumber: accNum }],
+          status: tursoVa.is_active ? "ACTIVE" : "INACTIVE",
+          createdAt: tursoVa.created_at || new Date().toISOString(),
+        };
+
+        // Synchronize in-memory cache
+        const existIdx = (db.virtualAccounts || []).findIndex(
+          (acc: any) => acc && (acc.userId === userId || acc.accountNumber === accNum)
+        );
+        if (existIdx >= 0) {
+          db.virtualAccounts[existIdx] = existingAccount;
+        } else {
+          db.virtualAccounts.push(existingAccount);
+        }
+        writeDB(db);
+
+        return {
+          success: true,
+          account: existingAccount,
+          virtualAccount: existingAccount,
+          provider: {
+            name: existingAccount.providerName || existingAccount.bankName,
+            id: existingAccount.providerId || existingAccount.provider,
+          },
+          isExisting: true,
+        };
+      }
+    } catch (tursoErr: any) {
+      console.warn(`[Turso] Virtual account lookup note: ${tursoErr?.message}`);
+    }
+  }
+
+  // 2. Check in-memory / JSON database (unless forceRegenerate is true)
   if (!forceRegenerate) {
     let existingAccount =
       (db.virtualAccounts || []).find(
@@ -210,7 +269,7 @@ export async function getOrCreateUserVirtualAccount(
     }
   }
 
-  // 2. Check Firestore wallets collection (unless forceRegenerate is true)
+  // 3. Check Storage wallets collection (unless forceRegenerate is true)
   if (!forceRegenerate) {
     try {
       const userWallet: any = await walletsStore.getWalletByUserId(userId);
@@ -229,7 +288,8 @@ export async function getOrCreateUserVirtualAccount(
           accountName:
             userWallet.virtualAccountName ||
             userWallet.accountName ||
-            `SMARTLINK / ${(userFallback?.fullName || "CUSTOMER").toUpperCase()}`,
+            userFallback?.fullName ||
+            "Customer",
           reference: userWallet.virtualAccountReference || userWallet.reference || `SL-${userId}`,
           providerReference: userWallet.virtualAccountReference || userWallet.reference || `SL-${userId}`,
           status: "ACTIVE",
@@ -250,11 +310,11 @@ export async function getOrCreateUserVirtualAccount(
         };
       }
     } catch (err: any) {
-      console.warn(`[VirtualAccount] Firestore wallet lookup note: ${err?.message}`);
+      console.warn(`[VirtualAccount] Storage wallet lookup note: ${err?.message}`);
     }
   }
 
-  // 3. Check Firestore users collection (unless forceRegenerate is true)
+  // 4. Check Storage users collection (unless forceRegenerate is true)
   let userFromDb: any = null;
   try {
     userFromDb = await usersStore.getUserById(userId);
@@ -286,7 +346,7 @@ export async function getOrCreateUserVirtualAccount(
       bankName: user.virtualBankName || user.bankName || "PalmPay",
       accountNumber: accNum,
       accountName:
-        user.virtualAccountName || user.accountName || `SMARTLINK / ${(user.fullName || "CUSTOMER").toUpperCase()}`,
+        user.virtualAccountName || user.accountName || user.fullName || "Customer",
       reference: user.virtualAccountReference || user.reference || `SL-${userId}`,
       providerReference: user.virtualAccountReference || user.reference || `SL-${userId}`,
       status: "ACTIVE",
@@ -307,7 +367,7 @@ export async function getOrCreateUserVirtualAccount(
     };
   }
 
-  // 4. Resolve Active Provider and Adapter
+  // 5. Resolve Active Provider and Adapter
   const resolved = getActiveProviderAndAdapter(db);
   if (!resolved) {
     return {
@@ -336,6 +396,9 @@ export async function getOrCreateUserVirtualAccount(
     };
   }
 
+  // Exact account name as returned by the provider (e.g. Aspfiy)
+  const exactAccountName = result.accountName || user.fullName || "Customer";
+
   const virtualAccount = {
     id: `va_${provider.id || "prov"}_${Date.now()}`,
     userId,
@@ -346,7 +409,7 @@ export async function getOrCreateUserVirtualAccount(
     providerName: provider.name,
     bankName: result.bankName || "PalmPay",
     accountNumber: result.accountNumber,
-    accountName: result.accountName || `SMARTLINK / ${(user.fullName || "CUSTOMER").toUpperCase()}`,
+    accountName: exactAccountName,
     providerReference: result.providerReference || `SL-${userId}`,
     reference: result.providerReference || `SL-${userId}`,
     accounts: [{ bankName: result.bankName || "PalmPay", accountNumber: result.accountNumber }],
@@ -355,6 +418,41 @@ export async function getOrCreateUserVirtualAccount(
     createdAt: new Date().toISOString(),
   };
 
+  // Persist to Turso Database
+  try {
+    // 1. Ensure user row exists in Turso users table
+    await executeTurso(`
+      INSERT INTO users (id, uid, email, full_name, role, wallet_balance, is_verified, status, created_at, updated_at)
+      VALUES (?, ?, ?, ?, 'USER', 0, 1, 'ACTIVE', datetime('now'), datetime('now'))
+      ON CONFLICT(uid) DO UPDATE SET
+        full_name = excluded.full_name,
+        updated_at = datetime('now');
+    `, [userId, userId, user.email || `${userId}@user.smartlink.ng`, exactAccountName || user.fullName]);
+
+    // 2. Ensure wallet row exists in Turso wallets table
+    await executeTurso(`
+      INSERT INTO wallets (id, wallet_id, user_id, currency, balance, held_balance, total_credits, total_debits, status, created_at, updated_at)
+      VALUES (?, ?, ?, 'NGN', 0, 0, 0, 0, 'ACTIVE', datetime('now'), datetime('now'))
+      ON CONFLICT(user_id) DO NOTHING;
+    `, [`wal_${userId}`, `wal_${userId}`, userId]);
+
+    // 3. Save virtual account into Turso user_virtual_accounts table
+    await VirtualAccountRepository.create({
+      id: virtualAccount.id,
+      user_id: userId,
+      account_number: result.accountNumber,
+      bank_name: result.bankName || "PalmPay",
+      bank_code: (result as any).bankCode || "999991",
+      account_name: exactAccountName,
+      provider: provider.id || "aspfiy",
+      reference: result.providerReference || `SL-${userId}`,
+      is_active: 1,
+    });
+    console.log(`[Turso] Saved virtual account for user ${userId} (${result.accountNumber} - ${exactAccountName})`);
+  } catch (tursoSaveErr: any) {
+    console.warn(`[Turso] Non-fatal virtual account save note: ${tursoSaveErr?.message}`);
+  }
+
   db.virtualAccounts.push(virtualAccount);
   db.walletAccounts.push(virtualAccount);
 
@@ -362,7 +460,7 @@ export async function getOrCreateUserVirtualAccount(
     await walletsStore.updateWalletAtomic(userId, () => ({
       virtualAccountNumber: result.accountNumber,
       virtualBankName: result.bankName || "PalmPay",
-      virtualAccountName: result.accountName || `SMARTLINK / ${(user.fullName || "CUSTOMER").toUpperCase()}`,
+      virtualAccountName: exactAccountName,
       virtualAccountReference: result.providerReference || `SL-${userId}`,
       provider: provider.id || provider.name,
       updatedAt: new Date().toISOString(),
@@ -375,7 +473,7 @@ export async function getOrCreateUserVirtualAccount(
     await usersStore.updateUser(userId, {
       virtualAccountNumber: result.accountNumber,
       virtualBankName: result.bankName || "PalmPay",
-      virtualAccountName: result.accountName || `SMARTLINK / ${(user.fullName || "CUSTOMER").toUpperCase()}`,
+      virtualAccountName: exactAccountName,
       virtualAccountReference: result.providerReference || `SL-${userId}`,
       updatedAt: new Date().toISOString(),
     });

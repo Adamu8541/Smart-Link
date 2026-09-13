@@ -5,6 +5,7 @@
 
 import { walletsStore, WalletDbRecord } from "./walletsStore";
 import * as usersStore from "./usersStore";
+import { formatNaira } from "../utils/formatUtils";
 
 export type { WalletDbRecord };
 
@@ -127,7 +128,7 @@ export class ServerWalletEngine {
       if (available < amt) {
         return {
           valid: false,
-          error: `Insufficient wallet balance. Available: ₦${available.toLocaleString("en-NG", { minimumFractionDigits: 2 })}, Required: ₦${amt.toLocaleString("en-NG", { minimumFractionDigits: 2 })}.`,
+          error: `Insufficient wallet balance. Available: ${formatNaira(available, true)}, Required: ${formatNaira(amt, true)}.`,
           errorCode: "INSUFFICIENT_BALANCE",
           wallet,
           availableBalance: available,
@@ -204,7 +205,7 @@ export class ServerWalletEngine {
       walletBalanceAfter: newBal,
       status: "SUCCESS",
       provider,
-      description: description || `Wallet Credited ₦${amt.toLocaleString("en-NG", { minimumFractionDigits: 2 })} via ${serviceName}`,
+      description: description || `Wallet Credited ${formatNaira(amt, true)} via ${serviceName}`,
       createdAt: now,
       updatedAt: now,
       recipientDetails,
@@ -294,7 +295,7 @@ export class ServerWalletEngine {
     const available = balanceBefore - held;
 
     if (available < amt) {
-      throw new Error(`Insufficient wallet balance. Available: ₦${available.toLocaleString("en-NG", { minimumFractionDigits: 2 })}, Requested Debit: ₦${amt.toLocaleString("en-NG", { minimumFractionDigits: 2 })}.`);
+      throw new Error(`Insufficient wallet balance. Available: ${formatNaira(available, true)}, Requested Debit: ${formatNaira(amt, true)}.`);
     }
 
     const newBal = wallet.balance - amt;
@@ -401,7 +402,7 @@ export class ServerWalletEngine {
     const held = wallet.heldBalance || 0;
     const available = balanceBefore - held;
     if (available < amt) {
-      throw new Error(`Insufficient wallet balance. Available: ₦${available.toLocaleString("en-NG", { minimumFractionDigits: 2 })}, Required Hold: ₦${amt.toLocaleString("en-NG", { minimumFractionDigits: 2 })}.`);
+      throw new Error(`Insufficient wallet balance. Available: ${formatNaira(available, true)}, Required Hold: ${formatNaira(amt, true)}.`);
     }
 
     wallet.heldBalance = held + amt;
@@ -420,7 +421,7 @@ export class ServerWalletEngine {
       walletBalanceAfter: balanceBefore,
       status: "PENDING",
       provider,
-      description: description || `Held ₦${amt.toLocaleString()} for ${serviceName}`,
+      description: description || `Held ${formatNaira(amt)} for ${serviceName}`,
       createdAt: now,
       updatedAt: now,
     };

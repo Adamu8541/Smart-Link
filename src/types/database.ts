@@ -1,5 +1,5 @@
 /**
- * SmartLink Fintech Enterprise Firestore Database Schemas & Collection Models
+ * SmartLink Fintech Enterprise Storage Database Schemas & Collection Models
  * Phase 1 Part 5 Architecture
  */
 

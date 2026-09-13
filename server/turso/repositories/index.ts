@@ -471,6 +471,14 @@ export class VirtualAccountRepository {
         id, user_id, account_number, bank_name, bank_code,
         account_name, provider, reference, is_active, created_at, updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(account_number) DO UPDATE SET
+        account_name = excluded.account_name,
+        bank_name = excluded.bank_name,
+        bank_code = excluded.bank_code,
+        provider = excluded.provider,
+        reference = excluded.reference,
+        is_active = excluded.is_active,
+        updated_at = excluded.updated_at
       RETURNING *;
     `;
     const args = [
@@ -478,21 +486,21 @@ export class VirtualAccountRepository {
       acc.user_id,
       acc.account_number,
       acc.bank_name,
-      acc.bank_code,
+      acc.bank_code || "",
       acc.account_name,
       acc.provider,
       acc.reference,
-      acc.is_active ? 1 : 0,
+      acc.is_active !== undefined ? (acc.is_active ? 1 : 0) : 1,
       now,
       now,
     ];
 
     const result = await executeTurso(sql, args);
-    return result.rows[0] as unknown as TursoVirtualAccount;
+    return (result.rows[0] as unknown as TursoVirtualAccount) || (acc as any);
   }
 
   static async findByUserId(userId: string): Promise<TursoVirtualAccount | null> {
-    const sql = `SELECT * FROM user_virtual_accounts WHERE user_id = ? AND is_active = 1 LIMIT 1;`;
+    const sql = `SELECT * FROM user_virtual_accounts WHERE user_id = ? AND is_active = 1 ORDER BY created_at DESC LIMIT 1;`;
     const result = await executeTurso(sql, [userId]);
     return (result.rows[0] as unknown as TursoVirtualAccount) || null;
   }

@@ -28,6 +28,7 @@ import { SlipPrintModal } from "./slips/SlipPrintModal";
 import { SlipLivePreviewCard } from "./slips/SlipLivePreviewCard";
 import { useSiteConfig } from "../../context/SiteConfigContext";
 import { THREE_NIN_SLIPS, mapSlipToConfig, NinSlipType3, getNinSlipOptions } from "./NinVerificationView";
+import { formatNaira } from "../../utils/formatUtils";
 
 interface NinPhoneVerificationViewProps {
   userId: string;
@@ -123,13 +124,9 @@ export const NinPhoneVerificationView: React.FC<NinPhoneVerificationViewProps> =
     }
 
     // Check balance
-    if (userBalance < selectedSlip.price) {
+    if (userBalance < (selectedSlip?.price ?? 0)) {
       setInputError(
-        `Insufficient wallet balance. You have ₦${userBalance.toLocaleString("en-NG", {
-          minimumFractionDigits: 2,
-        })}, but this service requires ₦${selectedSlip.price.toLocaleString("en-NG", {
-          minimumFractionDigits: 2,
-        })}. Please fund your wallet.`
+        `Insufficient wallet balance. You have ${formatNaira(userBalance)}, but this service requires ${formatNaira(selectedSlip?.price ?? 0)}. Please fund your wallet.`
       );
       return;
     }
@@ -346,7 +343,7 @@ export const NinPhoneVerificationView: React.FC<NinPhoneVerificationViewProps> =
                   </div>
                   <div className="text-right">
                     <div className="text-xl font-black text-amber-300 font-mono tracking-tight">
-                      ₦{selectedSlip.price.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+                      {formatNaira(selectedSlip.price ?? 0)}
                     </div>
                     <span className="inline-flex items-center gap-1 text-[10px] text-emerald-300 font-bold mt-0.5">
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Wallet balance checked
@@ -459,7 +456,7 @@ export const NinPhoneVerificationView: React.FC<NinPhoneVerificationViewProps> =
                 <span className="text-emerald-600 font-bold">🔒 256-bit encrypted</span>
                 <span>· Wallet balance:</span>
                 <strong className="text-slate-800 font-bold">
-                  ₦{userBalance.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+                  {formatNaira(userBalance)}
                 </strong>
               </div>
             </div>

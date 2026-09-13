@@ -9,7 +9,8 @@
  * - Supports local file/in-memory fallback when remote URL is not configured.
  */
 
-import { createClient, Client, InStatement, Transaction } from "@libsql/client";
+import { createClient } from "@libsql/client";
+import type { Client, InStatement, Transaction } from "@libsql/client";
 import path from "path";
 import fs from "fs";
 import dotenv from "dotenv";

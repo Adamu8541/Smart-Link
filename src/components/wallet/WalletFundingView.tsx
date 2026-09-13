@@ -208,14 +208,15 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
     setLoadingReserved(true);
     try {
       const vaRes = await ProviderService.getVirtualAccount(currentUser.uid);
-      if (vaRes.success && vaRes.account) {
+      const acc = vaRes?.account || vaRes?.virtualAccount;
+      if (vaRes?.success && acc) {
         setReservedAccount({
-          provider: vaRes.account.providerName || prov?.name || "ACTIVE_PROVIDER",
-          bankName: vaRes.account.bankName,
-          accountNumber: vaRes.account.accountNumber,
-          accountName: vaRes.account.accountName,
-          status: vaRes.account.status,
-          reference: vaRes.account.reference
+          provider: acc.providerName || acc.provider || prov?.name || "ACTIVE_PROVIDER",
+          bankName: acc.bankName || "PalmPay",
+          accountNumber: acc.accountNumber,
+          accountName: acc.accountName || currentUser.fullName || "Customer",
+          status: acc.status || "ACTIVE",
+          reference: acc.reference
         });
       }
     } catch (e) {
@@ -228,13 +229,14 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
   const loadFundingHistory = async () => {
     setLoadingHistory(true);
     try {
-      const res = await fetch(`/api/wallet/funding-history?userId=${currentUser.uid}`);
+      const headers = await getAuthHeaders(currentUser.uid);
+      const res = await fetch(`/api/wallet/funding-history?userId=${currentUser.uid}`, { headers });
       const data = await res.json();
       if (res.ok && data.history) {
         setFundingHistory(data.history);
       } else {
         // Fallback: fetch from transactions endpoint
-        const txRes = await fetch(`/api/transaction/history?userId=${currentUser.uid}&serviceType=WALLET_FUNDING`);
+        const txRes = await fetch(`/api/transaction/history?userId=${currentUser.uid}&serviceType=WALLET_FUNDING`, { headers });
         const txData = await txRes.json();
         if (txRes.ok && txData.transactions) {
           setFundingHistory(txData.transactions);
@@ -251,9 +253,10 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
   const handleGenerateReservedAccount = async () => {
     setLoadingReserved(true);
     try {
+      const headers = await getAuthHeaders(currentUser.uid);
       const res = await fetch("/api/wallet/virtual-account/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { ...headers, "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: currentUser.uid,
           provider: "GATEWAY",
@@ -264,7 +267,17 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to generate Reserved Account");
-      setReservedAccount(data.virtualAccount);
+      const acc = data.virtualAccount || data.account;
+      if (acc) {
+        setReservedAccount({
+          provider: acc.providerName || acc.provider || "Aspfiy Payment Gateway",
+          bankName: acc.bankName || "PalmPay",
+          accountNumber: acc.accountNumber,
+          accountName: acc.accountName || currentUser.fullName || "Customer",
+          status: acc.status || "ACTIVE",
+          reference: acc.reference
+        });
+      }
     } catch (err: any) {
       alert(err.message || "Failed to generate Reserved Account");
     } finally {
@@ -592,7 +605,7 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
             <div className="mt-3 flex items-baseline justify-between gap-2">
               <span className="text-2xl md:text-3xl font-black font-mono text-white tracking-tight">
                 {showBalance
-                  ? `₦${walletBalance.toLocaleString("en-NG", { minimumFractionDigits: 2 })}`
+                  ? `₦${(walletBalance ?? 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}`
                   : "••••••••••••"}
               </span>
               <button

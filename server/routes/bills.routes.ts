@@ -4,7 +4,7 @@ import path from "path";
 import fs from "fs";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
-import { readDB, writeDB, initializeDB, DB_DIR, DB_FILE, UPLOADS_DIR, SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD, hashPassword, safeCompareHash, generateSalt, isMaskedValue } from "../db";
+import { readDB, writeDB, initializeDB, DB_DIR, DB_FILE, UPLOADS_DIR, SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD, hashPassword, verifyPassword, safeCompareHash, generateSalt, isMaskedValue } from "../db";
 import { verifyUserOrAdminSession } from "../middleware/auth";
 import { isMaintenanceModeActive, getMaintenanceDetails, getValueByJsonPath, seedModule7SettingsIfEmpty, sanitizePublicSettings } from "../middleware/maintenance";
 import { getAI } from "../services/ai";
@@ -26,8 +26,7 @@ import { PaymentVerificationReconciliationEngine } from "../../src/services/paym
 import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerGateway";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
 import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
-import { syncFromFirestore, syncToFirestore } from "../../src/services/settingsStore";
-import { loadFirestoreDb, syncDbToFirestore, saveDocToFirestore } from "../../src/services/firestoreStore";
+import { syncFromStorage, syncToStorage } from "../../src/services/settingsStore";
 import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
 import * as securityStore from "../../src/services/securityStore";
@@ -853,6 +852,27 @@ app.post("/api/bills/pay", async (req, res) => {
   }
 
   const db = readDB();
+
+  // 1a. Validate Transaction Authorization PIN if user has enabled PIN protection
+  const userRecord = await usersStore.getUserById(userId);
+  if (userRecord && userRecord.pinRequiredForTransactions !== false && userRecord.transactionPinHash) {
+    const { transactionPin } = req.body;
+    if (!transactionPin || typeof transactionPin !== "string" || !/^\d{4}$/.test(transactionPin.trim())) {
+      return res.status(400).json({
+        success: false,
+        error: "Your 4-digit transaction authorization PIN is required to approve this payment.",
+        code: "PIN_REQUIRED",
+      });
+    }
+    const { match } = verifyPassword(transactionPin.trim(), userRecord.transactionPinHash);
+    if (!match) {
+      return res.status(400).json({
+        success: false,
+        error: "Incorrect 4-digit transaction PIN. Please try again.",
+        code: "INCORRECT_PIN",
+      });
+    }
+  }
 
   // 1. Check if there is an active provider configured for this service category (Requirement 5)
   const activeProvider = ProviderExecutor.getActiveProviderForCategory(db, category, providerCode, providerName);

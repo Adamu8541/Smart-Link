@@ -26,7 +26,15 @@ export function getResolvedSmtpConfig(customDb?: any): {
   const db = customDb || readDB();
   const emailSettings: SmtpConfig = db.system_settings?.email || {};
 
-  const smtpHost = process.env.SMTP_HOST || emailSettings.smtpHost || "smtp.gmail.com";
+  let smtpHost = process.env.SMTP_HOST || emailSettings.smtpHost || "smtp.gmail.com";
+  
+  // Normalize and clean invalid hostname typos (e.g., "smtp@gmail.com" -> "smtp.gmail.com")
+  smtpHost = smtpHost.trim().toLowerCase();
+  if (smtpHost === "smtp@gmail.com" || smtpHost === "gmail.com" || smtpHost === "smtp@gmail") {
+    smtpHost = "smtp.gmail.com";
+  } else if (smtpHost.startsWith("smtp@")) {
+    smtpHost = smtpHost.replace(/^smtp@/, "smtp.");
+  }
   const smtpPort = Number(process.env.SMTP_PORT || emailSettings.smtpPort || 587);
   
   // Resolve username/email

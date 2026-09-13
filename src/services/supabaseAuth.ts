@@ -20,8 +20,17 @@ import {
   StepUpVerifyResponse,
 } from "../types/auth";
 
+// Helper to sanitize Supabase Project URL (strips trailing slashes, /rest/v1, /auth/v1)
+export function sanitizeSupabaseUrl(url: string): string {
+  if (!url) return "";
+  let clean = url.trim().replace(/\/+$/, "");
+  clean = clean.replace(/\/(rest|auth|storage)\/v1\/?$/i, "");
+  return clean.replace(/\/+$/, "");
+}
+
 // Public Environment Variables (Browser-safe anon key only)
-const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL || "").trim();
+const rawSupabaseUrl = (import.meta.env.VITE_SUPABASE_URL || "").trim();
+const supabaseUrl = sanitizeSupabaseUrl(rawSupabaseUrl);
 const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY || "").trim();
 
 export const isSupabaseConfigured: boolean = Boolean(
@@ -67,6 +76,7 @@ export interface SupabaseLoginResult {
   user: User | null;
   session: Session | null;
   isEmailVerified: boolean;
+  emailNotConfirmed?: boolean;
   error?: string;
 }
 
@@ -135,23 +145,59 @@ export class SupabaseAuthService {
     const client = this.getClient();
     const cleanEmail = email.toLowerCase().trim();
 
-    const { data, error } = await client.auth.signInWithPassword({
-      email: cleanEmail,
-      password,
-    });
+    let data: any = null;
+    let error: any = null;
+
+    try {
+      const res = await client.auth.signInWithPassword({
+        email: cleanEmail,
+        password,
+      });
+      data = res.data;
+      error = res.error;
+    } catch (caughtErr: any) {
+      error = caughtErr;
+    }
 
     if (error) {
+      const errMsg = (error.message || "").toLowerCase();
+      if (
+        errMsg.includes("email not confirmed") ||
+        errMsg.includes("email_not_confirmed") ||
+        errMsg.includes("not confirmed")
+      ) {
+        return {
+          user: null,
+          session: null,
+          isEmailVerified: false,
+          emailNotConfirmed: true,
+          error: "Your email address is not verified yet. Please check your inbox or click send verify.",
+        };
+      }
       throw error;
     }
 
-    const user = data.user;
-    const session = data.session;
+    const user = data?.user || null;
+    const session = data?.session || null;
     const isEmailVerified = Boolean(user?.email_confirmed_at);
+
+    // If user exists but email is not confirmed, ensure we sign them out to prevent unverified access
+    if (!isEmailVerified) {
+      try {
+        await client.auth.signOut();
+      } catch {}
+      return {
+        user,
+        session: null,
+        isEmailVerified: false,
+        emailNotConfirmed: true,
+      };
+    }
 
     return {
       user,
       session,
-      isEmailVerified,
+      isEmailVerified: true,
     };
   }
 
@@ -330,20 +376,80 @@ export class SupabaseAuthService {
     });
   }
 
+  // Helper to safely mask email address
+  private static maskEmail(email: string): string {
+    if (!email || !email.includes("@")) return email || "";
+    const [userPart, domain] = email.split("@");
+    if (userPart.length <= 2) return `${userPart[0]}***@${domain}`;
+    return `${userPart.slice(0, 2)}***${userPart.slice(-1)}@${domain}`;
+  }
+
   /**
-   * Request 6-digit Email OTP for sensitive account change
+   * Request 6-digit Reauthentication code via Supabase Auth.
+   * This triggers Supabase's native "Reauthentication" template:
+   * "Ask users to verify their identity before a sensitive operation"
+   */
+  static async reauthenticate(): Promise<{ data: any; error: any }> {
+    const client = this.getClient();
+    return await client.auth.reauthenticate();
+  }
+
+  /**
+   * Request 6-digit Email OTP for sensitive account change.
+   * Leverages Supabase's built-in Reauthentication email template first,
+   * with server fallback if session is missing.
    */
   static async requestSensitiveActionOtp(
     purpose: SensitiveActionPurpose,
-    targetValue?: string
+    targetValue?: string,
+    userId?: string
   ): Promise<OtpRequestResponse> {
     const session = await this.getSession();
-    const token = session?.access_token;
+
+    // 1. If Supabase is configured and has an active user session, use Supabase native reauthenticate()
+    // This sends the email using Supabase's "Reauthentication" template ("Ask users to verify their identity before a sensitive operation")
+    if (this.isConfigured() && session?.user) {
+      try {
+        const client = this.getClient();
+        const { error } = await client.auth.reauthenticate();
+
+        if (!error) {
+          const userEmail = session.user.email || "";
+          return {
+            success: true,
+            message: `A 6-digit verification code has been dispatched to ${this.maskEmail(userEmail)} via Supabase Reauthentication template.`,
+            emailMasked: this.maskEmail(userEmail),
+            resendCooldownSeconds: 60,
+            expiresInSeconds: 600,
+          };
+        }
+
+        console.warn("[SupabaseAuth] client.auth.reauthenticate error:", error.message);
+        // If rate limit or user error from Supabase, throw to inform the user
+        const errMsg = (error.message || "").toLowerCase();
+        if (errMsg.includes("rate limit") || (error as any).status === 429) {
+          throw new Error("Too many verification attempts. Please wait a minute before requesting another code.");
+        }
+      } catch (reauthErr: any) {
+        console.warn("[SupabaseAuth] Native reauthenticate attempt failed, trying backend fallback:", reauthErr?.message);
+        if (reauthErr?.message && reauthErr.message.includes("Too many")) {
+          throw reauthErr;
+        }
+      }
+    }
+
+    // 2. Server-side endpoint fallback for non-Supabase sessions
+    const token = session?.access_token || localStorage.getItem("smartlink_session_token") || localStorage.getItem("auth_token") || "";
+    const resolvedUserId = session?.user?.id || userId || localStorage.getItem("current_user_id") || "";
+
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
+    }
+    if (resolvedUserId) {
+      headers["x-user-id"] = resolvedUserId;
     }
 
     const res = await fetch("/api/auth/otp/request", {
@@ -352,7 +458,7 @@ export class SupabaseAuthService {
       body: JSON.stringify({
         purpose,
         targetValue,
-        userId: session?.user?.id,
+        userId: resolvedUserId,
       }),
     });
 
@@ -364,18 +470,77 @@ export class SupabaseAuthService {
   }
 
   /**
-   * Verify 6-digit Email OTP and complete sensitive account change
+   * Verify 6-digit Email OTP and complete sensitive account change.
+   * If reauthenticated via Supabase, validates the nonce with Supabase Auth first,
+   * then updates the backend system state.
    */
   static async verifySensitiveActionOtp(
-    payload: OtpVerifyAndChangePayload
+    payload: OtpVerifyAndChangePayload,
+    userId?: string
   ): Promise<OtpVerifyResponse> {
     const session = await this.getSession();
-    const token = session?.access_token;
+    let reauthenticatedViaSupabase = false;
+
+    // 1. If Supabase is configured and active session exists, verify nonce via Supabase
+    if (this.isConfigured() && session?.user) {
+      const client = this.getClient();
+      try {
+        if (payload.purpose === "CHANGE_PASSWORD" && payload.payload.newPassword) {
+          const { error } = await client.auth.updateUser({
+            password: payload.payload.newPassword,
+            nonce: payload.otp.trim(),
+          });
+          if (error) throw error;
+          reauthenticatedViaSupabase = true;
+        } else if (payload.purpose === "CHANGE_EMAIL" && payload.payload.newEmail) {
+          const { error } = await client.auth.updateUser({
+            email: payload.payload.newEmail.trim().toLowerCase(),
+            nonce: payload.otp.trim(),
+          });
+          if (error) throw error;
+          reauthenticatedViaSupabase = true;
+        } else if (payload.purpose === "CHANGE_PHONE" && payload.payload.newPhoneNumber) {
+          const { error } = await client.auth.updateUser({
+            data: { phone_number: payload.payload.newPhoneNumber.trim() },
+            nonce: payload.otp.trim(),
+          });
+          if (error) throw error;
+          reauthenticatedViaSupabase = true;
+        } else if (payload.purpose === "CHANGE_PIN") {
+          const { error } = await client.auth.updateUser({
+            data: { has_transaction_pin: true, pin_required_for_transactions: true },
+            nonce: payload.otp.trim(),
+          });
+          if (error) throw error;
+          reauthenticatedViaSupabase = true;
+        } else if (payload.purpose === "TOGGLE_PIN_REQUIREMENT") {
+          const { error } = await client.auth.updateUser({
+            data: { pin_required_for_transactions: payload.payload.pinRequiredForTransactions },
+            nonce: payload.otp.trim(),
+          });
+          if (error) throw error;
+          reauthenticatedViaSupabase = true;
+        }
+      } catch (supaErr: any) {
+        console.warn("[SupabaseAuth] client.auth.updateUser with nonce attempt note:", supaErr.message);
+        // Supabase reauth template was either not dispatched by Supabase or project uses backend email OTP.
+        // Fall back to backend EmailOtpService verification.
+        reauthenticatedViaSupabase = false;
+      }
+    }
+
+    // 2. Synchronize with backend database, audit trail, and user record
+    const token = session?.access_token || localStorage.getItem("smartlink_session_token") || localStorage.getItem("auth_token") || "";
+    const resolvedUserId = session?.user?.id || userId || localStorage.getItem("current_user_id") || "";
+
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
+    }
+    if (resolvedUserId) {
+      headers["x-user-id"] = resolvedUserId;
     }
 
     const res = await fetch("/api/auth/otp/verify-and-change", {
@@ -383,24 +548,14 @@ export class SupabaseAuthService {
       headers,
       body: JSON.stringify({
         ...payload,
-        userId: session?.user?.id,
+        userId: resolvedUserId,
+        reauthenticatedViaSupabase,
       }),
     });
 
     const data = await res.json();
     if (!res.ok) {
       throw new Error(data.error || "Failed to verify code and apply changes.");
-    }
-
-    // If password was changed and active Supabase session exists, update client session
-    if (payload.purpose === "CHANGE_PASSWORD" && payload.payload.newPassword && this.isConfigured) {
-      try {
-        await this.getClient().auth.updateUser({
-          password: payload.payload.newPassword,
-        });
-      } catch (clientSyncErr) {
-        console.warn("[SupabaseAuth] Client session password sync note:", clientSyncErr);
-      }
     }
 
     return data;

@@ -18,6 +18,7 @@
 
 import crypto from "crypto";
 import { PaymentProviderConfig, ProviderAdapter, normalizeNigerianPhone } from "./aspfiyAdapter";
+import { formatNaira } from "../../utils/formatUtils";
 
 export interface ClubkonnectResponse {
   statuscode?: string | number;
@@ -255,10 +256,10 @@ export class ClubkonnectAdapter implements ProviderAdapter {
     const balance = raw.walletbalance ?? raw.WalletBalance ?? raw.balance ?? raw.Balance;
 
     if (balance !== undefined && balance !== null && balance !== "") {
-      const formattedBal = Number(balance).toLocaleString("en-NG", { minimumFractionDigits: 2 });
+      const formattedBal = formatNaira(balance, true);
       return {
         ok: true,
-        message: `Connected to Clubkonnect successfully! Current Wallet Balance: ₦${formattedBal}`,
+        message: `Connected to Clubkonnect successfully! Current Wallet Balance: ${formattedBal}`,
         responseTimeMs,
         details: {
           balance: Number(balance),

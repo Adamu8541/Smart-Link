@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { WebhookItem, WebhookLogItem, WebhookStatus } from "../../types/provider";
 import { getStoredAdminSession } from "../../services/adminAuthTypes";
+import { formatSafeDateTime } from "../../utils/formatUtils";
 
 interface WebhookManagerAdminProps {
   adminUid: string;
@@ -613,7 +614,7 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
                       </div>
                       <div className="flex items-center justify-between text-[11px] text-[#6B7280]">
                         <span className="font-sans text-[#9CA3AF] text-[10px]">Last Tested:</span>
-                        <span>{wh.lastTestedAt ? new Date(wh.lastTestedAt).toLocaleString() : "Never"}</span>
+                        <span>{wh.lastTestedAt ? formatSafeDateTime(wh.lastTestedAt, "Never") : "Never"}</span>
                       </div>
                     </div>
 
@@ -718,7 +719,7 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
                   {webhookLogs.map(log => (
                     <tr key={log.id} className="hover:bg-[#F5F7FA] dark:hover:bg-[#111827]/50 transition-colors">
                       <td className="p-3 text-[#6B7280] font-sans whitespace-nowrap">
-                        {new Date(log.timestamp).toLocaleString()}
+                        {formatSafeDateTime(log.timestamp, "Recently")}
                       </td>
                       <td className="p-3 font-bold text-[#111827] dark:text-white font-sans">{log.webhookName}</td>
                       <td className="p-3 text-[#4B5563] dark:text-[#E5E7EB]">{log.provider}</td>

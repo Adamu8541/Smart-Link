@@ -13,6 +13,7 @@ import {
   Mail
 } from "lucide-react";
 import { ReceiptDocument, TransactionDocument } from "../../types/database";
+import { formatNaira, formatNumber, formatSafeDateTime } from "../../utils/formatUtils";
 
 interface TransactionReceiptModalProps {
   receipt?: ReceiptDocument | null;
@@ -44,10 +45,7 @@ export const TransactionReceiptModal: React.FC<TransactionReceiptModalProps> = (
   const totalAmount = amount + charge;
   const status = receipt?.status || transaction?.status || "SUCCESSFUL";
   const dateStr = receipt?.issueTimestamp || (receipt as any)?.createdAt || transaction?.createdAt || new Date().toISOString();
-  const formattedDate = new Date(dateStr).toLocaleString("en-NG", {
-    dateStyle: "medium",
-    timeStyle: "medium"
-  });
+  const formattedDate = formatSafeDateTime(dateStr, "Recently");
   const recipient = receipt?.recipient || transaction?.recipient || "Self";
   const paymentMethod = receipt?.paymentMethod || transaction?.paymentMethod || "Virtual Bank Account";
   const userName = receipt?.userName || (receipt as any)?.userEmail || "Verified User";
@@ -92,7 +90,7 @@ export const TransactionReceiptModal: React.FC<TransactionReceiptModalProps> = (
     if (navigator.share) {
       navigator.share({
         title: `SmartLink Receipt - ${ref}`,
-        text: `Transaction Receipt for ${title} - ₦${totalAmount.toLocaleString()} (${status}). Ref: ${ref}`,
+        text: `Transaction Receipt for ${title} - ${formatNaira(totalAmount)} (${status}). Ref: ${ref}`,
         url: window.location.href
       }).catch(() => {});
     } else {
@@ -169,7 +167,7 @@ export const TransactionReceiptModal: React.FC<TransactionReceiptModalProps> = (
             </div>
 
             <div className="text-3xl font-black text-[#111827] dark:text-white tracking-tight">
-              ₦{totalAmount.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+              {formatNaira(totalAmount, true)}
             </div>
             <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-1">
               {title}
@@ -219,19 +217,19 @@ export const TransactionReceiptModal: React.FC<TransactionReceiptModalProps> = (
 
             <div className="flex justify-between py-1.5 border-b border-[#E5E7EB] dark:border-[#111827]">
               <span className="text-[#6B7280] dark:text-[#9CA3AF]">Service Base Cost:</span>
-              <span className="text-[#4B5563] dark:text-[#E5E7EB]">₦{amount.toLocaleString()}</span>
+              <span className="text-[#4B5563] dark:text-[#E5E7EB]">{formatNaira(amount)}</span>
             </div>
 
             <div className="flex justify-between py-1.5 border-b border-[#E5E7EB] dark:border-[#111827]">
               <span className="text-[#6B7280] dark:text-[#9CA3AF]">Service Fee / Charge:</span>
-              <span className="text-[#4B5563] dark:text-[#E5E7EB]">₦{charge.toLocaleString()}</span>
+              <span className="text-[#4B5563] dark:text-[#E5E7EB]">{formatNaira(charge)}</span>
             </div>
 
             {balanceBefore !== undefined && balanceAfter !== undefined && (
               <div className="flex justify-between py-1.5 bg-[#F5F7FA] dark:bg-[#111827]/40 px-3 rounded-lg mt-2">
                 <span className="text-[#6B7280] dark:text-[#9CA3AF]">Wallet Balance (Before / After):</span>
                 <span className="font-medium text-[#111827] dark:text-[#E5E7EB]">
-                  ₦{balanceBefore.toLocaleString()} ➔ ₦{balanceAfter.toLocaleString()}
+                  {formatNaira(balanceBefore)} ➔ {formatNaira(balanceAfter)}
                 </span>
               </div>
             )}

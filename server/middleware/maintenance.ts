@@ -16,16 +16,33 @@ export function getMaintenanceDetails(db: any) {
   const s = db.site_settings || db.siteSettings || {};
   return {
     maintenanceMode: isMaintenanceModeActive(db),
+    loginMaintenanceMode: Boolean(m.loginMaintenanceMode),
+    signupMaintenanceMode: Boolean(m.signupMaintenanceMode),
+    servicesMaintenanceMode: Boolean(m.servicesMaintenanceMode),
+    maintenanceModeAllServices: Boolean(m.maintenanceModeAllServices),
+    maintenanceServices: Array.isArray(m.maintenanceServices) ? m.maintenanceServices : [],
     maintenanceMessage:
       m.maintenanceMessage ||
       s.maintenanceMessage ||
       "SmartLink is currently undergoing scheduled infrastructure upgrades. Core services and transactions will resume shortly.",
     allowAdminBypass: m.allowAdminBypass !== false,
+    startDate: m.startDate || null,
     estimatedDowntime: m.estimatedDowntime || null,
     scheduledEndTime: m.scheduledEndTime || null,
-    scope: m.scope || "GLOBAL",
+    supportContact: m.supportContact || "+234 904 773 8212",
+    scope: m.scope || (m.maintenanceMode ? "GLOBAL" : m.servicesMaintenanceMode ? "SERVICES" : m.loginMaintenanceMode ? "LOGIN" : m.signupMaintenanceMode ? "REGISTRATION" : "NONE"),
     updatedAt: m.updatedAt || new Date().toISOString(),
+    updatedBy: m.updatedBy || "Super Admin",
   };
+}
+
+export function isServiceUnderMaintenance(db: any, serviceCode: string): boolean {
+  const m = getMaintenanceDetails(db);
+  if (m.maintenanceMode) return true;
+  if (!m.servicesMaintenanceMode) return false;
+  if (m.maintenanceModeAllServices) return true;
+  const list = m.maintenanceServices || [];
+  return list.includes(serviceCode.toUpperCase());
 }
 
 export function getValueByJsonPath(obj: any, path: string): any {
@@ -96,9 +113,16 @@ export function seedModule7SettingsIfEmpty(db: any) {
   if (!db.maintenance_settings) {
     db.maintenance_settings = {
       maintenanceMode: false,
+      loginMaintenanceMode: false,
+      signupMaintenanceMode: false,
+      servicesMaintenanceMode: false,
+      maintenanceModeAllServices: false,
+      maintenanceServices: [],
       maintenanceMessage: "SmartLink is currently undergoing scheduled infrastructure upgrades. Core services will resume shortly.",
+      startDate: null,
       scheduledEndTime: null,
-      allowedIps: [],
+      supportContact: "+234 904 773 8212",
+      allowAdminBypass: true,
       updatedAt: new Date().toISOString(),
     };
   }
@@ -129,11 +153,12 @@ export function sanitizePublicSettings(db: any, maintenanceDetails?: any) {
       footerText: branding.footerText || "© 2026 SmartLink Digital Services. All rights reserved.",
       maintenanceActive: Boolean(maintenance.maintenanceMode),
       maintenanceMode: Boolean(maintenance.maintenanceMode),
+      maintenance: maintenance,
       maintenanceMessage: maintenance.maintenanceMessage,
       estimatedDowntime: maintenance.estimatedDowntime || null,
       currency: sysGeneral.currency || "NGN",
       currencySymbol: sysGeneral.currencySymbol || "₦",
-      allowRegistration: sysGeneral.allowRegistration !== false,
+      allowRegistration: sysGeneral.allowRegistration !== false && !maintenance.signupMaintenanceMode,
     },
   };
 }
@@ -189,6 +214,7 @@ export async function maintenanceMiddleware(req: express.Request, res: express.R
     maintenanceMode: true,
     error: "Service Temporarily Unavailable",
     message: maintenance.maintenanceMessage,
+    startDate: maintenance.startDate,
     estimatedDowntime: maintenance.estimatedDowntime,
     scheduledEndTime: maintenance.scheduledEndTime,
     scope: maintenance.scope,

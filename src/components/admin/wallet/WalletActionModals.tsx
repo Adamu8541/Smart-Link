@@ -19,6 +19,7 @@ import {
   Info
 } from "lucide-react";
 import { AdminSession } from "../../../services/adminAuthTypes";
+import { formatNaira } from "../../../utils/formatUtils";
 
 // ==========================================
 // 1. CREDIT WALLET MODAL
@@ -124,7 +125,7 @@ export function CreditWalletModal({ user, session, onClose, onSuccess }: CreditW
           <div className="p-3 bg-[#111827] border border-[#111827] rounded-2xl text-xs space-y-1">
             <span className="text-[#9CA3AF] block">Target Account</span>
             <div className="font-bold text-white text-sm">{user?.fullName}</div>
-            <div className="text-[#9CA3AF] font-mono">{user?.email} • Bal: <strong className="text-[#9CA3AF]">₦{currentBal.toLocaleString()}</strong></div>
+            <div className="text-[#9CA3AF] font-mono">{user?.email} • Bal: <strong className="text-[#9CA3AF]">{formatNaira(currentBal)}</strong></div>
           </div>
 
           {!confirmStep ? (
@@ -170,8 +171,8 @@ export function CreditWalletModal({ user, session, onClose, onSuccess }: CreditW
                 <span>Confirm Credit Execution</span>
               </div>
               <div className="space-y-1 text-[#E5E7EB]">
-                <p>Are you sure you want to credit <strong>₦{numAmount.toLocaleString()}</strong> to {user?.fullName}?</p>
-                <p className="font-mono text-[11px] text-[#9CA3AF]">Current: ₦{currentBal.toLocaleString()} → New Balance: <strong className="text-[#9CA3AF]">₦{projectedBal.toLocaleString()}</strong></p>
+                <p>Are you sure you want to credit <strong>{formatNaira(numAmount)}</strong> to {user?.fullName}?</p>
+                <p className="font-mono text-[11px] text-[#9CA3AF]">Current: {formatNaira(currentBal)} → New Balance: <strong className="text-[#9CA3AF]">{formatNaira(projectedBal)}</strong></p>
                 <p className="italic text-[#9CA3AF] mt-2">"Reason: {reason}"</p>
               </div>
             </div>
@@ -264,7 +265,7 @@ export function DebitWalletModal({ user, session, onClose, onSuccess }: DebitWal
         throw new Error(data.message || "Failed to execute wallet debit.");
       }
 
-      onSuccess(data.message || `Successfully debited ₦${numAmount.toLocaleString()} from ${user.fullName}.`);
+      onSuccess(data.message || `Successfully debited ${formatNaira(numAmount)} from ${user.fullName}.`);
       onClose();
     } catch (err: any) {
       setError(err.message);
@@ -308,7 +309,7 @@ export function DebitWalletModal({ user, session, onClose, onSuccess }: DebitWal
           <div className="p-3 bg-[#111827] border border-[#111827] rounded-2xl text-xs space-y-1">
             <span className="text-[#9CA3AF] block">Target Account</span>
             <div className="font-bold text-white text-sm">{user?.fullName}</div>
-            <div className="text-[#9CA3AF] font-mono">Current Float: <strong className="text-[#9CA3AF]">₦{currentBal.toLocaleString()}</strong></div>
+            <div className="text-[#9CA3AF] font-mono">Current Float: <strong className="text-[#9CA3AF]">{formatNaira(currentBal)}</strong></div>
           </div>
 
           {!confirmStep ? (
@@ -354,8 +355,8 @@ export function DebitWalletModal({ user, session, onClose, onSuccess }: DebitWal
                 <span>Confirm Debit Deduction</span>
               </div>
               <div className="space-y-1 text-[#E5E7EB]">
-                <p>Are you sure you want to debit <strong>₦{numAmount.toLocaleString()}</strong> from {user?.fullName}?</p>
-                <p className="font-mono text-[11px] text-[#9CA3AF]">Current: ₦{currentBal.toLocaleString()} → New Balance: <strong className="text-[#9CA3AF]">₦{projectedBal.toLocaleString()}</strong></p>
+                <p>Are you sure you want to debit <strong>{formatNaira(numAmount)}</strong> from {user?.fullName}?</p>
+                <p className="font-mono text-[11px] text-[#9CA3AF]">Current: {formatNaira(currentBal)} → New Balance: <strong className="text-[#9CA3AF]">{formatNaira(projectedBal)}</strong></p>
                 <p className="italic text-[#9CA3AF] mt-2">"Reason: {reason}"</p>
               </div>
             </div>

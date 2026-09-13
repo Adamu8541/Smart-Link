@@ -4,7 +4,7 @@
 
 import { UserRole, SubAdminPermission } from "../types";
 
-export interface FirebaseCustomClaims {
+export interface UserCustomClaims {
   superAdmin?: boolean;
   admin?: boolean;
   staff?: boolean;
@@ -43,7 +43,7 @@ export interface AuthSession {
   uid: string;
   email: string;
   emailVerified: boolean;
-  claims: FirebaseCustomClaims;
+  claims: UserCustomClaims;
   lastActive: string;
   rememberMe: boolean;
   provider?: "supabase" | "local" | "turso";
@@ -71,6 +71,7 @@ export type SensitiveActionPurpose =
   | "CHANGE_EMAIL"
   | "CHANGE_PHONE"
   | "CHANGE_PIN"
+  | "TOGGLE_PIN_REQUIREMENT"
   | "CHANGE_SECURITY_SETTINGS"
   | "CHANGE_ACCOUNT_INFO"
   | "CHANGE_USER_PRIVILEGES"
@@ -98,6 +99,7 @@ export interface OtpVerifyAndChangePayload {
     newEmail?: string;
     newPhoneNumber?: string;
     newPin?: string;
+    pinRequiredForTransactions?: boolean;
     fullName?: string;
     securitySettings?: Record<string, any>;
   };

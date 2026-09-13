@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { TransactionDocument, TransactionStatusType, ReceiptDocument } from "../../types/database";
 import { TransactionEngine, TransactionFilterParams } from "../../services/transactionEngine";
+import { formatNaira, formatSafeDate } from "../../utils/formatUtils";
 import { TransactionReceiptModal } from "../receipt/TransactionReceiptModal";
 
 interface TransactionHistoryViewProps {
@@ -320,7 +321,7 @@ export const TransactionHistoryView: React.FC<TransactionHistoryViewProps> = ({
                       </td>
 
                       <td className="py-3.5 px-4 font-bold text-[#111827] ">
-                        ₦{(txn.amount + (txn.charge || 0)).toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+                        {formatNaira(((txn.amount || 0) + (txn.charge || 0)), true)}
                       </td>
 
                       <td className="py-3.5 px-4">
@@ -350,8 +351,8 @@ export const TransactionHistoryView: React.FC<TransactionHistoryViewProps> = ({
                         )}
                       </td>
 
-                      <td className="py-3.5 px-4 text-[#6B7280]  text-[11px]">
-                        {new Date(txn.createdAt).toLocaleDateString()}
+                      <td className="py-3.5 px-4 text-[#6B7280] text-[11px]">
+                        {formatSafeDate(txn.createdAt, "Recently")}
                       </td>
 
                       <td className="py-3.5 px-4 text-right">

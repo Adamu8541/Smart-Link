@@ -23,6 +23,7 @@ import {
 import { LegalAcceptanceRecord, LegalPolicyVersion, MarketingConsentSettings } from "../../types/legal";
 import { LegalConsentService } from "../../services/legalConsentService";
 import { LEGAL_DOCUMENTS } from "./legalData";
+import { formatSafeDateTime } from "../../utils/formatUtils";
 
 export interface UserLegalAgreementsModalProps {
   userId: string;
@@ -282,7 +283,7 @@ export function UserLegalAgreementsModal({
                             {rec.workflow.replace(/_/g, " ")}
                           </td>
                           <td className="py-2.5 px-3 text-[11px] text-[#6B7280]">
-                            {new Date(rec.acceptedAt).toLocaleString("en-US", {
+                            {formatSafeDateTime(rec.acceptedAt, "Recently", {
                               month: "short",
                               day: "numeric",
                               year: "numeric",

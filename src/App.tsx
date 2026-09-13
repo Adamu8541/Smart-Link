@@ -68,6 +68,8 @@ import { AuthFormSkeleton } from "./components/ui/AuthSkeleton";
 
 import { useSiteConfig } from "./context/SiteConfigContext";
 import { MaintenanceScreen } from "./components/maintenance/MaintenanceScreen";
+import { MaintenanceNoticeBanner } from "./components/maintenance/MaintenanceNoticeBanner";
+import { formatNaira } from "./utils/formatUtils";
 import { legalConsentService } from "./services/legalConsentService";
 import { SupabaseAuthService, isSupabaseConfigured } from "./services/supabaseAuth";
 
@@ -149,7 +151,7 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
 }
 
 export default function App() {
-  const { maintenanceActive, config: siteConfig, logoUrl: contextLogoUrl, refreshConfig: refreshSiteConfig } = useSiteConfig();
+  const { maintenanceActive, config: siteConfig, logoUrl: contextLogoUrl, refreshConfig: refreshSiteConfig, isServiceUnderMaintenance } = useSiteConfig();
   const dynamicLogo = siteConfig.branding?.logoUrl || siteConfig.branding?.lightLogoUrl || contextLogoUrl || DEFAULT_LOGO_URL;
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
     try {
@@ -939,10 +941,7 @@ export default function App() {
         const amount = Number(e.detail.amount);
         const gateway = e.detail.gateway || "Gateway Webhook";
         setToast({
-          message: `💳 Real-Time Webhook Alert: ₦${amount.toLocaleString("en-NG", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })} credited to your digital wallet via ${gateway}!`,
+          message: `💳 Real-Time Webhook Alert: ${formatNaira(amount, true)} credited to your digital wallet via ${gateway}!`,
           type: "success",
         });
       }
@@ -965,13 +964,10 @@ export default function App() {
       return;
     }
 
-    if (prevBalanceRef.current !== null && currentUser.walletBalance > prevBalanceRef.current) {
-      const creditedAmt = currentUser.walletBalance - prevBalanceRef.current;
+    if (prevBalanceRef.current !== null && (currentUser.walletBalance ?? 0) > (prevBalanceRef.current ?? 0)) {
+      const creditedAmt = (currentUser.walletBalance ?? 0) - (prevBalanceRef.current ?? 0);
       setToast({
-        message: `⚡ Webhook Credit Alert: ₦${creditedAmt.toLocaleString("en-NG", {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        })} has been credited to your wallet in real-time!`,
+        message: `⚡ Webhook Credit Alert: ${formatNaira(creditedAmt, true)} has been credited to your wallet in real-time!`,
         type: "success",
       });
     }
@@ -1000,13 +996,10 @@ export default function App() {
           consecutiveFailures = 0;
           const data = await res.json();
           if (data?.user) {
-            if (prevBalanceRef.current !== null && data.user.walletBalance > prevBalanceRef.current) {
-              const creditedAmt = data.user.walletBalance - prevBalanceRef.current;
+            if (prevBalanceRef.current !== null && (data.user.walletBalance ?? 0) > (prevBalanceRef.current ?? 0)) {
+              const creditedAmt = (data.user.walletBalance ?? 0) - (prevBalanceRef.current ?? 0);
               setToast({
-                message: `🎉 Real-Time Webhook Credit: ₦${creditedAmt.toLocaleString("en-NG", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })} added to your digital wallet!`,
+                message: `🎉 Real-Time Webhook Credit: ${formatNaira(creditedAmt, true)} added to your digital wallet!`,
                 type: "success",
               });
               prevBalanceRef.current = data.user.walletBalance;
@@ -1116,9 +1109,13 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Global Maintenance Mode Interceptor Screen for Normal Users */}
+      {/* Global Top Maintenance Advisory Notice Banner */}
+      {!currentView.startsWith("ADMIN_") && <MaintenanceNoticeBanner />}
+
+      {/* Global Full Platform Maintenance Mode Interceptor Screen */}
       {maintenanceActive && !currentView.startsWith("ADMIN_") ? (
         <MaintenanceScreen
+          scope="GLOBAL"
           onAdminLoginRequested={() => {
             navigateToView("ADMIN_LOGIN");
           }}
@@ -1701,7 +1698,7 @@ export default function App() {
               />
             )}
 
-            {/* Custom Firebase Auth Action Pages */}
+            {/* Custom Auth Action Pages */}
             {currentView === "FORGOT_PASSWORD" && (
               <ForgotPasswordView
                 onNavigateToLogin={() => {
@@ -1895,20 +1892,55 @@ export default function App() {
 
           {/* Secure Node Manual Login / Register Form */}
           {currentView === "DASHBOARD" && !currentUser && (
-            <Suspense fallback={<AuthFormSkeleton />}>
-              <AuthPortal
-                initialIsRegistering={isRegistering}
-                onAuthSuccess={(user) => {
-                  setCurrentUser(user);
-                  navigateToView("DASHBOARD");
-                  setIsRegistering(false);
-                }}
-                onNavigateHome={() => navigateToView("HOME")}
-                onOpenLegalDoc={(docId) => setQuickLegalModalDocId(docId)}
-                onNavigateForgotPassword={() => navigateToView("FORGOT_PASSWORD")}
-                setToast={setToast}
-              />
-            </Suspense>
+            (() => {
+              const isLoginMaint = Boolean(siteConfig.maintenance?.loginMaintenanceMode);
+              const isSignupMaint = Boolean(siteConfig.maintenance?.signupMaintenanceMode);
+
+              if (isLoginMaint && !isRegistering) {
+                return (
+                  <MaintenanceScreen
+                    scope="LOGIN"
+                    onAdminLoginRequested={() => navigateToView("ADMIN_LOGIN")}
+                    onAdminSessionCreated={(sess) => {
+                      setAdminSession(sess);
+                      navigateToView("ADMIN_DASHBOARD");
+                    }}
+                    onBackToSafety={() => navigateToView("HOME")}
+                  />
+                );
+              }
+
+              if (isSignupMaint && isRegistering) {
+                return (
+                  <MaintenanceScreen
+                    scope="REGISTRATION"
+                    onAdminLoginRequested={() => navigateToView("ADMIN_LOGIN")}
+                    onAdminSessionCreated={(sess) => {
+                      setAdminSession(sess);
+                      navigateToView("ADMIN_DASHBOARD");
+                    }}
+                    onBackToSafety={() => navigateToView("HOME")}
+                  />
+                );
+              }
+
+              return (
+                <Suspense fallback={<AuthFormSkeleton />}>
+                  <AuthPortal
+                    initialIsRegistering={isRegistering}
+                    onAuthSuccess={(user) => {
+                      setCurrentUser(user);
+                      navigateToView("DASHBOARD");
+                      setIsRegistering(false);
+                    }}
+                    onNavigateHome={() => navigateToView("HOME")}
+                    onOpenLegalDoc={(docId) => setQuickLegalModalDocId(docId)}
+                    onNavigateForgotPassword={() => navigateToView("FORGOT_PASSWORD")}
+                    setToast={setToast}
+                  />
+                </Suspense>
+              );
+            })()
           )}
         </div>
       </main>
@@ -1916,12 +1948,24 @@ export default function App() {
       {/* Global Action Modal for Ordering/Verifying */}
       <Suspense fallback={null}>
         {selectedService && (
-          <ServiceModal
-            service={selectedService}
-            onClose={() => setSelectedService(null)}
-            currentUser={currentUser}
-            onRefreshUser={fetchUserProfile}
-          />
+          isServiceUnderMaintenance((selectedService as any).code || selectedService.id || selectedService.name) ? (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+              <div className="max-w-md w-full">
+                <MaintenanceScreen
+                  scope="SERVICE"
+                  serviceName={selectedService.name}
+                  onBackToSafety={() => setSelectedService(null)}
+                />
+              </div>
+            </div>
+          ) : (
+            <ServiceModal
+              service={selectedService}
+              onClose={() => setSelectedService(null)}
+              currentUser={currentUser}
+              onRefreshUser={fetchUserProfile}
+            />
+          )
         )}
       </Suspense>
         </>

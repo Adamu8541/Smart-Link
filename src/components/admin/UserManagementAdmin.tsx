@@ -26,7 +26,7 @@ import {
   Unlock,
   Award
 } from "lucide-react";
-import { UserProfile, UserRole, LoginHistoryRecord, FirebaseCustomClaims } from "../../types";
+import { UserProfile, UserRole, LoginHistoryRecord, UserCustomClaims } from "../../types";
 
 interface UserManagementAdminProps {
   adminUid: string;
@@ -53,7 +53,7 @@ export default function UserManagementAdmin({
   // Modals
   const [editingRoleUser, setEditingRoleUser] = useState<UserProfile | null>(null);
   const [newRole, setNewRole] = useState<UserRole>(UserRole.CUSTOMER);
-  const [customClaims, setCustomClaims] = useState<FirebaseCustomClaims>({});
+  const [customClaims, setCustomClaims] = useState<UserCustomClaims>({});
   
   const [viewHistoryUser, setViewHistoryUser] = useState<UserProfile | null>(null);
   const [toast, setToast] = useState<{ type: "success" | "error"; msg: string } | null>(null);

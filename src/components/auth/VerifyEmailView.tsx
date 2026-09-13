@@ -80,7 +80,7 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
       }
     }
 
-    // 2. Standard Firebase or server token verification
+    // 2. Standard auth or server token verification
     const code =
       oobCodeFromProps ||
       searchParams.get("oobCode") ||

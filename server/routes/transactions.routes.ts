@@ -25,8 +25,7 @@ import { PaymentVerificationReconciliationEngine } from "../../src/services/paym
 import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerGateway";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
 import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
-import { syncFromFirestore, syncToFirestore } from "../../src/services/settingsStore";
-import { loadFirestoreDb, syncDbToFirestore, saveDocToFirestore } from "../../src/services/firestoreStore";
+import { syncFromStorage, syncToStorage } from "../../src/services/settingsStore";
 import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
 import * as securityStore from "../../src/services/securityStore";
@@ -718,7 +717,7 @@ app.get("/api/reconciliation/reports", requireAdmin, async (req, res) => {
   });
 });
 
-// --- ADMIN DASHBOARD LIVE METRICS (FIRESTORE DATA SOURCE OF TRUTH) ---
+// --- ADMIN DASHBOARD LIVE METRICS (STORAGE DATA SOURCE OF TRUTH) ---
 app.get("/api/admin/dashboard/stats", requireAdmin, async (req, res) => {
   try {
     const db = readDB();
@@ -778,7 +777,7 @@ app.get("/api/admin/dashboard/stats", requireAdmin, async (req, res) => {
   }
 });
 
-// --- ADMIN REFUNDS MANAGEMENT (FIRESTORE BACKED) ---
+// --- ADMIN REFUNDS MANAGEMENT (STORAGE BACKED) ---
 app.get("/api/admin/refunds", requireAdmin, async (req, res) => {
   const db = readDB();
   res.json({
@@ -977,7 +976,7 @@ app.get("/api/refunds", async (req, res) => {
   });
 });
 
-// --- ADMIN SETTLEMENTS & FINANCIAL REPORTS (FIRESTORE BACKED) ---
+// --- ADMIN SETTLEMENTS & FINANCIAL REPORTS (STORAGE BACKED) ---
 app.get("/api/admin/reports", requireAdmin, async (req, res) => {
   try {
     const db = readDB();
@@ -1064,7 +1063,7 @@ app.get("/api/settlements/reports", requireAdmin, async (req, res) => {
   });
 });
 
-// --- ADMIN SYSTEM HEALTH & LOGS (FIRESTORE & RUNTIME BACKED) ---
+// --- ADMIN SYSTEM HEALTH & LOGS (STORAGE & RUNTIME BACKED) ---
 app.get("/api/admin/system/health", requireAdmin, async (req, res) => {
   try {
     const mem = process.memoryUsage();
@@ -1082,7 +1081,7 @@ app.get("/api/admin/system/health", requireAdmin, async (req, res) => {
         heapTotalMb: Math.round(mem.heapTotal / 1024 / 1024),
         rssMb: Math.round(mem.rss / 1024 / 1024),
       },
-      firestoreStatus: "CONNECTED",
+      storageStatus: "CONNECTED",
       databaseRecords: {
         usersCount: (db.users || []).length,
         transactionsCount: (db.transactions || []).length,

@@ -28,6 +28,7 @@ import { SlipPrintModal } from "./slips/SlipPrintModal";
 import { SlipLivePreviewCard } from "./slips/SlipLivePreviewCard";
 import { useSiteConfig } from "../../context/SiteConfigContext";
 import { THREE_NIN_SLIPS, mapSlipToConfig, NinSlipType3, getNinSlipOptions } from "./NinVerificationView";
+import { formatNaira } from "../../utils/formatUtils";
 
 interface NinDemographyViewProps {
   userId: string;
@@ -97,13 +98,10 @@ export const NinDemographyView: React.FC<NinDemographyViewProps> = ({
     setErrorMessage(null);
 
     // Balance check
-    if (userBalance < selectedSlip.price) {
+    const slipPrice = selectedSlip?.price ?? 0;
+    if (userBalance < slipPrice) {
       setErrorMessage(
-        `Insufficient wallet balance. You have ₦${userBalance.toLocaleString("en-NG", {
-          minimumFractionDigits: 2,
-        })}, but this service requires ₦${selectedSlip.price.toLocaleString("en-NG", {
-          minimumFractionDigits: 2,
-        })}. Please fund your wallet to proceed.`
+        `Insufficient wallet balance. You have ${formatNaira(userBalance)}, but this service requires ${formatNaira(slipPrice)}. Please fund your wallet to proceed.`
       );
       return;
     }
@@ -329,7 +327,7 @@ export const NinDemographyView: React.FC<NinDemographyViewProps> = ({
                   </div>
                   <div className="text-right">
                     <div className="text-xl font-black text-amber-300 font-mono tracking-tight">
-                      ₦{selectedSlip.price.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+                      {formatNaira(selectedSlip?.price ?? 0)}
                     </div>
                     <span className="inline-flex items-center gap-1 text-[10px] text-emerald-300 font-bold mt-0.5">
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Wallet balance checked
@@ -481,11 +479,7 @@ export const NinDemographyView: React.FC<NinDemographyViewProps> = ({
                   <span>
                     Wallet Balance:{" "}
                     <strong className="text-slate-800">
-                      ₦
-                      {userBalance.toLocaleString("en-NG", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
+                      {formatNaira(userBalance)}
                     </strong>
                   </span>
                 </div>

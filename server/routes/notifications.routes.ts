@@ -25,8 +25,7 @@ import { PaymentVerificationReconciliationEngine } from "../../src/services/paym
 import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerGateway";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
 import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
-import { syncFromFirestore, syncToFirestore } from "../../src/services/settingsStore";
-import { loadFirestoreDb, syncDbToFirestore, saveDocToFirestore } from "../../src/services/firestoreStore";
+import { syncFromStorage, syncToStorage } from "../../src/services/settingsStore";
 import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
 import * as securityStore from "../../src/services/securityStore";
@@ -63,7 +62,7 @@ app.post("/api/notifications/dispatch", async (req, res) => {
   const notificationId = "NOTIF_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
   const activityId = "ACT_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
 
-  // A. Save Notification directly to Firestore
+  // A. Save Notification directly to Storage
   const newNotif = await notificationsStore.sendAppNotification(db, {
     id: notificationId,
     notificationId,
@@ -133,7 +132,7 @@ app.post("/api/notifications/dispatch", async (req, res) => {
   });
 });
 
-// 2. Get User Notifications (Paginated & Filtered) backed directly by Firestore
+// 2. Get User Notifications (Paginated & Filtered) backed directly by Storage
 app.get("/api/notifications", async (req, res) => {
   const { userId, read, type, category, searchQuery, page = 1, pageSize = 20 } = req.query;
   const db = readDB();
@@ -168,7 +167,7 @@ app.get("/api/notifications", async (req, res) => {
   });
 });
 
-// 3. Mark Notification as Read directly in Firestore
+// 3. Mark Notification as Read directly in Storage
 app.patch("/api/notifications/:id/read", async (req, res) => {
   const { id } = req.params;
   const db = readDB();
@@ -189,7 +188,7 @@ app.patch("/api/notifications/:id/read", async (req, res) => {
   res.status(404).json({ error: "Notification not found" });
 });
 
-// 4. Mark All Notifications as Read directly in Firestore
+// 4. Mark All Notifications as Read directly in Storage
 app.post("/api/notifications/read-all", async (req, res) => {
   const { userId } = req.body;
   const db = readDB();
@@ -210,7 +209,7 @@ app.post("/api/notifications/read-all", async (req, res) => {
   res.json({ success: true });
 });
 
-// 5. Delete Notification directly in Firestore
+// 5. Delete Notification directly in Storage
 app.delete("/api/notifications/:id", async (req, res) => {
   const { id } = req.params;
   const db = readDB();
@@ -386,7 +385,7 @@ app.get("/api/user-history/:userId", async (req, res) => {
 app.get("/api/admin/notifications/dashboard", async (req, res) => {
   const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
 
   const val = await adminAuthService.validateSession(db, sessionToken || "");
   if (!val.valid || !val.session) {
@@ -418,7 +417,7 @@ app.get("/api/admin/notifications/dashboard", async (req, res) => {
 app.get("/api/admin/notifications/templates", async (req, res) => {
   const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
 
   const val = await adminAuthService.validateSession(db, sessionToken || "");
   if (!val.valid || !val.session) {
@@ -440,7 +439,7 @@ app.post("/api/admin/notifications/templates", async (req, res) => {
   const template = req.body;
   const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
 
   const val = await adminAuthService.validateSession(db, sessionToken || "");
   if (!val.valid || !val.session) {
@@ -457,7 +456,7 @@ app.post("/api/admin/notifications/templates", async (req, res) => {
   db.notification_templates.push(newTpl);
 
   writeDB(db);
-  await syncToFirestore(db);
+  await syncToStorage(db);
 
   return res.json({ success: true, template: newTpl });
 });
@@ -466,7 +465,7 @@ app.post("/api/admin/notifications/templates", async (req, res) => {
 app.get("/api/admin/notifications/system-switches", async (req, res) => {
   const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
 
   const val = await adminAuthService.validateSession(db, sessionToken || "");
   if (!val.valid || !val.session) {
@@ -489,7 +488,7 @@ app.post("/api/admin/notifications/toggle-switch", async (req, res) => {
   const { switchKey, value } = req.body;
   const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
 
   const val = await adminAuthService.validateSession(db, sessionToken || "");
   if (!val.valid || !val.session) {
@@ -512,7 +511,7 @@ app.post("/api/admin/notifications/toggle-switch", async (req, res) => {
   db.system_settings.notifications.updatedBy = val.session.email;
 
   writeDB(db);
-  await syncToFirestore(db);
+  await syncToStorage(db);
 
   return res.json({ success: true, switches: db.system_settings.notifications });
 });
@@ -521,7 +520,7 @@ app.post("/api/admin/notifications/toggle-switch", async (req, res) => {
 app.get("/api/admin/notification/history", async (req, res) => {
   const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
 
   const val = await adminAuthService.validateSession(db, sessionToken || "");
   if (!val.valid || !val.session) {
@@ -537,7 +536,7 @@ app.post("/api/admin/notifications/create", async (req, res) => {
   const notif = req.body;
   const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
 
   const val = await adminAuthService.validateSession(db, sessionToken || "");
   if (!val.valid || !val.session) {
@@ -579,7 +578,7 @@ app.post("/api/admin/notifications/create", async (req, res) => {
   });
 
   writeDB(db);
-  await syncToFirestore(db);
+  await syncToStorage(db);
 
   return res.json({ success: true, message: "Notification created and dispatched.", notification: newNotification });
 });
@@ -588,7 +587,7 @@ app.post("/api/admin/notifications/create", async (req, res) => {
 app.get("/api/admin/announcements", async (req, res) => {
   const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
 
   const val = await adminAuthService.validateSession(db, sessionToken || "");
   if (!val.valid || !val.session) {
@@ -604,7 +603,7 @@ app.post("/api/admin/announcements/create", async (req, res) => {
   const { title, message, priority = "NORMAL", target = "ALL", expiresAt = null, active = true } = req.body;
   const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
 
   const val = await adminAuthService.validateSession(db, sessionToken || "");
   if (!val.valid || !val.session) {
@@ -627,7 +626,7 @@ app.post("/api/admin/announcements/create", async (req, res) => {
   db.announcements.unshift(newAnnouncement);
 
   writeDB(db);
-  await syncToFirestore(db);
+  await syncToStorage(db);
 
   return res.json({ success: true, message: "Announcement published.", announcement: newAnnouncement });
 });
@@ -638,7 +637,7 @@ app.put("/api/admin/announcements/:id", async (req, res) => {
   const updates = req.body;
   const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
 
   const val = await adminAuthService.validateSession(db, sessionToken || "");
   if (!val.valid || !val.session) {
@@ -652,7 +651,7 @@ app.put("/api/admin/announcements/:id", async (req, res) => {
 
   Object.assign(ann, updates, { updatedAt: new Date().toISOString(), updatedBy: val.session.email });
   writeDB(db);
-  await syncToFirestore(db);
+  await syncToStorage(db);
 
   return res.json({ success: true, announcement: ann });
 });
@@ -662,7 +661,7 @@ app.delete("/api/admin/announcements/:id", async (req, res) => {
   const { id } = req.params;
   const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
 
   const val = await adminAuthService.validateSession(db, sessionToken || "");
   if (!val.valid || !val.session) {
@@ -674,7 +673,7 @@ app.delete("/api/admin/announcements/:id", async (req, res) => {
   }
 
   writeDB(db);
-  await syncToFirestore(db);
+  await syncToStorage(db);
 
   return res.json({ success: true, message: "Announcement deleted." });
 });
@@ -683,7 +682,7 @@ app.delete("/api/admin/announcements/:id", async (req, res) => {
 app.post("/api/admin/module9/self-test", async (req, res) => {
   const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
 
   const val = await adminAuthService.validateSession(db, sessionToken || "");
   if (!val.valid || !val.session) {
@@ -712,7 +711,7 @@ app.post("/api/admin/module9/self-test", async (req, res) => {
 // 1. GET /api/user/announcements/active - Active Banner Announcements for Users
 app.get("/api/user/announcements/active", async (req, res) => {
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
 
   const announcements = (db.announcements || []).filter((a: any) => a.active !== false);
   return res.json({ success: true, announcements });
@@ -722,7 +721,7 @@ app.get("/api/user/announcements/active", async (req, res) => {
 app.get("/api/user/notifications", requireAuth, async (req, res) => {
   const authUid = (req as any).authenticatedUid;
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
 
   const user = await usersStore.getUserById(authUid);
   const userEmail = user?.email;
@@ -740,7 +739,7 @@ app.post("/api/user/notifications/mark-read", async (req, res) => {
   const { notificationId, id } = req.body;
   const targetId = notificationId || id;
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
 
   const notif = (db.notifications || []).find((n: any) => n.id === targetId);
   if (notif) {
@@ -748,7 +747,7 @@ app.post("/api/user/notifications/mark-read", async (req, res) => {
     notif.isRead = true;
     notif.readAt = new Date().toISOString();
     writeDB(db);
-    await syncToFirestore(db);
+    await syncToStorage(db);
   }
 
   return res.json({ success: true, message: "Notification marked as read." });
@@ -758,7 +757,7 @@ app.post("/api/user/notifications/mark-read", async (req, res) => {
 app.post("/api/user/notifications/read-all", async (req, res) => {
   const userEmail = req.body.email || (req.headers["x-user-email"] as string);
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
 
   (db.notifications || []).forEach((n: any) => {
     if (!userEmail || !n.targetEmail || n.targetEmail === userEmail) {
@@ -769,7 +768,7 @@ app.post("/api/user/notifications/read-all", async (req, res) => {
   });
 
   writeDB(db);
-  await syncToFirestore(db);
+  await syncToStorage(db);
 
   return res.json({ success: true, message: "All notifications marked as read." });
 });
@@ -779,12 +778,12 @@ app.post("/api/user/notifications/archive", async (req, res) => {
   const { notificationId, id } = req.body;
   const targetId = notificationId || id;
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
 
   if (db.notifications) {
     db.notifications = db.notifications.filter((n: any) => n.id !== targetId);
     writeDB(db);
-    await syncToFirestore(db);
+    await syncToStorage(db);
   }
 
   return res.json({ success: true, message: "Notification archived." });
@@ -794,7 +793,7 @@ app.post("/api/user/notifications/archive", async (req, res) => {
 app.post("/api/admin/emails/send", async (req, res) => {
   const sessionToken = (req.headers["x-admin-token"] as string) || (req.headers["authorization"]?.replace("Bearer ", ""));
   const db = readDB();
-  await syncFromFirestore(db);
+  await syncFromStorage(db);
 
   const val = await adminAuthService.validateSession(db, sessionToken || "");
   if (!val.valid || !val.session) {
@@ -980,7 +979,7 @@ app.post("/api/admin/emails/send", async (req, res) => {
   });
 
   writeDB(db);
-  await syncToFirestore(db);
+  await syncToStorage(db);
 
   return res.json({
     success: sentCount > 0,

@@ -61,7 +61,7 @@ export async function saveSettingsDoc(data: AdminConfigDoc): Promise<boolean> {
   }
 }
 
-export async function syncFromFirestore(dbObj: any): Promise<void> {
+export async function syncFromStorage(dbObj: any): Promise<void> {
   const fsDoc = await getSettingsDoc();
   if (fsDoc) {
     if (fsDoc.system_settings && Object.keys(fsDoc.system_settings).length > 0) {
@@ -85,7 +85,7 @@ export async function syncFromFirestore(dbObj: any): Promise<void> {
   }
 }
 
-export async function syncToFirestore(dbObj: any): Promise<void> {
+export async function syncToStorage(dbObj: any): Promise<void> {
   const providers = (Array.isArray(dbObj.api_providers) && dbObj.api_providers.length > 0)
     ? dbObj.api_providers
     : (Array.isArray(dbObj.apiProviders) && dbObj.apiProviders.length > 0 ? dbObj.apiProviders : []);

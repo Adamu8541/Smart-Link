@@ -29,7 +29,7 @@ export const AuthActionHandler: React.FC<AuthActionHandlerProps> = ({
       hashParams = new URLSearchParams(window.location.hash.substring(window.location.hash.indexOf("?")));
     }
 
-    // 3. Parse continueUrl embedded parameters if passed by Firebase custom action handler
+    // 3. Parse continueUrl embedded parameters if passed by custom action handler
     let continueParams = new URLSearchParams();
     const continueUrl = searchParams.get("continueUrl") || hashParams.get("continueUrl");
     if (continueUrl) {

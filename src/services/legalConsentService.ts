@@ -33,7 +33,7 @@ const LOCAL_ACCEPTANCES_KEY_PREFIX = "smartlink_legal_acc_";
 
 export class LegalConsentService {
   /**
-   * Records a user acceptance event in Firestore and synchronizes with server backend.
+   * Records a user acceptance event in Storage and synchronizes with server backend.
    */
   static async recordLegalAcceptance(params: {
     userId: string;

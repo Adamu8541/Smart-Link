@@ -14,7 +14,7 @@ import { testTursoConnection } from "../turso/client";
 import { initializeTursoSchema, TURSO_TABLES } from "../turso/schema";
 import { executeTurso } from "../turso/client";
 import { TursoMigrator } from "../turso/migrator";
-import { FirestoreToTursoMigrationService } from "../turso/migrationService";
+import { StorageToTursoMigrationService } from "../turso/migrationService";
 
 const router = express.Router();
 
@@ -129,17 +129,17 @@ router.post("/api/admin/turso/init-schema", requireSuperAdmin, async (req, res) 
 });
 
 /**
- * POST /api/admin/turso/migrate-firestore
- * Runs safe, idempotent data migration from Firestore to Turso.
+ * POST /api/admin/turso/migrate-storage
+ * Runs safe, idempotent data migration from Storage to Turso.
  */
-router.post("/api/admin/turso/migrate-firestore", requireSuperAdmin, async (req, res) => {
+router.post("/api/admin/turso/migrate-storage", requireSuperAdmin, async (req, res) => {
   try {
-    const result = await FirestoreToTursoMigrationService.runMigration();
+    const result = await StorageToTursoMigrationService.runMigration();
     res.status(result.success ? 200 : 500).json(result);
   } catch (err: any) {
     res.status(500).json({
       success: false,
-      error: err.message || "Failed running Firestore to Turso migration",
+      error: err.message || "Failed running Storage to Turso migration",
     });
   }
 });
@@ -150,7 +150,7 @@ router.post("/api/admin/turso/migrate-firestore", requireSuperAdmin, async (req,
  */
 router.get("/api/admin/turso/migration-verification", requireAdmin, async (req, res) => {
   try {
-    const report = await FirestoreToTursoMigrationService.verifyMigration();
+    const report = await StorageToTursoMigrationService.verifyMigration();
     res.json({
       success: true,
       report,

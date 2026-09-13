@@ -25,8 +25,7 @@ import { PaymentVerificationReconciliationEngine } from "../../src/services/paym
 import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerGateway";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
 import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
-import { syncFromFirestore, syncToFirestore } from "../../src/services/settingsStore";
-import { loadFirestoreDb, syncDbToFirestore, saveDocToFirestore } from "../../src/services/firestoreStore";
+import { syncFromStorage, syncToStorage } from "../../src/services/settingsStore";
 import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
 import * as securityStore from "../../src/services/securityStore";
@@ -97,7 +96,13 @@ app.post("/api/ai/chat", async (req, res) => {
     res.json({ text: responseText });
   } catch (err: any) {
     console.error("AI Chatbot failure", err);
-    res.status(500).json({ error: "AI Assistant failed to generate content." });
+    const errStr = String(err?.message || err);
+    if (errStr.includes("RESOURCE_EXHAUSTED") || errStr.includes("quota") || errStr.includes("429")) {
+      return res.json({
+        text: "I'm currently experiencing high traffic (Gemini API quota reached). Please try again shortly or use our direct NIN, CAC, and VTU service modules!",
+      });
+    }
+    res.status(500).json({ error: "AI Assistant failed to generate content due to high demand." });
   }
 });
 
@@ -128,8 +133,14 @@ app.post("/api/ai/advisor", async (req, res) => {
     });
 
     res.json({ text: response.text });
-  } catch (err) {
+  } catch (err: any) {
     console.error("AI Advisor error", err);
+    const errStr = String(err?.message || err);
+    if (errStr.includes("RESOURCE_EXHAUSTED") || errStr.includes("quota") || errStr.includes("429")) {
+      return res.json({
+        text: "### Smart Link AI Business Advisor\n\n* **Notice**: Gemini AI usage quota is temporarily reached. Here is our standard advisory:\n* **CAC Registration**: Ensure you reserve your corporate name via the CAC portal first.\n* **Tax Compliance**: Obtain your TIN immediately upon incorporation with FIRS.",
+      });
+    }
     res.status(500).json({ error: "AI Advisor failed." });
   }
 });

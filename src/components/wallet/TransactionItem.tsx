@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { WalletTransaction } from "../../types";
 import { TransactionStatusBadge } from "./TransactionStatus";
+import { formatNaira, formatSafeDateTime } from "../../utils/formatUtils";
 
 interface TransactionItemProps {
   transaction: WalletTransaction;
@@ -59,15 +60,7 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
     );
   };
 
-  const formattedDate = transaction.createdAt
-    ? new Date(transaction.createdAt).toLocaleString("en-NG", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    : "Recent";
+  const formattedDate = formatSafeDateTime(transaction.createdAt, "Recent");
 
   return (
     <div
@@ -105,7 +98,7 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
               isCredit ? "text-[#0F2D5C] dark:text-[#9CA3AF]" : "text-[#111827] dark:text-[#FFFFFF]"
             }`}
           >
-            {isCredit ? "+" : "-"}₦{transaction.amount.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+            {isCredit ? "+" : "-"}{formatNaira(transaction.amount ?? 0)}
           </div>
           {!compact && (
             <div className="mt-0.5 flex justify-end">

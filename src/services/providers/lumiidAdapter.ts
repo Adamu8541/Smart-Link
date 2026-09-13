@@ -23,6 +23,7 @@
 
 import crypto from "crypto";
 import { PaymentProviderConfig, ProviderAdapter, normalizeNigerianPhone } from "./aspfiyAdapter";
+import { formatNaira } from "../../utils/formatUtils";
 
 export interface LumiIDVerificationResult {
   success: boolean;
@@ -382,7 +383,7 @@ export class LumiIDAdapter implements ProviderAdapter {
           if (res.ok) {
             const rawBalance = json?.data?.balance ?? json?.balance ?? json?.data?.wallet_balance ?? json?.credits;
             const balanceNum = typeof rawBalance === "number" ? rawBalance : parseFloat(rawBalance) || undefined;
-            const balStr = balanceNum !== undefined ? ` (Wallet Balance: ₦${balanceNum.toLocaleString()})` : "";
+            const balStr = balanceNum !== undefined ? ` (Wallet Balance: ${formatNaira(balanceNum)})` : "";
             return {
               ok: true,
               message: `LumiID Gateway Connected Successfully${balStr}`,

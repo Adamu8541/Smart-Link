@@ -96,6 +96,7 @@ export interface BillPaymentRequest {
   network?: string;
   institutionId?: string;
   paymentType?: string;
+  transactionPin?: string;
 }
 
 export interface BillPaymentResponse {

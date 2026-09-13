@@ -22,6 +22,7 @@ import { BillPaymentView } from "./bills/BillPaymentView";
 import { BillCategoryType } from "../types/bills";
 import { VerificationType } from "../types/verification";
 import { normalizePhotoUrl } from "../services/slipOptionsConfig";
+import { formatNaira, formatSafeDateTime } from "../utils/formatUtils";
 import { ManualServiceFormView } from "./common/ManualServiceFormView";
 import { getManualServiceConfig, isManualService } from "../data/manualServicesConfig";
 
@@ -348,8 +349,8 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
       return;
     }
 
-    if (currentUser.walletBalance < totalCost) {
-      setError(`Insufficient wallet balance. Total cost is ₦${totalCost.toLocaleString()}, but your balance is ₦${currentUser.walletBalance.toLocaleString()}. Please top up your wallet.`);
+    if ((currentUser.walletBalance ?? 0) < totalCost) {
+      setError(`Insufficient wallet balance. Total cost is ${formatNaira(totalCost)}, but your balance is ${formatNaira(currentUser.walletBalance)}. Please top up your wallet.`);
       return;
     }
 
@@ -458,7 +459,7 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
                   <Check className="h-6 w-6" />
                 </div>
                 <h4 className="text-lg font-bold text-[#111827]">Transaction Completed</h4>
-                <p className="text-xs text-[#6B7280]">Receipt generated on {new Date().toLocaleString()}</p>
+                <p className="text-xs text-[#6B7280]">Receipt generated on {formatSafeDateTime(new Date(), "Recently")}</p>
               </div>
 
               {/* Verified Identity Profile Sheet */}
@@ -532,7 +533,7 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
                   <span className="text-[10px] font-bold text-[#6B7280] block uppercase border-b pb-1">TELECOM VTU RECEIPT</span>
                   <div><span className="text-[#6B7280] font-sans">Reference:</span> <strong>{successResult.transaction.reference}</strong></div>
                   <div><span className="text-[#6B7280] font-sans">Description:</span> <strong>{successResult.transaction.description}</strong></div>
-                  <div><span className="text-[#6B7280] font-sans">Filing Fee / Cost:</span> <strong className="text-[#0F2D5C]">₦{successResult.transaction.amount.toLocaleString()}</strong></div>
+                  <div><span className="text-[#6B7280] font-sans">Filing Fee / Cost:</span> <strong className="text-[#0F2D5C]">{formatNaira(successResult.transaction.amount)}</strong></div>
                   <div><span className="text-[#6B7280] font-sans">Status:</span> <span className="px-1.5 py-0.5 rounded bg-[#F5F7FA] text-[#0F2D5C] border border-[#E5E7EB]">SUCCESS</span></div>
                 </div>
               )}
@@ -685,7 +686,7 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-[#6B7280] font-mono">Platform Service Fee</span>
                   <span className="font-semibold text-[#111827]">
-                    {service.price ? `₦${service.price.toLocaleString()}` : "Provider Plan Cost"}
+                    {service.price !== undefined && service.price !== null ? formatNaira(service.price) : "Provider Plan Cost"}
                   </span>
                 </div>
 
@@ -698,14 +699,14 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
 
                 <div className="flex justify-between items-center text-sm font-bold border-t pt-2 text-[#111827]">
                   <span>Grand Total (Naira)</span>
-                  <span className="text-[#0F2D5C] font-mono">₦{totalCost.toLocaleString()}</span>
+                  <span className="text-[#0F2D5C] font-mono">{formatNaira(totalCost)}</span>
                 </div>
 
                 {currentUser && (
                   <div className="flex justify-between items-center text-[11px] border-t pt-1 text-[#6B7280]">
                     <span>Your Current Wallet Balance</span>
-                    <span className={currentUser.walletBalance < totalCost ? "text-[#0F2D5C] font-bold" : "text-[#0F2D5C] font-bold"}>
-                      ₦{currentUser.walletBalance.toLocaleString()}
+                    <span className={(currentUser.walletBalance ?? 0) < totalCost ? "text-[#0F2D5C] font-bold" : "text-[#0F2D5C] font-bold"}>
+                      {formatNaira(currentUser.walletBalance)}
                     </span>
                   </div>
                 )}

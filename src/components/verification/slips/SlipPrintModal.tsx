@@ -29,7 +29,7 @@ import {
   SlipFormatType,
   StandardizedVerificationResult,
 } from "../../../types/verification";
-import { SlipService as FirestoreSlipService } from "../../../services/slipService";
+import { SlipService as StorageSlipService } from "../../../services/slipService";
 import { SlipPrintEngine } from "../../../services/slipPrintEngine";
 import { EmailSlipService } from "../../../services/emailSlipService";
 
@@ -79,12 +79,12 @@ export const SlipPrintModal: React.FC<SlipPrintModalProps> = ({
 
   const effectiveRegisteredEmail = userEmail || "adamuamuhammad8541@gmail.com";
 
-  // Initialize or save slip to Firestore
+  // Initialize or save slip to Storage
   useEffect(() => {
     let isMounted = true;
     setIsSaving(true);
 
-    FirestoreSlipService.saveSlipFromVerification({
+    StorageSlipService.saveSlipFromVerification({
       userId,
       userEmail: effectiveRegisteredEmail,
       verificationResult,

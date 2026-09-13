@@ -19,6 +19,7 @@ import {
   Wallet
 } from "lucide-react";
 import { AdminSession } from "../../../services/adminAuthTypes";
+import { formatNaira, formatSafeDate, formatSafeDateTime } from "../../../utils/formatUtils";
 
 interface WalletStatementModalProps {
   user: any;
@@ -85,7 +86,7 @@ export function WalletStatementModal({ user, session, onClose }: WalletStatement
     let csv = `Date,Reference,Type,Description,Debit (NGN),Credit (NGN),Running Balance (NGN)\n`;
 
     items.forEach((item: any) => {
-      csv += `"${new Date(item.date).toLocaleString()}","${item.reference}","${item.type}","${item.description.replace(/"/g, '""')}",${item.debit},${item.credit},${item.runningBalance}\n`;
+      csv += `"${formatSafeDateTime(item.date)}","${item.reference}","${item.type}","${item.description.replace(/"/g, '""')}",${item.debit},${item.credit},${item.runningBalance}\n`;
     });
 
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -248,7 +249,7 @@ export function WalletStatementModal({ user, session, onClose }: WalletStatement
                   <div>
                     <h2 className="text-lg font-black text-white print:text-[#111827]">SmartLink Financial Statement</h2>
                     <p className="text-xs text-[#9CA3AF] font-mono">Statement ID: {statementData.statementId}</p>
-                    <p className="text-[11px] text-[#9CA3AF] mt-1">Period: {new Date(startDate).toLocaleDateString()} — {new Date(endDate).toLocaleDateString()}</p>
+                    <p className="text-[11px] text-[#9CA3AF] mt-1">Period: {formatSafeDate(startDate)} — {formatSafeDate(endDate)}</p>
                   </div>
                   <div className="text-right text-xs text-[#9CA3AF]">
                     <div className="font-bold text-white print:text-[#111827]">{statementData.user.fullName}</div>
@@ -261,19 +262,19 @@ export function WalletStatementModal({ user, session, onClose }: WalletStatement
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
                   <div className="p-3 bg-[#111827] border border-[#111827] rounded-xl">
                     <span className="text-[#6B7280] block text-[10px]">Opening Balance</span>
-                    <span className="font-mono font-bold text-[#E5E7EB]">₦{statementData.summary.openingBalance.toLocaleString()}</span>
+                    <span className="font-mono font-bold text-[#E5E7EB]">{formatNaira(statementData.summary.openingBalance)}</span>
                   </div>
                   <div className="p-3 bg-[#111827] border border-[#111827] rounded-xl">
                     <span className="text-[#6B7280] block text-[10px]">Total Credits (+)</span>
-                    <span className="font-mono font-bold text-[#9CA3AF]">₦{statementData.summary.totalCredits.toLocaleString()}</span>
+                    <span className="font-mono font-bold text-[#9CA3AF]">{formatNaira(statementData.summary.totalCredits)}</span>
                   </div>
                   <div className="p-3 bg-[#111827] border border-[#111827] rounded-xl">
                     <span className="text-[#6B7280] block text-[10px]">Total Debits (-)</span>
-                    <span className="font-mono font-bold text-[#9CA3AF]">₦{statementData.summary.totalDebits.toLocaleString()}</span>
+                    <span className="font-mono font-bold text-[#9CA3AF]">{formatNaira(statementData.summary.totalDebits)}</span>
                   </div>
                   <div className="p-3 bg-[#111827] border border-[#111827] rounded-xl">
                     <span className="text-[#6B7280] block text-[10px]">Closing Balance</span>
-                    <span className="font-mono font-bold text-white">₦{statementData.summary.closingBalance.toLocaleString()}</span>
+                    <span className="font-mono font-bold text-white">{formatNaira(statementData.summary.closingBalance)}</span>
                   </div>
                 </div>
 
@@ -293,12 +294,12 @@ export function WalletStatementModal({ user, session, onClose }: WalletStatement
                     <tbody className="divide-y divide-slate-800/60 font-mono text-[11px]">
                       {statementData.items.map((item: any, idx: number) => (
                         <tr key={idx} className="hover:bg-[#111827]/40">
-                          <td className="py-2 px-3 text-[#9CA3AF]">{new Date(item.date).toLocaleDateString()}</td>
+                          <td className="py-2 px-3 text-[#9CA3AF]">{formatSafeDate(item.date)}</td>
                           <td className="py-2 px-3 text-[#E5E7EB]">{item.reference}</td>
                           <td className="py-2 px-3 text-[#E5E7EB] font-sans text-xs">{item.description}</td>
-                          <td className="py-2 px-3 text-right text-[#9CA3AF]">{item.debit > 0 ? `₦${item.debit.toLocaleString()}` : "-"}</td>
-                          <td className="py-2 px-3 text-right text-[#9CA3AF]">{item.credit > 0 ? `₦${item.credit.toLocaleString()}` : "-"}</td>
-                          <td className="py-2 px-3 text-right font-bold text-white">₦{item.runningBalance.toLocaleString()}</td>
+                          <td className="py-2 px-3 text-right text-[#9CA3AF]">{item.debit > 0 ? formatNaira(item.debit) : "-"}</td>
+                          <td className="py-2 px-3 text-right text-[#9CA3AF]">{item.credit > 0 ? formatNaira(item.credit) : "-"}</td>
+                          <td className="py-2 px-3 text-right font-bold text-white">{formatNaira(item.runningBalance)}</td>
                         </tr>
                       ))}
                     </tbody>

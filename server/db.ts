@@ -1,6 +1,6 @@
 /**
  * Core Database & Storage Module
- * Manages local JSON persistence and Firestore synchronization.
+ * Manages local JSON persistence and Storage synchronization.
  */
 import path from "path";
 import fs from "fs";
@@ -9,6 +9,7 @@ import dotenv from "dotenv";
 import bcrypt from "bcrypt";
 import { adminAuthService } from "../src/services/adminAuthService";
 import { testTursoConnection } from "./turso/client";
+import { initializeTursoSchema } from "./turso/schema";
 
 dotenv.config();
 
@@ -213,10 +214,18 @@ initializeDB();
 
 let currentDbMemory: any = null;
 
-// Verify Turso database connection on startup
-testTursoConnection().then((conn) => {
+// Verify Turso database connection and schema on startup
+testTursoConnection().then(async (conn) => {
   if (conn.ok) {
     console.log(`[server] Turso Database connected successfully (${conn.isLocal ? "Local libSQL" : "Remote Turso"}).`);
+    try {
+      const initRes = await initializeTursoSchema();
+      if (initRes.success) {
+        console.log(`[server] Turso schema verified (${initRes.tablesCreated} tables ready).`);
+      }
+    } catch (schemaErr: any) {
+      console.warn("[server] Turso schema auto-init note:", schemaErr?.message);
+    }
   } else {
     console.warn("[server] Turso DB connection note:", conn.error);
   }

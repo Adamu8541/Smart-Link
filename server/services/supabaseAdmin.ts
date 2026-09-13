@@ -3,13 +3,24 @@ import { createClient, SupabaseClient } from "@supabase/supabase-js";
 let adminClient: SupabaseClient | null = null;
 
 /**
+ * Clean & sanitize Supabase Project URL (strips trailing slashes, /rest/v1, /auth/v1)
+ */
+export function sanitizeSupabaseUrl(url: string): string {
+  if (!url) return "";
+  let clean = url.trim().replace(/\/+$/, "");
+  clean = clean.replace(/\/(rest|auth|storage)\/v1\/?$/i, "");
+  return clean.replace(/\/+$/, "");
+}
+
+/**
  * Get server-side Supabase Admin Client with Service Role Key
  * Falls back gracefully if service key is missing without crashing.
  */
 export function getSupabaseAdmin(): SupabaseClient | null {
   if (adminClient) return adminClient;
 
-  const url = (process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || "").trim();
+  const rawUrl = (process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || "").trim();
+  const url = sanitizeSupabaseUrl(rawUrl);
   const key = (
     process.env.SUPABASE_SERVICE_ROLE_KEY ||
     process.env.VITE_SUPABASE_SERVICE_ROLE_KEY ||
@@ -121,13 +132,14 @@ export async function validateSupabaseUserToken(token: string): Promise<{ uid: s
       return null;
     }
 
-    const supabaseUrl = (process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || "").trim();
+    const rawUrl = (process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || "").trim();
+    const supabaseUrl = sanitizeSupabaseUrl(rawUrl);
     const anonKey = (process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
 
     // 3. Fallback online verification with Supabase Auth REST endpoint
     if (supabaseUrl && anonKey && supabaseUrl.startsWith("https://")) {
       try {
-        const response = await fetch(`${supabaseUrl.replace(/\/$/, "")}/auth/v1/user`, {
+        const response = await fetch(`${supabaseUrl}/auth/v1/user`, {
           headers: {
             "Authorization": `Bearer ${token}`,
             "apikey": anonKey,
@@ -206,5 +218,37 @@ export async function updateSupabaseUserMetadata(uid: string, metadata: Record<s
   } catch (err) {
     console.warn("[SupabaseAdmin] Update metadata exception:", err);
     return false;
+  }
+}
+
+/**
+ * Authenticate user with Email and Password using Supabase Auth
+ */
+export async function authenticateWithSupabase(email: string, password: string): Promise<{ success: boolean; user?: any; session?: any; error?: string }> {
+  const rawUrl = (process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || "").trim();
+  const url = sanitizeSupabaseUrl(rawUrl);
+  const anonKey = (process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || "").trim();
+
+  if (!url || !anonKey || !url.startsWith("https://")) {
+    return { success: false, error: "Supabase URL or Anon Key is not configured." };
+  }
+
+  try {
+    const client = createClient(url, anonKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    });
+    const { data, error } = await client.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true, user: data.user, session: data.session };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Network error" };
   }
 }

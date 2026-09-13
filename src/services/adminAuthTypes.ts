@@ -1,6 +1,6 @@
 /**
  * SmartLink Admin Auth Types and Session Storage Helpers
- * Client-safe definitions (no Node/Firebase imports)
+ * Client-safe definitions (no Node imports)
  */
 
 export type AdminRoleType =

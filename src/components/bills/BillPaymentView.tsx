@@ -37,6 +37,8 @@ import {
   BarChart3,
   Filter,
   Eye,
+  EyeOff,
+  Lock,
   FileText,
   X,
   Info
@@ -54,6 +56,7 @@ import {
   CustomerValidationResponse
 } from "../../types/bills";
 import { BillPaymentEngine } from "../../services/billPaymentEngine";
+import { formatNaira, formatNumber, formatSafeDate, formatSafeDateTime } from "../../utils/formatUtils";
 
 export interface BillPaymentViewProps {
   currentUser: UserProfile;
@@ -101,6 +104,9 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
   const [showConfirmation, setShowConfirmation] = useState(false);
   useModalBackHandler(showConfirmation, "bill-confirmation-modal", () => setShowConfirmation(false));
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [paymentPin, setPaymentPin] = useState("");
+  const [showPaymentPin, setShowPaymentPin] = useState(false);
+  const [paymentPinError, setPaymentPinError] = useState<string | null>(null);
 
   // Result state
   const [paymentResult, setPaymentResult] = useState<BillPaymentResponse | null>(null);
@@ -317,16 +323,15 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
     const charge = selectedCategory.id === "ELECTRICITY" || selectedCategory.id === "CABLE_TV" ? 100 : 0;
     const totalCost = payAmt + charge;
 
-    if (walletBalance < totalCost) {
+    if ((walletBalance ?? 0) < totalCost) {
       setValidationError(
-        `Insufficient wallet balance. Your available balance is ₦${walletBalance.toLocaleString(
-          "en-NG",
-          { minimumFractionDigits: 2 }
-        )}, but total cost is ₦${totalCost.toLocaleString("en-NG", { minimumFractionDigits: 2 })}.`
+        `Insufficient wallet balance. Your available balance is ${formatNaira(walletBalance, true)}, but total cost is ${formatNaira(totalCost, true)}.`
       );
       return;
     }
 
+    setPaymentPin("");
+    setPaymentPinError(null);
     setShowConfirmation(true);
   };
 
@@ -334,7 +339,16 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
   const handleConfirmPayment = async () => {
     if (!selectedCategory || !selectedProvider) return;
 
+    const isPinRequired = (currentUser?.pinRequiredForTransactions !== false) && Boolean(currentUser?.hasTransactionPin);
+    if (isPinRequired) {
+      if (!paymentPin || paymentPin.length !== 4) {
+        setPaymentPinError("Please enter your 4-digit transaction authorization PIN.");
+        return;
+      }
+    }
+
     setIsProcessingPayment(true);
+    setPaymentPinError(null);
     const payAmt = selectedPlan ? selectedPlan.amount : parseFloat(amount);
     const charge = selectedCategory.id === "ELECTRICITY" || selectedCategory.id === "CABLE_TV" ? 100 : 0;
 
@@ -351,13 +365,19 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
       planId: selectedPlan?.id,
       planName: selectedPlan?.planName,
       phoneNumber,
-      network: selectedProvider.code
+      network: selectedProvider.code,
+      transactionPin: isPinRequired ? paymentPin.trim() : undefined,
     };
 
     const res = await BillPaymentEngine.executePayment(req);
     setIsProcessingPayment(false);
-    setShowConfirmation(false);
 
+    if (!res.success && (res.errorCode === "INCORRECT_PIN" || res.errorCode === "PIN_REQUIRED")) {
+      setPaymentPinError(res.errorMessage || "Incorrect 4-digit transaction PIN. Please try again.");
+      return;
+    }
+
+    setShowConfirmation(false);
     setPaymentResult(res);
     setViewMode("RESULT");
 
@@ -404,7 +424,8 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
     doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
     doc.text(`Receipt ID: ${resObj.receiptId || "REC-" + Date.now()}`, 15, 53);
-    doc.text(`Date & Time: ${new Date(resObj.timestamp).toLocaleString("en-NG")}`, 15, 59);
+    const receiptDate = formatSafeDateTime(resObj.timestamp, new Date().toISOString());
+    doc.text(`Date & Time: ${receiptDate}`, 15, 59);
 
     // Main Box
     doc.setDrawColor(226, 232, 240);
@@ -454,14 +475,14 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
     doc.text("Financial Breakdown", 22, yPos + 8);
 
     doc.setFont("helvetica", "normal");
-    doc.text(`Amount Paid: NGN ${(resObj.amountPaid || 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}`, 22, yPos + 16);
-    doc.text(`Convenience Charge: NGN ${(resObj.charge || 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}`, 22, yPos + 22);
-    doc.text(`Total Deducted: NGN ${(resObj.totalDeducted || 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}`, 22, yPos + 28);
+    doc.text(`Amount Paid: NGN ${formatNumber(resObj.amountPaid, { minimumFractionDigits: 2 })}`, 22, yPos + 16);
+    doc.text(`Convenience Charge: NGN ${formatNumber(resObj.charge, { minimumFractionDigits: 2 })}`, 22, yPos + 22);
+    doc.text(`Total Deducted: NGN ${formatNumber(resObj.totalDeducted, { minimumFractionDigits: 2 })}`, 22, yPos + 28);
     doc.text(`Status: ${resObj.status}`, 22, yPos + 34);
 
     doc.text(`SmartLink Ref: ${resObj.smartlinkReference}`, 110, yPos + 16);
     doc.text(`Provider Ref: ${resObj.providerReference || "PROV-ACK"}`, 110, yPos + 22);
-    doc.text(`Wallet Balance After: NGN ${(resObj.balanceAfter || 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}`, 110, yPos + 28);
+    doc.text(`Wallet Balance After: NGN ${formatNumber(resObj.balanceAfter, { minimumFractionDigits: 2 })}`, 110, yPos + 28);
 
     // Footer
     doc.setFontSize(8);
@@ -541,7 +562,7 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
             <div>
               <span className="text-[10px] text-[#E5E7EB] uppercase tracking-wider font-semibold">Wallet Balance</span>
               <p className="text-xl md:text-2xl font-black font-mono text-white">
-                ₦{walletBalance.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+                {formatNaira(walletBalance, true)}
               </p>
             </div>
           </div>
@@ -916,7 +937,7 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
                                 {p.planName}
                               </span>
                               <span className="text-xs font-mono font-black text-[#0F2D5C] dark:text-[#9CA3AF] shrink-0">
-                                ₦{p.amount.toLocaleString()}
+                                {formatNaira(p.amount)}
                               </span>
                             </div>
 
@@ -1071,7 +1092,7 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
                               : "bg-[#F5F7FA] dark:bg-[#111827]/60 text-[#4B5563] dark:text-[#E5E7EB] border-[#E5E7EB] dark:border-[#4B5563] hover:border-[#0F2D5C]"
                           }`}
                         >
-                          ₦{quickAmt.toLocaleString()}
+                          {formatNaira(quickAmt)}
                         </button>
                       ))}
                     </div>
@@ -1112,12 +1133,12 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
               <div className="text-xs text-[#6B7280] space-y-0.5">
                 <div>
                   Convenience Fee: <strong className="text-[#111827] dark:text-white">
-                    ₦{(selectedCategory.id === "ELECTRICITY" || selectedCategory.id === "CABLE_TV" ? 100 : 0).toLocaleString()}
+                    {formatNaira(selectedCategory.id === "ELECTRICITY" || selectedCategory.id === "CABLE_TV" ? 100 : 0)}
                   </strong>
                 </div>
                 <div>
                   Total Payable: <strong className="text-[#0F2D5C] dark:text-[#9CA3AF] font-mono font-bold text-sm">
-                    ₦{((selectedPlan ? selectedPlan.amount : parseFloat(amount) || 0) + (selectedCategory.id === "ELECTRICITY" || selectedCategory.id === "CABLE_TV" ? 100 : 0)).toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+                    {formatNaira(((selectedPlan ? selectedPlan.amount : parseFloat(amount) || 0) + (selectedCategory.id === "ELECTRICITY" || selectedCategory.id === "CABLE_TV" ? 100 : 0)), true)}
                   </strong>
                 </div>
               </div>
@@ -1179,16 +1200,16 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
               <div className="bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 p-4 rounded-2xl space-y-2 border border-[#E5E7EB] dark:border-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF] font-medium">
                 <div className="flex justify-between">
                   <span>Base Bill Amount</span>
-                  <span>₦{(selectedPlan ? selectedPlan.amount : parseFloat(amount)).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
+                  <span>{formatNaira(((selectedPlan ? selectedPlan.amount : parseFloat(amount)) || 0), true)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Convenience Fee</span>
-                  <span>₦{(selectedCategory.id === "ELECTRICITY" || selectedCategory.id === "CABLE_TV" ? 100 : 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
+                  <span>{formatNaira(selectedCategory.id === "ELECTRICITY" || selectedCategory.id === "CABLE_TV" ? 100 : 0, true)}</span>
                 </div>
                 <div className="pt-2 border-t border-[#E5E7EB] dark:border-[#0F2D5C] flex justify-between font-bold text-sm text-[#0F2D5C] dark:text-white">
                   <span>Total Debit Amount</span>
                   <span className="font-mono text-base">
-                    ₦{((selectedPlan ? selectedPlan.amount : parseFloat(amount)) + (selectedCategory.id === "ELECTRICITY" || selectedCategory.id === "CABLE_TV" ? 100 : 0)).toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+                    {formatNaira((((selectedPlan ? selectedPlan.amount : parseFloat(amount)) || 0) + (selectedCategory.id === "ELECTRICITY" || selectedCategory.id === "CABLE_TV" ? 100 : 0)), true)}
                   </span>
                 </div>
               </div>
@@ -1196,10 +1217,51 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
               <div className="p-3 bg-[#E5E7EB] dark:bg-[#111827] rounded-xl flex justify-between text-[11px] text-[#4B5563] dark:text-[#E5E7EB]">
                 <span>Wallet Balance After Payment</span>
                 <strong className="font-mono text-[#111827] dark:text-white">
-                  ₦{(walletBalance - ((selectedPlan ? selectedPlan.amount : parseFloat(amount)) + (selectedCategory.id === "ELECTRICITY" || selectedCategory.id === "CABLE_TV" ? 100 : 0))).toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+                  {formatNaira(((walletBalance ?? 0) - (((selectedPlan ? selectedPlan.amount : parseFloat(amount)) || 0) + (selectedCategory.id === "ELECTRICITY" || selectedCategory.id === "CABLE_TV" ? 100 : 0))), true)}
                 </strong>
               </div>
             </div>
+
+            {/* PIN Authorization Section */}
+            {(currentUser?.pinRequiredForTransactions !== false && Boolean(currentUser?.hasTransactionPin)) ? (
+              <div className="p-3.5 bg-slate-50 dark:bg-[#0A1A33] rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                    <Lock className="h-3.5 w-3.5 text-[#0F2D5C] dark:text-sky-400" />
+                    <span>Enter 4-Digit Transaction PIN</span>
+                  </label>
+                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">PIN Required</span>
+                </div>
+                <div className="relative">
+                  <input
+                    type={showPaymentPin ? "text" : "password"}
+                    maxLength={4}
+                    value={paymentPin}
+                    onChange={(e) => {
+                      setPaymentPin(e.target.value.replace(/\D/g, ""));
+                      setPaymentPinError(null);
+                    }}
+                    placeholder="••••"
+                    className="w-full px-4 py-2.5 text-center text-lg font-mono tracking-widest font-bold bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-700 text-[#0F2D5C] dark:text-white focus:ring-2 focus:ring-[#0F2D5C] focus:outline-none shadow-inner"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPaymentPin(!showPaymentPin)}
+                    className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                  >
+                    {showPaymentPin ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+                {paymentPinError && (
+                  <p className="text-xs text-rose-500 font-medium text-center">{paymentPinError}</p>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center justify-center gap-2 py-2 px-3 bg-emerald-50/80 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 text-xs font-medium rounded-xl border border-emerald-200/80 dark:border-emerald-800/50">
+                <Zap className="h-4 w-4 text-emerald-600 shrink-0" />
+                <span>Fast 1-Click Checkout Active • Transaction PIN Disabled</span>
+              </div>
+            )}
 
             <div className="flex items-center gap-3 pt-2">
               <button
@@ -1213,7 +1275,7 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
               <button
                 type="button"
                 onClick={handleConfirmPayment}
-                disabled={isProcessingPayment}
+                disabled={isProcessingPayment || ((currentUser?.pinRequiredForTransactions !== false && Boolean(currentUser?.hasTransactionPin)) && paymentPin.length !== 4)}
                 className="flex-1 py-3 px-4 rounded-xl bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-bold text-xs transition-all shadow-md shadow-indigo-600/20 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {isProcessingPayment ? (
@@ -1343,7 +1405,7 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
                 <div>
                   <span className="text-[10px] text-[#9CA3AF] uppercase">Amount Paid</span>
                   <p className="font-bold text-[#0F2D5C] dark:text-[#9CA3AF] mt-0.5 font-mono">
-                    ₦{paymentResult.amountPaid.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+                    {formatNaira(paymentResult.amountPaid, true)}
                   </p>
                 </div>
                 <div>
@@ -1499,7 +1561,7 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
                       <td className="py-3.5 font-mono text-[#4B5563] dark:text-[#E5E7EB]">{item.customerId || item.recipient || "N/A"}</td>
                       <td className="py-3.5 font-mono text-[#6B7280] text-[11px]">{item.smartlinkReference || item.reference}</td>
                       <td className="py-3.5 font-mono font-bold text-[#111827] dark:text-white">
-                        ₦{(item.amount || item.amountPaid || 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+                        {formatNaira((item.amount || item.amountPaid || 0), true)}
                       </td>
                       <td className="py-3.5">
                         <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
@@ -1511,7 +1573,7 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
                         </span>
                       </td>
                       <td className="py-3.5 text-[#6B7280] text-[11px]">
-                        {new Date(item.createdAt || item.timestamp || Date.now()).toLocaleDateString("en-NG")}
+                        {formatSafeDate(item.createdAt || item.timestamp, "Recently")}
                       </td>
                       <td className="py-3.5 text-right pr-2">
                         <button
@@ -1582,7 +1644,7 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
                 <div className="p-4 rounded-2xl bg-[#F5F7FA] dark:bg-[#111827]/40 border border-[#E5E7EB] dark:border-[#4B5563] space-y-1">
                   <span className="text-[10px] text-[#9CA3AF] uppercase font-semibold">Gross Volume</span>
                   <p className="text-2xl font-black text-[#0F2D5C] dark:text-[#9CA3AF] font-mono">
-                    ₦{adminStats.totalVolume.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+                    {formatNaira(adminStats?.totalVolume, true)}
                   </p>
                 </div>
                 <div className="p-4 rounded-2xl bg-[#F5F7FA] dark:bg-[#111827]/40 border border-[#E5E7EB] dark:border-[#4B5563] space-y-1">

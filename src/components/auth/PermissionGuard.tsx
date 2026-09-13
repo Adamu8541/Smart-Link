@@ -4,13 +4,13 @@
  */
 
 import React from "react";
-import { UserProfile, UserRole, FirebaseCustomClaims } from "../../types";
+import { UserProfile, UserRole, UserCustomClaims } from "../../types";
 import { AuthGuardService } from "../../services/authGuards";
 import { ShieldAlert, Mail, Lock } from "lucide-react";
 
 interface BaseGuardProps {
   currentUser: UserProfile | null;
-  claims?: FirebaseCustomClaims;
+  claims?: UserCustomClaims;
   children: React.ReactNode;
   fallback?: React.ReactNode;
 }

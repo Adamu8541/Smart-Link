@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { VerificationServiceConfig, VerificationType } from "../../types/verification";
 import { VERIFICATION_SERVICES } from "../../services/verificationEngine";
+import { formatNaira } from "../../utils/formatUtils";
 
 interface VerificationServiceProps {
   onSelectService: (service: VerificationServiceConfig) => void;
@@ -130,7 +131,7 @@ export const VerificationService: React.FC<VerificationServiceProps> = ({
 
               <div className="text-right">
                 <span className="font-mono text-xs font-extrabold text-[#0F2D5C] dark:text-[#9CA3AF] bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 px-2.5 py-1 rounded-lg border border-[#E5E7EB]/60 dark:border-[#0F2D5C]/60">
-                  ₦{service.fee.toLocaleString()}
+                  {formatNaira(service.fee ?? 0)}
                 </span>
                 <p className="text-[10px] text-[#9CA3AF] mt-1">{service.providerName}</p>
               </div>

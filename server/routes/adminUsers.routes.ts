@@ -25,8 +25,7 @@ import { PaymentVerificationReconciliationEngine } from "../../src/services/paym
 import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerGateway";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
 import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
-import { syncFromFirestore, syncToFirestore } from "../../src/services/settingsStore";
-import { loadFirestoreDb, syncDbToFirestore, saveDocToFirestore } from "../../src/services/firestoreStore";
+import { syncFromStorage, syncToStorage } from "../../src/services/settingsStore";
 import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
 import * as securityStore from "../../src/services/securityStore";
@@ -308,7 +307,7 @@ app.post("/api/admin/users/delete", requireAdmin, async (req, res) => {
 });
 
 // --- ONE-TIME ADMIN MIGRATION: USERS TO SUPABASE/TURSO ---
-app.post("/api/admin/migrate-users-to-firebase-auth", requireAdmin, async (req, res) => {
+app.post("/api/admin/migrate-users-to-supabase-auth", requireAdmin, async (req, res) => {
   res.json({ success: true, message: "Migration to Supabase and Turso complete.", total: 0, results: [] });
 });
 

@@ -18,6 +18,7 @@ import {
   X
 } from "lucide-react";
 import { motion } from "motion/react";
+import { formatNaira } from "../utils/formatUtils";
 import { useSiteConfig } from "../context/SiteConfigContext";
 import { getRealServiceIcon } from "./common/ServiceIcons";
 import { SMART_LINK_SERVICES, ServiceItem } from "../data/servicesData";
@@ -170,7 +171,7 @@ export default function ServicesGrid({ onSelectService }: ServicesGridProps) {
                     {livePrice !== undefined && (
                       <span className="text-xs font-bold text-[#0F2D5C] bg-[#F5F7FA] px-2.5 py-0.5 rounded-full flex items-center gap-1 font-mono border border-[#E5E7EB]">
                         <Tag className="h-3 w-3" />
-                        ₦{livePrice.toLocaleString()}
+                        {formatNaira(livePrice)}
                       </span>
                     )}
                     {srv.priceLabel && (

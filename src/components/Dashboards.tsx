@@ -43,6 +43,7 @@ import {
   Bell
 } from "lucide-react";
 import { UserProfile, UserRole, Transaction, CACApplication } from "../types";
+import { formatNaira, formatNumber, formatSafeDate, formatSafeDateTime } from "../utils/formatUtils";
 import { ProviderService, getAuthHeaders } from "../services/providerService";
 import { safeFetchJson } from "../utils/authErrorHandler";
 import { SMART_LINK_SERVICES, ServiceItem } from "../data/servicesData";
@@ -498,7 +499,7 @@ export default function Dashboards({
     fetchDynamicServicesAndPricing();
   }, [currentUser]);
 
-  // Synchronize dashboard tab changes with sidebar events
+  // Synchronize dashboard tab changes and funding actions with sidebar/navigation events
   useEffect(() => {
     const handleTabChanged = () => {
       const storedTab = sessionStorage.getItem("dashboard_tab") || "OVERVIEW";
@@ -506,9 +507,16 @@ export default function Dashboards({
         setActiveTab(storedTab);
       }
     };
+    const handleFundWalletEvent = () => {
+      handleOpenFundWallet();
+    };
     handleTabChanged();
     window.addEventListener("dashboard_tab_changed", handleTabChanged);
-    return () => window.removeEventListener("dashboard_tab_changed", handleTabChanged);
+    window.addEventListener("open_fund_wallet", handleFundWalletEvent);
+    return () => {
+      window.removeEventListener("dashboard_tab_changed", handleTabChanged);
+      window.removeEventListener("open_fund_wallet", handleFundWalletEvent);
+    };
   }, []);
 
   // Generate 30 days transaction volume chart data
@@ -520,7 +528,7 @@ export default function Dashboards({
       const d = new Date();
       d.setDate(now.getDate() - i);
       const dateStr = d.toISOString().split("T")[0];
-      const displayDate = d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+      const displayDate = formatSafeDate(d, "", { month: "short", day: "numeric" });
       dataMap[dateStr] = {
         date: dateStr,
         displayDate,
@@ -570,8 +578,8 @@ export default function Dashboards({
       const isFunding = tx.type === "WALLET_FUNDING";
       const title = isFunding ? "Digital Wallet Funded" : "Service Debit Transaction";
       const description = isFunding 
-        ? `Credited ₦${tx.amount.toLocaleString()}.00 via ${tx.gateway || "Paystack Gateway"}. Reference: ${tx.reference}`
-        : `Sent ₦${tx.amount.toLocaleString()}.00 to ${tx.description}. Reference: ${tx.reference}`;
+        ? `Credited ${formatNaira(tx.amount, true)} via ${tx.gateway || "Paystack Gateway"}. Reference: ${tx.reference}`
+        : `Sent ${formatNaira(tx.amount, true)} to ${tx.description}. Reference: ${tx.reference}`;
       
       list.push({
         id: `tx-${tx.id}`,
@@ -597,18 +605,20 @@ export default function Dashboards({
       });
 
       if (app.status === "APPROVED") {
+        const baseTime = app.createdAt ? new Date(app.createdAt).getTime() : Date.now();
         list.push({
           id: `cac-approved-${app.id}`,
-          timestamp: new Date(new Date(app.createdAt).getTime() + 1800000),
+          timestamp: new Date(isNaN(baseTime) ? Date.now() : baseTime + 1800000),
           title: `Corporate Filing Registered`,
           description: `CAC Registry approved name reservation: "${app.approvedName || app.proposedNames[0]}". State certificate generated.`,
           type: "CAC_FILING",
           status: "SUCCESS",
         });
       } else if (app.status === "REJECTED") {
+        const baseTime = app.createdAt ? new Date(app.createdAt).getTime() : Date.now();
         list.push({
           id: `cac-rejected-${app.id}`,
-          timestamp: new Date(new Date(app.createdAt).getTime() + 1800000),
+          timestamp: new Date(isNaN(baseTime) ? Date.now() : baseTime + 1800000),
           title: `Corporate Filing Needs Attention`,
           description: `CAC Registry flagged proposed names. Reason: ${app.comments || "Corporate name similarity conflict detected."}`,
           type: "CAC_FILING",
@@ -664,7 +674,8 @@ export default function Dashboards({
       doc.setFont("Helvetica", "normal");
       doc.setTextColor(120, 120, 120);
       doc.text("PREMIER CORPORATE GOVERNMENT SERVICES GATEWAY", 12, 21);
-      doc.text(`RC: 9347502 | TIMESTAMP: ${new Date(tx.createdAt).toLocaleString()}`, 12, 25);
+      const receiptTimestamp = formatSafeDateTime(tx.createdAt, new Date().toISOString());
+      doc.text(`RC: 9347502 | TIMESTAMP: ${receiptTimestamp}`, 12, 25);
 
       doc.setDrawColor(230, 230, 230);
       doc.line(12, 28, 136, 28);
@@ -700,7 +711,7 @@ export default function Dashboards({
       doc.setFont("Helvetica", "bold");
       doc.setFontSize(9);
       doc.text("TOTAL AMOUNT DEBITED:", 16, 82);
-      doc.text(`₦${tx.amount.toLocaleString()}.00`, 85, 82);
+      doc.text(formatNaira(tx.amount, true), 85, 82);
 
       doc.setFontSize(6);
       doc.setFont("Helvetica", "italic");
@@ -848,7 +859,7 @@ export default function Dashboards({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
 
         {/* User Full Name Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-left">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-left" id="user-dashboard-header">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-[#111827] tracking-tight">
               {currentUser.fullName}
@@ -856,53 +867,6 @@ export default function Dashboards({
             <p className="text-xs text-[#6B7280] font-medium mt-0.5">
               Account Overview & Services
             </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2" id="user-dashboard-nav-list">
-            <button
-              type="button"
-              onClick={() => onSwitchView && onSwitchView("DASHBOARD")}
-              className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-[#6B7280] hover:text-[#0F2D5C] bg-white border border-[#E5E7EB] hover:bg-[#F3F4F6] transition-all cursor-pointer"
-            >
-              <LayoutDashboard className="h-4 w-4 text-[#6B7280]" />
-              <span>Overview</span>
-            </button>
-            <button
-              type="button"
-              onClick={handleOpenFundWallet}
-              className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-[#6B7280] hover:text-[#0F2D5C] bg-white border border-[#E5E7EB] hover:bg-[#F3F4F6] transition-all cursor-pointer"
-            >
-              <Wallet className="h-4 w-4 text-[#6B7280]" />
-              <span>Fund Wallet</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => onSwitchView && onSwitchView("ACCOUNT_SECURITY")}
-              className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold text-[#0F2D5C] bg-white border border-[#E5E7EB] hover:bg-[#F3F4F6] transition-all shadow-xs cursor-pointer"
-              id="btn-account-security-settings"
-            >
-              <Shield className="h-4 w-4 text-[#0F2D5C]" />
-              <span>Account Security</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => onSwitchView && onSwitchView("USER_NOTIFICATIONS")}
-              className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-[#6B7280] hover:text-[#0F2D5C] bg-white border border-[#E5E7EB] hover:bg-[#F3F4F6] transition-all cursor-pointer"
-            >
-              <Bell className="h-4 w-4 text-[#6B7280]" />
-              <span>Notifications</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                sessionStorage.setItem("dashboard_tab", "ACTIVITY_FEED");
-                setActiveTab("ACTIVITY_FEED");
-                window.dispatchEvent(new Event("dashboard_tab_changed"));
-              }}
-              className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-[#6B7280] hover:text-[#0F2D5C] bg-white border border-[#E5E7EB] hover:bg-[#F3F4F6] transition-all cursor-pointer"
-            >
-              <Clock className="h-4 w-4 text-[#6B7280]" />
-              <span>History</span>
-            </button>
           </div>
         </div>
 
@@ -952,7 +916,7 @@ export default function Dashboards({
                   )}
 
                   <div className="text-3xl md:text-4xl font-extrabold tracking-tight font-mono text-white flex items-baseline">
-                    ₦{currentUser.walletBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    {formatNaira(currentUser.walletBalance, true)}
                   </div>
                   <div className="pt-2">
                     <button

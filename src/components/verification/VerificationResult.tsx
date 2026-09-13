@@ -266,7 +266,14 @@ export const VerificationResult: React.FC<VerificationResultProps> = ({
             Ref: <span className="font-mono font-bold text-[#4B5563] dark:text-[#9CA3AF]">#{reference}</span>
           </div>
           <div>
-            Date: <span className="font-mono text-[#4B5563] dark:text-[#9CA3AF]">{new Date(timestamp).toLocaleString()}</span>
+            Date: <span className="font-mono text-[#4B5563] dark:text-[#9CA3AF]">{(() => {
+              try {
+                const d = new Date(timestamp || Date.now());
+                return isNaN(d.getTime()) ? "Recently" : d.toLocaleString();
+              } catch {
+                return "Recently";
+              }
+            })()}</span>
           </div>
         </div>
       </div>

@@ -38,6 +38,8 @@ export interface UserProfile {
   permissions?: SubAdminPermission[];
   status?: "ACTIVE" | "SUSPENDED" | "INACTIVE" | "BLOCKED" | "FROZEN";
   lastLogin?: string;
+  hasTransactionPin?: boolean;
+  pinRequiredForTransactions?: boolean;
 }
 
 export interface SiteSettings {

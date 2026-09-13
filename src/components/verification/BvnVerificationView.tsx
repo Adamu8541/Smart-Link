@@ -40,6 +40,7 @@ import { SlipLivePreviewCard } from "./slips/SlipLivePreviewCard";
 import { SlipOptionConfig } from "../../services/slipOptionsConfig";
 import { useSiteConfig } from "../../context/SiteConfigContext";
 import { legalConsentService } from "../../services/legalConsentService";
+import { formatNaira, formatSafeDateTime } from "../../utils/formatUtils";
 
 interface BvnVerificationViewProps {
   userId: string;
@@ -188,13 +189,9 @@ export const BvnVerificationView: React.FC<BvnVerificationViewProps> = ({
       return;
     }
 
-    if (userBalance < selectedSlip.price) {
+    if (userBalance < (selectedSlip?.price ?? 0)) {
       setInputError(
-        `Insufficient wallet balance. You have ₦${userBalance.toLocaleString("en-NG", {
-          minimumFractionDigits: 2,
-        })}, but this service requires ₦${selectedSlip.price.toLocaleString("en-NG", {
-          minimumFractionDigits: 2,
-        })}. Please fund your wallet.`
+        `Insufficient wallet balance. You have ${formatNaira(userBalance)}, but this service requires ${formatNaira(selectedSlip?.price ?? 0)}. Please fund your wallet.`
       );
       return;
     }
@@ -355,7 +352,7 @@ export const BvnVerificationView: React.FC<BvnVerificationViewProps> = ({
         <div className="text-right px-2">
           <span className="text-[10px] text-slate-500 block uppercase font-bold">Wallet Balance</span>
           <span className="font-mono text-xs font-extrabold text-[#0F2D5C]">
-            ₦{userBalance.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+            {formatNaira(userBalance)}
           </span>
         </div>
       </div>
@@ -442,7 +439,7 @@ export const BvnVerificationView: React.FC<BvnVerificationViewProps> = ({
                   <div className="text-right">
                     <span className="text-xs text-slate-300 block font-medium">Price</span>
                     <span className="text-lg font-black text-amber-300 font-mono">
-                      ₦{selectedSlip.price.toLocaleString("en-NG")}
+                      {formatNaira(selectedSlip.price ?? 0)}
                     </span>
                   </div>
                 </div>
@@ -594,7 +591,7 @@ export const BvnVerificationView: React.FC<BvnVerificationViewProps> = ({
                   >
                     <div>
                       <span className="font-mono font-bold text-slate-800">{item.maskedId || item.verifiedId}</span>
-                      <p className="text-[10px] text-slate-500">Ref: {item.reference} • {new Date(item.createdAt).toLocaleString()}</p>
+                      <p className="text-[10px] text-slate-500">Ref: {item.reference} • {formatSafeDateTime(item.createdAt, "Recently")}</p>
                     </div>
                     <button
                       type="button"

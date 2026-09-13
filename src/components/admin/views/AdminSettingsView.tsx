@@ -14,6 +14,7 @@ import {
   Wallet,
   CheckSquare,
   Zap,
+  ZapOff,
   Bell,
   Shield,
   Mail,
@@ -83,6 +84,9 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
   const [showImportModal, setShowImportModal] = useState<boolean>(false);
   const [importJsonText, setImportJsonText] = useState<string>("");
   const [importParsedData, setImportParsedData] = useState<any>(null);
+
+  const [clearingRecords, setClearingRecords] = useState<boolean>(false);
+  const [clearStatus, setClearStatus] = useState<string | null>(null);
 
   const [showTestPanelModal, setShowTestPanelModal] = useState<boolean>(false);
   const [testResults, setTestResults] = useState<any>(null);
@@ -249,6 +253,35 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
       window.URL.revokeObjectURL(url);
     } catch (err) {
       alert("Failed to export settings backup.");
+    }
+  };
+
+  // Clear Local Records & Backups
+  const handleClearLocalRecords = async () => {
+    if (!window.confirm("Are you sure you want to clear all local records and backup records? This will permanently wipe local user records, transactions, logs, and snapshot backups while safely preserving your Super Admin account.")) {
+      return;
+    }
+    setClearingRecords(true);
+    setClearStatus(null);
+    try {
+      const res = await fetch("/api/admin/settings/clear-local-records", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${session.sessionToken || ""}`,
+          "x-admin-token": session.sessionToken || "",
+          "Content-Type": "application/json",
+        },
+      });
+      const data = await res.json();
+      if (data.success) {
+        setClearStatus("✅ " + data.message);
+      } else {
+        setClearStatus("❌ " + (data.message || "Failed to clear records"));
+      }
+    } catch (err: any) {
+      setClearStatus("❌ Error: " + err.message);
+    } finally {
+      setClearingRecords(false);
     }
   };
 
@@ -2448,7 +2481,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
             <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs">
               <div className="space-y-1">
                 <span className="font-bold text-white flex items-center gap-1.5">
-                  <ShieldCheck className="w-4 h-4 text-emerald-400" /> Firebase Storage Bypass & Zero Data Loss Guarantee
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" /> Storage Bypass & Zero Data Loss Guarantee
                 </span>
                 <p className="text-[#9CA3AF] leading-relaxed">
                   All user-uploaded photos, PDF documents, and form data are stored safely on the server's local storage and forwarded directly as high-resolution email attachments. If a submission fails, the user's form is restored locally without losing a single character.
@@ -2696,109 +2729,403 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
         )}
 
         {/* 10. MAINTENANCE MODE SETTINGS */}
-        {activeTab === "maintenance" && (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSaveCategory("maintenance", maintenanceSettings);
-            }}
-            className="space-y-6"
-          >
-            <div className="flex items-center justify-between border-b border-[#111827] pb-4">
-              <div>
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Wrench className="h-5 w-5 text-[#9CA3AF]" /> Global Maintenance Mode & Service Downtime
-                </h2>
-                <p className="text-xs text-[#9CA3AF]">Lock down public application routes during core system upgrades while allowing admin bypass.</p>
-              </div>
-              {canEdit && (
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="py-2 px-5 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-lg shadow-none"
-                >
-                  <Save className="h-3.5 w-3.5" /> Save Maintenance Mode
-                </button>
-              )}
-            </div>
+        {activeTab === "maintenance" && (() => {
+          const isSuperAdmin = session.role === "SUPER_ADMIN" || session.email?.toLowerCase() === "adamuamuhammad8541@gmail.com" || (session as any).isSuperAdmin;
+          const isMaintenanceEditable = canEdit && isSuperAdmin;
 
-            <div className="p-6 bg-[#111827] border border-[#111827] rounded-2xl space-y-5">
-              <div className="flex items-center justify-between">
+          const MAINTENANCE_SERVICES_LIST = [
+            { code: "DATA", name: "Data Bundles", icon: "📱", desc: "MTN, Airtel, Glo, 9mobile data plans" },
+            { code: "AIRTIME", name: "Airtime Top-Up", icon: "📞", desc: "VTU airtime recharges across networks" },
+            { code: "ELECTRICITY", name: "Electricity Bills", icon: "💡", desc: "IKEDC, EKEDC, AEDC, KEDCO bill payments" },
+            { code: "CABLE_TV", name: "Cable TV Subscriptions", icon: "📺", desc: "DSTV, GOTV, Startimes, Showmax" },
+            { code: "TRANSFER", name: "Wallet Debit & Transfers", icon: "💸", desc: "Bank transfers, P2P & wallet withdrawals" },
+            { code: "WALLET_FUND", name: "Wallet Funding Gateways", icon: "💳", desc: "Monnify, PalmPay, Paystack & manual funding" },
+            { code: "VIRTUAL_ACCOUNT", name: "Virtual Bank Accounts", icon: "🏦", desc: "Dedicated virtual account generation" },
+            { code: "AI_ASSISTANT", name: "AI Assistant & Smart Genius", icon: "🤖", desc: "AI assistant query resolution" },
+            { code: "IDENTITY", name: "NIN, BVN & Identity", icon: "🪪", desc: "Identity verification & compliance gateways" },
+            { code: "EDUCATION", name: "Education & Exam Pins", icon: "🎓", desc: "WAEC, NECO, NABTEB registration pins" },
+            { code: "RESULT_CHECKER", name: "Result Checkers", icon: "📑", desc: "WAEC/NECO online result checker tokens" },
+          ];
+
+          const currentSelectedServices: string[] = Array.isArray(maintenanceSettings.maintenanceServices)
+            ? maintenanceSettings.maintenanceServices
+            : [];
+
+          const handleToggleServiceCode = (code: string) => {
+            if (!isMaintenanceEditable) return;
+            let updated: string[];
+            if (currentSelectedServices.includes(code)) {
+              updated = currentSelectedServices.filter((c) => c !== code);
+            } else {
+              updated = [...currentSelectedServices, code];
+            }
+            const isAll = updated.length === MAINTENANCE_SERVICES_LIST.length;
+            setMaintenanceSettings({
+              ...maintenanceSettings,
+              maintenanceServices: updated,
+              maintenanceModeAllServices: isAll,
+              servicesMaintenanceMode: updated.length > 0,
+            });
+          };
+
+          const handleToggleAllServices = (checked: boolean) => {
+            if (!isMaintenanceEditable) return;
+            if (checked) {
+              setMaintenanceSettings({
+                ...maintenanceSettings,
+                maintenanceModeAllServices: true,
+                servicesMaintenanceMode: true,
+                maintenanceServices: MAINTENANCE_SERVICES_LIST.map((s) => s.code),
+              });
+            } else {
+              setMaintenanceSettings({
+                ...maintenanceSettings,
+                maintenanceModeAllServices: false,
+                maintenanceServices: [],
+              });
+            }
+          };
+
+          return (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!isSuperAdmin) {
+                  setMessage({ type: "error", text: "Access Denied: Only Super Administrators can save maintenance settings." });
+                  return;
+                }
+                handleSaveCategory("maintenance", maintenanceSettings);
+              }}
+              className="space-y-6"
+            >
+              <div className="flex items-center justify-between border-b border-[#111827] pb-4">
                 <div>
-                  <h3 className="text-sm font-bold text-white">Global Maintenance Mode Switch</h3>
-                  <p className="text-xs text-[#9CA3AF]">When turned ON, regular users will see the custom maintenance screen.</p>
+                  <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                    <Wrench className="h-5 w-5 text-amber-500" /> Platform Maintenance & Service Lockdown Control
+                  </h2>
+                  <p className="text-xs text-[#9CA3AF]">
+                    Only the Super Administrator can configure platform maintenance modes, service locks, schedules, and login blocks.
+                  </p>
                 </div>
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={maintenanceSettings.maintenanceMode === true}
-                    onChange={(e) =>
-                      setMaintenanceSettings({ ...maintenanceSettings, maintenanceMode: e.target.checked })
-                    }
-                    disabled={!canEdit}
-                    className="h-6 w-6 rounded accent-rose-500"
-                  />
-                  <span className={`text-xs font-bold ${maintenanceSettings.maintenanceMode ? "text-[#9CA3AF]" : "text-[#6B7280]"}`}>
-                    {maintenanceSettings.maintenanceMode ? "MAINTENANCE ACTIVE" : "SYSTEM ONLINE"}
-                  </span>
-                </label>
+                {isMaintenanceEditable && (
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="py-2.5 px-6 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-lg shadow-blue-900/30"
+                  >
+                    <Save className="h-4 w-4" /> Save Maintenance Settings
+                  </button>
+                )}
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">Custom Maintenance Banner Message</label>
-                <textarea
-                  rows={3}
-                  value={maintenanceSettings.maintenanceMessage || ""}
-                  onChange={(e) =>
-                    setMaintenanceSettings({ ...maintenanceSettings, maintenanceMessage: e.target.value })
-                  }
-                  disabled={!canEdit}
-                  className="w-full bg-[#111827] border border-[#111827] rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
-                />
-              </div>
-
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={maintenanceSettings.allowAdminBypass !== false}
-                  onChange={(e) =>
-                    setMaintenanceSettings({ ...maintenanceSettings, allowAdminBypass: e.target.checked })
-                  }
-                  disabled={!canEdit}
-                  className="h-4 w-4 rounded accent-rose-500"
-                />
-                <span className="text-xs text-[#E5E7EB]">Allow Super Admins and Admins to bypass maintenance screen</span>
-              </div>
-            </div>
-
-            {/* Live Banner Preview */}
-            <div className="p-5 bg-[#111827] border border-[#111827] rounded-2xl space-y-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#9CA3AF] block">
-                User-Facing Maintenance Overlay Preview
-              </span>
-              <div className="p-6 bg-[#111827] border border-[#0F2D5C]/60 rounded-xl text-center space-y-3">
-                <Wrench className="h-8 w-8 text-[#0F2D5C] mx-auto animate-bounce" />
-                <h3 className="text-base font-bold text-white">System Under Scheduled Maintenance</h3>
-                <p className="text-xs text-[#E5E7EB] max-w-md mx-auto">{maintenanceSettings.maintenanceMessage}</p>
-                <span className="inline-block text-[10px] bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C] py-1 px-3 rounded-full font-mono">
-                  SmartLink Infrastructure Status: Maintenance Mode
-                </span>
-              </div>
-            </div>
-
-            <div className="pt-4 border-t border-[#111827] flex justify-end">
-              {canEdit && (
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="py-2.5 px-6 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-lg shadow-none"
-                >
-                  <Save className="h-4 w-4" /> Save Maintenance Mode
-                </button>
+              {/* Requirement 1: Super Admin Access Warning Banner */}
+              {!isSuperAdmin && (
+                <div className="p-4 rounded-2xl bg-rose-950/60 border border-rose-800/80 text-rose-200 text-xs flex items-center gap-3">
+                  <Lock className="w-5 h-5 text-rose-400 shrink-0" />
+                  <div>
+                    <strong className="block font-bold text-white uppercase tracking-wider">
+                      🔒 Super Admin Restriction Active
+                    </strong>
+                    Only Super Administrators have permission to toggle or modify platform Maintenance Mode settings.
+                  </div>
+                </div>
               )}
-            </div>
-          </form>
-        )}
+
+              {/* Master Toggles Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* 1. Global Platform Maintenance */}
+                <div className={`p-5 rounded-2xl border transition-all ${maintenanceSettings.maintenanceMode ? "bg-rose-950/40 border-rose-500/60" : "bg-[#111827] border-[#111827]"}`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 rounded-xl bg-rose-500/20 text-rose-400">
+                        <Wrench className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-white">Full Platform Maintenance</h3>
+                        <p className="text-[11px] text-[#9CA3AF]">Blocks entire website for regular users</p>
+                      </div>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={maintenanceSettings.maintenanceMode === true}
+                      onChange={(e) =>
+                        setMaintenanceSettings({ ...maintenanceSettings, maintenanceMode: e.target.checked })
+                      }
+                      disabled={!isMaintenanceEditable}
+                      className="h-6 w-6 rounded accent-rose-500 cursor-pointer"
+                    />
+                  </div>
+                  <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase font-mono ${maintenanceSettings.maintenanceMode ? "bg-rose-500/20 text-rose-300 border border-rose-500/40" : "bg-[#111827] text-slate-500"}`}>
+                    {maintenanceSettings.maintenanceMode ? "FULL LOCKDOWN ACTIVE" : "OFF (SYSTEM ONLINE)"}
+                  </span>
+                </div>
+
+                {/* 2. Website Login Maintenance */}
+                <div className={`p-5 rounded-2xl border transition-all ${maintenanceSettings.loginMaintenanceMode ? "bg-amber-950/40 border-amber-500/60" : "bg-[#111827] border-[#111827]"}`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 rounded-xl bg-amber-500/20 text-amber-400">
+                        <Lock className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-white">Website Login Maintenance</h3>
+                        <p className="text-[11px] text-[#9CA3AF]">Blocks user sign-in (Admins exempt)</p>
+                      </div>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={maintenanceSettings.loginMaintenanceMode === true}
+                      onChange={(e) =>
+                        setMaintenanceSettings({ ...maintenanceSettings, loginMaintenanceMode: e.target.checked })
+                      }
+                      disabled={!isMaintenanceEditable}
+                      className="h-6 w-6 rounded accent-amber-500 cursor-pointer"
+                    />
+                  </div>
+                  <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase font-mono ${maintenanceSettings.loginMaintenanceMode ? "bg-amber-500/20 text-amber-300 border border-amber-500/40" : "bg-[#111827] text-slate-500"}`}>
+                    {maintenanceSettings.loginMaintenanceMode ? "LOGIN BLOCKED" : "OFF (LOGIN OPEN)"}
+                  </span>
+                </div>
+
+                {/* 3. User Registration / Signup Maintenance */}
+                <div className={`p-5 rounded-2xl border transition-all ${maintenanceSettings.signupMaintenanceMode ? "bg-amber-950/40 border-amber-500/60" : "bg-[#111827] border-[#111827]"}`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 rounded-xl bg-blue-500/20 text-blue-400">
+                        <ShieldAlert className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-white">Registration Maintenance</h3>
+                        <p className="text-[11px] text-[#9CA3AF]">Blocks new account creation / signup</p>
+                      </div>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={maintenanceSettings.signupMaintenanceMode === true}
+                      onChange={(e) =>
+                        setMaintenanceSettings({ ...maintenanceSettings, signupMaintenanceMode: e.target.checked })
+                      }
+                      disabled={!isMaintenanceEditable}
+                      className="h-6 w-6 rounded accent-blue-500 cursor-pointer"
+                    />
+                  </div>
+                  <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase font-mono ${maintenanceSettings.signupMaintenanceMode ? "bg-blue-500/20 text-blue-300 border border-blue-500/40" : "bg-[#111827] text-slate-500"}`}>
+                    {maintenanceSettings.signupMaintenanceMode ? "REGISTRATION BLOCKED" : "OFF (SIGNUP OPEN)"}
+                  </span>
+                </div>
+
+                {/* 4. Services Maintenance Master */}
+                <div className={`p-5 rounded-2xl border transition-all ${maintenanceSettings.servicesMaintenanceMode ? "bg-purple-950/40 border-purple-500/60" : "bg-[#111827] border-[#111827]"}`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 rounded-xl bg-purple-500/20 text-purple-400">
+                        <ZapOff className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-white">Services Granular Maintenance</h3>
+                        <p className="text-[11px] text-[#9CA3AF]">Lock selected individual services below</p>
+                      </div>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={maintenanceSettings.servicesMaintenanceMode === true}
+                      onChange={(e) =>
+                        setMaintenanceSettings({ ...maintenanceSettings, servicesMaintenanceMode: e.target.checked })
+                      }
+                      disabled={!isMaintenanceEditable}
+                      className="h-6 w-6 rounded accent-purple-500 cursor-pointer"
+                    />
+                  </div>
+                  <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase font-mono ${maintenanceSettings.servicesMaintenanceMode ? "bg-purple-500/20 text-purple-300 border border-purple-500/40" : "bg-[#111827] text-slate-500"}`}>
+                    {maintenanceSettings.servicesMaintenanceMode ? "SERVICES LOCK ACTIVE" : "OFF"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Requirement 2: Granular Services Multi-Select Grid (One, Many, All) */}
+              <div className="p-6 bg-[#111827] border border-[#111827] rounded-2xl space-y-4">
+                <div className="flex items-center justify-between border-b border-[#111827] pb-3">
+                  <div>
+                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                      <span>🛠️ Affected Services Selector</span>
+                      <span className="text-xs font-normal text-[#9CA3AF]">
+                        ({currentSelectedServices.length} of {MAINTENANCE_SERVICES_LIST.length} selected)
+                      </span>
+                    </h3>
+                    <p className="text-xs text-[#9CA3AF]">
+                      Select one, many, or all individual service gateways to put under maintenance.
+                    </p>
+                  </div>
+
+                  <label className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#111827] border border-[#111827] text-xs font-bold text-white cursor-pointer hover:bg-[#111827]">
+                    <input
+                      type="checkbox"
+                      checked={maintenanceSettings.maintenanceModeAllServices === true || currentSelectedServices.length === MAINTENANCE_SERVICES_LIST.length}
+                      onChange={(e) => handleToggleAllServices(e.target.checked)}
+                      disabled={!isMaintenanceEditable}
+                      className="h-4 w-4 rounded accent-purple-500 cursor-pointer"
+                    />
+                    <span>Select All Services</span>
+                  </label>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                  {MAINTENANCE_SERVICES_LIST.map((srv) => {
+                    const isSelected = currentSelectedServices.includes(srv.code) || maintenanceSettings.maintenanceModeAllServices;
+                    return (
+                      <div
+                        key={srv.code}
+                        onClick={() => handleToggleServiceCode(srv.code)}
+                        className={`p-3.5 rounded-xl border text-left cursor-pointer transition-all flex items-start justify-between gap-2.5 ${isSelected ? "bg-purple-950/40 border-purple-500/60 shadow-md" : "bg-[#111827] border-[#111827] opacity-80 hover:opacity-100"}`}
+                      >
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-white">
+                            <span>{srv.icon}</span>
+                            <span>{srv.name}</span>
+                          </div>
+                          <p className="text-[10px] text-[#9CA3AF] leading-tight">{srv.desc}</p>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => handleToggleServiceCode(srv.code)}
+                          disabled={!isMaintenanceEditable}
+                          className="h-4 w-4 rounded accent-purple-500 shrink-0 mt-0.5 cursor-pointer"
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Requirement 8: Maintenance Schedule & Details Inputs */}
+              <div className="p-6 bg-[#111827] border border-[#111827] rounded-2xl space-y-5">
+                <h3 className="text-sm font-bold text-white border-b border-[#111827] pb-3">
+                  📅 Maintenance Schedule, Reason & Emergency Support Details
+                </h3>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Start Date & Time */}
+                  <div>
+                    <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">
+                      Maintenance Started Date & Time
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={maintenanceSettings.startDate || ""}
+                      onChange={(e) =>
+                        setMaintenanceSettings({ ...maintenanceSettings, startDate: e.target.value })
+                      }
+                      disabled={!isMaintenanceEditable}
+                      className="w-full bg-[#111827] border border-[#111827] rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
+                    />
+                  </div>
+
+                  {/* Finish / End Date & Time */}
+                  <div>
+                    <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">
+                      Expected Completion / End Date & Time
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={maintenanceSettings.scheduledEndTime || ""}
+                      onChange={(e) =>
+                        setMaintenanceSettings({ ...maintenanceSettings, scheduledEndTime: e.target.value })
+                      }
+                      disabled={!isMaintenanceEditable}
+                      className="w-full bg-[#111827] border border-[#111827] rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
+                    />
+                  </div>
+                </div>
+
+                {/* Reason for Maintenance */}
+                <div>
+                  <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">
+                    Official Reason for Maintenance (User Announcement)
+                  </label>
+                  <textarea
+                    rows={3}
+                    placeholder="e.g. SmartLink is undergoing scheduled core database updates and API payment gateway optimizations to ensure faster delivery."
+                    value={maintenanceSettings.maintenanceMessage || ""}
+                    onChange={(e) =>
+                      setMaintenanceSettings({ ...maintenanceSettings, maintenanceMessage: e.target.value })
+                    }
+                    disabled={!isMaintenanceEditable}
+                    className="w-full bg-[#111827] border border-[#111827] rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Emergency Support WhatsApp / Contact */}
+                  <div>
+                    <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">
+                      Emergency Support Phone / WhatsApp Number
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="+2349047738212"
+                      value={maintenanceSettings.supportContact || ""}
+                      onChange={(e) =>
+                        setMaintenanceSettings({ ...maintenanceSettings, supportContact: e.target.value })
+                      }
+                      disabled={!isMaintenanceEditable}
+                      className="w-full bg-[#111827] border border-[#111827] rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
+                    />
+                  </div>
+
+                  {/* Admin Bypass Toggle */}
+                  <div className="flex items-center gap-3 self-end p-3.5 bg-[#111827] border border-[#111827] rounded-xl">
+                    <input
+                      type="checkbox"
+                      checked={maintenanceSettings.allowAdminBypass !== false}
+                      onChange={(e) =>
+                        setMaintenanceSettings({ ...maintenanceSettings, allowAdminBypass: e.target.checked })
+                      }
+                      disabled={!isMaintenanceEditable}
+                      className="h-5 w-5 rounded accent-blue-500 cursor-pointer"
+                    />
+                    <div>
+                      <span className="text-xs font-bold text-white block">Allow Admin Session Bypass</span>
+                      <span className="text-[10px] text-[#9CA3AF]">Super Admins & Admins bypass maintenance screens</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Live Overlay Preview */}
+              <div className="p-5 bg-[#111827] border border-[#111827] rounded-2xl space-y-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#9CA3AF] block font-mono">
+                  User-Facing Full-Page Maintenance Live Preview
+                </span>
+                <div className="p-6 bg-slate-900 border border-[#0F2D5C]/60 rounded-xl text-center space-y-3 relative overflow-hidden">
+                  <div className="absolute top-0 left-0 bottom-0 w-1 bg-amber-500" />
+                  <Wrench className="h-8 w-8 text-amber-400 mx-auto animate-spin" style={{ animationDuration: "12s" }} />
+                  <h3 className="text-base font-bold text-white">System Under Scheduled Maintenance</h3>
+                  <p className="text-xs text-[#E5E7EB] max-w-md mx-auto">
+                    {maintenanceSettings.maintenanceMessage || "SmartLink is currently undergoing scheduled infrastructure upgrades. Core services will resume shortly."}
+                  </p>
+                  <div className="flex flex-wrap items-center justify-center gap-2 text-[10px] text-[#9CA3AF]">
+                    <span>Started: <strong>{maintenanceSettings.startDate || "Now"}</strong></span>
+                    <span>•</span>
+                    <span>Expected Finish: <strong>{maintenanceSettings.scheduledEndTime || "TBA"}</strong></span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-[#111827] flex justify-end">
+                {isMaintenanceEditable && (
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="py-2.5 px-6 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-lg shadow-blue-900/30"
+                  >
+                    <Save className="h-4 w-4" /> Save Maintenance Settings
+                  </button>
+                )}
+              </div>
+            </form>
+          );
+        })()}
 
         {/* 11. API CONFIGURATION */}
         {activeTab === "api" && (
@@ -2949,6 +3276,44 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                 >
                   <Upload className="h-4 w-4" /> Upload Settings File
                 </button>
+              </div>
+
+              {/* Clear Local Records & Backups Panel */}
+              <div className="md:col-span-2 p-6 bg-[#111827] border border-rose-900/40 rounded-2xl space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-rose-950/60 border border-rose-800/80 rounded-xl text-rose-400 w-fit">
+                      <Trash2 className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-white">Clear All Local Records & Backup Record</h3>
+                      <p className="text-xs text-[#9CA3AF]">
+                        Wipes test records, transactions, activity logs, and snapshots from local databases while maintaining your Super Admin account.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={session.role !== "SUPER_ADMIN" || clearingRecords}
+                    onClick={handleClearLocalRecords}
+                    className="py-2.5 px-5 bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition"
+                  >
+                    {clearingRecords ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 animate-spin" /> Clearing Records...
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="h-4 w-4" /> Clear All Local & Backup Records
+                      </>
+                    )}
+                  </button>
+                </div>
+                {clearStatus && (
+                  <div className="p-3 rounded-xl text-xs font-medium bg-slate-900/90 border border-slate-700 text-white">
+                    {clearStatus}
+                  </div>
+                )}
               </div>
             </div>
           </div>

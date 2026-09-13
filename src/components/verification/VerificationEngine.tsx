@@ -14,6 +14,7 @@ import {
 import { VerificationValidator } from "../../services/verificationValidator";
 import { WalletService } from "../../services/walletService";
 import { ConfirmationDialog } from "../wallet/ConfirmationDialog";
+import { formatNaira } from "../../utils/formatUtils";
 import { VerificationLoader } from "./VerificationLoader";
 import { VerificationError } from "./VerificationError";
 import { VerificationSuccess } from "./VerificationSuccess";
@@ -209,7 +210,7 @@ export const VerificationEngine: React.FC<VerificationEngineProps> = ({
         <div className="flex items-center gap-3">
           <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 border border-[#E5E7EB] dark:border-[#0F2D5C] rounded-xl font-mono text-xs font-bold text-[#0F2D5C] dark:text-[#9CA3AF]">
             <Wallet className="h-3.5 w-3.5 text-[#0F2D5C]" />
-            <span>₦{userBalance.toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
+            <span>{formatNaira(userBalance)}</span>
           </div>
 
           {onClose && (
@@ -247,7 +248,7 @@ export const VerificationEngine: React.FC<VerificationEngineProps> = ({
 
               <div className="text-right">
                 <span className="font-mono text-xs font-extrabold text-[#0F2D5C] dark:text-[#9CA3AF] bg-white dark:bg-[#111827] px-2.5 py-1 rounded-lg border border-[#E5E7EB] dark:border-[#0F2D5C]">
-                  Fee: ₦{selectedService.fee.toLocaleString()}
+                  Fee: {formatNaira(selectedService.fee ?? 0)}
                 </span>
               </div>
             </div>
@@ -363,7 +364,7 @@ export const VerificationEngine: React.FC<VerificationEngineProps> = ({
                 className="flex-1 py-3 px-6 bg-[#0F2D5C] hover:bg-[#0F2D5C] active:scale-98 text-white font-semibold rounded-2xl text-xs transition-all shadow-md shadow-blue-600/20 cursor-pointer flex items-center justify-center gap-2"
               >
                 <Lock className="h-3.5 w-3.5" />
-                <span>Verify & Proceed (₦{selectedService.fee.toLocaleString()})</span>
+                <span>Verify & Proceed ({formatNaira(selectedService.fee ?? 0)})</span>
               </button>
             </div>
           </div>

@@ -32,7 +32,7 @@ interface SystemHealthData {
     heapTotalMb: number;
     rssMb: number;
   };
-  firestoreStatus: string;
+  storageStatus: string;
   databaseRecords: {
     usersCount: number;
     transactionsCount: number;
@@ -145,7 +145,7 @@ export function AdminSystemView({ session, onNavigate }: AdminSystemViewProps) {
             <Database className="h-4 w-4 text-[#0F2D5C]" />
           </div>
           <p className="text-2xl font-bold text-[#0F2D5C]">
-            {health?.firestoreStatus || "CONNECTED"}
+            {health?.storageStatus || "CONNECTED"}
           </p>
           <span className="text-[11px] text-[#0F2D5C] font-medium">Single source of truth</span>
         </div>

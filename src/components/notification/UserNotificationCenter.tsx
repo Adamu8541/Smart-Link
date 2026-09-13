@@ -18,6 +18,7 @@ import {
   Eye,
 } from "lucide-react";
 import { UserProfile } from "../../types";
+import { formatSafeDateTime } from "../../utils/formatUtils";
 import { safeFetchJson } from "../../utils/authErrorHandler";
 import { getAuthHeaders } from "../../services/providerService";
 
@@ -309,7 +310,7 @@ export function UserNotificationCenter({ currentUser, onNavigateHome, isModal = 
                     <div className="flex items-center gap-3 mt-2 text-[11px] text-[#9CA3AF]">
                       <span className="flex items-center gap-1">
                         <Clock className="w-3 h-3" />
-                        {new Date(n.sentAt || n.createdAt).toLocaleString()}
+                        {formatSafeDateTime(n.sentAt || n.createdAt, "Recently")}
                       </span>
                       {n.createdBy && <span>• From: {n.createdBy}</span>}
                     </div>
@@ -376,7 +377,7 @@ export function UserNotificationCenter({ currentUser, onNavigateHome, isModal = 
               </div>
               <h2 className="text-xl font-bold text-[#111827] dark:text-white tracking-tight">{selectedNotif.title}</h2>
               <p className="text-xs text-[#9CA3AF]">
-                Received: {new Date(selectedNotif.sentAt || selectedNotif.createdAt).toLocaleString()} • Via {selectedNotif.channels?.join(", ")}
+                Received: {formatSafeDateTime(selectedNotif.sentAt || selectedNotif.createdAt, "Recently")} • Via {selectedNotif.channels?.join(", ")}
               </p>
             </div>
 

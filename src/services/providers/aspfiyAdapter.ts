@@ -231,10 +231,73 @@ export class AspfiyAdapter implements ProviderAdapter {
         }
       }
 
+      // Extract account name from any field or depth in response JSON
+      const extractAccountName = (obj: any): string => {
+        if (!obj || typeof obj !== "object") return "";
+        const candidates = [
+          obj.account_name,
+          obj.accountName,
+          obj.account_title,
+          obj.accountTitle,
+          obj.customer_name,
+          obj.customerName,
+          obj.receiver_name,
+          obj.receiverName,
+          obj.virtual_account_name,
+          obj.virtualAccountName,
+          obj.full_name,
+          obj.fullName,
+          obj.name,
+        ];
+        for (const c of candidates) {
+          if (typeof c === "string" && c.trim() && !c.includes("@") && isNaN(Number(c))) {
+            return c.trim();
+          }
+        }
+        const nestedKeys = [
+          "account",
+          "data",
+          "result",
+          "response",
+          "details",
+          "palmpay_account",
+          "palmpayAccount",
+          "palmpay",
+          "virtual_account",
+          "virtualAccount",
+          "reserved_account",
+          "reservedAccount",
+        ];
+        for (const key of nestedKeys) {
+          if (obj[key] && typeof obj[key] === "object") {
+            const n = extractAccountName(obj[key]);
+            if (n) return n;
+          }
+        }
+        if (Array.isArray(obj.accounts) && obj.accounts.length > 0) {
+          const n = extractAccountName(obj.accounts[0]);
+          if (n) return n;
+        }
+        return "";
+      };
+
+      let accountName = extractAccountName(json);
+      if (!accountName) {
+        const jsonStr = JSON.stringify(json || {});
+        const match = jsonStr.match(/"(?:account_name|accountName|account_title|accountTitle|customer_name|customerName|receiver_name|receiverName)"\s*:\s*"([^"]+)"/i);
+        if (match && match[1] && match[1].trim()) {
+          accountName = match[1].trim();
+        }
+      }
+      // If not returned by Aspfiy, fallback to exact user full name or structured uppercase name
+      if (!accountName) {
+        accountName = fullName || `SMARTLINK / ${fullName.toUpperCase()}`;
+      }
+
       const data = json.data || json.result || json.response || json.details || json;
       const backendMsg = String(json?.message || json?.error || json?.msg || "");
 
-      // Extract bank name and account name from nested account object or root data
+      // Extract bank name from nested account object or root data
       const bankName =
         data?.account?.bank_name ||
         data?.account?.bankName ||
@@ -243,14 +306,7 @@ export class AspfiyAdapter implements ProviderAdapter {
         json?.bank_name ||
         json?.bankName ||
         "PalmPay";
-      const accountName =
-        data?.account?.account_name ||
-        data?.account?.accountName ||
-        data?.account_name ||
-        data?.accountName ||
-        json?.account_name ||
-        json?.accountName ||
-        `SMARTLINK / ${fullName.toUpperCase()}`;
+
       const providerRef = data?.reference || data?.providerReference || json?.reference || reference;
 
       if (accountNumber) {

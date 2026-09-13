@@ -19,8 +19,9 @@ import { APIProviderManager } from "./apiProviderManager";
 import { ProviderExecutor, verifyWebhookSignature } from "./providerExecutor";
 import { getActiveProviderAndAdapter, getAdapterById } from "./providerGateway";
 import * as usersStore from "./usersStore";
+import { formatNaira } from "../utils/formatUtils";
 
-const saveDocToFirestore = async (...args: any[]) => {};
+const saveDocToStorage = async (...args: any[]) => {};
 
 export type PaymentState = "PENDING" | "VERIFIED" | "FAILED" | "UNMATCHED" | "REVERSED";
 
@@ -410,7 +411,7 @@ export class PaymentVerificationReconciliationEngine {
         }
       }
 
-      // Also check Firestore user documents directly
+      // Also check Storage user documents directly
       if (!matchedUser) {
         try {
           const allUsers = await usersStore.getAllUsers();
@@ -419,7 +420,7 @@ export class PaymentVerificationReconciliationEngine {
             return userAcc && (userAcc === cleanAcc || userAcc.endsWith(cleanAcc) || cleanAcc.endsWith(userAcc));
           });
         } catch (err) {
-          console.warn(`[ReconciliationEngine] Firestore users scan error: ${err}`);
+          console.warn(`[ReconciliationEngine] Storage users scan error: ${err}`);
         }
       }
     }
@@ -533,7 +534,7 @@ export class PaymentVerificationReconciliationEngine {
 
     // Store record in reconciliation ledger
     db.reconciliation_records.unshift(reconciliationRecord);
-    saveDocToFirestore("reconciliation_records", reconciliationRecord.id, reconciliationRecord).catch(() => {});
+    saveDocToStorage("reconciliation_records", reconciliationRecord.id, reconciliationRecord).catch(() => {});
 
     // If state is UNMATCHED or FAILED, store in unmatched payments for Super Admin review (Requirement 10 & 11)
     if (state === "UNMATCHED" || state === "FAILED") {
@@ -555,7 +556,7 @@ export class PaymentVerificationReconciliationEngine {
         createdAt: reconciliationRecord.createdAt,
       };
       db.unmatched_payments.unshift(unmatchedItem);
-      saveDocToFirestore("unmatched_payments", unmatchedItem.id, unmatchedItem).catch(() => {});
+      saveDocToStorage("unmatched_payments", unmatchedItem.id, unmatchedItem).catch(() => {});
 
       return {
         success: false,
@@ -583,7 +584,7 @@ export class PaymentVerificationReconciliationEngine {
     } catch (err: any) {
       reconciliationRecord.status = "FAILED";
       reconciliationRecord.verificationResult.message = `Wallet Engine credit error: ${err.message}`;
-      saveDocToFirestore("reconciliation_records", reconciliationRecord.id, reconciliationRecord).catch(() => {});
+      saveDocToStorage("reconciliation_records", reconciliationRecord.id, reconciliationRecord).catch(() => {});
       return {
         success: false,
         code: "WALLET_CREDIT_FAILED",
@@ -594,16 +595,16 @@ export class PaymentVerificationReconciliationEngine {
 
     // Mark as processed
     db.processed_payment_references.push(effectiveRef);
-    saveDocToFirestore("processed_payment_references", effectiveRef, { reference: effectiveRef, processedAt: new Date().toISOString() }).catch(() => {});
+    saveDocToStorage("processed_payment_references", effectiveRef, { reference: effectiveRef, processedAt: new Date().toISOString() }).catch(() => {});
     if (providerTransactionId) {
       db.processed_provider_tx_ids.push(providerTransactionId);
-      saveDocToFirestore("processed_provider_tx_ids", providerTransactionId, { providerTxId: providerTransactionId, processedAt: new Date().toISOString() }).catch(() => {});
+      saveDocToStorage("processed_provider_tx_ids", providerTransactionId, { providerTxId: providerTransactionId, processedAt: new Date().toISOString() }).catch(() => {});
     }
 
     return {
       success: true,
       code: "PAYMENT_VERIFIED_AND_CREDITED",
-      message: `Successfully verified payment and credited ₦${amount.toLocaleString("en-NG", { minimumFractionDigits: 2 })} to wallet.`,
+      message: `Successfully verified payment and credited ${formatNaira(amount, true)} to wallet.`,
       record: reconciliationRecord,
       userId: matchedUser.uid,
       userEmail: matchedUser.email,

@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect } from "react";
+import { formatNaira } from "../utils/formatUtils";
 import {
   Menu,
   X,
@@ -68,6 +69,7 @@ interface NavigationItem {
   viewId: string;
   serviceId?: string;
   tabId?: "OVERVIEW" | "ACTIVITY_FEED";
+  action?: "FUND_WALLET" | string;
 }
 
 interface NavigationGroup {
@@ -137,6 +139,7 @@ export default function Navigation({
       title: "MAIN",
       items: [
         { id: "DASHBOARD", label: "Dashboard", icon: LayoutDashboard, viewId: "DASHBOARD", tabId: "OVERVIEW" },
+        { id: "FUND_WALLET", label: "Fund Wallet", icon: Wallet, viewId: "DASHBOARD", action: "FUND_WALLET", tabId: "OVERVIEW" },
         { id: "WALLET_FINANCE", label: "Wallet & Finance", icon: Wallet, viewId: "DASHBOARD", tabId: "OVERVIEW" },
         { id: "ACCOUNT_SECURITY", label: "Account & Security", icon: Shield, viewId: "ACCOUNT_SECURITY" },
         { id: "USER_NOTIFICATIONS", label: "Notifications", icon: Bell, viewId: "USER_NOTIFICATIONS" },
@@ -216,6 +219,12 @@ export default function Navigation({
     }
 
     onNavigate(item.viewId);
+
+    if (item.action === "FUND_WALLET") {
+      setTimeout(() => {
+        window.dispatchEvent(new Event("open_fund_wallet"));
+      }, 50);
+    }
 
     if (item.serviceId && onSelectService) {
       const serviceObj = SMART_LINK_SERVICES.find(s => s.id === item.serviceId);
@@ -319,7 +328,7 @@ export default function Navigation({
                   <p className="font-bold text-xs truncate text-[#E5E7EB]">{currentUser.fullName}</p>
                   <div className="flex justify-between items-center text-[10px] font-mono text-[#9CA3AF] pt-1">
                     <div className="flex items-center gap-1.5">
-                      <span>₦{currentUser.walletBalance.toLocaleString()}</span>
+                      <span>{formatNaira(currentUser.walletBalance)}</span>
                       {onRefreshUser && (
                         <button
                           type="button"
@@ -453,7 +462,7 @@ export default function Navigation({
               </div>
               <div className="flex justify-between items-center pt-2 border-t border-white/10">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[11px] font-bold font-mono text-[#9CA3AF]">₦{currentUser.walletBalance.toLocaleString()}</span>
+                  <span className="text-[11px] font-bold font-mono text-[#9CA3AF]">{formatNaira(currentUser.walletBalance)}</span>
                   {onRefreshUser && (
                     <button
                       type="button"

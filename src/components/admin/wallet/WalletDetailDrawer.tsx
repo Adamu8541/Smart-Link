@@ -30,6 +30,7 @@ import {
   ShieldAlert
 } from "lucide-react";
 import { AdminSession } from "../../../services/adminAuthTypes";
+import { formatNaira, formatSafeDateTime } from "../../../utils/formatUtils";
 
 interface WalletDetailDrawerProps {
   userId: string | null;
@@ -204,7 +205,7 @@ export function WalletDetailDrawer({
                     <div className="p-4 bg-[#0F2D5C]/20 border border-[#0F2D5C]/60 rounded-2xl space-y-1">
                       <span className="text-[11px] text-[#9CA3AF] font-semibold uppercase tracking-wider block">Wallet Balance</span>
                       <div className="text-2xl font-black text-white font-mono">
-                        ₦{(walletInfo?.currentBalance || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        {formatNaira(walletInfo?.currentBalance ?? 0)}
                       </div>
                       <span className="text-[10px] text-[#9CA3AF] block">Total ledger float</span>
                     </div>
@@ -212,7 +213,7 @@ export function WalletDetailDrawer({
                     <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl space-y-1">
                       <span className="text-[11px] text-[#9CA3AF] font-semibold uppercase tracking-wider block">Available Balance</span>
                       <div className="text-xl font-bold text-[#E5E7EB] font-mono">
-                        ₦{(walletInfo?.availableBalance || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        {formatNaira(walletInfo?.availableBalance ?? 0)}
                       </div>
                       <span className="text-[10px] text-[#6B7280] block">Unreserved liquid funds</span>
                     </div>
@@ -220,7 +221,7 @@ export function WalletDetailDrawer({
                     <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl space-y-1">
                       <span className="text-[11px] text-[#9CA3AF] font-semibold uppercase tracking-wider block">Pending Escrow</span>
                       <div className="text-xl font-bold text-[#9CA3AF] font-mono">
-                        ₦{(walletInfo?.pendingBalance || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        {formatNaira(walletInfo?.pendingBalance ?? 0)}
                       </div>
                       <span className="text-[10px] text-[#6B7280] block">{walletInfo?.pendingTransactionsCount || 0} active holds</span>
                     </div>
@@ -231,13 +232,13 @@ export function WalletDetailDrawer({
                     <div>
                       <span className="text-[#6B7280] block">Lifetime Funding</span>
                       <span className="text-[#9CA3AF] font-bold font-mono text-sm">
-                        ₦{(walletInfo?.totalFunding || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        {formatNaira(walletInfo?.totalFunding ?? 0)}
                       </span>
                     </div>
                     <div>
                       <span className="text-[#6B7280] block">Lifetime Spending</span>
                       <span className="text-[#9CA3AF] font-bold font-mono text-sm">
-                        ₦{(walletInfo?.totalSpending || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        {formatNaira(walletInfo?.totalSpending ?? 0)}
                       </span>
                     </div>
                     <div>
@@ -363,7 +364,7 @@ export function WalletDetailDrawer({
 
                               <div className="text-right">
                                 <div className={`font-mono font-bold text-sm ${isCredit ? "text-[#9CA3AF]" : "text-[#E5E7EB]"}`}>
-                                  {isCredit ? "+" : "-"}₦{tx.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                  {isCredit ? "+" : "-"}{formatNaira(tx.amount ?? 0)}
                                 </div>
                                 <span className={`text-[10px] font-bold uppercase ${tx.status === "SUCCESSFUL" ? "text-emerald-400" : tx.status === "FAILED" ? "text-red-400" : "text-amber-400"}`}>
                                   {tx.status}
@@ -397,13 +398,13 @@ export function WalletDetailDrawer({
                             <div className="flex items-center justify-between">
                               <span className="text-[#E5E7EB]">{adj.reason}</span>
                               <span className="font-mono font-bold text-white text-sm">
-                                {adj.type === "CREDIT" ? "+" : "-"}₦{adj.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                {adj.type === "CREDIT" ? "+" : "-"}{formatNaira(adj.amount ?? 0)}
                               </span>
                             </div>
 
                             <div className="text-[11px] text-[#6B7280] font-mono flex items-center justify-between pt-2 border-t border-[#111827]/60">
                               <span>Admin: {adj.adminEmail}</span>
-                              <span>Previous: ₦{adj.previousBalance?.toLocaleString()} → New: ₦{adj.newBalance?.toLocaleString()}</span>
+                              <span>Previous: {formatNaira(adj.previousBalance ?? 0)} → New: {formatNaira(adj.newBalance ?? 0)}</span>
                             </div>
                           </div>
                         ))

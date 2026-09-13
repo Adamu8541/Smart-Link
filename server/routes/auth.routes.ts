@@ -26,77 +26,60 @@ import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/se
 import { sendPlatformEmail } from "../services/email.service";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
 import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
-import { syncFromFirestore, syncToFirestore } from "../../src/services/settingsStore";
-import { loadFirestoreDb, syncDbToFirestore, saveDocToFirestore } from "../../src/services/firestoreStore";
+import { syncFromStorage, syncToStorage } from "../../src/services/settingsStore";
 import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
 import * as securityStore from "../../src/services/securityStore";
 import * as notificationsStore from "../../src/services/notificationsStore";
 import { EmailOtpService, SensitiveOtpPurpose } from "../services/emailOtp.service";
-import { createSupabaseUser, updateSupabaseUserPassword, updateSupabaseUserEmail, updateSupabaseUserMetadata } from "../services/supabaseAdmin";
+import { getSupabaseAdmin, createSupabaseUser, updateSupabaseUserPassword, updateSupabaseUserEmail, updateSupabaseUserMetadata, sanitizeSupabaseUrl } from "../services/supabaseAdmin";
 
 
 const router = express.Router();
 const app = router;
 
-app.post(["/api/auth/sync-supabase-user", "/api/auth/sync-firebase-user"], async (req, res) => {
-  const { uid, email, fullName, phoneNumber, role, referralCode, isVerified } = req.body;
-  if (!email) {
-    return res.status(400).json({ error: "Email is required" });
-  }
+// Supabase Status & Connection Diagnostic Endpoint
+app.get("/api/auth/supabase-status", async (req, res) => {
+  const rawUrl = (process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || "").trim();
+  const sanitizedUrl = sanitizeSupabaseUrl(rawUrl);
+  const anonKey = (process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || "").trim();
+  const serviceKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
 
-  const lowerEmail = email.toLowerCase().trim();
-  let existingUser = await usersStore.getUserByEmail(lowerEmail);
+  const isConfigured = Boolean(sanitizedUrl && anonKey && sanitizedUrl.startsWith("https://"));
+  let connectionStatus = "NOT_CONFIGURED";
+  let userCount = 0;
+  let connectionError: string | null = null;
 
-  const superAdminEmails = [SUPER_ADMIN_EMAIL, "adamuamuhammad8541@gmail.com"];
-  const isSuperAdminEmail = superAdminEmails.includes(lowerEmail);
-
-  if (phoneNumber !== undefined && phoneNumber !== null && phoneNumber !== "") {
-    if (typeof phoneNumber !== "string" || !/^0\d{10}$/.test(phoneNumber.trim())) {
-      return res.status(400).json({ error: "Phone number must be exactly 11 digits and must start with 0." });
+  if (isConfigured) {
+    const admin = getSupabaseAdmin();
+    if (admin) {
+      try {
+        const { data, error } = await admin.auth.admin.listUsers({ page: 1, perPage: 1 });
+        if (error) {
+          connectionStatus = "ERROR";
+          connectionError = error.message;
+        } else {
+          connectionStatus = "CONNECTED";
+          userCount = data?.users?.length || 0;
+        }
+      } catch (err: any) {
+        connectionStatus = "ERROR";
+        connectionError = err.message || "Connection failed";
+      }
+    } else {
+      connectionStatus = "CONNECTED_ANON_ONLY";
     }
-    const cleanPhone = phoneNumber.trim();
-    const existingPhone = await usersStore.getUserByPhone(cleanPhone);
-    if (
-      existingPhone &&
-      existingPhone.email?.toLowerCase().trim() !== lowerEmail &&
-      existingPhone.uid !== (existingUser?.uid || uid) &&
-      existingPhone.id !== (existingUser?.id || uid)
-    ) {
-      return res.status(400).json({ error: '"phone number already linked to another account" change phone number' });
-    }
   }
 
-  if (existingUser) {
-    const updates: any = {};
-    if (isSuperAdminEmail) updates.role = "SUPER_ADMIN";
-    if (uid) updates.uid = uid;
-    if (fullName) updates.fullName = fullName;
-    if (phoneNumber) updates.phoneNumber = phoneNumber;
-    updates.isVerified = isVerified !== undefined ? !!isVerified : true;
-    
-    const updated = await usersStore.updateUser(existingUser.id || existingUser.uid || uid, updates);
-    const { passwordHash, salt, ...safeUser } = updated || existingUser;
-    return res.json({ user: safeUser });
-  }
-
-  // Create user entry - default to CUSTOMER unless designated Super Admin
-  const targetRole = isSuperAdminEmail ? "SUPER_ADMIN" : "CUSTOMER";
-  const refCode = (fullName || "USER").replace(/\s+/g, "").substring(0, 8).toUpperCase() + Math.floor(100 + Math.random() * 900);
-  const newUser = {
-    uid: uid || "usr_" + Math.random().toString(36).substring(2, 9),
-    email: lowerEmail,
-    fullName: fullName || lowerEmail.split("@")[0],
-    phoneNumber: phoneNumber || "",
-    role: targetRole,
-    walletBalance: 0.0,
-    referralCode: refCode,
-    isVerified: true,
-    createdAt: new Date().toISOString(),
-  };
-
-  const created = await usersStore.createUser(newUser);
-  res.json({ user: created });
+  return res.json({
+    success: true,
+    isConfigured,
+    sanitizedUrl: sanitizedUrl ? `${sanitizedUrl.slice(0, 18)}...supabase.co` : null,
+    hasAnonKey: Boolean(anonKey),
+    hasServiceKey: Boolean(serviceKey),
+    connectionStatus,
+    connectionError,
+  });
 });
 
 // Centralized Supabase User Synchronization Endpoint
@@ -142,9 +125,16 @@ app.post("/api/auth/sync-supabase-user", async (req, res) => {
     if (isVerified !== undefined) updates.isVerified = Boolean(isVerified);
 
     const updated = await usersStore.updateUser(existingUser.id || existingUser.uid || resolvedUid, updates);
-    const { passwordHash, salt, ...safeUser } = updated || existingUser;
+    const targetUser = updated || existingUser;
+    const { passwordHash, salt, transactionPinHash, ...safeUser } = targetUser;
 
-    return res.json({ user: safeUser });
+    return res.json({
+      user: {
+        ...safeUser,
+        hasTransactionPin: Boolean(targetUser.transactionPinHash || targetUser.hasTransactionPin),
+        pinRequiredForTransactions: targetUser.pinRequiredForTransactions !== false,
+      },
+    });
   }
 
   // Create new user entry - strictly prevent privilege escalation
@@ -215,6 +205,22 @@ app.post("/api/auth/login", async (req, res) => {
 
   const isSuperAdminEmail = superAdminEmails.includes(lowerEmail);
 
+  // Maintenance Mode check for Website Login
+  const db = readDB();
+  const mDetails = getMaintenanceDetails(db);
+  if (mDetails.maintenanceMode || mDetails.loginMaintenanceMode) {
+    const isUserAdmin = isSuperAdminEmail || user?.role === "SUPER_ADMIN" || user?.role === "ADMIN" || user?.role === "SUB_ADMIN";
+    if (!isUserAdmin) {
+      return res.status(503).json({
+        success: false,
+        error: "Website login is currently under scheduled maintenance.",
+        loginMaintenance: true,
+        maintenance: mDetails,
+        message: mDetails.maintenanceMessage || "Website login is currently undergoing scheduled maintenance. Administrators may log in via the Admin Portal."
+      });
+    }
+  }
+
   if (isSuperAdminEmail) {
     if (!user) {
       if (password !== SUPER_ADMIN_PASSWORD) {
@@ -275,9 +281,13 @@ app.post("/api/auth/login", async (req, res) => {
     await usersStore.updateUser(user.id || user.uid || "", { passwordHash: newHash });
   }
 
-  // Auto verify if needed
-  if (!user.isVerified) {
-    user = await usersStore.updateUser(user.id || user.uid || "", { isVerified: true }) || user;
+  // Enforce email verification check for non-super admins
+  if (!user.isVerified && !isSuperAdminEmail) {
+    return res.status(403).json({
+      error: "Your email is not verified yet. Please check your inbox for the confirmation link sent by Supabase, or click send verify to log into your account.",
+      emailNotConfirmed: true,
+      email: user.email,
+    });
   }
 
   // Return user profile with their assigned role
@@ -296,6 +306,21 @@ app.post("/api/auth/register", async (req, res) => {
   const superAdminEmails = [SUPER_ADMIN_EMAIL, "adamuamuhammad8541@gmail.com"];
   const isSuperAdminEmail = superAdminEmails.includes(lowerEmail);
 
+  // Maintenance Mode check for Registration / Signup
+  const db = readDB();
+  const mDetails = getMaintenanceDetails(db);
+  if (mDetails.maintenanceMode || mDetails.signupMaintenanceMode) {
+    if (!isSuperAdminEmail) {
+      return res.status(503).json({
+        success: false,
+        error: "User registration is currently under scheduled maintenance.",
+        signupMaintenance: true,
+        maintenance: mDetails,
+        message: mDetails.maintenanceMessage || "New account registrations are temporarily suspended due to scheduled system maintenance."
+      });
+    }
+  }
+
   // Block admin self-registration
   const adminRoles = ["SUPER_ADMIN", "ADMIN", "SUB_ADMIN", "STAFF", "FINANCE_MANAGER", "SUPPORT_OFFICER", "VERIFICATION_OFFICER", "READ_ONLY_AUDITOR"];
   if (role && adminRoles.includes(role.toUpperCase()) && !isSuperAdminEmail) {
@@ -305,6 +330,7 @@ app.post("/api/auth/register", async (req, res) => {
   }
 
   const targetRole = isSuperAdminEmail ? "SUPER_ADMIN" : "CUSTOMER";
+  const initialVerified = isSuperAdminEmail ? true : false;
 
   const existing = await usersStore.getUserByEmail(lowerEmail);
   if (existing) {
@@ -367,7 +393,7 @@ app.post("/api/auth/register", async (req, res) => {
     referredBy,
     passwordHash: userHash,
     salt: userSalt,
-    isVerified: true,
+    isVerified: initialVerified,
     authProvider: "supabase",
     createdAt: new Date().toISOString(),
   };
@@ -378,6 +404,7 @@ app.post("/api/auth/register", async (req, res) => {
   res.json({
     success: true,
     user: safeUser,
+    needsEmailConfirmation: !initialVerified,
   });
 });
 
@@ -437,7 +464,7 @@ app.post("/api/auth/resend-verification", async (req, res) => {
 
   res.json({
     success: true,
-    message: "Verification is managed by Firebase Authentication.",
+    message: "Verification is managed by Supabase Authentication.",
   });
 });
 
@@ -570,6 +597,7 @@ app.post("/api/auth/otp/request", async (req, res) => {
     "CHANGE_EMAIL",
     "CHANGE_PHONE",
     "CHANGE_PIN",
+    "TOGGLE_PIN_REQUIREMENT",
     "CHANGE_SECURITY_SETTINGS",
     "CHANGE_ACCOUNT_INFO",
     "CHANGE_USER_PRIVILEGES",
@@ -656,7 +684,7 @@ app.post("/api/auth/otp/request", async (req, res) => {
  * Enforces one-time use, attempt counters, and timing-safe comparisons.
  */
 app.post("/api/auth/otp/verify-and-change", async (req, res) => {
-  const { purpose, otp, payload } = req.body;
+  const { purpose, otp, payload, reauthenticatedViaSupabase } = req.body;
 
   if (!purpose || !otp || !payload) {
     return res.status(400).json({
@@ -697,18 +725,20 @@ app.post("/api/auth/otp/verify-and-change", async (req, res) => {
       });
     }
 
-    // Verify OTP
-    const verifyRes = EmailOtpService.verifyOtp({
-      userId,
-      purpose,
-      otp,
-    });
-
-    if (!verifyRes.success) {
-      return res.status(verifyRes.status || 400).json({
-        success: false,
-        error: verifyRes.error || "Invalid verification code.",
+    // Verify OTP if not already verified via Supabase native reauthentication
+    if (!reauthenticatedViaSupabase) {
+      const verifyRes = EmailOtpService.verifyOtp({
+        userId,
+        purpose,
+        otp,
       });
+
+      if (!verifyRes.success) {
+        return res.status(verifyRes.status || 400).json({
+          success: false,
+          error: verifyRes.error || "Invalid verification code.",
+        });
+      }
     }
 
     // Update password hash locally
@@ -753,19 +783,21 @@ app.post("/api/auth/otp/verify-and-change", async (req, res) => {
     }
     const cleanNewEmail = newEmail.trim().toLowerCase();
 
-    // Verify OTP with targetValue binding
-    const verifyRes = EmailOtpService.verifyOtp({
-      userId,
-      purpose,
-      otp,
-      targetValue: cleanNewEmail,
-    });
-
-    if (!verifyRes.success) {
-      return res.status(verifyRes.status || 400).json({
-        success: false,
-        error: verifyRes.error || "Invalid verification code.",
+    // Verify OTP with targetValue binding if not already verified via Supabase native reauthentication
+    if (!reauthenticatedViaSupabase) {
+      const verifyRes = EmailOtpService.verifyOtp({
+        userId,
+        purpose,
+        otp,
+        targetValue: cleanNewEmail,
       });
+
+      if (!verifyRes.success) {
+        return res.status(verifyRes.status || 400).json({
+          success: false,
+          error: verifyRes.error || "Invalid verification code.",
+        });
+      }
     }
 
     // Re-verify uniqueness
@@ -816,19 +848,21 @@ app.post("/api/auth/otp/verify-and-change", async (req, res) => {
     }
     const cleanPhone = newPhoneNumber.trim();
 
-    // Verify OTP with targetValue binding
-    const verifyRes = EmailOtpService.verifyOtp({
-      userId,
-      purpose,
-      otp,
-      targetValue: cleanPhone,
-    });
-
-    if (!verifyRes.success) {
-      return res.status(verifyRes.status || 400).json({
-        success: false,
-        error: verifyRes.error || "Invalid verification code.",
+    // Verify OTP with targetValue binding if not already verified via Supabase native reauthentication
+    if (!reauthenticatedViaSupabase) {
+      const verifyRes = EmailOtpService.verifyOtp({
+        userId,
+        purpose,
+        otp,
+        targetValue: cleanPhone,
       });
+
+      if (!verifyRes.success) {
+        return res.status(verifyRes.status || 400).json({
+          success: false,
+          error: verifyRes.error || "Invalid verification code.",
+        });
+      }
     }
 
     // Re-verify uniqueness
@@ -879,18 +913,20 @@ app.post("/api/auth/otp/verify-and-change", async (req, res) => {
     }
     const cleanPin = newPin.trim();
 
-    // Verify OTP
-    const verifyRes = EmailOtpService.verifyOtp({
-      userId,
-      purpose,
-      otp,
-    });
-
-    if (!verifyRes.success) {
-      return res.status(verifyRes.status || 400).json({
-        success: false,
-        error: verifyRes.error || "Invalid verification code.",
+    // Verify OTP if not already verified via Supabase native reauthentication
+    if (!reauthenticatedViaSupabase) {
+      const verifyRes = EmailOtpService.verifyOtp({
+        userId,
+        purpose,
+        otp,
       });
+
+      if (!verifyRes.success) {
+        return res.status(verifyRes.status || 400).json({
+          success: false,
+          error: verifyRes.error || "Invalid verification code.",
+        });
+      }
     }
 
     // Hash the 4-digit PIN securely
@@ -898,6 +934,7 @@ app.post("/api/auth/otp/verify-and-change", async (req, res) => {
     const updated = await usersStore.updateUser(userId, {
       transactionPinHash: pinHash,
       hasTransactionPin: true,
+      pinRequiredForTransactions: true,
       updatedAt: new Date().toISOString(),
     });
 
@@ -921,7 +958,73 @@ app.post("/api/auth/otp/verify-and-change", async (req, res) => {
     return res.json({
       success: true,
       message: "Transaction PIN successfully updated and secured.",
-      user: { ...safeUser, hasTransactionPin: true },
+      user: {
+        ...safeUser,
+        hasTransactionPin: true,
+        pinRequiredForTransactions: true,
+      },
+    });
+  }
+
+  if (purpose === "TOGGLE_PIN_REQUIREMENT") {
+    const pinRequired = typeof payload.pinRequiredForTransactions === "boolean" ? payload.pinRequiredForTransactions : true;
+    const { newPin } = payload;
+
+    // Verify OTP if not already verified via Supabase native reauthentication
+    if (!reauthenticatedViaSupabase) {
+      const verifyRes = EmailOtpService.verifyOtp({
+        userId,
+        purpose,
+        otp,
+      });
+
+      if (!verifyRes.success) {
+        return res.status(verifyRes.status || 400).json({
+          success: false,
+          error: verifyRes.error || "Invalid verification code.",
+        });
+      }
+    }
+
+    let extraUpdates: any = {};
+    if (newPin && typeof newPin === "string" && /^\d{4}$/.test(newPin.trim())) {
+      extraUpdates = {
+        transactionPinHash: hashPassword(newPin.trim()),
+        hasTransactionPin: true,
+      };
+    }
+
+    const updated = await usersStore.updateUser(userId, {
+      pinRequiredForTransactions: pinRequired,
+      ...extraUpdates,
+      updatedAt: new Date().toISOString(),
+    });
+
+    // Audit notification
+    try {
+      await notificationsStore.createNotification({
+        id: `notif_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        userId,
+        userEmail: user.email,
+        title: `Transaction PIN Requirement ${pinRequired ? "Enabled" : "Disabled"}`,
+        message: `Your account security was updated: Transaction PIN is now ${pinRequired ? "required" : "optional"} for debit transactions and transfers.`,
+        category: "SECURITY",
+        priority: "High",
+        status: "Sent",
+        body: `Transaction authorization PIN requirement was toggled to ${pinRequired ? "ON" : "OFF"}.`,
+        createdAt: new Date().toISOString(),
+      });
+    } catch {}
+
+    const { passwordHash: ph, salt: s, transactionPinHash: tph, ...safeUser } = updated || user;
+    return res.json({
+      success: true,
+      message: `Transaction PIN requirement successfully turned ${pinRequired ? "ON" : "OFF"}.`,
+      user: {
+        ...safeUser,
+        hasTransactionPin: Boolean((updated || user).transactionPinHash || (updated || user).hasTransactionPin),
+        pinRequiredForTransactions: pinRequired,
+      },
     });
   }
 
@@ -1120,8 +1223,68 @@ app.get("/api/auth/profile", async (req, res) => {
   const user = await usersStore.getUserById(uid as string);
   if (!user) return res.status(404).json({ error: "User not found" });
 
-  const { passwordHash, salt, ...safeUser } = user;
-  res.json({ user: safeUser });
+  const { passwordHash, salt, transactionPinHash, ...safeUser } = user;
+  res.json({
+    user: {
+      ...safeUser,
+      hasTransactionPin: Boolean(user.transactionPinHash || user.hasTransactionPin),
+      pinRequiredForTransactions: user.pinRequiredForTransactions !== false,
+    },
+  });
+});
+
+// Verify 4-Digit Transaction PIN
+app.post("/api/auth/verify-pin", async (req, res) => {
+  const { userId, pin } = req.body;
+  if (!userId) {
+    return res.status(400).json({ success: false, error: "User ID is required." });
+  }
+
+  const user = await usersStore.getUserById(userId);
+  if (!user) {
+    return res.status(404).json({ success: false, error: "User not found." });
+  }
+
+  // Check if PIN requirement is disabled by user
+  if (user.pinRequiredForTransactions === false) {
+    return res.json({
+      success: true,
+      pinRequired: false,
+      message: "Transaction PIN is not required for this account.",
+    });
+  }
+
+  // If PIN requirement is ON, check if user has set a PIN
+  if (!user.transactionPinHash) {
+    return res.status(400).json({
+      success: false,
+      error: "Please configure your 4-digit transaction PIN first in Account & Security Settings.",
+      code: "NO_PIN_CONFIGURED",
+    });
+  }
+
+  if (!pin || typeof pin !== "string" || !/^\d{4}$/.test(pin.trim())) {
+    return res.status(400).json({
+      success: false,
+      error: "Please provide a valid 4-digit transaction PIN.",
+      code: "INVALID_FORMAT",
+    });
+  }
+
+  const { match } = verifyPassword(pin.trim(), user.transactionPinHash);
+  if (!match) {
+    return res.status(400).json({
+      success: false,
+      error: "Incorrect 4-digit transaction PIN. Please try again.",
+      code: "INCORRECT_PIN",
+    });
+  }
+
+  return res.json({
+    success: true,
+    pinRequired: true,
+    message: "Transaction PIN successfully verified.",
+  });
 });
 
 // Get User Profile
@@ -1134,8 +1297,14 @@ app.get("/api/users/:uid", async (req, res) => {
 
   const user = await usersStore.getUserById(uid);
   if (!user) return res.status(404).json({ error: "User not found" });
-  const { passwordHash, salt, ...safeUser } = user;
-  res.json({ user: safeUser });
+  const { passwordHash, salt, transactionPinHash, ...safeUser } = user;
+  res.json({
+    user: {
+      ...safeUser,
+      hasTransactionPin: Boolean(user.transactionPinHash || user.hasTransactionPin),
+      pinRequiredForTransactions: user.pinRequiredForTransactions !== false,
+    },
+  });
 });
 
 // Update Profile
@@ -1211,7 +1380,7 @@ app.put("/api/users/:uid", async (req, res) => {
 
 
 
-// Update user role and assign Firebase Custom Claims
+// Update user role and assign Custom Claims
 app.put("/api/admin/users/:uid/role", async (req, res) => {
   const { uid } = req.params;
   const { role, customClaims } = req.body;

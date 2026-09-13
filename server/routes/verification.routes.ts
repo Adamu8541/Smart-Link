@@ -29,8 +29,7 @@ import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
 import { LumiIDAdapter } from "../../src/services/providers/lumiidAdapter";
 import { NinBvnPortalAdapter } from "../../src/services/providers/ninBvnPortalAdapter";
 import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
-import { syncFromFirestore, syncToFirestore } from "../../src/services/settingsStore";
-import { loadFirestoreDb, syncDbToFirestore, saveDocToFirestore } from "../../src/services/firestoreStore";
+import { syncFromStorage, syncToStorage } from "../../src/services/settingsStore";
 import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
 import * as securityStore from "../../src/services/securityStore";
@@ -212,7 +211,7 @@ app.post("/api/verify/identity", async (req, res) => {
   });
 });
 
-// Helper to dynamically resolve active non-Aspfiy identity provider and response mapping from Firestore / DB
+// Helper to dynamically resolve active non-Aspfiy identity provider and response mapping from Storage / DB
 async function getActiveSecondaryIdentityProviderAndMapping(db: any) {
   let secondaryProvider: any = null;
   let mapping: any = null;
@@ -991,7 +990,7 @@ app.post("/api/services/nin-verify", async (req, res) => {
   const fee = 500;
   const reference = `SML-VER-NIN-${Math.floor(100000 + Math.random() * 900000)}`;
 
-  // Dynamically query Firestore collection 'api_providers' and 'api_response_mappings' for active non-Aspfiy identity provider
+  // Dynamically query Storage collection 'api_providers' and 'api_response_mappings' for active non-Aspfiy identity provider
   const { secondaryProvider, mapping } = await getActiveSecondaryIdentityProviderAndMapping(db);
 
   if (!secondaryProvider) {
@@ -1385,7 +1384,7 @@ app.post("/api/services/bvn-verify", async (req, res) => {
   const fee = 500;
   const reference = `SML-VER-BVN-${Math.floor(100000 + Math.random() * 900000)}`;
 
-  // Dynamically query Firestore collection 'api_providers' and 'api_response_mappings' for active non-Aspfiy identity provider
+  // Dynamically query Storage collection 'api_providers' and 'api_response_mappings' for active non-Aspfiy identity provider
   const { secondaryProvider, mapping } = await getActiveSecondaryIdentityProviderAndMapping(db);
 
   if (!secondaryProvider) {
@@ -2647,7 +2646,7 @@ app.post("/api/verification/send-email-slip", async (req, res) => {
     });
 
     writeDB(db);
-    await syncToFirestore(db);
+    await syncToStorage(db);
 
     return res.json({
       success: true,
@@ -2702,7 +2701,7 @@ app.post("/api/verification/user-email-preferences", async (req, res) => {
   };
 
   writeDB(db);
-  await syncToFirestore(db);
+  await syncToStorage(db);
 
   return res.json({
     success: true,

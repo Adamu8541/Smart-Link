@@ -22,6 +22,7 @@ import {
   ArrowDownLeft
 } from "lucide-react";
 import { NotificationEngine } from "../../services/notificationEngine";
+import { formatNaira, formatSafeDateTime } from "../../utils/formatUtils";
 import { ActivityLogDocument, AdminActivityLogDocument } from "../../types/database";
 
 interface UserActivityHistoryViewProps {
@@ -334,7 +335,7 @@ export const UserActivityHistoryView: React.FC<UserActivityHistoryViewProps> = (
                       </td>
 
                       <td className="py-3.5 px-4 text-[#6B7280] dark:text-[#9CA3AF] text-[11px]">
-                        {new Date(log.createdAt || Date.now()).toLocaleString("en-NG", {
+                        {formatSafeDateTime(log.createdAt, "Recently", {
                           dateStyle: "short",
                           timeStyle: "short"
                         })}
@@ -391,7 +392,7 @@ export const UserActivityHistoryView: React.FC<UserActivityHistoryViewProps> = (
                         {log.targetUserId || "System Wide"}
                       </td>
                       <td className="py-3.5 px-4 text-[#6B7280] text-[11px]">
-                        {new Date(log.timestamp).toLocaleString()}
+                        {formatSafeDateTime(log.timestamp, "Recently")}
                       </td>
                     </tr>
                   ))
@@ -455,17 +456,17 @@ export const UserActivityHistoryView: React.FC<UserActivityHistoryViewProps> = (
                         )}
                         <div>
                           <span className="font-semibold text-[#111827] dark:text-[#E5E7EB]">
-                            {log.changeType} ₦{log.amount?.toLocaleString()}
+                            {log.changeType} {formatNaira(log.amount)}
                           </span>
                           <div className="text-[11px] text-[#9CA3AF]">Ref: {log.reference}</div>
                         </div>
                       </div>
                       <div className="text-right">
                         <div className="font-medium text-[#4B5563] dark:text-[#E5E7EB]">
-                          ₦{log.previousBalance?.toLocaleString()} ➔ ₦{log.newBalance?.toLocaleString()}
+                          {formatNaira(log.previousBalance)} ➔ {formatNaira(log.newBalance)}
                         </div>
                         <div className="text-[10px] text-[#9CA3AF]">
-                          {new Date(log.createdAt).toLocaleString()}
+                          {formatSafeDateTime(log.createdAt, "Recently")}
                         </div>
                       </div>
                     </div>
@@ -502,7 +503,7 @@ export const UserActivityHistoryView: React.FC<UserActivityHistoryViewProps> = (
                           VERIFIED
                         </span>
                         <div className="text-[10px] text-[#9CA3AF] mt-0.5">
-                          {new Date(v.verifiedAt || v.createdAt).toLocaleString()}
+                          {formatSafeDateTime(v.verifiedAt || v.createdAt, "Recently")}
                         </div>
                       </div>
                     </div>

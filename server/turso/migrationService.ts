@@ -1,10 +1,10 @@
 /**
- * SMART LINK NG — Firestore to Turso Data Migration Engine (Phase 6)
+ * SMART LINK NG — Local Storage to Turso Data Migration Engine (Phase 6)
  * 
  * ZERO TOLERANCE ARCHITECTURE:
- * - Read-only on Firestore (Zero data deletion or modification in Firebase).
+ * - Read-only on local fallback storage (Zero data deletion or modification).
  * - 100% Idempotent: Can be run multiple times with zero duplicate financial records.
- * - Intelligent deduplication and record merging for multi-doc Firestore entities.
+ * - Intelligent deduplication and record merging for multi-doc Storage entities.
  * - Normalization of relational keys, referral codes, emails, and virtual account references.
  * - Dependency-ordered migration: Providers -> Roles/Permissions -> Users -> Admin Users ->
  *   Wallets -> Virtual Accounts -> Transactions -> Ledger -> Payments -> CAC -> Reconciliations -> Audits -> App Settings.
@@ -37,10 +37,10 @@ export interface VerificationResult {
     difference: number;
   }[];
   financialIntegrity: {
-    firestoreWalletSum: number;
+    storageWalletSum: number;
     tursoWalletSum: number;
     walletSumDifference: number;
-    firestoreTransactionSum: number;
+    storageTransactionSum: number;
     tursoTransactionSum: number;
     transactionSumDifference: number;
     ledgerBalanceConsistency: boolean;
@@ -57,9 +57,9 @@ export interface VerificationResult {
   errors: string[];
 }
 
-export class FirestoreToTursoMigrationService {
+export class StorageToTursoMigrationService {
   /**
-   * Fetches raw items from Firestore or fallback memory cache in a read-only manner.
+   * Fetches raw items from Storage or fallback memory cache in a read-only manner.
    */
   static async fetchSourceData(collectionName: string): Promise<any[]> {
     const fsDb = null;
@@ -70,7 +70,7 @@ export class FirestoreToTursoMigrationService {
           return snap.docs.map((d) => ({ ...d.data(), id: d.id, uid: (d.data() as any).uid || d.id }));
         }
       } catch (err: any) {
-        console.warn(`[MigrationService] Firestore fetch error for ${collectionName}, reading fallback memory:`, err.message);
+        console.warn(`[MigrationService] Storage fetch error for ${collectionName}, reading fallback memory:`, err.message);
       }
     }
 
@@ -98,7 +98,7 @@ export class FirestoreToTursoMigrationService {
 
   /**
    * Resets all application tables in Turso (preserving schema and migrations history)
-   * to ensure a pristine baseline import from Firestore.
+   * to ensure a pristine baseline import from Storage.
    */
   static async cleanTursoDatabase(): Promise<void> {
     const client = getTursoClient();
@@ -127,7 +127,7 @@ export class FirestoreToTursoMigrationService {
   }
 
   /**
-   * Runs the complete dependency-ordered migration from Firestore into Turso.
+   * Runs the complete dependency-ordered migration from Storage into Turso.
    */
   static async runMigration(options?: { clean?: boolean }): Promise<{
     success: boolean;
@@ -209,10 +209,10 @@ export class FirestoreToTursoMigrationService {
         timestamp: new Date().toISOString(),
         counts: [],
         financialIntegrity: {
-          firestoreWalletSum: 0,
+          storageWalletSum: 0,
           tursoWalletSum: 0,
           walletSumDifference: 0,
-          firestoreTransactionSum: 0,
+          storageTransactionSum: 0,
           tursoTransactionSum: 0,
           transactionSumDifference: 0,
           ledgerBalanceConsistency: false,
@@ -360,7 +360,7 @@ export class FirestoreToTursoMigrationService {
     let rejectedCount = 0;
     const rejectionReasons: { id: string; reason: string }[] = [];
 
-    // Combine Firestore + memDb users
+    // Combine Storage + memDb users
     const allRaw = [...rawUsers];
     const memDb = readDB();
     if (memDb.users && Array.isArray(memDb.users)) {
@@ -1256,7 +1256,7 @@ export class FirestoreToTursoMigrationService {
     const walletSumDiff = Math.abs(tursoWalletSum - fsWalletSum);
 
     if (walletSumDiff > 0.01) {
-      errors.push(`Wallet balance mismatch: Firestore sum = ₦${fsWalletSum}, Turso sum = ₦${tursoWalletSum} (Diff: ₦${walletSumDiff})`);
+      errors.push(`Wallet balance mismatch: Storage sum = ₦${fsWalletSum}, Turso sum = ₦${tursoWalletSum} (Diff: ₦${walletSumDiff})`);
     }
 
     // 3. Transaction Totals & Ledger Integrity
@@ -1324,10 +1324,10 @@ export class FirestoreToTursoMigrationService {
       timestamp: new Date().toISOString(),
       counts,
       financialIntegrity: {
-        firestoreWalletSum: fsWalletSum,
+        storageWalletSum: fsWalletSum,
         tursoWalletSum,
         walletSumDifference: walletSumDiff,
-        firestoreTransactionSum: fsTxSum,
+        storageTransactionSum: fsTxSum,
         tursoTransactionSum: tursoTxSum,
         transactionSumDifference: txSumDiff,
         ledgerBalanceConsistency: true,

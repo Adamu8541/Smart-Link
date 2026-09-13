@@ -2,7 +2,7 @@
  * SmartLink Role-Based Access Control (RBAC) & Permission Guards Engine
  */
 
-import { UserRole, FirebaseCustomClaims, PermissionGuards } from "../types";
+import { UserRole, UserCustomClaims, PermissionGuards } from "../types";
 
 export class AuthGuardService {
   /**
@@ -15,9 +15,9 @@ export class AuthGuardService {
   }
 
   /**
-   * Check if user has Firebase Custom Claim
+   * Check if user has custom claim
    */
-  static hasClaim(claims?: FirebaseCustomClaims, claimName?: keyof FirebaseCustomClaims): boolean {
+  static hasClaim(claims?: UserCustomClaims, claimName?: keyof UserCustomClaims): boolean {
     if (!claims) return false;
     if (claims.superAdmin === true) return true; // Super Admin claim overrides
     return Boolean(claims[claimName as string]);
@@ -26,7 +26,7 @@ export class AuthGuardService {
   /**
    * Evaluate full permission suite for current user session
    */
-  static evaluatePermissions(userRole?: UserRole, claims?: FirebaseCustomClaims): PermissionGuards {
+  static evaluatePermissions(userRole?: UserRole, claims?: UserCustomClaims): PermissionGuards {
     const isSuper = userRole === UserRole.SUPER_ADMIN || claims?.superAdmin === true;
     const isAdmin = isSuper || userRole === UserRole.ADMIN || userRole === UserRole.SUB_ADMIN || claims?.admin === true;
     const isFinance = isSuper || isAdmin || userRole === UserRole.FINANCE_OFFICER || claims?.finance === true;

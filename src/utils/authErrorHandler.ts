@@ -22,6 +22,35 @@ export function getFriendlyErrorMessage(error: any): string {
 
   const code = error?.code || "";
 
+  // 0. Supabase Configuration & Custom errors
+  if (
+    rawMsg.includes("Supabase is not configured") ||
+    rawMsg.includes("VITE_SUPABASE_URL") ||
+    rawMsg.includes("VITE_SUPABASE_ANON_KEY")
+  ) {
+    return "Supabase is not configured. Please define VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in settings or the secrets panel to enable authentication.";
+  }
+
+  if (rawMsg.includes("invalid api key") || rawMsg.includes("Invalid API key") || rawMsg.includes("apiKey") || rawMsg.includes("anon key")) {
+    return "Invalid Supabase API key (VITE_SUPABASE_ANON_KEY). Please check your Supabase dashboard and update your key in settings.";
+  }
+
+  if (rawMsg.includes("Email rate limit exceeded") || rawMsg.includes("rate limit") || rawMsg.includes("rate_limit")) {
+    return "Sign-up rate limit exceeded. Supabase free tier limits email sign-ups per hour. Please wait a bit or disable email confirmation in Supabase.";
+  }
+
+  if (rawMsg.includes("Signup is disabled") || rawMsg.includes("signup is disabled")) {
+    return "User registration is currently disabled in your Supabase Auth configuration.";
+  }
+
+  if (
+    rawMsg.toLowerCase().includes("email not confirmed") ||
+    rawMsg.toLowerCase().includes("email_not_confirmed") ||
+    rawMsg.toLowerCase().includes("not confirmed")
+  ) {
+    return "Your email is not verified yet. Please check your email inbox for the confirmation link sent by Supabase, or click send verify to log into your account.";
+  }
+
   if (
     rawMsg.includes("email not found or not registered") ||
     rawMsg.includes("not registered, register instead")
@@ -57,7 +86,7 @@ export function getFriendlyErrorMessage(error: any): string {
     return "The website is currently undergoing scheduled maintenance. Services and transactions are temporarily restricted.";
   }
 
-  // 1. Firebase Auth Errors
+  // 1. Auth & Token Errors
   if (
     code === "auth/invalid-action-code" ||
     code === "auth/invalid-oob-code" ||
@@ -151,7 +180,7 @@ export function getFriendlyErrorMessage(error: any): string {
     rawMsg.includes("unauthorized-domain") ||
     rawMsg.includes("unauthorized domain")
   ) {
-    return "This domain is not authorized for Google Sign-In in Firebase. Please add this domain to Firebase Console > Authentication > Settings > Authorized Domains.";
+    return "This domain is not authorized for Google Sign-In in Supabase. Please add this domain to Supabase Authentication settings.";
   }
 
   if (
@@ -159,7 +188,7 @@ export function getFriendlyErrorMessage(error: any): string {
     rawMsg.includes("operation-not-allowed") ||
     rawMsg.includes("OPERATION_NOT_ALLOWED")
   ) {
-    return "Google Sign-In is not enabled in Firebase Console. Please enable Google under Authentication > Sign-in method.";
+    return "Google Sign-In is not enabled in Supabase. Please enable Google under Authentication > Providers.";
   }
 
   if (
@@ -168,7 +197,7 @@ export function getFriendlyErrorMessage(error: any): string {
     rawMsg.includes("invalid-api-key") ||
     rawMsg.includes("API key not valid")
   ) {
-    return "Firebase API Key is invalid or restricted. Please check your Firebase project settings.";
+    return "Supabase API Key is invalid or restricted. Please check your Supabase project settings.";
   }
 
   if (
@@ -176,7 +205,7 @@ export function getFriendlyErrorMessage(error: any): string {
     rawMsg.includes("Invalid request") ||
     rawMsg.includes("request is invalid")
   ) {
-    return "Google Authentication request was invalid. Please ensure Google Sign-In is enabled in Firebase Console with a valid project support email.";
+    return "Google Authentication request was invalid. Please ensure Google Sign-In is configured with a valid project support email.";
   }
 
   if (

@@ -124,4 +124,4 @@ export class SlipService {
 }
 
 // Backwards compatibility alias
-export const FirestoreSlipService = SlipService;
+export const StorageSlipService = SlipService;

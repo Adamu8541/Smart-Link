@@ -1,6 +1,6 @@
 /**
  * SmartLink Nigeria — Supabase Storage Service
- * Enterprise-grade client storage layer replacing Firebase Cloud Storage.
+ * Enterprise-grade client storage layer replacing Cloud Storage.
  */
 
 import { getSupabaseClient } from "./supabaseAuth";
@@ -50,7 +50,7 @@ function fileToBase64(file: File | Blob): Promise<string> {
 }
 
 /**
- * Backwards-compatible file upload helper replacing uploadFileToStorage from firebase.ts
+ * Backwards-compatible file upload helper.
  */
 export async function uploadFileToStorage(
   storagePath: string,

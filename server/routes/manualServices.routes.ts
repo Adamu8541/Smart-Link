@@ -11,7 +11,7 @@ import { getResolvedSmtpConfig, sendPlatformEmail } from "../services/email.serv
 const router = express.Router();
 const app = router;
 
-// Local upload directories for manual attachments (stored completely separate from Firebase)
+// Local upload directories for manual attachments (stored securely on local disk)
 const MANUAL_ATTACHMENTS_DIR = path.join(UPLOADS_DIR, "manual_submissions");
 if (!fs.existsSync(MANUAL_ATTACHMENTS_DIR)) {
   try {
@@ -94,7 +94,7 @@ app.post("/api/admin/manual-services/email-routes", requireAdmin, async (req, re
  * Handles user submission of CAC, TIN, Passport, Modification, and other manual services.
  * 
  * - Debits user wallet (if fee > 0)
- * - Saves attachments to local disk storage (NEVER sent or saved to Firebase)
+ * - Saves attachments to local disk storage (NEVER sent or saved to cloud storage)
  * - Dispatches formatted HTML email with attachments to admin email (default adamuamuhammad8541@gmail.com or route)
  * - Returns clean "SUCCESS" response for the frontend to show "Submitted Successfully"
  */
@@ -170,7 +170,7 @@ app.post("/api/manual-services/submit", async (req, res) => {
     }
   }
 
-  // 3. Process and save uploaded files to local disk storage (NO Firebase Storage)
+  // 3. Process and save uploaded files to local disk storage (NO cloud storage)
   const savedAttachments: { filename: string; path: string; contentType: string; size: number }[] = [];
   const filesSummary: { [key: string]: string } = {};
 
@@ -343,7 +343,7 @@ app.post("/api/manual-services/submit", async (req, res) => {
     emailErrorMsg = mailErr?.message;
   }
 
-  // 7. Store in Local Database (NOT Firebase) so Admin can also see in Admin Orders dashboard
+  // 7. Store in Local Database so Admin can also see in Admin Orders dashboard
   if (!db.manual_service_orders) {
     db.manual_service_orders = [];
   }
