@@ -56,7 +56,10 @@ export default function AdminGuard({
         "Authorization": `Bearer ${token}`
       }
     })
-      .then((res) => res.json())
+      .then(async (res) => {
+        const text = await res.text().catch(() => "");
+        try { return text ? JSON.parse(text) : {}; } catch { return {}; }
+      })
       .then((data) => {
         if (!isMounted) return;
         if (data.success && data.session) {
@@ -142,7 +145,9 @@ export default function AdminGuard({
           "Authorization": `Bearer ${adminSession.sessionToken}`
         }
       });
-      const data = await res.json();
+      const text = await res.text().catch(() => "");
+      let data: any = {};
+      try { data = text ? JSON.parse(text) : {}; } catch { data = {}; }
       if (data.success && data.session) {
         setTimeRemainingSeconds(1800);
       }

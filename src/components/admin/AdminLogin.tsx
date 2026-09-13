@@ -54,7 +54,9 @@ export default function AdminLogin({ onLoginSuccess, onNavigateHome }: AdminLogi
         },
       });
 
-      const data = await res.json();
+      const text = await res.text().catch(() => "");
+      let data: any = {};
+      try { data = text ? JSON.parse(text) : {}; } catch { data = {}; }
 
       if (!res.ok || !data.success) {
         if (fallbackSession) {
@@ -117,7 +119,9 @@ export default function AdminLogin({ onLoginSuccess, onNavigateHome }: AdminLogi
         body: JSON.stringify({ email: cleanEmail, password }),
       });
 
-      const data = await res.json();
+      const loginText = await res.text().catch(() => "");
+      let data: any = {};
+      try { data = loginText ? JSON.parse(loginText) : {}; } catch { data = {}; }
 
       if (res.ok && data.success && data.session) {
         await establishAdminSession(data.session.sessionToken, data.session);
@@ -145,7 +149,9 @@ export default function AdminLogin({ onLoginSuccess, onNavigateHome }: AdminLogi
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: forgotEmail.trim() }),
       });
-      const data = await res.json();
+      const forgotText = await res.text().catch(() => "");
+      let data: any = {};
+      try { data = forgotText ? JSON.parse(forgotText) : {}; } catch { data = {}; }
       setForgotResponse(data.message || "Password reset instructions dispatched.");
     } catch (err: any) {
       setForgotResponse("Failed to send reset instructions. Please contact technical support.");
