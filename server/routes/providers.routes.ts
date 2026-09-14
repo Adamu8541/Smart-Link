@@ -709,7 +709,14 @@ app.get("/api/wallet/virtual-account/:userId", async (req, res) => {
     return res.status(403).json({ error: authCheck.reason || "Forbidden" });
   }
 
-  const result = await getOrCreateUserVirtualAccount(userId);
+  const effectiveUserId = authCheck.isAdmin ? userId : authCheck.authenticatedUid!;
+  const fallbackDetails = {
+    email: req.query.email as string,
+    fullName: (req.query.fullName || req.query.userName) as string,
+    phone: (req.query.phone || req.query.phoneNumber) as string,
+  };
+
+  const result = await getOrCreateUserVirtualAccount(effectiveUserId, fallbackDetails);
   if (!result.success) {
     return res.status(result.code === "NO_ACTIVE_PROVIDER" ? 400 : 502).json(result);
   }

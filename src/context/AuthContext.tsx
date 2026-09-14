@@ -56,8 +56,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       const email = (supaUser.email || "").toLowerCase().trim();
       const metadata = supaUser.user_metadata || {};
-      const fullName = metadata.full_name || email.split("@")[0] || "Smart Link User";
-      const phoneNumber = metadata.phone_number || "";
+      const fullName = metadata.full_name || metadata.fullName || email.split("@")[0] || "Smart Link User";
+      const phoneNumber = metadata.phone_number || metadata.phoneNumber || metadata.phone || "";
       const referralCode = metadata.referral_code || "";
       const isVerified = true;
 

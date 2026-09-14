@@ -5,6 +5,7 @@ import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
 import { VirtualAccountRepository } from "../turso/repositories";
 import { executeTurso } from "../turso/client";
+import { getSupabaseAdmin } from "./supabaseAdmin";
 
 export const DEFAULT_SERVICES_CATALOG = [
   {
@@ -318,9 +319,37 @@ export async function getOrCreateUserVirtualAccount(
   let userFromDb: any = null;
   try {
     userFromDb = await usersStore.getUserById(userId);
+    if (!userFromDb && userFallback?.email) {
+      userFromDb = await usersStore.getUserByEmail(userFallback.email);
+    }
   } catch (err) {
     // ignore
   }
+
+  // If userFromDb is still missing email or phone, check Supabase Admin directly
+  if (userId && (!userFromDb?.email || !(userFromDb?.phone || userFromDb?.phoneNumber))) {
+    try {
+      const supaAdmin = getSupabaseAdmin();
+      if (supaAdmin) {
+        const { data: sbData } = await supaAdmin.auth.admin.getUserById(userId);
+        if (sbData?.user) {
+          const meta = sbData.user.user_metadata || {};
+          const sbPhone = meta.phoneNumber || meta.phone_number || meta.phone || "";
+          const sbName = meta.full_name || meta.fullName || (sbData.user.email ? sbData.user.email.split("@")[0] : "");
+          userFromDb = {
+            ...(userFromDb || {}),
+            email: userFromDb?.email || sbData.user.email,
+            fullName: userFromDb?.fullName || sbName,
+            phone: userFromDb?.phone || userFromDb?.phoneNumber || sbPhone,
+            phoneNumber: userFromDb?.phoneNumber || userFromDb?.phone || sbPhone,
+          };
+        }
+      }
+    } catch {}
+  }
+
+  const rawPhone = userFallback?.phone || userFallback?.phoneNumber || userFromDb?.phone || userFromDb?.phoneNumber || "";
+  const resolvedPhone = rawPhone && rawPhone.trim() ? rawPhone.trim() : "08085490982";
 
   const user = {
     ...(userFromDb || {}),
@@ -329,8 +358,8 @@ export async function getOrCreateUserVirtualAccount(
     uid: userId,
     email: userFallback?.email || userFromDb?.email || "customer@smartlink.ng",
     fullName: userFallback?.fullName || userFallback?.userName || userFromDb?.fullName || "SMARTLINK CUSTOMER",
-    phone: userFallback?.phone || userFallback?.phoneNumber || userFromDb?.phone || userFromDb?.phoneNumber || "",
-    phoneNumber: userFallback?.phoneNumber || userFallback?.phone || userFromDb?.phoneNumber || userFromDb?.phone || "",
+    phone: resolvedPhone,
+    phoneNumber: resolvedPhone,
   };
 
   if (!forceRegenerate && user && (user.virtualAccountNumber || user.accountNumber)) {

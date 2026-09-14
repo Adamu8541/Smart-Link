@@ -49,7 +49,7 @@ app.post("/api/virtual-account/create", async (req, res) => {
     return res.status(429).json({ error: "Virtual account request rate limit exceeded. Please wait a minute." });
   }
 
-  const { userId, userEmail, userName, phone, bvn, nin, forceRegenerate } = req.body;
+  const { userId, userEmail, userName, email, fullName, phone, phoneNumber, bvn, nin, forceRegenerate } = req.body;
   if (!userId) {
     return res.status(400).json({ error: "Missing required parameter: userId" });
   }
@@ -66,7 +66,7 @@ app.post("/api/virtual-account/create", async (req, res) => {
 
   const result = await getOrCreateUserVirtualAccount(
     effectiveUserId,
-    { email: userEmail, fullName: userName, phone, bvn, nin },
+    { email: userEmail || email, fullName: userName || fullName, phone: phone || phoneNumber, bvn, nin },
     undefined,
     { forceRegenerate: Boolean(forceRegenerate) }
   );
@@ -114,8 +114,13 @@ app.get("/api/virtual-account/:userId", async (req, res) => {
   }
 
   const effectiveUserId = authCheck.isAdmin ? userId : authCheck.authenticatedUid!;
+  const fallbackDetails = {
+    email: req.query.email as string,
+    fullName: (req.query.fullName || req.query.userName) as string,
+    phone: (req.query.phone || req.query.phoneNumber) as string,
+  };
 
-  const result = await getOrCreateUserVirtualAccount(effectiveUserId);
+  const result = await getOrCreateUserVirtualAccount(effectiveUserId, fallbackDetails);
   if (!result.success) {
     return res.status(404).json({
       success: false,
@@ -153,8 +158,13 @@ app.get("/api/wallet/virtual-account/:userId", async (req, res) => {
   }
 
   const effectiveUserId = authCheck.isAdmin ? userId : authCheck.authenticatedUid!;
+  const fallbackDetails = {
+    email: req.query.email as string,
+    fullName: (req.query.fullName || req.query.userName) as string,
+    phone: (req.query.phone || req.query.phoneNumber) as string,
+  };
 
-  const result = await getOrCreateUserVirtualAccount(effectiveUserId);
+  const result = await getOrCreateUserVirtualAccount(effectiveUserId, fallbackDetails);
   if (!result.success) {
     return res.status(result.code === "NO_ACTIVE_PROVIDER" ? 400 : 502).json({
       success: false,
@@ -178,7 +188,7 @@ app.get("/api/wallet/virtual-account/:userId", async (req, res) => {
  * Secured with session auth & forged userId check.
  */
 app.post("/api/wallet/virtual-account/generate", async (req, res) => {
-  const { userId, bvn, nin, phone, email, fullName, userEmail, userName, forceRegenerate } = req.body;
+  const { userId, bvn, nin, phone, phoneNumber, email, fullName, userEmail, userName, forceRegenerate } = req.body;
   if (!userId) {
     return res.status(400).json({ error: "Missing required parameter: userId" });
   }
@@ -198,12 +208,12 @@ app.post("/api/wallet/virtual-account/generate", async (req, res) => {
     {
       bvn,
       nin,
-      phone,
+      phone: phone || phoneNumber,
       email: email || userEmail,
       fullName: fullName || userName,
     },
     undefined,
-    { forceRegenerate: forceRegenerate !== false }
+    { forceRegenerate: Boolean(forceRegenerate) }
   );
   if (!result.success) {
     return res.status(result.code === "NO_ACTIVE_PROVIDER" ? 400 : 502).json({

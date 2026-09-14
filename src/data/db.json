@@ -18,7 +18,7 @@
       "status": "ACTIVE",
       "uid": "7349cf60-830c-4859-a738-630c0751b421",
       "fullName": "Adamu Muhammad",
-      "updatedAt": "2026-09-13T04:53:19.966Z"
+      "updatedAt": "2026-09-14T12:06:01.009Z"
     }
   ],
   "transactions": [],
@@ -359,6 +359,28 @@
       ],
       "status": "ACTIVE",
       "createdAt": "2026-08-16T19:08:35.789Z"
+    },
+    {
+      "id": "va_prov_aspfiy_1789387625640",
+      "userId": "test-new-user-01",
+      "userEmail": "",
+      "userName": "Aspfiy-SmartLink SmartLink",
+      "provider": "prov_aspfiy",
+      "providerId": "prov_aspfiy",
+      "providerName": "Aspfiy Payment Gateway",
+      "bankName": "Palmpay",
+      "accountNumber": "6682070167",
+      "accountName": "Aspfiy-SmartLink SmartLink",
+      "reference": "SL-test-new-user-01-3344",
+      "providerReference": "SL-test-new-user-01-3344",
+      "accounts": [
+        {
+          "bankName": "Palmpay",
+          "accountNumber": "6682070167"
+        }
+      ],
+      "status": "ACTIVE",
+      "createdAt": "2026-09-14T12:07:06.005Z"
     }
   ],
   "walletLogs": [],
@@ -688,7 +710,36 @@
   "reconciliation_records": [],
   "processed_provider_tx_ids": [],
   "processed_payment_references": [],
-  "wallets": [],
+  "wallets": [
+    {
+      "id": "wal_test-new-user-01",
+      "wallet_id": "wal_test-new-user-01",
+      "user_id": "test-new-user-01",
+      "currency": "NGN",
+      "balance": 0,
+      "held_balance": 0,
+      "total_credits": 0,
+      "total_debits": 0,
+      "status": "ACTIVE",
+      "created_at": "2026-09-14 12:07:05",
+      "updated_at": "2026-09-14 12:07:05",
+      "userId": "test-new-user-01",
+      "walletId": "wal_test-new-user-01",
+      "currentBalance": 0,
+      "heldBalance": 0,
+      "totalCredits": 0,
+      "totalDebits": 0,
+      "walletStatus": "ACTIVE",
+      "createdAt": "2026-09-14 12:07:05",
+      "updatedAt": "2026-09-14T12:07:06.356Z",
+      "lastUpdated": "2026-09-14T12:07:06.356Z",
+      "virtualAccountNumber": "6682070167",
+      "virtualBankName": "Palmpay",
+      "virtualAccountName": "Aspfiy-SmartLink SmartLink",
+      "virtualAccountReference": "SL-test-new-user-01-3344",
+      "provider": "prov_aspfiy"
+    }
+  ],
   "reconciliationRecords": [],
   "virtual_accounts": [],
   "provider_logs": [],
@@ -1245,6 +1296,29 @@
       "providerReference": "SL-usr_sa_primary",
       "status": "ACTIVE",
       "createdAt": "2026-08-16T19:08:35.789Z"
+    },
+    {
+      "id": "va_prov_aspfiy_1789387625640",
+      "userId": "test-new-user-01",
+      "userEmail": "testnewuser@smartlink.ng",
+      "userName": "SmartLink Test User",
+      "provider": "prov_aspfiy",
+      "providerId": "prov_aspfiy",
+      "providerName": "Aspfiy Payment Gateway",
+      "bankName": "Palmpay",
+      "accountNumber": "6682070167",
+      "accountName": "Aspfiy-SmartLink SmartLink",
+      "providerReference": "SL-test-new-user-01-3344",
+      "reference": "SL-test-new-user-01-3344",
+      "accounts": [
+        {
+          "bankName": "Palmpay",
+          "accountNumber": "6682070167"
+        }
+      ],
+      "amountExpected": null,
+      "status": "ACTIVE",
+      "createdAt": "2026-09-14T12:07:05.640Z"
     }
   ],
   "notificationSettings": [],

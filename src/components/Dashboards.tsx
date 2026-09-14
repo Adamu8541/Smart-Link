@@ -354,7 +354,12 @@ export default function Dashboards({
     }
 
     try {
-      const res = await ProviderService.getVirtualAccount(currentUser.uid);
+      const userPhone = (currentUser as any).phone || (currentUser as any).phoneNumber || "";
+      const res = await ProviderService.getVirtualAccount(currentUser.uid, {
+        email: currentUser.email,
+        fullName: currentUser.fullName || (currentUser as any).name,
+        phone: userPhone,
+      });
       const acc = res.account || res.virtualAccount || (res as any).data?.account || (res as any).data?.virtualAccount || (res as any).data;
       if (res.success && acc && (acc.accountNumber || acc.account_number)) {
         setFundAccount({
@@ -368,18 +373,22 @@ export default function Dashboards({
       } else if (!userAny.virtualAccountNumber && !userAny.accountNumber) {
         // Direct attempt via /api/wallet/virtual-account/generate
         try {
-          const authHeaders = await getAuthHeaders();
+          const authHeaders = await getAuthHeaders(currentUser.uid);
           const genRes = await fetch("/api/wallet/virtual-account/generate", {
             method: "POST",
             headers: authHeaders,
             body: JSON.stringify({
               userId: currentUser.uid,
               userEmail: currentUser.email,
+              email: currentUser.email,
               userName: currentUser.fullName,
-              phone: (currentUser as any).phone || (currentUser as any).phoneNumber,
+              fullName: currentUser.fullName,
+              phone: userPhone,
+              phoneNumber: userPhone,
+              forceRegenerate: false,
             }),
           });
-          const genData = await genRes.json();
+          const genData = await genRes.json().catch(() => ({}));
           const genAcc = genData.account || genData.virtualAccount;
           if (genRes.ok && genAcc && (genAcc.accountNumber || genAcc.account_number)) {
             setFundAccount({
@@ -396,12 +405,12 @@ export default function Dashboards({
           // ignore
         }
         setFundAccount(null);
-        setFundError(res.error || "No active payment provider configured.");
+        setFundError(res.error || "Unable to reserve account with active provider.");
       }
     } catch (err: any) {
       if (!userAny.virtualAccountNumber && !userAny.accountNumber) {
         setFundAccount(null);
-        setFundError("No active payment provider configured.");
+        setFundError(err?.message || "Failed to load virtual account.");
       }
     } finally {
       setFundLoading(false);

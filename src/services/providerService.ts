@@ -12,6 +12,9 @@ import { SupabaseAuthService, isSupabaseConfigured } from "./supabaseAuth";
 
 export async function getAuthHeaders(userId?: string): Promise<Record<string, string>> {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (userId) {
+    headers["x-user-id"] = userId;
+  }
 
   // 1. Check admin session token first if in admin context or storage
   try {
@@ -37,7 +40,25 @@ export async function getAuthHeaders(userId?: string): Promise<Record<string, st
     } catch {}
   }
 
-  // 3. Check user session
+  // 2b. Check localStorage for any cached Supabase auth token
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith("sb-") && key.endsWith("-auth-token")) {
+        const raw = localStorage.getItem(key);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          const token = parsed?.access_token || parsed?.token;
+          if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+            return headers;
+          }
+        }
+      }
+    }
+  } catch {}
+
+  // 3. Check user session in smart_link_user
   try {
     const userRaw = localStorage.getItem("smart_link_user") || sessionStorage.getItem("smart_link_user");
     if (userRaw) {
@@ -45,6 +66,9 @@ export async function getAuthHeaders(userId?: string): Promise<Record<string, st
       if (u?.sessionToken || u?.token || u?.idToken) {
         headers["Authorization"] = `Bearer ${u.sessionToken || u.token || u.idToken}`;
         return headers;
+      }
+      if (!headers["x-user-id"] && (u?.uid || u?.id)) {
+        headers["x-user-id"] = u.uid || u.id;
       }
     }
   } catch {}
@@ -189,52 +213,117 @@ export class ProviderService {
   /**
    * Virtual Accounts Module - Generate or retrieve reserved virtual account using Active provider.
    */
-  static async getVirtualAccount(userId: string): Promise<ProviderResponse> {
+  static async getVirtualAccount(
+    userId: string,
+    userFallback?: { email?: string; fullName?: string; phone?: string }
+  ): Promise<ProviderResponse> {
     try {
+      // If userFallback not supplied, attempt to read from localStorage smart_link_user
+      let resolvedFallback = userFallback;
+      if (!resolvedFallback) {
+        try {
+          const uRaw = localStorage.getItem("smart_link_user");
+          if (uRaw) {
+            const u = JSON.parse(uRaw);
+            resolvedFallback = {
+              email: u.email,
+              fullName: u.fullName || u.name,
+              phone: u.phone || u.phoneNumber,
+            };
+          }
+        } catch {}
+      }
+
       const headers = await getAuthHeaders(userId);
-      let res = await fetch(`/api/wallet/virtual-account/${encodeURIComponent(userId)}`, { headers });
+      const queryParams = new URLSearchParams();
+      if (resolvedFallback?.email) queryParams.set("email", resolvedFallback.email);
+      if (resolvedFallback?.fullName) queryParams.set("fullName", resolvedFallback.fullName);
+      if (resolvedFallback?.phone) queryParams.set("phone", resolvedFallback.phone);
+      const queryString = queryParams.toString() ? `?${queryParams.toString()}` : "";
+
+      // Endpoint 1: /api/wallet/virtual-account/:userId
+      let res = await fetch(`/api/wallet/virtual-account/${encodeURIComponent(userId)}${queryString}`, { headers });
       let data = await res.json().catch(() => ({}));
-      
-      if (!res.ok || !data.success || !data.account) {
-        // Fallback endpoint 1: /api/virtual-account/:userId
-        const fallbackRes = await fetch(`/api/virtual-account/${encodeURIComponent(userId)}`, { headers });
-        const fallbackData = await fallbackRes.json().catch(() => ({}));
-        if (fallbackRes.ok && fallbackData.success && (fallbackData.account || fallbackData.virtualAccount)) {
-          return {
-            success: true,
-            account: fallbackData.account || fallbackData.virtualAccount,
-            virtualAccount: fallbackData.virtualAccount || fallbackData.account,
-            provider: fallbackData.provider,
-          };
-        }
 
-        // Fallback endpoint 2: /api/virtual-account/create
-        const createRes = await fetch(`/api/virtual-account/create`, {
-          method: "POST",
-          headers: { ...headers, "Content-Type": "application/json" },
-          body: JSON.stringify({ userId }),
-        });
-        const createData = await createRes.json().catch(() => ({}));
-        if (createRes.ok && createData.success && (createData.account || createData.virtualAccount)) {
-          return {
-            success: true,
-            account: createData.account || createData.virtualAccount,
-            virtualAccount: createData.virtualAccount || createData.account,
-            provider: createData.provider,
-          };
-        }
-
+      if (res.ok && data.success && (data.account || data.virtualAccount)) {
         return {
-          success: false,
-          error: data.error || data.message || "No active payment provider configured.",
-          code: data.code || "NO_ACTIVE_PROVIDER",
+          success: true,
+          account: data.account || data.virtualAccount,
+          virtualAccount: data.virtualAccount || data.account,
+          provider: data.provider,
         };
       }
-      return data;
+
+      // Endpoint 2: /api/virtual-account/:userId
+      const fallbackRes = await fetch(`/api/virtual-account/${encodeURIComponent(userId)}${queryString}`, { headers });
+      const fallbackData = await fallbackRes.json().catch(() => ({}));
+      if (fallbackRes.ok && fallbackData.success && (fallbackData.account || fallbackData.virtualAccount)) {
+        return {
+          success: true,
+          account: fallbackData.account || fallbackData.virtualAccount,
+          virtualAccount: fallbackData.virtualAccount || fallbackData.account,
+          provider: fallbackData.provider,
+        };
+      }
+
+      // Endpoint 3: /api/wallet/virtual-account/generate
+      const genRes = await fetch("/api/wallet/virtual-account/generate", {
+        method: "POST",
+        headers: { ...headers, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          userEmail: resolvedFallback?.email,
+          email: resolvedFallback?.email,
+          userName: resolvedFallback?.fullName,
+          fullName: resolvedFallback?.fullName,
+          phone: resolvedFallback?.phone,
+          phoneNumber: resolvedFallback?.phone,
+          forceRegenerate: false,
+        }),
+      });
+      const genData = await genRes.json().catch(() => ({}));
+      if (genRes.ok && genData.success && (genData.account || genData.virtualAccount)) {
+        return {
+          success: true,
+          account: genData.account || genData.virtualAccount,
+          virtualAccount: genData.virtualAccount || genData.account,
+          provider: genData.provider,
+        };
+      }
+
+      // Endpoint 4: /api/virtual-account/create
+      const createRes = await fetch(`/api/virtual-account/create`, {
+        method: "POST",
+        headers: { ...headers, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          userEmail: resolvedFallback?.email,
+          email: resolvedFallback?.email,
+          userName: resolvedFallback?.fullName,
+          fullName: resolvedFallback?.fullName,
+          phone: resolvedFallback?.phone,
+          phoneNumber: resolvedFallback?.phone,
+        }),
+      });
+      const createData = await createRes.json().catch(() => ({}));
+      if (createRes.ok && createData.success && (createData.account || createData.virtualAccount)) {
+        return {
+          success: true,
+          account: createData.account || createData.virtualAccount,
+          virtualAccount: createData.virtualAccount || createData.account,
+          provider: createData.provider,
+        };
+      }
+
+      return {
+        success: false,
+        error: genData.error || createData.error || data.error || data.message || "No virtual account available from active provider.",
+        code: genData.code || createData.code || data.code || "FAILED",
+      };
     } catch (err: any) {
       return {
         success: false,
-        error: "No active payment provider configured.",
+        error: err?.message || "No active payment provider configured.",
         code: "NO_ACTIVE_PROVIDER",
       };
     }

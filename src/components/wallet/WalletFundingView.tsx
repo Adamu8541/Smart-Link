@@ -207,16 +207,21 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
   const loadVirtualAccounts = async (prov?: ActiveProviderConfig) => {
     setLoadingReserved(true);
     try {
-      const vaRes = await ProviderService.getVirtualAccount(currentUser.uid);
+      const userPhone = currentUser.phone || currentUser.phoneNumber || "";
+      const vaRes = await ProviderService.getVirtualAccount(currentUser.uid, {
+        email: currentUser.email,
+        fullName: currentUser.fullName || currentUser.name,
+        phone: userPhone,
+      });
       const acc = vaRes?.account || vaRes?.virtualAccount;
-      if (vaRes?.success && acc) {
+      if (vaRes?.success && acc && (acc.accountNumber || acc.account_number)) {
         setReservedAccount({
           provider: acc.providerName || acc.provider || prov?.name || "ACTIVE_PROVIDER",
-          bankName: acc.bankName || "PalmPay",
-          accountNumber: acc.accountNumber,
-          accountName: acc.accountName || currentUser.fullName || "Customer",
+          bankName: acc.bankName || acc.bank_name || "PalmPay",
+          accountNumber: acc.accountNumber || acc.account_number,
+          accountName: acc.accountName || acc.account_name || currentUser.fullName || "Customer",
           status: acc.status || "ACTIVE",
-          reference: acc.reference
+          reference: acc.reference || acc.providerReference,
         });
       }
     } catch (e) {
@@ -253,6 +258,7 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
   const handleGenerateReservedAccount = async () => {
     setLoadingReserved(true);
     try {
+      const userPhone = currentUser.phone || currentUser.phoneNumber || "";
       const headers = await getAuthHeaders(currentUser.uid);
       const res = await fetch("/api/wallet/virtual-account/generate", {
         method: "POST",
@@ -261,21 +267,25 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
           userId: currentUser.uid,
           provider: "GATEWAY",
           userEmail: currentUser.email,
+          email: currentUser.email,
           userName: currentUser.fullName || currentUser.name,
-          phone: currentUser.phone || currentUser.phoneNumber,
+          fullName: currentUser.fullName || currentUser.name,
+          phone: userPhone,
+          phoneNumber: userPhone,
+          forceRegenerate: false,
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to generate Reserved Account");
       const acc = data.virtualAccount || data.account;
-      if (acc) {
+      if (acc && (acc.accountNumber || acc.account_number)) {
         setReservedAccount({
           provider: acc.providerName || acc.provider || "Aspfiy Payment Gateway",
-          bankName: acc.bankName || "PalmPay",
-          accountNumber: acc.accountNumber,
-          accountName: acc.accountName || currentUser.fullName || "Customer",
+          bankName: acc.bankName || acc.bank_name || "PalmPay",
+          accountNumber: acc.accountNumber || acc.account_number,
+          accountName: acc.accountName || acc.account_name || currentUser.fullName || "Customer",
           status: acc.status || "ACTIVE",
-          reference: acc.reference
+          reference: acc.reference || acc.providerReference,
         });
       }
     } catch (err: any) {

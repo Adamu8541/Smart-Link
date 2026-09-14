@@ -13,26 +13,38 @@
 import crypto from "crypto";
 
 /**
- * Normalizes a phone number to standard 11-digit Nigerian local format (e.g. "08012345678").
- * Strips all non-digit characters, removes leading country code (+234 / 234), and ensures a single leading 0.
+ * Normalizes a phone number to standard 11-digit Nigerian local format (e.g. "08085490982").
+ * Validates against standard Nigerian telco prefixes (070, 080, 081, 090, 091).
+ * If missing or invalid, falls back safely to the verified merchant contact phone number to prevent provider rejection.
  */
 export function normalizeNigerianPhone(raw?: string): string {
-  if (!raw || typeof raw !== "string") return "08085490982";
+  const FALLBACK_PHONE = "08085490982";
+  if (!raw || typeof raw !== "string") return FALLBACK_PHONE;
   const digitsOnly = raw.replace(/\D/g, "");
-  if (!digitsOnly) return "08085490982";
+  if (!digitsOnly) return FALLBACK_PHONE;
+
   // Strip leading 234 country code
   let local = digitsOnly.startsWith("234") ? digitsOnly.slice(3) : digitsOnly;
   if (local.startsWith("0")) {
     local = local.replace(/^0+/, "");
   }
+
+  // 10 digits without leading 0 -> prepend 0
   if (local.length === 10) {
-    return `0${local}`;
+    const candidate = `0${local}`;
+    if (/^0[789][01]\d{8}$/.test(candidate)) {
+      return candidate;
+    }
   }
+
+  // 11 digits starting with 0
   if (digitsOnly.length === 11 && digitsOnly.startsWith("0")) {
-    return digitsOnly;
+    if (/^0[789][01]\d{8}$/.test(digitsOnly)) {
+      return digitsOnly;
+    }
   }
-  const formatted = `0${local}`.slice(0, 11).padEnd(11, "0");
-  return formatted;
+
+  return FALLBACK_PHONE;
 }
 
 export interface PaymentProviderConfig {
