@@ -44,11 +44,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [loading, setLoading] = useState<boolean>(true);
   const [authProvider, setAuthProvider] = useState<"supabase" | "local" | null>(null);
 
-  const isEmailVerified = Boolean(
-    currentUser?.isVerified ||
-    supabaseUser?.email_confirmed_at ||
-    (supabaseUser as any)?.confirmed_at
-  );
+  const isEmailVerified = Boolean(currentUser || supabaseUser);
 
   const isSuperAdmin = currentUser?.role === UserRole.SUPER_ADMIN;
   const isAdmin = isSuperAdmin || currentUser?.role === UserRole.ADMIN || currentUser?.role === UserRole.SUB_ADMIN;
@@ -63,7 +59,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const fullName = metadata.full_name || email.split("@")[0] || "Smart Link User";
       const phoneNumber = metadata.phone_number || "";
       const referralCode = metadata.referral_code || "";
-      const isVerified = Boolean(supaUser.email_confirmed_at || (supaUser as any).confirmed_at);
+      const isVerified = true;
 
       const headers: Record<string, string> = { "Content-Type": "application/json" };
       if (userSession?.access_token) {
@@ -209,17 +205,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     return {
       user: resolvedUser,
-      isVerified: result.isEmailVerified,
+      isVerified: true,
     };
   };
 
   /**
-   * Register with Supabase Auth (Dispatches verification link email)
+   * Register with Supabase Auth (immediate activation without verification link)
    */
   const registerWithSupabase = async (payload: SupabaseRegistrationPayload) => {
     const res = await SupabaseAuthService.signUp(payload);
     return {
-      needsConfirmation: res.needsEmailConfirmation,
+      needsConfirmation: false,
       user: res.user,
     };
   };

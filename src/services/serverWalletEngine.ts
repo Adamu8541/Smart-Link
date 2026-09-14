@@ -51,16 +51,74 @@ export class ServerWalletEngine {
   static async getOrCreateWallet(db: any, userId: string): Promise<WalletDbRecord | null> {
     if (!userId) return null;
 
-    let wallet = await walletsStore.getWalletByUserId(userId);
-    const user = (await usersStore.getUserByUid(userId)) || (db?.users ? db.users.find((u: any) => u.uid === userId || u.id === userId) : null);
+    // 1. Resolve user record across all possible identifier keys (uid, id, email)
+    let user: any = null;
+    try {
+      user =
+        (await usersStore.getUserByUid(userId)) ||
+        (await usersStore.getUserById(userId)) ||
+        (await usersStore.getUserByEmail(userId));
+    } catch {}
+
+    if (!user && db?.users) {
+      user = db.users.find((u: any) => u.uid === userId || u.id === userId || (u.email && u.email.toLowerCase() === userId.toLowerCase()));
+    }
+
+    // 2. Resolve wallet record across userId, user.uid, and user.id
+    let wallet: WalletDbRecord | null = null;
+    try {
+      wallet = await walletsStore.getWalletByUserId(userId);
+      if (!wallet && user?.uid && user.uid !== userId) {
+        wallet = await walletsStore.getWalletByUserId(user.uid);
+      }
+      if (!wallet && user?.id && user.id !== userId) {
+        wallet = await walletsStore.getWalletByUserId(user.id);
+      }
+    } catch {}
+
+    if (!wallet && db?.wallets) {
+      wallet = db.wallets.find(
+        (w: any) =>
+          w.userId === userId ||
+          w.walletId === userId ||
+          (user?.uid && (w.userId === user.uid || w.walletId === `wal_${user.uid}`)) ||
+          (user?.id && (w.userId === user.id || w.walletId === `wal_${user.id}`))
+      );
+    }
+
     const now = new Date().toISOString();
+    const primaryUid = user?.uid || user?.id || userId;
+    const userBal = typeof user?.walletBalance === "number" && !isNaN(user.walletBalance) ? user.walletBalance : 0.0;
 
     if (!wallet) {
-      if (!user) return null;
-      const initialBal = typeof user.walletBalance === "number" && !isNaN(user.walletBalance) ? user.walletBalance : 0.0;
+      if (!user) {
+        // Fallback: create default active wallet for this user identifier
+        const defaultWallet: WalletDbRecord = {
+          userId: primaryUid,
+          walletId: `wal_${primaryUid}`,
+          balance: 0.0,
+          currentBalance: 0.0,
+          heldBalance: 0.0,
+          totalCredits: 0.0,
+          totalDebits: 0.0,
+          status: "ACTIVE",
+          walletStatus: "ACTIVE",
+          currency: "NGN",
+          updatedAt: now,
+          lastUpdated: now,
+          createdAt: now,
+        };
+        try {
+          return await walletsStore.createWallet(defaultWallet);
+        } catch {
+          return defaultWallet;
+        }
+      }
+
+      const initialBal = userBal;
       const newWallet: WalletDbRecord = {
-        userId: user.uid || userId,
-        walletId: `wal_${userId}`,
+        userId: primaryUid,
+        walletId: `wal_${primaryUid}`,
         balance: initialBal,
         currentBalance: initialBal,
         heldBalance: 0.0,
@@ -73,15 +131,25 @@ export class ServerWalletEngine {
         lastUpdated: now,
         createdAt: user.createdAt || now,
       };
-      wallet = await walletsStore.createWallet(newWallet);
-    } else {
-      if (!wallet.walletId) wallet.walletId = `wal_${userId}`;
-      if (typeof wallet.balance !== "number" || isNaN(wallet.balance)) {
-        wallet.balance = typeof wallet.currentBalance === "number" && !isNaN(wallet.currentBalance) ? wallet.currentBalance : 0.0;
+      try {
+        wallet = await walletsStore.createWallet(newWallet);
+      } catch {
+        wallet = newWallet;
       }
-      wallet.currentBalance = wallet.balance;
+    } else {
+      if (!wallet.walletId) wallet.walletId = `wal_${primaryUid}`;
+      
+      const rawWalletBal = typeof wallet.balance === "number" && !isNaN(wallet.balance)
+        ? wallet.balance
+        : (typeof wallet.currentBalance === "number" && !isNaN(wallet.currentBalance) ? wallet.currentBalance : 0.0);
+
+      // Reconcile: ALWAYS take the maximum non-negative balance (e.g. from admin manual credit)
+      const reconciledBal = Math.max(rawWalletBal, userBal);
+      wallet.balance = reconciledBal;
+      wallet.currentBalance = reconciledBal;
+
       if (typeof wallet.heldBalance !== "number" || isNaN(wallet.heldBalance)) wallet.heldBalance = 0.0;
-      if (typeof wallet.totalCredits !== "number") wallet.totalCredits = wallet.balance;
+      if (typeof wallet.totalCredits !== "number") wallet.totalCredits = reconciledBal;
       if (typeof wallet.totalDebits !== "number") wallet.totalDebits = 0.0;
       if (!wallet.status) wallet.status = wallet.walletStatus || "ACTIVE";
       wallet.walletStatus = wallet.status;
@@ -90,9 +158,16 @@ export class ServerWalletEngine {
       if (!wallet.updatedAt) wallet.updatedAt = wallet.lastUpdated || now;
       wallet.lastUpdated = wallet.updatedAt;
 
-      if (user && user.walletBalance !== wallet.balance) {
-        user.walletBalance = wallet.balance;
-        await usersStore.updateUser(userId, { walletBalance: wallet.balance }).catch(() => {});
+      // Sync reconciled balance to both usersStore and walletsStore
+      if (user && user.walletBalance !== reconciledBal) {
+        user.walletBalance = reconciledBal;
+        usersStore.updateUser(primaryUid, { walletBalance: reconciledBal }).catch(() => {});
+        if (user.id && user.id !== primaryUid) {
+          usersStore.updateUser(user.id, { walletBalance: reconciledBal }).catch(() => {});
+        }
+      }
+      if (rawWalletBal !== reconciledBal) {
+        walletsStore.updateWallet(wallet).catch(() => {});
       }
     }
 
@@ -626,36 +701,59 @@ export class ServerWalletEngine {
    */
   static async getWalletBalance(db: any, userId: string) {
     if (!userId) return { error: "User ID required" };
-    const wallet = (db.wallets || []).find((w: any) => w.userId === userId || w.uid === userId || w.id === userId);
+
+    const wallet = await ServerWalletEngine.getOrCreateWallet(db, userId);
     if (wallet) {
+      const balance = wallet.balance ?? wallet.currentBalance ?? 0;
       return {
-        balance: wallet.balance ?? wallet.walletBalance ?? 0,
+        balance,
+        currentBalance: balance,
+        availableBalance: balance - (wallet.heldBalance || 0),
+        heldBalance: wallet.heldBalance || 0,
         currency: wallet.currency || "NGN",
         userId: wallet.userId || userId,
+        status: wallet.status || "ACTIVE",
+        walletStatus: wallet.walletStatus || "ACTIVE",
         updatedAt: wallet.updatedAt || new Date().toISOString(),
       };
     }
-    const user = (db.users || []).find((u: any) => u.uid === userId || u.id === userId);
-    if (user) {
-      return {
-        balance: user.walletBalance ?? user.balance ?? 0,
-        currency: "NGN",
-        userId: user.uid || user.id || userId,
-        updatedAt: user.updatedAt || new Date().toISOString(),
-      };
-    }
-    return { balance: 0, currency: "NGN", userId };
+
+    return { balance: 0, currentBalance: 0, availableBalance: 0, heldBalance: 0, currency: "NGN", userId, status: "ACTIVE", walletStatus: "ACTIVE" };
   }
 
   /**
    * Validate wallet balance for a purchase amount.
    */
   static async validateWallet(db: any, userId: string, amount: number) {
+    const valResult = await ServerWalletEngine.validateWalletForPurchase(db, userId, amount);
+    if (valResult.valid) {
+      return {
+        valid: true,
+        balance: valResult.availableBalance ?? 0,
+        availableBalance: valResult.availableBalance ?? 0,
+        required: amount,
+        wallet: valResult.wallet,
+      };
+    }
     const balInfo = await ServerWalletEngine.getWalletBalance(db, userId);
     const balance = balInfo.balance || 0;
     if (balance >= amount) {
-      return { valid: true, balance, required: amount };
+      return {
+        valid: true,
+        balance,
+        availableBalance: balance,
+        required: amount,
+      };
     }
-    return { valid: false, balance, required: amount, message: "Insufficient wallet balance." };
+    return {
+      valid: false,
+      balance: valResult.availableBalance ?? balance,
+      availableBalance: valResult.availableBalance ?? balance,
+      required: amount,
+      error: valResult.error || "Insufficient wallet balance.",
+      message: valResult.error || "Insufficient wallet balance.",
+      errorCode: valResult.errorCode || "INSUFFICIENT_BALANCE",
+      wallet: valResult.wallet,
+    };
   }
 }

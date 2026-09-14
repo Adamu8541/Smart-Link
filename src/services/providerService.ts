@@ -13,20 +13,9 @@ import { SupabaseAuthService, isSupabaseConfigured } from "./supabaseAuth";
 export async function getAuthHeaders(userId?: string): Promise<Record<string, string>> {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
 
-  // 1. Check Supabase active session token
-  if (isSupabaseConfigured) {
-    try {
-      const supaSession = await SupabaseAuthService.getSession();
-      if (supaSession?.access_token) {
-        headers["Authorization"] = `Bearer ${supaSession.access_token}`;
-        return headers;
-      }
-    } catch {}
-  }
-
-  // Check admin session token
+  // 1. Check admin session token first if in admin context or storage
   try {
-    const adminSessionRaw = sessionStorage.getItem("smart_link_admin_session");
+    const adminSessionRaw = sessionStorage.getItem("smart_link_admin_session") || localStorage.getItem("smart_link_admin_session");
     if (adminSessionRaw) {
       const adminSession = JSON.parse(adminSessionRaw);
       if (adminSession?.sessionToken) {
@@ -37,9 +26,20 @@ export async function getAuthHeaders(userId?: string): Promise<Record<string, st
     }
   } catch {}
 
-  // Check user session
+  // 2. Check Supabase active session token
+  if (isSupabaseConfigured) {
+    try {
+      const supaSession = await SupabaseAuthService.getSession();
+      if (supaSession?.access_token) {
+        headers["Authorization"] = `Bearer ${supaSession.access_token}`;
+        return headers;
+      }
+    } catch {}
+  }
+
+  // 3. Check user session
   try {
-    const userRaw = localStorage.getItem("smart_link_user");
+    const userRaw = localStorage.getItem("smart_link_user") || sessionStorage.getItem("smart_link_user");
     if (userRaw) {
       const u = JSON.parse(userRaw);
       if (u?.sessionToken || u?.token || u?.idToken) {

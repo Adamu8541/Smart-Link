@@ -11,6 +11,7 @@
 
 import { createClient, SupabaseClient, User, Session, AuthChangeEvent } from "@supabase/supabase-js";
 import { UserRole } from "../types";
+import { safeFetchJson } from "../utils/authErrorHandler";
 import {
   SensitiveActionPurpose,
   OtpRequestResponse,
@@ -103,43 +104,52 @@ export class SupabaseAuthService {
    * Register a new user with Email Verification Link (Strictly Link-based verification)
    */
   static async signUp(payload: SupabaseRegistrationPayload): Promise<{ user: User | null; session: Session | null; needsEmailConfirmation: boolean }> {
-    const client = this.getClient();
     const cleanEmail = payload.email.toLowerCase().trim();
-    const redirectUrl = payload.redirectTo || `${window.location.origin}/verify-email`;
 
-    const { data, error } = await client.auth.signUp({
-      email: cleanEmail,
-      password: payload.password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          full_name: payload.fullName.trim(),
-          phone_number: payload.phoneNumber.trim(),
-          referral_code: payload.referralCode?.trim() || "",
-          role: UserRole.CUSTOMER, // Default role strictly Customer (prevents client escalation)
-        },
-      },
+    // 1. Register via server admin API to ensure email_confirm: true in Supabase Admin & usersStore without confirmation link
+    const regRes = await safeFetchJson("/api/auth/register", {
+      method: "POST",
+      body: JSON.stringify({
+        email: cleanEmail,
+        password: payload.password,
+        fullName: payload.fullName.trim(),
+        phoneNumber: payload.phoneNumber.trim(),
+        referralCode: payload.referralCode?.trim() || "",
+      }),
     });
 
-    if (error) {
-      throw error;
+    if (!regRes.ok) {
+      throw new Error(regRes.data?.message || regRes.data?.error || regRes.error || "Registration failed.");
     }
 
-    // Determine if confirmation email was dispatched
-    const user = data.user;
-    const session = data.session;
-    const needsEmailConfirmation = !user?.email_confirmed_at;
+    // 2. Automatically establish client-side Supabase Auth session
+    let user: User | null = null;
+    let session: Session | null = null;
+    try {
+      const client = getSupabaseClient();
+      if (client) {
+        const { data } = await client.auth.signInWithPassword({
+          email: cleanEmail,
+          password: payload.password,
+        });
+        if (data?.user) {
+          user = data.user;
+          session = data.session;
+        }
+      }
+    } catch (e) {
+      console.warn("[SupabaseAuth] Auto signIn note:", e);
+    }
 
     return {
-      user,
+      user: user || (regRes.data?.user ? { id: regRes.data.user.id || regRes.data.user.uid, email: cleanEmail } as any : null),
       session,
-      needsEmailConfirmation,
+      needsEmailConfirmation: false,
     };
   }
 
   /**
    * Sign in with Email and Password
-   * Enforces email confirmation verification check
    */
   static async signIn(email: string, password: string): Promise<SupabaseLoginResult> {
     const client = this.getClient();
@@ -166,33 +176,30 @@ export class SupabaseAuthService {
         errMsg.includes("email_not_confirmed") ||
         errMsg.includes("not confirmed")
       ) {
-        return {
-          user: null,
-          session: null,
-          isEmailVerified: false,
-          emailNotConfirmed: true,
-          error: "Your email address is not verified yet. Please check your inbox or click send verify.",
-        };
+        // Auto-confirm user in backend and retry sign in seamlessly
+        try {
+          await safeFetchJson("/api/auth/verify-account-now", {
+            method: "POST",
+            body: JSON.stringify({ email: cleanEmail }),
+          });
+          const retryRes = await client.auth.signInWithPassword({
+            email: cleanEmail,
+            password,
+          });
+          if (retryRes.data?.user) {
+            return {
+              user: retryRes.data.user,
+              session: retryRes.data.session,
+              isEmailVerified: true,
+            };
+          }
+        } catch {}
       }
       throw error;
     }
 
     const user = data?.user || null;
     const session = data?.session || null;
-    const isEmailVerified = Boolean(user?.email_confirmed_at);
-
-    // If user exists but email is not confirmed, ensure we sign them out to prevent unverified access
-    if (!isEmailVerified) {
-      try {
-        await client.auth.signOut();
-      } catch {}
-      return {
-        user,
-        session: null,
-        isEmailVerified: false,
-        emailNotConfirmed: true,
-      };
-    }
 
     return {
       user,

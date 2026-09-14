@@ -838,7 +838,7 @@ export default function App() {
         const email = (supaUser.email || "").toLowerCase().trim();
         const fullName = supaUser.user_metadata?.full_name || email.split("@")[0] || "Smart Link User";
         const phone = supaUser.user_metadata?.phone_number || supaUser.phone || "";
-        const isVerified = !!supaUser.email_confirmed_at;
+        const isVerified = true;
 
         try {
           const syncRes = await safeFetchJson("/api/auth/sync-supabase-user", {
@@ -850,7 +850,7 @@ export default function App() {
               email: email,
               fullName: fullName,
               phoneNumber: phone,
-              isVerified: isVerified,
+              isVerified: true,
             }),
           });
 
@@ -864,7 +864,7 @@ export default function App() {
               role: UserRole.CUSTOMER,
               walletBalance: 0.0,
               referralCode: supaUser.user_metadata?.referral_code || "SL" + Math.floor(1000 + Math.random() * 9000),
-              isVerified: isVerified,
+              isVerified: true,
               createdAt: supaUser.created_at || new Date().toISOString(),
             };
           }
@@ -883,7 +883,7 @@ export default function App() {
         const email = (supaUser.email || "").toLowerCase().trim();
         const fullName = supaUser.user_metadata?.full_name || email.split("@")[0] || "Smart Link User";
         const phone = supaUser.user_metadata?.phone_number || supaUser.phone || "";
-        const isVerified = !!supaUser.email_confirmed_at;
+        const isVerified = true;
 
         try {
           const syncRes = await safeFetchJson("/api/auth/sync-supabase-user", {
@@ -895,7 +895,7 @@ export default function App() {
               email: email,
               fullName: fullName,
               phoneNumber: phone,
-              isVerified: isVerified,
+              isVerified: true,
             }),
           });
 
@@ -909,7 +909,7 @@ export default function App() {
               role: UserRole.CUSTOMER,
               walletBalance: 0.0,
               referralCode: supaUser.user_metadata?.referral_code || "SL" + Math.floor(1000 + Math.random() * 9000),
-              isVerified: isVerified,
+              isVerified: true,
               createdAt: supaUser.created_at || new Date().toISOString(),
             };
           }

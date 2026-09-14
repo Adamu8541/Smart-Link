@@ -336,33 +336,54 @@ export class VerificationEngine {
     // Step 4: Call Backend API Gateway
     try {
       const startTime = Date.now();
+      let authHeaders: Record<string, string> = { "Content-Type": "application/json" };
+      try {
+        const { getAuthHeaders } = await import("./providerService");
+        authHeaders = await getAuthHeaders(userId);
+      } catch {}
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 25000);
+
       const response = await fetch("/api/verify/engine", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...authHeaders,
+        },
         body: JSON.stringify({
           userId,
           service: serviceType,
-          targetId: validation.formattedValue || primaryInput.trim(),
+          targetId: validation.formattedValue || String(primaryInput || "").trim(),
           extraFields: additionalFields,
           fee: effectiveFee,
           slipType,
           autoEmailToRegistered,
         }),
+        signal: controller.signal,
       });
 
+      clearTimeout(timeoutId);
       onProgressUpdate?.(VERIFICATION_PROGRESS_STEPS[4]);
 
-      const data = await response.json();
+      let data: any = {};
+      const rawText = await response.text();
+      try {
+        data = JSON.parse(rawText);
+      } catch {
+        data = { error: rawText || `Server responded with status ${response.status}`, errorCode: "SERVER_ERROR" };
+      }
+
       const clientCalculatedTime = Date.now() - startTime;
 
-      if (!response.ok || data.error) {
+      if (!response.ok || !data.success || data.error) {
         return {
           success: false,
           errorState: {
-            code: data.errorCode || "SERVER_ERROR",
-            message: data.error || "Verification request rejected by provider server.",
+            code: data.errorCode || (response.status === 401 || response.status === 403 ? "AUTH_ERROR" : "GATEWAY_ERROR"),
+            message: data.error || data.message || "Verification request rejected by provider server.",
             friendlyMessage: data.friendlyMessage || "Verification Failed",
-            details: data.details || data.error,
+            details: data.details || data.error || `HTTP ${response.status}: ${response.statusText}`,
           },
         };
       }

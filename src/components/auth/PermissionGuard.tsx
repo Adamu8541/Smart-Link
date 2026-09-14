@@ -35,35 +35,8 @@ export const RequireAuth: React.FC<BaseGuardProps> = ({ currentUser, children, f
 export const RequireVerifiedEmail: React.FC<BaseGuardProps & { onResendEmail?: () => void }> = ({
   currentUser,
   children,
-  fallback,
-  onResendEmail
 }) => {
   if (!currentUser) return null;
-  if (!currentUser.isVerified) {
-    return (
-      fallback || (
-        <div className="p-6 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 rounded-3xl border border-[#E5E7EB] dark:border-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] flex flex-col sm:flex-row items-center justify-between gap-4 my-4 shadow-sm">
-          <div className="flex items-center gap-3">
-            <Mail className="h-6 w-6 text-[#0F2D5C] dark:text-[#9CA3AF] shrink-0" />
-            <div>
-              <h4 className="text-sm font-bold">Email Verification Required</h4>
-              <p className="text-xs text-[#0F2D5C] dark:text-[#9CA3AF] mt-0.5">
-                Please verify your email address (<strong>{currentUser.email}</strong>) to access high-security verification services.
-              </p>
-            </div>
-          </div>
-          {onResendEmail && (
-            <button
-              onClick={onResendEmail}
-              className="px-4 py-2 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl transition-all shadow-sm shrink-0 cursor-pointer"
-            >
-              Resend Verification Email
-            </button>
-          )}
-        </div>
-      )
-    );
-  }
   return <>{children}</>;
 };
 

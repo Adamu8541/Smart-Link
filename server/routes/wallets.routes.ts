@@ -768,11 +768,62 @@ app.post("/api/admin/wallets/:userId/credit", requireAdmin, async (req, res) => 
   const refCode = reference || `CR_REF_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
 
   await usersStore.updateUser(userId, { walletBalance: newBalance, totalFunding: newTotalFunding });
+  if (user.uid && user.uid !== userId) {
+    await usersStore.updateUser(user.uid, { walletBalance: newBalance, totalFunding: newTotalFunding }).catch(() => {});
+  }
+  if (user.id && user.id !== userId) {
+    await usersStore.updateUser(user.id, { walletBalance: newBalance, totalFunding: newTotalFunding }).catch(() => {});
+  }
+
   await walletsStore.updateWalletAtomic(userId, () => ({
     balance: newBalance,
     currentBalance: newBalance,
     totalCredits: newTotalFunding,
   }));
+  if (user.uid && user.uid !== userId) {
+    await walletsStore.updateWalletAtomic(user.uid, () => ({
+      balance: newBalance,
+      currentBalance: newBalance,
+      totalCredits: newTotalFunding,
+    })).catch(() => {});
+  }
+  if (user.id && user.id !== userId) {
+    await walletsStore.updateWalletAtomic(user.id, () => ({
+      balance: newBalance,
+      currentBalance: newBalance,
+      totalCredits: newTotalFunding,
+    })).catch(() => {});
+  }
+
+  // Update in-memory DB collections and sync
+  if (Array.isArray(db.users)) {
+    const uIdx = db.users.findIndex((u: any) => u.uid === userId || u.id === userId || (user.uid && u.uid === user.uid) || (user.id && u.id === user.id));
+    if (uIdx >= 0) {
+      db.users[uIdx].walletBalance = newBalance;
+      db.users[uIdx].totalFunding = newTotalFunding;
+    }
+  }
+  if (Array.isArray(db.wallets)) {
+    const wIdx = db.wallets.findIndex((w: any) => w.userId === userId || (user.uid && w.userId === user.uid) || (user.id && w.userId === user.id));
+    if (wIdx >= 0) {
+      db.wallets[wIdx].balance = newBalance;
+      db.wallets[wIdx].currentBalance = newBalance;
+      db.wallets[wIdx].totalCredits = newTotalFunding;
+    } else {
+      db.wallets.push({
+        userId: user.uid || userId,
+        walletId: `wal_${user.uid || userId}`,
+        balance: newBalance,
+        currentBalance: newBalance,
+        heldBalance: 0,
+        totalCredits: newTotalFunding,
+        totalDebits: 0,
+        status: "ACTIVE",
+        currency: "NGN",
+        updatedAt: new Date().toISOString(),
+      });
+    }
+  }
   const updatedUser = { ...user, walletBalance: newBalance, totalFunding: newTotalFunding };
 
   // Create Transaction Entry
@@ -917,11 +968,47 @@ app.post("/api/admin/wallets/:userId/debit", requireAdmin, async (req, res) => {
   const refCode = reference || `DB_REF_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
 
   await usersStore.updateUser(userId, { walletBalance: newBalance });
+  if (user.uid && user.uid !== userId) {
+    await usersStore.updateUser(user.uid, { walletBalance: newBalance }).catch(() => {});
+  }
+  if (user.id && user.id !== userId) {
+    await usersStore.updateUser(user.id, { walletBalance: newBalance }).catch(() => {});
+  }
+
   await walletsStore.updateWalletAtomic(userId, (current) => ({
     balance: newBalance,
     currentBalance: newBalance,
     totalDebits: (current.totalDebits || 0) + numAmount,
   }));
+  if (user.uid && user.uid !== userId) {
+    await walletsStore.updateWalletAtomic(user.uid, (current) => ({
+      balance: newBalance,
+      currentBalance: newBalance,
+      totalDebits: (current.totalDebits || 0) + numAmount,
+    })).catch(() => {});
+  }
+  if (user.id && user.id !== userId) {
+    await walletsStore.updateWalletAtomic(user.id, (current) => ({
+      balance: newBalance,
+      currentBalance: newBalance,
+      totalDebits: (current.totalDebits || 0) + numAmount,
+    })).catch(() => {});
+  }
+
+  if (Array.isArray(db.users)) {
+    const uIdx = db.users.findIndex((u: any) => u.uid === userId || u.id === userId || (user.uid && u.uid === user.uid) || (user.id && u.id === user.id));
+    if (uIdx >= 0) {
+      db.users[uIdx].walletBalance = newBalance;
+    }
+  }
+  if (Array.isArray(db.wallets)) {
+    const wIdx = db.wallets.findIndex((w: any) => w.userId === userId || (user.uid && w.userId === user.uid) || (user.id && w.userId === user.id));
+    if (wIdx >= 0) {
+      db.wallets[wIdx].balance = newBalance;
+      db.wallets[wIdx].currentBalance = newBalance;
+      db.wallets[wIdx].totalDebits = (db.wallets[wIdx].totalDebits || 0) + numAmount;
+    }
+  }
   const updatedUser = { ...user, walletBalance: newBalance };
 
   // Create Transaction Entry

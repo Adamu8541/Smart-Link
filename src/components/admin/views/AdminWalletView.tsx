@@ -124,7 +124,7 @@ export function AdminWalletView({ session, onNavigate }: AdminWalletViewProps) {
       setTotalRecords(data.pagination?.total || 0);
     } catch (err: any) {
       setError(err.message);
-    } fontally: {
+    } finally {
       setLoading(false);
     }
   };

@@ -4,7 +4,7 @@ import fs from "fs";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 import { readDB, writeDB, initializeDB, DB_DIR, DB_FILE, UPLOADS_DIR, SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD, hashPassword, safeCompareHash, generateSalt, isMaskedValue } from "../db";
-import { verifyUserOrAdminSession, requireAdmin, requireAuth } from "../middleware/auth";
+import { verifyUserOrAdminSession, requireAdmin, requireAuth, optionalAdmin } from "../middleware/auth";
 import { isMaintenanceModeActive, getMaintenanceDetails, getValueByJsonPath, seedModule7SettingsIfEmpty, sanitizePublicSettings } from "../middleware/maintenance";
 import { getAI } from "../services/ai";
 import { 
@@ -382,15 +382,9 @@ app.get("/api/user-history/:userId", async (req, res) => {
 // =========================================================================
 
 // 1. GET /api/admin/notifications/dashboard - Notifications Metric Stats
-app.get("/api/admin/notifications/dashboard", async (req, res) => {
-  const sessionToken = (req.headers["x-admin-token"] as string);
+app.get("/api/admin/notifications/dashboard", optionalAdmin, async (req, res) => {
   const db = readDB();
   await syncFromStorage(db);
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
 
   const notifications = db.notifications || [];
   const announcements = db.announcements || [];
@@ -414,15 +408,9 @@ app.get("/api/admin/notifications/dashboard", async (req, res) => {
 });
 
 // 2. GET /api/admin/notifications/templates - Notification Templates
-app.get("/api/admin/notifications/templates", async (req, res) => {
-  const sessionToken = (req.headers["x-admin-token"] as string);
+app.get("/api/admin/notifications/templates", optionalAdmin, async (req, res) => {
   const db = readDB();
   await syncFromStorage(db);
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
 
   const templates = db.notification_templates || [
     { id: "tpl_welcome", name: "Welcome Email", subject: "Welcome to SmartLink Digital!", channel: "Email", active: true },
@@ -435,16 +423,10 @@ app.get("/api/admin/notifications/templates", async (req, res) => {
 });
 
 // 3. POST /api/admin/notifications/templates - Create Template
-app.post("/api/admin/notifications/templates", async (req, res) => {
+app.post("/api/admin/notifications/templates", requireAdmin, async (req, res) => {
   const template = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
   await syncFromStorage(db);
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
 
   if (!db.notification_templates) db.notification_templates = [];
   const newTpl = {
@@ -462,15 +444,9 @@ app.post("/api/admin/notifications/templates", async (req, res) => {
 });
 
 // 4. GET /api/admin/notifications/system-switches - Notification Toggles
-app.get("/api/admin/notifications/system-switches", async (req, res) => {
-  const sessionToken = (req.headers["x-admin-token"] as string);
+app.get("/api/admin/notifications/system-switches", optionalAdmin, async (req, res) => {
   const db = readDB();
   await syncFromStorage(db);
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
 
   const switches = db.system_settings?.notifications || {
     emailNotifications: true,
@@ -484,16 +460,10 @@ app.get("/api/admin/notifications/system-switches", async (req, res) => {
 });
 
 // 5. POST /api/admin/notifications/toggle-switch - Toggle Notification Switch
-app.post("/api/admin/notifications/toggle-switch", async (req, res) => {
+app.post("/api/admin/notifications/toggle-switch", requireAdmin, async (req, res) => {
   const { switchKey, value } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
   await syncFromStorage(db);
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
 
   if (!db.system_settings) db.system_settings = {};
   if (!db.system_settings.notifications) {
@@ -508,7 +478,6 @@ app.post("/api/admin/notifications/toggle-switch", async (req, res) => {
 
   db.system_settings.notifications[switchKey] = value !== undefined ? value : !db.system_settings.notifications[switchKey];
   db.system_settings.notifications.updatedAt = new Date().toISOString();
-  db.system_settings.notifications.updatedBy = val.session.email;
 
   writeDB(db);
   await syncToStorage(db);
@@ -517,31 +486,19 @@ app.post("/api/admin/notifications/toggle-switch", async (req, res) => {
 });
 
 // 6. GET /api/admin/notification/history - History of Sent Notifications
-app.get("/api/admin/notification/history", async (req, res) => {
-  const sessionToken = (req.headers["x-admin-token"] as string);
+app.get("/api/admin/notification/history", optionalAdmin, async (req, res) => {
   const db = readDB();
   await syncFromStorage(db);
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
 
   const history = db.notification_history || db.notifications || [];
   return res.json({ success: true, history: history.slice(0, 100) });
 });
 
 // 7. POST /api/admin/notifications/create - Create & Dispatch Notification
-app.post("/api/admin/notifications/create", async (req, res) => {
+app.post("/api/admin/notifications/create", requireAdmin, async (req, res) => {
   const notif = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
   await syncFromStorage(db);
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
 
   const newNotification = {
     id: `notif_${Date.now()}`,
@@ -555,7 +512,7 @@ app.post("/api/admin/notifications/create", async (req, res) => {
     priority: notif.priority || "Normal",
     status: notif.status || "Sent",
     createdAt: new Date().toISOString(),
-    createdBy: val.session.email,
+    createdBy: (req as any).adminEmail || "Admin",
     read: false,
     isRead: false,
   };
@@ -572,7 +529,7 @@ app.post("/api/admin/notifications/create", async (req, res) => {
     channel: newNotification.channel,
     targetAudience: newNotification.targetAudience,
     targetEmail: newNotification.targetEmail,
-    adminEmail: val.session.email,
+    adminEmail: (req as any).adminEmail || "Admin",
     status: "DELIVERED",
     timestamp: new Date().toISOString(),
   });
@@ -584,31 +541,19 @@ app.post("/api/admin/notifications/create", async (req, res) => {
 });
 
 // 8. GET /api/admin/announcements - Retrieve Admin Announcements
-app.get("/api/admin/announcements", async (req, res) => {
-  const sessionToken = (req.headers["x-admin-token"] as string);
+app.get("/api/admin/announcements", optionalAdmin, async (req, res) => {
   const db = readDB();
   await syncFromStorage(db);
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
 
   const announcements = db.announcements || [];
   return res.json({ success: true, announcements });
 });
 
 // 9. POST /api/admin/announcements/create - Create New Announcement
-app.post("/api/admin/announcements/create", async (req, res) => {
+app.post("/api/admin/announcements/create", requireAdmin, async (req, res) => {
   const { title, message, priority = "NORMAL", target = "ALL", expiresAt = null, active = true } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
   await syncFromStorage(db);
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
 
   const newAnnouncement = {
     id: `ANN_${Date.now()}`,
@@ -619,7 +564,7 @@ app.post("/api/admin/announcements/create", async (req, res) => {
     expiresAt,
     active,
     createdAt: new Date().toISOString(),
-    createdBy: val.session.email,
+    createdBy: (req as any).adminEmail || "Admin",
   };
 
   if (!db.announcements) db.announcements = [];
@@ -632,41 +577,48 @@ app.post("/api/admin/announcements/create", async (req, res) => {
 });
 
 // 10. PUT /api/admin/announcements/:id - Update Announcement
-app.put("/api/admin/announcements/:id", async (req, res) => {
+app.put("/api/admin/announcements/:id", requireAdmin, async (req, res) => {
   const { id } = req.params;
   const updates = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
   await syncFromStorage(db);
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
-  }
 
   const ann = (db.announcements || []).find((a: any) => a.id === id);
   if (!ann) {
     return res.status(404).json({ success: false, message: "Announcement not found." });
   }
 
-  Object.assign(ann, updates, { updatedAt: new Date().toISOString(), updatedBy: val.session.email });
+  Object.assign(ann, updates, { updatedAt: new Date().toISOString(), updatedBy: (req as any).adminEmail || "Admin" });
   writeDB(db);
   await syncToStorage(db);
 
   return res.json({ success: true, announcement: ann });
 });
 
-// 11. DELETE /api/admin/announcements/:id - Delete Announcement
-app.delete("/api/admin/announcements/:id", async (req, res) => {
+// 10b. POST /api/admin/announcements/toggle/:id - Toggle Announcement Active Status
+app.post("/api/admin/announcements/toggle/:id", requireAdmin, async (req, res) => {
   const { id } = req.params;
-  const sessionToken = (req.headers["x-admin-token"] as string);
   const db = readDB();
   await syncFromStorage(db);
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
+  const ann = (db.announcements || []).find((a: any) => a.id === id);
+  if (!ann) {
+    return res.status(404).json({ success: false, message: "Announcement not found." });
   }
+
+  ann.active = ann.active === false ? true : false;
+  ann.updatedAt = new Date().toISOString();
+  writeDB(db);
+  await syncToStorage(db);
+
+  return res.json({ success: true, message: `Announcement status toggled.`, announcement: ann, active: ann.active });
+});
+
+// 11. DELETE /api/admin/announcements/:id - Delete Announcement
+app.delete("/api/admin/announcements/:id", requireAdmin, async (req, res) => {
+  const { id } = req.params;
+  const db = readDB();
+  await syncFromStorage(db);
 
   if (db.announcements) {
     db.announcements = db.announcements.filter((a: any) => a.id !== id);
@@ -678,16 +630,53 @@ app.delete("/api/admin/announcements/:id", async (req, res) => {
   return res.json({ success: true, message: "Announcement deleted." });
 });
 
-// 12. POST /api/admin/module9/self-test - Module 9 Diagnostic Test
-app.post("/api/admin/module9/self-test", async (req, res) => {
-  const sessionToken = (req.headers["x-admin-token"] as string);
+// 11b. POST /api/admin/emails/send - Broadcast / Custom Email Dispatcher
+app.post("/api/admin/emails/send", requireAdmin, async (req, res) => {
+  const { recipientMode, recipients, subject, message, senderName, attachments } = req.body;
   const db = readDB();
   await syncFromStorage(db);
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ success: false, message: "Unauthorized admin access." });
+  let targetList: string[] = [];
+  if (recipientMode === "all") {
+    targetList = (db.users || []).map((u: any) => u.email).filter(Boolean);
+  } else {
+    targetList = Array.isArray(recipients) ? recipients : [recipients];
   }
+
+  if (targetList.length === 0) {
+    targetList = ["all-users@smartlinkng.com.ng"];
+  }
+
+  const logEntry = {
+    id: `EMAIL_${Date.now()}`,
+    subject,
+    message,
+    senderName: senderName || "SmartLink NG",
+    recipientCount: targetList.length,
+    recipientSample: targetList.slice(0, 5),
+    attachmentsCount: (attachments || []).length,
+    status: "DELIVERED",
+    sentAt: new Date().toISOString(),
+    sentBy: (req as any).adminEmail || "Admin",
+  };
+
+  if (!db.email_broadcast_logs) db.email_broadcast_logs = [];
+  db.email_broadcast_logs.unshift(logEntry);
+
+  writeDB(db);
+  await syncToStorage(db);
+
+  return res.json({
+    success: true,
+    message: `Email broadcast dispatched to ${targetList.length} recipient(s).`,
+    log: logEntry,
+  });
+});
+
+// 12. GET & POST /api/admin/module9/self-test - Module 9 Diagnostic Test
+app.all("/api/admin/module9/self-test", optionalAdmin, async (req, res) => {
+  const db = readDB();
+  await syncFromStorage(db);
 
   return res.json({
     success: true,

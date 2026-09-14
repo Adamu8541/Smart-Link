@@ -183,18 +183,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
       if (useSupabase) {
         const supaLogin = await SupabaseAuthService.signIn(cleanEmail, authPassword);
         
-        // Email verification check
-        if (supaLogin.emailNotConfirmed || !supaLogin.isEmailVerified || !supaLogin.user) {
-          if (supaLogin.emailNotConfirmed || !supaLogin.isEmailVerified) {
-            setVerificationEmail(cleanEmail);
-            setIsVerifyingEmail(true);
-            setAuthLoading(false);
-            setToast({
-              message: "Your email is not verified yet. Please check your inbox for the confirmation link sent by Supabase, or click 'Resend Verification Link'.",
-              type: "info",
-            });
-            return;
-          }
+        if (!supaLogin.user) {
           throw new Error("Authentication failed. Please check your email and password.");
         }
 
@@ -257,16 +246,6 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
       });
 
       if (!res.ok || !res.data?.user) {
-        if (res.data?.emailNotConfirmed || res.error?.toLowerCase().includes("not verified") || res.error?.toLowerCase().includes("confirmation link")) {
-          setVerificationEmail(cleanEmail);
-          setIsVerifyingEmail(true);
-          setAuthLoading(false);
-          setToast({
-            message: "Your email is not verified yet. Please check your inbox for the verification link or click 'Resend Verification Link'.",
-            type: "info",
-          });
-          return;
-        }
         throw new Error(res.data?.message || res.data?.error || res.error || "Authentication failed. Please check your email and password.");
       }
 
@@ -295,24 +274,9 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
       });
     } catch (err: any) {
       soundFx.playErrorSound();
-      const rawMsg = (err?.message || err?.error || err || "").toLowerCase();
-      if (
-        rawMsg.includes("email not confirmed") ||
-        rawMsg.includes("not confirmed") ||
-        rawMsg.includes("not verified") ||
-        rawMsg.includes("email is not verify")
-      ) {
-        setVerificationEmail(cleanEmail);
-        setIsVerifyingEmail(true);
-        setToast({
-          message: "Your email is not verified yet. Please check your inbox or click 'Resend Verification Link'.",
-          type: "info",
-        });
-      } else {
-        const friendlyMsg = getFriendlyErrorMessage(err);
-        setAuthError(friendlyMsg);
-        setAuthPassword("");
-      }
+      const friendlyMsg = getFriendlyErrorMessage(err);
+      setAuthError(friendlyMsg);
+      setAuthPassword("");
     } finally {
       setAuthLoading(false);
     }
@@ -386,7 +350,6 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
           fullName: regFullName.trim(),
           phoneNumber: cleanPhone,
           referralCode: regReferralCode.trim(),
-          redirectTo: `${window.location.origin}/verify-email`,
         });
 
         const supaUser = supaReg.user;
@@ -420,7 +383,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
         }
 
         // Sync Supabase user with backend and Storage mirror
-        await safeFetchJson("/api/auth/sync-supabase-user", {
+        const syncRes = await safeFetchJson("/api/auth/sync-supabase-user", {
           method: "POST",
           headers: supaReg.session?.access_token ? { Authorization: `Bearer ${supaReg.session.access_token}` } : undefined,
           body: JSON.stringify({
@@ -430,17 +393,42 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
             fullName: regFullName.trim(),
             phoneNumber: cleanPhone,
             referralCode: regReferralCode.trim(),
-            isVerified: !supaReg.needsEmailConfirmation,
+            isVerified: true,
           }),
         });
 
+        const activeUser = syncRes.ok && syncRes.data?.user ? syncRes.data.user : {
+          uid: supaUser.id,
+          id: supaUser.id,
+          email: cleanEmail,
+          fullName: regFullName.trim(),
+          phoneNumber: cleanPhone,
+          role: "CUSTOMER",
+          walletBalance: 0.0,
+          referralCode: regReferralCode.trim() || "SL" + Math.floor(1000 + Math.random() * 9000),
+          isVerified: true,
+          createdAt: new Date().toISOString(),
+        };
+
+        localStorage.setItem("smart_link_user", JSON.stringify(activeUser));
         soundFx.playSuccessSound();
-        setAuthLoading(false);
-        setVerificationEmail(cleanEmail);
-        setIsVerifyingEmail(true);
+        setAuthSuccessState("register");
+
+        onAuthSuccess(activeUser);
+        setRegEmail("");
+        setRegPassword("");
+        setRegFullName("");
+        setRegPhoneNumber("");
+        setRegReferralCode("");
+        setRegAgreedTerms(false);
+        setRegAgreedPrivacy(false);
+        setRegAgreedKyc(false);
+        setRegMarketingAccepted(false);
         setIsRegistering(false);
+        setIsVerifyingEmail(false);
+        setAuthSuccessState(null);
         setToast({
-          message: "Registration successful! A verification link has been sent to your email. Please click the link to activate your account.",
+          message: "Account created successfully! Welcome to Smart Link Nigeria.",
           type: "success",
         });
         return;
@@ -487,19 +475,6 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
         });
       } catch (legalRecErr) {
         console.warn("Legal consent acceptance recording note:", legalRecErr);
-      }
-
-      if (regRes.data?.needsEmailConfirmation || !activeUser.isVerified) {
-        soundFx.playSuccessSound();
-        setAuthLoading(false);
-        setVerificationEmail(cleanEmail);
-        setIsVerifyingEmail(true);
-        setIsRegistering(false);
-        setToast({
-          message: "Registration successful! A verification link has been dispatched to your email. Please click the link to activate your account.",
-          type: "success",
-        });
-        return;
       }
 
       localStorage.setItem("smart_link_user", JSON.stringify(activeUser));

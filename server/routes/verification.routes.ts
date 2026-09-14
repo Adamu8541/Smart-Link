@@ -324,15 +324,16 @@ function extractDynamicIdentityData(rawData: any, mapping: any, options: {
 // Centralized Verification Engine Backend Endpoint
 app.post("/api/verify/engine", async (req, res) => {
   const startTime = Date.now();
-  const { userId, service, targetId, extraFields = {}, fee } = req.body;
-  const db = readDB();
+  try {
+    const { userId, service, targetId, extraFields = {}, fee } = req.body;
+    const db = readDB();
 
-  const authCheck = await verifyUserOrAdminSession(req, userId, db);
-  if (!authCheck.authorized) {
-    return res.status(authCheck.reason?.includes("Authentication required") ? 401 : 403).json({ error: authCheck.reason || "Forbidden", errorCode: "AUTH_ERROR" });
-  }
+    const authCheck = await verifyUserOrAdminSession(req, userId, db);
+    if (!authCheck.authorized) {
+      return res.status(authCheck.reason?.includes("Authentication required") ? 401 : 403).json({ error: authCheck.reason || "Forbidden", errorCode: "AUTH_ERROR" });
+    }
 
-  const effectiveUserId = authCheck.isAdmin ? userId : authCheck.authenticatedUid!;
+    const effectiveUserId = authCheck.isAdmin ? userId : (authCheck.authenticatedUid || userId);
 
   // Explicit conditional guard clause for Aspfiy
   if (req.body.provider === "Aspfiy" || req.body.providerName === "Aspfiy" || req.body.provider === "prov_aspfiy") {
@@ -733,25 +734,35 @@ app.post("/api/verify/engine", async (req, res) => {
     timestamp: new Date().toISOString()
   });
 
-  writeDB(db);
+    writeDB(db);
 
-  return res.json({
-    success: true,
-    status: "SUCCESS",
-    reference,
-    message: `${sType} successfully verified from ${resolvedProviderName}`,
-    data: verifiedData,
-    timestamp: historyItem.createdAt,
-    providerName: resolvedProviderName,
-    responseTime,
-    receiptNumber,
-    service: sType,
-    fee: serviceFee,
-    verifiedId: targetId,
-    maskedId,
-    signedQrContent,
-    balance: debitRes.wallet.currentBalance,
-  });
+    return res.json({
+      success: true,
+      status: "SUCCESS",
+      reference,
+      message: `${sType} successfully verified from ${resolvedProviderName}`,
+      data: verifiedData,
+      timestamp: historyItem.createdAt,
+      providerName: resolvedProviderName,
+      responseTime,
+      receiptNumber,
+      service: sType,
+      fee: serviceFee,
+      verifiedId: targetId,
+      maskedId,
+      signedQrContent,
+      balance: debitRes?.wallet?.currentBalance ?? 0,
+    });
+  } catch (err: any) {
+    console.error("[/api/verify/engine] Critical execution failure:", err);
+    return res.status(500).json({
+      success: false,
+      error: err?.message || "Internal server error in verification engine pipeline.",
+      errorCode: "SERVER_ERROR",
+      friendlyMessage: "Verification Engine Execution Error",
+      details: err?.message,
+    });
+  }
 });
 
 // Dedicated NIN Verification API Route (Production Gateway)

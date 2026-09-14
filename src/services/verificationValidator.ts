@@ -17,8 +17,8 @@ export class VerificationValidator {
    * Validate NIN (National Identification Number)
    * Must be exactly 11 numeric digits
    */
-  static validateNIN(nin: string): ValidationResult {
-    const clean = nin.replace(/\s+/g, "").trim();
+  static validateNIN(nin: any): ValidationResult {
+    const clean = String(nin || "").replace(/\s+/g, "").trim();
     if (!clean) {
       return { valid: false, error: "NIN is required." };
     }
@@ -35,8 +35,8 @@ export class VerificationValidator {
    * Validate BVN (Bank Verification Number)
    * Must be exactly 11 numeric digits
    */
-  static validateBVN(bvn: string): ValidationResult {
-    const clean = bvn.replace(/\s+/g, "").trim();
+  static validateBVN(bvn: any): ValidationResult {
+    const clean = String(bvn || "").replace(/\s+/g, "").trim();
     if (!clean) {
       return { valid: false, error: "BVN is required." };
     }
@@ -53,8 +53,8 @@ export class VerificationValidator {
    * Validate NIN With Phone Number
    * Must be exact 11 digits starting with '0', digits only.
    */
-  static validateNinPhone(phone: string): ValidationResult {
-    const clean = phone.trim();
+  static validateNinPhone(phone: any): ValidationResult {
+    const clean = String(phone || "").trim();
     if (!clean) {
       return { valid: false, error: "Phone number is required." };
     }
@@ -74,8 +74,8 @@ export class VerificationValidator {
    * Validate Nigerian Phone Number
    * e.g., 08031234567, 07012345678, +2348031234567
    */
-  static validatePhone(phone: string): ValidationResult {
-    const clean = phone.replace(/[\s\-()]/g, "").trim();
+  static validatePhone(phone: any): ValidationResult {
+    const clean = String(phone || "").replace(/[\s\-()]/g, "").trim();
     if (!clean) {
       return { valid: false, error: "Phone number is required." };
     }
@@ -92,8 +92,8 @@ export class VerificationValidator {
   /**
    * Validate Email Address
    */
-  static validateEmail(email: string): ValidationResult {
-    const clean = email.trim();
+  static validateEmail(email: any): ValidationResult {
+    const clean = String(email || "").trim();
     if (!clean) {
       return { valid: false, error: "Email address is required." };
     }
@@ -108,8 +108,8 @@ export class VerificationValidator {
    * Validate CAC Registration Number / Company Search
    * e.g. RC1234567, BN7654321, IT998877 or Search Query
    */
-  static validateCAC(input: string): ValidationResult {
-    const clean = input.trim();
+  static validateCAC(input: any): ValidationResult {
+    const clean = String(input || "").trim();
     if (!clean) {
       return { valid: false, error: "CAC Registration Number or Business Name is required." };
     }
@@ -123,8 +123,8 @@ export class VerificationValidator {
    * Validate Tax Identification Number (TIN)
    * Usually 10 to 12 digits or formatted numbers
    */
-  static validateTIN(tin: string): ValidationResult {
-    const clean = tin.replace(/[\s\-]/g, "").trim();
+  static validateTIN(tin: any): ValidationResult {
+    const clean = String(tin || "").replace(/[\s\-]/g, "").trim();
     if (!clean) {
       return { valid: false, error: "Tax Identification Number (TIN) is required." };
     }
@@ -138,8 +138,8 @@ export class VerificationValidator {
    * Validate Driver License Number (FRSC)
    * 12 alphanumeric characters (e.g. ABC123456789)
    */
-  static validateDriverLicense(license: string): ValidationResult {
-    const clean = license.replace(/[\s\-]/g, "").trim();
+  static validateDriverLicense(license: any): ValidationResult {
+    const clean = String(license || "").replace(/[\s\-]/g, "").trim();
     if (!clean) {
       return { valid: false, error: "Driver License number is required." };
     }
@@ -153,8 +153,8 @@ export class VerificationValidator {
    * Validate International Passport Number (NIS)
    * e.g., A12345678 or B87654321
    */
-  static validatePassport(passport: string): ValidationResult {
-    const clean = passport.replace(/[\s\-]/g, "").trim();
+  static validatePassport(passport: any): ValidationResult {
+    const clean = String(passport || "").replace(/[\s\-]/g, "").trim();
     if (!clean) {
       return { valid: false, error: "International Passport Number is required." };
     }
@@ -168,8 +168,8 @@ export class VerificationValidator {
    * Validate Voter Identification Number (VIN)
    * 19 alphanumeric characters
    */
-  static validateVoterCard(vin: string): ValidationResult {
-    const clean = vin.replace(/[\s\-]/g, "").trim();
+  static validateVoterCard(vin: any): ValidationResult {
+    const clean = String(vin || "").replace(/[\s\-]/g, "").trim();
     if (!clean) {
       return { valid: false, error: "Voter Identification Number (VIN) is required." };
     }
@@ -229,7 +229,7 @@ export class VerificationValidator {
         if (!primaryInput || primaryInput.trim().length === 0) {
           primaryValidation = { valid: false, error: "Verification target ID is required." };
         } else {
-          primaryValidation = { valid: true, formattedValue: primaryInput.trim() };
+          primaryValidation = { valid: true, formattedValue: String(primaryInput || "").trim() };
         }
         break;
     }
@@ -240,7 +240,7 @@ export class VerificationValidator {
 
     // Validate additional required fields if any
     Object.entries(additionalFields).forEach(([key, val]) => {
-      if (!val || val.trim() === "") {
+      if (val === undefined || val === null || String(val).trim() === "") {
         fieldErrors[key] = `${key.replace(/([A-Z])/g, " $1")} is required.`;
       }
     });

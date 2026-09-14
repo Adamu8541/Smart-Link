@@ -4,7 +4,7 @@ import fs from "fs";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 import { readDB, writeDB, initializeDB, DB_DIR, DB_FILE, UPLOADS_DIR, SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD, hashPassword, safeCompareHash, generateSalt, isMaskedValue } from "../db";
-import { verifyUserOrAdminSession } from "../middleware/auth";
+import { requireAdmin, optionalAdmin, verifyUserOrAdminSession } from "../middleware/auth";
 import { isMaintenanceModeActive, getMaintenanceDetails, getValueByJsonPath, seedModule7SettingsIfEmpty, sanitizePublicSettings } from "../middleware/maintenance";
 import { getAI } from "../services/ai";
 import { sendPlatformEmail } from "../services/email.service";
@@ -36,56 +36,38 @@ import * as notificationsStore from "../../src/services/notificationsStore";
 const router = express.Router();
 const app = router;
 
-app.post("/api/admin/settings", async (req, res) => {
+app.post("/api/admin/settings", requireAdmin, async (req, res) => {
   const { settings } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string) ;
   const db = readDB();
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ error: "Unauthorized admin access." });
-  }
-  const admin = val.session;
-  const adminUid = admin.uid;
-  if (admin.role !== "SUPER_ADMIN" && admin.role !== "ADMIN" && !admin.permissions?.includes("manage_theme")) {
-    return res.status(403).json({ error: "Unauthorized. Super Admin or theme management permission required." });
-  }
+  await syncFromStorage(db);
 
   db.siteSettings = { ...db.siteSettings, ...settings };
 
   // Add Audit Log
+  if (!db.auditLogs) db.auditLogs = [];
   db.auditLogs.unshift({
     id: "audit_" + Date.now(),
-    adminUid,
-    adminEmail: admin.email,
+    adminEmail: (req as any).adminEmail || "Admin",
     action: "UPDATE_SITE_SETTINGS",
     details: "Updated website theme, banner, or maintenance mode",
     timestamp: new Date().toISOString()
   });
 
   writeDB(db);
+  await syncToStorage(db);
   res.json({ success: true, settings: db.siteSettings });
 });
 
 app.get("/api/site/prices", async (req, res) => {
   const db = readDB();
+  await syncFromStorage(db);
   res.json({ priceMatrix: db.priceMatrix || {} });
 });
 
-app.post("/api/admin/prices", async (req, res) => {
+app.post("/api/admin/prices", requireAdmin, async (req, res) => {
   const { priceMatrix } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string) ;
   const db = readDB();
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ error: "Unauthorized admin access." });
-  }
-  const admin = val.session;
-  const adminUid = admin.uid;
-  if (admin.role !== "SUPER_ADMIN" && admin.role !== "ADMIN" && !admin.permissions?.includes("manage_prices")) {
-    return res.status(403).json({ error: "Unauthorized. Permission 'manage_prices' required." });
-  }
+  await syncFromStorage(db);
 
   db.priceMatrix = { ...db.priceMatrix, ...priceMatrix };
 
@@ -100,16 +82,8 @@ app.post("/api/admin/prices", async (req, res) => {
     db.systemSettings.cacBaseFee = priceMatrix.cacRates.businessNameFee;
   }
 
-  db.auditLogs.unshift({
-    id: "audit_" + Date.now(),
-    adminUid,
-    adminEmail: admin.email,
-    action: "UPDATE_PRICES",
-    details: "Updated global service pricing matrix for NIN, CAC, VTU, Utility, and Exam Scratch Cards",
-    timestamp: new Date().toISOString()
-  });
-
   writeDB(db);
+  await syncToStorage(db);
   res.json({ success: true, priceMatrix: db.priceMatrix, systemSettings: db.systemSettings });
 });
 
@@ -119,7 +93,7 @@ app.post("/api/admin/prices", async (req, res) => {
 // --- SERVICES & PRICING CATALOG MANAGEMENT ENDPOINTS ---
 
 // 1. GET /api/admin/services - List Services Catalog
-app.get("/api/admin/services", async (req, res) => {
+app.get("/api/admin/services", optionalAdmin, async (req, res) => {
   const db = readDB();
   await syncFromStorage(db);
   seedDefaultServicesCatalogIfEmpty(db);
@@ -224,18 +198,10 @@ app.get("/api/services", async (req, res) => {
 });
 
 // 2. POST /api/admin/services - Add New Service
-app.post("/api/admin/services", async (req, res) => {
+app.post("/api/admin/services", requireAdmin, async (req, res) => {
   const { service } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string) ;
   const db = readDB();
   await syncFromStorage(db);
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ error: "Unauthorized admin access." });
-  }
-  const admin = val.session;
-  const adminUid = admin.uid;
 
   seedDefaultServicesCatalogIfEmpty(db);
 
@@ -271,8 +237,7 @@ app.post("/api/admin/services", async (req, res) => {
   if (!db.auditLogs) db.auditLogs = [];
   db.auditLogs.unshift({
     id: "audit_" + Date.now(),
-    adminUid: adminUid || "SYSTEM",
-    adminEmail: admin?.email || "adamuamuhammad8541@gmail.com",
+    adminEmail: (req as any).adminEmail || "Admin",
     action: "ADD_NEW_SERVICE",
     details: `Added new service "${newService.name}" (${newService.code}) in category ${newService.category}`,
     timestamp: new Date().toISOString(),
@@ -284,19 +249,11 @@ app.post("/api/admin/services", async (req, res) => {
 });
 
 // 3. PUT /api/admin/services/:id - Edit Existing Service
-app.put("/api/admin/services/:id", async (req, res) => {
+app.put("/api/admin/services/:id", requireAdmin, async (req, res) => {
   const { id } = req.params;
   const { service } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string) ;
   const db = readDB();
   await syncFromStorage(db);
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ error: "Unauthorized admin access." });
-  }
-  const admin = val.session;
-  const adminUid = admin.uid;
 
   seedDefaultServicesCatalogIfEmpty(db);
 
@@ -322,8 +279,7 @@ app.put("/api/admin/services/:id", async (req, res) => {
   if (!db.auditLogs) db.auditLogs = [];
   db.auditLogs.unshift({
     id: "audit_" + Date.now(),
-    adminUid: adminUid || "SYSTEM",
-    adminEmail: admin?.email || "adamuamuhammad8541@gmail.com",
+    adminEmail: (req as any).adminEmail || "Admin",
     action: "EDIT_SERVICE",
     details: `Updated service configuration for "${updated.name}" (${updated.code})`,
     timestamp: new Date().toISOString(),
@@ -335,18 +291,10 @@ app.put("/api/admin/services/:id", async (req, res) => {
 });
 
 // 4. DELETE /api/admin/services/:id - Delete Service
-app.delete("/api/admin/services/:id", async (req, res) => {
+app.delete("/api/admin/services/:id", requireAdmin, async (req, res) => {
   const { id } = req.params;
-  const sessionToken = (req.headers["x-admin-token"] as string) ;
   const db = readDB();
   await syncFromStorage(db);
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ error: "Unauthorized admin access." });
-  }
-  const admin = val.session;
-  const adminUid = admin.uid;
 
   seedDefaultServicesCatalogIfEmpty(db);
 
@@ -360,8 +308,7 @@ app.delete("/api/admin/services/:id", async (req, res) => {
   if (!db.auditLogs) db.auditLogs = [];
   db.auditLogs.unshift({
     id: "audit_" + Date.now(),
-    adminUid: adminUid || "SYSTEM",
-    adminEmail: admin?.email || "adamuamuhammad8541@gmail.com",
+    adminEmail: (req as any).adminEmail || "Admin",
     action: "DELETE_SERVICE",
     details: `Deleted service "${removed.name}" (${removed.code}) from catalog`,
     timestamp: new Date().toISOString(),
@@ -373,19 +320,11 @@ app.delete("/api/admin/services/:id", async (req, res) => {
 });
 
 // 5. POST /api/admin/services/:id/toggle - Toggle Service Status (Active / Hidden)
-app.post("/api/admin/services/:id/toggle", async (req, res) => {
+app.post("/api/admin/services/:id/toggle", requireAdmin, async (req, res) => {
   const { id } = req.params;
   const { isActive } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string) ;
   const db = readDB();
   await syncFromStorage(db);
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ error: "Unauthorized admin access." });
-  }
-  const admin = val.session;
-  const adminUid = admin.uid;
 
   seedDefaultServicesCatalogIfEmpty(db);
 
@@ -401,8 +340,7 @@ app.post("/api/admin/services/:id/toggle", async (req, res) => {
   if (!db.auditLogs) db.auditLogs = [];
   db.auditLogs.unshift({
     id: "audit_" + Date.now(),
-    adminUid: adminUid || "SYSTEM",
-    adminEmail: admin?.email || "adamuamuhammad8541@gmail.com",
+    adminEmail: (req as any).adminEmail || "Admin",
     action: "TOGGLE_SERVICE_STATUS",
     details: `${newStatus ? "Activated" : "Deactivated/Hidden"} service "${db.servicesCatalog[idx].name}" (${db.servicesCatalog[idx].code})`,
     timestamp: new Date().toISOString(),
@@ -418,18 +356,10 @@ app.post("/api/admin/services/:id/toggle", async (req, res) => {
 });
 
 // 6. POST /api/admin/services/reorder - Reorder Services
-app.post("/api/admin/services/reorder", async (req, res) => {
+app.post("/api/admin/services/reorder", requireAdmin, async (req, res) => {
   const { orders } = req.body; // orders: Array<{ id: string, displayOrder: number }>
-  const sessionToken = (req.headers["x-admin-token"] as string) ;
   const db = readDB();
   await syncFromStorage(db);
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ error: "Unauthorized admin access." });
-  }
-  const admin = val.session;
-  const adminUid = admin.uid;
 
   seedDefaultServicesCatalogIfEmpty(db);
 
@@ -450,8 +380,7 @@ app.post("/api/admin/services/reorder", async (req, res) => {
   if (!db.auditLogs) db.auditLogs = [];
   db.auditLogs.unshift({
     id: "audit_" + Date.now(),
-    adminUid: adminUid || "SYSTEM",
-    adminEmail: admin?.email || "adamuamuhammad8541@gmail.com",
+    adminEmail: (req as any).adminEmail || "Admin",
     action: "REORDER_SERVICES",
     details: `Reordered ${orders.length} services in the catalog display hierarchy`,
     timestamp: new Date().toISOString(),
@@ -463,19 +392,11 @@ app.post("/api/admin/services/reorder", async (req, res) => {
 });
 
 // 7. POST /api/admin/services/:id/pricing - Update Pricing, Commissions & Service Charges
-app.post("/api/admin/services/:id/pricing", async (req, res) => {
+app.post("/api/admin/services/:id/pricing", requireAdmin, async (req, res) => {
   const { id } = req.params;
   const { costPrice, sellingFee, serviceCharge, commissionRate } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string) ;
   const db = readDB();
   await syncFromStorage(db);
-
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ error: "Unauthorized admin access." });
-  }
-  const admin = val.session;
-  const adminUid = admin.uid;
 
   seedDefaultServicesCatalogIfEmpty(db);
 
@@ -494,8 +415,7 @@ app.post("/api/admin/services/:id/pricing", async (req, res) => {
   if (!db.auditLogs) db.auditLogs = [];
   db.auditLogs.unshift({
     id: "audit_" + Date.now(),
-    adminUid: adminUid || "SYSTEM",
-    adminEmail: admin?.email || "adamuamuhammad8541@gmail.com",
+    adminEmail: (req as any).adminEmail || "Admin",
     action: "UPDATE_SERVICE_PRICING",
     details: `Updated pricing & commission rates for "${s.name}": Selling Fee ₦${s.sellingFee}, Service Charge ₦${s.serviceCharge}, Commission ${s.commissionRate}%`,
     timestamp: new Date().toISOString(),

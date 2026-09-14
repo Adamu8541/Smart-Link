@@ -252,3 +252,33 @@ export async function authenticateWithSupabase(email: string, password: string):
     return { success: false, error: err.message || "Network error" };
   }
 }
+
+/**
+ * Confirm user email in Supabase Auth via server admin (removes email confirmation requirement)
+ */
+export async function confirmSupabaseUser(emailOrUid: string): Promise<boolean> {
+  const client = getSupabaseAdmin();
+  if (!client || !emailOrUid) return false;
+
+  try {
+    const isUid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(emailOrUid);
+    if (isUid) {
+      const { error } = await client.auth.admin.updateUserById(emailOrUid, { email_confirm: true });
+      if (!error) return true;
+    }
+
+    // Try finding by email
+    const cleanEmail = emailOrUid.toLowerCase().trim();
+    const { data } = await client.auth.admin.listUsers();
+    const usersList: any[] = (data as any)?.users || [];
+    const match = usersList.find((u: any) => u.email?.toLowerCase().trim() === cleanEmail || u.id === emailOrUid);
+    if (match) {
+      const { error } = await client.auth.admin.updateUserById(match.id, { email_confirm: true });
+      return !error;
+    }
+    return false;
+  } catch (err) {
+    console.warn("[SupabaseAdmin] confirmSupabaseUser error:", err);
+    return false;
+  }
+}

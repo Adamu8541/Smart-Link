@@ -38,6 +38,8 @@ import marketplaceRoutes from "./server/routes/marketplace.routes";
 import virtualAccountRoutes from "./server/routes/virtualAccount.routes";
 import manualServicesRoutes from "./server/routes/manualServices.routes";
 import tursoRoutes from "./server/routes/turso.routes";
+import securityRoutes from "./server/routes/security.routes";
+import apiBuilderRoutes from "./server/routes/apiBuilder.routes";
 
 // Re-export core helpers for backwards compatibility
 export {
@@ -151,6 +153,8 @@ app.use(marketplaceRoutes);
 app.use(virtualAccountRoutes);
 app.use(manualServicesRoutes);
 app.use(tursoRoutes);
+app.use(securityRoutes);
+app.use(apiBuilderRoutes);
 
 // Fallback 404 for all unhandled /api/* routes so they always return JSON and never HTML
 app.all("/api/*", (req, res) => {
@@ -185,6 +189,16 @@ app.get(["/sitemap.xml", "/sitemap_index.xml"], (req, res) => {
   res.send(generateSitemapXml(origin));
 });
 
+app.get("/llms.txt", (_req, res) => {
+  const filePath = path.join(process.cwd(), "public", "llms.txt");
+  if (fs.existsSync(filePath)) {
+    res.setHeader("Content-Type", "text/markdown; charset=utf-8");
+    res.setHeader("Cache-Control", "public, max-age=86400");
+    return res.sendFile(filePath);
+  }
+  res.status(404).send("llms.txt not found");
+});
+
 // =========================================================================
 // VITE MIDDLEWARE & SERVER STARTUP
 // =========================================================================
@@ -192,6 +206,42 @@ let serverInstance: any = null;
 
 async function startServer() {
   const isProductionMode = process.env.NODE_ENV === "production" || fs.existsSync(path.join(process.cwd(), "dist", "index.html"));
+
+  // Universal logo route handler (works in both dev and production modes)
+  app.get(["/logo.webp", "/assets/logo.webp", "/logo.png", "/assets/logo.png"], (req, res) => {
+    const isWebp = req.path.endsWith(".webp");
+    const ext = isWebp ? ".webp" : ".png";
+    const mime = isWebp ? "image/webp" : "image/png";
+    
+    const publicPath = path.join(process.cwd(), "public");
+    const distPath = path.join(process.cwd(), "dist");
+
+    const primaryLogo = path.join(publicPath, `logo${ext}`);
+    const altExt = isWebp ? ".png" : ".webp";
+    const altLogo = path.join(publicPath, `logo${altExt}`);
+    const distLogo = path.join(distPath, `logo${ext}`);
+    const rootLogo = path.join(process.cwd(), `logo${ext}`);
+
+    res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+    if (fs.existsSync(primaryLogo)) {
+      res.setHeader("Content-Type", mime);
+      return res.sendFile(primaryLogo);
+    }
+    if (fs.existsSync(altLogo)) {
+      res.setHeader("Content-Type", isWebp ? "image/png" : "image/webp");
+      return res.sendFile(altLogo);
+    }
+    if (fs.existsSync(distLogo)) {
+      res.setHeader("Content-Type", mime);
+      return res.sendFile(distLogo);
+    }
+    if (fs.existsSync(rootLogo)) {
+      res.setHeader("Content-Type", mime);
+      return res.sendFile(rootLogo);
+    }
+    return res.status(204).send();
+  });
+
   if (!isProductionMode) {
     const vite = await createViteServer({
       server: { middlewareMode: true },

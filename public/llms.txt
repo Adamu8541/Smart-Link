@@ -1,0 +1,20 @@
+# SmartLink NG
+
+> SmartLink NG is Nigeria's premier all-in-one digital services, identity verification, and automated utility vending platform. We empower individuals and businesses with sub-second NIN verification, BVN validation, CAC business name registration, automated VTU airtime & data bundles, electricity meter token generation, and enterprise developer APIs.
+
+## Core Platforms & Services
+
+- [Explore Services](https://smartlinkng.com.ng/explore): Comprehensive catalog of identity verifications, business filings, and bill payments.
+- [Identity Verification](https://smartlinkng.com.ng/nin): Instant NIN verification, slip downloading, and BVN validation.
+- [Bills & Utilities](https://smartlinkng.com.ng/bills): Automated electricity meter tokens (IKEDC, EKEDC, AEDC, IBEDC), cable TV subscriptions, and cheap SME data.
+- [Airtime Topup](https://smartlinkng.com.ng/airtime): VTU airtime recharges across MTN, Airtel, Glo, and 9mobile with instant cashbacks.
+
+## Developer & API Resources
+
+- [API Documentation](https://smartlinkng.com.ng/api-docs): Full REST API reference for integrating NIN, BVN, VTU airtime, data, and utility payments into third-party applications.
+- [API Status & Health](https://smartlinkng.com.ng/api/health): Real-time gateway status and operational metrics.
+
+## Legal & Compliance
+
+- [Privacy Policy](https://smartlinkng.com.ng/privacy): User data privacy, encryption, and NIMC compliance standards.
+- [Terms & Conditions](https://smartlinkng.com.ng/terms): Service delivery terms, refund policies, and transaction irreversibility guidelines.

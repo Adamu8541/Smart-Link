@@ -124,6 +124,16 @@ export async function updateSession(sessionId: string, updates: Partial<ActiveSe
   }
 }
 
+export async function terminateSession(sessionId: string): Promise<boolean> {
+  try {
+    const updated = await updateSession(sessionId, { status: "Terminated" });
+    return !!updated;
+  } catch (err) {
+    console.error("[securityStore] terminateSession error:", err);
+    return false;
+  }
+}
+
 export async function terminateAllUserSessions(userId: string): Promise<boolean> {
   try {
     const active = await getActiveSessions({ userId, status: "Active" });
@@ -283,6 +293,22 @@ export async function addSuspiciousActivity(doc: SuspiciousActivityDoc): Promise
   return clean;
 }
 
+export async function resolveSuspiciousActivity(id: string, status: string = "Resolved"): Promise<boolean> {
+  try {
+    const db = readDB();
+    if (!Array.isArray(db.suspiciousActivities)) return false;
+    const idx = db.suspiciousActivities.findIndex((a: any) => a.id === id);
+    if (idx < 0) return false;
+    db.suspiciousActivities[idx].status = status;
+    db.suspiciousActivities[idx].resolvedAt = new Date().toISOString();
+    writeDB(db);
+    return true;
+  } catch (err) {
+    console.error("[securityStore] resolveSuspiciousActivity error:", err);
+    return false;
+  }
+}
+
 // --- Security Alerts ---
 export async function getSecurityAlerts(filters?: { status?: string; limit?: number }): Promise<SecurityAlertDoc[]> {
   try {
@@ -309,6 +335,22 @@ export async function addSecurityAlert(doc: SecurityAlertDoc): Promise<SecurityA
   db.securityAlerts.unshift(clean);
   writeDB(db);
   return clean;
+}
+
+export async function updateSecurityAlertStatus(id: string, status: "Open" | "Resolved" | "Investigating"): Promise<boolean> {
+  try {
+    const db = readDB();
+    if (!Array.isArray(db.securityAlerts)) return false;
+    const idx = db.securityAlerts.findIndex((a: any) => a.id === id);
+    if (idx < 0) return false;
+    db.securityAlerts[idx].status = status;
+    db.securityAlerts[idx].updatedAt = new Date().toISOString();
+    writeDB(db);
+    return true;
+  } catch (err) {
+    console.error("[securityStore] updateSecurityAlertStatus error:", err);
+    return false;
+  }
 }
 
 export async function seedSecurityIfEmpty(initialData: {
@@ -350,6 +392,7 @@ export const securityStore = {
   getActiveSessions,
   saveSession,
   updateSession,
+  terminateSession,
   terminateAllUserSessions,
   getBlockedIps,
   addBlockedIp,
@@ -362,8 +405,10 @@ export const securityStore = {
   unlockAccount,
   getSuspiciousActivities,
   addSuspiciousActivity,
+  resolveSuspiciousActivity,
   getSecurityAlerts,
   addSecurityAlert,
+  updateSecurityAlertStatus,
   seedSecurityIfEmpty,
 };
 

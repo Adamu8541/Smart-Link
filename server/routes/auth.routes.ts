@@ -32,7 +32,7 @@ import * as walletsStore from "../../src/services/walletsStore";
 import * as securityStore from "../../src/services/securityStore";
 import * as notificationsStore from "../../src/services/notificationsStore";
 import { EmailOtpService, SensitiveOtpPurpose } from "../services/emailOtp.service";
-import { getSupabaseAdmin, createSupabaseUser, updateSupabaseUserPassword, updateSupabaseUserEmail, updateSupabaseUserMetadata, sanitizeSupabaseUrl } from "../services/supabaseAdmin";
+import { getSupabaseAdmin, createSupabaseUser, updateSupabaseUserPassword, updateSupabaseUserEmail, updateSupabaseUserMetadata, sanitizeSupabaseUrl, confirmSupabaseUser } from "../services/supabaseAdmin";
 
 
 const router = express.Router();
@@ -122,7 +122,12 @@ app.post("/api/auth/sync-supabase-user", async (req, res) => {
     if (resolvedUid) updates.uid = resolvedUid;
     if (fullName) updates.fullName = fullName;
     if (phoneNumber) updates.phoneNumber = phoneNumber;
-    if (isVerified !== undefined) updates.isVerified = Boolean(isVerified);
+    updates.isVerified = true;
+
+    // Auto-confirm in Supabase Auth to bypass verification link requirements
+    if (resolvedUid) {
+      confirmSupabaseUser(resolvedUid).catch(() => {});
+    }
 
     const updated = await usersStore.updateUser(existingUser.id || existingUser.uid || resolvedUid, updates);
     const targetUser = updated || existingUser;
@@ -141,6 +146,11 @@ app.post("/api/auth/sync-supabase-user", async (req, res) => {
   const targetRole = isSuperAdminEmail ? "SUPER_ADMIN" : "CUSTOMER";
   const refCode = (fullName || "USER").replace(/\s+/g, "").substring(0, 8).toUpperCase() + Math.floor(100 + Math.random() * 900);
 
+  // Auto-confirm in Supabase Auth to bypass verification link requirements
+  if (resolvedUid) {
+    confirmSupabaseUser(resolvedUid).catch(() => {});
+  }
+
   const newUser = {
     id: resolvedUid,
     uid: resolvedUid,
@@ -150,7 +160,7 @@ app.post("/api/auth/sync-supabase-user", async (req, res) => {
     role: targetRole,
     walletBalance: 0.0,
     referralCode: refCode,
-    isVerified: Boolean(isVerified),
+    isVerified: true,
     authProvider: "supabase",
     createdAt: new Date().toISOString(),
   };
@@ -281,13 +291,13 @@ app.post("/api/auth/login", async (req, res) => {
     await usersStore.updateUser(user.id || user.uid || "", { passwordHash: newHash });
   }
 
-  // Enforce email verification check for non-super admins
-  if (!user.isVerified && !isSuperAdminEmail) {
-    return res.status(403).json({
-      error: "Your email is not verified yet. Please check your inbox for the confirmation link sent by Supabase, or click send verify to log into your account.",
-      emailNotConfirmed: true,
-      email: user.email,
-    });
+  // Ensure user is verified automatically without email verification link block
+  if (!user.isVerified) {
+    user.isVerified = true;
+    await usersStore.updateUser(user.id || user.uid || "", { isVerified: true });
+    if (user.uid || user.id) {
+      confirmSupabaseUser(user.uid || user.id || lowerEmail).catch(() => {});
+    }
   }
 
   // Return user profile with their assigned role
@@ -330,7 +340,7 @@ app.post("/api/auth/register", async (req, res) => {
   }
 
   const targetRole = isSuperAdminEmail ? "SUPER_ADMIN" : "CUSTOMER";
-  const initialVerified = isSuperAdminEmail ? true : false;
+  const initialVerified = true;
 
   const existing = await usersStore.getUserByEmail(lowerEmail);
   if (existing) {
@@ -404,7 +414,7 @@ app.post("/api/auth/register", async (req, res) => {
   res.json({
     success: true,
     user: safeUser,
-    needsEmailConfirmation: !initialVerified,
+    needsEmailConfirmation: false,
   });
 });
 
@@ -425,7 +435,7 @@ app.get("/api/auth/check-verification-status", async (req, res) => {
     return res.json({ isVerified: true, user: safeUser });
   }
 
-  res.json({ isVerified: false });
+  res.json({ isVerified: true });
 });
 
 app.post("/api/auth/verify-account-now", async (req, res) => {
@@ -434,13 +444,18 @@ app.post("/api/auth/verify-account-now", async (req, res) => {
     return res.status(400).json({ error: "Email address is required." });
   }
 
-  const user = await usersStore.getUserByEmail((email as string).toLowerCase().trim());
+  const cleanEmail = (email as string).toLowerCase().trim();
+  const user = await usersStore.getUserByEmail(cleanEmail);
 
   if (!user) {
     return res.status(404).json({ error: "User profile not found." });
   }
 
   const updated = await usersStore.updateUser(user.id || user.uid || "", { isVerified: true });
+
+  if (user.uid || user.id || cleanEmail) {
+    confirmSupabaseUser(user.uid || user.id || cleanEmail).catch(() => {});
+  }
 
   const { passwordHash, salt, ...safeUser } = updated || user;
   res.json({ success: true, isVerified: true, user: safeUser });
