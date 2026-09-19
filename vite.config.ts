@@ -1,11 +1,29 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
+
+function nonBlockingCssPlugin(): Plugin {
+  return {
+    name: 'non-blocking-css-plugin',
+    transformIndexHtml: {
+      order: 'post',
+      handler(html: string) {
+        return html.replace(
+          /<link\s+([^>]*?\s+)?(?:rel=["']stylesheet["']\s+[^>]*?href=["']([^"']+\.css)["']|href=["']([^"']+\.css)["']\s+[^>]*?rel=["']stylesheet["'])[^>]*>/gi,
+          (_match, _prefix, href1, href2) => {
+            const href = href1 || href2;
+            return `<link rel="preload" href="${href}" as="style" onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" href="${href}"></noscript>`;
+          }
+        );
+      },
+    },
+  };
+}
 
 export default defineConfig(() => {
   return {
-    plugins: [react(), tailwindcss()],
+    plugins: [react(), tailwindcss(), nonBlockingCssPlugin()],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
@@ -29,7 +47,8 @@ export default defineConfig(() => {
               !dep.includes('vendor-pdf') &&
               !dep.includes('vendor-motion') &&
               !dep.includes('vendor-sentry') &&
-              !dep.includes('vendor-firebase')
+              !dep.includes('vendor-supabase') &&
+              !dep.includes('vendor-qrcode')
           );
         },
       },
@@ -56,19 +75,23 @@ export default defineConfig(() => {
               if (id.includes('recharts') || id.includes('d3-') || id.includes('internmap')) {
                 return 'vendor-recharts';
               }
-              // 4. Heavy Backend/Data: Firebase client SDK
-              if (id.includes('firebase')) {
-                return 'vendor-firebase';
-              }
-              // 5. Monitoring & Error Telemetry
+              // 4. Monitoring & Error Telemetry
               if (id.includes('@sentry')) {
                 return 'vendor-sentry';
               }
-              // 6. Animation Library
+              // 5. Supabase Auth & Client
+              if (id.includes('@supabase')) {
+                return 'vendor-supabase';
+              }
+              // 6. QR Code generator
+              if (id.includes('qrcode')) {
+                return 'vendor-qrcode';
+              }
+              // 7. Animation Library
               if (id.includes('motion')) {
                 return 'vendor-motion';
               }
-              // 7. Vector Icons
+              // 8. Vector Icons
               if (id.includes('lucide-react')) {
                 return 'vendor-icons';
               }

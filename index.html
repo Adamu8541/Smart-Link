@@ -238,9 +238,7 @@
         }
       }, true);
     </script>
-    <!-- Performance Resource Hints: Preconnect, DNS-Prefetch, and High-Priority Preloads -->
-    <link rel="preconnect" href="https://smartlinkng.com.ng" crossorigin />
-    <link rel="dns-prefetch" href="https://smartlinkng.com.ng" />
+    <!-- Performance Resource Hints: High-Priority Asset Preloads -->
     <link rel="preload" href="/favicon.webp" as="image" type="image/webp" />
     <link rel="preload" href="/logo.webp" as="image" type="image/webp" fetchpriority="high" />
 
@@ -258,6 +256,114 @@
     <link rel="icon" type="image/webp" href="/favicon.webp" />
     <link rel="shortcut icon" type="image/webp" href="/favicon.webp" />
     <link rel="alternate icon" href="/favicon.webp" />
+    <!-- Critical Above-The-Fold CSS (Zero Render-Blocking Latency) -->
+    <style id="critical-above-the-fold-css">
+      *, ::before, ::after { box-sizing: border-box; border-width: 0; border-style: solid; border-color: #E5E7EB; }
+      html { line-height: 1.5; -webkit-text-size-adjust: 100%; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+      body { margin: 0; line-height: inherit; background-color: #F5F7FA; color: #111827; }
+      img, svg { display: block; vertical-align: middle; }
+      a { color: inherit; text-decoration: inherit; }
+      button { font-family: inherit; font-size: 100%; font-weight: inherit; line-height: inherit; color: inherit; margin: 0; padding: 0; text-transform: none; background-color: transparent; background-image: none; }
+      .min-h-screen { min-height: 100vh; }
+      .bg-\[\#F5F7FA\] { background-color: #F5F7FA; }
+      .text-\[\#111827\] { color: #111827; }
+      .flex { display: flex; }
+      .flex-col { flex-direction: column; }
+      .font-sans { font-family: ui-sans-serif, system-ui, sans-serif; }
+      .sticky { position: sticky; }
+      .top-0 { top: 0px; }
+      .z-40 { z-index: 40; }
+      .bg-white { background-color: #ffffff; }
+      .border-b { border-bottom-width: 1px; }
+      .border-\[\#E5E7EB\] { border-color: #E5E7EB; }
+      .max-w-7xl { max-width: 80rem; }
+      .mx-auto { margin-left: auto; margin-right: auto; }
+      .px-4 { padding-left: 1rem; padding-right: 1rem; }
+      .items-center { align-items: center; }
+      .justify-between { justify-content: space-between; }
+      .justify-center { justify-content: center; }
+      .h-20 { height: 5rem; }
+      .gap-3 { gap: 0.75rem; }
+      .gap-1 { gap: 0.25rem; }
+      .h-14 { height: 3.5rem; }
+      .w-auto { width: auto; }
+      .max-w-\[224px\] { max-width: 224px; }
+      .object-contain { object-fit: contain; }
+      .hidden { display: none; }
+      .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+      .rounded-lg { border-radius: 0.5rem; }
+      .text-xs { font-size: 0.75rem; line-height: 1rem; }
+      .font-bold { font-weight: 700; }
+      .text-\[\#0F2D5C\] { color: #0F2D5C; }
+      .text-\[\#374151\] { color: #374151; }
+      .px-3\.5 { padding-left: 0.875rem; padding-right: 0.875rem; }
+      .px-5 { padding-left: 1.25rem; padding-right: 1.25rem; }
+      .text-white { color: #ffffff; }
+      .bg-\[\#111827\] { background-color: #111827; }
+      .bg-\[\#0F2D5C\] { background-color: #0F2D5C; }
+      .rounded-xl { border-radius: 0.75rem; }
+      .grow { flex-grow: 1; }
+      .relative { position: relative; }
+      .overflow-hidden { overflow: hidden; }
+      .py-10 { padding-top: 2.5rem; padding-bottom: 2.5rem; }
+      .max-w-4xl { max-width: 56rem; }
+      .z-10 { z-index: 10; }
+      .text-center { text-align: center; }
+      .space-y-6 > :not([hidden]) ~ :not([hidden]) { margin-top: 1.5rem; }
+      .text-2xl { font-size: 1.5rem; line-height: 2rem; }
+      .font-extrabold { font-weight: 800; }
+      .tracking-tight { letter-spacing: -0.025em; }
+      .leading-\[1\.15\] { line-height: 1.15; }
+      .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+      .font-normal { font-weight: 400; }
+      .leading-relaxed { line-height: 1.625; }
+      .max-w-2xl { max-width: 42rem; }
+      .grid { display: grid; }
+      .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+      .pt-2 { padding-top: 0.5rem; }
+      .text-left { text-align: left; }
+      .max-w-3xl { max-width: 48rem; }
+      .items-start { align-items: flex-start; }
+      .p-3\.5 { padding: 0.875rem; }
+      .bg-\[\#F8FAFC\] { background-color: #F8FAFC; }
+      .border { border-width: 1px; }
+      .border-\[\#E2E8F0\] { border-color: #E2E8F0; }
+      .mt-0\.5 { margin-top: 0.125rem; }
+      .w-full { width: 100%; }
+      .min-h-\[48px\] { min-height: 48px; }
+      .px-8 { padding-left: 2rem; padding-right: 2rem; }
+      .py-3\.5 { padding-top: 0.875rem; padding-bottom: 0.875rem; }
+      .cursor-pointer { cursor: pointer; }
+      .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0; }
+      @media (min-width: 640px) {
+        .sm\:px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+        .sm\:h-24 { height: 6rem; }
+        .sm\:h-16 { height: 4rem; }
+        .sm\:max-w-\[280px\] { max-width: 280px; }
+        .sm\:py-16 { padding-top: 4rem; padding-bottom: 4rem; }
+        .sm\:space-y-8 > :not([hidden]) ~ :not([hidden]) { margin-top: 2rem; }
+        .sm\:text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
+        .sm\:text-base { font-size: 1rem; line-height: 1.5rem; }
+        .sm\:gap-4 { gap: 1rem; }
+        .sm\:flex-row { flex-direction: row; }
+        .sm\:w-auto { width: auto; }
+      }
+      @media (min-width: 768px) {
+        .md\:flex { display: flex; }
+        .md\:text-5xl { font-size: 3rem; line-height: 1; }
+        .md\:text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+        .md\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      }
+      @media (min-width: 1024px) {
+        .lg\:px-8 { padding-left: 2rem; padding-right: 2rem; }
+        .lg\:h-18 { height: 4.5rem; }
+        .lg\:gap-2 { gap: 0.5rem; }
+        .lg\:flex { display: flex; }
+        .lg\:pt-20 { padding-top: 5rem; }
+        .lg\:pb-28 { padding-bottom: 7rem; }
+        .lg\:text-6xl { font-size: 3.75rem; line-height: 1; }
+      }
+    </style>
   </head>
   <body class="bg-[#F5F7FA] text-[#111827] antialiased font-sans selection:bg-[#0F2D5C] selection:text-white">
     <!-- Accessible Landmark Skip Link for Keyboard Navigation & Screen Readers -->

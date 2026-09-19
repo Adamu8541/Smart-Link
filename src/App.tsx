@@ -51,8 +51,10 @@ const BillsPublicView = lazyWithRetry(() => import("./components/public/BillsPub
 const VerificationPublicView = lazyWithRetry(() => import("./components/public/VerificationPublicView").then(m => ({ default: m.VerificationPublicView })), "VerificationPublicView");
 const ApiDocsPublicView = lazyWithRetry(() => import("./components/public/ApiDocsPublicView").then(m => ({ default: m.ApiDocsPublicView })), "ApiDocsPublicView");
 const AccountSecurityView = lazyWithRetry(() => import("./components/account/AccountSecurityView").then(m => ({ default: m.AccountSecurityView })), "AccountSecurityView");
+const MaintenanceScreen = lazyWithRetry(() => import("./components/maintenance/MaintenanceScreen").then(m => ({ default: m.MaintenanceScreen })), "MaintenanceScreen");
+const MaintenanceNoticeBanner = lazyWithRetry(() => import("./components/maintenance/MaintenanceNoticeBanner").then(m => ({ default: m.MaintenanceNoticeBanner })), "MaintenanceNoticeBanner");
 
-import { ServiceItem } from "./data/servicesData";
+import type { ServiceItem } from "./data/servicesData";
 import { AdminSession, getStoredAdminSession, clearAdminSession } from "./services/adminAuthTypes";
 import { UserProfile, UserRole } from "./types";
 import { navigationManager, useModalBackHandler } from "./services/navigationManager";
@@ -62,15 +64,10 @@ import { FaviconLoader } from "./components/ui/FaviconLoader";
 import { DEFAULT_LOGO_URL, handleLogoError } from "./utils/brandLogo";
 const logoImg = DEFAULT_LOGO_URL;
 import { getFriendlyErrorMessage, safeFetchJson } from "./utils/authErrorHandler";
-import { soundFx } from "./utils/audioEffects";
 import { AuthFormSkeleton } from "./components/ui/AuthSkeleton";
 
 import { useSiteConfig } from "./context/SiteConfigContext";
-import { MaintenanceScreen } from "./components/maintenance/MaintenanceScreen";
-import { MaintenanceNoticeBanner } from "./components/maintenance/MaintenanceNoticeBanner";
 import { formatNaira } from "./utils/formatUtils";
-import { legalConsentService } from "./services/legalConsentService";
-import { SupabaseAuthService, isSupabaseConfigured } from "./services/supabaseAuth";
 
 const docIdToViewMap: Record<string, string> = {
   "privacy-policy": "LEGAL_DOCUMENT_PRIVACY",
@@ -826,109 +823,6 @@ export default function App() {
     }
   };
 
-  // Continuous Supabase Authentication & Session Synchronization Listener
-  useEffect(() => {
-    if (!isSupabaseConfigured) return;
-
-    // Check existing session
-    SupabaseAuthService.getSession().then(async (session) => {
-      if (session?.user) {
-        const supaUser = session.user;
-        const email = (supaUser.email || "").toLowerCase().trim();
-        const fullName = supaUser.user_metadata?.full_name || email.split("@")[0] || "Smart Link User";
-        const phone = supaUser.user_metadata?.phone_number || supaUser.phone || "";
-        const isVerified = true;
-
-        try {
-          const syncRes = await safeFetchJson("/api/auth/sync-supabase-user", {
-            method: "POST",
-            headers: session.access_token ? { Authorization: `Bearer ${session.access_token}` } : undefined,
-            body: JSON.stringify({
-              id: supaUser.id,
-              uid: supaUser.id,
-              email: email,
-              fullName: fullName,
-              phoneNumber: phone,
-              isVerified: true,
-            }),
-          });
-
-          let userObj = syncRes.ok && syncRes.data?.user ? syncRes.data.user : null;
-          if (!userObj) {
-            userObj = {
-              uid: supaUser.id,
-              email: email,
-              fullName: fullName,
-              phoneNumber: phone,
-              role: UserRole.CUSTOMER,
-              walletBalance: 0.0,
-              referralCode: supaUser.user_metadata?.referral_code || "SL" + Math.floor(1000 + Math.random() * 9000),
-              isVerified: true,
-              createdAt: supaUser.created_at || new Date().toISOString(),
-            };
-          }
-
-          setCurrentUser(userObj);
-          localStorage.setItem("smart_link_user", JSON.stringify(userObj));
-        } catch (err) {
-          console.warn("[Supabase session restore note]:", err);
-        }
-      }
-    });
-
-    const { data: authSubscription } = SupabaseAuthService.onAuthStateChange(async (event, session) => {
-      if (event === "SIGNED_IN" && session?.user) {
-        const supaUser = session.user;
-        const email = (supaUser.email || "").toLowerCase().trim();
-        const fullName = supaUser.user_metadata?.full_name || email.split("@")[0] || "Smart Link User";
-        const phone = supaUser.user_metadata?.phone_number || supaUser.phone || "";
-        const isVerified = true;
-
-        try {
-          const syncRes = await safeFetchJson("/api/auth/sync-supabase-user", {
-            method: "POST",
-            headers: session.access_token ? { Authorization: `Bearer ${session.access_token}` } : undefined,
-            body: JSON.stringify({
-              id: supaUser.id,
-              uid: supaUser.id,
-              email: email,
-              fullName: fullName,
-              phoneNumber: phone,
-              isVerified: true,
-            }),
-          });
-
-          let userObj = syncRes.ok && syncRes.data?.user ? syncRes.data.user : null;
-          if (!userObj) {
-            userObj = {
-              uid: supaUser.id,
-              email: email,
-              fullName: fullName,
-              phoneNumber: phone,
-              role: UserRole.CUSTOMER,
-              walletBalance: 0.0,
-              referralCode: supaUser.user_metadata?.referral_code || "SL" + Math.floor(1000 + Math.random() * 9000),
-              isVerified: true,
-              createdAt: supaUser.created_at || new Date().toISOString(),
-            };
-          }
-
-          setCurrentUser(userObj);
-          localStorage.setItem("smart_link_user", JSON.stringify(userObj));
-        } catch (err) {
-          console.warn("[Supabase onAuthStateChange note]:", err);
-        }
-      } else if (event === "SIGNED_OUT") {
-        setCurrentUser(null);
-        localStorage.removeItem("smart_link_user");
-      }
-    });
-
-    return () => {
-      authSubscription?.subscription?.unsubscribe?.();
-    };
-  }, []);
-
   // Real-Time Webhook Credit Monitor & Wallet Balance Listeners
   const prevBalanceRef = useRef<number | null>(null);
   const prevUidRef = useRef<string | null>(null);
@@ -1039,9 +933,13 @@ export default function App() {
     const destView = pendingNavigationRef.current || "HOME";
     pendingNavigationRef.current = null;
 
-    if (isSupabaseConfigured) {
-      SupabaseAuthService.signOut().catch(() => {});
-    }
+    import("./services/supabaseAuth")
+      .then(({ SupabaseAuthService, isSupabaseConfigured }) => {
+        if (isSupabaseConfigured) {
+          SupabaseAuthService.signOut().catch(() => {});
+        }
+      })
+      .catch(() => {});
 
     localStorage.removeItem("smart_link_user");
     setCurrentUser(null);
@@ -1101,24 +999,30 @@ export default function App() {
       )}
 
       {/* Global Top Maintenance Advisory Notice Banner */}
-      {!currentView.startsWith("ADMIN_") && <MaintenanceNoticeBanner />}
+      {!currentView.startsWith("ADMIN_") && (
+        <Suspense fallback={null}>
+          <MaintenanceNoticeBanner />
+        </Suspense>
+      )}
 
       {/* Global Full Platform Maintenance Mode Interceptor Screen */}
       {maintenanceActive && !currentView.startsWith("ADMIN_") ? (
-        <MaintenanceScreen
-          scope="GLOBAL"
-          onAdminLoginRequested={() => {
-            navigateToView("ADMIN_LOGIN");
-          }}
-          onAdminSessionCreated={(sess) => {
-            setAdminSession(sess);
-            navigateToView("ADMIN_DASHBOARD");
-          }}
-          adminSession={adminSession}
-          onNavigateToAdminDashboard={() => {
-            navigateToView("ADMIN_DASHBOARD");
-          }}
-        />
+        <Suspense fallback={<div className="min-h-screen bg-[#0A1128]" />}>
+          <MaintenanceScreen
+            scope="GLOBAL"
+            onAdminLoginRequested={() => {
+              navigateToView("ADMIN_LOGIN");
+            }}
+            onAdminSessionCreated={(sess) => {
+              setAdminSession(sess);
+              navigateToView("ADMIN_DASHBOARD");
+            }}
+            adminSession={adminSession}
+            onNavigateToAdminDashboard={() => {
+              navigateToView("ADMIN_DASHBOARD");
+            }}
+          />
+        </Suspense>
       ) : (
         <>
       {/* Dynamic Responsive Sidebar for Logged-In Users */}
@@ -1889,29 +1793,33 @@ export default function App() {
 
               if (isLoginMaint && !isRegistering) {
                 return (
-                  <MaintenanceScreen
-                    scope="LOGIN"
-                    onAdminLoginRequested={() => navigateToView("ADMIN_LOGIN")}
-                    onAdminSessionCreated={(sess) => {
-                      setAdminSession(sess);
-                      navigateToView("ADMIN_DASHBOARD");
-                    }}
-                    onBackToSafety={() => navigateToView("HOME")}
-                  />
+                  <Suspense fallback={<div className="min-h-screen bg-[#0A1128]" />}>
+                    <MaintenanceScreen
+                      scope="LOGIN"
+                      onAdminLoginRequested={() => navigateToView("ADMIN_LOGIN")}
+                      onAdminSessionCreated={(sess) => {
+                        setAdminSession(sess);
+                        navigateToView("ADMIN_DASHBOARD");
+                      }}
+                      onBackToSafety={() => navigateToView("HOME")}
+                    />
+                  </Suspense>
                 );
               }
 
               if (isSignupMaint && isRegistering) {
                 return (
-                  <MaintenanceScreen
-                    scope="REGISTRATION"
-                    onAdminLoginRequested={() => navigateToView("ADMIN_LOGIN")}
-                    onAdminSessionCreated={(sess) => {
-                      setAdminSession(sess);
-                      navigateToView("ADMIN_DASHBOARD");
-                    }}
-                    onBackToSafety={() => navigateToView("HOME")}
-                  />
+                  <Suspense fallback={<div className="min-h-screen bg-[#0A1128]" />}>
+                    <MaintenanceScreen
+                      scope="REGISTRATION"
+                      onAdminLoginRequested={() => navigateToView("ADMIN_LOGIN")}
+                      onAdminSessionCreated={(sess) => {
+                        setAdminSession(sess);
+                        navigateToView("ADMIN_DASHBOARD");
+                      }}
+                      onBackToSafety={() => navigateToView("HOME")}
+                    />
+                  </Suspense>
                 );
               }
 

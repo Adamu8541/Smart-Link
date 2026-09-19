@@ -15,7 +15,6 @@ import {
   Database,
   ArrowUpRight
 } from "lucide-react";
-import { motion } from "motion/react";
 
 export const LandingWhySmartLink: React.FC = () => {
   const trustPoints = [
@@ -124,16 +123,12 @@ export const LandingWhySmartLink: React.FC = () => {
 
         {/* 6 Rewritten Trust Points Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          {trustPoints.map((point, idx) => {
+          {trustPoints.map((point) => {
             const IconComponent = point.icon;
             return (
-              <motion.div
+              <div
                 key={point.id}
                 id={`trust-card-${point.id}`}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: idx * 0.06 }}
                 className="bg-white border border-[#E2E8F0] rounded-2xl p-6 sm:p-7 hover:border-[#0F2D5C] shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between group"
               >
                 <div className="space-y-4">
@@ -161,7 +156,7 @@ export const LandingWhySmartLink: React.FC = () => {
                     <span className="text-[11px] text-[#64748B]">{point.proofDetail}</span>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             );
           })}
         </div>

@@ -1,4 +1,4 @@
-import nodemailer from "nodemailer";
+import nodemailer, { type Transporter } from "nodemailer";
 import { readDB } from "../db";
 
 export interface SmtpConfig {
@@ -18,7 +18,7 @@ export interface SmtpConfig {
  * Helper to resolve active SMTP configuration from database or environment variables
  */
 export function getResolvedSmtpConfig(customDb?: any): {
-  transporter: nodemailer.Transporter | null;
+  transporter: Transporter | null;
   config: SmtpConfig;
   fromAddress: string;
   error?: string;
@@ -86,7 +86,7 @@ export function getResolvedSmtpConfig(customDb?: any): {
 
   try {
     const isGmail = smtpHost.includes("gmail") || smtpUser.includes("@gmail.com");
-    let transporter: nodemailer.Transporter;
+    let transporter: Transporter;
 
     if (isGmail && (!smtpHost || smtpHost === "smtp.gmail.com")) {
       transporter = nodemailer.createTransport({

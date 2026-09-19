@@ -5,7 +5,6 @@
 
 import React, { useState, useEffect } from "react";
 import { Star, ChevronLeft, ChevronRight, Quote, CheckCircle2 } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
 
 interface TestimonialItem {
   id: string;
@@ -113,63 +112,57 @@ export const LandingTestimonials: React.FC = () => {
             
             <Quote className="absolute top-6 right-6 h-20 w-20 text-[#0F2D5C]/10 pointer-events-none" />
 
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={testimonials[currentIndex].id}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.35 }}
-                className="space-y-6 relative z-10"
-              >
-                {/* Rating Stars */}
-                <div className="flex items-center gap-1 text-[#0F2D5C]">
-                  {[...Array(testimonials[currentIndex].rating)].map((_, i) => (
-                    <Star key={i} className="h-5 w-5 fill-[#0F2D5C]" />
-                  ))}
-                  <span className="text-xs font-bold text-[#6B7280] ml-2 font-mono">
-                    5.0 / 5.0 Rating
-                  </span>
-                </div>
+            <div
+              key={testimonials[currentIndex].id}
+              className="space-y-6 relative z-10 transition-opacity duration-300"
+            >
+              {/* Rating Stars */}
+              <div className="flex items-center gap-1 text-[#0F2D5C]">
+                {[...Array(testimonials[currentIndex].rating)].map((_, i) => (
+                  <Star key={i} className="h-5 w-5 fill-[#0F2D5C]" />
+                ))}
+                <span className="text-xs font-bold text-[#6B7280] ml-2 font-mono">
+                  5.0 / 5.0 Rating
+                </span>
+              </div>
 
-                {/* Review Text */}
-                <blockquote className="text-base sm:text-xl text-[#111827] font-medium leading-relaxed italic">
-                  "{testimonials[currentIndex].review}"
-                </blockquote>
+              {/* Review Text */}
+              <blockquote className="text-base sm:text-xl text-[#111827] font-medium leading-relaxed italic">
+                "{testimonials[currentIndex].review}"
+              </blockquote>
 
-                {/* Author Info */}
-                <div className="pt-6 border-t border-[#E5E7EB] flex items-center justify-between flex-wrap gap-4">
-                  <div className="flex items-center gap-4">
-                    <img
-                      src={testimonials[currentIndex].avatar}
-                      alt={`${testimonials[currentIndex].name} - ${testimonials[currentIndex].business} verified client review`}
-                      width={56}
-                      height={56}
-                      loading="lazy"
-                      decoding="async"
-                      className="h-14 w-14 rounded-full object-cover border-2 border-[#0F2D5C] shadow-md shrink-0"
-                      referrerPolicy="no-referrer"
-                    />
-                    <div>
-                      <h3 className="text-base font-bold text-[#111827] flex items-center gap-2">
-                        {testimonials[currentIndex].name}
-                        <CheckCircle2 className="h-4 w-4 text-[#0F2D5C]" />
-                      </h3>
-                      <p className="text-xs font-medium text-[#4B5563]">
-                        {testimonials[currentIndex].business}
-                      </p>
-                      <p className="text-[11px] text-[#9CA3AF]">
-                        {testimonials[currentIndex].location}
-                      </p>
-                    </div>
+              {/* Author Info */}
+              <div className="pt-6 border-t border-[#E5E7EB] flex items-center justify-between flex-wrap gap-4">
+                <div className="flex items-center gap-4">
+                  <img
+                    src={testimonials[currentIndex].avatar}
+                    alt={`${testimonials[currentIndex].name} - ${testimonials[currentIndex].business} verified client review`}
+                    width={56}
+                    height={56}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-14 w-14 rounded-full object-cover border-2 border-[#0F2D5C] shadow-md shrink-0"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div>
+                    <h3 className="text-base font-bold text-[#111827] flex items-center gap-2">
+                      {testimonials[currentIndex].name}
+                      <CheckCircle2 className="h-4 w-4 text-[#0F2D5C]" />
+                    </h3>
+                    <p className="text-xs font-medium text-[#4B5563]">
+                      {testimonials[currentIndex].business}
+                    </p>
+                    <p className="text-[11px] text-[#9CA3AF]">
+                      {testimonials[currentIndex].location}
+                    </p>
                   </div>
-
-                  <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-[#F5F7FA] text-[#0F2D5C] border border-[#E5E7EB]">
-                    {testimonials[currentIndex].serviceUsed}
-                  </span>
                 </div>
-              </motion.div>
-            </AnimatePresence>
+
+                <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-[#F5F7FA] text-[#0F2D5C] border border-[#E5E7EB]">
+                  {testimonials[currentIndex].serviceUsed}
+                </span>
+              </div>
+            </div>
           </div>
 
           {/* Carousel Controls */}

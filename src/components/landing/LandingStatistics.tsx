@@ -5,7 +5,6 @@
 
 import React, { useState, useEffect } from "react";
 import { Users, CheckCircle2, TrendingUp, Wallet, Layers, ShieldCheck } from "lucide-react";
-import { motion } from "motion/react";
 
 export const LandingStatistics: React.FC = () => {
   const statsList = [
@@ -66,16 +65,12 @@ export const LandingStatistics: React.FC = () => {
 
         {/* 5 Stats Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-          {statsList.map((stat, idx) => {
+          {statsList.map((stat) => {
             const IconComponent = stat.icon;
             return (
-              <motion.div
+              <div
                 key={stat.id}
                 id={`stat-card-${stat.id}`}
-                initial={{ opacity: 0, scale: 0.9, y: 15 }}
-                whileInView={{ opacity: 1, scale: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: idx * 0.08 }}
                 className="bg-white border border-[#E5E7EB] rounded-2xl p-6 text-center hover:border-[#0F2D5C] transition-all duration-300 flex flex-col justify-between group shadow-[0_4px_12px_rgba(15,23,42,0.08)]"
               >
                 <div className="space-y-4">
@@ -98,7 +93,7 @@ export const LandingStatistics: React.FC = () => {
                     {stat.subtext}
                   </p>
                 </div>
-              </motion.div>
+              </div>
             );
           })}
         </div>

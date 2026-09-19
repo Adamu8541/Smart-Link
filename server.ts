@@ -424,7 +424,15 @@ async function startServer() {
       try {
         const indexPath = path.join(distPath, "index.html");
         if (fs.existsSync(indexPath)) {
-          const rawHtml = fs.readFileSync(indexPath, "utf-8");
+          let rawHtml = fs.readFileSync(indexPath, "utf-8");
+          // Eliminate render-blocking CSS penalty by transforming stylesheets into asynchronous preloads
+          rawHtml = rawHtml.replace(
+            /<link\s+([^>]*?\s+)?(?:rel=["']stylesheet["']\s+[^>]*?href=["']([^"']+\.css)["']|href=["']([^"']+\.css)["']\s+[^>]*?rel=["']stylesheet["'])[^>]*>/gi,
+            (_match, _prefix, href1, href2) => {
+              const href = href1 || href2;
+              return `<link rel="preload" href="${href}" as="style" onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" href="${href}"></noscript>`;
+            }
+          );
           const seoMetadata = resolveSEOMetadata(req);
           const finalHtml = injectSEOTags(rawHtml, seoMetadata);
           res.setHeader("Content-Type", "text/html; charset=utf-8");
