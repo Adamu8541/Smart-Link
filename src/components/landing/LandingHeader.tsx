@@ -50,22 +50,22 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
 
   return (
     <header
-      id="landing-header"
-      className={`sticky top-0 z-50 w-full transition-all duration-300 border-b ${
+      id="site-header"
+      className={`sticky top-0 z-40 w-full transition-colors duration-200 border-b ${
         isScrolled
           ? "bg-white/95 backdrop-blur-md shadow-sm border-[#E5E7EB]"
           : "bg-white border-[#E5E7EB]"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between min-h-[5.5rem] py-2">
+        <div className="flex items-center justify-between h-20 sm:h-24">
           
           {/* Left: SmartLink Logo */}
           <button
             id="header-logo-container"
             type="button"
             onClick={() => handleNavClick("hero-section")}
-            className="flex items-center cursor-pointer group py-1.5 bg-transparent border-none p-0 text-left"
+            className="flex items-center cursor-pointer group bg-transparent border-none p-0 text-left"
             aria-label="SmartLink NG Home"
           >
             <img

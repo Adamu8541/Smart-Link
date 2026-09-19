@@ -24,14 +24,14 @@ To ensure maintainability, high testability, and clean separation of concerns, t
                                        ▼
                   ┌─────────────────────────────────────────┐
                   │          Database Repositories          │
-                  │  (Firestore Reads, Atomic Transactions, │
+                  │ (Turso / LibSQL Reads, Atomic Tx,       │
                   │     Query Filters, Real-Time Sync)      │
                   └─────────────────────────────────────────┘
 ```
 
-1. **Controllers Layer**: Handles HTTP requests, extracts parameters, validates inputs, extracts Firebase Auth ID Tokens, and formats standardized HTTP JSON responses.
+1. **Controllers Layer**: Handles HTTP requests, extracts parameters, validates inputs, extracts Bearer / Supabase Auth Tokens, and formats standardized HTTP JSON responses.
 2. **Services Layer**: Encapsulates core financial business logic, atomic balance calculations, ledger entry generations, payment provider delegation, and notification dispatches.
-3. **Repositories Layer**: Direct abstraction over Firestore (`users`, `wallets`, `wallet_summary`, `wallet_transactions`, `wallet_ledger`, `payment_sessions`, `webhook_events`, `notifications`, `audit_logs`, `app_settings`).
+3. **Repositories Layer**: Direct abstraction over Database tables (`users`, `wallets`, `wallet_summary`, `wallet_transactions`, `wallet_ledger`, `payment_sessions`, `webhook_events`, `notifications`, `audit_logs`, `app_settings`).
 
 ---
 
@@ -69,7 +69,7 @@ Every backend API route returns a consistent JSON envelope:
 
 | Error Code | HTTP Status | Description |
 | :--- | :---: | :--- |
-| `UNAUTHORIZED` | 401 | Missing or invalid Firebase Auth Bearer token. |
+| `UNAUTHORIZED` | 401 | Missing or invalid Bearer auth token. |
 | `FORBIDDEN` | 403 | Authenticated user lacks required role or ownership. |
 | `INVALID_AMOUNT` | 400 | Transaction amount is non-positive or exceeds tier limits. |
 | `INVALID_USER` | 400 | Recipient user or target account does not exist. |
@@ -139,7 +139,7 @@ The system uses an abstract provider interface allowing Squad (and future gatewa
 ## 6. Authentication & Security Middleware
 
 Every protected endpoint validates incoming requests through server middleware:
-1. Extract `Authorization: Bearer <token>` header.
-2. Verify Firebase ID Token via Admin SDK or server auth layer.
+1. Extract `Authorization: Bearer <token>` header or session token.
+2. Verify Supabase JWT / Session Token via server auth layer.
 3. Attach `req.user` (`uid`, `email`, `role`) to execution context.
 4. Verify Role-Based Access Control (RBAC) permissions (e.g. `SUPER_ADMIN` or `ADMIN` required for `/api/admin/*`).

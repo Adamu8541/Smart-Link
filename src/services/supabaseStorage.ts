@@ -3,7 +3,7 @@
  * Enterprise-grade client storage layer replacing Cloud Storage.
  */
 
-import { getSupabaseClient } from "./supabaseAuth";
+import { getSupabaseClientAsync } from "./supabaseAuth";
 
 /**
  * Upload a file/blob to Supabase Storage bucket with automated base64 fallback
@@ -14,7 +14,7 @@ export async function uploadFileToSupabaseStorage(
   file: File | Blob
 ): Promise<string> {
   try {
-    const client = getSupabaseClient();
+    const client = await getSupabaseClientAsync();
     if (!client) {
       return await fileToBase64(file);
     }

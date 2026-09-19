@@ -35,9 +35,8 @@ self.addEventListener("fetch", (event) => {
   if (
     request.method !== "GET" ||
     url.pathname.startsWith("/api/") ||
-    url.pathname.startsWith("/__/auth/") ||
-    url.hostname.includes("firestore.googleapis.com") ||
-    url.hostname.includes("identitytoolkit.googleapis.com")
+    url.hostname.includes("supabase.co") ||
+    url.hostname.includes("turso.io")
   ) {
     return;
   }

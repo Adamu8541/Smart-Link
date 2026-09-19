@@ -536,35 +536,27 @@ export default function App() {
       } catch {}
     };
 
-    keepServerWarm();
+    // Defer initial keep-alive ping by 60s so critical initial navigation and paint are unhindered
+    const initialTimeout = setTimeout(keepServerWarm, 60000);
     const intervalId = setInterval(keepServerWarm, 600000);
 
-    return () => clearInterval(intervalId);
+    return () => {
+      clearTimeout(initialTimeout);
+      clearInterval(intervalId);
+    };
   }, []);
-  const [siteSettings, setSiteSettings] = useState<any>({
-    appName: "Smart Link Nigeria",
-    tagline: "Unified Nigeria Digital Platform",
-    announcement: "",
-    maintenanceMode: false,
-    ninFee: 500,
-    bvnFee: 500,
-    cacBaseFee: 28000,
-  });
 
-  useEffect(() => {
-    safeFetchJson("/api/site/settings")
-      .then((res) => {
-        if (res.ok && res.data?.settings) {
-          setSiteSettings((prev: any) => ({
-            ...prev,
-            ...res.data.settings,
-          }));
-        }
-      })
-      .catch(() => {
-        // Quiet fallback
-      });
-  }, []);
+  const siteSettings = {
+    appName: siteConfig?.general?.siteName || "Smart Link Nigeria",
+    tagline: siteConfig?.general?.tagline || "Unified Nigeria Digital Platform",
+    announcement: siteConfig?.general?.announcementText || "",
+    announcementText: siteConfig?.general?.announcementText || "",
+    showAnnouncement: siteConfig?.general?.showAnnouncement ?? false,
+    maintenanceMode: siteConfig?.maintenance?.maintenanceMode ?? false,
+    ninFee: siteConfig?.pricing?.ninVerificationFee ?? 500,
+    bvnFee: siteConfig?.pricing?.bvnVerificationFee ?? 500,
+    cacBaseFee: siteConfig?.pricing?.cacBusinessNameFee ?? 28000,
+  };
 
   useEffect(() => {
     if (toast) {
@@ -1241,63 +1233,57 @@ export default function App() {
       )}
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-x-hidden min-h-screen flex flex-col justify-between">
-        <div className="w-full">
-          {siteSettings?.showAnnouncement && siteSettings?.announcementText && currentView !== "HOME" && (
-            <div className="bg-[#0F2D5C] text-white px-4 py-2.5 text-xs font-semibold text-center flex items-center justify-center gap-2 shadow-xs border-b border-white/10">
-              <Sparkles className="h-4 w-4 shrink-0 text-[#E5E7EB] animate-pulse" />
-              <span>{siteSettings.announcementText}</span>
-            </div>
-          )}
-          {currentView === "HOME" && (
-            <SmartLinkLandingPage
-              currentUser={currentUser}
-              onLogin={() => {
-                navigateToView("DASHBOARD");
-                setIsRegistering(false);
-                
-                
-              }}
-              onRegister={() => {
-                navigateToView("DASHBOARD");
-                setIsRegistering(true);
-                
-                
-              }}
-              onGetStarted={() => {
-                navigateToView("DASHBOARD");
-                setIsRegistering(true);
-                
-                
-              }}
-              onAdminLogin={() => {
-                navigateToView("ADMIN_LOGIN");
-              }}
-              onExploreServices={() => {
-                if (currentUser) {
-                  navigateToView("SERVICES");
-                } else {
-                  const el = document.getElementById("services-section");
-                  if (el) el.scrollIntoView({ behavior: "smooth" });
-                }
-              }}
-              onSelectService={(serviceId) => {
-                if (currentUser) {
-                  navigateToView("SERVICES");
-                } else {
-                  navigateToView("DASHBOARD");
-                  setIsRegistering(false);
-                }
-              }}
-              onNavigateLegal={navigateToLegal}
-              siteAnnouncement={{
-                showAnnouncement: siteSettings?.showAnnouncement,
-                announcementText: siteSettings?.announcementText,
-              }}
-            />
-          )}
+      {currentView === "HOME" ? (
+        <SmartLinkLandingPage
+          currentUser={currentUser}
+          onLogin={() => {
+            navigateToView("DASHBOARD");
+            setIsRegistering(false);
+          }}
+          onRegister={() => {
+            navigateToView("DASHBOARD");
+            setIsRegistering(true);
+          }}
+          onGetStarted={() => {
+            navigateToView("DASHBOARD");
+            setIsRegistering(true);
+          }}
+          onAdminLogin={() => {
+            navigateToView("ADMIN_LOGIN");
+          }}
+          onExploreServices={() => {
+            if (currentUser) {
+              navigateToView("SERVICES");
+            } else {
+              const el = document.getElementById("services-section");
+              if (el) el.scrollIntoView({ behavior: "smooth" });
+            }
+          }}
+          onSelectService={(serviceId) => {
+            if (currentUser) {
+              navigateToView("SERVICES");
+            } else {
+              navigateToView("DASHBOARD");
+              setIsRegistering(false);
+            }
+          }}
+          onNavigateLegal={navigateToLegal}
+          siteAnnouncement={{
+            showAnnouncement: siteSettings?.showAnnouncement,
+            announcementText: siteSettings?.announcementText,
+          }}
+        />
+      ) : (
+        <main className="flex-1 overflow-x-hidden min-h-screen flex flex-col justify-between">
+          <div className="w-full">
+            {siteSettings?.showAnnouncement && siteSettings?.announcementText && (
+              <div className="bg-[#0F2D5C] text-white px-4 py-2.5 text-xs font-semibold text-center flex items-center justify-center gap-2 shadow-xs border-b border-white/10">
+                <Sparkles className="h-4 w-4 shrink-0 text-[#E5E7EB] animate-pulse" />
+                <span>{siteSettings.announcementText}</span>
+              </div>
+            )}
 
-          <Suspense fallback={<RouteLoadingFallback />}>
+            <Suspense fallback={<RouteLoadingFallback />}>
             {currentView === "SERVICES" && (
               currentUser ? (
                 <ServicesGrid onSelectService={setSelectedService} />
@@ -1843,6 +1829,7 @@ export default function App() {
           )}
         </div>
       </main>
+      )}
 
       {/* Global Action Modal for Ordering/Verifying */}
       <Suspense fallback={null}>

@@ -89,7 +89,7 @@ export const SmartLinkLandingPage: React.FC<SmartLinkLandingPageProps> = ({
   };
 
   return (
-    <div id="smartlink-public-homepage" className="min-h-screen flex flex-col bg-white font-sans text-[#111827] antialiased selection:bg-[#0F2D5C] selection:text-white">
+    <div id="smartlink-public-homepage" className="min-h-screen bg-[#F5F7FA] text-[#111827] flex flex-col font-sans selection:bg-[#0F2D5C] selection:text-white">
       
       {/* Dynamic SEO Meta Tags & Schema */}
       <SEOHead />
@@ -103,17 +103,8 @@ export const SmartLinkLandingPage: React.FC<SmartLinkLandingPageProps> = ({
         onNavigateSection={handleNavigateSection}
       />
 
-      {/* Live Homepage Announcement Banner Ticker */}
-      <Suspense fallback={null}>
-        <UserAnnouncementBanner 
-          variant="homepage" 
-          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-1"
-          onNavigate={handleAnnouncementNavigate} 
-        />
-      </Suspense>
-
       {/* Main Content Sections */}
-      <main className="flex-1">
+      <main className="grow">
         
         {/* Hero Section */}
         <LandingHero
@@ -121,6 +112,15 @@ export const SmartLinkLandingPage: React.FC<SmartLinkLandingPageProps> = ({
           onExploreServices={onExploreServices}
           onLogin={onLogin}
         />
+
+        {/* Live Homepage Announcement Banner Ticker - Loaded below hero to avoid CLS */}
+        <Suspense fallback={null}>
+          <UserAnnouncementBanner 
+            variant="homepage" 
+            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3"
+            onNavigate={handleAnnouncementNavigate} 
+          />
+        </Suspense>
 
         <Suspense fallback={null}>
           {/* Trust Section */}

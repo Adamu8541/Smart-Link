@@ -15,16 +15,16 @@ The application and all generated backend/frontend code must be **strictly produ
 - **NO** `TODO` comments used as substitutes for missing logic.
 - **NO** client-side balance mutations.
 
-Every feature must be fully implemented and connected to verified backend endpoints and Firestore database queries.
+Every feature must be fully implemented and connected to verified backend endpoints and database queries.
 
 ---
 
 ## 2. Approved Technology Stack
 
 - **Frontend**: React (Vite, TypeScript, Tailwind CSS, Lucide icons)
-- **Authentication**: Firebase Authentication (ID Token verification)
-- **Database**: Cloud Firestore (`users`, `wallets`, `wallet_summary`, `wallet_transactions`, `wallet_ledger`, `payment_sessions`, `webhook_events`, `notifications`, `audit_logs`, `app_settings`)
-- **Backend API**: Node.js Express Server / Firebase Cloud Functions (`server.ts`, 3-Layer Architecture: Controllers, Services, Repositories)
+- **Authentication**: Supabase Authentication (JWT / Bearer Token verification)
+- **Database**: Turso LibSQL Database (`users`, `wallets`, `wallet_summary`, `wallet_transactions`, `wallet_ledger`, `payment_sessions`, `webhook_events`, `notifications`, `audit_logs`, `app_settings`)
+- **Backend API**: Node.js Express Server (`server.ts`, 3-Layer Architecture: Controllers, Services, Repositories)
 - **Payment Gateway**: Squad Payment APIs (`initiate-payment`, `verify-payment`, HMAC-SHA512 Webhooks)
 - **Deployment Target**: Cloud Run / Containerized Express & Vercel-compatible SPA
 
@@ -41,11 +41,11 @@ src/
   ├── types/            # Strict TypeScript interfaces & enums
   └── utils/            # Shared formatting (Currency, Dates, Input validation)
 
-server.ts / functions/
+server/
   ├── controllers/      # Express route handlers & request validators
   ├── services/         # Business logic (Ledger, Squad integration, Transfer engine)
-  ├── repositories/     # Firestore data access & atomic transaction runners
-  ├── middleware/       # Firebase Auth ID Token verification & RBAC
+  ├── repositories/     # Database access & atomic transaction runners
+  ├── middleware/       # Bearer / Supabase Auth Token verification & RBAC
   ├── integrations/
   │   └── squad/        # Squad Gateway API Adapter & HMAC Signature verifiers
   └── utils/            # Logger, Error Enums, Response Envelopes
@@ -56,7 +56,7 @@ server.ts / functions/
 ## 4. Security & Cryptographic Invariants
 
 1. **Secret Key Isolation**: Squad API Secret Keys and webhook secrets must **NEVER** be exposed to client-side bundles. They reside exclusively in server environment variables (`process.env.SQUAD_SECRET_KEY`).
-2. **Atomic Firestore Balance Updates**: All wallet balance mutations and ledger insertions must execute inside `db.runTransaction()` to eliminate race conditions.
+2. **Atomic Balance Updates**: All wallet balance mutations and ledger insertions must execute inside atomic database transactions to eliminate race conditions.
 3. **Webhook Verification & Idempotency**: All incoming Squad webhooks must verify the HMAC-SHA512 header signature and check `webhook_events` by `gatewayReference` to prevent duplicate crediting.
 4. **Strict RBAC Enforcement**: Administrative routes (`/api/admin/*`) strictly verify `SUPER_ADMIN` or `ADMIN` roles before processing actions.
 
@@ -84,6 +84,6 @@ All backend APIs respond with standardized HTTP envelopes:
 
 A module is considered complete only when:
 1. It compiles with zero TypeScript (`tsc --noEmit`) and linter errors.
-2. It operates without mock data, sourcing all state from live backend/Firestore services.
+2. It operates without mock data, sourcing all state from live backend and database services.
 3. It passes all validation constraints, edge cases, and security checks.
 4. It seamlessly integrates into the overall Smart Link Wallet Engine architecture.

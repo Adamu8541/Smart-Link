@@ -238,7 +238,12 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
   }, [applyThemeVariables]);
 
   useEffect(() => {
-    fetchConfig();
+    // Non-blocking initial fetch so critical path and initial navigation paint unhindered
+    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+      (window as any).requestIdleCallback(() => fetchConfig(), { timeout: 2000 });
+    } else {
+      setTimeout(() => fetchConfig(), 100);
+    }
 
     const handleConfigUpdated = () => {
       fetchConfig();

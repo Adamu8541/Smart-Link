@@ -91,10 +91,6 @@ export default defineConfig(() => {
               if (id.includes('motion')) {
                 return 'vendor-motion';
               }
-              // 8. Vector Icons
-              if (id.includes('lucide-react')) {
-                return 'vendor-icons';
-              }
             }
           },
         },

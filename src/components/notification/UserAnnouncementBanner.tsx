@@ -33,14 +33,18 @@ export function UserAnnouncementBanner({ variant = "dashboard", className = "", 
   };
 
   useEffect(() => {
-    fetchActiveAnnouncements();
+    // Non-blocking initial fetch so critical path and initial navigation paint unhindered
+    const timer = setTimeout(() => {
+      fetchActiveAnnouncements();
+    }, 1500);
 
     // Re-check periodically or on custom sync event
-    const interval = setInterval(fetchActiveAnnouncements, 20000);
+    const interval = setInterval(fetchActiveAnnouncements, 25000);
     const handleSync = () => fetchActiveAnnouncements();
     window.addEventListener("announcements_updated", handleSync);
 
     return () => {
+      clearTimeout(timer);
       clearInterval(interval);
       window.removeEventListener("announcements_updated", handleSync);
     };

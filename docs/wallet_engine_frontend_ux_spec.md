@@ -6,13 +6,13 @@ This document specifies the complete user experience architecture, component lay
 
 ## CRITICAL GLOBAL PRODUCTION MANDATE
 
-> **Strict Non-Mocking Policy**: The application must **NEVER** display hardcoded, dummy, or sample financial data (fake balances, fake transactions, placeholder users, or simulated payment successes). Every balance, transaction, notification, and wallet parameter **MUST** be fetched dynamically from verified live backend services / Firestore responses. When no records exist, the UI **MUST** display an explicit empty state instead of generating fictional records.
+> **Strict Non-Mocking Policy**: The application must **NEVER** display hardcoded, dummy, or sample financial data (fake balances, fake transactions, placeholder users, or simulated payment successes). Every balance, transaction, notification, and wallet parameter **MUST** be fetched dynamically from verified live backend services and database responses. When no records exist, the UI **MUST** display an explicit empty state instead of generating fictional records.
 
 ---
 
 ## 1. Core Principles & General Guidelines
 
-1. **Live Backend Synchronization**: Every monetary value, balance snapshot, transaction history item, and notification must originate from live backend/Firestore query responses.
+1. **Live Backend Synchronization**: Every monetary value, balance snapshot, transaction history item, and notification must originate from live backend and database query responses.
 2. **Zero-Mock Empty States**: If a user has zero transaction records or unread notifications, clean empty states (e.g. *"No transaction history available"*, *"No notifications"*) must be rendered without artificial placeholders.
 3. **Verified Payment Status**: The frontend must never assume payment success prior to server-side webhook/verification confirmation from Squad.
 4. **Validated Error Feedback**: Display only clean, validated backend error messages without exposing raw internal server stack traces.
@@ -23,7 +23,7 @@ This document specifies the complete user experience architecture, component lay
 ## 2. Wallet Screens Catalog & Component Requirements
 
 ### 1. Wallet Dashboard View (`/wallet`)
-- **Live Data Binding**: Fetches live wallet document and summary from `/api/wallet` or Firestore `wallets/{uid}`.
+- **Live Data Binding**: Fetches live wallet data and summary from `/api/wallet` endpoints.
 - **Hero Balance Card**:
   - Displays **Available Balance** in NGN (`₦XX,XXX.XX`) with eye-icon visibility toggle.
   - Sub-balances: **Pending Balance** & **Reserved Balance**.

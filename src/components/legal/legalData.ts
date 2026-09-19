@@ -163,7 +163,7 @@ export const LEGAL_DOCUMENTS: LegalDocument[] = [
         title: "4. Data Storage, Architecture & Security",
         content: [
           "SmartLink NG implements rigorous multi-layer technical, physical, and organizational security controls to protect your information against unauthorized access, loss, alteration, or disclosure:",
-          "• Cloud Infrastructure: Data is stored in secure Google Cloud database environments configured with role-based security rules and granular collection access permissions.",
+          "• Cloud Infrastructure: Data is stored in secure encrypted cloud database environments configured with role-based security rules and granular access permissions.",
           "• Cryptographic Protection: All data in transit is encrypted using Transport Layer Security (TLS 1.3/HTTPS). Sensitive tokens and secrets are stored in secure server-side environments.",
           "• Verification Data Masking: Identity lookup results displayed on public screens are masked where appropriate to prevent shoulder surfing and unauthorized interception.",
           "• Access Restrictions: Internal administrative access is strictly governed by Role-Based Access Control (RBAC), multi-factor authentication (MFA), and immutable audit logging.",

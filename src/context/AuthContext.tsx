@@ -7,7 +7,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, Rea
 import { UserProfile, UserRole } from "../types";
 import { SupabaseAuthService, isSupabaseConfigured, SupabaseRegistrationPayload } from "../services/supabaseAuth";
 import { safeFetchJson } from "../utils/authErrorHandler";
-import { User as SupaUser, Session as SupaSession } from "@supabase/supabase-js";
+import type { User as SupaUser, Session as SupaSession } from "@supabase/supabase-js";
 
 interface AuthContextType {
   currentUser: UserProfile | null;

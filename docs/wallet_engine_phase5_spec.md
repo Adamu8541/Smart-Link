@@ -24,7 +24,7 @@ Every Smart Link user is automatically assigned a unique, formatted 10-digit int
 
 ## 3. Atomic Peer-to-Peer Transfer Mechanics
 
-Internal peer-to-peer transfers run inside an isolated **Firestore Transaction (`db.runTransaction`)**:
+Internal peer-to-peer transfers run inside an isolated **Atomic Database Transaction**:
 
 ```
                   ┌─────────────────────────────────────┐
@@ -68,7 +68,7 @@ If any condition fails (e.g. sender wallet suspended or insufficient funds), the
 | :--- | :--- |
 | **Network Timeout during Squad Initiate Payment** | Session marked as `INITIATED`. Expiration job cleans up un-paid sessions after 30 minutes. |
 | **Duplicate Webhook Delivery from Squad** | Webhook processor checks `webhook_events` by `gatewayReference`. Returns `200 OK` instantly on duplicate. |
-| **Server Restart mid-transaction** | Firestore atomic transactions ensure either all document writes commit or none do. |
+| **Server Restart mid-transaction** | Atomic database transactions ensure either all table writes commit or none do. |
 | **Temporary Squad API Outage** | Users receive `SERVICE_UNAVAILABLE` error message; pending payments can be verified asynchronously when gateway recovers. |
 
 ---

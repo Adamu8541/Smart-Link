@@ -11,18 +11,18 @@ Every user account on Smart Link adheres to an automated onboarding and wallet p
 ```
 User Registers
       ↓
-Firebase Authentication
+Supabase Authentication / Account Creation
       ↓
-User Profile Created in Firestore (`users/{uid}`)
+User Profile Created in Database (`users`)
       ↓
-Wallet Automatically Provisioned (`wallets/{uid}` & `wallet_summary/{uid}`)
+Wallet Automatically Provisioned (`wallets` & `wallet_summary`)
       ↓
 Wallet Activated (`status: "ACTIVE"`)
       ↓
 User Can Fund Wallet & Perform Transactions
 ```
 
-- **Automatic Provisioning**: Upon successful registration (or first-time login via Firebase Auth), a dedicated wallet document and snapshot are created automatically with `0.00` starting balance and a unique 10-digit wallet number (e.g., `8012345678`).
+- **Automatic Provisioning**: Upon successful registration (or first-time login via Supabase Auth), a dedicated wallet record and snapshot are created automatically with `0.00` starting balance and a unique 10-digit wallet number (e.g., `8012345678`).
 - **One Wallet per User**: Each verified user profile maintains exactly one wallet.
 
 ---
@@ -70,10 +70,10 @@ Squad Dispatches Verified HMAC-Signed Webhook
       ↓
 Backend Validates Signature & Idempotency (`webhook_events`)
       ↓
-Atomic Firestore Transaction Executes:
-  - Credit Wallet Balance (`wallets/{uid}`)
+Atomic Database Transaction Executes:
+  - Credit Wallet Balance (`wallets`)
   - Append Immutable Debit/Credit Entry (`wallet_ledger`)
-  - Update Snapshot (`wallet_summary/{uid}`)
+  - Update Snapshot (`wallet_summary`)
   - Mark `wallet_transactions` as SUCCESSFUL
   - Dispatch In-App Notification (`notifications`)
       ↓
@@ -86,7 +86,7 @@ User Sees Immediate Real-Time Balance Update
 
 When User A sends funds to User B:
 1. **Validation**: Check recipient existence, sender wallet state (`ACTIVE`), and sender balance (`availableBalance >= amount + fee`).
-2. **Atomic Ledger Execution (`db.runTransaction`)**:
+2. **Atomic Ledger Execution**:
    - Debit Sender: `Sender Balance = Sender Balance - (Amount + Fee)`
    - Credit Recipient: `Recipient Balance = Recipient Balance + Amount`
    - Create 2 Ledger Records: 1 `DEBIT` entry for sender, 1 `CREDIT` entry for recipient.
@@ -101,7 +101,7 @@ When User A sends funds to User B:
 1. **Non-Negative Balance Requirement**: The backend enforces `availableBalance - debitAmount >= 0` on every debit request.
 2. **Failed Transaction Integrity**: Failed or cancelled transactions strictly preserve original wallet balances.
 3. **Strict Webhook Idempotency**: Duplicate Squad notifications checking the same gateway reference are safely ignored without double-crediting.
-4. **Source of Truth Enforcement**: Wallet balances on client UI are strictly derived from verified server responses and real-time Firestore listeners. Direct client balance writes are blocked by Firestore Security Rules.
+4. **Source of Truth Enforcement**: Wallet balances on client UI are strictly derived from verified server responses. Direct client balance writes are forbidden.
 
 ---
 
@@ -118,7 +118,7 @@ Admins and Super Admins have access to governance features:
 ## 8. Performance & Scalability Benchmarks
 
 1. **Dashboard Latency**: Wallet snapshot queries via `wallet_summary` target `< 2.0s` response time.
-2. **Real-Time Sync**: Balance changes reflect instantaneously on the UI upon webhook receipt via Firestore real-time snapshots.
+2. **Real-Time Sync**: Balance changes reflect instantaneously on the UI upon transaction completion or webhook receipt.
 3. **Structured API Envelope**: All backend API responses adhere to a unified JSON schema:
    ```json
    {
