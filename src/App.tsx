@@ -106,19 +106,7 @@ const viewToDocIdMap: Record<string, string> = {
 async function getAuthHeaders(): Promise<Record<string, string>> {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
 
-  // 1. Check Supabase active session token first
-  try {
-    const { SupabaseAuthService, isSupabaseConfigured } = await import("./services/supabaseAuth");
-    if (isSupabaseConfigured) {
-      const supaSession = await SupabaseAuthService.getSession();
-      if (supaSession?.access_token) {
-        headers["Authorization"] = `Bearer ${supaSession.access_token}`;
-        return headers;
-      }
-    }
-  } catch {}
-
-  // Check admin session token
+  // 1. Check admin session token first
   try {
     const adminSessionRaw = sessionStorage.getItem("smart_link_admin_session");
     if (adminSessionRaw) {
@@ -126,6 +114,18 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
       if (adminSession?.sessionToken) {
         headers["Authorization"] = `Bearer ${adminSession.sessionToken}`;
         headers["x-admin-token"] = adminSession.sessionToken;
+        return headers;
+      }
+    }
+  } catch {}
+
+  // 2. Check Supabase active session token only if potential session exists
+  try {
+    const { SupabaseAuthService, isSupabaseConfigured, hasPotentialSupabaseSession } = await import("./services/supabaseAuth");
+    if (isSupabaseConfigured && hasPotentialSupabaseSession()) {
+      const supaSession = await SupabaseAuthService.getSession();
+      if (supaSession?.access_token) {
+        headers["Authorization"] = `Bearer ${supaSession.access_token}`;
         return headers;
       }
     }
@@ -959,7 +959,7 @@ export default function App() {
   
 
   return (
-    <div className={`min-h-screen bg-[#F5F7FA] transition-colors duration-300 ${isDarkMode ? "dark-theme-active" : ""} ${!currentUser ? "flex flex-col bg-white" : "flex flex-col lg:flex-row"}`}>
+    <div id="root-container" className={`min-h-screen bg-[#F5F7FA] text-[#111827] flex font-sans transition-colors duration-200 selection:bg-[#0F2D5C] selection:text-white ${isDarkMode ? "dark-theme-active" : ""} ${!currentUser ? "flex-col" : "flex-col lg:flex-row"}`}>
       {/* Real-time Global Toast Notifications */}
       {toast && (
         <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4 pointer-events-none transition-all duration-200 ease-out animate-in fade-in slide-in-from-top-4">

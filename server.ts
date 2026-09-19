@@ -214,6 +214,36 @@ app.get("/llms.txt", (_req, res) => {
   res.status(404).send("llms.txt not found");
 });
 
+app.get("/llms-full.txt", (_req, res) => {
+  const filePath = path.join(process.cwd(), "public", "llms-full.txt");
+  if (fs.existsSync(filePath)) {
+    res.setHeader("Content-Type", "text/markdown; charset=utf-8");
+    res.setHeader("Cache-Control", "public, max-age=86400");
+    return res.sendFile(filePath);
+  }
+  res.status(404).send("llms-full.txt not found");
+});
+
+app.get("/.well-known/ai-plugin.json", (_req, res) => {
+  const filePath = path.join(process.cwd(), "public", ".well-known", "ai-plugin.json");
+  if (fs.existsSync(filePath)) {
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    res.setHeader("Cache-Control", "public, max-age=86400");
+    return res.sendFile(filePath);
+  }
+  res.status(404).json({ error: "ai-plugin.json not found" });
+});
+
+app.get("/.well-known/agent.json", (_req, res) => {
+  const filePath = path.join(process.cwd(), "public", ".well-known", "agent.json");
+  if (fs.existsSync(filePath)) {
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    res.setHeader("Cache-Control", "public, max-age=86400");
+    return res.sendFile(filePath);
+  }
+  res.status(404).json({ error: "agent.json not found" });
+});
+
 // =========================================================================
 // VITE MIDDLEWARE & SERVER STARTUP
 // =========================================================================

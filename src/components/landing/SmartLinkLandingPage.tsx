@@ -89,7 +89,7 @@ export const SmartLinkLandingPage: React.FC<SmartLinkLandingPageProps> = ({
   };
 
   return (
-    <div id="smartlink-public-homepage" className="min-h-screen bg-[#F5F7FA] text-[#111827] flex flex-col font-sans selection:bg-[#0F2D5C] selection:text-white">
+    <div id="smartlink-public-homepage" className="w-full flex-1 flex flex-col font-sans">
       
       {/* Dynamic SEO Meta Tags & Schema */}
       <SEOHead />

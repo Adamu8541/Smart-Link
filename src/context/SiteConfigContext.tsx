@@ -129,9 +129,54 @@ const DEFAULT_CONFIG: SiteConfig = {
   priceMatrix: {},
 };
 
+const SETTINGS_CACHE_KEY = "smartlink_public_settings_cache";
+const SETTINGS_CACHE_TIME_KEY = "smartlink_public_settings_cache_time";
+
+function getInitialConfig(): SiteConfig {
+  if (typeof window !== "undefined") {
+    try {
+      // Check window initial config first (inlined in HTML)
+      const inlined = (window as any).__INITIAL_SITE_CONFIG__;
+      if (inlined && typeof inlined === "object") {
+        return {
+          ...DEFAULT_CONFIG,
+          branding: { ...DEFAULT_CONFIG.branding, ...(inlined.branding || {}) },
+          general: { ...DEFAULT_CONFIG.general, ...(inlined.general || {}) },
+          maintenance: { ...DEFAULT_CONFIG.maintenance, ...(inlined.maintenance || {}) },
+          homepage: inlined.homepage || {},
+          navigation: inlined.navigation || {},
+          seo: inlined.seo || {},
+          social: inlined.social || {},
+          servicesCatalog: inlined.servicesCatalog || [],
+          allServices: inlined.allServices || inlined.servicesCatalog || [],
+          priceMatrix: inlined.priceMatrix || {},
+        };
+      }
+
+      // Check localStorage cache
+      const cached = localStorage.getItem(SETTINGS_CACHE_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed && typeof parsed === "object") {
+          return {
+            ...DEFAULT_CONFIG,
+            ...parsed,
+            branding: { ...DEFAULT_CONFIG.branding, ...(parsed.branding || {}) },
+            general: { ...DEFAULT_CONFIG.general, ...(parsed.general || {}) },
+            maintenance: { ...DEFAULT_CONFIG.maintenance, ...(parsed.maintenance || {}) },
+          };
+        }
+      }
+    } catch {
+      // Fallback to DEFAULT_CONFIG
+    }
+  }
+  return DEFAULT_CONFIG;
+}
+
 const SiteConfigContext = createContext<SiteConfigContextType>({
   config: DEFAULT_CONFIG,
-  loading: true,
+  loading: false,
   logoUrl: defaultLogoImg,
   primaryColor: "#0F2D5C",
   siteName: "Smart Link Nigeria",
@@ -144,8 +189,8 @@ const SiteConfigContext = createContext<SiteConfigContextType>({
 });
 
 export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [config, setConfig] = useState<SiteConfig>(DEFAULT_CONFIG);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [config, setConfig] = useState<SiteConfig>(getInitialConfig);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const applyThemeVariables = useCallback((branding: BrandingConfig, general: GeneralConfig) => {
     const primary = branding.primaryColor || "#0F2D5C";
@@ -228,6 +273,13 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
           };
           setConfig(merged);
           applyThemeVariables(merged.branding, merged.general);
+
+          try {
+            localStorage.setItem(SETTINGS_CACHE_KEY, JSON.stringify(merged));
+            localStorage.setItem(SETTINGS_CACHE_TIME_KEY, String(Date.now()));
+          } catch {
+            // Ignore quota errors
+          }
         }
       }
     } catch (err) {
@@ -238,12 +290,40 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
   }, [applyThemeVariables]);
 
   useEffect(() => {
-    // Non-blocking initial fetch so critical path and initial navigation paint unhindered
-    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
-      (window as any).requestIdleCallback(() => fetchConfig(), { timeout: 2000 });
-    } else {
-      setTimeout(() => fetchConfig(), 100);
-    }
+    // Non-blocking deferred synchronization to keep initial navigation critical path completely unchained
+    let syncScheduled = false;
+    const scheduleDeferredSync = () => {
+      if (syncScheduled) return;
+      syncScheduled = true;
+
+      // Check cache age: if updated within last 5 minutes, defer even further
+      const lastSync = Number(localStorage.getItem(SETTINGS_CACHE_TIME_KEY) || "0");
+      const isFresh = Date.now() - lastSync < 300000;
+
+      if (isFresh) {
+        return;
+      }
+
+      if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+        (window as any).requestIdleCallback(() => fetchConfig(), { timeout: 6000 });
+      } else {
+        setTimeout(() => fetchConfig(), 4000);
+      }
+    };
+
+    // Trigger on user interaction or delayed after window load
+    const handleInteraction = () => {
+      scheduleDeferredSync();
+      window.removeEventListener("scroll", handleInteraction);
+      window.removeEventListener("pointerdown", handleInteraction);
+      window.removeEventListener("keydown", handleInteraction);
+    };
+
+    window.addEventListener("scroll", handleInteraction, { passive: true });
+    window.addEventListener("pointerdown", handleInteraction, { passive: true });
+    window.addEventListener("keydown", handleInteraction, { passive: true });
+
+    const loadTimer = setTimeout(scheduleDeferredSync, 5000);
 
     const handleConfigUpdated = () => {
       fetchConfig();
@@ -256,15 +336,17 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
 
     // Broadcast channel / cross-tab storage sync
     const handleStorage = (e: StorageEvent) => {
-      if (e.key === "site_config_sync" || e.key === "maintenance_mode") {
+      if (e.key === "site_config_sync" || e.key === "maintenance_mode" || e.key === SETTINGS_CACHE_KEY) {
         fetchConfig();
       }
     };
     window.addEventListener("storage", handleStorage);
 
-    // Fast polling (6s if maintenance is active, else 20s) for prompt real-time unlock
-    const pollIntervalMs = config.maintenance?.maintenanceMode ? 6000 : 20000;
-    const interval = setInterval(fetchConfig, pollIntervalMs);
+    // Polling interval if maintenance mode is active
+    let interval: any = null;
+    if (config.maintenance?.maintenanceMode) {
+      interval = setInterval(fetchConfig, 8000);
+    }
 
     // Re-check on tab focus / visibility
     const handleVisibility = () => {
@@ -275,13 +357,17 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
     document.addEventListener("visibilitychange", handleVisibility);
 
     return () => {
+      clearTimeout(loadTimer);
+      if (interval) clearInterval(interval);
+      window.removeEventListener("scroll", handleInteraction);
+      window.removeEventListener("pointerdown", handleInteraction);
+      window.removeEventListener("keydown", handleInteraction);
       window.removeEventListener("site_config_updated", handleConfigUpdated);
       window.removeEventListener("services_updated", handleConfigUpdated);
       window.removeEventListener("theme_changed", handleConfigUpdated);
       window.removeEventListener("maintenance_mode_triggered", handleConfigUpdated);
       window.removeEventListener("storage", handleStorage);
       document.removeEventListener("visibilitychange", handleVisibility);
-      clearInterval(interval);
     };
   }, [fetchConfig, config.maintenance?.maintenanceMode]);
 

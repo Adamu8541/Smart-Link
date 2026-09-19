@@ -1,0 +1,10 @@
+/* TEAM */
+  Founder & Developer: Smart Link NG Technology Team
+  Contact: Smartlinkcomputerbusiness@gmail.com / support@smartlinkng.com.ng
+  Twitter: @smartlinkng
+  Location: Abuja & Lagos, Nigeria
+
+/* SITE */
+  Standards: HTML5, CSS3, ES2023, JSON-LD Schema.org, OpenGraph, Twitter Cards, llms.txt standard
+  Software: React, TypeScript, Tailwind CSS, Vite, Express
+  APIs: RESTful JSON APIs (NIN, BVN, VTU, Electricity, CAC)

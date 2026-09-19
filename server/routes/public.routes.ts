@@ -70,25 +70,50 @@ app.get("/api/health", async (req, res) => {
 // PUBLIC & CLIENT CONFIGURATION SYNC
 // =========================================================================
 
-app.get("/api/public/settings", async (req, res) => {
+let cachedPublicSettings: { data: any; etag: string; timestamp: number } | null = null;
+
+export function invalidatePublicSettingsCache() {
+  cachedPublicSettings = null;
+}
+
+function getSanitizedPublicSettings() {
+  const now = Date.now();
+  if (cachedPublicSettings && now - cachedPublicSettings.timestamp < 30000) {
+    return cachedPublicSettings;
+  }
   const db = readDB();
-  await syncFromStorage(db);
   const mDetails = getMaintenanceDetails(db);
   const sanitized = sanitizePublicSettings(db, mDetails);
-  return res.json(sanitized);
+  const jsonStr = JSON.stringify(sanitized);
+  const etag = `W/"${crypto.createHash("md5").update(jsonStr).digest("hex")}"`;
+  cachedPublicSettings = { data: sanitized, etag, timestamp: now };
+  return cachedPublicSettings;
+}
+
+app.get("/api/public/settings", (req, res) => {
+  const cached = getSanitizedPublicSettings();
+  res.setHeader("Cache-Control", "public, max-age=120, stale-while-revalidate=86400");
+  res.setHeader("ETag", cached.etag);
+
+  if (req.headers["if-none-match"] === cached.etag) {
+    return res.status(304).end();
+  }
+  return res.json(cached.data);
 });
 
-app.get("/api/site/settings", async (req, res) => {
-  const db = readDB();
-  await syncFromStorage(db);
-  const mDetails = getMaintenanceDetails(db);
-  const sanitized = sanitizePublicSettings(db, mDetails);
-  return res.json(sanitized);
+app.get("/api/site/settings", (req, res) => {
+  const cached = getSanitizedPublicSettings();
+  res.setHeader("Cache-Control", "public, max-age=120, stale-while-revalidate=86400");
+  res.setHeader("ETag", cached.etag);
+
+  if (req.headers["if-none-match"] === cached.etag) {
+    return res.status(304).end();
+  }
+  return res.json(cached.data);
 });
 
 app.get("/api/maintenance/status", async (req, res) => {
   const db = readDB();
-  await syncFromStorage(db);
   const mDetails = getMaintenanceDetails(db);
   return res.json({
     success: true,
@@ -128,6 +153,7 @@ app.post("/api/admin/maintenance/toggle", async (req, res) => {
 
   writeDB(db);
   await syncToStorage(db);
+  invalidatePublicSettingsCache();
 
   return res.json({
     success: true,

@@ -1,0 +1,22 @@
+{
+  "name": "SmartLink Nigeria Agent Service",
+  "description": "Enterprise Nigerian identity verification, business registry, electricity bills, data/airtime vending and fintech APIs.",
+  "version": "1.0.0",
+  "documentation": "https://smartlinkng.com.ng/llms.txt",
+  "full_knowledge_base": "https://smartlinkng.com.ng/llms-full.txt",
+  "capabilities": [
+    "nin_verification",
+    "bvn_validation",
+    "cac_registration",
+    "scuml_compliance",
+    "disco_electricity_tokens",
+    "sme_data_bundles",
+    "vtu_airtime",
+    "developer_rest_apis"
+  ],
+  "contact": {
+    "email": "support@smartlinkng.com.ng",
+    "phone": "+234 808 549 0982",
+    "website": "https://smartlinkng.com.ng"
+  }
+}

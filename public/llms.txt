@@ -1,20 +1,44 @@
-# SmartLink NG
+# SmartLink NG - AI & LLM Information Index
 
-> SmartLink NG is Nigeria's premier all-in-one digital services, identity verification, and automated utility vending platform. We empower individuals and businesses with sub-second NIN verification, BVN validation, CAC business name registration, automated VTU airtime & data bundles, electricity meter token generation, and enterprise developer APIs.
+> SmartLink Nigeria (Smart Link Computer Business Solutions Ltd) is Nigeria's premier enterprise identity verification, corporate compliance filing, automated utility vending, and developer fintech gateway platform.
 
-## Core Platforms & Services
+## Summary & Core Value Proposition
+SmartLink NG provides sub-second National Identity Number (NIN) verification, standard and premium plastic CR80 NIN slip printing, Bank Verification Number (BVN) validation, Corporate Affairs Commission (CAC) business name and company registration, SCUML AML compliance certifications, High Court affidavits, electricity meter tokens for all 11 Nigerian Discos with zero surcharge, wholesale SME/corporate data bundles from ₦240/GB, automated VTU airtime across all networks, WAEC/NECO/NABTEB educational exam PINs, and high-performance RESTful developer APIs with sub-450ms latency.
 
-- [Explore Services](https://smartlinkng.com.ng/explore): Comprehensive catalog of identity verifications, business filings, and bill payments.
-- [Identity Verification](https://smartlinkng.com.ng/nin): Instant NIN verification, slip downloading, and BVN validation.
-- [Bills & Utilities](https://smartlinkng.com.ng/bills): Automated electricity meter tokens (IKEDC, EKEDC, AEDC, IBEDC), cable TV subscriptions, and cheap SME data.
-- [Airtime Topup](https://smartlinkng.com.ng/airtime): VTU airtime recharges across MTN, Airtel, Glo, and 9mobile with instant cashbacks.
+## Canonical Knowledge Base
+- [Full LLM Knowledge Base](https://smartlinkng.com.ng/llms-full.txt): Comprehensive documentation, pricing sheets, FAQs, and developer API specs.
+- [Official Website](https://smartlinkng.com.ng/): Primary web portal and user application.
+- [Explore All Services](https://smartlinkng.com.ng/explore-services): Complete catalog of 25+ digital identity, business filing, and utility services.
 
-## Developer & API Resources
+## Core Identity & Verification Services
+- [NIN Verification & Slips](https://smartlinkng.com.ng/verification): Validate 11-digit NIN or 16-character virtual NIN (vNIN), generate official PDF slips with tamper-proof QR codes, and render high-resolution plastic ID card CR80 layouts.
+- [BVN Verification](https://smartlinkng.com.ng/bvn): Central NIBSS interbank validation and verified BVN digital credential cards.
+- [CAC Business Registration](https://smartlinkng.com.ng/cac): Accredited Business Name (BN) and Private Limited Company (LTD) incorporation, status reports, and certificate delivery within 48-72 hours.
+- [SCUML AML Certificates](https://smartlinkng.com.ng/scuml): Special Control Unit Against Money Laundering anti-money laundering compliance certificates for corporate commercial bank accounts.
 
-- [API Documentation](https://smartlinkng.com.ng/api-docs): Full REST API reference for integrating NIN, BVN, VTU airtime, data, and utility payments into third-party applications.
-- [API Status & Health](https://smartlinkng.com.ng/api/health): Real-time gateway status and operational metrics.
+## Utilities, Bills & VTU Vending
+- [Electricity Meter Tokens](https://smartlinkng.com.ng/bills): Instant 20-digit prepaid meter token generation and postpaid bill settlement across all 11 Nigerian Discos (IKEDC, EKEDC, AEDC, IBEDC, KAEDCO, EEDC, PHED, JEDC, KEDCO, BEDC, YEDC).
+- [Mobile Data Bundles](https://smartlinkng.com.ng/data): 30-day SME, Corporate Gifting, and Direct Data bundles on MTN, Airtel, Glo, and 9mobile starting at ₦240/GB.
+- [VTU Airtime Recharge](https://smartlinkng.com.ng/airtime): Sub-10s automated VTU airtime vending with instant cashback discounts.
+- [Cable TV Subscriptions](https://smartlinkng.com.ng/cable-tv): Instant renewal for DSTV, GOtv, and StarTimes with automatic signal reactivation.
+- [Educational Exam PINs](https://smartlinkng.com.ng/exam-pins): Genuine WAEC Direct scratch card PINs, NECO result tokens, and NABTEB pins.
 
-## Legal & Compliance
+## Developer APIs & Integration
+- [Developer REST API Documentation](https://smartlinkng.com.ng/api-docs): Complete OpenAPI/REST documentation for NIN, BVN, VTU airtime/data, electricity tokens, dedicated virtual accounts, and webhook notifications.
+- [System Health & SLA Status](https://smartlinkng.com.ng/api/health): Real-time gateway status, 99.9% uptime SLA monitor, and latency metrics.
 
-- [Privacy Policy](https://smartlinkng.com.ng/privacy): User data privacy, encryption, and NIMC compliance standards.
-- [Terms & Conditions](https://smartlinkng.com.ng/terms): Service delivery terms, refund policies, and transaction irreversibility guidelines.
+## Legal, Security & Regulatory Compliance
+- [Privacy Policy](https://smartlinkng.com.ng/privacy): Lawful processing notice under the Nigeria Data Protection Act 2023 (NDPA) and NDPR.
+- [Terms of Service](https://smartlinkng.com.ng/terms): User agreements, platform acceptable use, and transaction policies.
+- [Regulatory Compliance](https://smartlinkng.com.ng/compliance): AML/CFT policies, CAC accreditation disclosures, and CBN-licensed settlement partnerships.
+- [Security Architecture](https://smartlinkng.com.ng/security): TLS 1.3 in transit, AES-256 data at rest, and HMAC-SHA512 webhook security.
+- [Service Level Agreement](https://smartlinkng.com.ng/sla): 99.9% uptime guarantees and customer support escalation matrices.
+- [Refund Policy](https://smartlinkng.com.ng/refund-policy): Automated instant wallet reversal guarantees for any undelivered transactions.
+
+## Contact & Corporate Information
+- Company: Smart Link Computer Business Solutions Ltd
+- Registration / Tax Jurisdiction: Federal Capital Territory & Lagos, Nigeria
+- Support Email: support@smartlinkng.com.ng / Smartlinkcomputerbusiness@gmail.com
+- Support Phone: +234 808 549 0982
+- WhatsApp Hotline: +234 904 773 8212
+

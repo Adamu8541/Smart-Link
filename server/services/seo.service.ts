@@ -248,6 +248,7 @@ export function resolveSEOMetadata(req: Request): SEOMetadata {
       "@type": "FinancialService",
       "@id": `${origin}/#organization`,
       "name": siteName,
+      "legalName": "Smart Link Computer Business Solutions Ltd",
       "url": origin,
       "logo": `${origin}/logo.webp`,
       "image": ogImageUrl,
@@ -257,19 +258,42 @@ export function resolveSEOMetadata(req: Request): SEOMetadata {
       "priceRange": "₦100 - ₦50,000",
       "currenciesAccepted": "NGN",
       "paymentAccepted": "Bank Transfer, Dedicated Virtual Account, Debit Card, Wallet Balance",
+      "areaServed": {
+        "@type": "Country",
+        "name": "Nigeria"
+      },
+      "knowsAbout": [
+        "National Identity Management",
+        "NIN Slip Verification",
+        "Bank Verification Number",
+        "Corporate Affairs Commission Registration",
+        "SCUML Anti-Money Laundering Certification",
+        "Prepaid Electricity Meter Tokens",
+        "Telecommunications VTU and SME Data",
+        "Fintech Developer APIs"
+      ],
       "address": {
         "@type": "PostalAddress",
         "addressCountry": "NG",
         "addressLocality": "Lagos",
         "addressRegion": "Lagos State"
       },
-      "contactPoint": {
-        "@type": "ContactPoint",
-        "telephone": "+234 808 549 0982",
-        "contactType": "customer service",
-        "email": "Smartlinkcomputerbusiness@gmail.com",
-        "availableLanguage": ["English", "Hausa", "Yoruba", "Igbo"]
-      },
+      "contactPoint": [
+        {
+          "@type": "ContactPoint",
+          "telephone": "+234 808 549 0982",
+          "contactType": "customer service",
+          "email": "Smartlinkcomputerbusiness@gmail.com",
+          "availableLanguage": ["English", "Hausa", "Yoruba", "Igbo"]
+        },
+        {
+          "@type": "ContactPoint",
+          "telephone": "+234 904 773 8212",
+          "contactType": "technical support",
+          "email": "support@smartlinkng.com.ng",
+          "availableLanguage": ["English"]
+        }
+      ],
       "sameAs": [
         "https://facebook.com/smartlinkng",
         "https://twitter.com/smartlinkng",
@@ -285,6 +309,10 @@ export function resolveSEOMetadata(req: Request): SEOMetadata {
       "description": siteDescription,
       "publisher": {
         "@id": `${origin}/#organization`
+      },
+      "speakable": {
+        "@type": "SpeakableSpecification",
+        "cssSelector": ["h1", "h2", ".hero-description", "main p"]
       },
       "potentialAction": {
         "@type": "SearchAction",
@@ -316,6 +344,52 @@ export function resolveSEOMetadata(req: Request): SEOMetadata {
         "bestRating": "5",
         "worstRating": "1"
       }
+    },
+    {
+      "@type": "FAQPage",
+      "@id": `${origin}/#faq`,
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How fast is National Identity Number (NIN) verification on SmartLink NG?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "NIN and virtual NIN (vNIN) verifications on SmartLink NG are processed in real time with sub-second latency, generating official tamper-proof PDF slips and plastic card layouts within 2 to 5 seconds."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I print plastic CR80 NIN cards on SmartLink NG?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. SmartLink NG provides high-resolution CR80 double-sided plastic card layouts calibrated at 300+ DPI with official QR codes ready for direct PVC ID card printing."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Which electricity distribution companies (Discos) are supported for prepaid meter tokens?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "SmartLink NG supports all 11 Nigerian electricity Discos: Ikeja Electric (IKEDC), Eko Electricity (EKEDC), Abuja Electricity (AEDC), Ibadan Electricity (IBEDC), Kaduna Electric (KAEDCO), Enugu Electricity (EEDC), Port Harcourt (PHED), Jos Electricity (JEDC), Kano Electricity (KEDCO), Benin Electricity (BEDC), and Yola Electricity (YEDC) with zero convenience fees on standard tokens."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How does SmartLink NG handle failed transactions?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "SmartLink NG features an automated instant refund engine. If a telecom operator or electricity gateway fails to dispense value, the deducted amount is immediately reversed back to the user wallet in real time."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does SmartLink NG offer developer APIs for integration?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, SmartLink NG provides full RESTful developer APIs with sub-450ms response latency, HMAC-SHA512 webhook notifications, and dedicated virtual bank accounts for integrating identity verification, bill payments, and data vending."
+          }
+        }
+      ]
     },
     {
       "@type": "BreadcrumbList",
@@ -380,6 +454,8 @@ export function resolveSEOMetadata(req: Request): SEOMetadata {
  * Injects dynamic SEO and Social Sharing (OG/Twitter) meta tags and crawlable semantic HTML into raw index.html.
  */
 export function injectSEOTags(html: string, metadata: SEOMetadata): string {
+  const origin = metadata.canonicalUrl.replace(/(\/explore-services|\/verification|\/bills|\/api-docs|\/services|\/nin|\/bvn|\/cac|\/scuml|\/electricity|\/data|\/airtime|\/cable-tv|\/exam-pins|\/vtu|\/developer-api|\/docs|\/terms|\/privacy|\/compliance|\/refund-policy|\/security|\/sla|\/wallet-terms|\/payment-terms|\/cookie-policy|\/kyc-notice|\/acceptable-use|\/data-protection|\/disclaimer|\/marketing-policy|\/legal-center|\/legal.*|\/auth.*|\/login.*|\/register.*)$/, "");
+
   const metaTags = `
     <!-- Primary SEO Meta Tags -->
     <title>${escapeHtml(metadata.title)}</title>
@@ -387,10 +463,19 @@ export function injectSEOTags(html: string, metadata: SEOMetadata): string {
     <meta name="description" content="${escapeHtml(metadata.description)}" />
     <meta name="keywords" content="${escapeHtml(metadata.keywords)}" />
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+    <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+    <meta name="ai-content" content="authorized" />
     <meta name="author" content="SmartLink Nigeria Technology" />
     <meta http-equiv="content-language" content="en-NG" />
     <meta name="language" content="English" />
     
+    <!-- Agentic AI & LLM Discovery Standards -->
+    <link rel="alternate" type="text/markdown" href="${origin}/llms.txt" title="SmartLink LLM Summary" />
+    <link rel="alternate" type="text/markdown" href="${origin}/llms-full.txt" title="SmartLink LLM Knowledge Base" />
+    <link rel="alternate" type="application/json" href="${origin}/.well-known/ai-plugin.json" title="AI Plugin Manifest" />
+    <link rel="alternate" type="application/json" href="${origin}/.well-known/agent.json" title="Agent Specification" />
+
     <!-- Canonical & Alternate Localization (hreflang) Tags -->
     <link rel="canonical" href="${metadata.canonicalUrl}" />
     <link rel="alternate" hreflang="en-NG" href="${metadata.canonicalUrl}" />
@@ -565,8 +650,10 @@ ${urls}
  */
 export function generateRobotsTxt(origin: string = DEFAULT_DOMAIN): string {
   return `# ==============================================================================
-# SmartLink Nigeria Digital Platform - Search Engine Robots Directives
+# SmartLink Nigeria Digital Platform - Search Engine & Agentic AI Robots Directives
 # Website: ${origin}
+# Standard AI Discovery: ${origin}/llms.txt
+# Full AI Knowledge Base: ${origin}/llms-full.txt
 # ==============================================================================
 
 User-agent: *
@@ -605,10 +692,86 @@ Allow: /marketing-policy
 Allow: /legal-center
 Allow: /legal
 Allow: /legal/*
+Allow: /llms.txt
+Allow: /llms-full.txt
+Allow: /.well-known/ai-plugin.json
+Allow: /.well-known/agent.json
 Allow: /og-image.png
 Allow: /logo.webp
 Allow: /favicon.webp
 Allow: /assets/
+
+# Explicit Directives for AI Search Engines, Assistants & Agentic LLMs
+User-agent: GPTBot
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+
+User-agent: ChatGPT-User
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+
+User-agent: ClaudeBot
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+
+User-agent: anthropic-ai
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+
+User-agent: Google-Extended
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+
+User-agent: Applebot
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+
+User-agent: Applebot-Extended
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+
+User-agent: Bytespider
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+
+User-agent: Cohere-ai
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+
+User-agent: Diffbot
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+
+User-agent: Omgilibot
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+
+User-agent: CCBot
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
 
 # Disallow Private Administration, Authentication & Dashboard Endpoints
 Disallow: /admin

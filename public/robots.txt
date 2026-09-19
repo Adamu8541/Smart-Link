@@ -1,8 +1,11 @@
 # ==============================================================================
-# SmartLink Nigeria Digital Platform - Search Engine Robots Directives
+# SmartLink Nigeria Digital Platform - Search Engine & Agentic AI Robots Directives
 # Website: https://smartlinkng.com.ng
+# Standard AI Discovery: https://smartlinkng.com.ng/llms.txt
+# Full AI Knowledge Base: https://smartlinkng.com.ng/llms-full.txt
 # ==============================================================================
 
+# Standard Search Engines (Google, Bing, DuckDuckGo, Yahoo, Yandex, etc.)
 User-agent: *
 Allow: /
 Allow: /explore-services
@@ -39,10 +42,86 @@ Allow: /marketing-policy
 Allow: /legal-center
 Allow: /legal
 Allow: /legal/*
+Allow: /llms.txt
+Allow: /llms-full.txt
+Allow: /.well-known/ai-plugin.json
+Allow: /.well-known/agent.json
 Allow: /og-image.png
 Allow: /logo.webp
 Allow: /favicon.webp
 Allow: /assets/
+
+# Explicit Directives for AI Search Engines, Assistants & Agentic LLMs
+User-agent: GPTBot
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+
+User-agent: ChatGPT-User
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+
+User-agent: ClaudeBot
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+
+User-agent: anthropic-ai
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+
+User-agent: Google-Extended
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+
+User-agent: Applebot
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+
+User-agent: Applebot-Extended
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+
+User-agent: Bytespider
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+
+User-agent: Cohere-ai
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+
+User-agent: Diffbot
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+
+User-agent: Omgilibot
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+
+User-agent: CCBot
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
 
 # Disallow Private Administration, Authentication & Dashboard Endpoints
 Disallow: /admin
@@ -61,3 +140,4 @@ Disallow: /verify-token
 # Crawl Delay & Sitemap Reference
 Crawl-delay: 1
 Sitemap: https://smartlinkng.com.ng/sitemap.xml
+

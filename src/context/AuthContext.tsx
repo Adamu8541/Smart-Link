@@ -5,7 +5,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { UserProfile, UserRole } from "../types";
-import { SupabaseAuthService, isSupabaseConfigured, SupabaseRegistrationPayload } from "../services/supabaseAuth";
+import { SupabaseAuthService, isSupabaseConfigured, hasPotentialSupabaseSession, SupabaseRegistrationPayload } from "../services/supabaseAuth";
 import { safeFetchJson } from "../utils/authErrorHandler";
 import type { User as SupaUser, Session as SupaSession } from "@supabase/supabase-js";
 
@@ -100,7 +100,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     async function initializeAuth() {
       try {
-        if (isSupabaseConfigured) {
+        if (isSupabaseConfigured && hasPotentialSupabaseSession()) {
           // 1. Check for URL hash tokens (from verification link redirect or password reset redirect)
           const hash = window.location.hash;
           if (hash && hash.includes("access_token=")) {

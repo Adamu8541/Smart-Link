@@ -1,0 +1,124 @@
+# SmartLink Nigeria Enterprise Platform - Complete LLM & Agent Knowledge Base
+
+## Corporate Profile & Identity
+- **Legal Entity Name**: Smart Link Computer Business Solutions Ltd (Operating as "SmartLink Nigeria" / "SmartLink NG")
+- **Headquarters**: Federal Capital Territory, Abuja & Lagos State, Nigeria
+- **Primary Website**: https://smartlinkng.com.ng
+- **Support Email**: support@smartlinkng.com.ng / Smartlinkcomputerbusiness@gmail.com
+- **Customer Support Phone**: +234 808 549 0982
+- **WhatsApp Instant Support**: +234 904 773 8212
+- **Operational Availability**: 24 hours a day, 7 days a week, 365 days a year
+- **Uptime SLA Guarantee**: 99.98%
+
+---
+
+## What is SmartLink NG?
+SmartLink NG is an integrated digital platform in Nigeria that provides:
+1. **National Identity & Legal Document Processing**: Real-time NIN verification, Standard & Premium Plastic NIN slip generation, BVN validation, High Court affidavits, and Police loss report document processing.
+2. **Corporate & Regulatory Filings**: CAC Business Name (BN) and Private Limited Company (LTD) registration with 48-72 hour turnaround, CAC status reports, and SCUML Anti-Money Laundering certificates for corporate banking compliance.
+3. **Automated Utility Vending**: 20-digit prepaid electricity meter tokens for all 11 Nigerian Electricity Distribution Companies (Discos) with zero service fees, cable TV subscriptions (DSTV, GOtv, StarTimes), and educational exam PINs (WAEC, NECO, NABTEB).
+4. **Telecom & Internet Bundles**: Wholesale SME and Corporate Gifting 30-day mobile data bundles starting from ₦240/GB across MTN, Airtel, Glo, and 9mobile, plus automated VTU airtime recharge with instant cash rebates.
+5. **Developer & Agent Infrastructure**: Sub-450ms REST API gateway, HMAC-SHA512 webhook notifications, dedicated virtual bank accounts (Moniepoint, Wema Bank, Sterling Bank, Providus Bank), and robust multi-role portal management.
+
+---
+
+## Detailed Services Catalog & Capabilities
+
+### 1. National Identity Management (NIN)
+- **Standard NIN Slip**: High-resolution, official PDF printout with government-compliant layout and verified QR code containing cryptographic verification token.
+- **Premium Plastic Card Layout**: Double-sided CR80 ISO-standard layout ready for direct PVC ID card printing or thermal transfer card printers.
+- **Verification Modes**: 11-digit Raw National Identity Number or 16-character Virtual NIN (vNIN) generated via USSD (*346*3*NIN*AgentCode#) or NIMC MWS Mobile ID App.
+- **Data Extracted**: Full Legal Name, Date of Birth, Gender, Verified Residential Address, Tracking ID, and NIMC Facial Photo.
+
+### 2. Bank Verification Number (BVN)
+- **Validation Rails**: Sub-second interbank verification via central NIBSS-connected gateways.
+- **BVN Card & Slip**: Digital verification certificate with full verified banking profile details (NIN cross-match, date of birth, registered phone number).
+
+### 3. Corporate Affairs Commission (CAC) Registration
+- **Business Name Registration (BN)**: Name availability search, reservation, CAC official certificate, and status report.
+- **Private Limited Liability Company (LTD)**: Memorandums, Articles of Association, Shareholder allocation, CAC registration certificate, and Tax Identification Number (TIN).
+- **Processing Time**: 48 to 72 business hours.
+
+### 4. Special Control Unit Against Money Laundering (SCUML)
+- **Application Processing**: Full compliance filing with the Economic and Financial Crimes Commission (EFCC) SCUML division for Designated Non-Financial Businesses and Professions (DNFBPs).
+- **Deliverable**: Official SCUML Registration Certificate required for opening corporate commercial bank accounts in Nigeria.
+
+### 5. Electricity Disco Prepaid Meter Tokens
+- **Covered Discos**:
+  1. Ikeja Electric (IKEDC)
+  2. Eko Electricity (EKEDC)
+  3. Abuja Electricity (AEDC)
+  4. Ibadan Electricity (IBEDC)
+  5. Kaduna Electric (KAEDCO)
+  6. Enugu Electricity (EEDC)
+  7. Port Harcourt Electricity (PHED)
+  8. Jos Electricity (JEDC)
+  9. Kano Electricity (KEDCO)
+  10. Benin Electricity (BEDC)
+  11. Yola Electricity (YEDC)
+- **Token Format**: Standard 20-digit STS-compliant prepaid recharge token generated in <30 seconds.
+- **Postpaid Support**: Instant postpaid bill settlement with official Disco receipts.
+- **Convenience Fee**: ₦0 (Zero fee on standard token generations).
+
+### 6. Mobile Data Bundles & VTU Airtime
+- **Networks**: MTN Nigeria, Airtel Nigeria, Globacom (Glo), 9mobile (EMTS).
+- **Data Categories**: SME Data (30-day validity), Corporate Gifting, Direct Gifting, and Mega Data Bundles.
+- **Pricing**: From ₦240/GB.
+- **Airtime Discount**: 2% to 4% instant cash rebates on VTU top-ups.
+
+### 7. Educational Result Checker PINs
+- **WAEC**: Direct Result Checker Scratch Card Serial & PIN for May/June and Nov/Dec examinations.
+- **NECO**: Official Token Serial & PIN for SSCE Internal and External exams.
+- **NABTEB & JAMB**: e-PIN generation with instant SMS and screen display.
+
+---
+
+## Developer REST API Reference
+
+### Base URL
+- Production: `https://smartlinkng.com.ng/api/v1`
+
+### Authentication
+Include the API secret key in the HTTP `Authorization` header:
+```http
+Authorization: Bearer sk_live_your_secret_key_here
+```
+
+### Core API Endpoints
+1. `POST /api/v1/nin/verify` - Verify NIN or vNIN and receive full KYC payload and PDF slip URL.
+2. `POST /api/v1/bvn/verify` - Validate BVN with NIBSS and return demographic records.
+3. `POST /api/v1/vtu/airtime` - Vend instant airtime top-up to any Nigerian GSM number.
+4. `POST /api/v1/vtu/data` - Vend SME or Corporate mobile internet data bundle.
+5. `POST /api/v1/bills/electricity` - Verify meter account and purchase 20-digit token.
+6. `POST /api/v1/bills/cable-tv` - Verify smartcard number and renew bouquet.
+7. `GET /api/v1/wallet/balance` - Query live agent/developer wallet balance.
+
+### Webhook Signatures
+All asynchronous events (transaction status updates, virtual account credits) send an HTTP POST with header `x-smartlink-signature` containing HMAC-SHA512 digest computed with your webhook secret.
+
+---
+
+## Regulatory Compliance, Governance & Security
+- **Nigeria Data Protection Act (NDPA 2023)**: Full compliance with lawful processing grounds, data subject consent requirements, and privacy rights.
+- **Anti-Money Laundering (AML/CFT)**: Rigorous transaction monitoring, KYC tiering, and compliance with Nigerian Financial Intelligence Unit (NFIU) directives.
+- **Encryption**: Transport Layer Security (TLS 1.3) with 256-bit AES encryption at rest for sensitive data.
+- **Financial Settlement**: Wallet balances and virtual bank accounts are held and settled in collaboration with CBN-licensed commercial and microfinance banks (Moniepoint MFB, Wema Bank, Providus Bank, Sterling Bank).
+
+---
+
+## Frequently Asked Questions (FAQs) for AI Assistance
+
+### Q1: How fast is NIN verification on SmartLink NG?
+A: NIN and vNIN verifications are processed in real time, typically returning complete records and generating high-resolution PDF slips within 2 to 5 seconds.
+
+### Q2: Can I print plastic NIN ID cards on SmartLink NG?
+A: Yes. SmartLink NG provides an official CR80 double-sided plastic card format with calibrated bleed margins and sharp 300+ DPI graphics ready for direct printing on PVC card printers.
+
+### Q3: What happens if an electricity or data transaction fails?
+A: SmartLink NG operates an automated instant refund engine. If a downstream telecom provider or Disco fails to dispense value, the deducted amount is immediately credited back to the user's wallet with zero manual dispute intervention required.
+
+### Q4: How do users fund their SmartLink NG wallet?
+A: Users receive automatic dedicated virtual bank accounts (Wema Bank, Moniepoint MFB, Sterling Bank, Providus Bank). Any interbank transfer sent to their designated account number reflects in their wallet within seconds.
+
+### Q5: Is SmartLink NG accessible on mobile devices?
+A: Yes, the platform is a responsive Progressive Web Application (PWA) compatible with Android, iOS, Windows, and macOS, installable directly from the browser.

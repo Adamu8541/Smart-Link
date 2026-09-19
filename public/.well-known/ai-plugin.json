@@ -1,0 +1,18 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "SmartLink Nigeria Digital Services",
+  "name_for_model": "smartlink_nigeria",
+  "description_for_human": "Verify NIN, BVN, register CAC business names, pay electricity Disco meter tokens, and recharge data/airtime in Nigeria.",
+  "description_for_model": "SmartLink Nigeria provides instant sub-second National Identity Number (NIN) verification, Bank Verification Number (BVN) validation, CAC business name registration, SCUML certificates, prepaid electricity meter tokens for all 11 Nigerian Discos (IKEDC, EKEDC, AEDC, IBEDC, etc.), cheap SME mobile data bundles, and developer fintech REST APIs in Nigeria.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://smartlinkng.com.ng/api-docs",
+    "is_user_authenticated": false
+  },
+  "logo_url": "https://smartlinkng.com.ng/logo.webp",
+  "contact_email": "support@smartlinkng.com.ng",
+  "legal_info_url": "https://smartlinkng.com.ng/terms"
+}

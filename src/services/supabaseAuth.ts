@@ -29,6 +29,40 @@ export function sanitizeSupabaseUrl(url: string): string {
   return clean.replace(/\/+$/, "");
 }
 
+// Check if current browser state has any indication of a Supabase session or pending auth redirect
+export function hasPotentialSupabaseSession(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const hash = window.location.hash || "";
+    const search = window.location.search || "";
+    if (
+      hash.includes("access_token=") ||
+      hash.includes("refresh_token=") ||
+      hash.includes("type=recovery") ||
+      hash.includes("type=signup") ||
+      hash.includes("type=email_change") ||
+      hash.includes("error_description=") ||
+      search.includes("code=")
+    ) {
+      return true;
+    }
+
+    if (localStorage.getItem("smart_link_user")) {
+      return true;
+    }
+
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith("sb-") || key.includes("supabase.auth"))) {
+        return true;
+      }
+    }
+  } catch {
+    return false;
+  }
+  return false;
+}
+
 // Public Environment Variables (Browser-safe anon key only)
 const rawSupabaseUrl = (import.meta.env.VITE_SUPABASE_URL || "").trim();
 const supabaseUrl = sanitizeSupabaseUrl(rawSupabaseUrl);
@@ -44,8 +78,11 @@ export const isSupabaseConfigured: boolean = Boolean(
 let supabasePromise: Promise<SupabaseClient | null> | null = null;
 let supabaseInstance: SupabaseClient | null = null;
 
-export async function getSupabaseClientAsync(): Promise<SupabaseClient | null> {
+export async function getSupabaseClientAsync(force = false): Promise<SupabaseClient | null> {
   if (!isSupabaseConfigured) return null;
+  if (!force && !hasPotentialSupabaseSession() && !supabaseInstance) {
+    return null;
+  }
   if (supabaseInstance) return supabaseInstance;
   if (supabasePromise) return supabasePromise;
 
@@ -98,9 +135,9 @@ export class SupabaseAuthService {
   /**
    * Get active Supabase client or throw informative error
    */
-  private static async getClient(): Promise<SupabaseClient> {
-    const client = await getSupabaseClientAsync();
-    if (!client) {
+  private static async getClient(force = true): Promise<SupabaseClient | null> {
+    const client = await getSupabaseClientAsync(force);
+    if (!client && force) {
       throw new Error("Supabase is not configured. Please define VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in settings.");
     }
     return client;
@@ -139,7 +176,7 @@ export class SupabaseAuthService {
     let user: User | null = null;
     let session: Session | null = null;
     try {
-      const client = await getSupabaseClientAsync();
+      const client = await getSupabaseClientAsync(true);
       if (client) {
         const { data } = await client.auth.signInWithPassword({
           email: cleanEmail,
@@ -165,7 +202,10 @@ export class SupabaseAuthService {
    * Sign in with Email and Password
    */
   static async signIn(email: string, password: string): Promise<SupabaseLoginResult> {
-    const client = await this.getClient();
+    const client = await this.getClient(true);
+    if (!client) {
+      throw new Error("Supabase client could not be initialized.");
+    }
     const cleanEmail = email.toLowerCase().trim();
 
     let data: any = null;
@@ -226,7 +266,8 @@ export class SupabaseAuthService {
    */
   static async signOut(): Promise<void> {
     if (!isSupabaseConfigured) return;
-    const client = await this.getClient();
+    const client = await this.getClient(false);
+    if (!client) return;
     const { error } = await client.auth.signOut();
     if (error) {
       console.warn("[SupabaseAuth] Sign out note:", error.message);
@@ -237,7 +278,8 @@ export class SupabaseAuthService {
    * Send Password Recovery Email via Supabase
    */
   static async resetPasswordForEmail(email: string, redirectTo?: string): Promise<{ success: boolean; message: string }> {
-    const client = await this.getClient();
+    const client = await this.getClient(true);
+    if (!client) throw new Error("Supabase client unavailable.");
     const cleanEmail = email.toLowerCase().trim();
     const redirectUrl = redirectTo || `${window.location.origin}/reset-password`;
 
@@ -259,7 +301,8 @@ export class SupabaseAuthService {
    * Update User Password (used after clicking password recovery link)
    */
   static async updatePassword(newPassword: string): Promise<{ success: boolean }> {
-    const client = await this.getClient();
+    const client = await this.getClient(true);
+    if (!client) throw new Error("Supabase client unavailable.");
     const { error } = await client.auth.updateUser({
       password: newPassword,
     });
@@ -275,7 +318,8 @@ export class SupabaseAuthService {
    * Resend signup verification link
    */
   static async resendVerificationEmail(email: string, redirectTo?: string): Promise<{ success: boolean; message: string }> {
-    const client = await this.getClient();
+    const client = await this.getClient(true);
+    if (!client) throw new Error("Supabase client unavailable.");
     const cleanEmail = email.toLowerCase().trim();
     const redirectUrl = redirectTo || `${window.location.origin}/verify-email`;
 
@@ -301,9 +345,10 @@ export class SupabaseAuthService {
    * Get current active session
    */
   static async getSession(): Promise<Session | null> {
-    if (!isSupabaseConfigured) return null;
+    if (!isSupabaseConfigured || !hasPotentialSupabaseSession()) return null;
     try {
-      const client = await this.getClient();
+      const client = await this.getClient(false);
+      if (!client) return null;
       const { data, error } = await client.auth.getSession();
       if (error || !data?.session) return null;
       return data.session;
@@ -316,9 +361,10 @@ export class SupabaseAuthService {
    * Get current authenticated user
    */
   static async getUser(): Promise<User | null> {
-    if (!isSupabaseConfigured) return null;
+    if (!isSupabaseConfigured || !hasPotentialSupabaseSession()) return null;
     try {
-      const client = await this.getClient();
+      const client = await this.getClient(false);
+      if (!client) return null;
       const { data, error } = await client.auth.getUser();
       if (error || !data?.user) return null;
       return data.user;
@@ -331,7 +377,8 @@ export class SupabaseAuthService {
    * Set session directly from URL tokens (e.g. from verification or recovery link redirect)
    */
   static async setSession(access_token: string, refresh_token: string): Promise<Session | null> {
-    const client = await this.getClient();
+    const client = await this.getClient(true);
+    if (!client) throw new Error("Supabase client unavailable.");
     const { data, error } = await client.auth.setSession({
       access_token,
       refresh_token,
@@ -353,12 +400,17 @@ export class SupabaseAuthService {
     }
     let sub: { unsubscribe: () => void } | null = null;
     let isCancelled = false;
-    getSupabaseClientAsync().then((client) => {
-      if (client && !isCancelled) {
-        const { data } = client.auth.onAuthStateChange(callback);
-        sub = data.subscription;
-      }
-    });
+
+    // Only subscribe immediately if there is a potential active session
+    if (hasPotentialSupabaseSession() || supabaseInstance) {
+      getSupabaseClientAsync(false).then((client) => {
+        if (client && !isCancelled) {
+          const { data } = client.auth.onAuthStateChange(callback);
+          sub = data.subscription;
+        }
+      });
+    }
+
     return {
       data: {
         subscription: {
@@ -379,7 +431,8 @@ export class SupabaseAuthService {
    * Phase 2 Future Hook: Email OTP for sensitive account changes (e.g. wallet withdrawal, password update)
    */
   static async verifyEmailOtpForAction(email: string, token: string, type: "email_change" | "recovery" = "recovery") {
-    const client = await this.getClient();
+    const client = await this.getClient(true);
+    if (!client) throw new Error("Supabase client unavailable.");
     return client.auth.verifyOtp({
       email: email.toLowerCase().trim(),
       token: token.trim(),
@@ -391,7 +444,8 @@ export class SupabaseAuthService {
    * Phase 2 Future Hook: TOTP MFA enrollment for Administrators
    */
   static async enrollTotpMfa(issuer = "Smart Link NG Admin") {
-    const client = await this.getClient();
+    const client = await this.getClient(true);
+    if (!client) throw new Error("Supabase client unavailable.");
     return client.auth.mfa.enroll({
       factorType: "totp",
       issuer,
@@ -402,7 +456,8 @@ export class SupabaseAuthService {
    * Phase 2 Future Hook: TOTP MFA challenge verification
    */
   static async verifyTotpMfa(factorId: string, code: string) {
-    const client = await this.getClient();
+    const client = await this.getClient(true);
+    if (!client) throw new Error("Supabase client unavailable.");
     const challenge = await client.auth.mfa.challenge({ factorId });
     if (challenge.error) throw challenge.error;
     return client.auth.mfa.verify({
@@ -426,7 +481,8 @@ export class SupabaseAuthService {
    * "Ask users to verify their identity before a sensitive operation"
    */
   static async reauthenticate(): Promise<{ data: any; error: any }> {
-    const client = await this.getClient();
+    const client = await this.getClient(true);
+    if (!client) throw new Error("Supabase client unavailable.");
     return await client.auth.reauthenticate();
   }
 
@@ -446,25 +502,27 @@ export class SupabaseAuthService {
     // This sends the email using Supabase's "Reauthentication" template ("Ask users to verify their identity before a sensitive operation")
     if (this.isConfigured() && session?.user) {
       try {
-        const client = await this.getClient();
-        const { error } = await client.auth.reauthenticate();
+        const client = await this.getClient(true);
+        if (client) {
+          const { error } = await client.auth.reauthenticate();
 
-        if (!error) {
-          const userEmail = session.user.email || "";
-          return {
-            success: true,
-            message: `A 6-digit verification code has been dispatched to ${this.maskEmail(userEmail)} via Supabase Reauthentication template.`,
-            emailMasked: this.maskEmail(userEmail),
-            resendCooldownSeconds: 60,
-            expiresInSeconds: 600,
-          };
-        }
+          if (!error) {
+            const userEmail = session.user.email || "";
+            return {
+              success: true,
+              message: `A 6-digit verification code has been dispatched to ${this.maskEmail(userEmail)} via Supabase Reauthentication template.`,
+              emailMasked: this.maskEmail(userEmail),
+              resendCooldownSeconds: 60,
+              expiresInSeconds: 600,
+            };
+          }
 
-        console.warn("[SupabaseAuth] client.auth.reauthenticate error:", error.message);
-        // If rate limit or user error from Supabase, throw to inform the user
-        const errMsg = (error.message || "").toLowerCase();
-        if (errMsg.includes("rate limit") || (error as any).status === 429) {
-          throw new Error("Too many verification attempts. Please wait a minute before requesting another code.");
+          console.warn("[SupabaseAuth] client.auth.reauthenticate error:", error.message);
+          // If rate limit or user error from Supabase, throw to inform the user
+          const errMsg = (error.message || "").toLowerCase();
+          if (errMsg.includes("rate limit") || (error as any).status === 429) {
+            throw new Error("Too many verification attempts. Please wait a minute before requesting another code.");
+          }
         }
       } catch (reauthErr: any) {
         console.warn("[SupabaseAuth] Native reauthenticate attempt failed, trying backend fallback:", reauthErr?.message);
@@ -520,49 +578,51 @@ export class SupabaseAuthService {
 
     // 1. If Supabase is configured and active session exists, verify nonce via Supabase
     if (this.isConfigured() && session?.user) {
-      const client = await this.getClient();
-      try {
-        if (payload.purpose === "CHANGE_PASSWORD" && payload.payload.newPassword) {
-          const { error } = await client.auth.updateUser({
-            password: payload.payload.newPassword,
-            nonce: payload.otp.trim(),
-          });
-          if (error) throw error;
-          reauthenticatedViaSupabase = true;
-        } else if (payload.purpose === "CHANGE_EMAIL" && payload.payload.newEmail) {
-          const { error } = await client.auth.updateUser({
-            email: payload.payload.newEmail.trim().toLowerCase(),
-            nonce: payload.otp.trim(),
-          });
-          if (error) throw error;
-          reauthenticatedViaSupabase = true;
-        } else if (payload.purpose === "CHANGE_PHONE" && payload.payload.newPhoneNumber) {
-          const { error } = await client.auth.updateUser({
-            data: { phone_number: payload.payload.newPhoneNumber.trim() },
-            nonce: payload.otp.trim(),
-          });
-          if (error) throw error;
-          reauthenticatedViaSupabase = true;
-        } else if (payload.purpose === "CHANGE_PIN") {
-          const { error } = await client.auth.updateUser({
-            data: { has_transaction_pin: true, pin_required_for_transactions: true },
-            nonce: payload.otp.trim(),
-          });
-          if (error) throw error;
-          reauthenticatedViaSupabase = true;
-        } else if (payload.purpose === "TOGGLE_PIN_REQUIREMENT") {
-          const { error } = await client.auth.updateUser({
-            data: { pin_required_for_transactions: payload.payload.pinRequiredForTransactions },
-            nonce: payload.otp.trim(),
-          });
-          if (error) throw error;
-          reauthenticatedViaSupabase = true;
+      const client = await this.getClient(true);
+      if (client) {
+        try {
+          if (payload.purpose === "CHANGE_PASSWORD" && payload.payload.newPassword) {
+            const { error } = await client.auth.updateUser({
+              password: payload.payload.newPassword,
+              nonce: payload.otp.trim(),
+            });
+            if (error) throw error;
+            reauthenticatedViaSupabase = true;
+          } else if (payload.purpose === "CHANGE_EMAIL" && payload.payload.newEmail) {
+            const { error } = await client.auth.updateUser({
+              email: payload.payload.newEmail.trim().toLowerCase(),
+              nonce: payload.otp.trim(),
+            });
+            if (error) throw error;
+            reauthenticatedViaSupabase = true;
+          } else if (payload.purpose === "CHANGE_PHONE" && payload.payload.newPhoneNumber) {
+            const { error } = await client.auth.updateUser({
+              data: { phone_number: payload.payload.newPhoneNumber.trim() },
+              nonce: payload.otp.trim(),
+            });
+            if (error) throw error;
+            reauthenticatedViaSupabase = true;
+          } else if (payload.purpose === "CHANGE_PIN") {
+            const { error } = await client.auth.updateUser({
+              data: { has_transaction_pin: true, pin_required_for_transactions: true },
+              nonce: payload.otp.trim(),
+            });
+            if (error) throw error;
+            reauthenticatedViaSupabase = true;
+          } else if (payload.purpose === "TOGGLE_PIN_REQUIREMENT") {
+            const { error } = await client.auth.updateUser({
+              data: { pin_required_for_transactions: payload.payload.pinRequiredForTransactions },
+              nonce: payload.otp.trim(),
+            });
+            if (error) throw error;
+            reauthenticatedViaSupabase = true;
+          }
+        } catch (supaErr: any) {
+          console.warn("[SupabaseAuth] client.auth.updateUser with nonce attempt note:", supaErr.message);
+          // Supabase reauth template was either not dispatched by Supabase or project uses backend email OTP.
+          // Fall back to backend EmailOtpService verification.
+          reauthenticatedViaSupabase = false;
         }
-      } catch (supaErr: any) {
-        console.warn("[SupabaseAuth] client.auth.updateUser with nonce attempt note:", supaErr.message);
-        // Supabase reauth template was either not dispatched by Supabase or project uses backend email OTP.
-        // Fall back to backend EmailOtpService verification.
-        reauthenticatedViaSupabase = false;
       }
     }
 
@@ -602,7 +662,7 @@ export class SupabaseAuthService {
    * Get current authenticated user profile
    */
   static async getProfile(): Promise<User | null> {
-    const client = await getSupabaseClientAsync();
+    const client = await this.getClient(false);
     if (!client) return null;
     const { data: { user } } = await client.auth.getUser();
     return user;
