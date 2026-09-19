@@ -27,7 +27,6 @@ import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/se
 import { sendPlatformEmail } from "../services/email.service";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
 import { LumiIDAdapter } from "../../src/services/providers/lumiidAdapter";
-import { NinBvnPortalAdapter } from "../../src/services/providers/ninBvnPortalAdapter";
 import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
 import { syncFromStorage, syncToStorage } from "../../src/services/settingsStore";
 import * as usersStore from "../../src/services/usersStore";
@@ -389,7 +388,7 @@ app.post("/api/verify/engine", async (req, res) => {
         errorCode: isConfigMissing ? "GATEWAY_CONFIG_REQUIRED" : "GATEWAY_VERIFICATION_FAILED",
         friendlyMessage: isConfigMissing ? "Identity Gateway Not Configured" : `${sType} Verification Failed`,
         details: isConfigMissing
-          ? "No active Identity API credentials configured. Please navigate to Admin Dashboard > API Providers to set your LumiID, NIN BVN Portal, or VerifyNG API credentials."
+          ? "No active Identity API credentials configured. Please navigate to Admin Dashboard > API Providers to set your LumiID, Identro, or VerifyNG API credentials."
           : gatewayResult.error,
         wasFailedOver: gatewayResult.wasFailedOver,
         failoverChain: gatewayResult.failoverChain,
@@ -609,7 +608,7 @@ app.post("/api/services/nin-verify", async (req, res) => {
   const reference = `SML-VER-NIN-${Math.floor(100000 + Math.random() * 900000)}`;
   const receiptNumber = `REC-${reference}`;
 
-  // Execute verification via MultiGatewayRoutingEngine with real connected providers (LumiID, VerifyNG, NIN/BVN Portal)
+  // Execute verification via MultiGatewayRoutingEngine with real connected providers (LumiID, VerifyNG, Identro)
   const gatewayResult = await MultiGatewayRoutingEngine.executeWithFailover(db, {
     service: "NIN",
     targetId: cleanNin,
@@ -819,7 +818,7 @@ app.post("/api/services/bvn-verify", async (req, res) => {
   const reference = `SML-VER-BVN-${Math.floor(100000 + Math.random() * 900000)}`;
   const receiptNumber = `REC-${reference}`;
 
-  // Execute verification via MultiGatewayRoutingEngine with real connected providers (LumiID, VerifyNG, NIN/BVN Portal)
+  // Execute verification via MultiGatewayRoutingEngine with real connected providers (LumiID, VerifyNG, Identro)
   const gatewayResult = await MultiGatewayRoutingEngine.executeWithFailover(db, {
     service: "BVN",
     targetId: cleanBvn,

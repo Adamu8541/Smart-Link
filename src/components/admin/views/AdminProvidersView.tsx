@@ -109,7 +109,7 @@ export function AdminProvidersView() {
   const [addEnvironment, setAddEnvironment] = useState("Production");
   const [addIsDefault, setAddIsDefault] = useState(false);
 
-  const applyProviderPreset = (preset: "clubkonnect" | "aspfiy" | "lumiid" | "ninbvnportal" | "verifyng") => {
+  const applyProviderPreset = (preset: "clubkonnect" | "aspfiy" | "lumiid" | "verifyng" | "identro") => {
     if (preset === "clubkonnect") {
       setAddName("Clubkonnect VTU & Bill Payment");
       setAddCategory("TELECOM_VTU");
@@ -147,18 +147,29 @@ export function AdminProvidersView() {
       setAddBaseUrl("https://api.lumiid.com");
       setAddAuthMethod("API_KEY");
       setToast("LumiID preset applied.");
-    } else if (preset === "ninbvnportal") {
-      setAddName("NIN BVN Portal");
-      setAddCategory("IDENTITY_API");
-      setAddDescription("Direct Identity Verification Portal for NIN and BVN");
-      setAddBaseUrl("https://ninbvnportal.com/api");
-      setToast("NIN BVN Portal preset applied.");
     } else if (preset === "verifyng") {
       setAddName("VerifyNG Identity Gateway");
       setAddCategory("IDENTITY_API");
       setAddDescription("VerifyNG KYC & Identity Verification Gateway");
       setAddBaseUrl("https://kyc.edirect.ng");
       setToast("VerifyNG preset applied.");
+    } else if (preset === "identro") {
+      setAddName("Identro Identity Gateway");
+      setAddCategory("IDENTITY_API");
+      setAddDescription("Identro Merchant API for NIN, BVN, CAC & Identity Verification (identro.ng)");
+      setAddBaseUrl("https://api.identro.ng");
+      setAddAuthMethod("API_KEY");
+      setAddSupportsWalletFunding(false);
+      setAddSupportsBankTransfer(false);
+      setAddSupportsCardPayment(false);
+      setAddSupportsVirtualAccount(false);
+      setAddSupportsPaymentLink(false);
+      setAddSupportsPayout(false);
+      setAddSupportsRefund(false);
+      setAddSupportsTxVerification(true);
+      setAddEnvironment("Production");
+      setAddStatus("ENABLED");
+      setToast("Identro preset applied. Enter your x-api-key in API Credentials.");
     }
   };
 
@@ -826,17 +837,17 @@ export function AdminProvidersView() {
               </button>
               <button
                 type="button"
-                onClick={() => applyProviderPreset("ninbvnportal")}
-                className="px-2.5 py-1 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-300 rounded-lg font-medium transition cursor-pointer shrink-0"
-              >
-                🛡️ NIN BVN Portal
-              </button>
-              <button
-                type="button"
                 onClick={() => applyProviderPreset("verifyng")}
                 className="px-2.5 py-1 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 rounded-lg font-medium transition cursor-pointer shrink-0"
               >
                 🔍 VerifyNG (KYC)
+              </button>
+              <button
+                type="button"
+                onClick={() => applyProviderPreset("identro")}
+                className="px-2.5 py-1 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 rounded-lg font-medium transition cursor-pointer shrink-0"
+              >
+                🪪 Identro (identro.ng)
               </button>
             </div>
 

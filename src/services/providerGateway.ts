@@ -9,16 +9,16 @@
 
 import { AspfiyAdapter, ProviderAdapter, PaymentProviderConfig } from "./providers/aspfiyAdapter";
 import { LumiIDAdapter } from "./providers/lumiidAdapter";
-import { NinBvnPortalAdapter } from "./providers/ninBvnPortalAdapter";
 import { VerifyNGAdapter } from "./providers/verifyNgAdapter";
 import { ClubkonnectAdapter } from "./providers/clubkonnectAdapter";
+import { IdentroAdapter } from "./providers/identroAdapter";
 
 const registeredAdapters: Record<string, ProviderAdapter> = {
   aspfiy: new AspfiyAdapter(),
   lumiid: new LumiIDAdapter(),
-  ninbvnportal: new NinBvnPortalAdapter(),
   verifyng: new VerifyNGAdapter(),
   clubkonnect: new ClubkonnectAdapter(),
+  identro: new IdentroAdapter(),
 };
 
 /**
@@ -70,18 +70,18 @@ export function getActiveProviderAndAdapter(
     }
     resolvedBaseUrl = resolvedBaseUrl || "https://api.lumiid.com";
     resolvedAppId = resolvedAppId || "smartlink_identity_app";
-  } else if (activeNameLower.includes("nin bvn") || activeNameLower.includes("ninbvn")) {
-    if (process.env.NINBVNPORTAL_API_KEY || process.env.NIN_BVN_PORTAL_API_KEY) {
-      resolvedSecret = String(process.env.NINBVNPORTAL_API_KEY || process.env.NIN_BVN_PORTAL_API_KEY).trim();
-    }
-    resolvedBaseUrl = resolvedBaseUrl || "https://ninbvnportal.com/api";
-    resolvedAppId = resolvedAppId || "smartlink_nin_app";
   } else if (activeNameLower.includes("verifyng")) {
     if (process.env.VERIFYNG_API_KEY || process.env.VERIFYNG_SECRET_KEY || process.env.VERIFYNG_API_SECRET) {
       resolvedSecret = String(process.env.VERIFYNG_API_KEY || process.env.VERIFYNG_SECRET_KEY || process.env.VERIFYNG_API_SECRET).trim();
     }
     resolvedBaseUrl = (resolvedBaseUrl && !resolvedBaseUrl.includes("verifyn.ng")) ? resolvedBaseUrl : "https://kyc.edirect.ng";
     resolvedAppId = resolvedAppId || "smartlink_kyc_app";
+  } else if (activeNameLower.includes("identro")) {
+    if (process.env.IDENTRO_API_KEY || process.env.IDENTRO_SECRET_KEY) {
+      resolvedSecret = String(process.env.IDENTRO_API_KEY || process.env.IDENTRO_SECRET_KEY).trim();
+    }
+    resolvedBaseUrl = resolvedBaseUrl || "https://api.identro.ng";
+    resolvedAppId = resolvedAppId || "smartlink_identro_app";
   } else if (activeNameLower.includes("clubkonnect")) {
     if (process.env.CLUBKONNECT_API_KEY) {
       resolvedSecret = String(process.env.CLUBKONNECT_API_KEY).trim();

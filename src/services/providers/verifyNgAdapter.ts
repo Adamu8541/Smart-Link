@@ -16,7 +16,7 @@
  *
  * IMPORTANT: this API does not return address or LGA fields for NIN — only name, DOB,
  * gender, phone, state of origin, and photo. Slip templates needing address/LGA will
- * show those blank when this provider is the source; only LumiID / NIN BVN Portal
+ * show those blank when this provider is the source; LumiID / Identro
  * currently supply address+LGA.
  */
 

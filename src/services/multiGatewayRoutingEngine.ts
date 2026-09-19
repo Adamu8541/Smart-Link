@@ -16,8 +16,8 @@ import {
 import { getAdapterForProvider, getAdapterById } from "./providerGateway";
 import { AspfiyAdapter } from "./providers/aspfiyAdapter";
 import { LumiIDAdapter } from "./providers/lumiidAdapter";
-import { NinBvnPortalAdapter } from "./providers/ninBvnPortalAdapter";
 import { VerifyNGAdapter } from "./providers/verifyNgAdapter";
+import { IdentroAdapter } from "./providers/identroAdapter";
 
 export interface MultiGatewayExecutionParams {
   service: string; // NIN, BVN, PHONE, CAC, TIN, etc.
@@ -60,10 +60,12 @@ export class MultiGatewayRoutingEngine {
         strategy: "PRIORITY_ORDER",
         primaryProviderId: "lumiid",
         primaryProviderName: "LumiID Gateway",
-        secondaryProviderId: "ninbvnportal",
-        secondaryProviderName: "NIN BVN Portal",
+        secondaryProviderId: "identro",
+        secondaryProviderName: "Identro Gateway",
         tertiaryProviderId: "verifyng",
         tertiaryProviderName: "VerifyNG Gateway",
+        fallbackProviderId: "verifyng",
+        fallbackProviderName: "VerifyNG Gateway",
         timeoutMs: 8000,
         maxRetries: 2,
         autoFailover: true,
@@ -79,10 +81,12 @@ export class MultiGatewayRoutingEngine {
         strategy: "PRIORITY_ORDER",
         primaryProviderId: "lumiid",
         primaryProviderName: "LumiID Gateway",
-        secondaryProviderId: "ninbvnportal",
-        secondaryProviderName: "NIN BVN Portal",
+        secondaryProviderId: "identro",
+        secondaryProviderName: "Identro Gateway",
         tertiaryProviderId: "verifyng",
         tertiaryProviderName: "VerifyNG Gateway",
+        fallbackProviderId: "verifyng",
+        fallbackProviderName: "VerifyNG Gateway",
         timeoutMs: 8000,
         maxRetries: 2,
         autoFailover: true,
@@ -315,22 +319,22 @@ export class MultiGatewayRoutingEngine {
           lastPingLatencyMs: 175,
         },
         {
-          providerId: "ninbvnportal",
-          providerName: "NIN BVN Portal",
+          providerId: "identro",
+          providerName: "Identro Gateway (identro.ng)",
           category: "IDENTITY_API",
-          baseUrl: "https://ninbvnportal.com/api",
+          baseUrl: "https://api.identro.ng",
           status: "ONLINE",
-          uptimePercentage: 99.10,
-          avgLatencyMs: 250,
-          totalQueries: 6200,
-          successfulQueries: 6150,
-          failedQueries: 50,
-          failoverTriggeredCount: 4,
+          uptimePercentage: 99.85,
+          avgLatencyMs: 170,
+          totalQueries: 8400,
+          successfulQueries: 8380,
+          failedQueries: 20,
+          failoverTriggeredCount: 1,
           consecutiveFailures: 0,
           circuitBreakerTripped: false,
           lastPingAt: new Date().toISOString(),
           lastPingStatus: "SUCCESS",
-          lastPingLatencyMs: 230,
+          lastPingLatencyMs: 165,
         },
         {
           providerId: "clubkonnect",
@@ -408,9 +412,9 @@ export class MultiGatewayRoutingEngine {
       }
       providerRow.apiKey = providerRow.apiKey || process.env.VERIFYNG_CLIENT_KEY || process.env.VERIFYNG_API_KEY;
       providerRow.secretKey = providerRow.secretKey || process.env.VERIFYNG_API_SECRET || process.env.VERIFYNG_API_KEY || process.env.VERIFYNG_SECRET_KEY;
-    } else if (normalizedKey.includes("ninbvnportal") || normalizedKey.includes("nimc") || normalizedKey.includes("nibss")) {
-      providerRow.baseUrl = providerRow.baseUrl || "https://ninbvnportal.com/api";
-      const envKey = process.env.NINBVNPORTAL_API_KEY || process.env.NIN_BVN_PORTAL_API_KEY;
+    } else if (normalizedKey.includes("identro")) {
+      providerRow.baseUrl = providerRow.baseUrl || "https://api.identro.ng";
+      const envKey = process.env.IDENTRO_API_KEY || process.env.IDENTRO_SECRET_KEY;
       if (!providerRow.secretKey || providerRow.secretKey.includes("•")) {
         providerRow.secretKey = envKey || providerRow.secretKey;
       }
@@ -497,7 +501,7 @@ export class MultiGatewayRoutingEngine {
     if (params.preferredProviderId) {
       providerChain.push({
         id: params.preferredProviderId,
-        name: params.preferredProviderId === "aspfiy" ? "Aspfiy Payment Gateway" : params.preferredProviderId === "verifyng" ? "VerifyNG Gateway" : "LumiID Gateway",
+        name: params.preferredProviderId === "aspfiy" ? "Aspfiy Payment Gateway" : params.preferredProviderId === "verifyng" ? "VerifyNG Gateway" : params.preferredProviderId === "identro" ? "Identro Gateway" : "LumiID Gateway",
       });
     }
 
@@ -517,7 +521,8 @@ export class MultiGatewayRoutingEngine {
     if (providerChain.length === 0) {
       providerChain.push(
         { id: "aspfiy", name: "Aspfiy Payment Gateway" },
-        { id: "verifyng", name: "VerifyNG Gateway" }
+        { id: "verifyng", name: "VerifyNG Gateway" },
+        { id: "identro", name: "Identro Gateway" }
       );
     }
 
@@ -566,14 +571,6 @@ export class MultiGatewayRoutingEngine {
         pConfig.clientId = pConfig.clientId || process.env.LUMIID_APP_ID || process.env.LUMIID_CLIENT_ID || "smartlink_identity_app";
         pConfig.appId = pConfig.appId || pConfig.clientId || "smartlink_identity_app";
         pConfig.baseUrl = pConfig.baseUrl || "https://api.lumiid.com";
-      } else if (keyId.includes("ninbvnportal") || keyId.includes("nin bvn") || keyId.includes("nin_bvn")) {
-        if (isMaskedOrEmpty(pConfig.secretKey)) {
-          pConfig.secretKey = process.env.NINBVNPORTAL_API_KEY || process.env.NIN_BVN_PORTAL_API_KEY || pConfig.secretKey;
-        }
-        pConfig.apiKey = pConfig.secretKey;
-        pConfig.clientId = pConfig.clientId || "smartlink_nin_app";
-        pConfig.appId = pConfig.appId || "smartlink_nin_app";
-        pConfig.baseUrl = pConfig.baseUrl || "https://ninbvnportal.com/api";
       } else if (keyId.includes("verifyng") || keyId.includes("verify-ng")) {
         pConfig.clientId = pConfig.clientId || process.env.VERIFYNG_CLIENT_KEY || process.env.VERIFYNG_API_KEY || "smartlink_kyc_app";
         pConfig.appId = pConfig.appId || pConfig.clientId || "smartlink_kyc_app";
@@ -581,6 +578,14 @@ export class MultiGatewayRoutingEngine {
           pConfig.secretKey = process.env.VERIFYNG_API_SECRET || process.env.VERIFYNG_API_KEY || process.env.VERIFYNG_SECRET_KEY || pConfig.secretKey;
         }
         pConfig.baseUrl = (pConfig.baseUrl && !pConfig.baseUrl.includes("verifyn.ng")) ? pConfig.baseUrl : "https://kyc.edirect.ng";
+      } else if (keyId.includes("identro")) {
+        pConfig.clientId = pConfig.clientId || "smartlink_identro_app";
+        pConfig.appId = pConfig.appId || "smartlink_identro_app";
+        if (isMaskedOrEmpty(pConfig.secretKey)) {
+          pConfig.secretKey = process.env.IDENTRO_API_KEY || process.env.IDENTRO_SECRET_KEY || pConfig.secretKey;
+        }
+        pConfig.apiKey = pConfig.secretKey;
+        pConfig.baseUrl = pConfig.baseUrl || "https://api.identro.ng";
       } else if (keyId.includes("clubkonnect") || keyId.includes("club konnect")) {
         if (isMaskedOrEmpty(pConfig.secretKey)) {
           pConfig.secretKey = process.env.CLUBKONNECT_API_KEY || pConfig.secretKey;
@@ -719,11 +724,11 @@ export class MultiGatewayRoutingEngine {
       if (key.includes("lumiid")) {
         const adapter = new LumiIDAdapter();
         return await adapter.verifyIdentity(serviceType, targetId, augmentedExtra, config);
-      } else if (key.includes("ninbvnportal") || key.includes("nin bvn portal") || key.includes("nin_bvn")) {
-        const adapter = new NinBvnPortalAdapter();
-        return await adapter.verifyIdentity(serviceType, targetId, augmentedExtra, config);
       } else if (key.includes("verifyng") || key.includes("verify-ng") || key.includes("edirect")) {
         const adapter = new VerifyNGAdapter();
+        return await adapter.verifyIdentity(serviceType, targetId, augmentedExtra, config);
+      } else if (key.includes("identro")) {
+        const adapter = new IdentroAdapter();
         return await adapter.verifyIdentity(serviceType, targetId, augmentedExtra, config);
       }
 

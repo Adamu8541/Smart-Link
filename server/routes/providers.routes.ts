@@ -25,9 +25,9 @@ import { PaymentVerificationReconciliationEngine } from "../../src/services/paym
 import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerGateway";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
 import { LumiIDAdapter } from "../../src/services/providers/lumiidAdapter";
-import { NinBvnPortalAdapter } from "../../src/services/providers/ninBvnPortalAdapter";
 import { VerifyNGAdapter } from "../../src/services/providers/verifyNgAdapter";
 import { ClubkonnectAdapter } from "../../src/services/providers/clubkonnectAdapter";
+import { IdentroAdapter } from "../../src/services/providers/identroAdapter";
 import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
 import { syncFromStorage, syncToStorage } from "../../src/services/settingsStore";
 import * as usersStore from "../../src/services/usersStore";
@@ -577,16 +577,16 @@ function getCentralActivePaymentProvider(db: any, isAdmin = false) {
     activeProvider.apiKey = activeProvider.secretKey;
     activeProvider.clientId = activeProvider.clientId || String(process.env.LUMIID_APP_ID || process.env.LUMIID_CLIENT_ID || "smartlink_identity_app").trim();
     activeProvider.baseUrl = activeProvider.baseUrl || "https://api.lumiid.com";
-  } else if (activeProvName.includes("nin bvn") || activeProvName.includes("ninbvn")) {
-    activeProvider.secretKey = activeProvider.secretKey || String(process.env.NINBVNPORTAL_API_KEY || process.env.NIN_BVN_PORTAL_API_KEY || "").trim();
-    activeProvider.apiKey = activeProvider.secretKey;
-    activeProvider.clientId = activeProvider.clientId || "smartlink_nin_app";
-    activeProvider.baseUrl = activeProvider.baseUrl || "https://ninbvnportal.com/api";
   } else if (activeProvName.includes("verifyng")) {
     activeProvider.secretKey = activeProvider.secretKey || String(process.env.VERIFYNG_API_KEY || process.env.VERIFYNG_SECRET_KEY || process.env.VERIFYNG_API_SECRET || "").trim();
     activeProvider.clientId = activeProvider.clientId || String(process.env.VERIFYNG_CLIENT_KEY || process.env.VERIFYNG_API_KEY || "smartlink_kyc_app").trim();
     activeProvider.apiKey = activeProvider.clientId;
     activeProvider.baseUrl = (activeProvider.baseUrl && !activeProvider.baseUrl.includes("verifyn.ng")) ? activeProvider.baseUrl : "https://kyc.edirect.ng";
+  } else if (activeProvName.includes("identro")) {
+    activeProvider.secretKey = activeProvider.secretKey || String(process.env.IDENTRO_API_KEY || process.env.IDENTRO_SECRET_KEY || "").trim();
+    activeProvider.clientId = activeProvider.clientId || String(process.env.IDENTRO_CLIENT_ID || "smartlink_identro_app").trim();
+    activeProvider.apiKey = activeProvider.secretKey;
+    activeProvider.baseUrl = activeProvider.baseUrl || "https://api.identro.ng";
   } else if (activeProvName.includes("clubkonnect")) {
     activeProvider.secretKey = activeProvider.secretKey || String(process.env.CLUBKONNECT_API_KEY || "").trim();
     activeProvider.clientId = activeProvider.clientId || String(process.env.CLUBKONNECT_USER_ID || "smartlink_vtu").trim();
@@ -985,16 +985,16 @@ app.post("/api/admin/payment-providers/:id/test-connection", requireAdmin, async
     provider.apiKey = provider.secretKey;
     provider.clientId = provider.clientId || String(process.env.LUMIID_APP_ID || process.env.LUMIID_CLIENT_ID || "smartlink_identity_app").trim();
     provider.baseUrl = provider.baseUrl || "https://api.lumiid.com";
-  } else if (testProvName.includes("nin bvn") || testProvName.includes("ninbvn")) {
-    provider.secretKey = provider.secretKey || String(process.env.NINBVNPORTAL_API_KEY || process.env.NIN_BVN_PORTAL_API_KEY || "").trim();
-    provider.apiKey = provider.secretKey;
-    provider.clientId = provider.clientId || "smartlink_nin_app";
-    provider.baseUrl = provider.baseUrl || "https://ninbvnportal.com/api";
   } else if (testProvName.includes("verifyng")) {
     provider.secretKey = provider.secretKey || String(process.env.VERIFYNG_API_KEY || process.env.VERIFYNG_SECRET_KEY || process.env.VERIFYNG_API_SECRET || "").trim();
     provider.clientId = provider.clientId || String(process.env.VERIFYNG_CLIENT_KEY || process.env.VERIFYNG_API_KEY || "smartlink_kyc_app").trim();
     provider.apiKey = provider.clientId;
     provider.baseUrl = (provider.baseUrl && !provider.baseUrl.includes("verifyn.ng")) ? provider.baseUrl : "https://kyc.edirect.ng";
+  } else if (testProvName.includes("identro")) {
+    provider.secretKey = provider.secretKey || String(process.env.IDENTRO_API_KEY || process.env.IDENTRO_SECRET_KEY || "").trim();
+    provider.clientId = provider.clientId || String(process.env.IDENTRO_CLIENT_ID || "smartlink_identro_app").trim();
+    provider.apiKey = provider.secretKey;
+    provider.baseUrl = provider.baseUrl || "https://api.identro.ng";
   } else if (testProvName.includes("clubkonnect")) {
     provider.secretKey = provider.secretKey || String(process.env.CLUBKONNECT_API_KEY || "").trim();
     provider.clientId = provider.clientId || String(process.env.CLUBKONNECT_USER_ID || "smartlink_vtu").trim();
@@ -1508,40 +1508,10 @@ function seedModule6ProvidersIfEmpty(db: any) {
     });
   }
 
-  // Ensure NIN BVN Portal Provider (official base URL & built-in App ID)
-  if (!db.api_providers.some((p: any) => p.id === "prov_ninbvnportal" || (p.name || "").toLowerCase().includes("ninbvnportal") || (p.name || "").toLowerCase().includes("nin bvn"))) {
-    db.api_providers.push({
-      id: "prov_ninbvnportal",
-      name: "NIN BVN Portal",
-      category: "IDENTITY_API",
-      providerType: "IDENTITY_API",
-      description: "Direct Identity Verification Portal for NIN and BVN (ninbvnportal.com)",
-      logoUrl: "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=100&auto=format&fit=crop&q=60",
-      baseUrl: "https://ninbvnportal.com/api",
-      apiVersion: "v1.0",
-      authMethod: "API_KEY",
-      secretKey: String(process.env.NINBVNPORTAL_API_KEY || process.env.NIN_BVN_PORTAL_API_KEY || "").trim(),
-      apiKey: String(process.env.NINBVNPORTAL_API_KEY || process.env.NIN_BVN_PORTAL_API_KEY || "").trim(),
-      clientId: "smartlink_nin_app",
-      appId: "smartlink_nin_app",
-      supportsWalletFunding: false,
-      supportsBankTransfer: false,
-      supportsCardPayment: false,
-      supportsVirtualAccount: false,
-      supportsPaymentLink: false,
-      supportsPayout: false,
-      supportsRefund: false,
-      supportsTxVerification: true,
-      timeout: 10000,
-      retryAttempts: 3,
-      healthStatus: "ONLINE",
-      priority: 3,
-      environment: "PRODUCTION",
-      status: "ENABLED",
-      enabled: true,
-      isActive: true,
-    });
-  }
+  // Purge any legacy ninbvnportal entries
+  db.api_providers = (db.api_providers || []).filter(
+    (p: any) => p.id !== "prov_ninbvnportal" && !(p.name || "").toLowerCase().includes("ninbvnportal") && !(p.name || "").toLowerCase().includes("nin bvn")
+  );
 
   // Ensure VerifyNG Provider (official base URL & built-in App ID)
   if (!db.api_providers.some((p: any) => p.id === "prov_verifyng" || (p.name || "").toLowerCase().includes("verifyng"))) {
@@ -1606,6 +1576,41 @@ function seedModule6ProvidersIfEmpty(db: any) {
       retryAttempts: 3,
       healthStatus: "ONLINE",
       priority: 5,
+      environment: "PRODUCTION",
+      status: "ENABLED",
+      enabled: true,
+      isActive: true,
+    });
+  }
+
+  // Ensure Identro Gateway Provider (official base URL & built-in App ID)
+  if (!db.api_providers.some((p: any) => p.id === "prov_identro" || (p.name || "").toLowerCase().includes("identro"))) {
+    db.api_providers.push({
+      id: "prov_identro",
+      name: "Identro Identity Gateway",
+      category: "IDENTITY_API",
+      providerType: "IDENTITY_API",
+      description: "Identro Identity, KYC & CAC Verification Gateway (identro.ng)",
+      logoUrl: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=100&auto=format&fit=crop&q=60",
+      baseUrl: "https://api.identro.ng",
+      apiVersion: "v1.0",
+      authMethod: "API_KEY",
+      secretKey: String(process.env.IDENTRO_API_KEY || process.env.IDENTRO_SECRET_KEY || "").trim(),
+      apiKey: String(process.env.IDENTRO_API_KEY || process.env.IDENTRO_SECRET_KEY || "").trim(),
+      clientId: "smartlink_identro_app",
+      appId: "smartlink_identro_app",
+      supportsWalletFunding: false,
+      supportsBankTransfer: false,
+      supportsCardPayment: false,
+      supportsVirtualAccount: false,
+      supportsPaymentLink: false,
+      supportsPayout: false,
+      supportsRefund: false,
+      supportsTxVerification: true,
+      timeout: 12000,
+      retryAttempts: 3,
+      healthStatus: "ONLINE",
+      priority: 6,
       environment: "PRODUCTION",
       status: "ENABLED",
       enabled: true,
@@ -2072,10 +2077,10 @@ app.post("/api/admin/providers/:providerId/test-connection", requireAdmin, async
     }
     provider.apiKey = provider.apiKey || process.env.VERIFYNG_CLIENT_KEY || process.env.VERIFYNG_API_KEY;
     provider.secretKey = provider.secretKey || process.env.VERIFYNG_API_SECRET || process.env.VERIFYNG_API_KEY || process.env.VERIFYNG_SECRET_KEY;
-  } else if (pName.includes("ninbvnportal") || pId.includes("ninbvnportal")) {
-    provider.baseUrl = provider.baseUrl || "https://ninbvnportal.com/api";
+  } else if (pName.includes("identro") || pId.includes("identro")) {
+    provider.baseUrl = provider.baseUrl || "https://api.identro.ng";
     if (!provider.secretKey || provider.secretKey.includes("•")) {
-      provider.secretKey = process.env.NINBVNPORTAL_API_KEY || process.env.NIN_BVN_PORTAL_API_KEY || provider.secretKey;
+      provider.secretKey = process.env.IDENTRO_API_KEY || process.env.IDENTRO_SECRET_KEY || provider.secretKey;
     }
     provider.apiKey = provider.secretKey;
   } else if (pName.includes("clubkonnect") || pId.includes("clubkonnect")) {
@@ -2099,12 +2104,12 @@ app.post("/api/admin/providers/:providerId/test-connection", requireAdmin, async
   } else if (provider.name.toLowerCase().includes("lumiid")) {
     const lumiAdapter = new LumiIDAdapter();
     testResult = await lumiAdapter.testConnection(provider);
-  } else if (provider.name.toLowerCase().includes("ninbvnportal") || provider.name.toLowerCase().includes("nin bvn portal")) {
-    const ninBvnAdapter = new NinBvnPortalAdapter();
-    testResult = await ninBvnAdapter.testConnection(provider);
   } else if (provider.name.toLowerCase().includes("verifyng") || provider.name.toLowerCase().includes("verify-ng") || provider.name.toLowerCase().includes("edirect")) {
     const verifyNgAdapter = new VerifyNGAdapter();
     testResult = await verifyNgAdapter.testConnection(provider);
+  } else if (provider.name.toLowerCase().includes("identro") || (provider.id && provider.id.toLowerCase().includes("identro"))) {
+    const identroAdapter = new IdentroAdapter();
+    testResult = await identroAdapter.testConnection(provider);
   } else if (provider.name.toLowerCase().includes("clubkonnect") || provider.name.toLowerCase().includes("club konnect")) {
     const clubkonnectAdapter = new ClubkonnectAdapter();
     testResult = await clubkonnectAdapter.testConnection(provider);

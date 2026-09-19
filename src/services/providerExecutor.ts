@@ -378,7 +378,7 @@ export class ProviderExecutor {
     const providerName = provider.name || params.providerName || "Provider";
     const providerCode = provider.id || params.providerCode || "PROV";
 
-    // 2. Check if there's a specialized ProviderAdapter for IDENTITY_API (LumiID, NinBvnPortal, VerifyNG, etc.) or VTU/Bills (Clubkonnect)
+    // 2. Check if there's a specialized ProviderAdapter for IDENTITY_API (LumiID, Identro, VerifyNG, etc.) or VTU/Bills (Clubkonnect)
     const registeredAdapter = getAdapterForProvider(provider);
     const apiRequests = db.api_requests || [];
     const requestTemplate = apiRequests.find((r: any) =>

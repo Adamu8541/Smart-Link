@@ -51,7 +51,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
   return (
     <header
       id="site-header"
-      className={`sticky top-0 z-40 w-full transition-colors duration-200 border-b ${
+      className={`sticky top-0 z-40 w-full min-h-[80px] sm:min-h-[96px] transition-colors duration-200 border-b ${
         isScrolled
           ? "bg-white/95 backdrop-blur-md shadow-sm border-[#E5E7EB]"
           : "bg-white border-[#E5E7EB]"
@@ -65,7 +65,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
             id="header-logo-container"
             type="button"
             onClick={() => handleNavClick("hero-section")}
-            className="flex items-center cursor-pointer group bg-transparent border-none p-0 text-left"
+            className="flex items-center cursor-pointer group bg-transparent border-none p-0 text-left w-[224px] sm:w-[280px] h-14 sm:h-16 lg:h-18 shrink-0"
             aria-label="SmartLink NG Home"
           >
             <img

@@ -841,14 +841,15 @@ export const AdminMultiGatewayView: React.FC = () => {
                     value={selectedRule.primaryProviderId}
                     onChange={(e) => {
                       const pId = e.target.value;
-                      const pName = pId === "aspfiy" ? "Aspfiy Payment Gateway" : pId === "verifyng" ? "VerifyNG Gateway" : "LumiID Gateway";
+                      const pName = pId === "aspfiy" ? "Aspfiy Payment Gateway" : pId === "verifyng" ? "VerifyNG Gateway" : pId === "identro" ? "Identro Gateway" : "LumiID Gateway";
                       setSelectedRule({ ...selectedRule, primaryProviderId: pId, primaryProviderName: pName });
                     }}
                     className="w-full p-2 rounded-lg border border-[#E5E7EB] dark:border-[#4B5563] bg-white dark:bg-[#111827] text-[#111827] dark:text-white"
                   >
-                    <option value="aspfiy">Aspfiy Payment Gateway</option>
-                    <option value="verifyng">VerifyNG Gateway</option>
                     <option value="lumiid">LumiID Gateway</option>
+                    <option value="identro">Identro Gateway</option>
+                    <option value="verifyng">VerifyNG Gateway</option>
+                    <option value="aspfiy">Aspfiy Payment Gateway</option>
                   </select>
                 </div>
 
@@ -860,14 +861,15 @@ export const AdminMultiGatewayView: React.FC = () => {
                     value={selectedRule.secondaryProviderId || ""}
                     onChange={(e) => {
                       const pId = e.target.value;
-                      const pName = pId === "aspfiy" ? "Aspfiy Payment Gateway" : pId === "verifyng" ? "VerifyNG Gateway" : "LumiID Gateway";
+                      const pName = pId === "aspfiy" ? "Aspfiy Payment Gateway" : pId === "verifyng" ? "VerifyNG Gateway" : pId === "identro" ? "Identro Gateway" : "LumiID Gateway";
                       setSelectedRule({ ...selectedRule, secondaryProviderId: pId, secondaryProviderName: pName });
                     }}
                     className="w-full p-2 rounded-lg border border-[#E5E7EB] dark:border-[#4B5563] bg-white dark:bg-[#111827] text-[#111827] dark:text-white"
                   >
-                    <option value="aspfiy">Aspfiy Payment Gateway</option>
-                    <option value="verifyng">VerifyNG Gateway</option>
                     <option value="lumiid">LumiID Gateway</option>
+                    <option value="identro">Identro Gateway</option>
+                    <option value="verifyng">VerifyNG Gateway</option>
+                    <option value="aspfiy">Aspfiy Payment Gateway</option>
                   </select>
                 </div>
               </div>

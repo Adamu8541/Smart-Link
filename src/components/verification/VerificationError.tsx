@@ -57,7 +57,7 @@ export const VerificationError: React.FC<VerificationErrorProps> = ({
           ) : errorState.code === "INVALID_INPUT" ? (
             <li>Check input parameters (e.g. 11 digits for NIN/BVN).</li>
           ) : errorState.code === "GATEWAY_CONFIG_REQUIRED" ? (
-            <li>Admin: Go to Admin Dashboard &rarr; API Providers to configure your LumiID, NIN BVN Portal, or VerifyNG gateway API keys.</li>
+            <li>Admin: Go to Admin Dashboard &rarr; API Providers to configure your LumiID, Identro, or VerifyNG gateway API keys.</li>
           ) : (
             <li>Check network connection or try repeating the request.</li>
           )}

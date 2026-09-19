@@ -27,8 +27,8 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
       {/* Background Subtle Overlay */}
       <div className="absolute inset-0 bg-[radial-gradient(rgba(15,45,92,0.04)_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none" />
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-        <div className="space-y-6 sm:space-y-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center w-full">
+        <div className="w-full flex flex-col gap-6 sm:gap-8">
           
           {/* Main Semantic H1 Headline - Pre-rendered instantly for fastest mobile LCP */}
           <h1
@@ -52,9 +52,9 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
           {/* 3 Focused Benefit Bullets - Immediately visible, zero animation delay */}
           <div
             id="hero-benefits-grid"
-            className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 pt-2 text-left max-w-3xl mx-auto"
+            className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 pt-2 text-left max-w-3xl mx-auto w-full"
           >
-            <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] shadow-2xs">
+            <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] shadow-2xs min-h-[72px]">
               <ShieldCheck className="h-5 w-5 text-[#0F2D5C] shrink-0 mt-0.5" aria-hidden="true" />
               <div>
                 <p className="text-sm font-bold text-[#0F2D5C]">Instant Verification &amp; Slips</p>
@@ -62,7 +62,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
               </div>
             </div>
 
-            <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] shadow-2xs">
+            <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] shadow-2xs min-h-[72px]">
               <Zap className="h-5 w-5 text-[#0F2D5C] shrink-0 mt-0.5" aria-hidden="true" />
               <div>
                 <p className="text-sm font-bold text-[#0F2D5C]">Automated Bills &amp; VTU</p>
@@ -70,7 +70,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
               </div>
             </div>
 
-            <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] shadow-2xs">
+            <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] shadow-2xs min-h-[72px]">
               <Lock className="h-5 w-5 text-[#0F2D5C] shrink-0 mt-0.5" aria-hidden="true" />
               <div>
                 <p className="text-sm font-bold text-[#0F2D5C]">Bank-Grade &amp; 99.9% Uptime</p>
