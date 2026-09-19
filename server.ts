@@ -59,7 +59,7 @@ dotenv.config();
 
 const app = express();
 app.use(compression());
-const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+const PORT = 3000;
 
 // Security Headers
 app.use(helmet({
@@ -164,6 +164,21 @@ app.all("/api/*", (req, res) => {
   });
 });
 
+// Global API Error Handler: Guarantees any unhandled error in /api routes returns JSON, never HTML
+app.use("/api", (err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error(`[API Unhandled Error] ${req.method} ${req.originalUrl}:`, err);
+  if (res.headersSent) {
+    return next(err);
+  }
+  const statusCode = typeof err.status === "number" ? err.status : typeof err.statusCode === "number" ? err.statusCode : 500;
+  return res.status(statusCode).json({
+    success: false,
+    error: err?.message || "Internal server error processing API request.",
+    errorCode: err?.code || "INTERNAL_API_ERROR",
+    details: err?.details || undefined,
+  });
+});
+
 // Search Engine Directives: robots.txt and sitemap.xml
 app.get("/robots.txt", (req, res) => {
   const host = req.headers["x-forwarded-host"] || req.headers.host || "smartlinkng.com.ng";
@@ -205,7 +220,32 @@ app.get("/llms.txt", (_req, res) => {
 let serverInstance: any = null;
 
 async function startServer() {
-  const isProductionMode = process.env.NODE_ENV === "production" || fs.existsSync(path.join(process.cwd(), "dist", "index.html"));
+  const isProductionMode = process.env.NODE_ENV === "production";
+
+  // Universal favicon and icon route handler with long-term 1-year immutable caching
+  app.get(["/favicon.webp", "/favicon.png", "/favicon.ico", "/apple-touch-icon.png", "/apple-touch-icon-precomposed.png"], (req, res) => {
+    const isWebp = req.path.endsWith(".webp");
+    const isPng = req.path.endsWith(".png");
+    const mime = isWebp ? "image/webp" : isPng ? "image/png" : "image/x-icon";
+    
+    const publicPath = path.join(process.cwd(), "public");
+    const distPath = path.join(process.cwd(), "dist");
+
+    const reqFile = path.basename(req.path);
+    const favPublic = path.join(publicPath, reqFile);
+    const favDist = path.join(distPath, reqFile);
+    const favDefaultWebp = path.join(publicPath, "favicon.webp");
+
+    res.setHeader("Content-Type", mime);
+    res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+    res.setHeader("CDN-Cache-Control", "public, max-age=31536000, immutable");
+    res.setHeader("Cloudflare-CDN-Cache-Control", "public, max-age=31536000, immutable");
+
+    if (fs.existsSync(favPublic)) return res.sendFile(favPublic);
+    if (fs.existsSync(favDist)) return res.sendFile(favDist);
+    if (fs.existsSync(favDefaultWebp)) return res.sendFile(favDefaultWebp);
+    return res.status(204).send();
+  });
 
   // Universal logo route handler (works in both dev and production modes)
   app.get(["/logo.webp", "/assets/logo.webp", "/logo.png", "/assets/logo.png"], (req, res) => {
@@ -223,6 +263,8 @@ async function startServer() {
     const rootLogo = path.join(process.cwd(), `logo${ext}`);
 
     res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+    res.setHeader("CDN-Cache-Control", "public, max-age=31536000, immutable");
+    res.setHeader("Cloudflare-CDN-Cache-Control", "public, max-age=31536000, immutable");
     if (fs.existsSync(primaryLogo)) {
       res.setHeader("Content-Type", mime);
       return res.sendFile(primaryLogo);
@@ -287,12 +329,35 @@ async function startServer() {
       return res.status(404).send("OG image not found");
     });
 
-    // Dedicated route for public/assets files (NIN slips, BVN cards, etc.) with no-cache for instant live reflection
+    // Hashed Vite production assets - 1 Year Immutable Cache (Registered FIRST to avoid fallback interception)
+    app.use("/assets", express.static(path.join(distPath, "assets"), {
+      maxAge: "31536000s",
+      immutable: true,
+      setHeaders: (res, filePath) => {
+        res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+        res.setHeader("CDN-Cache-Control", "public, max-age=31536000, immutable");
+        res.setHeader("Cloudflare-CDN-Cache-Control", "public, max-age=31536000, immutable");
+      }
+    }));
+
+    // Dedicated fallback route for public/assets files (NIN slips, BVN cards, etc.)
     app.get("/assets/:filename", (req, res, next) => {
       const filename = decodeURIComponent(req.params.filename);
+      // Strictly skip any compiled Vite production asset extensions
+      if (
+        filename.endsWith(".js") ||
+        filename.endsWith(".css") ||
+        filename.endsWith(".mjs") ||
+        filename.endsWith(".map") ||
+        filename.endsWith(".woff2") ||
+        filename.endsWith(".woff") ||
+        filename.endsWith(".ttf")
+      ) {
+        return next();
+      }
+
       const searchDirs = [
         path.join(publicPath, "assets"),
-        path.join(distPath, "assets"),
         path.join(process.cwd(), "public", "assets"),
         path.join(process.cwd(), "assets"),
       ];
@@ -325,27 +390,31 @@ async function startServer() {
       next();
     });
 
-    // Hashed Vite production assets - 1 Year Immutable Cache
-    app.use("/assets", express.static(path.join(distPath, "assets"), {
+    // Static public directory - 1 Year Cache for images, icons & assets with ETag support
+    app.use(express.static(publicPath, {
       maxAge: "31536000s",
       immutable: true,
-    }));
-
-    // Static public directory - 7 Days Cache with ETag support
-    app.use(express.static(publicPath, {
-      maxAge: "604800s",
       setHeaders: (res, filePath) => {
-        if (filePath.endsWith(".html")) {
-          res.setHeader("Cache-Control", "no-cache");
+        if (filePath.endsWith(".html") || filePath.endsWith("sw.js")) {
+          res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        } else if (filePath.endsWith(".webp") || filePath.endsWith(".png") || filePath.endsWith(".ico") || filePath.endsWith(".svg") || filePath.endsWith(".jpg")) {
+          res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+          res.setHeader("CDN-Cache-Control", "public, max-age=31536000, immutable");
+          res.setHeader("Cloudflare-CDN-Cache-Control", "public, max-age=31536000, immutable");
         }
       }
     }));
 
     app.use(express.static(distPath, {
-      maxAge: "86400s",
+      maxAge: "31536000s",
+      immutable: true,
       setHeaders: (res, filePath) => {
-        if (filePath.endsWith(".html")) {
-          res.setHeader("Cache-Control", "no-cache");
+        if (filePath.endsWith(".html") || filePath.endsWith("sw.js")) {
+          res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        } else if (filePath.endsWith(".webp") || filePath.endsWith(".png") || filePath.endsWith(".ico") || filePath.endsWith(".svg") || filePath.endsWith(".jpg") || filePath.endsWith(".js") || filePath.endsWith(".css")) {
+          res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+          res.setHeader("CDN-Cache-Control", "public, max-age=31536000, immutable");
+          res.setHeader("Cloudflare-CDN-Cache-Control", "public, max-age=31536000, immutable");
         }
       }
     }));

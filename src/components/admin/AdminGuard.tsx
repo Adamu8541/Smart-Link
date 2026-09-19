@@ -169,7 +169,7 @@ export default function AdminGuard({
   // 2. Unauthenticated -> Redirect to Login
   if (!sessionValid || !adminSession) {
     return (
-      <div id="admin-guard-unauth" style={{ backgroundColor: '#fbfcff' }} className="min-h-screen flex items-center justify-center p-6 text-center">
+      <div id="admin-guard-unauth" style={{ backgroundColor: '#88c9f9' }} className="min-h-screen flex items-center justify-center p-6 text-center">
         <div style={{ backgroundColor: '#ffffff' }} className="max-w-md border border-slate-200 rounded-3xl p-8 space-y-5 shadow-xl">
           <div className="mx-auto w-12 h-12 rounded-full bg-[#0F2D5C]/10 border border-[#0F2D5C]/20 text-[#0F2D5C] flex items-center justify-center">
             <Lock className="h-5 w-5" />

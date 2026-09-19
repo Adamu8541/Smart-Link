@@ -158,7 +158,7 @@ app.post("/api/verify/identity", async (req, res) => {
 
   if (!providerResult.success) {
     const isNoProvider = providerResult.error?.includes("No active provider configured");
-    return res.status(isNoProvider ? 503 : 502).json({
+    return res.status(isNoProvider ? 400 : 422).json({
       error: isNoProvider
         ? "Identity verification provider not configured."
         : (providerResult.error || "Verification provider could not confirm this record."),
@@ -335,9 +335,7 @@ app.post("/api/verify/engine", async (req, res) => {
 
     const effectiveUserId = authCheck.isAdmin ? userId : (authCheck.authenticatedUid || userId);
 
-  // Explicit conditional guard clause for Aspfiy
-  if (req.body.provider === "Aspfiy" || req.body.providerName === "Aspfiy" || req.body.provider === "prov_aspfiy") {
-    // Execute original, untouched Aspfiy pipeline blocks exactly as currently written in the file.
+    // --- MULTI-GATEWAY INTELLIGENT ROUTING & AUTOMATED FAILOVER PIPELINE ---
     if (!effectiveUserId) {
       return res.status(401).json({ error: "User authentication required.", errorCode: "AUTH_ERROR" });
     }
@@ -356,36 +354,55 @@ app.post("/api/verify/engine", async (req, res) => {
     const reference = `SML-VER-${Math.floor(100000 + Math.random() * 900000)}`;
     const receiptNumber = `REC-${reference}`;
 
-    // 1. Call real identity verification provider before debiting
-    const providerResult = await ProviderExecutor.executeProviderCall(db, {
-      category: "IDENTITY_API",
-      providerName: req.body.providerName || undefined,
-      customerId: targetId,
+    // Execute verification via MultiGatewayRoutingEngine with real connected providers
+    const gatewayResult = await MultiGatewayRoutingEngine.executeWithFailover(db, {
+      service: sType,
+      targetId,
       userId: effectiveUserId,
+      userEmail: req.body.email || "",
       amount: serviceFee,
       smartlinkReference: reference,
-      extraData: { ...extraFields, service: sType, targetId, consent: extraFields.consent === true || extraFields.consent === "true" || req.body.consent === true },
+      extraData: {
+        ...extraFields,
+        service: sType,
+        targetId,
+        ...(sType === "BVN" ? {
+          bvn: targetId,
+          id_number: targetId,
+          idNumber: targetId,
+          number: targetId,
+          bvn_number: targetId,
+          search_value: targetId,
+        } : {}),
+        consent: extraFields.consent === true || extraFields.consent === "true" || req.body.consent === true,
+      },
+      preferredProviderId: req.body.providerId || req.body.preferredProvider,
     });
 
-    if (!providerResult.success) {
-      const isNoProvider = providerResult.error?.includes("No active provider configured");
-      return res.status(isNoProvider ? 503 : 502).json({
-        error: isNoProvider
-          ? "Identity verification provider not configured."
-          : (providerResult.error || "Verification provider could not confirm this record."),
-        errorCode: isNoProvider ? "PROVIDER_NOT_CONFIGURED" : "PROVIDER_FAILED",
-        friendlyMessage: isNoProvider ? "Identity Provider Not Configured" : `${sType} Verification Failed`,
-        details: providerResult.error,
+    if (!gatewayResult.success) {
+      const isConfigMissing = (gatewayResult.error || "").toLowerCase().includes("not configured") ||
+        (gatewayResult.error || "").toLowerCase().includes("credentials need verification") ||
+        (gatewayResult.error || "").toLowerCase().includes("api key") ||
+        (gatewayResult.error || "").toLowerCase().includes("secret key");
+      return res.status(isConfigMissing ? 400 : 422).json({
+        error: gatewayResult.error || "Verification gateways failed to confirm this identity record.",
+        errorCode: isConfigMissing ? "GATEWAY_CONFIG_REQUIRED" : "GATEWAY_VERIFICATION_FAILED",
+        friendlyMessage: isConfigMissing ? "Identity Gateway Not Configured" : `${sType} Verification Failed`,
+        details: isConfigMissing
+          ? "No active Identity API credentials configured. Please navigate to Admin Dashboard > API Providers to set your LumiID, NIN BVN Portal, or VerifyNG API credentials."
+          : gatewayResult.error,
+        wasFailedOver: gatewayResult.wasFailedOver,
+        failoverChain: gatewayResult.failoverChain,
       });
     }
 
-    const resolvedProviderName = providerResult.providerName || "Identity Verification Gateway";
+    const resolvedProviderName = gatewayResult.providerName || "Identity Verification Gateway";
 
     // 2. Debit wallet only after provider verification succeeds
     let debitRes;
     try {
       debitRes = await ServerWalletEngine.debitWallet(db, {
-        userId,
+        userId: effectiveUserId,
         amount: serviceFee,
         serviceName: `${sType} Verification (${resolvedProviderName})`,
         provider: resolvedProviderName,
@@ -394,8 +411,8 @@ app.post("/api/verify/engine", async (req, res) => {
         fee: 0,
         recipientDetails: `${sType}: ${targetId}`,
         type: `${sType}_VERIFICATION`,
-        providerReference: providerResult.providerReference || providerResult.transactionId,
-        rawResponse: providerResult.rawResponse,
+        providerReference: gatewayResult.providerReference || gatewayResult.transactionId,
+        rawResponse: gatewayResult.data,
       });
     } catch (err: any) {
       return res.status(400).json({
@@ -405,14 +422,15 @@ app.post("/api/verify/engine", async (req, res) => {
       });
     }
 
-    // 3. Map verified data directly from provider's real response
-    const rawData = providerResult.rawResponse?.data || providerResult.rawResponse || {};
+    // 3. Map verified data dynamically
+    const rawData = gatewayResult.data || {};
     const verifiedData: any = {
       ...rawData,
       fullName: rawData.fullName || rawData.name || [rawData.firstName, rawData.lastName].filter(Boolean).join(" ") || extraFields.fullName || "",
       firstName: rawData.firstName || "",
       lastName: rawData.lastName || "",
-      gender: rawData.gender || rawData.sex || "MALE",
+      middleName: rawData.middleName || "",
+      gender: rawData.gender || rawData.sex || "",
       dateOfBirth: rawData.dateOfBirth || rawData.dob || "",
       phoneNumber: rawData.phoneNumber || rawData.phone || extraFields.phoneNumber || "",
       email: rawData.email || extraFields.email || "",
@@ -421,225 +439,14 @@ app.post("/api/verify/engine", async (req, res) => {
       lga: rawData.lga || rawData.localGov || "",
       photoUrl: normalizePhotoUrl(rawData.photoUrl || rawData.photo || rawData.image || ""),
       isVerified: true,
-      verificationsPassed: rawData.verificationsPassed || ["Database Record Match", "KYC Identity Verified"],
-      rawResponse: providerResult.rawResponse,
+      verificationsPassed: rawData.verificationsPassed || ["Database Record Match", "KYC Identity Verified", "Gateway Switch Integrity Passed"],
+      provider: resolvedProviderName,
+      rawResponse: gatewayResult.data,
+      wasFailedOver: gatewayResult.wasFailedOver,
+      failoverChain: gatewayResult.failoverChain,
     };
 
     if (sType === "NIN") verifiedData.nin = rawData.nin || targetId;
-    else if (sType === "BVN") verifiedData.bvn = rawData.bvn || targetId;
-    else if (sType === "CAC") {
-      verifiedData.rcNumber = rawData.rcNumber || targetId;
-      verifiedData.companyName = rawData.companyName || rawData.name || extraFields.fullName || "";
-      verifiedData.companyStatus = rawData.companyStatus || "ACTIVE";
-    } else if (sType === "TIN") {
-      verifiedData.tin = rawData.tin || targetId;
-      verifiedData.taxpayerName = rawData.taxpayerName || rawData.name || extraFields.fullName || "";
-      verifiedData.taxStatus = rawData.taxStatus || "ACTIVE";
-    }
-
-    // Generate cryptographically signed QR payload for NIN
-    let signedQrContent: string | undefined;
-    if (sType === "NIN") {
-      signedQrContent = signQRPayload({
-        nin: verifiedData.nin || targetId,
-        firstName: verifiedData.firstName,
-        surname: verifiedData.lastName || verifiedData.fullName?.split(" ").pop() || "",
-        middleName: verifiedData.middleName,
-        dob: verifiedData.dateOfBirth,
-      });
-    }
-
-    const responseTime = providerResult.responseTimeMs || Math.max(180, Date.now() - startTime);
-
-    // 4. Save Verification Record to DB History
-    if (!db.verificationHistory) db.verificationHistory = [];
-
-    const maskedId = targetId.length > 6
-      ? `${targetId.substring(0, 3)}****${targetId.substring(targetId.length - 4)}`
-      : targetId;
-
-    const historyItem = {
-      id: `ver_${Math.random().toString(36).substring(2, 9)}`,
-      userId,
-      userEmail: debitRes.wallet.userEmail || "",
-      service: sType,
-      serviceTitle: `${sType} Verification`,
-      providerName: resolvedProviderName,
-      reference,
-      receiptNumber,
-      verifiedId: targetId,
-      maskedId,
-      status: "SUCCESS",
-      fee: serviceFee,
-      responseTime,
-      createdAt: new Date().toISOString(),
-      signedQrContent,
-      data: verifiedData,
-    };
-
-    db.verificationHistory.unshift(historyItem);
-
-    // 5. Save Official Receipt to DB
-    if (!db.receipts) db.receipts = [];
-    db.receipts.unshift({
-      id: `rcp_${Date.now()}`,
-      receiptId: receiptNumber,
-      reference,
-      smartlinkReference: reference,
-      providerReference: providerResult.providerReference || `PRV-GW-${Math.floor(100000 + Math.random() * 900000)}`,
-      userId,
-      service: sType,
-      serviceTitle: `${sType} Identity Verification`,
-      amountPaid: serviceFee,
-      status: "SUCCESS",
-      verifiedTarget: maskedId,
-      timestamp: historyItem.createdAt,
-      data: verifiedData,
-    });
-
-    // 6. Dispatch Central Notification
-    if (!db.notifications) db.notifications = [];
-    db.notifications.unshift({
-      id: "NOTIF_" + Date.now(),
-      notificationId: "NOTIF_" + Date.now(),
-      userId,
-      title: `${sType} Verification Successful`,
-      body: `Your query for ${sType} (${maskedId}) was verified successfully via ${resolvedProviderName}.`,
-      reference,
-      read: false,
-      type: "VERIFICATION",
-      createdAt: new Date().toISOString()
-    });
-
-    // 7. Record Central Activity Log
-    if (!db.activityLogs) db.activityLogs = [];
-    db.activityLogs.unshift({
-      id: "ACT_" + Date.now(),
-      activityId: "ACT_" + Date.now(),
-      userId,
-      userEmail: debitRes.wallet.userEmail || "",
-      activityType: "VERIFICATION",
-      action: `${sType}_VERIFICATION_SUCCESS`,
-      description: `Verified ${sType} identity record for [${maskedId}] via ${resolvedProviderName}`,
-      status: "SUCCESS",
-      ipAddress: "127.0.0.1",
-      timestamp: new Date().toISOString()
-    });
-
-    writeDB(db);
-
-    return res.json({
-      success: true,
-      status: "SUCCESS",
-      reference,
-      message: `${sType} successfully verified from ${resolvedProviderName}`,
-      data: verifiedData,
-      timestamp: historyItem.createdAt,
-      providerName: resolvedProviderName,
-      responseTime,
-      receiptNumber,
-      service: sType,
-      fee: serviceFee,
-      verifiedId: targetId,
-      maskedId,
-      signedQrContent,
-      balance: debitRes.wallet.currentBalance,
-    });
-  }
-
-  // --- MULTI-GATEWAY INTELLIGENT ROUTING & AUTOMATED FAILOVER PIPELINE ---
-  if (!userId) {
-    return res.status(401).json({ error: "User authentication required.", errorCode: "AUTH_ERROR" });
-  }
-
-  if (!service || !targetId) {
-    return res.status(400).json({ error: "Service type and target ID are required.", errorCode: "INVALID_INPUT" });
-  }
-
-  const sType = String(service).toUpperCase();
-  let serviceFee = typeof fee === "number" ? fee : 500;
-  if (sType === "CAC" || sType === "PASSPORT") serviceFee = fee || 1000;
-  else if (sType === "DRIVER_LICENSE") serviceFee = fee || 750;
-  else if (sType === "PHONE") serviceFee = fee || 300;
-  else if (sType === "EMAIL") serviceFee = fee || 200;
-
-  const reference = `SML-VER-${Math.floor(100000 + Math.random() * 900000)}`;
-  const receiptNumber = `REC-${reference}`;
-
-  // Execute verification via MultiGatewayRoutingEngine with automatic failover (Aspfiy, VerifyNG, etc.)
-  const gatewayResult = await MultiGatewayRoutingEngine.executeWithFailover(db, {
-    service: sType,
-    targetId,
-    userId,
-    userEmail: req.body.email || "",
-    amount: serviceFee,
-    smartlinkReference: reference,
-    extraData: { ...extraFields, service: sType, targetId, consent: extraFields.consent === true || extraFields.consent === "true" || req.body.consent === true },
-    preferredProviderId: req.body.providerId || req.body.preferredProvider,
-  });
-
-  if (!gatewayResult.success) {
-    return res.status(502).json({
-      error: gatewayResult.error || "Verification gateways failed to confirm this identity record.",
-      errorCode: "GATEWAY_VERIFICATION_FAILED",
-      friendlyMessage: `${sType} Verification Failed`,
-      details: gatewayResult.error,
-      wasFailedOver: gatewayResult.wasFailedOver,
-      failoverChain: gatewayResult.failoverChain,
-    });
-  }
-
-  const resolvedProviderName = gatewayResult.providerName || "Identity Verification Gateway";
-
-  // 2. Debit wallet only after provider verification succeeds
-  let debitRes;
-  try {
-    debitRes = await ServerWalletEngine.debitWallet(db, {
-      userId,
-      amount: serviceFee,
-      serviceName: `${sType} Verification (${resolvedProviderName})`,
-      provider: resolvedProviderName,
-      description: `Central Verification Query: ${sType} ID [${targetId.substring(0, 4)}***]`,
-      reference,
-      fee: 0,
-      recipientDetails: `${sType}: ${targetId}`,
-      type: `${sType}_VERIFICATION`,
-      providerReference: gatewayResult.providerReference || gatewayResult.transactionId,
-      rawResponse: gatewayResult.data,
-    });
-  } catch (err: any) {
-    return res.status(400).json({
-      error: err.message || "Insufficient wallet balance to perform verification.",
-      errorCode: "WALLET_ERROR",
-      friendlyMessage: "Wallet Balance Insufficient",
-    });
-  }
-
-  // 3. Map verified data dynamically
-  const rawData = gatewayResult.data || {};
-  const verifiedData: any = {
-    ...rawData,
-    fullName: rawData.fullName || rawData.name || [rawData.firstName, rawData.lastName].filter(Boolean).join(" ") || extraFields.fullName || "",
-    firstName: rawData.firstName || "",
-    lastName: rawData.lastName || "",
-    middleName: rawData.middleName || "",
-    gender: rawData.gender || rawData.sex || "MALE",
-    dateOfBirth: rawData.dateOfBirth || rawData.dob || "",
-    phoneNumber: rawData.phoneNumber || rawData.phone || extraFields.phoneNumber || "",
-    email: rawData.email || extraFields.email || "",
-    address: rawData.address || rawData.residence || "",
-    stateOfOrigin: rawData.stateOfOrigin || rawData.state || "",
-    lga: rawData.lga || rawData.localGov || "",
-    photoUrl: normalizePhotoUrl(rawData.photoUrl || rawData.photo || rawData.image || ""),
-    isVerified: true,
-    verificationsPassed: rawData.verificationsPassed || ["Database Record Match", "KYC Identity Verified", "Gateway Switch Integrity Passed"],
-    provider: resolvedProviderName,
-    rawResponse: gatewayResult.data,
-    wasFailedOver: gatewayResult.wasFailedOver,
-    failoverChain: gatewayResult.failoverChain,
-  };
-
-  if (sType === "NIN") verifiedData.nin = rawData.nin || targetId;
   else if (sType === "BVN") verifiedData.bvn = rawData.bvn || targetId;
   else if (sType === "PHONE") verifiedData.phoneNumber = rawData.phoneNumber || targetId;
   else if (sType === "CAC") verifiedData.rcNumber = rawData.rcNumber || targetId;
@@ -777,207 +584,7 @@ app.post("/api/services/nin-verify", async (req, res) => {
   }
 
   const effectiveUserId = authCheck.isAdmin ? userId : authCheck.authenticatedUid!;
-
-  // Explicit conditional guard clause for Aspfiy
-  if (req.body.provider === "Aspfiy" || req.body.providerName === "Aspfiy" || req.body.provider === "prov_aspfiy") {
-    // Execute original, untouched Aspfiy pipeline blocks exactly as currently written in the file.
-    if (!effectiveUserId) {
-      return res.status(401).json({ error: "User authentication required.", errorCode: "AUTH_ERROR" });
-    }
-
-    const cleanNin = (nin || "").replace(/\s+/g, "").trim();
-    if (!/^\d{11}$/.test(cleanNin)) {
-      return res.status(400).json({
-        error: "NIN must consist of exactly 11 numeric digits.",
-        errorCode: "INVALID_INPUT",
-        friendlyMessage: "Invalid NIN Format"
-      });
-    }
-
-    if (!consent) {
-      return res.status(400).json({
-        error: "User consent confirmation is required for NIN verification under NIMC & NDPR regulations.",
-        errorCode: "CONSENT_REQUIRED",
-        friendlyMessage: "User Consent Missing"
-      });
-    }
-
-    const db = readDB();
-    const fee = 500;
-    const reference = `SML-VER-NIN-${Math.floor(100000 + Math.random() * 900000)}`;
-
-    // 1. Call real identity verification provider before debiting
-    const providerResult = await ProviderExecutor.executeProviderCall(db, {
-      category: "IDENTITY_API",
-      providerName: req.body.provider || undefined,
-      customerId: cleanNin,
-      userId,
-      amount: fee,
-      smartlinkReference: reference,
-      extraData: { nin: cleanNin, idNumber: cleanNin, fullName, verificationType: "NIN", consent: Boolean(consent) },
-    });
-
-    if (!providerResult.success) {
-      const isNoProvider = providerResult.error?.includes("No active provider configured");
-      return res.status(isNoProvider ? 503 : 502).json({
-        error: isNoProvider
-          ? "Identity verification provider not configured."
-          : (providerResult.error || "Verification provider could not confirm this record."),
-        errorCode: isNoProvider ? "PROVIDER_NOT_CONFIGURED" : "PROVIDER_FAILED",
-        friendlyMessage: isNoProvider ? "Identity Provider Not Configured" : "NIN Verification Failed",
-        details: providerResult.error,
-      });
-    }
-
-    const resolvedProviderName = providerResult.providerName || "NIMC Gateway";
-
-    // 2. Debit wallet only after provider verification succeeds
-    let debitRes;
-    try {
-      debitRes = await ServerWalletEngine.debitWallet(db, {
-        userId,
-        amount: fee,
-        serviceName: "NIN Identity Verification (NIMC)",
-        provider: resolvedProviderName,
-        description: `NIMC National ID Lookup: [${cleanNin.substring(0, 3)}****${cleanNin.substring(7)}]`,
-        reference,
-        fee: 0,
-        recipientDetails: `NIN: ${cleanNin}`,
-        type: "NIN_VERIFICATION",
-        providerReference: providerResult.providerReference || providerResult.transactionId,
-        rawResponse: providerResult.rawResponse,
-      });
-    } catch (err: any) {
-      return res.status(400).json({
-        error: err.message || "Insufficient wallet balance to perform NIN verification.",
-        errorCode: "WALLET_ERROR",
-        friendlyMessage: "Insufficient Wallet Balance"
-      });
-    }
-
-    const maskedId = `${cleanNin.substring(0, 3)}****${cleanNin.substring(7)}`;
-
-    // 3. Extract real verified data from provider's response
-    const rawData = providerResult.rawResponse?.data || providerResult.rawResponse || {};
-    const verifiedData: any = {
-      ...rawData,
-      nin: rawData.nin || rawData.idNumber || cleanNin,
-      fullName: rawData.fullName || rawData.name || [rawData.firstName, rawData.lastName].filter(Boolean).join(" ") || fullName || "",
-      firstName: rawData.firstName || "",
-      lastName: rawData.lastName || "",
-      gender: rawData.gender || rawData.sex || "",
-      dateOfBirth: rawData.dateOfBirth || rawData.dob || "",
-      phoneNumber: rawData.phoneNumber || rawData.phone || rawData.mobile || "",
-      address: rawData.address || rawData.residence || "",
-      stateOfOrigin: rawData.stateOfOrigin || rawData.state || "",
-      lga: rawData.lga || rawData.localGov || "",
-      photoUrl: normalizePhotoUrl(rawData.photoUrl || rawData.photo || rawData.image || ""),
-      isVerified: true,
-      verificationsPassed: rawData.verificationsPassed || ["NIMC Database Record Match", "Identity Verified"],
-      rawResponse: providerResult.rawResponse,
-    };
-
-    // Generate cryptographically signed QR payload for direct offline validation
-    const signedQrContent = signQRPayload({
-      nin: cleanNin,
-      firstName: verifiedData.firstName,
-      surname: verifiedData.lastName || verifiedData.fullName?.split(" ").pop() || "",
-      middleName: verifiedData.middleName,
-      dob: verifiedData.dateOfBirth,
-    });
-
-    const receiptNumber = `REC-${reference}`;
-    const responseTime = providerResult.responseTimeMs || Math.max(180, Date.now() - startTime);
-
-    const historyItem = {
-      id: `ver_${Math.random().toString(36).substring(2, 9)}`,
-      userId,
-      userEmail: debitRes.wallet.userEmail || "",
-      service: "NIN",
-      serviceTitle: "NIN Identity Verification",
-      providerName: resolvedProviderName,
-      reference,
-      receiptNumber,
-      verifiedId: cleanNin,
-      maskedId,
-      status: "SUCCESS",
-      fee,
-      responseTime,
-      createdAt: new Date().toISOString(),
-      signedQrContent,
-      data: verifiedData,
-    };
-
-    if (!db.verificationHistory) db.verificationHistory = [];
-    db.verificationHistory.unshift(historyItem);
-
-    if (!db.receipts) db.receipts = [];
-    db.receipts.unshift({
-      id: `rcp_${Date.now()}`,
-      receiptId: receiptNumber,
-      reference,
-      smartlinkReference: reference,
-      providerReference: providerResult.providerReference || `NIMC-GW-${Math.floor(100000 + Math.random() * 900000)}`,
-      userId,
-      service: "NIN",
-      serviceTitle: "NIN Identity Verification",
-      amountPaid: fee,
-      status: "SUCCESS",
-      verifiedTarget: maskedId,
-      timestamp: historyItem.createdAt,
-      data: verifiedData,
-    });
-
-    if (!db.notifications) db.notifications = [];
-    db.notifications.unshift({
-      id: "NOTIF_" + Date.now(),
-      notificationId: "NOTIF_" + Date.now(),
-      userId,
-      title: "NIN Verification Successful",
-      body: `NIN record (${maskedId}) verified successfully via ${resolvedProviderName}.`,
-      reference,
-      read: false,
-      type: "VERIFICATION",
-      createdAt: new Date().toISOString()
-    });
-
-    if (!db.activityLogs) db.activityLogs = [];
-    db.activityLogs.unshift({
-      id: "ACT_" + Date.now(),
-      activityId: "ACT_" + Date.now(),
-      userId,
-      userEmail: debitRes.wallet.userEmail || "",
-      activityType: "VERIFICATION",
-      action: "NIN_VERIFICATION_SUCCESS",
-      description: `Verified NIN record [${maskedId}] via ${resolvedProviderName}`,
-      status: "SUCCESS",
-      ipAddress: "127.0.0.1",
-      timestamp: new Date().toISOString()
-    });
-
-    writeDB(db);
-
-    return res.json({
-      success: true,
-      status: "SUCCESS",
-      reference,
-      message: `NIN successfully verified from ${resolvedProviderName}`,
-      data: verifiedData,
-      timestamp: historyItem.createdAt,
-      providerName: resolvedProviderName,
-      responseTime,
-      receiptNumber,
-      service: "NIN",
-      fee,
-      verifiedId: cleanNin,
-      maskedId,
-      signedQrContent,
-      balance: debitRes.wallet.currentBalance,
-    });
-  }
-
-  // --- SECONDARY / FALLBACK NON-ASPFIY NIN EXECUTION PIPELINE ---
-  if (!userId) {
+  if (!effectiveUserId) {
     return res.status(401).json({ error: "User authentication required.", errorCode: "AUTH_ERROR" });
   }
 
@@ -1000,46 +607,38 @@ app.post("/api/services/nin-verify", async (req, res) => {
 
   const fee = 500;
   const reference = `SML-VER-NIN-${Math.floor(100000 + Math.random() * 900000)}`;
+  const receiptNumber = `REC-${reference}`;
 
-  // Dynamically query Storage collection 'api_providers' and 'api_response_mappings' for active non-Aspfiy identity provider
-  const { secondaryProvider, mapping } = await getActiveSecondaryIdentityProviderAndMapping(db);
-
-  if (!secondaryProvider) {
-    return res.status(503).json({
-      error: "Identity verification provider not configured.",
-      errorCode: "PROVIDER_NOT_CONFIGURED",
-      friendlyMessage: "Identity Provider Not Configured",
-      details: "No active secondary identity provider configured in database.",
-    });
-  }
-
-  const resolvedProviderName = secondaryProvider.name || "NIMC Gateway";
-
-  // 1. Call real identity verification provider before debiting
-  const providerResult = await ProviderExecutor.executeProviderCall(db, {
-    category: "IDENTITY_API",
-    providerName: secondaryProvider.name,
-    customerId: cleanNin,
-    userId,
+  // Execute verification via MultiGatewayRoutingEngine with real connected providers (LumiID, VerifyNG, NIN/BVN Portal)
+  const gatewayResult = await MultiGatewayRoutingEngine.executeWithFailover(db, {
+    service: "NIN",
+    targetId: cleanNin,
+    userId: effectiveUserId,
+    userEmail: req.body.email || "",
     amount: fee,
     smartlinkReference: reference,
     extraData: { nin: cleanNin, idNumber: cleanNin, fullName, verificationType: "NIN", consent: Boolean(consent) },
+    preferredProviderId: req.body.providerId || req.body.provider || req.body.preferredProvider,
   });
 
-  if (!providerResult.success) {
-    return res.status(502).json({
-      error: providerResult.error || "Verification provider could not confirm this record.",
+  if (!gatewayResult.success) {
+    return res.status(422).json({
+      error: gatewayResult.error || "Identity verification provider could not confirm this record.",
       errorCode: "PROVIDER_FAILED",
       friendlyMessage: "NIN Verification Failed",
-      details: providerResult.error,
+      details: gatewayResult.error,
+      wasFailedOver: gatewayResult.wasFailedOver,
+      failoverChain: gatewayResult.failoverChain,
     });
   }
+
+  const resolvedProviderName = gatewayResult.providerName || "NIMC Gateway";
 
   // 2. Debit wallet only after provider verification succeeds
   let debitRes;
   try {
     debitRes = await ServerWalletEngine.debitWallet(db, {
-      userId,
+      userId: effectiveUserId,
       amount: fee,
       serviceName: `NIN Identity Verification (${resolvedProviderName})`,
       provider: resolvedProviderName,
@@ -1048,8 +647,8 @@ app.post("/api/services/nin-verify", async (req, res) => {
       fee: 0,
       recipientDetails: `NIN: ${cleanNin}`,
       type: "NIN_VERIFICATION",
-      providerReference: providerResult.providerReference || providerResult.transactionId,
-      rawResponse: providerResult.rawResponse,
+      providerReference: gatewayResult.providerReference || gatewayResult.transactionId,
+      rawResponse: gatewayResult.data,
     });
   } catch (err: any) {
     return res.status(400).json({
@@ -1061,13 +660,28 @@ app.post("/api/services/nin-verify", async (req, res) => {
 
   const maskedId = `${cleanNin.substring(0, 3)}****${cleanNin.substring(7)}`;
 
-  // 3. Extract real verified data dynamically from provider's response using mapping
-  const rawData = providerResult.rawResponse?.data || providerResult.rawResponse || {};
-  const verifiedData = extractDynamicIdentityData(rawData, mapping, {
-    serviceType: "NIN",
-    targetId: cleanNin,
-    defaultFullName: fullName,
-  });
+  // 3. Extract real verified data directly from provider's response
+  const rawData = gatewayResult.data || {};
+  const verifiedData: any = {
+    ...rawData,
+    nin: rawData.nin || rawData.idNumber || cleanNin,
+    fullName: rawData.fullName || rawData.name || [rawData.firstName, rawData.lastName].filter(Boolean).join(" ") || fullName || "",
+    firstName: rawData.firstName || "",
+    lastName: rawData.lastName || "",
+    middleName: rawData.middleName || "",
+    gender: rawData.gender || rawData.sex || "",
+    dateOfBirth: rawData.dateOfBirth || rawData.dob || "",
+    phoneNumber: rawData.phoneNumber || rawData.phone || rawData.mobile || "",
+    address: rawData.address || rawData.residence || "",
+    stateOfOrigin: rawData.stateOfOrigin || rawData.state || "",
+    lga: rawData.lga || rawData.localGov || "",
+    photoUrl: normalizePhotoUrl(rawData.photoUrl || rawData.photo || rawData.image || ""),
+    isVerified: true,
+    verificationsPassed: rawData.verificationsPassed || ["NIMC Database Record Match", "Identity Verified"],
+    provider: resolvedProviderName,
+    rawResponse: gatewayResult.data,
+    wasFailedOver: gatewayResult.wasFailedOver,
+  };
 
   // Generate cryptographically signed QR payload for direct offline validation
   const signedQrContent = signQRPayload({
@@ -1078,12 +692,11 @@ app.post("/api/services/nin-verify", async (req, res) => {
     dob: verifiedData.dateOfBirth,
   });
 
-  const receiptNumber = `REC-${reference}`;
-  const responseTime = providerResult.responseTimeMs || Math.max(180, Date.now() - startTime);
+  const responseTime = gatewayResult.responseTimeMs || Math.max(180, Date.now() - startTime);
 
   const historyItem = {
     id: `ver_${Math.random().toString(36).substring(2, 9)}`,
-    userId,
+    userId: effectiveUserId,
     userEmail: debitRes.wallet.userEmail || "",
     service: "NIN",
     serviceTitle: "NIN Identity Verification",
@@ -1098,6 +711,7 @@ app.post("/api/services/nin-verify", async (req, res) => {
     createdAt: new Date().toISOString(),
     signedQrContent,
     data: verifiedData,
+    wasFailedOver: gatewayResult.wasFailedOver,
   };
 
   if (!db.verificationHistory) db.verificationHistory = [];
@@ -1109,8 +723,8 @@ app.post("/api/services/nin-verify", async (req, res) => {
     receiptId: receiptNumber,
     reference,
     smartlinkReference: reference,
-    providerReference: providerResult.providerReference || `NIMC-GW-${Math.floor(100000 + Math.random() * 900000)}`,
-    userId,
+    providerReference: gatewayResult.providerReference || `NIMC-GW-${Math.floor(100000 + Math.random() * 900000)}`,
+    userId: effectiveUserId,
     service: "NIN",
     serviceTitle: "NIN Identity Verification",
     amountPaid: fee,
@@ -1124,7 +738,7 @@ app.post("/api/services/nin-verify", async (req, res) => {
   db.notifications.unshift({
     id: "NOTIF_" + Date.now(),
     notificationId: "NOTIF_" + Date.now(),
-    userId,
+    userId: effectiveUserId,
     title: "NIN Verification Successful",
     body: `NIN record (${maskedId}) verified successfully via ${resolvedProviderName}.`,
     reference,
@@ -1137,7 +751,7 @@ app.post("/api/services/nin-verify", async (req, res) => {
   db.activityLogs.unshift({
     id: "ACT_" + Date.now(),
     activityId: "ACT_" + Date.now(),
-    userId,
+    userId: effectiveUserId,
     userEmail: debitRes.wallet.userEmail || "",
     activityType: "VERIFICATION",
     action: "NIN_VERIFICATION_SUCCESS",
@@ -1180,198 +794,7 @@ app.post("/api/services/bvn-verify", async (req, res) => {
   }
 
   const effectiveUserId = authCheck.isAdmin ? userId : authCheck.authenticatedUid!;
-
-  // Explicit conditional guard clause for Aspfiy
-  if (req.body.provider === "Aspfiy" || req.body.providerName === "Aspfiy" || req.body.provider === "prov_aspfiy") {
-    // Execute original, untouched Aspfiy pipeline blocks exactly as currently written in the file.
-    if (!effectiveUserId) {
-      return res.status(401).json({ error: "User authentication required.", errorCode: "AUTH_ERROR" });
-    }
-
-    const cleanBvn = (bvn || "").replace(/\s+/g, "").trim();
-    if (!/^\d{11}$/.test(cleanBvn)) {
-      return res.status(400).json({
-        error: "BVN must consist of exactly 11 numeric digits.",
-        errorCode: "INVALID_INPUT",
-        friendlyMessage: "Invalid BVN Format"
-      });
-    }
-
-    if (!consent) {
-      return res.status(400).json({
-        error: "User consent confirmation is required for BVN verification under NIBSS & NDPR regulations.",
-        errorCode: "CONSENT_REQUIRED",
-        friendlyMessage: "User Consent Missing"
-      });
-    }
-
-    const db = readDB();
-    const fee = 500;
-    const reference = `SML-VER-BVN-${Math.floor(100000 + Math.random() * 900000)}`;
-
-    // 1. Call real identity verification provider before debiting
-    const providerResult = await ProviderExecutor.executeProviderCall(db, {
-      category: "IDENTITY_API",
-      providerName: req.body.provider || undefined,
-      customerId: cleanBvn,
-      userId,
-      amount: fee,
-      smartlinkReference: reference,
-      extraData: { bvn: cleanBvn, idNumber: cleanBvn, fullName, referenceNote, verificationPurpose, verificationType: "BVN" },
-    });
-
-    if (!providerResult.success) {
-      const isNoProvider = providerResult.error?.includes("No active provider configured");
-      return res.status(isNoProvider ? 503 : 502).json({
-        error: isNoProvider
-          ? "Identity verification provider not configured."
-          : (providerResult.error || "Verification provider could not confirm this record."),
-        errorCode: isNoProvider ? "PROVIDER_NOT_CONFIGURED" : "PROVIDER_FAILED",
-        friendlyMessage: isNoProvider ? "Identity Provider Not Configured" : "BVN Verification Failed",
-        details: providerResult.error,
-      });
-    }
-
-    const resolvedProviderName = providerResult.providerName || "NIBSS Gateway";
-
-    // 2. Debit wallet only after provider verification succeeds
-    let debitRes;
-    try {
-      debitRes = await ServerWalletEngine.debitWallet(db, {
-        userId,
-        amount: fee,
-        serviceName: "BVN Identity Verification (NIBSS)",
-        provider: resolvedProviderName,
-        description: `NIBSS Central Banking Lookup: [${cleanBvn.substring(0, 3)}****${cleanBvn.substring(7)}]`,
-        reference,
-        fee: 0,
-        recipientDetails: `BVN: ${cleanBvn}`,
-        type: "BVN_VERIFICATION",
-        providerReference: providerResult.providerReference || providerResult.transactionId,
-        rawResponse: providerResult.rawResponse,
-      });
-    } catch (err: any) {
-      return res.status(400).json({
-        error: err.message || "Insufficient wallet balance to perform BVN verification.",
-        errorCode: "WALLET_ERROR",
-        friendlyMessage: "Insufficient Wallet Balance"
-      });
-    }
-
-    const maskedId = `${cleanBvn.substring(0, 3)}****${cleanBvn.substring(7)}`;
-
-    // 3. Extract real verified data from provider's response
-    const rawData = providerResult.rawResponse?.data || providerResult.rawResponse || {};
-    const verifiedData: any = {
-      ...rawData,
-      bvn: rawData.bvn || rawData.idNumber || cleanBvn,
-      fullName: rawData.fullName || rawData.name || [rawData.firstName, rawData.lastName].filter(Boolean).join(" ") || fullName || "",
-      firstName: rawData.firstName || "",
-      lastName: rawData.lastName || "",
-      gender: rawData.gender || rawData.sex || "",
-      dateOfBirth: rawData.dateOfBirth || rawData.dob || "",
-      phoneNumber: rawData.phoneNumber || rawData.phone || rawData.mobile || "",
-      address: rawData.address || rawData.residence || "",
-      stateOfOrigin: rawData.stateOfOrigin || rawData.state || "",
-      lga: rawData.lga || rawData.localGov || "",
-      photoUrl: normalizePhotoUrl(rawData.photoUrl || rawData.photo || rawData.image || ""),
-      isVerified: true,
-      verificationPurpose: verificationPurpose || "KYC Onboarding",
-      referenceNote: referenceNote || "",
-      verificationsPassed: rawData.verificationsPassed || ["NIBSS Central Switch Match", "Bank Account Linkage Active"],
-      rawResponse: providerResult.rawResponse,
-    };
-
-    const receiptNumber = `REC-${reference}`;
-    const responseTime = providerResult.responseTimeMs || Math.max(180, Date.now() - startTime);
-
-    const historyItem = {
-      id: `ver_${Math.random().toString(36).substring(2, 9)}`,
-      userId,
-      userEmail: debitRes.wallet.userEmail || "",
-      service: "BVN",
-      serviceTitle: "BVN Identity Verification",
-      providerName: resolvedProviderName,
-      reference,
-      receiptNumber,
-      verifiedId: cleanBvn,
-      maskedId,
-      status: "SUCCESS",
-      fee,
-      responseTime,
-      createdAt: new Date().toISOString(),
-      data: verifiedData,
-    };
-
-    if (!db.verificationHistory) db.verificationHistory = [];
-    db.verificationHistory.unshift(historyItem);
-
-    if (!db.receipts) db.receipts = [];
-    db.receipts.unshift({
-      id: `rcp_${Date.now()}`,
-      receiptId: receiptNumber,
-      reference,
-      smartlinkReference: reference,
-      providerReference: providerResult.providerReference || `NIBSS-GW-${Math.floor(100000 + Math.random() * 900000)}`,
-      userId,
-      service: "BVN",
-      serviceTitle: "BVN Identity Verification",
-      amountPaid: fee,
-      status: "SUCCESS",
-      verifiedTarget: maskedId,
-      timestamp: historyItem.createdAt,
-      data: verifiedData,
-    });
-
-    if (!db.notifications) db.notifications = [];
-    db.notifications.unshift({
-      id: "NOTIF_" + Date.now(),
-      notificationId: "NOTIF_" + Date.now(),
-      userId,
-      title: "BVN Verification Successful",
-      body: `BVN record (${maskedId}) verified successfully via ${resolvedProviderName}.`,
-      reference,
-      read: false,
-      type: "VERIFICATION",
-      createdAt: new Date().toISOString()
-    });
-
-    if (!db.activityLogs) db.activityLogs = [];
-    db.activityLogs.unshift({
-      id: "ACT_" + Date.now(),
-      activityId: "ACT_" + Date.now(),
-      userId,
-      userEmail: debitRes.wallet.userEmail || "",
-      activityType: "VERIFICATION",
-      action: "BVN_VERIFICATION_SUCCESS",
-      description: `Verified BVN record [${maskedId}] via ${resolvedProviderName}`,
-      status: "SUCCESS",
-      ipAddress: "127.0.0.1",
-      timestamp: new Date().toISOString()
-    });
-
-    writeDB(db);
-
-    return res.json({
-      success: true,
-      status: "SUCCESS",
-      reference,
-      message: `BVN successfully verified from ${resolvedProviderName}`,
-      data: verifiedData,
-      timestamp: historyItem.createdAt,
-      providerName: resolvedProviderName,
-      responseTime,
-      receiptNumber,
-      service: "BVN",
-      fee,
-      verifiedId: cleanBvn,
-      maskedId,
-      balance: debitRes.wallet.currentBalance,
-    });
-  }
-
-  // --- SECONDARY / FALLBACK NON-ASPFIY BVN EXECUTION PIPELINE ---
-  if (!userId) {
+  if (!effectiveUserId) {
     return res.status(401).json({ error: "User authentication required.", errorCode: "AUTH_ERROR" });
   }
 
@@ -1394,46 +817,50 @@ app.post("/api/services/bvn-verify", async (req, res) => {
 
   const fee = 500;
   const reference = `SML-VER-BVN-${Math.floor(100000 + Math.random() * 900000)}`;
+  const receiptNumber = `REC-${reference}`;
 
-  // Dynamically query Storage collection 'api_providers' and 'api_response_mappings' for active non-Aspfiy identity provider
-  const { secondaryProvider, mapping } = await getActiveSecondaryIdentityProviderAndMapping(db);
-
-  if (!secondaryProvider) {
-    return res.status(503).json({
-      error: "Identity verification provider not configured.",
-      errorCode: "PROVIDER_NOT_CONFIGURED",
-      friendlyMessage: "Identity Provider Not Configured",
-      details: "No active secondary identity provider configured in database.",
-    });
-  }
-
-  const resolvedProviderName = secondaryProvider.name || "NIBSS Gateway";
-
-  // 1. Call real identity verification provider before debiting
-  const providerResult = await ProviderExecutor.executeProviderCall(db, {
-    category: "IDENTITY_API",
-    providerName: secondaryProvider.name,
-    customerId: cleanBvn,
-    userId,
+  // Execute verification via MultiGatewayRoutingEngine with real connected providers (LumiID, VerifyNG, NIN/BVN Portal)
+  const gatewayResult = await MultiGatewayRoutingEngine.executeWithFailover(db, {
+    service: "BVN",
+    targetId: cleanBvn,
+    userId: effectiveUserId,
+    userEmail: req.body.email || "",
     amount: fee,
     smartlinkReference: reference,
-    extraData: { bvn: cleanBvn, idNumber: cleanBvn, fullName, referenceNote, verificationPurpose, verificationType: "BVN" },
+    extraData: {
+      bvn: cleanBvn,
+      id_number: cleanBvn,
+      idNumber: cleanBvn,
+      number: cleanBvn,
+      bvn_number: cleanBvn,
+      search_value: cleanBvn,
+      fullName,
+      referenceNote,
+      verificationPurpose,
+      verificationType: "BVN",
+      consent: Boolean(consent),
+    },
+    preferredProviderId: req.body.providerId || req.body.provider || req.body.preferredProvider,
   });
 
-  if (!providerResult.success) {
-    return res.status(502).json({
-      error: providerResult.error || "Verification provider could not confirm this record.",
+  if (!gatewayResult.success) {
+    return res.status(422).json({
+      error: gatewayResult.error || "Verification provider could not confirm this record.",
       errorCode: "PROVIDER_FAILED",
       friendlyMessage: "BVN Verification Failed",
-      details: providerResult.error,
+      details: gatewayResult.error,
+      wasFailedOver: gatewayResult.wasFailedOver,
+      failoverChain: gatewayResult.failoverChain,
     });
   }
+
+  const resolvedProviderName = gatewayResult.providerName || "NIBSS Gateway";
 
   // 2. Debit wallet only after provider verification succeeds
   let debitRes;
   try {
     debitRes = await ServerWalletEngine.debitWallet(db, {
-      userId,
+      userId: effectiveUserId,
       amount: fee,
       serviceName: `BVN Identity Verification (${resolvedProviderName})`,
       provider: resolvedProviderName,
@@ -1442,8 +869,8 @@ app.post("/api/services/bvn-verify", async (req, res) => {
       fee: 0,
       recipientDetails: `BVN: ${cleanBvn}`,
       type: "BVN_VERIFICATION",
-      providerReference: providerResult.providerReference || providerResult.transactionId,
-      rawResponse: providerResult.rawResponse,
+      providerReference: gatewayResult.providerReference || gatewayResult.transactionId,
+      rawResponse: gatewayResult.data,
     });
   } catch (err: any) {
     return res.status(400).json({
@@ -1455,21 +882,36 @@ app.post("/api/services/bvn-verify", async (req, res) => {
 
   const maskedId = `${cleanBvn.substring(0, 3)}****${cleanBvn.substring(7)}`;
 
-  // 3. Extract real verified data dynamically from provider's response using mapping
-  const rawData = providerResult.rawResponse?.data || providerResult.rawResponse || {};
-  const verifiedData = extractDynamicIdentityData(rawData, mapping, {
-    serviceType: "BVN",
-    targetId: cleanBvn,
-    defaultFullName: fullName,
-    extraFields: { referenceNote, verificationPurpose },
-  });
+  // 3. Extract real verified data directly from provider's response
+  const rawData = gatewayResult.data || {};
+  const verifiedData: any = {
+    ...rawData,
+    bvn: rawData.bvn || rawData.idNumber || cleanBvn,
+    fullName: rawData.fullName || rawData.name || [rawData.firstName, rawData.lastName].filter(Boolean).join(" ") || fullName || "",
+    firstName: rawData.firstName || "",
+    lastName: rawData.lastName || "",
+    middleName: rawData.middleName || "",
+    gender: rawData.gender || rawData.sex || "",
+    dateOfBirth: rawData.dateOfBirth || rawData.dob || "",
+    phoneNumber: rawData.phoneNumber || rawData.phone || rawData.mobile || "",
+    address: rawData.address || rawData.residence || "",
+    stateOfOrigin: rawData.stateOfOrigin || rawData.state || "",
+    lga: rawData.lga || rawData.localGov || "",
+    photoUrl: normalizePhotoUrl(rawData.photoUrl || rawData.photo || rawData.image || ""),
+    isVerified: true,
+    verificationPurpose: verificationPurpose || "KYC Onboarding",
+    referenceNote: referenceNote || "",
+    verificationsPassed: rawData.verificationsPassed || ["NIBSS Central Switch Match", "Bank Account Linkage Active"],
+    provider: resolvedProviderName,
+    rawResponse: gatewayResult.data,
+    wasFailedOver: gatewayResult.wasFailedOver,
+  };
 
-  const receiptNumber = `REC-${reference}`;
-  const responseTime = providerResult.responseTimeMs || Math.max(180, Date.now() - startTime);
+  const responseTime = gatewayResult.responseTimeMs || Math.max(180, Date.now() - startTime);
 
   const historyItem = {
     id: `ver_${Math.random().toString(36).substring(2, 9)}`,
-    userId,
+    userId: effectiveUserId,
     userEmail: debitRes.wallet.userEmail || "",
     service: "BVN",
     serviceTitle: "BVN Identity Verification",
@@ -1483,6 +925,7 @@ app.post("/api/services/bvn-verify", async (req, res) => {
     responseTime,
     createdAt: new Date().toISOString(),
     data: verifiedData,
+    wasFailedOver: gatewayResult.wasFailedOver,
   };
 
   if (!db.verificationHistory) db.verificationHistory = [];
@@ -1494,8 +937,8 @@ app.post("/api/services/bvn-verify", async (req, res) => {
     receiptId: receiptNumber,
     reference,
     smartlinkReference: reference,
-    providerReference: providerResult.providerReference || `NIBSS-GW-${Math.floor(100000 + Math.random() * 900000)}`,
-    userId,
+    providerReference: gatewayResult.providerReference || `NIBSS-GW-${Math.floor(100000 + Math.random() * 900000)}`,
+    userId: effectiveUserId,
     service: "BVN",
     serviceTitle: "BVN Identity Verification",
     amountPaid: fee,
@@ -1509,7 +952,7 @@ app.post("/api/services/bvn-verify", async (req, res) => {
   db.notifications.unshift({
     id: "NOTIF_" + Date.now(),
     notificationId: "NOTIF_" + Date.now(),
-    userId,
+    userId: effectiveUserId,
     title: "BVN Verification Successful",
     body: `BVN record (${maskedId}) verified successfully via ${resolvedProviderName}.`,
     reference,
@@ -1522,7 +965,7 @@ app.post("/api/services/bvn-verify", async (req, res) => {
   db.activityLogs.unshift({
     id: "ACT_" + Date.now(),
     activityId: "ACT_" + Date.now(),
-    userId,
+    userId: effectiveUserId,
     userEmail: debitRes.wallet.userEmail || "",
     activityType: "VERIFICATION",
     action: "BVN_VERIFICATION_SUCCESS",
@@ -1619,7 +1062,7 @@ app.post("/api/services/cac-verify", async (req, res) => {
 
   if (!providerResult.success) {
     const isNoProvider = providerResult.error?.includes("No active provider configured");
-    return res.status(isNoProvider ? 503 : 502).json({
+    return res.status(isNoProvider ? 400 : 422).json({
       error: isNoProvider
         ? "Identity verification provider not configured."
         : (providerResult.error || "Verification provider could not confirm this record."),
@@ -1861,7 +1304,7 @@ app.post("/api/services/tin-verify", async (req, res) => {
 
   if (!providerResult.success) {
     const isNoProvider = providerResult.error?.includes("No active provider configured");
-    return res.status(isNoProvider ? 503 : 502).json({
+    return res.status(isNoProvider ? 400 : 422).json({
       error: isNoProvider
         ? "Identity verification provider not configured."
         : (providerResult.error || "Verification provider could not confirm this record."),
@@ -2105,7 +1548,7 @@ app.post("/api/services/bank-account-verify", async (req, res) => {
 
   if (!providerResult.success) {
     const isNoProvider = providerResult.error?.includes("No active provider configured");
-    return res.status(isNoProvider ? 503 : 502).json({
+    return res.status(isNoProvider ? 400 : 422).json({
       error: isNoProvider
         ? "Identity verification provider not configured."
         : (providerResult.error || "Verification provider could not confirm this record."),

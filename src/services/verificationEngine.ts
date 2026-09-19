@@ -342,48 +342,151 @@ export class VerificationEngine {
         authHeaders = await getAuthHeaders(userId);
       } catch {}
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 25000);
+      // Helper to cleanly sanitize errors and strip any HTML/CSS warmup text
+      const cleanErrorString = (val: any): string => {
+        if (!val) return "";
+        let s = String(val);
+        if (
+          s.includes("Starting Server") ||
+          s.includes("Please wait while your application starts") ||
+          s.includes("warmup_start_time") ||
+          s.includes("<!doctype") ||
+          s.includes("<html")
+        ) {
+          return "The verification service was briefly warming up. Please click 'Retry Query' to submit again.";
+        }
+        // Extract human-readable string from Django REST Framework ErrorDetail syntax
+        // e.g. {'id_number': [ErrorDetail(string='BVN is required', code='required')]}
+        if (s.includes("ErrorDetail") || s.includes("id_number")) {
+          s = s.replace(/ErrorDetail\(string=['"]([^'"]+)['"],\s*code=['"][^'"]+['"]\)/g, "$1");
+          s = s.replace(/\{'id_number':\s*\[?'([^']+)'\]?\}/g, "$1");
+          s = s.replace(/\{['"]?id_number['"]?:\s*\[?['"]?([^'"\]}]+)['"]?\]?\}/g, "$1");
+          s = s.replace(/\{['"]?(\w+)['"]?:\s*\[?['"]?([^'"\]}]+)['"]?\]?\}/g, "$1: $2");
+          s = s.replace(/[\[\]'"{}]/g, "").trim();
+        }
+        // Remove style & script tags along with their inner contents
+        let cleaned = s.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, " ");
+        cleaned = cleaned.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, " ");
+        cleaned = cleaned.replace(/<[^>]+>/g, " ");
+        cleaned = cleaned.replace(/\s+/g, " ").trim();
+        if (cleaned.includes(":root") || cleaned.includes("color-scheme") || cleaned.length > 250) {
+          return "Verification gateway temporarily busy. Please retry your query in a few moments.";
+        }
+        return cleaned;
+      };
 
-      const response = await fetch("/api/verify/engine", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...authHeaders,
-        },
-        body: JSON.stringify({
-          userId,
-          service: serviceType,
-          targetId: validation.formattedValue || String(primaryInput || "").trim(),
-          extraFields: additionalFields,
-          fee: effectiveFee,
-          slipType,
-          autoEmailToRegistered,
-        }),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-      onProgressUpdate?.(VERIFICATION_PROGRESS_STEPS[4]);
-
+      // Perform fetch with up to 2 automatic retries for transient container warmup / 502 / 503
+      let response: Response | null = null;
+      let rawText = "";
       let data: any = {};
-      const rawText = await response.text();
-      try {
-        data = JSON.parse(rawText);
-      } catch {
-        data = { error: rawText || `Server responded with status ${response.status}`, errorCode: "SERVER_ERROR" };
+
+      const maxAttempts = 3;
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 25000);
+
+        try {
+          response = await fetch("/api/verify/engine", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...authHeaders,
+            },
+            body: JSON.stringify({
+              userId,
+              service: serviceType,
+              targetId: validation.formattedValue || String(primaryInput || "").trim(),
+              extraFields: {
+                ...additionalFields,
+                ...(serviceType === "BVN" ? {
+                  bvn: validation.formattedValue || String(primaryInput || "").trim(),
+                  id_number: validation.formattedValue || String(primaryInput || "").trim(),
+                  idNumber: validation.formattedValue || String(primaryInput || "").trim(),
+                } : {}),
+              },
+              fee: effectiveFee,
+              slipType,
+              autoEmailToRegistered,
+            }),
+            signal: controller.signal,
+          });
+          clearTimeout(timeoutId);
+
+          rawText = await response.text();
+
+          const isHtmlWarmup =
+            rawText.includes("Starting Server") ||
+            rawText.includes("Please wait while your application starts") ||
+            rawText.trim().startsWith("<!DOCTYPE") ||
+            rawText.trim().startsWith("<html");
+
+          // Only retry if it was genuinely a proxy/container warmup HTML response
+          if (isHtmlWarmup && attempt < maxAttempts) {
+            await new Promise((resolve) => setTimeout(resolve, 1500));
+            continue;
+          }
+
+          try {
+            data = JSON.parse(rawText);
+          } catch {
+            if (isHtmlWarmup) {
+              data = {
+                error: "The verification server was briefly warming up. Please click 'Retry Query' now.",
+                errorCode: "SERVER_WARMING_UP",
+                friendlyMessage: "Server Initializing",
+                details: "The verification server is now ready. Please click 'Retry Query' below to proceed.",
+              };
+            } else {
+              const cleaned = cleanErrorString(rawText);
+              data = {
+                error: cleaned || `Verification gateway responded with status ${response.status}`,
+                errorCode: response.status === 502 ? "GATEWAY_ERROR" : "SERVER_ERROR",
+                friendlyMessage: "Verification Provider Error",
+                details: cleaned || `HTTP ${response.status}: Failed to parse gateway response`,
+              };
+            }
+          }
+
+          // If we got a valid JSON parse (or handled HTML), break out of retry loop
+          break;
+        } catch (fetchErr: any) {
+          clearTimeout(timeoutId);
+          if (attempt < maxAttempts) {
+            await new Promise((resolve) => setTimeout(resolve, 1500));
+            continue;
+          }
+          data = {
+            error: fetchErr.message || "Network connection failed",
+            errorCode: "NETWORK_ERROR",
+            friendlyMessage: "Connection Error",
+            details: "Could not reach verification gateway. Please check your internet connection.",
+          };
+          break;
+        }
       }
 
-      const clientCalculatedTime = Date.now() - startTime;
+      onProgressUpdate?.(VERIFICATION_PROGRESS_STEPS[4]);
 
-      if (!response.ok || !data.success || data.error) {
+      const clientCalculatedTime = Date.now() - startTime;
+      const isHttpOk = response ? response.ok : false;
+
+      if (!isHttpOk || !data.success || data.error) {
+        const rawErrMsg = String(data.error || data.message || "Verification request rejected by provider server.");
+        const cleanErrMsg = cleanErrorString(rawErrMsg) || "Verification request rejected by provider server.";
+        const rawDetails = String(data.details || cleanErrMsg || (response ? `HTTP ${response.status}: ${response.statusText}` : "Request failed"));
+        const cleanDetails = cleanErrorString(rawDetails) || cleanErrMsg;
+
+        const statusCode = response ? response.status : 500;
+        const isNotFound = cleanErrMsg.toLowerCase().includes("not found") || cleanErrMsg.toLowerCase().includes("does not exist");
+        const isInsufficientCredits = cleanErrMsg.toLowerCase().includes("insufficient") || cleanErrMsg.toLowerCase().includes("wallet balance");
+
         return {
           success: false,
           errorState: {
-            code: data.errorCode || (response.status === 401 || response.status === 403 ? "AUTH_ERROR" : "GATEWAY_ERROR"),
-            message: data.error || data.message || "Verification request rejected by provider server.",
-            friendlyMessage: data.friendlyMessage || "Verification Failed",
-            details: data.details || data.error || `HTTP ${response.status}: ${response.statusText}`,
+            code: data.errorCode || (isNotFound ? "RECORD_NOT_FOUND" : isInsufficientCredits ? "PROVIDER_CREDITS_EXHAUSTED" : statusCode === 401 || statusCode === 403 ? "AUTH_ERROR" : statusCode === 502 ? "GATEWAY_ERROR" : "VERIFICATION_FAILED"),
+            message: cleanErrMsg,
+            friendlyMessage: data.friendlyMessage || (isNotFound ? "Identity Record Not Found" : isInsufficientCredits ? "Provider Balance Depleted" : data.errorCode === "GATEWAY_VERIFICATION_FAILED" ? "Verification Unsuccessful" : "Verification Failed"),
+            details: cleanDetails,
           },
         };
       }

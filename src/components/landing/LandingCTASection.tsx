@@ -18,7 +18,6 @@ import {
   Headphones,
   CheckCircle2
 } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
 
 interface LandingCTASectionProps {
   onRegister: () => void;
@@ -146,18 +145,13 @@ export const LandingCTASection: React.FC<LandingCTASectionProps> = ({
         </div>
 
         {/* Dynamic CTA Card */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            id={`cta-panel-${activeTab}`}
-            role="tabpanel"
-            aria-labelledby={`cta-tab-${activeTab}`}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.3 }}
-            className="p-6 sm:p-10 rounded-3xl bg-[#F8FAFC] border border-[#E2E8F0] shadow-sm max-w-4xl mx-auto space-y-8"
-          >
+        <div
+          key={activeTab}
+          id={`cta-panel-${activeTab}`}
+          role="tabpanel"
+          aria-labelledby={`cta-tab-${activeTab}`}
+          className="p-6 sm:p-10 rounded-3xl bg-[#F8FAFC] border border-[#E2E8F0] shadow-sm max-w-4xl mx-auto space-y-8 animate-in fade-in duration-300"
+        >
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-[#E2E8F0]">
               <div className="space-y-2">
                 <div className="inline-flex items-center gap-2 text-xs font-bold text-[#0F2D5C] uppercase tracking-wider">
@@ -221,8 +215,7 @@ export const LandingCTASection: React.FC<LandingCTASectionProps> = ({
               </p>
             </div>
 
-          </motion.div>
-        </AnimatePresence>
+        </div>
 
         {/* Global Bottom Reassurance */}
         <div className="pt-4 flex flex-wrap items-center justify-center gap-6 sm:gap-10 text-xs text-[#374151]">

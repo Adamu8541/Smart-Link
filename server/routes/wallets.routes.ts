@@ -587,7 +587,7 @@ app.post("/api/receipt/email", async (req, res) => {
   });
 
   if (!emailResult.success) {
-    return res.status(502).json({
+    return res.status(422).json({
       success: false,
       error: `Failed to dispatch receipt email via SMTP: ${emailResult.message || "Connection error"}`,
     });

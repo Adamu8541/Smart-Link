@@ -153,6 +153,12 @@ export function AdminProvidersView() {
       setAddDescription("Direct Identity Verification Portal for NIN and BVN");
       setAddBaseUrl("https://ninbvnportal.com/api");
       setToast("NIN BVN Portal preset applied.");
+    } else if (preset === "verifyng") {
+      setAddName("VerifyNG Identity Gateway");
+      setAddCategory("IDENTITY_API");
+      setAddDescription("VerifyNG KYC & Identity Verification Gateway");
+      setAddBaseUrl("https://kyc.edirect.ng");
+      setToast("VerifyNG preset applied.");
     }
   };
 
@@ -824,6 +830,13 @@ export function AdminProvidersView() {
                 className="px-2.5 py-1 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-300 rounded-lg font-medium transition cursor-pointer shrink-0"
               >
                 🛡️ NIN BVN Portal
+              </button>
+              <button
+                type="button"
+                onClick={() => applyProviderPreset("verifyng")}
+                className="px-2.5 py-1 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 rounded-lg font-medium transition cursor-pointer shrink-0"
+              >
+                🔍 VerifyNG (KYC)
               </button>
             </div>
 

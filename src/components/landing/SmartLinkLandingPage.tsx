@@ -3,19 +3,21 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, lazy, Suspense } from "react";
+import React, { useState, Suspense } from "react";
 import SEOHead from "./SEOHead";
 import LandingHeader from "./LandingHeader";
 import LandingHero from "./LandingHero";
+import { lazyWithRetry } from "../../utils/lazyRetry";
 
-const LandingTrustSection = lazy(() => import("./LandingTrustSection"));
-const LandingServicesPreview = lazy(() => import("./LandingServicesPreview"));
-const LandingHowItWorks = lazy(() => import("./LandingHowItWorks"));
-const LandingFAQSection = lazy(() => import("./LandingFAQSection"));
-const LandingContactSection = lazy(() => import("./LandingContactSection"));
-const LandingCTASection = lazy(() => import("./LandingCTASection"));
-const LandingFooter = lazy(() => import("./LandingFooter"));
-const UserAnnouncementBanner = lazy(() => import("../notification/UserAnnouncementBanner").then(m => ({ default: m.UserAnnouncementBanner })));
+// Below-the-fold sections lazy loaded with automatic retry
+const LandingTrustSection = lazyWithRetry(() => import("./LandingTrustSection"), "LandingTrustSection");
+const LandingServicesPreview = lazyWithRetry(() => import("./LandingServicesPreview"), "LandingServicesPreview");
+const LandingHowItWorks = lazyWithRetry(() => import("./LandingHowItWorks"), "LandingHowItWorks");
+const LandingFAQSection = lazyWithRetry(() => import("./LandingFAQSection"), "LandingFAQSection");
+const LandingContactSection = lazyWithRetry(() => import("./LandingContactSection"), "LandingContactSection");
+const LandingCTASection = lazyWithRetry(() => import("./LandingCTASection"), "LandingCTASection");
+const LandingFooter = lazyWithRetry(() => import("./LandingFooter"), "LandingFooter");
+const UserAnnouncementBanner = lazyWithRetry(() => import("../notification/UserAnnouncementBanner").then(m => ({ default: m.UserAnnouncementBanner })), "UserAnnouncementBanner");
 
 interface SmartLinkLandingPageProps {
   onLogin: () => void;

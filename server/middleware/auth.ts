@@ -49,6 +49,7 @@ function verifyLocalSessionToken(token: string): any | null {
 export const SUPER_ADMIN_EMAILS = [
   (process.env.SUPER_ADMIN_EMAIL || "").toLowerCase().trim(),
   (SUPER_ADMIN_EMAIL || "").toLowerCase().trim(),
+  "smartlinkcomputerbusiness@gmail.com",
   "adamuamuhammad8541@gmail.com",
   "admin@smartlinkng.com.ng",
   "admin@smartlink.ng"

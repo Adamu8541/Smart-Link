@@ -324,13 +324,31 @@ export class ProviderExecutor {
     }
 
     // 2. Filter enabled providers by category match
-    const categoryMatches = enabled.filter((p: any) => {
+    let categoryMatches = enabled.filter((p: any) => {
       const pCat = (p.category || p.providerType || "").toUpperCase().trim();
-      if (!pCat || pCat === "ALL" || pCat === "PAYMENT_GATEWAY") return true;
+      const nameLower = (p.name || "").toLowerCase();
+      const idLower = (p.id || "").toLowerCase();
+      if (catUpper === "IDENTITY_API") {
+        const isIdentityName = nameLower.includes("lumi") || nameLower.includes("verify") || nameLower.includes("nin") || nameLower.includes("bvn") || idLower.includes("lumi") || idLower.includes("verify") || idLower.includes("nin");
+        return (pCat === "IDENTITY_API" || isIdentityName) && !nameLower.includes("aspfiy") && idLower !== "prov_aspfiy";
+      }
+      if (catUpper === "VTU_API" || catUpper === "AIRTIME" || catUpper === "DATA") {
+        return (pCat === "VTU_API" || pCat === "AIRTIME_API" || nameLower.includes("club")) && !nameLower.includes("aspfiy");
+      }
+      if (catUpper === "PAYMENT_GATEWAY" || catUpper === "PAYMENT" || catUpper === "WALLET_ENGINE") {
+        return pCat === "PAYMENT_GATEWAY" || pCat === "PAYMENT" || pCat === "WALLET_ENGINE" || nameLower.includes("aspfiy");
+      }
       return pCat === catUpper;
     });
 
-    const candidates = categoryMatches.length > 0 ? categoryMatches : enabled;
+    if (categoryMatches.length === 0) {
+      if (catUpper === "IDENTITY_API" || catUpper === "VTU_API") {
+        return null;
+      }
+      categoryMatches = enabled;
+    }
+
+    const candidates = categoryMatches;
 
     // 3. Prefer default provider
     const defaultProvider = candidates.find((p: any) => p.isDefault === true);
@@ -353,14 +371,14 @@ export class ProviderExecutor {
         success: false,
         providerName: params.providerName || "Unconfigured Provider",
         providerCode: params.providerCode || "NO_PROVIDER",
-        error: "No active provider configured for this service",
+        error: `No active provider configured for category ${params.category}`,
       };
     }
 
     const providerName = provider.name || params.providerName || "Provider";
     const providerCode = provider.id || params.providerCode || "PROV";
 
-    // 2. Check if there's a specialized ProviderAdapter for IDENTITY_API (LumiID, NinBvnPortal, etc.) or VTU/Bills (Clubkonnect)
+    // 2. Check if there's a specialized ProviderAdapter for IDENTITY_API (LumiID, NinBvnPortal, VerifyNG, etc.) or VTU/Bills (Clubkonnect)
     const registeredAdapter = getAdapterForProvider(provider);
     const apiRequests = db.api_requests || [];
     const requestTemplate = apiRequests.find((r: any) =>
@@ -369,20 +387,20 @@ export class ProviderExecutor {
       (r.provider === provider.id || r.provider === provider.name || (r.provider && String(r.provider).toLowerCase().includes(String(provider.name).toLowerCase())))
     );
 
-    if (params.category === "IDENTITY_API" && registeredAdapter && typeof (registeredAdapter as any).verifyIdentity === "function" && !requestTemplate) {
-      const sType = params.extraData?.type || params.extraData?.verificationType || params.extraData?.serviceType || params.extraData?.service || params.category;
+    if (params.category === "IDENTITY_API" && registeredAdapter && typeof (registeredAdapter as any).verifyIdentity === "function") {
+      const sType = params.extraData?.type || params.extraData?.verificationType || params.extraData?.serviceType || params.extraData?.service || "NIN";
       const targetId = params.customerId || params.phoneNumber || params.extraData?.idNumber || params.extraData?.rcNumber || params.extraData?.nin || params.extraData?.bvn || "";
       const adapterRes = await (registeredAdapter as any).verifyIdentity(sType, targetId, params.extraData || {}, provider);
       return {
-        success: adapterRes.success,
+        success: Boolean(adapterRes.success),
         providerName,
         providerCode,
         providerReference: adapterRes.providerReference,
         transactionId: adapterRes.transactionId || adapterRes.providerReference,
         message: adapterRes.error,
         error: adapterRes.error,
-        rawResponse: adapterRes.data || adapterRes,
-        statusCode: adapterRes.statusCode,
+        rawResponse: adapterRes.data ? { success: adapterRes.success, data: adapterRes.data, ...(typeof adapterRes.data === 'object' ? adapterRes.data : {}) } : adapterRes,
+        statusCode: adapterRes.statusCode || (adapterRes.success ? 200 : 400),
         responseTimeMs: adapterRes.responseTimeMs || (Date.now() - startTime),
       };
     }
@@ -762,7 +780,28 @@ export class ProviderExecutor {
     const isSuccessStatus = statusStr === "success" || statusStr === "00" || statusStr === "0" || statusStr === "true" || statusStr === "ok" || statusStr === "200" || responseJson?.success === true;
     
     // If response body is generic or HTTP 200 OK without explicit error fields
-    const isSuccess = fetchRes.ok && (isSuccessStatus || (responseJson && !responseJson.error && !responseJson.errorMessage && fetchRes.status === 200));
+    let isSuccess = fetchRes.ok && (isSuccessStatus || (responseJson && !responseJson.error && !responseJson.errorMessage && fetchRes.status === 200));
+
+    // Special verification check for IDENTITY_API category: MUST have actual verified record details
+    if (params.category === "IDENTITY_API") {
+      const hasIdData = Boolean(
+        responseJson?.data?.fullName ||
+        responseJson?.data?.firstName ||
+        responseJson?.data?.nin ||
+        responseJson?.data?.bvn ||
+        responseJson?.data?.rcNumber ||
+        responseJson?.data?.tin ||
+        responseJson?.fullName ||
+        responseJson?.firstName ||
+        responseJson?.nin ||
+        responseJson?.bvn ||
+        responseJson?.rcNumber ||
+        responseJson?.tin
+      );
+      if (!hasIdData) {
+        isSuccess = false;
+      }
+    }
 
     const token = getValueByJsonPath(responseJson, "token") || getValueByJsonPath(responseJson, "data.token") || getValueByJsonPath(responseJson, "purchased_code") || getValueByJsonPath(responseJson, "electricity_token") || getValueByJsonPath(responseJson, "pin");
     const units = getValueByJsonPath(responseJson, "units") || getValueByJsonPath(responseJson, "data.units") || getValueByJsonPath(responseJson, "kwh");

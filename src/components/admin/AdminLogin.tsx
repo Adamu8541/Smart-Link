@@ -161,7 +161,7 @@ export default function AdminLogin({ onLoginSuccess, onNavigateHome }: AdminLogi
   };
 
   return (
-    <div id="admin-login-page" style={{ backgroundColor: '#ffffff' }} className="min-h-screen w-full text-slate-800 flex flex-col justify-center items-center p-4 md:p-6 relative overflow-hidden font-sans">
+    <div id="admin-login-page" style={{ backgroundColor: '#88c9f9' }} className="min-h-screen w-full text-slate-800 flex flex-col justify-center items-center p-4 md:p-6 relative overflow-hidden font-sans">
       {/* Background ambient lighting */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#0F2D5C]/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-10 right-10 w-80 h-80 bg-[#0F2D5C]/5 rounded-full blur-3xl pointer-events-none" />

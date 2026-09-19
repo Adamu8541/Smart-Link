@@ -55,14 +55,49 @@ export function getActiveProviderAndAdapter(
   );
   if (!active) return null;
 
-  // Ensure active ASPFIY provider uses the server-side environment secret if available
+  // Ensure active providers use official base URLs, built-in App IDs, and server environment API keys
+  let resolvedSecret = active.secretKey;
+  let resolvedBaseUrl = active.baseUrl;
+  let resolvedAppId = (active as any).clientId || (active as any).appId;
+
+  const activeNameLower = ((active.name || "") + " " + (active.id || "")).toLowerCase();
+  if (activeNameLower.includes("aspfiy")) {
+    if (process.env.ASPFIY_SECRET_KEY) resolvedSecret = String(process.env.ASPFIY_SECRET_KEY).trim();
+    resolvedBaseUrl = resolvedBaseUrl || "https://api-v1.aspfiy.com";
+  } else if (activeNameLower.includes("lumiid")) {
+    if (process.env.LUMIID_API_KEY || process.env.LUMIID_SECRET_KEY) {
+      resolvedSecret = String(process.env.LUMIID_API_KEY || process.env.LUMIID_SECRET_KEY).trim();
+    }
+    resolvedBaseUrl = resolvedBaseUrl || "https://api.lumiid.com";
+    resolvedAppId = resolvedAppId || "smartlink_identity_app";
+  } else if (activeNameLower.includes("nin bvn") || activeNameLower.includes("ninbvn")) {
+    if (process.env.NINBVNPORTAL_API_KEY || process.env.NIN_BVN_PORTAL_API_KEY) {
+      resolvedSecret = String(process.env.NINBVNPORTAL_API_KEY || process.env.NIN_BVN_PORTAL_API_KEY).trim();
+    }
+    resolvedBaseUrl = resolvedBaseUrl || "https://ninbvnportal.com/api";
+    resolvedAppId = resolvedAppId || "smartlink_nin_app";
+  } else if (activeNameLower.includes("verifyng")) {
+    if (process.env.VERIFYNG_API_KEY || process.env.VERIFYNG_SECRET_KEY || process.env.VERIFYNG_API_SECRET) {
+      resolvedSecret = String(process.env.VERIFYNG_API_KEY || process.env.VERIFYNG_SECRET_KEY || process.env.VERIFYNG_API_SECRET).trim();
+    }
+    resolvedBaseUrl = (resolvedBaseUrl && !resolvedBaseUrl.includes("verifyn.ng")) ? resolvedBaseUrl : "https://kyc.edirect.ng";
+    resolvedAppId = resolvedAppId || "smartlink_kyc_app";
+  } else if (activeNameLower.includes("clubkonnect")) {
+    if (process.env.CLUBKONNECT_API_KEY) {
+      resolvedSecret = String(process.env.CLUBKONNECT_API_KEY).trim();
+    }
+    resolvedBaseUrl = resolvedBaseUrl || "https://www.clubkonnect.com/API";
+    resolvedAppId = resolvedAppId || "smartlink_vtu";
+  }
+
   const resolvedProvider: PaymentProviderConfig = {
     ...active,
-    secretKey:
-      ((active.name || "").toLowerCase().includes("aspfiy") && process.env.ASPFIY_SECRET_KEY)
-        ? String(process.env.ASPFIY_SECRET_KEY).trim()
-        : active.secretKey,
-  };
+    secretKey: resolvedSecret,
+    apiKey: resolvedSecret,
+    baseUrl: resolvedBaseUrl,
+    clientId: resolvedAppId,
+    appId: resolvedAppId,
+  } as any;
 
   const adapter = getAdapterForProvider(resolvedProvider);
   if (!adapter) return null;

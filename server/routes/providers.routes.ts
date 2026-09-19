@@ -570,6 +570,29 @@ function getCentralActivePaymentProvider(db: any, isAdmin = false) {
     activeProvider.apiKey = activeProvider.secretKey;
   }
 
+  // Resolve other providers from process.env if available, with built-in Base URLs and App IDs
+  const activeProvName = (activeProvider.name || "").toLowerCase() + " " + (activeProvider.id || "").toLowerCase();
+  if (activeProvName.includes("lumiid")) {
+    activeProvider.secretKey = activeProvider.secretKey || String(process.env.LUMIID_API_KEY || process.env.LUMIID_SECRET_KEY || "").trim();
+    activeProvider.apiKey = activeProvider.secretKey;
+    activeProvider.clientId = activeProvider.clientId || String(process.env.LUMIID_APP_ID || process.env.LUMIID_CLIENT_ID || "smartlink_identity_app").trim();
+    activeProvider.baseUrl = activeProvider.baseUrl || "https://api.lumiid.com";
+  } else if (activeProvName.includes("nin bvn") || activeProvName.includes("ninbvn")) {
+    activeProvider.secretKey = activeProvider.secretKey || String(process.env.NINBVNPORTAL_API_KEY || process.env.NIN_BVN_PORTAL_API_KEY || "").trim();
+    activeProvider.apiKey = activeProvider.secretKey;
+    activeProvider.clientId = activeProvider.clientId || "smartlink_nin_app";
+    activeProvider.baseUrl = activeProvider.baseUrl || "https://ninbvnportal.com/api";
+  } else if (activeProvName.includes("verifyng")) {
+    activeProvider.secretKey = activeProvider.secretKey || String(process.env.VERIFYNG_API_KEY || process.env.VERIFYNG_SECRET_KEY || process.env.VERIFYNG_API_SECRET || "").trim();
+    activeProvider.clientId = activeProvider.clientId || String(process.env.VERIFYNG_CLIENT_KEY || process.env.VERIFYNG_API_KEY || "smartlink_kyc_app").trim();
+    activeProvider.apiKey = activeProvider.clientId;
+    activeProvider.baseUrl = (activeProvider.baseUrl && !activeProvider.baseUrl.includes("verifyn.ng")) ? activeProvider.baseUrl : "https://kyc.edirect.ng";
+  } else if (activeProvName.includes("clubkonnect")) {
+    activeProvider.secretKey = activeProvider.secretKey || String(process.env.CLUBKONNECT_API_KEY || "").trim();
+    activeProvider.clientId = activeProvider.clientId || String(process.env.CLUBKONNECT_USER_ID || "smartlink_vtu").trim();
+    activeProvider.baseUrl = activeProvider.baseUrl || "https://www.clubkonnect.com/API";
+  }
+
   const keyVal = activeProvider.secretKey || activeProvider.apiKey;
   if (!activeProvider.name || !keyVal) {
     if (!db.providerLogs) db.providerLogs = [];
@@ -953,6 +976,29 @@ app.post("/api/admin/payment-providers/:id/test-connection", requireAdmin, async
   if (isAspfiy && process.env.ASPFIY_SECRET_KEY) {
     provider.secretKey = String(process.env.ASPFIY_SECRET_KEY).trim();
     provider.apiKey = provider.secretKey;
+  }
+
+  // Resolve other providers from process.env if available, with built-in Base URLs and App IDs
+  const testProvName = (provider.name || "").toLowerCase() + " " + (provider.id || "").toLowerCase();
+  if (testProvName.includes("lumiid")) {
+    provider.secretKey = provider.secretKey || String(process.env.LUMIID_API_KEY || process.env.LUMIID_SECRET_KEY || "").trim();
+    provider.apiKey = provider.secretKey;
+    provider.clientId = provider.clientId || String(process.env.LUMIID_APP_ID || process.env.LUMIID_CLIENT_ID || "smartlink_identity_app").trim();
+    provider.baseUrl = provider.baseUrl || "https://api.lumiid.com";
+  } else if (testProvName.includes("nin bvn") || testProvName.includes("ninbvn")) {
+    provider.secretKey = provider.secretKey || String(process.env.NINBVNPORTAL_API_KEY || process.env.NIN_BVN_PORTAL_API_KEY || "").trim();
+    provider.apiKey = provider.secretKey;
+    provider.clientId = provider.clientId || "smartlink_nin_app";
+    provider.baseUrl = provider.baseUrl || "https://ninbvnportal.com/api";
+  } else if (testProvName.includes("verifyng")) {
+    provider.secretKey = provider.secretKey || String(process.env.VERIFYNG_API_KEY || process.env.VERIFYNG_SECRET_KEY || process.env.VERIFYNG_API_SECRET || "").trim();
+    provider.clientId = provider.clientId || String(process.env.VERIFYNG_CLIENT_KEY || process.env.VERIFYNG_API_KEY || "smartlink_kyc_app").trim();
+    provider.apiKey = provider.clientId;
+    provider.baseUrl = (provider.baseUrl && !provider.baseUrl.includes("verifyn.ng")) ? provider.baseUrl : "https://kyc.edirect.ng";
+  } else if (testProvName.includes("clubkonnect")) {
+    provider.secretKey = provider.secretKey || String(process.env.CLUBKONNECT_API_KEY || "").trim();
+    provider.clientId = provider.clientId || String(process.env.CLUBKONNECT_USER_ID || "smartlink_vtu").trim();
+    provider.baseUrl = provider.baseUrl || "https://www.clubkonnect.com/API";
   }
 
   let testResultStatus:
@@ -1384,7 +1430,7 @@ function seedModule6ProvidersIfEmpty(db: any) {
     db.api_providers = [...db.apiProviders];
   }
 
-  if (db.api_providers.length === 0) {
+  if (!db.api_providers.some((p: any) => p.id === "prov_aspfiy" || (p.name || "").toLowerCase().includes("aspfiy"))) {
     const aspfiySecretKey = String(process.env.ASPFIY_SECRET_KEY || "").trim();
     const aspfiyPublicKey = String(process.env.ASPFIY_PUBLIC_KEY || "").trim();
 
@@ -1401,7 +1447,7 @@ function seedModule6ProvidersIfEmpty(db: any) {
       secretKey: aspfiySecretKey,
       publicKey: aspfiyPublicKey,
       apiKey: aspfiySecretKey,
-      webhookUrl: "", // must be filled in by the admin with the real deployed URL, e.g. https://<your-render-url>/api/webhooks/incoming — cannot be known at seed time
+      webhookUrl: "", // must be filled in by the admin with the real deployed URL
       webhookSignatureMethod: "MD5_OF_SECRET",
       webhookSignatureHeaderName: "x-wiaxy-signature",
       webhookSigningSecret: aspfiySecretKey,
@@ -1418,13 +1464,153 @@ function seedModule6ProvidersIfEmpty(db: any) {
       retryAttempts: 3,
       healthStatus: "UNKNOWN",
       priority: 1,
-      environment: "SANDBOX",
-      status: "Draft",
-      enabled: false,
-      isActive: false,
+      environment: "PRODUCTION",
+      status: "ENABLED",
+      enabled: true,
+      isActive: true,
     };
 
     db.api_providers.push(defaultAspfiy);
+  }
+
+  // Ensure LumiID Sovereign Identity Provider (official base URL & built-in App ID)
+  if (!db.api_providers.some((p: any) => p.id === "prov_lumiid" || (p.name || "").toLowerCase().includes("lumiid"))) {
+    db.api_providers.push({
+      id: "prov_lumiid",
+      name: "LumiID Identity Verification",
+      category: "IDENTITY_API",
+      providerType: "IDENTITY_API",
+      description: "LumiID Sovereign Identity Gateway & NIMC Verification (lumiid.com)",
+      logoUrl: "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=100&auto=format&fit=crop&q=60",
+      baseUrl: "https://api.lumiid.com",
+      apiVersion: "v1.0",
+      authMethod: "API_KEY",
+      secretKey: String(process.env.LUMIID_API_KEY || process.env.LUMIID_SECRET_KEY || "").trim(),
+      apiKey: String(process.env.LUMIID_API_KEY || process.env.LUMIID_SECRET_KEY || "").trim(),
+      clientId: "smartlink_identity_app",
+      appId: "smartlink_identity_app",
+      supportsWalletFunding: false,
+      supportsBankTransfer: false,
+      supportsCardPayment: false,
+      supportsVirtualAccount: false,
+      supportsPaymentLink: false,
+      supportsPayout: false,
+      supportsRefund: false,
+      supportsTxVerification: true,
+      timeout: 12000,
+      retryAttempts: 3,
+      healthStatus: "ONLINE",
+      priority: 2,
+      environment: "PRODUCTION",
+      status: "ENABLED",
+      enabled: true,
+      isActive: true,
+    });
+  }
+
+  // Ensure NIN BVN Portal Provider (official base URL & built-in App ID)
+  if (!db.api_providers.some((p: any) => p.id === "prov_ninbvnportal" || (p.name || "").toLowerCase().includes("ninbvnportal") || (p.name || "").toLowerCase().includes("nin bvn"))) {
+    db.api_providers.push({
+      id: "prov_ninbvnportal",
+      name: "NIN BVN Portal",
+      category: "IDENTITY_API",
+      providerType: "IDENTITY_API",
+      description: "Direct Identity Verification Portal for NIN and BVN (ninbvnportal.com)",
+      logoUrl: "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=100&auto=format&fit=crop&q=60",
+      baseUrl: "https://ninbvnportal.com/api",
+      apiVersion: "v1.0",
+      authMethod: "API_KEY",
+      secretKey: String(process.env.NINBVNPORTAL_API_KEY || process.env.NIN_BVN_PORTAL_API_KEY || "").trim(),
+      apiKey: String(process.env.NINBVNPORTAL_API_KEY || process.env.NIN_BVN_PORTAL_API_KEY || "").trim(),
+      clientId: "smartlink_nin_app",
+      appId: "smartlink_nin_app",
+      supportsWalletFunding: false,
+      supportsBankTransfer: false,
+      supportsCardPayment: false,
+      supportsVirtualAccount: false,
+      supportsPaymentLink: false,
+      supportsPayout: false,
+      supportsRefund: false,
+      supportsTxVerification: true,
+      timeout: 10000,
+      retryAttempts: 3,
+      healthStatus: "ONLINE",
+      priority: 3,
+      environment: "PRODUCTION",
+      status: "ENABLED",
+      enabled: true,
+      isActive: true,
+    });
+  }
+
+  // Ensure VerifyNG Provider (official base URL & built-in App ID)
+  if (!db.api_providers.some((p: any) => p.id === "prov_verifyng" || (p.name || "").toLowerCase().includes("verifyng"))) {
+    db.api_providers.push({
+      id: "prov_verifyng",
+      name: "VerifyNG Identity Gateway",
+      category: "IDENTITY_API",
+      providerType: "IDENTITY_API",
+      description: "VerifyNG Identity & KYC Verification Gateway (kyc.edirect.ng / verifyn.ng)",
+      logoUrl: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=100&auto=format&fit=crop&q=60",
+      baseUrl: "https://kyc.edirect.ng",
+      apiVersion: "v1.0",
+      authMethod: "HMAC_SHA256",
+      secretKey: String(process.env.VERIFYNG_API_KEY || process.env.VERIFYNG_SECRET_KEY || process.env.VERIFYNG_API_SECRET || "").trim(),
+      apiKey: String(process.env.VERIFYNG_API_KEY || "").trim(),
+      clientId: "smartlink_kyc_app",
+      appId: "smartlink_kyc_app",
+      supportsWalletFunding: false,
+      supportsBankTransfer: false,
+      supportsCardPayment: false,
+      supportsVirtualAccount: false,
+      supportsPaymentLink: false,
+      supportsPayout: false,
+      supportsRefund: false,
+      supportsTxVerification: true,
+      timeout: 12000,
+      retryAttempts: 3,
+      healthStatus: "ONLINE",
+      priority: 4,
+      environment: "PRODUCTION",
+      status: "ENABLED",
+      enabled: true,
+      isActive: true,
+    });
+  }
+
+  // Ensure Clubkonnect Provider (official base URL & built-in App ID)
+  if (!db.api_providers.some((p: any) => p.id === "prov_clubkonnect" || (p.name || "").toLowerCase().includes("clubkonnect"))) {
+    db.api_providers.push({
+      id: "prov_clubkonnect",
+      name: "Clubkonnect VTU & Bill Payment",
+      category: "TELECOM_VTU",
+      providerType: "BILL_PAYMENT",
+      description: "Clubkonnect VTU, Data Bundles, Cable TV, Electricity Bills & Exam PINs API (clubkonnect.com)",
+      logoUrl: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=100&auto=format&fit=crop&q=60",
+      baseUrl: "https://www.clubkonnect.com/API",
+      apiVersion: "v1.0",
+      authMethod: "API_KEY",
+      secretKey: String(process.env.CLUBKONNECT_API_KEY || "").trim(),
+      apiKey: String(process.env.CLUBKONNECT_API_KEY || "").trim(),
+      clientId: "smartlink_vtu",
+      appId: "smartlink_vtu",
+      supportsWalletFunding: false,
+      supportsBankTransfer: false,
+      supportsCardPayment: false,
+      supportsVirtualAccount: false,
+      supportsPaymentLink: false,
+      supportsPayout: false,
+      supportsRefund: false,
+      supportsTxVerification: true,
+      timeout: 15000,
+      retryAttempts: 3,
+      healthStatus: "ONLINE",
+      priority: 5,
+      environment: "PRODUCTION",
+      status: "ENABLED",
+      enabled: true,
+      isActive: true,
+    });
   }
 
   db.apiProviders = db.api_providers;
@@ -1870,6 +2056,35 @@ app.post("/api/admin/providers/:providerId/test-connection", requireAdmin, async
   const provider = (db.api_providers || []).find((p: any) => p.id === providerId || p.name.toLowerCase() === providerId.toLowerCase());
   if (!provider) {
     return res.status(404).json({ success: false, message: `Provider ${providerId} not found.` });
+  }
+
+  const pName = (provider.name || "").toLowerCase();
+  const pId = (provider.id || "").toLowerCase();
+  if (pName.includes("lumiid") || pId.includes("lumiid")) {
+    provider.baseUrl = provider.baseUrl || "https://api.lumiid.com";
+    if (!provider.secretKey || provider.secretKey.includes("•")) {
+      provider.secretKey = process.env.LUMIID_API_KEY || process.env.LUMIID_SECRET_KEY || provider.secretKey;
+    }
+    provider.apiKey = provider.secretKey;
+  } else if (pName.includes("verifyng") || pId.includes("verifyng") || pName.includes("edirect")) {
+    if (!provider.baseUrl || provider.baseUrl.includes("verifyn.ng")) {
+      provider.baseUrl = "https://kyc.edirect.ng";
+    }
+    provider.apiKey = provider.apiKey || process.env.VERIFYNG_CLIENT_KEY || process.env.VERIFYNG_API_KEY;
+    provider.secretKey = provider.secretKey || process.env.VERIFYNG_API_SECRET || process.env.VERIFYNG_API_KEY || process.env.VERIFYNG_SECRET_KEY;
+  } else if (pName.includes("ninbvnportal") || pId.includes("ninbvnportal")) {
+    provider.baseUrl = provider.baseUrl || "https://ninbvnportal.com/api";
+    if (!provider.secretKey || provider.secretKey.includes("•")) {
+      provider.secretKey = process.env.NINBVNPORTAL_API_KEY || process.env.NIN_BVN_PORTAL_API_KEY || provider.secretKey;
+    }
+    provider.apiKey = provider.secretKey;
+  } else if (pName.includes("clubkonnect") || pId.includes("clubkonnect")) {
+    provider.baseUrl = provider.baseUrl || "https://www.clubkonnect.com/API";
+    provider.secretKey = provider.secretKey || process.env.CLUBKONNECT_API_KEY;
+    provider.clientId = provider.clientId || process.env.CLUBKONNECT_USER_ID;
+  } else if (pName.includes("aspfiy") || pId.includes("aspfiy")) {
+    provider.baseUrl = provider.baseUrl || "https://api-v1.aspfiy.com";
+    provider.secretKey = provider.secretKey || process.env.ASPFIY_SECRET_KEY || process.env.ASPFIY_API_KEY;
   }
 
   const pingStartTime = Date.now();

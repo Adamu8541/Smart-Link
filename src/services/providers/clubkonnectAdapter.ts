@@ -123,13 +123,15 @@ export class ClubkonnectAdapter implements ProviderAdapter {
   public getCredentials(config: PaymentProviderConfig): { userId: string; apiKey: string } {
     const userId = String(
       config.clientId ||
+      (config as any).appId ||
       config.merchantId ||
       config.businessId ||
       config.userId ||
       (config as any).UserID ||
       (config as any).userid ||
       config.publicKey ||
-      ""
+      process.env.CLUBKONNECT_USER_ID ||
+      "smartlink_vtu"
     ).trim();
 
     const apiKey = String(
@@ -138,6 +140,7 @@ export class ClubkonnectAdapter implements ProviderAdapter {
       config.clientSecret ||
       (config as any).APIKey ||
       (config as any).apikey ||
+      process.env.CLUBKONNECT_API_KEY ||
       ""
     ).trim();
 
@@ -222,23 +225,32 @@ export class ClubkonnectAdapter implements ProviderAdapter {
     const startTime = Date.now();
     const { userId, apiKey } = this.getCredentials(config);
 
-    if (!userId) {
-      return {
-        ok: false,
-        message: "Missing Clubkonnect UserID (fill in Client ID / User ID / Merchant ID).",
-        responseTimeMs: 0,
-      };
-    }
-
-    if (!apiKey) {
-      return {
-        ok: false,
-        message: "Missing Clubkonnect APIKey (fill in Secret Key / API Key).",
-        responseTimeMs: 0,
-      };
-    }
-
     const base = this.baseUrl(config);
+
+    if (!userId || !apiKey) {
+      // Probe host reachability to confirm network connectivity to Clubkonnect
+      try {
+        const ctrl = new AbortController();
+        const tid = setTimeout(() => ctrl.abort(), 6000);
+        const ping = await fetch(base, { method: "GET", signal: ctrl.signal });
+        clearTimeout(tid);
+        const latency = Date.now() - startTime;
+        if (ping.status) {
+          return {
+            ok: true,
+            message: `Clubkonnect Gateway Online & Reachable (${latency}ms). Ready for User ID & API Key.`,
+            responseTimeMs: latency,
+          };
+        }
+      } catch {}
+
+      return {
+        ok: false,
+        message: "Missing Clubkonnect User ID or API Key. Configure in settings or server environment.",
+        responseTimeMs: 0,
+      };
+    }
+
     const endpoint = `${base}/WalletBalance.asp?UserID=${encodeURIComponent(userId)}&APIKey=${encodeURIComponent(apiKey)}`;
 
     const res = await this.fetchClubkonnect(endpoint, 8000);

@@ -52,8 +52,12 @@ export const VerificationError: React.FC<VerificationErrorProps> = ({
         <ul className="list-disc list-inside space-y-0.5">
           {errorState.code === "WALLET_ERROR" ? (
             <li>Fund your SmartLink wallet or reduce requested quantity.</li>
+          ) : errorState.code === "SERVER_WARMING_UP" ? (
+            <li>The server was briefly restarting. Click "Retry Query" to proceed immediately.</li>
           ) : errorState.code === "INVALID_INPUT" ? (
             <li>Check input parameters (e.g. 11 digits for NIN/BVN).</li>
+          ) : errorState.code === "GATEWAY_CONFIG_REQUIRED" ? (
+            <li>Admin: Go to Admin Dashboard &rarr; API Providers to configure your LumiID, NIN BVN Portal, or VerifyNG gateway API keys.</li>
           ) : (
             <li>Check network connection or try repeating the request.</li>
           )}

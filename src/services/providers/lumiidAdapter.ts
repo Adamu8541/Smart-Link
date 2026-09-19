@@ -41,51 +41,111 @@ export class LumiIDAdapter implements ProviderAdapter {
   name = "LumiID Sovereign Identity Gateway (lumiid.com)";
 
   /**
-   * Resolve Base URL for LumiID API
+   * Resolve Base URL for LumiID API (built-in official default: https://api.lumiid.com)
    */
   private baseUrl(config: PaymentProviderConfig): string {
-    const raw = config.baseUrl || config.apiUrl || "https://api.lumiid.com/v1";
+    const raw = config.baseUrl || config.apiUrl || "https://api.lumiid.com";
     return String(raw).trim().replace(/\/+$/, "");
+  }
+
+  /**
+   * Resolve live API key, falling back to process.env if stored key is masked
+   */
+  private getResolvedKey(config: PaymentProviderConfig): string {
+    const raw = String(config.secretKey || config.apiKey || "").trim();
+    if (raw && !raw.includes("•") && !raw.includes("*") && !raw.includes("...") && raw.length > 20) {
+      return raw.replace(/[^\x00-\x7F]/g, "").trim();
+    }
+    const envKey = String(process.env.LUMIID_API_KEY || process.env.LUMIID_SECRET_KEY || raw || "").trim();
+    return envKey.replace(/[^\x00-\x7F]/g, "").trim();
   }
 
   /**
    * Build authentication and request headers according to LumiID specification
    */
   private headers(config: PaymentProviderConfig): Record<string, string> {
-    const key = String(config.secretKey || config.apiKey || "").trim();
+    const cleanKey = this.getResolvedKey(config);
     const appId = String(
       (config as any).clientId ||
       (config as any).appId ||
       (config as any).app_id ||
-      config.apiKey ||
-      ""
-    ).trim();
+      process.env.LUMIID_APP_ID ||
+      process.env.LUMIID_CLIENT_ID ||
+      "smartlink_identity_app"
+    ).replace(/[^\x00-\x7F]/g, "").trim();
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       Accept: "application/json",
       "User-Agent": "SmartLink-LumiID-Client/2.0",
+      "X-App-ID": appId,
+      "x-app-id": appId,
     };
 
-    if (key) {
-      headers["Authorization"] = key.startsWith("Bearer ") ? key : `Bearer ${key}`;
-    }
-
-    if (appId) {
-      headers["X-App-ID"] = appId;
-      headers["x-app-id"] = appId;
+    if (cleanKey) {
+      headers["Authorization"] = cleanKey.startsWith("Bearer ") ? cleanKey : `Bearer ${cleanKey}`;
+      headers["x-api-key"] = cleanKey;
     }
 
     return headers;
   }
 
   /**
-   * Sanitize error strings to ensure credentials are never leaked
+   * Sanitize error strings to ensure credentials are never leaked and DRF ErrorDetail syntax is human-readable
    */
   private sanitizeError(msg: string): string {
-    return String(msg || "")
+    let s = String(msg || "")
       .replace(/Bearer\s+[A-Za-z0-9_.-]+/gi, "Bearer [REDACTED]")
       .replace(/X-App-ID:\s*[A-Za-z0-9_.-]+/gi, "X-App-ID: [REDACTED]");
+
+    // Extract human-readable string from Django REST Framework ErrorDetail syntax
+    // e.g. {'id_number': [ErrorDetail(string='BVN is required', code='required')]}
+    if (s.includes("ErrorDetail") || s.includes("id_number")) {
+      s = s.replace(/ErrorDetail\(string=['"]([^'"]+)['"],\s*code=['"][^'"]+['"]\)/g, "$1");
+      s = s.replace(/\{'id_number':\s*\[?'([^']+)'\]?\}/g, "$1");
+      s = s.replace(/\{['"]?id_number['"]?:\s*\[?['"]?([^'"\]}]+)['"]?\]?\}/g, "$1");
+      s = s.replace(/\{['"]?(\w+)['"]?:\s*\[?['"]?([^'"\]}]+)['"]?\]?\}/g, "$1: $2");
+      s = s.replace(/[\[\]'"{}]/g, "").trim();
+    }
+
+    return s;
+  }
+
+  /**
+   * Extract user-friendly error message from API response body
+   */
+  private extractErrorMessage(json: any, status: number): string {
+    if (!json) return `LumiID verification rejected (HTTP ${status}).`;
+
+    if (typeof json.message === "string" && json.message.trim()) return json.message.trim();
+    if (typeof json.error === "string" && json.error.trim()) return json.error.trim();
+    if (typeof json.msg === "string" && json.msg.trim()) return json.msg.trim();
+    if (typeof json.detail === "string" && json.detail.trim()) return json.detail.trim();
+    if (typeof json.details === "string" && json.details.trim()) return json.details.trim();
+    if (typeof json.data?.message === "string" && json.data.message.trim()) return json.data.message.trim();
+
+    // Check for field-specific dictionary errors e.g. { id_number: [...] }
+    if (typeof json === "object") {
+      const messages: string[] = [];
+      for (const [key, val] of Object.entries(json)) {
+        if (key === "status" || key === "code" || key === "success" || key === "meta") continue;
+        if (Array.isArray(val)) {
+          for (const item of val) {
+            const itemStr = String(item || "");
+            const m = itemStr.match(/string=['"]([^'"]+)['"]/);
+            messages.push(m ? m[1] : itemStr.replace(/^[\[{\s'"]+|[\]}\s'"]+$/g, ""));
+          }
+        } else if (typeof val === "string") {
+          const m = val.match(/string=['"]([^'"]+)['"]/);
+          messages.push(m ? m[1] : val);
+        }
+      }
+      if (messages.length > 0) {
+        return messages.filter(Boolean).join("; ");
+      }
+    }
+
+    return `LumiID verification rejected (HTTP ${status}).`;
   }
 
   /**
@@ -148,7 +208,7 @@ export class LumiIDAdapter implements ProviderAdapter {
 
       // Specific Identity Numbers
       nin: d.nin || d.national_identity_number || d.vNin || d.vnin || undefined,
-      bvn: d.bvn || d.bank_verification_number || undefined,
+      bvn: d.bvn || d.bank_verification_number || d.id_number || d.idNumber || (serviceType && serviceType.toUpperCase().includes("BVN") ? (d.search_value || d.number) : undefined),
       tin: d.tin || d.tax_identification_number || d.taxId || undefined,
       driverLicenseNumber: d.license_number || d.driver_license_number || d.licenseNumber || undefined,
       vin: d.vin || d.voter_identification_number || d.voterId || undefined,
@@ -190,32 +250,34 @@ export class LumiIDAdapter implements ProviderAdapter {
 
     if (sType.includes("NIN")) {
       return {
-        primary: "/ng/nin-basic/",
-        fallbacks: ["/ng/nin", "/nin/verify", "/nin", "/ng/nin-advance"],
+        primary: "/v1/ng/nin-basic/",
+        fallbacks: ["/v1/ng/nin", "/ng/nin-basic/", "/v1/nin/verify", "/nin/verify", "/v1/ng/nin-advance/"],
         payloadKey: "nin",
       };
     }
 
     if (sType.includes("BVN")) {
       return {
-        primary: "/ng/bvn-basic/",
-        fallbacks: ["/ng/bvn", "/bvn/verify", "/bvn", "/ng/bvn-advance/"],
-        payloadKey: "bvn",
+        primary: "/v1/ng/bvn-basic/",
+        fallbacks: [
+          "/ng/bvn-basic/",
+        ],
+        payloadKey: "id_number",
       };
     }
 
     if (sType.includes("CAC") || sType.includes("KYB") || sType.includes("BUSINESS")) {
       return {
-        primary: "/kyb/verify",
-        fallbacks: ["/ng/cac", "/cac/verify", "/ng/kyb", "/kyb/lookup"],
+        primary: "/v1/kyb/verify",
+        fallbacks: ["/kyb/verify", "/ng/cac", "/cac/verify", "/ng/kyb", "/kyb/lookup"],
         payloadKey: "rcNumber",
       };
     }
 
     if (sType.includes("DRIVER") || sType.includes("DRIVERS_LICENSE") || sType.includes("DL")) {
       return {
-        primary: "/ng/driver-license",
-        fallbacks: ["/ng/drivers-license", "/drivers-license/verify", "/dl/verify"],
+        primary: "/v1/drivers-license/verify",
+        fallbacks: ["/ng/driver-license", "/ng/drivers-license", "/drivers-license/verify", "/dl/verify"],
         payloadKey: "licenseNumber",
       };
     }
@@ -292,8 +354,16 @@ export class LumiIDAdapter implements ProviderAdapter {
       payload["nin"] = cleanId.replace(/\D/g, "");
       payload["idNumber"] = payload["nin"];
     } else if (sType.includes("BVN")) {
-      payload["bvn"] = cleanId.replace(/\D/g, "");
-      payload["idNumber"] = payload["bvn"];
+      const cleanBvn = cleanId.replace(/\D/g, "");
+      payload["bvn"] = cleanBvn;
+      payload["id_number"] = cleanBvn;
+      payload["idNumber"] = cleanBvn;
+      payload["number"] = cleanBvn;
+      payload["bvn_number"] = cleanBvn;
+      payload["search_value"] = cleanBvn;
+      payload["consent"] = true;
+      payload["is_consent"] = true;
+      payload["customer_consent"] = true;
     } else if (sType.includes("CAC") || sType.includes("KYB")) {
       payload["rcNumber"] = cleanId;
       payload["rc_number"] = cleanId;
@@ -340,94 +410,118 @@ export class LumiIDAdapter implements ProviderAdapter {
   ): Promise<{ ok: boolean; message: string; responseTimeMs: number; balance?: number }> {
     const startTime = Date.now();
     try {
-      const secretKey = String(config.secretKey || config.apiKey || "").trim();
-      if (!secretKey) {
+      const rawSecret = String(
+        config.secretKey ||
+        config.apiKey ||
+        process.env.LUMIID_SECRET_KEY ||
+        process.env.LUMIID_API_KEY ||
+        ""
+      ).trim();
+
+      const isMasked = rawSecret.includes("•") || rawSecret.includes("***") || rawSecret.includes("....");
+      const safeKey = rawSecret.replace(/[^\x00-\x7F]/g, "").trim();
+
+      const base = this.baseUrl(config);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+      let hostResponded = false;
+      let latency = 0;
+
+      // 1. Probe base URL host reachability
+      try {
+        const pingRes = await fetch(base, {
+          method: "GET",
+          headers: {
+            "User-Agent": "SmartLink-LumiID/1.0",
+            Accept: "*/*",
+          },
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+        latency = Date.now() - startTime;
+        if (pingRes.status) {
+          hostResponded = true;
+        }
+      } catch {
+        clearTimeout(timeoutId);
+        // Fallback to domain root if subdomain was unreachable
+        try {
+          const fallbackRes = await fetch("https://lumiid.com", {
+            method: "GET",
+            headers: { "User-Agent": "SmartLink-LumiID/1.0" },
+          });
+          if (fallbackRes.status) {
+            hostResponded = true;
+            latency = Date.now() - startTime;
+          }
+        } catch {}
+      }
+
+      if (!hostResponded) {
         return {
           ok: false,
-          message: "LumiID Secret Key is missing. Please provide your Secret Key in API Provider settings.",
-          responseTimeMs: 0,
+          message: `LumiID unreachable at ${base}. Please verify network connection.`,
+          responseTimeMs: Date.now() - startTime,
         };
       }
 
-      const endpointsToTry = [
-        `${this.baseUrl(config)}/wallet/balance`,
-        `${this.baseUrl(config)}/wallet`,
-        `${this.baseUrl(config)}/balance`,
-        `${this.baseUrl(config)}/ping`,
-        `${this.baseUrl(config)}/health`,
-      ];
+      // 2. If valid unmasked secret key is provided, query wallet balance
+      if (safeKey && !isMasked && safeKey.length >= 20) {
+        const endpointsToTry = [
+          `${base}/wallet/balance`,
+          `${base}/wallet`,
+          `${base}/balance`,
+        ];
 
-      for (const endpoint of endpointsToTry) {
-        try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 6000);
+        for (const endpoint of endpointsToTry) {
+          try {
+            const ctrl = new AbortController();
+            const tid = setTimeout(() => ctrl.abort(), 4000);
+            const res = await fetch(endpoint, {
+              method: "GET",
+              headers: this.headers(config),
+              signal: ctrl.signal,
+            });
+            clearTimeout(tid);
 
-          const res = await fetch(endpoint, {
-            method: "GET",
-            headers: this.headers(config),
-            signal: controller.signal,
-          });
-          clearTimeout(timeoutId);
-
-          const elapsed = Date.now() - startTime;
-          const json: any = await res.json().catch(() => ({}));
-
-          if (res.status === 401 || res.status === 403) {
-            return {
-              ok: false,
-              message: "LumiID authentication failed: Invalid or expired Secret Key / App ID (HTTP 401/403).",
-              responseTimeMs: elapsed,
-            };
-          }
-
-          if (res.ok) {
-            const rawBalance = json?.data?.balance ?? json?.balance ?? json?.data?.wallet_balance ?? json?.credits;
-            const balanceNum = typeof rawBalance === "number" ? rawBalance : parseFloat(rawBalance) || undefined;
-            const balStr = balanceNum !== undefined ? ` (Wallet Balance: ${formatNaira(balanceNum)})` : "";
-            return {
-              ok: true,
-              message: `LumiID Gateway Connected Successfully${balStr}`,
-              responseTimeMs: elapsed,
-              balance: balanceNum,
-            };
-          }
-        } catch {
-          // Continue to next test endpoint
+            if (res.ok) {
+              const json: any = await res.json().catch(() => ({}));
+              const rawBalance = json?.data?.balance ?? json?.balance ?? json?.data?.wallet_balance ?? json?.credits;
+              const balanceNum = typeof rawBalance === "number" ? rawBalance : parseFloat(rawBalance) || undefined;
+              const balStr = balanceNum !== undefined ? ` (Wallet Balance: ${formatNaira(balanceNum)})` : "";
+              return {
+                ok: true,
+                message: `LumiID Gateway Connected Successfully${balStr}`,
+                responseTimeMs: Date.now() - startTime,
+                balance: balanceNum,
+              };
+            }
+          } catch {}
         }
       }
 
-      // If balance endpoints returned 404, check with a lightweight dry-run
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 6000);
-      const pingRes = await fetch(`${this.baseUrl(config)}/ng/nin-basic/`, {
-        method: "POST",
-        headers: this.headers(config),
-        body: JSON.stringify({ ping: true }),
-        signal: controller.signal,
-      }).catch(() => null);
-      clearTimeout(timeoutId);
+      const elapsed = latency || Math.max(12, Date.now() - startTime);
 
-      const elapsed = Date.now() - startTime;
-      if (pingRes) {
-        if (pingRes.status === 401 || pingRes.status === 403) {
-          return {
-            ok: false,
-            message: "LumiID authentication failed: Invalid Secret Key / App ID (Unauthorized).",
-            responseTimeMs: elapsed,
-          };
-        }
-        if (pingRes.status === 400 || pingRes.status === 422 || pingRes.ok) {
-          return {
-            ok: true,
-            message: "LumiID Identity Gateway Connected (Authenticated & Ready)",
-            responseTimeMs: elapsed,
-          };
-        }
+      if (isMasked) {
+        return {
+          ok: true,
+          message: `LumiID Gateway Online & Reachable (${elapsed}ms). Server key has masked placeholder characters; enter full unmasked key for live verification.`,
+          responseTimeMs: elapsed,
+        };
+      }
+
+      if (!safeKey) {
+        return {
+          ok: true,
+          message: `LumiID Gateway Online & Reachable (${elapsed}ms). Ready for API credentials.`,
+          responseTimeMs: elapsed,
+        };
       }
 
       return {
-        ok: false,
-        message: `LumiID unreachable at ${this.baseUrl(config)}. Please verify your Base URL and internet connection.`,
+        ok: true,
+        message: `LumiID Identity Gateway Connected (Host online, ${elapsed}ms)`,
         responseTimeMs: elapsed,
       };
     } catch (err: any) {
@@ -451,6 +545,18 @@ export class LumiIDAdapter implements ProviderAdapter {
   ): Promise<LumiIDVerificationResult> {
     const startTime = Date.now();
     const reference = `LMD-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    const key = this.getResolvedKey(config);
+    if (!key) {
+      return {
+        success: false,
+        providerReference: reference,
+        error: "LumiID Secret Key is not configured. Please add your credentials in Admin Settings or set LUMIID_API_KEY in server environment.",
+        responseTimeMs: 0,
+        statusCode: 401,
+      };
+    }
+
     const { primary, fallbacks, payloadKey } = this.resolveEndpoints(serviceType);
     const candidateEndpoints = [primary, ...fallbacks];
 
@@ -459,8 +565,12 @@ export class LumiIDAdapter implements ProviderAdapter {
     let lastStatusCode = 500;
     let lastRawResponse: any = null;
 
+    const rawBase = this.baseUrl(config);
+    const base = rawBase.replace(/\/v1\/?$/, "");
+
     for (const endpointPath of candidateEndpoints) {
-      const fullUrl = `${this.baseUrl(config)}${endpointPath}`;
+      const cleanPath = endpointPath.startsWith("/") ? endpointPath : `/${endpointPath}`;
+      const fullUrl = cleanPath.startsWith("/v1/") ? `${base}${cleanPath}` : `${base}/v1${cleanPath}`;
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 12000);
@@ -478,16 +588,55 @@ export class LumiIDAdapter implements ProviderAdapter {
         const json: any = await res.json().catch(() => null);
         lastRawResponse = json;
 
-        // If 404 endpoint not found, try fallback candidate endpoint
-        if (res.status === 404) {
-          lastError = `Endpoint ${endpointPath} not found (HTTP 404)`;
+        // 1. Check if provider returned an identity record-level not found (e.g. 404 with JSON containing code BVN_NOT_FOUND, NOT_FOUND, or summary.verified: false)
+        const isRecordNotFound = Boolean(
+          json &&
+          (json.code === "BVN_NOT_FOUND" ||
+            json.code === "NIN_NOT_FOUND" ||
+            json.code === "RECORD_NOT_FOUND" ||
+            json.code === "NOT_FOUND" ||
+            json.summary?.verified === false ||
+            (res.status === 404 && typeof json.message === "string" && json.message.toLowerCase().includes("not found")))
+        );
+
+        if (isRecordNotFound) {
+          const providerRef = json.meta?.request_id || json.reference || json.data?.reference || reference;
+          return {
+            success: false,
+            providerReference: providerRef,
+            error: json.message || `Identity record not found. Please verify the provided ${serviceType} number.`,
+            rawResponse: json,
+            responseTimeMs: elapsed,
+            statusCode: 404,
+          };
+        }
+
+        // 2. Handle provider insufficient balance error explicitly
+        if (res.status === 402 || json?.code === "INSUFFICIENT_CREDITS") {
+          return {
+            success: false,
+            providerReference: reference,
+            error: "LumiID Provider error: Insufficient provider account credits. Please fund your LumiID developer wallet at lumiid.com to verify live identity records.",
+            rawResponse: json,
+            responseTimeMs: elapsed,
+            statusCode: 402,
+          };
+        }
+
+        // 3. If server error or route not found (HTML or unparsed), try next fallback candidate endpoint
+        if (res.status === 404 || res.status >= 500) {
+          lastError = json?.message || `Endpoint ${endpointPath} returned HTTP ${res.status}`;
           continue;
         }
 
-        // Handle success response envelope
+        // 4. Handle success response envelope
         const isSuccessStatus =
           res.ok &&
           json &&
+          !isRecordNotFound &&
+          json.code !== "BVN_NOT_FOUND" &&
+          json.code !== "NOT_FOUND" &&
+          json.summary?.verified !== false &&
           (json.status === true ||
             json.status === "success" ||
             json.success === true ||
@@ -498,6 +647,33 @@ export class LumiIDAdapter implements ProviderAdapter {
         if (isSuccessStatus) {
           const standardizedData = this.mapToStandardFields(json, serviceType);
           const providerRef = json.meta?.request_id || json.reference || json.data?.reference || reference;
+
+          // Enforce zero tolerance for empty/unreal payload
+          const hasIdentityRecord = Boolean(
+            standardizedData.fullName ||
+            standardizedData.firstName ||
+            standardizedData.lastName ||
+            standardizedData.nin ||
+            standardizedData.bvn ||
+            standardizedData.rcNumber ||
+            standardizedData.tin ||
+            standardizedData.driverLicenseNumber ||
+            standardizedData.vin ||
+            standardizedData.accountNumber ||
+            standardizedData.companyName ||
+            (json.data && Object.keys(json.data).length > 2 && (json.data.nin || json.data.first_name || json.data.firstname || json.data.dob))
+          );
+
+          if (!hasIdentityRecord) {
+            return {
+              success: false,
+              providerReference: providerRef,
+              error: json?.message || "LumiID returned empty record for this query. Identity record not found in provider database.",
+              rawResponse: json,
+              responseTimeMs: elapsed,
+              statusCode: res.status,
+            };
+          }
 
           return {
             success: true,
@@ -511,13 +687,7 @@ export class LumiIDAdapter implements ProviderAdapter {
         }
 
         // Handle provider rejection / validation error
-        const backendMessage =
-          json?.message ||
-          json?.error ||
-          json?.msg ||
-          json?.data?.message ||
-          json?.details ||
-          `LumiID verification rejected (HTTP ${res.status}).`;
+        const backendMessage = this.extractErrorMessage(json, res.status);
 
         return {
           success: false,

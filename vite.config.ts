@@ -18,7 +18,21 @@ export default defineConfig(() => {
       target: 'esnext',
       sourcemap: false,
       minify: 'esbuild',
+      cssCodeSplit: true,
       chunkSizeWarningLimit: 1000,
+      modulePreload: {
+        polyfill: false,
+        resolveDependencies(filename, deps) {
+          return deps.filter(
+            (dep) =>
+              !dep.includes('vendor-recharts') &&
+              !dep.includes('vendor-pdf') &&
+              !dep.includes('vendor-motion') &&
+              !dep.includes('vendor-sentry') &&
+              !dep.includes('vendor-firebase')
+          );
+        },
+      },
       rollupOptions: {
         output: {
           manualChunks(id) {

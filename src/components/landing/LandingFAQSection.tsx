@@ -5,7 +5,6 @@
 
 import React, { useState } from "react";
 import { ChevronDown, HelpCircle, ArrowRight, ShieldCheck, Wallet, Code2, Building2, Fingerprint, Zap } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
 
 interface FAQItem {
   id: string;
@@ -167,23 +166,18 @@ export const LandingFAQSection: React.FC<{ onContactSupport?: () => void; onGetS
                   </div>
                 </button>
 
-                <AnimatePresence>
-                  {isOpen && (
-                    <motion.div
-                      id={`faq-answer-${faq.id}`}
-                      role="region"
-                      aria-labelledby={`faq-btn-${faq.id}`}
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <div className="px-5 sm:px-6 pb-6 pt-1 text-xs sm:text-sm text-[#374151] leading-relaxed border-t border-[#F1F5F9] ml-12">
-                        {faq.answer}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                {isOpen && (
+                  <div
+                    id={`faq-answer-${faq.id}`}
+                    role="region"
+                    aria-labelledby={`faq-btn-${faq.id}`}
+                    className="animate-in fade-in duration-200"
+                  >
+                    <div className="px-5 sm:px-6 pb-6 pt-1 text-xs sm:text-sm text-[#374151] leading-relaxed border-t border-[#F1F5F9] ml-12">
+                      {faq.answer}
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}

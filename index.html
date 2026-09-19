@@ -238,8 +238,10 @@
         }
       }, true);
     </script>
-    <!-- Performance Preloads -->
-    <link rel="preload" href="/favicon.webp" as="image" type="image/webp" fetchpriority="high" />
+    <!-- Performance Resource Hints: Preconnect, DNS-Prefetch, and High-Priority Preloads -->
+    <link rel="preconnect" href="https://smartlinkng.com.ng" crossorigin />
+    <link rel="dns-prefetch" href="https://smartlinkng.com.ng" />
+    <link rel="preload" href="/favicon.webp" as="image" type="image/webp" />
     <link rel="preload" href="/logo.webp" as="image" type="image/webp" fetchpriority="high" />
 
     <!-- PWA & Mobile Web App Meta -->
@@ -266,7 +268,113 @@
     >
       Skip to main content
     </a>
-    <div id="root"></div>
+    <div id="root">
+      <div class="min-h-screen bg-[#F5F7FA] text-[#111827] flex flex-col font-sans">
+        <header id="site-header" class="sticky top-0 z-40 bg-white border-b border-[#E5E7EB]">
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20 sm:h-24">
+              <a href="/" class="flex items-center gap-3">
+                <img
+                  src="/logo.webp"
+                  alt="SmartLink Nigeria - Official Identity Verification &amp; Fintech Gateway"
+                  width="224"
+                  height="56"
+                  loading="eager"
+                  fetchpriority="high"
+                  decoding="async"
+                  style="aspect-ratio: 224 / 56;"
+                  class="h-14 sm:h-16 lg:h-18 w-auto max-w-[224px] sm:max-w-[280px] object-contain"
+                />
+              </a>
+              <nav aria-label="Primary Desktop Navigation" class="hidden md:flex items-center gap-1 lg:gap-2">
+                <a href="#hero-section" class="px-4 py-2 rounded-lg text-xs font-bold text-[#0F2D5C] bg-[#F5F7FA]">Home</a>
+                <a href="#services-section" class="px-4 py-2 rounded-lg text-xs font-bold text-[#374151] hover:text-[#0F2D5C]">Services</a>
+                <a href="#pricing-section" class="px-4 py-2 rounded-lg text-xs font-bold text-[#374151] hover:text-[#0F2D5C]">Pricing</a>
+                <a href="#api-section" class="px-4 py-2 rounded-lg text-xs font-bold text-[#374151] hover:text-[#0F2D5C]">API</a>
+                <a href="#about-section" class="px-4 py-2 rounded-lg text-xs font-bold text-[#374151] hover:text-[#0F2D5C]">About</a>
+                <a href="#contact-section" class="px-4 py-2 rounded-lg text-xs font-bold text-[#374151] hover:text-[#0F2D5C]">Contact</a>
+              </nav>
+              <div class="hidden lg:flex items-center gap-3">
+                <a href="/admin/login" class="px-3.5 py-2 text-xs font-bold text-white bg-[#111827] rounded-xl">Admin Login</a>
+                <a href="/login" class="px-4 py-2 text-xs font-bold text-white bg-[#111827] rounded-xl">Login</a>
+                <a href="/register" class="px-5 py-2 text-xs font-bold text-white bg-[#0F2D5C] rounded-xl">Register</a>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <main class="grow">
+          <section id="hero-section" class="relative overflow-hidden bg-white text-[#111827] py-10 sm:py-16 lg:pt-20 lg:pb-28 border-b border-[#E5E7EB]">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+              <div class="space-y-6 sm:space-y-8">
+                <h1
+                  id="hero-main-heading"
+                  class="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.15] text-[#111827]"
+                >
+                  Instant Identity Verification, Business Filing &amp;
+                  <span class="text-[#0F2D5C]">
+                    Automated Utility Bills in Nigeria
+                  </span>
+                </h1>
+
+                <p
+                  id="hero-subheading"
+                  class="text-sm sm:text-base md:text-lg text-[#374151] font-normal leading-relaxed max-w-2xl mx-auto"
+                >
+                  Verify NIN and BVN records with slip downloads, register businesses with CAC, and settle electricity, data, and airtime transactions in seconds through one unified portal and developer API.
+                </p>
+
+                <div
+                  id="hero-benefits-grid"
+                  class="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 pt-2 text-left max-w-3xl mx-auto"
+                >
+                  <div class="flex items-start gap-3 p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] shadow-2xs">
+                    <div>
+                      <p class="text-sm font-bold text-[#0F2D5C]">Instant Verification &amp; Slips</p>
+                      <p class="text-xs text-[#374151] mt-0.5">Standard/premium NIN slips, BVN cards, and CAC reports with QR codes.</p>
+                    </div>
+                  </div>
+                  <div class="flex items-start gap-3 p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] shadow-2xs">
+                    <div>
+                      <p class="text-sm font-bold text-[#0F2D5C]">Automated Bills &amp; VTU</p>
+                      <p class="text-xs text-[#374151] mt-0.5">Zero-delay Disco tokens, cheap SME data bundles, airtime, and exam pins.</p>
+                    </div>
+                  </div>
+                  <div class="flex items-start gap-3 p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] shadow-2xs">
+                    <div>
+                      <p class="text-sm font-bold text-[#0F2D5C]">Bank-Grade &amp; 99.9% Uptime</p>
+                      <p class="text-xs text-[#374151] mt-0.5">Dedicated virtual account funding, encrypted payouts, and REST APIs.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  id="hero-actions"
+                  class="flex flex-col items-center justify-center gap-3 pt-2"
+                >
+                  <div class="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 w-full sm:w-auto">
+                    <button
+                      id="hero-primary-btn"
+                      type="button"
+                      class="w-full sm:w-auto min-h-[48px] px-8 py-3.5 bg-[#0F2D5C] text-white font-bold rounded-xl text-sm shadow-xs flex items-center justify-center gap-2.5 cursor-pointer"
+                    >
+                      <span>Get Started Free</span>
+                    </button>
+                    <button
+                      id="hero-secondary-btn"
+                      type="button"
+                      class="w-full sm:w-auto min-h-[48px] px-8 py-3.5 bg-white text-[#0F2D5C] border border-[#0F2D5C] font-bold rounded-xl text-sm shadow-xs flex items-center justify-center gap-2.5 cursor-pointer"
+                    >
+                      <span>Explore Services &amp; Pricing</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
       if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {

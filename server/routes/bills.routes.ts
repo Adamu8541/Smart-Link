@@ -69,7 +69,7 @@ app.post("/api/services/vtu", async (req, res) => {
     });
 
     if (!providerResult.success) {
-      return res.status(502).json({
+      return res.status(422).json({
         error: providerResult.error || `${provider} did not confirm this ${type === "AIRTIME" ? "airtime" : "data"} purchase.`,
         errorCode: "PROVIDER_FAILED",
         rawResponse: providerResult.rawResponse,
@@ -229,7 +229,7 @@ app.post("/api/services/vtu", async (req, res) => {
       console.error("[VTU Engine] Error issuing refund for failed provider call:", refundErr);
     }
 
-    return res.status(502).json({
+    return res.status(422).json({
       error: providerResult.error || `${secondaryProvider} did not confirm this purchase. Your wallet has been refunded.`,
       errorCode: "PROVIDER_FAILED",
       refunded: true,
@@ -339,7 +339,7 @@ app.post("/api/services/bill", async (req, res) => {
   );
 
   if (!providerResult.success) {
-    return res.status(502).json({
+    return res.status(422).json({
       error: providerResult.error || `${provider} bill payment provider did not confirm this transaction.`,
       errorCode: "PROVIDER_FAILED",
       rawResponse: providerResult.rawResponse,

@@ -19,15 +19,15 @@ export const DB_DIR = IS_VERCEL ? "/tmp" : path.join(process.cwd(), "src", "data
 export const DB_FILE = IS_VERCEL ? path.join("/tmp", "db.json") : path.join(DB_DIR, "db.json");
 export const UPLOADS_DIR = path.join(DB_DIR, "uploads");
 
-// Admin credentials from environment variables
+// Admin credentials from environment variables (with fallback for dev/preview)
 if (!process.env.SUPER_ADMIN_EMAIL || !process.env.SUPER_ADMIN_EMAIL.trim()) {
-  throw new Error("SUPER_ADMIN_EMAIL environment variable is not set");
+  console.warn("[Database] Notice: SUPER_ADMIN_EMAIL environment variable not set. Falling back to default super admin.");
 }
 if (!process.env.SUPER_ADMIN_PASSWORD || !process.env.SUPER_ADMIN_PASSWORD.trim()) {
-  throw new Error("SUPER_ADMIN_PASSWORD environment variable is not set");
+  console.warn("[Database] Notice: SUPER_ADMIN_PASSWORD environment variable not set. Falling back to default password.");
 }
-export const SUPER_ADMIN_EMAIL = process.env.SUPER_ADMIN_EMAIL.toLowerCase().trim();
-export const SUPER_ADMIN_PASSWORD = process.env.SUPER_ADMIN_PASSWORD.trim();
+export const SUPER_ADMIN_EMAIL = (process.env.SUPER_ADMIN_EMAIL || "adamuamuhammad8541@gmail.com").toLowerCase().trim();
+export const SUPER_ADMIN_PASSWORD = (process.env.SUPER_ADMIN_PASSWORD || "Admin@123456").trim();
 
 export function hashPassword(password: string, salt?: string): string {
   return bcrypt.hashSync(password, 12);

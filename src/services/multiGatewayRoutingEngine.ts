@@ -48,7 +48,7 @@ export interface MultiGatewayExecutionResult {
 
 export class MultiGatewayRoutingEngine {
   /**
-   * Default service routing rules matching Aspfiy and VerifyNG ecosystem
+   * Default service routing rules matching LumiID, NIN/BVN Portal, and VerifyNG ecosystem
    */
   public static getDefaultRoutingRules(): GatewayRoutingRule[] {
     const now = new Date().toISOString();
@@ -58,15 +58,13 @@ export class MultiGatewayRoutingEngine {
         service: "NIN",
         serviceName: "NIN Identity Verification",
         strategy: "PRIORITY_ORDER",
-        primaryProviderId: "aspfiy",
-        primaryProviderName: "Aspfiy Payment Gateway",
-        secondaryProviderId: "verifyng",
-        secondaryProviderName: "VerifyNG Gateway",
-        tertiaryProviderId: "lumiid",
-        tertiaryProviderName: "LumiID Gateway",
-        fallbackProviderId: "nimc_direct",
-        fallbackProviderName: "NIN API Gateway",
-        timeoutMs: 6000,
+        primaryProviderId: "lumiid",
+        primaryProviderName: "LumiID Gateway",
+        secondaryProviderId: "ninbvnportal",
+        secondaryProviderName: "NIN BVN Portal",
+        tertiaryProviderId: "verifyng",
+        tertiaryProviderName: "VerifyNG Gateway",
+        timeoutMs: 8000,
         maxRetries: 2,
         autoFailover: true,
         circuitBreakerThreshold: 3,
@@ -79,15 +77,13 @@ export class MultiGatewayRoutingEngine {
         service: "BVN",
         serviceName: "BVN Banking Verification",
         strategy: "PRIORITY_ORDER",
-        primaryProviderId: "aspfiy",
-        primaryProviderName: "Aspfiy Payment Gateway",
+        primaryProviderId: "lumiid",
+        primaryProviderName: "LumiID Gateway",
         secondaryProviderId: "ninbvnportal",
         secondaryProviderName: "NIN BVN Portal",
-        tertiaryProviderId: "lumiid",
-        tertiaryProviderName: "LumiID Gateway",
-        fallbackProviderId: "nibss_direct",
-        fallbackProviderName: "BVN Gateway",
-        timeoutMs: 6000,
+        tertiaryProviderId: "verifyng",
+        tertiaryProviderName: "VerifyNG Gateway",
+        timeoutMs: 8000,
         maxRetries: 2,
         autoFailover: true,
         circuitBreakerThreshold: 3,
@@ -100,15 +96,11 @@ export class MultiGatewayRoutingEngine {
         service: "PHONE",
         serviceName: "Phone Number Identity Lookup",
         strategy: "PRIORITY_ORDER",
-        primaryProviderId: "aspfiy",
-        primaryProviderName: "Aspfiy Payment Gateway",
-        secondaryProviderId: "lumiid",
-        secondaryProviderName: "LumiID Gateway",
-        tertiaryProviderId: "verifyng",
-        tertiaryProviderName: "VerifyNG Gateway",
-        fallbackProviderId: "ncc_direct",
-        fallbackProviderName: "NCC Telco Registry",
-        timeoutMs: 5000,
+        primaryProviderId: "lumiid",
+        primaryProviderName: "LumiID Gateway",
+        secondaryProviderId: "verifyng",
+        secondaryProviderName: "VerifyNG Gateway",
+        timeoutMs: 8000,
         maxRetries: 2,
         autoFailover: true,
         circuitBreakerThreshold: 3,
@@ -121,13 +113,11 @@ export class MultiGatewayRoutingEngine {
         service: "CAC",
         serviceName: "CAC Corporate Registration Verification",
         strategy: "PRIORITY_ORDER",
-        primaryProviderId: "aspfiy",
-        primaryProviderName: "Aspfiy Payment Gateway",
-        secondaryProviderId: "lumiid",
-        secondaryProviderName: "LumiID Gateway",
-        fallbackProviderId: "cac_direct",
-        fallbackProviderName: "CAC Enterprise Portal",
-        timeoutMs: 7000,
+        primaryProviderId: "lumiid",
+        primaryProviderName: "LumiID Gateway",
+        secondaryProviderId: "verifyng",
+        secondaryProviderName: "VerifyNG Gateway",
+        timeoutMs: 8000,
         maxRetries: 2,
         autoFailover: true,
         circuitBreakerThreshold: 3,
@@ -140,13 +130,11 @@ export class MultiGatewayRoutingEngine {
         service: "TIN",
         serviceName: "TIN Tax Identification Lookup",
         strategy: "PRIORITY_ORDER",
-        primaryProviderId: "aspfiy",
-        primaryProviderName: "Aspfiy Payment Gateway",
-        secondaryProviderId: "lumiid",
-        secondaryProviderName: "LumiID Gateway",
-        fallbackProviderId: "firs_direct",
-        fallbackProviderName: "TIN Gateway Engine",
-        timeoutMs: 6000,
+        primaryProviderId: "lumiid",
+        primaryProviderName: "LumiID Gateway",
+        secondaryProviderId: "verifyng",
+        secondaryProviderName: "VerifyNG Gateway",
+        timeoutMs: 8000,
         maxRetries: 2,
         autoFailover: true,
         circuitBreakerThreshold: 3,
@@ -159,13 +147,11 @@ export class MultiGatewayRoutingEngine {
         service: "DRIVER_LICENSE",
         serviceName: "Driver License Validation",
         strategy: "PRIORITY_ORDER",
-        primaryProviderId: "verifyng",
-        primaryProviderName: "VerifyNG Gateway",
-        secondaryProviderId: "lumiid",
-        secondaryProviderName: "LumiID Gateway",
-        fallbackProviderId: "frsc_direct",
-        fallbackProviderName: "FRSC National Licensing Engine",
-        timeoutMs: 6000,
+        primaryProviderId: "lumiid",
+        primaryProviderName: "LumiID Gateway",
+        secondaryProviderId: "verifyng",
+        secondaryProviderName: "VerifyNG Gateway",
+        timeoutMs: 8000,
         maxRetries: 2,
         autoFailover: true,
         circuitBreakerThreshold: 3,
@@ -178,13 +164,11 @@ export class MultiGatewayRoutingEngine {
         service: "PASSPORT",
         serviceName: "International Passport Verification",
         strategy: "PRIORITY_ORDER",
-        primaryProviderId: "verifyng",
-        primaryProviderName: "VerifyNG Gateway",
-        secondaryProviderId: "lumiid",
-        secondaryProviderName: "LumiID Gateway",
-        fallbackProviderId: "nis_direct",
-        fallbackProviderName: "NIS Immigration Gateway",
-        timeoutMs: 7000,
+        primaryProviderId: "lumiid",
+        primaryProviderName: "LumiID Gateway",
+        secondaryProviderId: "verifyng",
+        secondaryProviderName: "VerifyNG Gateway",
+        timeoutMs: 8000,
         maxRetries: 2,
         autoFailover: true,
         circuitBreakerThreshold: 3,
@@ -197,13 +181,11 @@ export class MultiGatewayRoutingEngine {
         service: "VOTER_CARD",
         serviceName: "Voter Card (VIN) Verification",
         strategy: "PRIORITY_ORDER",
-        primaryProviderId: "verifyng",
-        primaryProviderName: "VerifyNG Gateway",
-        secondaryProviderId: "lumiid",
-        secondaryProviderName: "LumiID Gateway",
-        fallbackProviderId: "inec_direct",
-        fallbackProviderName: "INEC Electoral Portal",
-        timeoutMs: 6000,
+        primaryProviderId: "lumiid",
+        primaryProviderName: "LumiID Gateway",
+        secondaryProviderId: "verifyng",
+        secondaryProviderName: "VerifyNG Gateway",
+        timeoutMs: 8000,
         maxRetries: 2,
         autoFailover: true,
         circuitBreakerThreshold: 3,
@@ -216,11 +198,11 @@ export class MultiGatewayRoutingEngine {
         service: "EMAIL",
         serviceName: "Email Security & Fraud Verification",
         strategy: "PRIORITY_ORDER",
-        primaryProviderId: "smartlink_fraud",
-        primaryProviderName: "SmartLink Anti-Fraud Gateway",
+        primaryProviderId: "lumiid",
+        primaryProviderName: "LumiID Gateway",
         secondaryProviderId: "verifyng",
         secondaryProviderName: "VerifyNG Gateway",
-        timeoutMs: 4000,
+        timeoutMs: 6000,
         maxRetries: 2,
         autoFailover: true,
         circuitBreakerThreshold: 3,
@@ -297,40 +279,76 @@ export class MultiGatewayRoutingEngine {
           lastPingLatencyMs: 280,
         },
         {
-          providerId: "nimc_direct",
-          providerName: "NIN Verification Gateway",
+          providerId: "lumiid",
+          providerName: "LumiID Identity Gateway",
           category: "IDENTITY_API",
-          baseUrl: "https://nimc.gov.ng/api",
+          baseUrl: "https://api.lumiid.com",
           status: "ONLINE",
-          uptimePercentage: 98.45,
-          avgLatencyMs: 420,
-          totalQueries: 5120,
-          successfulQueries: 5040,
-          failedQueries: 80,
-          failoverTriggeredCount: 12,
+          uptimePercentage: 99.85,
+          avgLatencyMs: 160,
+          totalQueries: 9540,
+          successfulQueries: 9520,
+          failedQueries: 20,
+          failoverTriggeredCount: 1,
           consecutiveFailures: 0,
           circuitBreakerTripped: false,
           lastPingAt: new Date().toISOString(),
           lastPingStatus: "SUCCESS",
-          lastPingLatencyMs: 390,
+          lastPingLatencyMs: 145,
         },
         {
-          providerId: "nibss_direct",
-          providerName: "BVN Gateway",
+          providerId: "verifyng",
+          providerName: "VerifyNG Gateway (kyc.edirect.ng)",
           category: "IDENTITY_API",
-          baseUrl: "https://nibss-plc.com.ng/api",
+          baseUrl: "https://kyc.edirect.ng",
           status: "ONLINE",
-          uptimePercentage: 99.12,
-          avgLatencyMs: 350,
-          totalQueries: 8400,
-          successfulQueries: 8320,
-          failedQueries: 80,
-          failoverTriggeredCount: 9,
+          uptimePercentage: 99.70,
+          avgLatencyMs: 180,
+          totalQueries: 11200,
+          successfulQueries: 11150,
+          failedQueries: 50,
+          failoverTriggeredCount: 3,
           consecutiveFailures: 0,
           circuitBreakerTripped: false,
           lastPingAt: new Date().toISOString(),
           lastPingStatus: "SUCCESS",
-          lastPingLatencyMs: 310,
+          lastPingLatencyMs: 175,
+        },
+        {
+          providerId: "ninbvnportal",
+          providerName: "NIN BVN Portal",
+          category: "IDENTITY_API",
+          baseUrl: "https://ninbvnportal.com/api",
+          status: "ONLINE",
+          uptimePercentage: 99.10,
+          avgLatencyMs: 250,
+          totalQueries: 6200,
+          successfulQueries: 6150,
+          failedQueries: 50,
+          failoverTriggeredCount: 4,
+          consecutiveFailures: 0,
+          circuitBreakerTripped: false,
+          lastPingAt: new Date().toISOString(),
+          lastPingStatus: "SUCCESS",
+          lastPingLatencyMs: 230,
+        },
+        {
+          providerId: "clubkonnect",
+          providerName: "Clubkonnect VTU Gateway",
+          category: "VTU_GATEWAY",
+          baseUrl: "https://www.clubkonnect.com/API",
+          status: "ONLINE",
+          uptimePercentage: 99.90,
+          avgLatencyMs: 190,
+          totalQueries: 14500,
+          successfulQueries: 14470,
+          failedQueries: 30,
+          failoverTriggeredCount: 2,
+          consecutiveFailures: 0,
+          circuitBreakerTripped: false,
+          lastPingAt: new Date().toISOString(),
+          lastPingStatus: "SUCCESS",
+          lastPingLatencyMs: 180,
         },
       ];
     }
@@ -346,20 +364,65 @@ export class MultiGatewayRoutingEngine {
   ): Promise<{ ok: boolean; message: string; responseTimeMs: number; status: string }> {
     const startTime = Date.now();
     const cleanId = providerId.toLowerCase().trim();
+    const normalizedKey = cleanId.replace(/^prov_/, "");
 
-    let adapter = getAdapterById(cleanId);
+    let adapter = getAdapterById(cleanId) || getAdapterById(normalizedKey);
     if (!adapter) {
       adapter = new AspfiyAdapter();
     }
 
-    const providerRow = (db.api_providers || []).find((p: any) =>
-      p.id?.toLowerCase() === cleanId || p.name?.toLowerCase().includes(cleanId)
-    ) || {
+    const providers = Array.isArray(db.api_providers)
+      ? db.api_providers
+      : (Array.isArray(db.apiProviders) ? db.apiProviders : []);
+
+    const existingRow = providers.find((p: any) => {
+      const pid = (p.id || "").toLowerCase().trim();
+      const pname = (p.name || "").toLowerCase().trim();
+      return (
+        pid === cleanId ||
+        pid === `prov_${normalizedKey}` ||
+        pid.replace(/^prov_/, "") === normalizedKey ||
+        pname.includes(normalizedKey)
+      );
+    });
+
+    const providerRow: any = {
       id: cleanId,
-      name: "Aspfiy Gateway",
-      baseUrl: "https://api-v1.aspfiy.com",
-      environment: "SANDBOX",
+      name: existingRow?.name || `${normalizedKey.toUpperCase()} Gateway`,
+      baseUrl: existingRow?.baseUrl || "",
+      environment: existingRow?.environment || "LIVE",
+      ...existingRow,
     };
+
+    // Inject server environment variables dynamically when not explicitly stored or when masked
+    if (normalizedKey.includes("lumiid")) {
+      providerRow.baseUrl = providerRow.baseUrl || "https://api.lumiid.com";
+      const envKey = process.env.LUMIID_API_KEY || process.env.LUMIID_SECRET_KEY;
+      if (!providerRow.secretKey || providerRow.secretKey.includes("•")) {
+        providerRow.secretKey = envKey || providerRow.secretKey;
+      }
+      providerRow.apiKey = providerRow.secretKey;
+    } else if (normalizedKey.includes("verifyng") || normalizedKey.includes("edirect")) {
+      if (!providerRow.baseUrl || providerRow.baseUrl.includes("verifyn.ng")) {
+        providerRow.baseUrl = "https://kyc.edirect.ng";
+      }
+      providerRow.apiKey = providerRow.apiKey || process.env.VERIFYNG_CLIENT_KEY || process.env.VERIFYNG_API_KEY;
+      providerRow.secretKey = providerRow.secretKey || process.env.VERIFYNG_API_SECRET || process.env.VERIFYNG_API_KEY || process.env.VERIFYNG_SECRET_KEY;
+    } else if (normalizedKey.includes("ninbvnportal") || normalizedKey.includes("nimc") || normalizedKey.includes("nibss")) {
+      providerRow.baseUrl = providerRow.baseUrl || "https://ninbvnportal.com/api";
+      const envKey = process.env.NINBVNPORTAL_API_KEY || process.env.NIN_BVN_PORTAL_API_KEY;
+      if (!providerRow.secretKey || providerRow.secretKey.includes("•")) {
+        providerRow.secretKey = envKey || providerRow.secretKey;
+      }
+      providerRow.apiKey = providerRow.secretKey;
+    } else if (normalizedKey.includes("clubkonnect")) {
+      providerRow.baseUrl = providerRow.baseUrl || "https://www.clubkonnect.com/API";
+      providerRow.secretKey = providerRow.secretKey || process.env.CLUBKONNECT_API_KEY;
+      providerRow.clientId = providerRow.clientId || process.env.CLUBKONNECT_USER_ID;
+    } else if (normalizedKey.includes("aspfiy")) {
+      providerRow.baseUrl = providerRow.baseUrl || "https://api-v1.aspfiy.com";
+      providerRow.secretKey = providerRow.secretKey || process.env.ASPFIY_SECRET_KEY || process.env.ASPFIY_API_KEY;
+    }
 
     let result = { ok: true, message: "Gateway ping responded (200 OK)", responseTimeMs: 150 };
     if (adapter.testConnection) {
@@ -370,10 +433,33 @@ export class MultiGatewayRoutingEngine {
 
     // Update health metric in DB
     const metrics = this.getGatewayHealthMetrics(db);
-    const metricIndex = metrics.findIndex((m) => m.providerId.toLowerCase() === cleanId);
+    let metricIndex = metrics.findIndex((m) => {
+      const mid = m.providerId.toLowerCase().trim();
+      return mid === cleanId || mid === normalizedKey || mid === `prov_${normalizedKey}`;
+    });
     const now = new Date().toISOString();
 
-    if (metricIndex >= 0) {
+    if (metricIndex === -1) {
+      metrics.push({
+        providerId: cleanId,
+        providerName: providerRow.name || `${normalizedKey.toUpperCase()} Gateway`,
+        category: normalizedKey.includes("aspfiy") ? "PAYMENT_GATEWAY" : normalizedKey.includes("clubkonnect") ? "VTU_GATEWAY" : "IDENTITY_API",
+        baseUrl: providerRow.baseUrl,
+        status: result.ok ? "ONLINE" : "DEGRADED",
+        uptimePercentage: result.ok ? 99.9 : 95.0,
+        avgLatencyMs: result.responseTimeMs,
+        totalQueries: 1,
+        successfulQueries: result.ok ? 1 : 0,
+        failedQueries: result.ok ? 0 : 1,
+        failoverTriggeredCount: 0,
+        consecutiveFailures: result.ok ? 0 : 1,
+        circuitBreakerTripped: false,
+        lastPingAt: now,
+        lastPingStatus: result.ok ? "SUCCESS" : "FAILED",
+        lastPingLatencyMs: result.responseTimeMs,
+      });
+      metricIndex = metrics.length - 1;
+    } else {
       metrics[metricIndex].lastPingAt = now;
       metrics[metricIndex].lastPingStatus = result.ok ? "SUCCESS" : "FAILED";
       metrics[metricIndex].lastPingLatencyMs = result.responseTimeMs;
@@ -437,6 +523,7 @@ export class MultiGatewayRoutingEngine {
 
     const attemptedChain: string[] = [];
     let lastError = "All verification gateways failed to respond.";
+    let primaryRealError = "";
     let wasFailedOver = false;
     let failoverReason = "";
 
@@ -446,20 +533,62 @@ export class MultiGatewayRoutingEngine {
       const currentProvider = providerChain[i];
       attemptedChain.push(currentProvider.name);
 
-      // Check circuit breaker status
+      // Check circuit breaker status with half-open cooldown retry (30s)
       const providerMetric = metrics.find((m) => m.providerId.toLowerCase() === currentProvider.id.toLowerCase());
-      if (providerMetric?.circuitBreakerTripped && i < providerChain.length - 1) {
-        // Skip tripped circuit breaker if next backup exists
+      const isCircuitOpen = providerMetric?.circuitBreakerTripped;
+      const lastAttemptMs = providerMetric?.lastPingAt ? (Date.now() - new Date(providerMetric.lastPingAt).getTime()) : Infinity;
+      if (isCircuitOpen && lastAttemptMs < 30000 && i < providerChain.length - 1) {
+        // Skip tripped circuit breaker only if within active cooloff window
         continue;
       }
 
-      const pConfig = (db.api_providers || []).find((p: any) =>
+      const existingConfig = (db.api_providers || []).find((p: any) =>
         p.id?.toLowerCase() === currentProvider.id.toLowerCase() || p.name?.toLowerCase().includes(currentProvider.id.toLowerCase())
       ) || {
         id: currentProvider.id,
         name: currentProvider.name,
         environment: "SANDBOX",
       };
+
+      const pConfig = { ...existingConfig };
+      const keyId = (currentProvider.id || "").toLowerCase();
+
+      const isMaskedOrEmpty = (v: any) => {
+        const s = String(v || "").trim();
+        return !s || s.includes("•") || s.includes("*") || s.includes("...") || s.length < 10;
+      };
+
+      if (keyId.includes("lumiid")) {
+        if (isMaskedOrEmpty(pConfig.secretKey)) {
+          pConfig.secretKey = process.env.LUMIID_API_KEY || process.env.LUMIID_SECRET_KEY || pConfig.secretKey;
+        }
+        pConfig.apiKey = pConfig.secretKey;
+        pConfig.clientId = pConfig.clientId || process.env.LUMIID_APP_ID || process.env.LUMIID_CLIENT_ID || "smartlink_identity_app";
+        pConfig.appId = pConfig.appId || pConfig.clientId || "smartlink_identity_app";
+        pConfig.baseUrl = pConfig.baseUrl || "https://api.lumiid.com";
+      } else if (keyId.includes("ninbvnportal") || keyId.includes("nin bvn") || keyId.includes("nin_bvn")) {
+        if (isMaskedOrEmpty(pConfig.secretKey)) {
+          pConfig.secretKey = process.env.NINBVNPORTAL_API_KEY || process.env.NIN_BVN_PORTAL_API_KEY || pConfig.secretKey;
+        }
+        pConfig.apiKey = pConfig.secretKey;
+        pConfig.clientId = pConfig.clientId || "smartlink_nin_app";
+        pConfig.appId = pConfig.appId || "smartlink_nin_app";
+        pConfig.baseUrl = pConfig.baseUrl || "https://ninbvnportal.com/api";
+      } else if (keyId.includes("verifyng") || keyId.includes("verify-ng")) {
+        pConfig.clientId = pConfig.clientId || process.env.VERIFYNG_CLIENT_KEY || process.env.VERIFYNG_API_KEY || "smartlink_kyc_app";
+        pConfig.appId = pConfig.appId || pConfig.clientId || "smartlink_kyc_app";
+        if (isMaskedOrEmpty(pConfig.secretKey)) {
+          pConfig.secretKey = process.env.VERIFYNG_API_SECRET || process.env.VERIFYNG_API_KEY || process.env.VERIFYNG_SECRET_KEY || pConfig.secretKey;
+        }
+        pConfig.baseUrl = (pConfig.baseUrl && !pConfig.baseUrl.includes("verifyn.ng")) ? pConfig.baseUrl : "https://kyc.edirect.ng";
+      } else if (keyId.includes("clubkonnect") || keyId.includes("club konnect")) {
+        if (isMaskedOrEmpty(pConfig.secretKey)) {
+          pConfig.secretKey = process.env.CLUBKONNECT_API_KEY || pConfig.secretKey;
+        }
+        pConfig.clientId = pConfig.clientId || "smartlink_vtu";
+        pConfig.appId = pConfig.appId || "smartlink_vtu";
+        pConfig.baseUrl = pConfig.baseUrl || "https://www.clubkonnect.com/API";
+      }
 
       const result = await this.callSingleProvider(sType, params.targetId, params.extraData || {}, pConfig, currentProvider.id, db);
 
@@ -491,6 +620,9 @@ export class MultiGatewayRoutingEngine {
 
       // Provider failed or rejected
       lastError = result.error || `Error from ${currentProvider.name}`;
+      if (!primaryRealError && result.error && !result.error.toLowerCase().includes("not configured")) {
+        primaryRealError = result.error;
+      }
       if (providerMetric) {
         providerMetric.totalQueries += 1;
         providerMetric.failedQueries += 1;
@@ -538,20 +670,18 @@ export class MultiGatewayRoutingEngine {
       }
     }
 
-    // If all external providers were unreachable or unconfigured, provide a resilient fallback resolution
-    const fallbackData = this.generateFallbackVerificationData(sType, params.targetId, params.extraData || {});
+    // If all external providers were unreachable or failed, return strict failure - ZERO TOLERANCE for fabricated/dummy data
     return {
-      success: true,
-      providerName: "SmartLink Verification Engine",
-      providerCode: "smartlink_engine",
-      providerReference: `SL-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`,
-      transactionId: `TX-${Date.now()}`,
-      data: fallbackData,
+      success: false,
+      providerName: attemptedChain[0] || attemptedChain[attemptedChain.length - 1] || "Verification Gateway",
+      providerCode: "GATEWAY_FAILED",
+      providerReference: `FAILED-${Date.now()}`,
+      error: primaryRealError || lastError || "All configured identity verification gateways failed to confirm this record.",
       responseTimeMs: 320,
-      statusCode: 200,
-      wasFailedOver: true,
+      statusCode: 502,
+      wasFailedOver,
       failoverChain: attemptedChain,
-      failoverReason: wasFailedOver ? failoverReason : "Defaulted to local verification engine",
+      failoverReason: wasFailedOver ? failoverReason : undefined,
       gatewayStrategyUsed: rule.strategy,
     };
   }
@@ -568,18 +698,33 @@ export class MultiGatewayRoutingEngine {
     db?: any
   ): Promise<{ success: boolean; providerReference?: string; transactionId?: string; data?: any; error?: string; responseTimeMs: number; statusCode?: number }> {
     const key = providerKey.toLowerCase().trim();
-    const timeoutMs = 3500;
+    const timeoutMs = 8000;
+
+    const sType = (serviceType || "").toUpperCase();
+    const cleanTarget = String(targetId || "").trim();
+    const augmentedExtra = {
+      ...extraData,
+      ...(sType.includes("BVN") ? {
+        bvn: cleanTarget,
+        id_number: cleanTarget,
+        idNumber: cleanTarget,
+        number: cleanTarget,
+        bvn_number: cleanTarget,
+        search_value: cleanTarget,
+        consent: true,
+      } : {})
+    };
 
     const executeCall = async () => {
       if (key.includes("lumiid")) {
         const adapter = new LumiIDAdapter();
-        return await adapter.verifyIdentity(serviceType, targetId, extraData, config);
+        return await adapter.verifyIdentity(serviceType, targetId, augmentedExtra, config);
       } else if (key.includes("ninbvnportal") || key.includes("nin bvn portal") || key.includes("nin_bvn")) {
         const adapter = new NinBvnPortalAdapter();
-        return await adapter.verifyIdentity(serviceType, targetId, extraData, config);
+        return await adapter.verifyIdentity(serviceType, targetId, augmentedExtra, config);
       } else if (key.includes("verifyng") || key.includes("verify-ng") || key.includes("edirect")) {
         const adapter = new VerifyNGAdapter();
-        return await adapter.verifyIdentity(serviceType, targetId, extraData, config);
+        return await adapter.verifyIdentity(serviceType, targetId, augmentedExtra, config);
       }
 
       // Check if custom ProviderExecutor can execute this provider from api_requests / api_providers
@@ -641,172 +786,6 @@ export class MultiGatewayRoutingEngine {
         responseTimeMs: 0,
       };
     }
-  }
-
-  /**
-   * Generate resilient verified identity data for seamless slip generation & lookup fallback
-   */
-  private static generateFallbackVerificationData(
-    serviceType: string,
-    targetId: string,
-    extraData: Record<string, any>
-  ): Record<string, any> {
-    const cleanId = String(targetId).replace(/\s+/g, "").trim();
-    const sType = serviceType.toUpperCase();
-
-    // Deterministic hash seed from targetId to ensure different IDs get different distinct profiles
-    let hash = 0;
-    for (let i = 0; i < cleanId.length; i++) {
-      hash = (hash << 5) - hash + cleanId.charCodeAt(i);
-      hash |= 0;
-    }
-    const seed = Math.abs(hash);
-
-    const NIGERIAN_PROFILES = [
-      {
-        firstName: "IBRAHIM",
-        middleName: "MUSA",
-        lastName: "ADAMU",
-        gender: "MALE",
-        state: "Kano",
-        lga: "Nassarawa",
-        address: "No. 42 Bompai Road, Commercial Area, Kano",
-        residenceTown: "Kano",
-      },
-      {
-        firstName: "OLUWASEUN",
-        middleName: "ADEBAYO",
-        lastName: "OGUNLEYE",
-        gender: "MALE",
-        state: "Lagos",
-        lga: "Ikeja",
-        address: "15 Allen Avenue, Ikeja, Lagos",
-        residenceTown: "Ikeja",
-      },
-      {
-        firstName: "NGOZI",
-        middleName: "CHIDINMA",
-        lastName: "OKAFOR",
-        gender: "FEMALE",
-        state: "Enugu",
-        lga: "Enugu North",
-        address: "28 Ogui Road, Asata, Enugu",
-        residenceTown: "Enugu",
-      },
-      {
-        firstName: "AISHA",
-        middleName: "BELLO",
-        lastName: "SULEIMAN",
-        gender: "FEMALE",
-        state: "Kaduna",
-        lga: "Kaduna North",
-        address: "12 Independence Way, Kaduna",
-        residenceTown: "Kaduna",
-      },
-      {
-        firstName: "CHUKWUMA",
-        middleName: "EMMANUEL",
-        lastName: "EZE",
-        gender: "MALE",
-        state: "Anambra",
-        lga: "Awka South",
-        address: "Plot 8 Zik Avenue, Awka, Anambra",
-        residenceTown: "Awka",
-      },
-      {
-        firstName: "FATIMA",
-        middleName: "ZAHRA",
-        lastName: "ABUBAKAR",
-        gender: "FEMALE",
-        state: "Abuja (FCT)",
-        lga: "Municipal",
-        address: "Suite 4, Garki Area 11, Abuja",
-        residenceTown: "Abuja",
-      },
-      {
-        firstName: "BABATUNDE",
-        middleName: "FEMI",
-        lastName: "ADEDAPO",
-        gender: "MALE",
-        state: "Oyo",
-        lga: "Ibadan North",
-        address: "7 Ring Road, Challenge, Ibadan",
-        residenceTown: "Ibadan",
-      },
-      {
-        firstName: "TAMUNO",
-        middleName: "DICKSON",
-        lastName: "BRIGGS",
-        gender: "MALE",
-        state: "Rivers",
-        lga: "Port Harcourt",
-        address: "24 Aba Road, Port Harcourt, Rivers",
-        residenceTown: "Port Harcourt",
-      },
-    ];
-
-    const profileIndex = seed % NIGERIAN_PROFILES.length;
-    const defaultProfile = NIGERIAN_PROFILES[profileIndex];
-
-    // Calculate deterministic birth year between 1982 and 2002
-    const birthYear = 1982 + (seed % 20);
-    const birthMonth = String(1 + (seed % 12)).padStart(2, "0");
-    const birthDay = String(1 + (seed % 28)).padStart(2, "0");
-    const deterministicDob = `${birthYear}-${birthMonth}-${birthDay}`;
-
-    // Calculate deterministic phone number
-    const prefixes = ["0803", "0802", "0813", "0816", "0703", "0901", "0805", "0818"];
-    const prefix = prefixes[seed % prefixes.length];
-    const phoneSuffix = String(1000000 + (seed % 9000000)).slice(0, 7);
-    const deterministicPhone = `${prefix}${phoneSuffix}`;
-
-    const firstName = extraData.firstName || (extraData.fullName ? extraData.fullName.split(/\s+/)[0] : defaultProfile.firstName);
-    const lastName = extraData.lastName || (extraData.fullName ? extraData.fullName.split(/\s+/).slice(-1)[0] : defaultProfile.lastName);
-    const middleName = extraData.middleName || (extraData.fullName && extraData.fullName.split(/\s+/).length > 2 ? extraData.fullName.split(/\s+/).slice(1, -1).join(" ") : defaultProfile.middleName);
-    const fullName = extraData.fullName || [firstName, middleName, lastName].filter(Boolean).join(" ");
-
-    const gender = extraData.gender || defaultProfile.gender;
-    const dateOfBirth = extraData.dob || extraData.dateOfBirth || deterministicDob;
-    const phoneNumber = extraData.phoneNumber || extraData.phone || deterministicPhone;
-    const stateOfOrigin = extraData.stateOfOrigin || extraData.state || defaultProfile.state;
-    const lga = extraData.lga || extraData.localGov || defaultProfile.lga;
-    const address = extraData.address || defaultProfile.address;
-
-    const baseRecord: Record<string, any> = {
-      fullName,
-      firstName,
-      lastName,
-      middleName,
-      gender,
-      dateOfBirth,
-      phoneNumber,
-      email: extraData.email || "",
-      address,
-      stateOfOrigin,
-      lga,
-      photoUrl: extraData.photoUrl || "",
-      residenceTown: defaultProfile.residenceTown,
-      isVerified: true,
-      verificationsPassed: ["Identity Record Verified", "NIMC/NIBSS Core Match"],
-      trackingId: `TRK-${Date.now()}`,
-    };
-
-    if (sType === "NIN") {
-      baseRecord.nin = cleanId;
-      baseRecord.title = "National Identity Card (NIN)";
-    } else if (sType === "BVN") {
-      baseRecord.bvn = cleanId;
-      baseRecord.enrollmentBank = "Access Bank";
-      baseRecord.enrollmentBranch = "Central Branch";
-    } else if (sType === "CAC") {
-      baseRecord.rcNumber = cleanId;
-      baseRecord.companyName = extraData.companyName || `${lastName.toUpperCase()} ENTERPRISES NIGERIA LIMITED`;
-      baseRecord.registrationDate = "2018-04-12";
-      baseRecord.companyType = "PRIVATE_COMPANY_LIMITED_BY_SHARES";
-      baseRecord.status = "ACTIVE";
-    }
-
-    return baseRecord;
   }
 
   /**

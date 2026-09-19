@@ -50,13 +50,12 @@ const ExploreServicesPublicView = lazyWithRetry(() => import("./components/publi
 const BillsPublicView = lazyWithRetry(() => import("./components/public/BillsPublicView").then(m => ({ default: m.BillsPublicView })), "BillsPublicView");
 const VerificationPublicView = lazyWithRetry(() => import("./components/public/VerificationPublicView").then(m => ({ default: m.VerificationPublicView })), "VerificationPublicView");
 const ApiDocsPublicView = lazyWithRetry(() => import("./components/public/ApiDocsPublicView").then(m => ({ default: m.ApiDocsPublicView })), "ApiDocsPublicView");
-import { AccountSecurityView } from "./components/account/AccountSecurityView";
+const AccountSecurityView = lazyWithRetry(() => import("./components/account/AccountSecurityView").then(m => ({ default: m.AccountSecurityView })), "AccountSecurityView");
 
 import { ServiceItem } from "./data/servicesData";
 import { AdminSession, getStoredAdminSession, clearAdminSession } from "./services/adminAuthTypes";
 import { UserProfile, UserRole } from "./types";
 import { navigationManager, useModalBackHandler } from "./services/navigationManager";
-import { motion, AnimatePresence } from "motion/react";
 import { Sparkles, Lock, Check, AlertCircle, LogOut, X } from "lucide-react";
 import { SmartLinkLogoMark } from "./components/ui/SmartLinkLogoMark";
 import { FaviconLoader } from "./components/ui/FaviconLoader";
@@ -1072,42 +1071,34 @@ export default function App() {
   return (
     <div className={`min-h-screen bg-[#F5F7FA] transition-colors duration-300 ${isDarkMode ? "dark-theme-active" : ""} ${!currentUser ? "flex flex-col bg-white" : "flex flex-col lg:flex-row"}`}>
       {/* Real-time Global Toast Notifications */}
-      <AnimatePresence>
-        {toast && (
-          <motion.div
-            initial={{ opacity: 0, y: -50, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            transition={{ type: "spring", stiffness: 350, damping: 25 }}
-            className="fixed top-5 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4 pointer-events-none"
-          >
-            <div className="pointer-events-auto flex items-start gap-3 p-4 rounded-xl border border-[#E5E7EB] bg-[#111827]/95 shadow-xl backdrop-blur-md text-xs font-medium text-white">
-              <div className="mt-0.5">
-                {toast.type === "success" ? (
-                  <Check className="h-4 w-4 text-[#FFFFFF] shrink-0" />
-                ) : toast.type === "error" ? (
-                  <AlertCircle className="h-4 w-4 text-[#9CA3AF] shrink-0" />
-                ) : (
-                  <SmartLinkLogoMark size="xs" color="#FFFFFF" animating={true} />
-                )}
-              </div>
-              <div className="flex-1 text-left">
-                <p className="font-bold uppercase tracking-wider text-[10px] opacity-80">
-                  {toast.type === "success" ? "Operation Successful" : toast.type === "error" ? "System Error Alert" : "System Notification"}
-                </p>
-                <p className="mt-1 text-[11px] leading-relaxed font-normal">{toast.message}</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setToast(null)}
-                className="text-[10px] hover:text-white underline cursor-pointer shrink-0 ml-1 opacity-70 hover:opacity-100 font-mono focus:outline-none"
-              >
-                Dismiss
-              </button>
+      {toast && (
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4 pointer-events-none transition-all duration-200 ease-out animate-in fade-in slide-in-from-top-4">
+          <div className="pointer-events-auto flex items-start gap-3 p-4 rounded-xl border border-[#E5E7EB] bg-[#111827]/95 shadow-xl backdrop-blur-md text-xs font-medium text-white">
+            <div className="mt-0.5">
+              {toast.type === "success" ? (
+                <Check className="h-4 w-4 text-[#FFFFFF] shrink-0" />
+              ) : toast.type === "error" ? (
+                <AlertCircle className="h-4 w-4 text-[#9CA3AF] shrink-0" />
+              ) : (
+                <SmartLinkLogoMark size="xs" color="#FFFFFF" animating={true} />
+              )}
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <div className="flex-1 text-left">
+              <p className="font-bold uppercase tracking-wider text-[10px] opacity-80">
+                {toast.type === "success" ? "Operation Successful" : toast.type === "error" ? "System Error Alert" : "System Notification"}
+              </p>
+              <p className="mt-1 text-[11px] leading-relaxed font-normal">{toast.message}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setToast(null)}
+              className="text-[10px] hover:text-white underline cursor-pointer shrink-0 ml-1 opacity-70 hover:opacity-100 font-mono focus:outline-none"
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Global Top Maintenance Advisory Notice Banner */}
       {!currentView.startsWith("ADMIN_") && <MaintenanceNoticeBanner />}
@@ -2024,59 +2015,51 @@ export default function App() {
       )}
 
       {/* Logout Confirmation Modal */}
-      <AnimatePresence>
-        {showLogoutModal && (
-          <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-4 pt-10 sm:pt-4 bg-[#111827]/60 backdrop-blur-xs overflow-y-auto">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              transition={{ duration: 0.2 }}
-              className="w-full max-w-sm bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#E5E7EB] rounded-2xl p-6 shadow-2xl space-y-5 text-center relative overflow-hidden"
+      {showLogoutModal && (
+        <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-4 pt-10 sm:pt-4 bg-[#111827]/60 backdrop-blur-xs overflow-y-auto">
+          <div className="w-full max-w-sm bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#E5E7EB] rounded-2xl p-6 shadow-2xl space-y-5 text-center relative overflow-hidden transition-all duration-200 animate-in fade-in zoom-in-95">
+            <button
+              type="button"
+              onClick={cancelLogout}
+              className="absolute top-4 right-4 p-1 rounded-full text-[#9CA3AF] hover:text-[#4B5563] dark:hover:text-[#E5E7EB] hover:bg-[#E5E7EB] dark:hover:bg-[#111827] transition-colors cursor-pointer"
+              aria-label="Close modal"
             >
+              <X className="h-4 w-4" />
+            </button>
+
+            <div className="mx-auto w-12 h-12 rounded-full bg-[#E5E7EB] dark:bg-[#111827]/60 text-[#0F2D5C] dark:text-[#E5E7EB] flex items-center justify-center shadow-xs">
+              <LogOut className="h-6 w-6 ml-0.5" />
+            </div>
+
+            <div className="space-y-1.5">
+              <h3 className="text-base font-bold text-[#111827] dark:text-white">
+                Confirm Sign Out
+              </h3>
+              <p className="text-xs text-[#4B5563] dark:text-[#6B7280] leading-relaxed">
+                You are currently signed in. Navigating back or exiting will sign you out of your account session. Are you sure you want to sign out?
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3 pt-2">
               <button
                 type="button"
                 onClick={cancelLogout}
-                className="absolute top-4 right-4 p-1 rounded-full text-[#9CA3AF] hover:text-[#4B5563] dark:hover:text-[#E5E7EB] hover:bg-[#E5E7EB] dark:hover:bg-[#111827] transition-colors cursor-pointer"
-                aria-label="Close modal"
+                className="flex-1 py-2.5 px-4 bg-[#E5E7EB] dark:bg-[#111827] hover:bg-[#E5E7EB] dark:hover:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB] font-semibold rounded-xl text-xs transition-colors cursor-pointer"
               >
-                <X className="h-4 w-4" />
+                Stay Signed In
               </button>
-
-              <div className="mx-auto w-12 h-12 rounded-full bg-[#E5E7EB] dark:bg-[#111827]/60 text-[#0F2D5C] dark:text-[#E5E7EB] flex items-center justify-center shadow-xs">
-                <LogOut className="h-6 w-6 ml-0.5" />
-              </div>
-
-              <div className="space-y-1.5">
-                <h3 className="text-base font-bold text-[#111827] dark:text-white">
-                  Confirm Sign Out
-                </h3>
-                <p className="text-xs text-[#4B5563] dark:text-[#6B7280] leading-relaxed">
-                  You are currently signed in. Navigating back or exiting will sign you out of your account session. Are you sure you want to sign out?
-                </p>
-              </div>
-
-              <div className="flex items-center gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={cancelLogout}
-                  className="flex-1 py-2.5 px-4 bg-[#E5E7EB] dark:bg-[#111827] hover:bg-[#E5E7EB] dark:hover:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB] font-semibold rounded-xl text-xs transition-colors cursor-pointer"
-                >
-                  Stay Signed In
-                </button>
-                <button
-                  type="button"
-                  onClick={confirmLogout}
-                  className="flex-1 py-2.5 px-4 bg-[#0F2D5C] hover:bg-[#17407E] active:scale-98 text-white font-semibold rounded-xl text-xs transition-all shadow-md shadow-[#0F2D5C]/20 cursor-pointer flex items-center justify-center gap-1.5"
-                >
-                  <LogOut className="h-3.5 w-3.5" />
-                  Sign Out
-                </button>
-              </div>
-            </motion.div>
+              <button
+                type="button"
+                onClick={confirmLogout}
+                className="flex-1 py-2.5 px-4 bg-[#0F2D5C] hover:bg-[#17407E] active:scale-98 text-white font-semibold rounded-xl text-xs transition-all shadow-md shadow-[#0F2D5C]/20 cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+                Sign Out
+              </button>
+            </div>
           </div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
     </div>
   );
 }
