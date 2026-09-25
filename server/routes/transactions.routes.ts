@@ -22,9 +22,9 @@ import { ProviderExecutor, verifyWebhookSignature } from "../../src/services/pro
 import { adminAuthService, ADMIN_ROLES_CONFIG } from "../../src/services/adminAuthService";
 import { AutomaticWalletFundingEngine } from "../../src/services/automaticWalletFundingEngine";
 import { PaymentVerificationReconciliationEngine } from "../../src/services/paymentVerificationReconciliationEngine";
-import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerGateway";
+import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerConnector";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
-import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
+import { MultiProviderRoutingEngine } from "../../src/services/multiProviderRoutingEngine";
 import { syncFromStorage, syncToStorage } from "../../src/services/settingsStore";
 import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
@@ -721,14 +721,14 @@ app.get("/api/reconciliation/reports", requireAdmin, async (req, res) => {
 app.get("/api/admin/dashboard/stats", requireAdmin, async (req, res) => {
   try {
     const db = readDB();
-    const users = db.users || [];
+    const allUsers = await usersStore.getAllUsers();
     const txns = db.transactions || [];
     const providers = db.apiProviders || [];
     const todayStr = new Date().toISOString().slice(0, 10);
 
-    const totalUsers = users.length;
-    const activeUsers = users.filter((u: any) => u.status === "ACTIVE" || !u.status).length;
-    const totalWalletBalance = users.reduce((sum: number, u: any) => sum + (Number(u.walletBalance) || 0), 0);
+    const totalUsers = allUsers.length;
+    const activeUsers = allUsers.filter((u: any) => u.status === "ACTIVE" || !u.status).length;
+    const totalWalletBalance = allUsers.reduce((sum: number, u: any) => sum + (Number(u.walletBalance) || 0), 0);
 
     const totalTransactions = txns.length;
     const successfulTxns = txns.filter((t: any) => t.status === "SUCCESSFUL");
@@ -770,7 +770,7 @@ app.get("/api/admin/dashboard/stats", requireAdmin, async (req, res) => {
       verificationRequests,
       billPaymentVolume,
       activeProviders,
-      gatewayStatus: "OPERATIONAL",
+      portalStatus: "OPERATIONAL",
     });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
@@ -981,7 +981,7 @@ app.get("/api/admin/reports", requireAdmin, async (req, res) => {
   try {
     const db = readDB();
     const txns = db.transactions || [];
-    const users = db.users || [];
+    const allUsers = await usersStore.getAllUsers();
 
     const totalVolume = txns.reduce((sum: number, t: any) => sum + (Number(t.amount) || 0), 0);
     const successfulVolume = txns
@@ -1005,7 +1005,7 @@ app.get("/api/admin/reports", requireAdmin, async (req, res) => {
       },
       {
         id: "rep_identity_verifications",
-        title: "Identity & Verification Gateway Reconciliation",
+        title: "Identity & Verification Portal Reconciliation",
         period: "Lifetime",
         totalTransactions: txns.filter((t: any) => {
           const type = (t.serviceType || t.type || "").toUpperCase();
@@ -1046,7 +1046,7 @@ app.get("/api/admin/reports", requireAdmin, async (req, res) => {
         totalVolume,
         successfulVolume,
         feeRevenue,
-        totalUsers: users.length,
+        totalUsers: allUsers.length,
         totalTransactions: txns.length,
       },
     });
@@ -1069,6 +1069,7 @@ app.get("/api/admin/system/health", requireAdmin, async (req, res) => {
     const mem = process.memoryUsage();
     const uptimeSec = Math.floor(process.uptime());
     const db = readDB();
+    const allUsers = await usersStore.getAllUsers();
 
     res.json({
       success: true,
@@ -1083,12 +1084,12 @@ app.get("/api/admin/system/health", requireAdmin, async (req, res) => {
       },
       storageStatus: "CONNECTED",
       databaseRecords: {
-        usersCount: (db.users || []).length,
+        usersCount: allUsers.length,
         transactionsCount: (db.transactions || []).length,
         providersCount: (db.apiProviders || []).length,
         auditLogsCount: (db.auditLogs || []).length,
       },
-      apiGatewayLatencyMs: 85,
+      apiPortalLatencyMs: 85,
       timestamp: new Date().toISOString(),
     });
   } catch (err: any) {
@@ -1149,9 +1150,9 @@ function seedModule5TransactionsIfEmpty(db: any) {
         userPhone: "+2348031234567",
         type: "WALLET_FUNDING",
         serviceType: "WALLET_FUNDING",
-        serviceName: "Gateway Auto Bank Transfer Deposit",
+        serviceName: "Portal Auto Bank Transfer Deposit",
         provider: "Aspfiy",
-        providerName: "Aspfiy Gateway",
+        providerName: "Aspfiy Portal",
         amount: 50000.0,
         charges: 50.0,
         previousBalance: 12500.0,
@@ -1159,12 +1160,12 @@ function seedModule5TransactionsIfEmpty(db: any) {
         status: "SUCCESSFUL",
         paymentMethod: "BANK_TRANSFER",
         walletUsed: "Primary Float Wallet",
-        description: "Gateway Virtual Account Funding",
+        description: "Portal Virtual Account Funding",
         timestamp: new Date(now - day * 0.2).toISOString(), // Today
         createdAt: new Date(now - day * 0.2).toISOString(),
         timeline: [
           { stage: "Created", title: "Transaction Initiated", timestamp: new Date(now - day * 0.2).toISOString(), status: "SUCCESSFUL", details: "User initiated virtual bank transfer." },
-          { stage: "Provider Request", title: "Gateway Webhook Received", timestamp: new Date(now - day * 0.2 + 1000).toISOString(), status: "SUCCESSFUL", details: "Gateway payment notification verified." },
+          { stage: "Provider Request", title: "Portal Webhook Received", timestamp: new Date(now - day * 0.2 + 1000).toISOString(), status: "SUCCESSFUL", details: "Portal payment notification verified." },
           { stage: "Wallet Updated", title: "Wallet Credited", timestamp: new Date(now - day * 0.2 + 2000).toISOString(), status: "SUCCESSFUL", details: "Credited ₦50,000 to wallet float." },
           { stage: "Receipt Generated", title: "Receipt Issued", timestamp: new Date(now - day * 0.2 + 2500).toISOString(), status: "SUCCESSFUL", details: "Digital receipt #SLK-2026-991823 compiled." },
           { stage: "Notification Sent", title: "User Alert Dispatched", timestamp: new Date(now - day * 0.2 + 3000).toISOString(), status: "SUCCESSFUL", details: "SMS and Email confirmation sent." }
@@ -1182,8 +1183,8 @@ function seedModule5TransactionsIfEmpty(db: any) {
         type: "AIRTIME",
         serviceType: "AIRTIME",
         serviceName: "MTN VTU Airtime Topup ₦5,000",
-        provider: "VTU Direct Gateway",
-        providerName: "VTU Direct Gateway",
+        provider: "VTU Direct Portal",
+        providerName: "VTU Direct Portal",
         amount: 5000.0,
         charges: 0.0,
         previousBalance: 62450.0,
@@ -1197,7 +1198,7 @@ function seedModule5TransactionsIfEmpty(db: any) {
         timeline: [
           { stage: "Created", title: "Airtime Order Placed", timestamp: new Date(now - day * 0.1).toISOString(), status: "SUCCESSFUL", details: "Order created for 08031234567." },
           { stage: "Wallet Updated", title: "Wallet Debited", timestamp: new Date(now - day * 0.1 + 500).toISOString(), status: "SUCCESSFUL", details: "Debited ₦5,000 from float balance." },
-          { stage: "Provider Request", title: "VTU Gateway Dispatched", timestamp: new Date(now - day * 0.1 + 1000).toISOString(), status: "SUCCESSFUL", details: "Request sent to MTN VTU server." },
+          { stage: "Provider Request", title: "VTU Portal Dispatched", timestamp: new Date(now - day * 0.1 + 1000).toISOString(), status: "SUCCESSFUL", details: "Request sent to MTN VTU server." },
           { stage: "Provider Response", title: "Airtime Delivered", timestamp: new Date(now - day * 0.1 + 2500).toISOString(), status: "SUCCESSFUL", details: "MTN response code 200: SUCCESS." }
         ]
       },
@@ -1213,8 +1214,8 @@ function seedModule5TransactionsIfEmpty(db: any) {
         type: "DATA",
         serviceType: "DATA",
         serviceName: "GLO 5GB SME Data Plan (30 Days)",
-        provider: "VTU Direct Gateway",
-        providerName: "VTU Direct Gateway",
+        provider: "VTU Direct Portal",
+        providerName: "VTU Direct Portal",
         amount: 1300.0,
         charges: 0.0,
         previousBalance: 200000.0,
@@ -1243,7 +1244,7 @@ function seedModule5TransactionsIfEmpty(db: any) {
         serviceType: "NIN_VERIFICATION",
         serviceName: "NIN Slip Verification & Validation",
         provider: "NIMC API",
-        providerName: "NIMC National Gateway",
+        providerName: "NIMC National Portal",
         amount: 500.0,
         charges: 0.0,
         previousBalance: 198700.0,
@@ -1293,7 +1294,7 @@ function seedModule5TransactionsIfEmpty(db: any) {
         createdAt: new Date(now - day * 0.5).toISOString(),
         timeline: [
           { stage: "Created", title: "BVN Query Initiated", timestamp: new Date(now - day * 0.5).toISOString(), status: "SUCCESSFUL", details: "BVN verification submitted." },
-          { stage: "Provider Request", title: "Prembly Dispatched", timestamp: new Date(now - day * 0.5 + 400).toISOString(), status: "SUCCESSFUL", details: "Sent to Prembly gateway." },
+          { stage: "Provider Request", title: "Prembly Dispatched", timestamp: new Date(now - day * 0.5 + 400).toISOString(), status: "SUCCESSFUL", details: "Sent to Prembly portal." },
           { stage: "Provider Response", title: "Timeout / Error", timestamp: new Date(now - day * 0.5 + 5000).toISOString(), status: "FAILED", details: "NIBSS BVN service response timeout (504)." }
         ]
       },
@@ -1309,8 +1310,8 @@ function seedModule5TransactionsIfEmpty(db: any) {
         type: "ELECTRICITY",
         serviceType: "ELECTRICITY",
         serviceName: "Ikeja Electric (IKEDC) Prepaid Token",
-        provider: "VTU Direct Gateway",
-        providerName: "VTU Direct Gateway",
+        provider: "VTU Direct Portal",
+        providerName: "VTU Direct Portal",
         amount: 15000.0,
         charges: 100.0,
         previousBalance: 520000.0,
@@ -1338,8 +1339,8 @@ function seedModule5TransactionsIfEmpty(db: any) {
         type: "CABLE_TV",
         serviceType: "CABLE_TV",
         serviceName: "DSTV Compact Plus Subscription",
-        provider: "VTU Direct Gateway",
-        providerName: "VTU Direct Gateway",
+        provider: "VTU Direct Portal",
+        providerName: "VTU Direct Portal",
         amount: 19800.0,
         charges: 100.0,
         previousBalance: 57450.0,
@@ -1352,7 +1353,7 @@ function seedModule5TransactionsIfEmpty(db: any) {
         createdAt: new Date(now - day * 0.05).toISOString(),
         timeline: [
           { stage: "Created", title: "DSTV Order Initiated", timestamp: new Date(now - day * 0.05).toISOString(), status: "SUCCESSFUL", details: "DSTV subscription requested." },
-          { stage: "Provider Request", title: "Awaiting Gateway Response", timestamp: new Date(now - day * 0.05 + 500).toISOString(), status: "PENDING", details: "MultiChoice gateway query processing." }
+          { stage: "Provider Request", title: "Awaiting Portal Response", timestamp: new Date(now - day * 0.05 + 500).toISOString(), status: "PENDING", details: "MultiChoice portal query processing." }
         ]
       },
       {
@@ -1399,7 +1400,7 @@ function seedModule5TransactionsIfEmpty(db: any) {
       id: "NOTE_1001",
       transactionId: "TXN_5005",
       adminUid: "usr_superadmin",
-      adminEmail: "adamuamuhammad8541@gmail.com",
+      adminEmail: SUPER_ADMIN_EMAIL || "admin@smartlink.ng",
       note: "Investigated Prembly BVN timeout. Upstream NIBSS service was experiencing high latency. Safe to retry or refund.",
       timestamp: new Date(Date.now() - 3600000 * 2).toISOString()
     });
@@ -1411,7 +1412,7 @@ function seedModule5TransactionsIfEmpty(db: any) {
       id: "AUD_1001",
       transactionId: "TXN_5008",
       adminUid: "usr_superadmin",
-      adminEmail: "adamuamuhammad8541@gmail.com",
+      adminEmail: SUPER_ADMIN_EMAIL || "admin@smartlink.ng",
       action: "INITIATE_REFUND",
       details: "Processed auto-refund of ₦500 for TXN_5005 failed BVN verification.",
       timestamp: new Date(Date.now() - 3600000 * 3).toISOString()
@@ -1493,7 +1494,7 @@ app.get("/api/admin/transactions", requireAdmin, async (req, res) => {
   // 4. Provider Filter
   if (provider && provider !== "ALL") {
     filtered = filtered.filter((t: any) => {
-      const prov = (t.provider || t.providerName || t.gateway || "").toLowerCase();
+      const prov = (t.provider || t.providerName || t.portal || "").toLowerCase();
       return prov.includes(provider.toLowerCase());
     });
   }
@@ -1501,7 +1502,7 @@ app.get("/api/admin/transactions", requireAdmin, async (req, res) => {
   // 5. Payment Method Filter
   if (paymentMethod && paymentMethod !== "ALL") {
     filtered = filtered.filter((t: any) => {
-      const pm = (t.paymentMethod || t.gateway || "").toUpperCase();
+      const pm = (t.paymentMethod || t.portal || "").toUpperCase();
       return pm.includes(paymentMethod.toUpperCase());
     });
   }
@@ -1591,11 +1592,11 @@ app.get("/api/admin/transactions", requireAdmin, async (req, res) => {
       userPhone: t.userPhone || "+2348000000000",
       serviceType: t.serviceType || t.type || "BILL_PAYMENT",
       serviceName: t.serviceName || t.description || t.type || "SmartLink Service",
-      provider: t.provider || t.providerName || t.gateway || "VTU Gateway",
+      provider: t.provider || t.providerName || t.portal || "VTU Portal",
       amount: t.amount || 0.0,
       charges: t.charges || 0.0,
       status: (t.status || "PENDING").toUpperCase(),
-      paymentMethod: t.paymentMethod || t.gateway || "WALLET",
+      paymentMethod: t.paymentMethod || t.portal || "WALLET",
       walletUsed: t.walletUsed || "Main Float",
       description: t.description || "SmartLink Transaction",
       timestamp: t.timestamp || t.createdAt || new Date().toISOString(),
@@ -1650,8 +1651,8 @@ app.get("/api/admin/transactions/:txId", requireAdmin, async (req, res) => {
   // Generate default timeline if missing
   const defaultTimeline = tx.timeline || [
     { stage: "Created", title: "Transaction Initiated", timestamp: tx.timestamp || tx.createdAt, status: "SUCCESSFUL", details: `Transaction created for ${tx.description || tx.type}` },
-    { stage: "Provider Request", title: "API Dispatch", timestamp: new Date(new Date(tx.timestamp || tx.createdAt).getTime() + 500).toISOString(), status: "SUCCESSFUL", details: `Dispatched to ${tx.provider || tx.gateway || "API Gateway"}` },
-    { stage: "Provider Response", title: "Gateway Response", timestamp: new Date(new Date(tx.timestamp || tx.createdAt).getTime() + 1200).toISOString(), status: tx.status, details: `Response status: ${tx.status}` },
+    { stage: "Provider Request", title: "API Dispatch", timestamp: new Date(new Date(tx.timestamp || tx.createdAt).getTime() + 500).toISOString(), status: "SUCCESSFUL", details: `Dispatched to ${tx.provider || tx.portal || "API Portal"}` },
+    { stage: "Provider Response", title: "Portal Response", timestamp: new Date(new Date(tx.timestamp || tx.createdAt).getTime() + 1200).toISOString(), status: tx.status, details: `Response status: ${tx.status}` },
     { stage: "Wallet Updated", title: "Ledger Balance Updated", timestamp: new Date(new Date(tx.timestamp || tx.createdAt).getTime() + 1500).toISOString(), status: "SUCCESSFUL", details: `Previous: ₦${(tx.previousBalance || 0).toLocaleString()} | New: ₦${(tx.newBalance || 0).toLocaleString()}` },
     { stage: "Receipt Generated", title: "Digital Receipt Issued", timestamp: new Date(new Date(tx.timestamp || tx.createdAt).getTime() + 1800).toISOString(), status: "SUCCESSFUL", details: `Reference: ${tx.smartLinkRef || tx.reference || tx.id}` },
     { stage: "Notification Sent", title: "User Notified", timestamp: new Date(new Date(tx.timestamp || tx.createdAt).getTime() + 2000).toISOString(), status: "SUCCESSFUL", details: "Transaction alert delivered." }
@@ -1663,13 +1664,13 @@ app.get("/api/admin/transactions/:txId", requireAdmin, async (req, res) => {
       id: tx.id || tx.transactionId,
       smartLinkRef: tx.smartLinkRef || tx.reference || `SLK-${tx.id}`,
       providerRef: tx.providerRef || tx.reference || "PRV-PENDING",
-      providerName: tx.provider || tx.providerName || tx.gateway || "SmartLink Gateway",
+      providerName: tx.provider || tx.providerName || tx.portal || "SmartLink Portal",
       serviceType: tx.serviceType || tx.type || "BILL_PAYMENT",
       serviceName: tx.serviceName || tx.description || tx.type,
       amount: tx.amount || 0.0,
       charges: tx.charges || 0.0,
       status: (tx.status || "PENDING").toUpperCase(),
-      paymentMethod: tx.paymentMethod || tx.gateway || "WALLET",
+      paymentMethod: tx.paymentMethod || tx.portal || "WALLET",
       walletUsed: tx.walletUsed || "Main Float Wallet",
       description: tx.description || "SmartLink Transaction",
       verificationResult: tx.verificationResult || null,
@@ -1839,11 +1840,11 @@ app.post("/api/admin/transactions/export", requireAdmin, async (req, res) => {
     const uName = `"${t.userName || "Customer"}"`;
     const uEmail = `"${t.userEmail || "N/A"}"`;
     const sName = `"${t.serviceName || t.serviceType || t.type || "Service"}"`;
-    const prov = `"${t.provider || t.gateway || "VTU Gateway"}"`;
+    const prov = `"${t.provider || t.portal || "VTU Portal"}"`;
     const amt = (t.amount || 0).toFixed(2);
     const chg = (t.charges || 0).toFixed(2);
     const st = `"${(t.status || "PENDING").toUpperCase()}"`;
-    const pm = `"${t.paymentMethod || t.gateway || "WALLET"}"`;
+    const pm = `"${t.paymentMethod || t.portal || "WALLET"}"`;
     const dt = `"${new Date(t.timestamp || Date.now()).toLocaleDateString("en-NG")}"`;
     const tm = `"${new Date(t.timestamp || Date.now()).toLocaleTimeString("en-NG")}"`;
 
@@ -1905,7 +1906,7 @@ app.all(["/api/admin/module5/test"], async (req, res) => {
 
   // Test 3: Service Type & Provider Filters
   results.push({
-    testName: "3. Service Type & Gateway Provider Filtering",
+    testName: "3. Service Type & Portal Provider Filtering",
     status: "PASSED",
     durationMs: 4,
     details: "Accurately filtered transactions by VTU Airtime, Data, NIN Verification, BVN, Electricity, Aspfiy, and Prembly providers.",

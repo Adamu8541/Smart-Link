@@ -29,7 +29,7 @@ export const LandingWhySmartLink: React.FC = () => {
     {
       id: "pci-dss-security",
       name: "Bank-Grade Payment Infrastructure",
-      benefit: "Protect financial transactions and wallet settlements through 256-bit TLS encryption and PCI-DSS Level 1 compliant gateways.",
+      benefit: "Protect financial transactions and wallet settlements through 256-bit TLS encryption and PCI-DSS Level 1 compliant portals.",
       icon: Lock,
       proofBadge: "256-Bit TLS Encryption",
       proofDetail: "PCI-DSS Level 1 Certified Switches",
@@ -40,7 +40,7 @@ export const LandingWhySmartLink: React.FC = () => {
       benefit: "Eliminate downtime for your business operations and POS terminals with clustered cloud hosting and automated failovers.",
       icon: Server,
       proofBadge: "99.9% SLA Guarantee",
-      proofDetail: "Automated Gateway Routing",
+      proofDetail: "Automated Portal Routing",
     },
     {
       id: "low-latency",

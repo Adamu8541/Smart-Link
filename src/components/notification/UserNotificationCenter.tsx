@@ -38,7 +38,7 @@ export function UserNotificationCenter({ currentUser, onNavigateHome, isModal = 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedNotif, setSelectedNotif] = useState<any | null>(null);
 
-  const userEmail = currentUser?.email || "adamuamuhammad8541@gmail.com";
+  const userEmail = currentUser?.email || "";
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });

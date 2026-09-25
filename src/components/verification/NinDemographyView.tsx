@@ -29,6 +29,7 @@ import { SlipLivePreviewCard } from "./slips/SlipLivePreviewCard";
 import { useSiteConfig } from "../../context/SiteConfigContext";
 import { THREE_NIN_SLIPS, mapSlipToConfig, NinSlipType3, getNinSlipOptions } from "./NinVerificationView";
 import { formatNaira } from "../../utils/formatUtils";
+import { VerificationSuccess } from "./VerificationSuccess";
 
 interface NinDemographyViewProps {
   userId: string;
@@ -138,7 +139,13 @@ export const NinDemographyView: React.FC<NinDemographyViewProps> = ({
       });
 
       if (res.success && res.result) {
-        setVerificationResult(res.result);
+        const enrichedResult: StandardizedVerificationResult = {
+          ...res.result,
+          slipType: selectedSlip?.id || "REGULAR",
+          formatId: selectedSlip?.formatId || "NIN_REGULAR",
+          selectedSlip: selectedSlip,
+        };
+        setVerificationResult(enrichedResult);
         if (onBalanceUpdate) onBalanceUpdate();
         fetchBalance();
       } else {
@@ -205,49 +212,13 @@ export const NinDemographyView: React.FC<NinDemographyViewProps> = ({
       <div className="p-4 sm:p-6 space-y-5">
         {/* Verification Success View */}
         {verificationResult ? (
-          <div className="space-y-5 animate-fade-in">
-            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
-                <CheckCircle2 className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="font-bold text-emerald-900 text-sm sm:text-base">
-                  NIN Demographics Verified Successfully
-                </h3>
-                <p className="text-xs text-emerald-700">
-                  National Identification record matched and official slip generated.
-                </p>
-              </div>
-            </div>
-
-            {/* Real Slip Image Preview */}
-            <div className="border border-slate-200 rounded-xl p-3 bg-slate-50 overflow-hidden shadow-inner flex justify-center">
-              <SlipLivePreviewCard
-                slipOption={mapSlipToConfig(selectedSlip || availableSlips[0])}
-                serviceType="NIN"
-              />
-            </div>
-
-            {/* Slip Action Buttons */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setShowSlipModal(true)}
-                className="w-full bg-[#0F2D5C] hover:bg-[#1E3A8A] text-white py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-sm transition-colors"
-              >
-                <Printer className="w-4 h-4" />
-                Print / Download Official Slip
-              </button>
-              <button
-                type="button"
-                onClick={handleReset}
-                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-colors border border-slate-300"
-              >
-                <RefreshCw className="w-4 h-4" />
-                Verify Another Record
-              </button>
-            </div>
-          </div>
+          <VerificationSuccess
+            result={verificationResult}
+            userId={userId}
+            userEmail={userEmail}
+            onRepeatVerification={handleVerify}
+            onNewVerification={handleReset}
+          />
         ) : (
           <>
             {/* SECTION 1: SLIP TYPE & PREVIEW */}
@@ -259,7 +230,7 @@ export const NinDemographyView: React.FC<NinDemographyViewProps> = ({
                 </h2>
               </div>
 
-              {/* Dropdown with EXACTLY 3 Options: Premium, Standard, Regular */}
+              {/* Dropdown with Options: Regular Slip, Premium Card */}
               <div className="relative">
                 <select
                   id="nin-demography-slip-type-selector"
@@ -484,7 +455,7 @@ export const NinDemographyView: React.FC<NinDemographyViewProps> = ({
                   </span>
                 </div>
                 <span className="text-[11px] text-slate-400 flex items-center gap-1">
-                  <Lock className="w-3 h-3 text-emerald-600" /> NIMC Authorized Gateway
+                  <Lock className="w-3 h-3 text-emerald-600" /> NIMC Authorized Portal
                 </span>
               </div>
             </div>

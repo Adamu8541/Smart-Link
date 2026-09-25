@@ -27,13 +27,13 @@ export const VerificationResult: React.FC<VerificationResultProps> = ({
 
   const handleQuickEmailDispatch = async () => {
     let userId = "guest_user";
-    let userEmail = "adamuamuhammad8541@gmail.com";
+    let userEmail = "";
     try {
       const stored = localStorage.getItem("smart_link_user");
       if (stored) {
         const u = JSON.parse(stored);
         userId = u.uid || u.id || userId;
-        userEmail = u.email || userEmail;
+        userEmail = u.email || "";
       }
     } catch {}
 
@@ -76,7 +76,7 @@ export const VerificationResult: React.FC<VerificationResultProps> = ({
               <h3 className="text-sm font-bold text-[#0F2D5C] dark:text-[#9CA3AF]">
                 Official Verification Confirmed
               </h3>
-              <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/60 dark:text-[#9CA3AF] border border-[#E5E7EB] dark:border-[#0F2D5C]">
+              <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/60 dark:text-[#9CA3AF] border border-slate-200 dark:border-slate-700">
                 VERIFIED
               </span>
             </div>
@@ -92,7 +92,7 @@ export const VerificationResult: React.FC<VerificationResultProps> = ({
               type="button"
               onClick={handleQuickEmailDispatch}
               disabled={isSendingEmail}
-              className="px-3.5 py-2 rounded-xl bg-[#F5F7FA] hover:bg-[#E5E7EB] dark:bg-[#0F2D5C]/50 dark:hover:bg-[#0F2D5C]/50 text-[#0F2D5C] dark:text-[#9CA3AF] border border-[#E5E7EB] dark:border-[#0F2D5C] text-xs font-bold flex items-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
+              className="px-3.5 py-2 rounded-xl bg-[#F5F7FA] hover:bg-[#E5E7EB] dark:bg-[#0F2D5C]/50 dark:hover:bg-[#0F2D5C]/50 text-[#0F2D5C] dark:text-[#9CA3AF] border border-slate-200 dark:border-slate-700 text-xs font-bold flex items-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
               title="Send verification certificate to registered email"
             >
               {emailDeliveredMsg ? <Check className="h-4 w-4 text-[#0F2D5C]" /> : <Mail className="h-4 w-4" />}
@@ -126,7 +126,7 @@ export const VerificationResult: React.FC<VerificationResultProps> = ({
 
       {/* Instant Email Notification Banner */}
       {emailDeliveredMsg && (
-        <div className="p-3 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border border-[#E5E7EB] dark:border-[#0F2D5C] rounded-xl text-xs text-[#0F2D5C] dark:text-[#9CA3AF] font-bold flex items-center gap-2 animate-fade-in">
+        <div className="p-3 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-[#0F2D5C] dark:text-[#9CA3AF] font-bold flex items-center gap-2 animate-fade-in">
           <CheckCircle2 className="h-4 w-4 text-[#0F2D5C] shrink-0" />
           <span>{emailDeliveredMsg}</span>
         </div>
@@ -151,7 +151,7 @@ export const VerificationResult: React.FC<VerificationResultProps> = ({
                 </div>
               </div>
             ) : (
-              <div className="w-16 h-16 rounded-2xl bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 border border-[#E5E7EB] dark:border-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF] flex items-center justify-center font-bold text-xl">
+              <div className="w-16 h-16 rounded-2xl bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 border border-slate-200 dark:border-slate-700 text-[#0F2D5C] dark:text-[#9CA3AF] flex items-center justify-center font-bold text-xl">
                 {data.companyName
                   ? <Building2 className="h-8 w-8" />
                   : <User className="h-8 w-8" />}
@@ -167,12 +167,12 @@ export const VerificationResult: React.FC<VerificationResultProps> = ({
                   ID: {maskedId}
                 </span>
                 {data.gender && (
-                  <span className="px-2 py-0.5 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 text-[#0F2D5C] dark:text-[#9CA3AF] rounded-md font-semibold text-[11px]">
+                  <span className="px-2 py-0.5 bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 rounded-md font-semibold text-[11px]">
                     {data.gender}
                   </span>
                 )}
                 {data.companyStatus && (
-                  <span className="px-2 py-0.5 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 text-[#0F2D5C] dark:text-[#9CA3AF] rounded-md font-semibold text-[11px]">
+                  <span className="px-2 py-0.5 bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 rounded-md font-semibold text-[11px]">
                     {data.companyStatus}
                   </span>
                 )}

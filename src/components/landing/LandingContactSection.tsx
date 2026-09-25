@@ -10,9 +10,7 @@ import {
   MessageSquare,
   Send,
   CheckCircle2,
-  Clock,
   Building2,
-  ShieldCheck,
   Copy,
   Check,
   AlertCircle,
@@ -112,7 +110,7 @@ export const LandingContactSection: React.FC<LandingContactSectionProps> = ({
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0F2D5C]/10 text-[#0F2D5C] text-xs font-bold uppercase tracking-wider">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 text-xs font-bold uppercase tracking-wider">
             <MessageSquare className="h-3.5 w-3.5" />
             Official Communications Desk
           </div>
@@ -139,7 +137,7 @@ export const LandingContactSection: React.FC<LandingContactSectionProps> = ({
               <div className="space-y-4">
                 {/* Email Desk */}
                 <div className="flex items-start gap-3.5 p-3.5 bg-white border border-[#E5E7EB] rounded-xl">
-                  <div className="h-10 w-10 rounded-lg bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center shrink-0">
+                  <div className="h-10 w-10 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 flex items-center justify-center shrink-0">
                     <Mail className="h-5 w-5" />
                   </div>
                   <div className="space-y-0.5 text-left">
@@ -160,7 +158,7 @@ export const LandingContactSection: React.FC<LandingContactSectionProps> = ({
 
                 {/* Telephone */}
                 <div className="flex items-start gap-3.5 p-3.5 bg-white border border-[#E5E7EB] rounded-xl">
-                  <div className="h-10 w-10 rounded-lg bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center shrink-0">
+                  <div className="h-10 w-10 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 flex items-center justify-center shrink-0">
                     <Phone className="h-5 w-5" />
                   </div>
                   <div className="space-y-0.5 text-left">
@@ -181,7 +179,7 @@ export const LandingContactSection: React.FC<LandingContactSectionProps> = ({
 
                 {/* WhatsApp */}
                 <div className="flex items-start gap-3.5 p-3.5 bg-white border border-[#E5E7EB] rounded-xl">
-                  <div className="h-10 w-10 rounded-lg bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center shrink-0">
+                  <div className="h-10 w-10 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 flex items-center justify-center shrink-0">
                     <MessageSquare className="h-5 w-5" />
                   </div>
                   <div className="space-y-0.5 text-left">
@@ -202,27 +200,6 @@ export const LandingContactSection: React.FC<LandingContactSectionProps> = ({
                     </span>
                   </div>
                 </div>
-              </div>
-
-              {/* SLA Response Notice */}
-              <div className="p-3.5 bg-[#F0FDF4] border border-[#BBF7D0] rounded-xl flex items-center gap-3">
-                <Clock className="h-4 w-4 text-[#166534] shrink-0" />
-                <div className="text-left text-[11px] text-[#166534]">
-                  <strong>Guaranteed SLA:</strong> Inquiries submitted via this form are dispatched directly to our operations officers with an average turnaround under 2 hours.
-                </div>
-              </div>
-            </div>
-
-            {/* Corporate Compliance Badge */}
-            <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 text-left flex items-start gap-3 shadow-xs">
-              <ShieldCheck className="h-5 w-5 text-[#0F2D5C] shrink-0 mt-0.5" />
-              <div className="space-y-1">
-                <span className="text-xs font-bold text-[#111827] block">
-                  Statutory Entity & Data Privacy
-                </span>
-                <p className="text-[11px] text-[#6B7280] leading-relaxed">
-                  Smart Link Computer Business is incorporated under the Corporate Affairs Commission (CAC RC 9347502) and fully certified under the Nigeria Data Protection Act (NDPA) 2023.
-                </p>
               </div>
             </div>
 

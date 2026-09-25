@@ -1,10 +1,10 @@
 /**
- * SmartLink Multi-Gateway Routing & Failover Management
- * Phase 2 - Production Identity Gateway Controller
+ * SmartLink Multi-Provider Routing & Failover Management
+ * Phase 2 - Production Identity Portal Controller
  *
- * Configures intelligent multi-gateway failover matching aspfiy & verifyng ecosystems:
+ * Configures intelligent multi-provider failover matching aspfiy & verifyng ecosystems:
  * - Dynamic Service Routing Rules (NIN, BVN, Phone, CAC, TIN, etc.)
- * - Gateway Health Matrix & Real-Time Latency Probes
+ * - Portal Health Matrix & Real-Time Latency Probes
  * - Automated Failover Audit Logs Stream
  * - Background Verification Reconciliation Queue
  */
@@ -32,23 +32,24 @@ import {
   RotateCcw,
 } from "lucide-react";
 import {
-  GatewayRoutingRule,
-  GatewayHealthMetric,
-  GatewayFailoverLog,
+  ProviderRoutingRule,
+  ProviderHealthMetric,
+  ProviderFailoverLog,
   BackgroundVerificationJob,
   RoutingStrategyType,
 } from "../../../types/provider";
+import { getAuthHeaders } from "../../../services/providerService";
 
-export const AdminMultiGatewayView: React.FC = () => {
+export const AdminMultiProviderView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"matrix" | "rules" | "failovers" | "background_queue">("matrix");
   const [loading, setLoading] = useState<boolean>(true);
-  const [rules, setRules] = useState<GatewayRoutingRule[]>([]);
-  const [metrics, setMetrics] = useState<GatewayHealthMetric[]>([]);
-  const [failovers, setFailovers] = useState<GatewayFailoverLog[]>([]);
+  const [rules, setRules] = useState<ProviderRoutingRule[]>([]);
+  const [metrics, setMetrics] = useState<ProviderHealthMetric[]>([]);
+  const [failovers, setFailovers] = useState<ProviderFailoverLog[]>([]);
   const [jobs, setJobs] = useState<BackgroundVerificationJob[]>([]);
   const [pingingId, setPingingId] = useState<string | null>(null);
   const [pingResults, setPingResults] = useState<Record<string, { ok: boolean; latency: number; message: string }>>({});
-  const [selectedRule, setSelectedRule] = useState<GatewayRoutingRule | null>(null);
+  const [selectedRule, setSelectedRule] = useState<ProviderRoutingRule | null>(null);
   const [isEditingRule, setIsEditingRule] = useState<boolean>(false);
   const [isQueueModalOpen, setIsQueueModalOpen] = useState<boolean>(false);
   const [isProcessingSweep, setIsProcessingSweep] = useState<boolean>(false);
@@ -61,11 +62,12 @@ export const AdminMultiGatewayView: React.FC = () => {
   const [newJobUserId, setNewJobUserId] = useState<string>("usr_admin_test");
   const [newJobUserEmail, setNewJobUserEmail] = useState<string>("admin@smartlink.ng");
 
-  // Load gateway routing data from backend
-  const fetchGatewayData = async () => {
+  // Load portal routing data from backend
+  const fetchPortalData = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/gateway-routing");
+      const headers = await getAuthHeaders();
+      const res = await fetch("/api/admin/routing", { headers });
       const data = await res.json();
       if (data.success) {
         setRules(data.rules || []);
@@ -74,14 +76,14 @@ export const AdminMultiGatewayView: React.FC = () => {
         setJobs(data.backgroundJobs || []);
       }
     } catch (err) {
-      console.error("Failed to load gateway data:", err);
+      console.error("Failed to load portal data:", err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchGatewayData();
+    fetchPortalData();
   }, []);
 
   const showFeedback = (text: string, type: "success" | "error" = "success") => {
@@ -89,13 +91,14 @@ export const AdminMultiGatewayView: React.FC = () => {
     setTimeout(() => setStatusMessage(null), 4500);
   };
 
-  // Ping a specific Gateway
-  const handlePingGateway = async (providerId: string) => {
+  // Ping a specific Portal
+  const handlePingPortal = async (providerId: string) => {
     setPingingId(providerId);
     try {
-      const res = await fetch("/api/admin/gateway-ping", {
+      const headers = await getAuthHeaders();
+      const res = await fetch("/api/admin/portal-ping", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { ...headers, "Content-Type": "application/json" },
         body: JSON.stringify({ providerId }),
       });
       const data = await res.json();
@@ -120,19 +123,20 @@ export const AdminMultiGatewayView: React.FC = () => {
     }
   };
 
-  // Ping all gateways in parallel
-  const handlePingAllGateways = async () => {
+  // Ping all portals in parallel
+  const handlePingAllPortals = async () => {
     for (const metric of metrics) {
-      await handlePingGateway(metric.providerId);
+      await handlePingPortal(metric.providerId);
     }
   };
 
   // Save updated routing rule
-  const handleSaveRule = async (updatedRule: GatewayRoutingRule) => {
+  const handleSaveRule = async (updatedRule: ProviderRoutingRule) => {
     try {
-      const res = await fetch("/api/admin/gateway-routing", {
+      const headers = await getAuthHeaders();
+      const res = await fetch("/api/admin/routing", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { ...headers, "Content-Type": "application/json" },
         body: JSON.stringify({ rule: updatedRule }),
       });
       const data = await res.json();
@@ -153,12 +157,16 @@ export const AdminMultiGatewayView: React.FC = () => {
   const handleTriggerSweep = async () => {
     setIsProcessingSweep(true);
     try {
-      const res = await fetch("/api/admin/background-jobs/process", { method: "POST" });
+      const headers = await getAuthHeaders();
+      const res = await fetch("/api/admin/background-jobs/process", {
+        method: "POST",
+        headers,
+      });
       const data = await res.json();
       if (data.success) {
         setJobs(data.jobs || []);
         showFeedback(data.message || "Background verification sweep completed.");
-        fetchGatewayData();
+        fetchPortalData();
       } else {
         showFeedback(data.error || "Sweep execution failed.", "error");
       }
@@ -178,9 +186,10 @@ export const AdminMultiGatewayView: React.FC = () => {
     }
 
     try {
+      const headers = await getAuthHeaders();
       const res = await fetch("/api/admin/background-jobs/queue", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { ...headers, "Content-Type": "application/json" },
         body: JSON.stringify({
           service: newJobService,
           targetId: newJobTargetId.trim(),
@@ -194,7 +203,7 @@ export const AdminMultiGatewayView: React.FC = () => {
         showFeedback("Verification successfully queued in background worker.");
         setIsQueueModalOpen(false);
         setNewJobTargetId("");
-        fetchGatewayData();
+        fetchPortalData();
       } else {
         showFeedback(data.error || "Failed to queue job.", "error");
       }
@@ -228,7 +237,7 @@ export const AdminMultiGatewayView: React.FC = () => {
   );
 
   return (
-    <div id="admin-multi-gateway-view" className="space-y-6">
+    <div id="admin-multi-provider-view" className="space-y-6">
       {/* Top Banner & Header */}
       <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-xl p-6 shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -239,8 +248,8 @@ export const AdminMultiGatewayView: React.FC = () => {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-[#111827] dark:text-white flex items-center gap-2">
-                  Multi-Gateway Routing & Failover
-                  <span className="text-xs px-2.5 py-0.5 rounded-full font-medium bg-[#E5E7EB] dark:bg-[#0F2D5C]/50 text-[#0F2D5C] dark:text-[#9CA3AF] border border-[#E5E7EB] dark:border-[#0F2D5C]">
+                  Multi-Provider Routing & Failover
+                  <span className="text-xs px-2.5 py-0.5 rounded-full font-medium bg-[#E5E7EB] dark:bg-[#0F2D5C]/50 text-[#0F2D5C] dark:text-[#9CA3AF] border border-slate-200 dark:border-slate-700">
                     Phase 2 Engine Active
                   </span>
                 </h1>
@@ -253,13 +262,13 @@ export const AdminMultiGatewayView: React.FC = () => {
 
           <div className="flex flex-wrap items-center gap-2.5">
             <button
-              id="btn-ping-all-gateways"
-              onClick={handlePingAllGateways}
+              id="btn-ping-all-portals"
+              onClick={handlePingAllPortals}
               disabled={loading || pingingId !== null}
               className="inline-flex items-center space-x-2 px-3.5 py-2 text-xs font-semibold rounded-lg bg-[#E5E7EB] dark:bg-[#111827] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563] text-[#4B5563] dark:text-[#E5E7EB] border border-[#E5E7EB] dark:border-[#4B5563] transition"
             >
               <Activity className="w-4 h-4 text-[#0F2D5C] animate-pulse" />
-              <span>Probe All Gateways</span>
+              <span>Probe All Portals</span>
             </button>
 
             <button
@@ -300,11 +309,11 @@ export const AdminMultiGatewayView: React.FC = () => {
         {/* Quick KPI Bar */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-6 border-t border-[#E5E7EB] dark:border-[#111827]">
           <div className="flex items-center space-x-3">
-            <div className="p-2 rounded-lg bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 text-[#0F2D5C] dark:text-[#9CA3AF]">
+            <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300">
               <Server className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">Active Gateways</p>
+              <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">Active Portals</p>
               <p className="text-lg font-bold text-[#111827] dark:text-white">
                 {metrics.filter((m) => m.status === "ONLINE").length} / {metrics.length} Online
               </p>
@@ -312,7 +321,7 @@ export const AdminMultiGatewayView: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-3">
-            <div className="p-2 rounded-lg bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 text-[#0F2D5C] dark:text-[#9CA3AF]">
+            <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300">
               <Zap className="w-5 h-5" />
             </div>
             <div>
@@ -324,7 +333,7 @@ export const AdminMultiGatewayView: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-3">
-            <div className="p-2 rounded-lg bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 text-[#0F2D5C] dark:text-[#9CA3AF]">
+            <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300">
               <Shield className="w-5 h-5" />
             </div>
             <div>
@@ -334,7 +343,7 @@ export const AdminMultiGatewayView: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-3">
-            <div className="p-2 rounded-lg bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 text-[#0F2D5C] dark:text-[#9CA3AF]">
+            <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300">
               <Clock className="w-5 h-5" />
             </div>
             <div>
@@ -358,7 +367,7 @@ export const AdminMultiGatewayView: React.FC = () => {
                 : "text-[#4B5563] dark:text-[#9CA3AF] hover:bg-[#E5E7EB] dark:hover:bg-[#111827]"
             }`}
           >
-            Gateway Health Matrix ({metrics.length})
+            Portal Health Matrix ({metrics.length})
           </button>
           <button
             onClick={() => setActiveTab("rules")}
@@ -398,13 +407,13 @@ export const AdminMultiGatewayView: React.FC = () => {
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search gateways, services, logs..."
+            placeholder="Search portals, services, logs..."
             className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-[#E5E7EB] dark:border-[#4B5563] bg-white dark:bg-[#111827] text-[#111827] dark:text-[#E5E7EB] focus:outline-none focus:ring-2 focus:ring-[#0F2D5C]"
           />
         </div>
       </div>
 
-      {/* TAB 1: GATEWAY HEALTH MATRIX */}
+      {/* TAB 1: PORTAL HEALTH MATRIX */}
       {activeTab === "matrix" && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {metrics.map((metric) => {
@@ -428,8 +437,8 @@ export const AdminMultiGatewayView: React.FC = () => {
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                         metric.status === "ONLINE"
-                          ? "bg-[#E5E7EB] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] border border-[#E5E7EB] dark:border-[#0F2D5C]"
-                          : "bg-[#E5E7EB] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] border border-[#E5E7EB] dark:border-[#0F2D5C]"
+                          ? "bg-[#E5E7EB] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] border border-slate-200 dark:border-slate-700"
+                          : "bg-[#E5E7EB] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] border border-slate-200 dark:border-slate-700"
                       }`}
                     >
                       {metric.status}
@@ -438,7 +447,7 @@ export const AdminMultiGatewayView: React.FC = () => {
 
                   {/* Circuit Breaker Status */}
                   {metric.circuitBreakerTripped && (
-                    <div className="mt-3 p-2 rounded-lg bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border border-[#E5E7EB] dark:border-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF] text-xs flex items-center space-x-2">
+                    <div className="mt-3 p-2 rounded-lg bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border border-slate-200 dark:border-slate-700 text-[#0F2D5C] dark:text-[#9CA3AF] text-xs flex items-center space-x-2">
                       <XCircle className="w-4 h-4 shrink-0" />
                       <span>Circuit Breaker Tripped ({metric.consecutiveFailures} consecutive failures)</span>
                     </div>
@@ -491,9 +500,9 @@ export const AdminMultiGatewayView: React.FC = () => {
                   </span>
 
                   <button
-                    onClick={() => handlePingGateway(metric.providerId)}
+                    onClick={() => handlePingPortal(metric.providerId)}
                     disabled={isPinging}
-                    className="inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#F5F7FA] hover:bg-[#E5E7EB] dark:bg-[#0F2D5C]/40 dark:hover:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] border border-[#E5E7EB] dark:border-[#0F2D5C] transition"
+                    className="inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#F5F7FA] hover:bg-[#E5E7EB] dark:bg-[#0F2D5C]/40 dark:hover:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] border border-slate-200 dark:border-slate-700 transition"
                   >
                     <RefreshCw className={`w-3.5 h-3.5 ${isPinging ? "animate-spin text-[#0F2D5C]" : ""}`} />
                     <span>{isPinging ? "Testing..." : "Ping Provider"}</span>
@@ -511,10 +520,10 @@ export const AdminMultiGatewayView: React.FC = () => {
           <div className="p-4 border-b border-[#E5E7EB] dark:border-[#111827] flex items-center justify-between">
             <h2 className="font-bold text-[#111827] dark:text-white text-base flex items-center gap-2">
               <Sliders className="w-4 h-4 text-[#0F2D5C]" />
-              Automated Gateway Routing Matrix (Per Verification Service)
+              Automated Portal Routing Matrix (Per Verification Service)
             </h2>
             <span className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">
-              Auto-Failover switches to secondary gateway immediately if primary latency exceeds timeout or returns 5xx error.
+              Auto-Failover switches to secondary portal immediately if primary latency exceeds timeout or returns 5xx error.
             </span>
           </div>
 
@@ -524,7 +533,7 @@ export const AdminMultiGatewayView: React.FC = () => {
                 <tr>
                   <th className="py-3 px-4">Service</th>
                   <th className="py-3 px-4">Routing Strategy</th>
-                  <th className="py-3 px-4">Primary Gateway</th>
+                  <th className="py-3 px-4">Primary Portal</th>
                   <th className="py-3 px-4">Secondary (Failover 1)</th>
                   <th className="py-3 px-4">Tertiary (Failover 2)</th>
                   <th className="py-3 px-4">Timeout / Retries</th>
@@ -612,17 +621,17 @@ export const AdminMultiGatewayView: React.FC = () => {
           <div className="p-4 border-b border-[#E5E7EB] dark:border-[#111827] flex items-center justify-between">
             <h2 className="font-bold text-[#111827] dark:text-white text-base flex items-center gap-2">
               <Shield className="w-4 h-4 text-[#0F2D5C]" />
-              Automated Gateway Failover Audit Stream
+              Automated Portal Failover Audit Stream
             </h2>
             <span className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">
-              Audit log recording every incident where primary gateway faltered and the switch rescued the transaction.
+              Audit log recording every incident where primary portal faltered and the switch rescued the transaction.
             </span>
           </div>
 
           {filteredFailovers.length === 0 ? (
             <div className="p-12 text-center text-[#9CA3AF]">
               <CheckCircle2 className="w-10 h-10 text-[#0F2D5C] mx-auto mb-2 opacity-80" />
-              <p className="font-medium text-[#4B5563] dark:text-[#E5E7EB]">All primary verification gateways operating flawlessly.</p>
+              <p className="font-medium text-[#4B5563] dark:text-[#E5E7EB]">All primary verification portals operating flawlessly.</p>
               <p className="text-xs mt-1 text-[#6B7280]">Zero recent failover triggers recorded.</p>
             </div>
           ) : (
@@ -635,7 +644,7 @@ export const AdminMultiGatewayView: React.FC = () => {
                     <th className="py-3 px-4">Service</th>
                     <th className="py-3 px-4">Failed Provider</th>
                     <th className="py-3 px-4">Failure Reason</th>
-                    <th className="py-3 px-4">Resolved Backup Gateway</th>
+                    <th className="py-3 px-4">Resolved Backup Portal</th>
                     <th className="py-3 px-4">Recovery Status</th>
                   </tr>
                 </thead>
@@ -672,7 +681,7 @@ export const AdminMultiGatewayView: React.FC = () => {
                       </td>
 
                       <td className="py-3 px-4">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-[#E5E7EB] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] border border-[#E5E7EB] dark:border-[#0F2D5C]">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-[#E5E7EB] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] border border-slate-200 dark:border-slate-700">
                           Rescued &amp; Completed
                         </span>
                       </td>
@@ -695,7 +704,7 @@ export const AdminMultiGatewayView: React.FC = () => {
                 Background Verification &amp; Reconciliation Queue
               </h2>
               <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-0.5">
-                Automated worker sweeps this queue every 45 seconds to resolve asynchronous identity lookups with multi-gateway routing.
+                Automated worker sweeps this queue every 45 seconds to resolve asynchronous identity lookups with multi-provider routing.
               </p>
             </div>
 
@@ -797,7 +806,7 @@ export const AdminMultiGatewayView: React.FC = () => {
           <div className="bg-white dark:bg-[#111827] rounded-xl max-w-lg w-full border border-[#E5E7EB] dark:border-[#111827] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             <div className="p-5 border-b border-[#E5E7EB] dark:border-[#111827] flex items-center justify-between">
               <h3 className="font-bold text-[#111827] dark:text-white text-base">
-                Configure Gateway Routing: {selectedRule.service}
+                Configure Portal Routing: {selectedRule.service}
               </h3>
               <button
                 onClick={() => setIsEditingRule(false)}
@@ -841,35 +850,35 @@ export const AdminMultiGatewayView: React.FC = () => {
                     value={selectedRule.primaryProviderId}
                     onChange={(e) => {
                       const pId = e.target.value;
-                      const pName = pId === "aspfiy" ? "Aspfiy Payment Gateway" : pId === "verifyng" ? "VerifyNG Gateway" : pId === "identro" ? "Identro Gateway" : "LumiID Gateway";
+                      const pName = pId === "aspfiy" ? "Aspfiy Payment Portal" : pId === "verifyng" ? "VerifyNG Portal" : pId === "identro" ? "Identro Portal" : "LumiID Portal";
                       setSelectedRule({ ...selectedRule, primaryProviderId: pId, primaryProviderName: pName });
                     }}
                     className="w-full p-2 rounded-lg border border-[#E5E7EB] dark:border-[#4B5563] bg-white dark:bg-[#111827] text-[#111827] dark:text-white"
                   >
-                    <option value="lumiid">LumiID Gateway</option>
-                    <option value="identro">Identro Gateway</option>
-                    <option value="verifyng">VerifyNG Gateway</option>
-                    <option value="aspfiy">Aspfiy Payment Gateway</option>
+                    <option value="lumiid">LumiID Portal</option>
+                    <option value="identro">Identro Portal</option>
+                    <option value="verifyng">VerifyNG Portal</option>
+                    <option value="aspfiy">Aspfiy Payment Portal</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block font-semibold text-[#4B5563] dark:text-[#E5E7EB] mb-1">
-                    Secondary Gateway (Failover 1)
+                    Secondary Portal (Failover 1)
                   </label>
                   <select
                     value={selectedRule.secondaryProviderId || ""}
                     onChange={(e) => {
                       const pId = e.target.value;
-                      const pName = pId === "aspfiy" ? "Aspfiy Payment Gateway" : pId === "verifyng" ? "VerifyNG Gateway" : pId === "identro" ? "Identro Gateway" : "LumiID Gateway";
+                      const pName = pId === "aspfiy" ? "Aspfiy Payment Portal" : pId === "verifyng" ? "VerifyNG Portal" : pId === "identro" ? "Identro Portal" : "LumiID Portal";
                       setSelectedRule({ ...selectedRule, secondaryProviderId: pId, secondaryProviderName: pName });
                     }}
                     className="w-full p-2 rounded-lg border border-[#E5E7EB] dark:border-[#4B5563] bg-white dark:bg-[#111827] text-[#111827] dark:text-white"
                   >
-                    <option value="lumiid">LumiID Gateway</option>
-                    <option value="identro">Identro Gateway</option>
-                    <option value="verifyng">VerifyNG Gateway</option>
-                    <option value="aspfiy">Aspfiy Payment Gateway</option>
+                    <option value="lumiid">LumiID Portal</option>
+                    <option value="identro">Identro Portal</option>
+                    <option value="verifyng">VerifyNG Portal</option>
+                    <option value="aspfiy">Aspfiy Payment Portal</option>
                   </select>
                 </div>
               </div>
@@ -909,7 +918,7 @@ export const AdminMultiGatewayView: React.FC = () => {
                   className="rounded border-[#E5E7EB] text-[#0F2D5C] focus:ring-[#0F2D5C] w-4 h-4"
                 />
                 <label htmlFor="chk-autofailover" className="font-semibold text-[#111827] dark:text-[#E5E7EB]">
-                  Enable Automatic Instant Failover to Secondary Gateway
+                  Enable Automatic Instant Failover to Secondary Portal
                 </label>
               </div>
 

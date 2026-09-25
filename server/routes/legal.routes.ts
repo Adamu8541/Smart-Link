@@ -7,6 +7,7 @@ import express from "express";
 import { readDB, writeDB } from "../db";
 import { verifyUserOrAdminSession } from "../middleware/auth";
 import { LegalAcceptanceRecord, LegalPolicyVersion, MarketingConsentSettings } from "../../src/types/legal";
+import * as usersStore from "../../src/services/usersStore";
 
 const router = express.Router();
 
@@ -74,7 +75,7 @@ export const DEFAULT_LEGAL_POLICY_VERSIONS: LegalPolicyVersion[] = [
     requiresReAcceptance: false,
     minimumRequiredVersion: "2.1.0",
     category: "PAYMENTS_WALLET",
-    summary: "Gateway processing terms, statutory stamp duties, and dispute settlement."
+    summary: "Portal processing terms, statutory stamp duties, and dispute settlement."
   },
   {
     id: "cookie-policy",
@@ -342,6 +343,7 @@ router.get("/api/legal/admin/stats", async (req, res) => {
     const db = readDB();
     const allRecords: LegalAcceptanceRecord[] = db.legalAcceptances || [];
     const policies = getPolicies();
+    const allUsers = await usersStore.getAllUsers();
 
     const uniqueUserIds = new Set<string>();
     const acceptancesByDoc: Record<string, number> = {};
@@ -364,6 +366,10 @@ router.get("/api/legal/admin/stats", async (req, res) => {
       acceptancesByWorkflow[wfKey] = (acceptancesByWorkflow[wfKey] || 0) + 1;
     });
 
+    const totalUsersCount = allUsers.length || 1;
+    const uniqueAccepted = uniqueUserIds.size;
+    const overallComplianceRate = Math.min(100, Math.round((uniqueAccepted / totalUsersCount) * 100));
+
     const recent = [...allRecords]
       .sort((a, b) => new Date(b.acceptedAt).getTime() - new Date(a.acceptedAt).getTime())
       .slice(0, 200);
@@ -372,7 +378,9 @@ router.get("/api/legal/admin/stats", async (req, res) => {
       success: true,
       stats: {
         totalAcceptances: allRecords.length,
-        uniqueUsersAccepted: uniqueUserIds.size,
+        totalUsers: totalUsersCount,
+        uniqueUsersAccepted: uniqueAccepted,
+        complianceRate: overallComplianceRate,
         acceptancesByDocument: acceptancesByDoc,
         acceptancesByVersion,
         acceptancesByWorkflow,

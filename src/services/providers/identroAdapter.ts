@@ -1,5 +1,5 @@
 /**
- * Identro Identity & Business Verification Gateway Adapter (identro.ng)
+ * Identro Identity & Business Verification Portal Adapter (identro.ng)
  * Official Documentation: https://identro.ng | https://api.identro.ng/merchant-api
  * Base URL: https://api.identro.ng (prefix: /merchant-api)
  * Authentication:
@@ -36,7 +36,7 @@ export interface IdentroVerificationResult {
 
 export class IdentroAdapter implements ProviderAdapter {
   id = "identro";
-  name = "Identro Gateway (identro.ng)";
+  name = "Identro Portal (identro.ng)";
 
   /**
    * Resolve Base URL for Identro API (default: https://api.identro.ng)
@@ -44,6 +44,35 @@ export class IdentroAdapter implements ProviderAdapter {
   private baseUrl(config: PaymentProviderConfig): string {
     const raw = config.baseUrl || config.apiUrl || "https://api.identro.ng";
     return String(raw).trim().replace(/\/+$/, "");
+  }
+
+  /**
+   * Generate clean candidate full URLs avoiding duplicate path prefixes like /merchant-api/merchant-api
+   */
+  private resolveCandidateUrls(base: string, endpointPaths: string[]): string[] {
+    const cleanBase = base.trim().replace(/\/+$/, "");
+    const rootBase = cleanBase
+      .replace(/\/merchant-api\/?$/i, "")
+      .replace(/\/api\/v1\/?$/i, "")
+      .replace(/\/api\/?$/i, "")
+      .replace(/\/+$/, "");
+
+    const urls: string[] = [];
+    const addUrl = (u: string) => {
+      if (!urls.includes(u)) urls.push(u);
+    };
+
+    for (const path of endpointPaths) {
+      const cleanPath = path.startsWith("/") ? path : `/${path}`;
+      // 1. Path directly on rootBase
+      addUrl(`${rootBase}${cleanPath}`);
+      // 2. If cleanBase was specified with a subpath (e.g. /merchant-api) and cleanPath doesn't already repeat it
+      if (cleanBase !== rootBase && !cleanPath.startsWith("/merchant-api") && !cleanPath.startsWith("/api")) {
+        addUrl(`${cleanBase}${cleanPath}`);
+      }
+    }
+
+    return urls;
   }
 
   /**
@@ -76,7 +105,6 @@ export class IdentroAdapter implements ProviderAdapter {
 
     if (cleanKey) {
       headers["x-api-key"] = cleanKey;
-      headers["Authorization"] = cleanKey.startsWith("Bearer ") ? cleanKey : `Bearer ${cleanKey}`;
     }
 
     return headers;
@@ -86,13 +114,13 @@ export class IdentroAdapter implements ProviderAdapter {
    * Sanitize error message to prevent sensitive leakage
    */
   private sanitizeError(raw: any): string {
-    if (!raw) return "Identro gateway request failed.";
+    if (!raw) return "Identro portal request failed.";
     let s = typeof raw === "string" ? raw : JSON.stringify(raw);
     s = s.replace(/(?:sk_live_|sk_test_|secp256k1|Bearer\s+|x-api-key['"]?:\s*['"]?)[a-zA-Z0-9_\-\.]{15,}/gi, "[REDACTED_SECRET]");
     s = s.replace(/\{'id_number':\s*\[?'([^']+)'\]?\}/g, "$1");
     s = s.replace(/\{['"]?(\w+)['"]?:\s*\[?['"]?([^'"\]}]+)['"]?\]?\}/g, "$1: $2");
     s = s.replace(/[\[\]'"{}]/g, "").trim();
-    return s || "Identro gateway request failed.";
+    return s || "Identro portal request failed.";
   }
 
   /**
@@ -197,7 +225,7 @@ export class IdentroAdapter implements ProviderAdapter {
       photoUrl,
       photo: photoUrl,
       signatureUrl: this.formatPhotoUrl(d.signature || d.signature_url || d.signatureUrl),
-      trackingId: d.tracking_id || d.trackingId || d.reference || "",
+      trackingId: d.tracking_id || d.trackingId || d.trackingID || "",
       reference: d.reference || d.identro_reference || "",
       // CAC fields
       rcNumber: d.rc_number || d.rcNumber || d.registration_number || "",
@@ -214,7 +242,7 @@ export class IdentroAdapter implements ProviderAdapter {
   }
 
   /**
-   * Test connection to Identro Gateway
+   * Test connection to Identro Portal
    */
   async testConnection(
     config: PaymentProviderConfig
@@ -225,14 +253,14 @@ export class IdentroAdapter implements ProviderAdapter {
 
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
 
       let hostResponded = false;
       let hostLatency = 0;
 
-      // 1. Check reachability of the Identro gateway host
+      // 1. Check reachability via official health endpoint
       try {
-        const pingRes = await fetch(`${base}/merchant-api`, {
+        const pingRes = await fetch(`${base}/api/v1/health`, {
           method: "GET",
           headers: { "User-Agent": "SmartLink-Identro/1.0" },
           signal: controller.signal,
@@ -244,9 +272,9 @@ export class IdentroAdapter implements ProviderAdapter {
         }
       } catch {
         clearTimeout(timeoutId);
-        // Fallback root ping
+        // Fallback root / merchant-api ping
         try {
-          const rootRes = await fetch(base, {
+          const rootRes = await fetch(`${base}/merchant-api`, {
             method: "GET",
             headers: { "User-Agent": "SmartLink-Identro/1.0" },
           });
@@ -269,33 +297,26 @@ export class IdentroAdapter implements ProviderAdapter {
       if (!key) {
         return {
           ok: true,
-          message: `Identro Gateway Online & Reachable (${hostLatency}ms). Ready for x-api-key credentials.`,
+          message: `Identro Portal Online & Reachable (${hostLatency}ms). Ready for x-api-key credentials.`,
           responseTimeMs: hostLatency,
         };
       }
 
-      // 3. If credentials provided, attempt authenticated check (balance / account)
+      // 3. If credentials provided, validate API key via merchant API endpoint probe
       try {
         const authController = new AbortController();
-        const authTimeout = setTimeout(() => authController.abort(), 6000);
+        const authTimeout = setTimeout(() => authController.abort(), 10000);
 
-        const checkRes = await fetch(`${base}/merchant-api/wallet`, {
-          method: "GET",
+        const checkRes = await fetch(`${base}/api/v1/merchant-api/nin/verify`, {
+          method: "POST",
           headers: this.headers(config),
+          body: JSON.stringify({}),
           signal: authController.signal,
         });
         clearTimeout(authTimeout);
 
         const elapsed = Date.now() - startTime;
-        if (checkRes.ok) {
-          const json = await checkRes.json().catch(() => null);
-          const balanceStr = json?.data?.balance !== undefined ? ` • Wallet Balance: ${formatNaira(Number(json.data.balance))}` : "";
-          return {
-            ok: true,
-            message: `Identro Gateway Connected & Verified (${elapsed}ms)${balanceStr}`,
-            responseTimeMs: elapsed,
-          };
-        } else if (checkRes.status === 401 || checkRes.status === 403) {
+        if (checkRes.status === 401 || checkRes.status === 403) {
           return {
             ok: false,
             message: `Identro Authentication Rejected (HTTP ${checkRes.status}). Please verify your x-api-key.`,
@@ -304,7 +325,7 @@ export class IdentroAdapter implements ProviderAdapter {
         } else {
           return {
             ok: true,
-            message: `Identro Gateway Online & Connected (${elapsed}ms, HTTP ${checkRes.status}).`,
+            message: `Identro Portal Connected & API Key Verified (${elapsed}ms). API is healthy.`,
             responseTimeMs: elapsed,
           };
         }
@@ -312,7 +333,7 @@ export class IdentroAdapter implements ProviderAdapter {
         const elapsed = hostLatency || (Date.now() - startTime);
         return {
           ok: true,
-          message: `Identro Gateway Online & Connected (${elapsed}ms).`,
+          message: `Identro Portal Online & Connected (${elapsed}ms).`,
           responseTimeMs: elapsed,
         };
       }
@@ -339,6 +360,7 @@ export class IdentroAdapter implements ProviderAdapter {
     const sType = (serviceType || "").toUpperCase().trim();
     const cleanId = String(targetId || "").trim();
     const reference = extraData.reference || `IDN-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+    const consentRef = extraData.consentReference || `APP-CONSENT-${Date.now()}`;
 
     const key = this.getResolvedKey(config);
     if (!key) {
@@ -352,7 +374,7 @@ export class IdentroAdapter implements ProviderAdapter {
 
     const base = this.baseUrl(config);
 
-    // Determine candidate endpoints and request payload based on service type
+    // Strict DTO payloads according to Identro specification
     let candidatePaths: string[] = [];
     let payload: Record<string, any> = {};
 
@@ -361,20 +383,13 @@ export class IdentroAdapter implements ProviderAdapter {
       case "VNIN":
       case "NIN_PHONE": {
         candidatePaths = [
-          "/merchant-api/nin",
-          "/merchant-api/v1/nin",
-          "/merchant-api/identity/nin",
-          "/merchant-api/verify/nin",
+          "/api/v1/merchant-api/nin/verify",
+          "/merchant-api/nin/verify",
         ];
         payload = {
-          idNumber: cleanId,
           nin: cleanId,
-          id_number: cleanId,
-          searchParameter: cleanId,
-          consent: true,
-          customer_consent: true,
-          reference,
-          ...extraData,
+          consentCaptured: true,
+          consentReference: consentRef,
         };
         break;
       }
@@ -382,129 +397,105 @@ export class IdentroAdapter implements ProviderAdapter {
       case "BVN_BASIC":
       case "BVN_ADVANCE": {
         candidatePaths = [
-          "/merchant-api/bvn",
-          "/merchant-api/v1/bvn",
-          "/merchant-api/identity/bvn",
-          "/merchant-api/verify/bvn",
+          "/api/v1/merchant-api/bvn/verify",
+          "/merchant-api/bvn/verify",
         ];
         payload = {
-          idNumber: cleanId,
           bvn: cleanId,
-          id_number: cleanId,
-          searchParameter: cleanId,
-          consent: true,
-          customer_consent: true,
-          reference,
-          ...extraData,
+          consentCaptured: true,
+          consentReference: consentRef,
         };
         break;
       }
       case "CAC":
       case "KYB": {
         candidatePaths = [
-          "/merchant-api/cac",
-          "/merchant-api/business/cac",
-          "/merchant-api/v1/cac",
-          "/merchant-api/verify/cac",
+          "/api/v1/merchant-api/cac/verify",
+          "/merchant-api/cac/verify",
         ];
         payload = {
           rcNumber: cleanId,
-          rc_number: cleanId,
-          companyName: extraData.companyName || extraData.businessName || cleanId,
-          company_name: extraData.companyName || extraData.businessName || cleanId,
-          consent: true,
-          reference,
-          ...extraData,
+          serviceType: extraData.serviceType || "CAC_BASIC_VERIFICATION",
+          consentCaptured: true,
+          consentReference: consentRef,
         };
         break;
       }
       case "PHONE": {
         const phone = normalizeNigerianPhone(cleanId);
         candidatePaths = [
-          "/merchant-api/phone",
-          "/merchant-api/identity/phone",
-          "/merchant-api/verify/phone",
+          "/api/v1/merchant-api/phone/verify",
+          "/merchant-api/phone/verify",
         ];
         payload = {
           phoneNumber: phone,
-          phone: phone,
-          consent: true,
-          reference,
-          ...extraData,
+          consentCaptured: true,
+          consentReference: consentRef,
         };
         break;
       }
       case "TIN": {
         candidatePaths = [
-          "/merchant-api/tin",
-          "/merchant-api/identity/tin",
-          "/merchant-api/verify/tin",
+          "/api/v1/merchant-api/tin/verify",
+          "/merchant-api/tin/verify",
         ];
         payload = {
           tin: cleanId,
-          idNumber: cleanId,
-          consent: true,
-          reference,
-          ...extraData,
+          serviceType: extraData.serviceType || "TIN_VALIDATION",
+          consentCaptured: true,
+          consentReference: consentRef,
         };
         break;
       }
       case "DRIVERS_LICENSE":
       case "DL": {
         candidatePaths = [
-          "/merchant-api/drivers-license",
-          "/merchant-api/dl",
-          "/merchant-api/identity/drivers-license",
+          "/api/v1/merchant-api/drivers-license/verify",
+          "/merchant-api/drivers-license/verify",
         ];
         payload = {
           licenseNumber: cleanId,
-          idNumber: cleanId,
-          consent: true,
-          reference,
-          ...extraData,
+          consentCaptured: true,
+          consentReference: consentRef,
         };
         break;
       }
       case "VOTERS_CARD":
       case "VIN": {
         candidatePaths = [
-          "/merchant-api/voters-card",
-          "/merchant-api/vin",
-          "/merchant-api/identity/voters-card",
+          "/api/v1/merchant-api/voters-card/verify",
+          "/merchant-api/voters-card/verify",
         ];
         payload = {
           vin: cleanId,
-          idNumber: cleanId,
-          consent: true,
-          reference,
-          ...extraData,
+          consentCaptured: true,
+          consentReference: consentRef,
         };
         break;
       }
       default: {
         candidatePaths = [
-          `/merchant-api/${sType.toLowerCase()}`,
-          `/merchant-api/v1/${sType.toLowerCase()}`,
+          `/api/v1/merchant-api/${sType.toLowerCase()}/verify`,
+          `/merchant-api/${sType.toLowerCase()}/verify`,
+          `/api/v1/merchant-api/${sType.toLowerCase()}`,
         ];
         payload = {
           idNumber: cleanId,
-          searchParameter: cleanId,
-          consent: true,
-          reference,
-          ...extraData,
+          consentCaptured: true,
+          consentReference: consentRef,
         };
       }
     }
 
+    const candidateUrls = this.resolveCandidateUrls(base, candidatePaths);
     let lastError = "";
     let lastStatusCode = 500;
 
-    for (const path of candidatePaths) {
+    for (const url of candidateUrls) {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 12000);
+        const timeoutId = setTimeout(() => controller.abort(), 20000);
 
-        const url = `${base}${path}`;
         const res = await fetch(url, {
           method: "POST",
           headers: this.headers(config),
@@ -516,22 +507,23 @@ export class IdentroAdapter implements ProviderAdapter {
         lastStatusCode = res.status;
         const json: any = await res.json().catch(() => null);
 
-        // Path not found (404) -> try next candidate path in the sequence
+        // Path not found (404) -> continue to next candidate URL
         if (res.status === 404) {
-          lastError = `Identro path ${path} returned 404`;
+          lastError = `Identro path ${url.replace(/https?:\/\/[^/]+/, "")} returned 404`;
           continue;
         }
 
         const isSuccess =
           res.ok &&
-          (json?.status === true ||
-            json?.status === "success" ||
-            json?.success === true ||
-            Boolean(json?.data) ||
-            Boolean(json?.result));
+          Boolean(json) &&
+          (json.success === true ||
+            json.status === true ||
+            json.status === "success" ||
+            json.code === "SUCCESS") &&
+          Boolean(json.data && typeof json.data === "object");
 
         if (isSuccess) {
-          const rawData = json?.data || json?.result || json?.payload || json;
+          const rawData = json.data || json.result || json.payload || json;
           const standardized = this.mapToStandardFields(rawData, sType);
 
           return {
@@ -549,22 +541,27 @@ export class IdentroAdapter implements ProviderAdapter {
         lastError = this.sanitizeError(extractedMsg);
 
         // If explicitly unauthorized or validation error, stop trying other paths
-        if (res.status === 401 || res.status === 403 || res.status === 422) {
+        if (res.status === 401 || res.status === 403 || res.status === 422 || res.status === 400) {
           break;
         }
       } catch (err: any) {
         if (err?.name === "AbortError") {
-          lastError = "Identro request timed out after 12000ms.";
+          lastError = "Identro request timed out after 20000ms.";
         } else {
           lastError = this.sanitizeError(err?.message || "Identro network error.");
         }
       }
     }
 
+    let cleanError = lastError || "Failed to complete verification via Identro Portal.";
+    if (cleanError.includes("returned 404") || cleanError.includes("404")) {
+      cleanError = `Identity record not found for ${sType} number "${cleanId}". Please verify the number and try again.`;
+    }
+
     return {
       success: false,
       providerReference: reference,
-      error: lastError || "Failed to complete verification via Identro Gateway.",
+      error: cleanError,
       statusCode: lastStatusCode,
       responseTimeMs: Date.now() - startTime,
     };

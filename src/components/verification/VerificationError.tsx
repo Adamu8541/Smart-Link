@@ -56,8 +56,8 @@ export const VerificationError: React.FC<VerificationErrorProps> = ({
             <li>The server was briefly restarting. Click "Retry Query" to proceed immediately.</li>
           ) : errorState.code === "INVALID_INPUT" ? (
             <li>Check input parameters (e.g. 11 digits for NIN/BVN).</li>
-          ) : errorState.code === "GATEWAY_CONFIG_REQUIRED" ? (
-            <li>Admin: Go to Admin Dashboard &rarr; API Providers to configure your LumiID, Identro, or VerifyNG gateway API keys.</li>
+          ) : errorState.code === "PORTAL_CONFIG_REQUIRED" ? (
+            <li>Admin: Go to Admin Dashboard &rarr; API Providers to configure your LumiID, Identro, or VerifyNG portal API keys.</li>
           ) : (
             <li>Check network connection or try repeating the request.</li>
           )}

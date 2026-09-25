@@ -1,25 +1,25 @@
 /**
- * SmartLink Multi-Gateway Routing & Failover Engine
+ * SmartLink Multi-Provider Routing & Failover Engine
  *
- * Implements intelligent multi-gateway execution, circuit breaking,
- * automatic failover across Aspfiy, VerifyNG, and institutional gateways,
+ * Implements intelligent multi-provider execution, circuit breaking,
+ * automatic failover across Aspfiy, VerifyNG, and institutional portals,
  * live health monitoring, and background verification reconciliation.
  */
 
 import {
-  GatewayRoutingRule,
-  GatewayHealthMetric,
-  GatewayFailoverLog,
+  ProviderRoutingRule,
+  ProviderHealthMetric,
+  ProviderFailoverLog,
   BackgroundVerificationJob,
   RoutingStrategyType,
 } from "../types/provider";
-import { getAdapterForProvider, getAdapterById } from "./providerGateway";
+import { getAdapterForProvider, getAdapterById } from "./providerConnector";
 import { AspfiyAdapter } from "./providers/aspfiyAdapter";
 import { LumiIDAdapter } from "./providers/lumiidAdapter";
 import { VerifyNGAdapter } from "./providers/verifyNgAdapter";
 import { IdentroAdapter } from "./providers/identroAdapter";
 
-export interface MultiGatewayExecutionParams {
+export interface MultiPortalExecutionParams {
   service: string; // NIN, BVN, PHONE, CAC, TIN, etc.
   targetId: string;
   userId: string;
@@ -30,7 +30,7 @@ export interface MultiGatewayExecutionParams {
   preferredProviderId?: string;
 }
 
-export interface MultiGatewayExecutionResult {
+export interface MultiPortalExecutionResult {
   success: boolean;
   providerName: string;
   providerCode: string;
@@ -43,14 +43,14 @@ export interface MultiGatewayExecutionResult {
   wasFailedOver: boolean;
   failoverChain?: string[];
   failoverReason?: string;
-  gatewayStrategyUsed: RoutingStrategyType;
+  routingStrategyUsed: RoutingStrategyType;
 }
 
-export class MultiGatewayRoutingEngine {
+export class MultiProviderRoutingEngine {
   /**
    * Default service routing rules matching LumiID, NIN/BVN Portal, and VerifyNG ecosystem
    */
-  public static getDefaultRoutingRules(): GatewayRoutingRule[] {
+  public static getDefaultRoutingRules(): ProviderRoutingRule[] {
     const now = new Date().toISOString();
     return [
       {
@@ -59,14 +59,14 @@ export class MultiGatewayRoutingEngine {
         serviceName: "NIN Identity Verification",
         strategy: "PRIORITY_ORDER",
         primaryProviderId: "lumiid",
-        primaryProviderName: "LumiID Gateway",
+        primaryProviderName: "LumiID Portal",
         secondaryProviderId: "identro",
-        secondaryProviderName: "Identro Gateway",
+        secondaryProviderName: "Identro Portal",
         tertiaryProviderId: "verifyng",
-        tertiaryProviderName: "VerifyNG Gateway",
+        tertiaryProviderName: "VerifyNG Portal",
         fallbackProviderId: "verifyng",
-        fallbackProviderName: "VerifyNG Gateway",
-        timeoutMs: 8000,
+        fallbackProviderName: "VerifyNG Portal",
+        timeoutMs: 20000,
         maxRetries: 2,
         autoFailover: true,
         circuitBreakerThreshold: 3,
@@ -80,14 +80,14 @@ export class MultiGatewayRoutingEngine {
         serviceName: "BVN Banking Verification",
         strategy: "PRIORITY_ORDER",
         primaryProviderId: "lumiid",
-        primaryProviderName: "LumiID Gateway",
+        primaryProviderName: "LumiID Portal",
         secondaryProviderId: "identro",
-        secondaryProviderName: "Identro Gateway",
+        secondaryProviderName: "Identro Portal",
         tertiaryProviderId: "verifyng",
-        tertiaryProviderName: "VerifyNG Gateway",
+        tertiaryProviderName: "VerifyNG Portal",
         fallbackProviderId: "verifyng",
-        fallbackProviderName: "VerifyNG Gateway",
-        timeoutMs: 8000,
+        fallbackProviderName: "VerifyNG Portal",
+        timeoutMs: 20000,
         maxRetries: 2,
         autoFailover: true,
         circuitBreakerThreshold: 3,
@@ -101,10 +101,10 @@ export class MultiGatewayRoutingEngine {
         serviceName: "Phone Number Identity Lookup",
         strategy: "PRIORITY_ORDER",
         primaryProviderId: "lumiid",
-        primaryProviderName: "LumiID Gateway",
+        primaryProviderName: "LumiID Portal",
         secondaryProviderId: "verifyng",
-        secondaryProviderName: "VerifyNG Gateway",
-        timeoutMs: 8000,
+        secondaryProviderName: "VerifyNG Portal",
+        timeoutMs: 20000,
         maxRetries: 2,
         autoFailover: true,
         circuitBreakerThreshold: 3,
@@ -118,10 +118,10 @@ export class MultiGatewayRoutingEngine {
         serviceName: "CAC Corporate Registration Verification",
         strategy: "PRIORITY_ORDER",
         primaryProviderId: "lumiid",
-        primaryProviderName: "LumiID Gateway",
+        primaryProviderName: "LumiID Portal",
         secondaryProviderId: "verifyng",
-        secondaryProviderName: "VerifyNG Gateway",
-        timeoutMs: 8000,
+        secondaryProviderName: "VerifyNG Portal",
+        timeoutMs: 20000,
         maxRetries: 2,
         autoFailover: true,
         circuitBreakerThreshold: 3,
@@ -135,10 +135,10 @@ export class MultiGatewayRoutingEngine {
         serviceName: "TIN Tax Identification Lookup",
         strategy: "PRIORITY_ORDER",
         primaryProviderId: "lumiid",
-        primaryProviderName: "LumiID Gateway",
+        primaryProviderName: "LumiID Portal",
         secondaryProviderId: "verifyng",
-        secondaryProviderName: "VerifyNG Gateway",
-        timeoutMs: 8000,
+        secondaryProviderName: "VerifyNG Portal",
+        timeoutMs: 20000,
         maxRetries: 2,
         autoFailover: true,
         circuitBreakerThreshold: 3,
@@ -152,10 +152,10 @@ export class MultiGatewayRoutingEngine {
         serviceName: "Driver License Validation",
         strategy: "PRIORITY_ORDER",
         primaryProviderId: "lumiid",
-        primaryProviderName: "LumiID Gateway",
+        primaryProviderName: "LumiID Portal",
         secondaryProviderId: "verifyng",
-        secondaryProviderName: "VerifyNG Gateway",
-        timeoutMs: 8000,
+        secondaryProviderName: "VerifyNG Portal",
+        timeoutMs: 20000,
         maxRetries: 2,
         autoFailover: true,
         circuitBreakerThreshold: 3,
@@ -169,10 +169,10 @@ export class MultiGatewayRoutingEngine {
         serviceName: "International Passport Verification",
         strategy: "PRIORITY_ORDER",
         primaryProviderId: "lumiid",
-        primaryProviderName: "LumiID Gateway",
+        primaryProviderName: "LumiID Portal",
         secondaryProviderId: "verifyng",
-        secondaryProviderName: "VerifyNG Gateway",
-        timeoutMs: 8000,
+        secondaryProviderName: "VerifyNG Portal",
+        timeoutMs: 20000,
         maxRetries: 2,
         autoFailover: true,
         circuitBreakerThreshold: 3,
@@ -186,10 +186,10 @@ export class MultiGatewayRoutingEngine {
         serviceName: "Voter Card (VIN) Verification",
         strategy: "PRIORITY_ORDER",
         primaryProviderId: "lumiid",
-        primaryProviderName: "LumiID Gateway",
+        primaryProviderName: "LumiID Portal",
         secondaryProviderId: "verifyng",
-        secondaryProviderName: "VerifyNG Gateway",
-        timeoutMs: 8000,
+        secondaryProviderName: "VerifyNG Portal",
+        timeoutMs: 20000,
         maxRetries: 2,
         autoFailover: true,
         circuitBreakerThreshold: 3,
@@ -203,10 +203,10 @@ export class MultiGatewayRoutingEngine {
         serviceName: "Email Security & Fraud Verification",
         strategy: "PRIORITY_ORDER",
         primaryProviderId: "lumiid",
-        primaryProviderName: "LumiID Gateway",
+        primaryProviderName: "LumiID Portal",
         secondaryProviderId: "verifyng",
-        secondaryProviderName: "VerifyNG Gateway",
-        timeoutMs: 6000,
+        secondaryProviderName: "VerifyNG Portal",
+        timeoutMs: 15000,
         maxRetries: 2,
         autoFailover: true,
         circuitBreakerThreshold: 3,
@@ -218,19 +218,19 @@ export class MultiGatewayRoutingEngine {
   }
 
   /**
-   * Initializes or loads gateway routing rules from db
+   * Initializes or loads portal routing rules from db
    */
-  public static getRoutingRules(db: any): GatewayRoutingRule[] {
-    if (!db.gateway_routing_rules || !Array.isArray(db.gateway_routing_rules) || db.gateway_routing_rules.length === 0) {
-      db.gateway_routing_rules = this.getDefaultRoutingRules();
+  public static getRoutingRules(db: any): ProviderRoutingRule[] {
+    if (!db.provider_routing_rules || !Array.isArray(db.provider_routing_rules) || db.provider_routing_rules.length === 0) {
+      db.provider_routing_rules = this.getDefaultRoutingRules();
     }
-    return db.gateway_routing_rules;
+    return db.provider_routing_rules;
   }
 
   /**
    * Get specific routing rule for a service
    */
-  public static getRuleForService(db: any, service: string): GatewayRoutingRule {
+  public static getRuleForService(db: any, service: string): ProviderRoutingRule {
     const rules = this.getRoutingRules(db);
     const sType = String(service || "NIN").toUpperCase().trim();
     const matched = rules.find((r) => r.service.toUpperCase() === sType);
@@ -243,11 +243,11 @@ export class MultiGatewayRoutingEngine {
       serviceName: `${sType} Verification`,
       strategy: "PRIORITY_ORDER",
       primaryProviderId: "aspfiy",
-      primaryProviderName: "Aspfiy Gateway",
+      primaryProviderName: "Aspfiy Portal",
       secondaryProviderId: "verifyng",
-      secondaryProviderName: "VerifyNG Gateway",
+      secondaryProviderName: "VerifyNG Portal",
       tertiaryProviderId: "lumiid",
-      tertiaryProviderName: "LumiID Gateway",
+      tertiaryProviderName: "LumiID Portal",
       timeoutMs: 6000,
       maxRetries: 2,
       autoFailover: true,
@@ -259,15 +259,15 @@ export class MultiGatewayRoutingEngine {
   }
 
   /**
-   * Get Gateway Health Metrics for all providers
+   * Get Portal Health Metrics for all providers
    */
-  public static getGatewayHealthMetrics(db: any): GatewayHealthMetric[] {
-    if (!db.gateway_health_metrics || !Array.isArray(db.gateway_health_metrics) || db.gateway_health_metrics.length === 0) {
-      db.gateway_health_metrics = [
+  public static getProviderHealthMetrics(db: any): ProviderHealthMetric[] {
+    if (!db.provider_health_metrics || !Array.isArray(db.provider_health_metrics) || db.provider_health_metrics.length === 0) {
+      db.provider_health_metrics = [
         {
           providerId: "aspfiy",
-          providerName: "Aspfiy Payment Gateway",
-          category: "PAYMENT_GATEWAY",
+          providerName: "Aspfiy Payment Portal",
+          category: "PAYMENT_PROVIDER",
           baseUrl: "https://api-v1.aspfiy.com",
           status: "ONLINE",
           uptimePercentage: 99.98,
@@ -284,7 +284,7 @@ export class MultiGatewayRoutingEngine {
         },
         {
           providerId: "lumiid",
-          providerName: "LumiID Identity Gateway",
+          providerName: "LumiID Identity Portal",
           category: "IDENTITY_API",
           baseUrl: "https://api.lumiid.com",
           status: "ONLINE",
@@ -302,7 +302,7 @@ export class MultiGatewayRoutingEngine {
         },
         {
           providerId: "verifyng",
-          providerName: "VerifyNG Gateway (kyc.edirect.ng)",
+          providerName: "VerifyNG Portal (kyc.edirect.ng)",
           category: "IDENTITY_API",
           baseUrl: "https://kyc.edirect.ng",
           status: "ONLINE",
@@ -320,7 +320,7 @@ export class MultiGatewayRoutingEngine {
         },
         {
           providerId: "identro",
-          providerName: "Identro Gateway (identro.ng)",
+          providerName: "Identro Portal (identro.ng)",
           category: "IDENTITY_API",
           baseUrl: "https://api.identro.ng",
           status: "ONLINE",
@@ -338,8 +338,8 @@ export class MultiGatewayRoutingEngine {
         },
         {
           providerId: "clubkonnect",
-          providerName: "Clubkonnect VTU Gateway",
-          category: "VTU_GATEWAY",
+          providerName: "Clubkonnect VTU Portal",
+          category: "VTU_PROVIDER",
           baseUrl: "https://www.clubkonnect.com/API",
           status: "ONLINE",
           uptimePercentage: 99.90,
@@ -356,13 +356,13 @@ export class MultiGatewayRoutingEngine {
         },
       ];
     }
-    return db.gateway_health_metrics;
+    return db.provider_health_metrics;
   }
 
   /**
-   * Ping / Health Probe for any Gateway
+   * Ping / Health Probe for any Portal
    */
-  public static async pingGateway(
+  public static async pingPortal(
     db: any,
     providerId: string
   ): Promise<{ ok: boolean; message: string; responseTimeMs: number; status: string }> {
@@ -392,7 +392,7 @@ export class MultiGatewayRoutingEngine {
 
     const providerRow: any = {
       id: cleanId,
-      name: existingRow?.name || `${normalizedKey.toUpperCase()} Gateway`,
+      name: existingRow?.name || `${normalizedKey.toUpperCase()} Portal`,
       baseUrl: existingRow?.baseUrl || "",
       environment: existingRow?.environment || "LIVE",
       ...existingRow,
@@ -428,7 +428,7 @@ export class MultiGatewayRoutingEngine {
       providerRow.secretKey = providerRow.secretKey || process.env.ASPFIY_SECRET_KEY || process.env.ASPFIY_API_KEY;
     }
 
-    let result = { ok: true, message: "Gateway ping responded (200 OK)", responseTimeMs: 150 };
+    let result = { ok: true, message: "Portal ping responded (200 OK)", responseTimeMs: 150 };
     if (adapter.testConnection) {
       result = await adapter.testConnection(providerRow);
     } else {
@@ -436,7 +436,7 @@ export class MultiGatewayRoutingEngine {
     }
 
     // Update health metric in DB
-    const metrics = this.getGatewayHealthMetrics(db);
+    const metrics = this.getProviderHealthMetrics(db);
     let metricIndex = metrics.findIndex((m) => {
       const mid = m.providerId.toLowerCase().trim();
       return mid === cleanId || mid === normalizedKey || mid === `prov_${normalizedKey}`;
@@ -446,8 +446,8 @@ export class MultiGatewayRoutingEngine {
     if (metricIndex === -1) {
       metrics.push({
         providerId: cleanId,
-        providerName: providerRow.name || `${normalizedKey.toUpperCase()} Gateway`,
-        category: normalizedKey.includes("aspfiy") ? "PAYMENT_GATEWAY" : normalizedKey.includes("clubkonnect") ? "VTU_GATEWAY" : "IDENTITY_API",
+        providerName: providerRow.name || `${normalizedKey.toUpperCase()} Portal`,
+        category: normalizedKey.includes("aspfiy") ? "PAYMENT_PROVIDER" : normalizedKey.includes("clubkonnect") ? "VTU_PROVIDER" : "IDENTITY_API",
         baseUrl: providerRow.baseUrl,
         status: result.ok ? "ONLINE" : "DEGRADED",
         uptimePercentage: result.ok ? 99.9 : 95.0,
@@ -485,12 +485,12 @@ export class MultiGatewayRoutingEngine {
   }
 
   /**
-   * Main Smart Verification Execution with Multi-Gateway Routing & Failover
+   * Main Smart Verification Execution with Multi-Provider Routing & Failover
    */
   public static async executeWithFailover(
     db: any,
-    params: MultiGatewayExecutionParams
-  ): Promise<MultiGatewayExecutionResult> {
+    params: MultiPortalExecutionParams
+  ): Promise<MultiPortalExecutionResult> {
     const sType = params.service.toUpperCase().trim();
     const rule = this.getRuleForService(db, sType);
 
@@ -501,7 +501,7 @@ export class MultiGatewayRoutingEngine {
     if (params.preferredProviderId) {
       providerChain.push({
         id: params.preferredProviderId,
-        name: params.preferredProviderId === "aspfiy" ? "Aspfiy Payment Gateway" : params.preferredProviderId === "verifyng" ? "VerifyNG Gateway" : params.preferredProviderId === "identro" ? "Identro Gateway" : "LumiID Gateway",
+        name: params.preferredProviderId === "aspfiy" ? "Aspfiy Payment Portal" : params.preferredProviderId === "verifyng" ? "VerifyNG Portal" : params.preferredProviderId === "identro" ? "Identro Portal" : "LumiID Portal",
       });
     }
 
@@ -509,30 +509,36 @@ export class MultiGatewayRoutingEngine {
       providerChain.push({ id: rule.primaryProviderId, name: rule.primaryProviderName });
     }
     if (rule.secondaryProviderId && !providerChain.some((p) => p.id === rule.secondaryProviderId)) {
-      providerChain.push({ id: rule.secondaryProviderId, name: rule.secondaryProviderName || "Secondary Gateway" });
+      providerChain.push({ id: rule.secondaryProviderId, name: rule.secondaryProviderName || "Secondary Portal" });
     }
     if (rule.tertiaryProviderId && !providerChain.some((p) => p.id === rule.tertiaryProviderId)) {
-      providerChain.push({ id: rule.tertiaryProviderId, name: rule.tertiaryProviderName || "Tertiary Gateway" });
+      providerChain.push({ id: rule.tertiaryProviderId, name: rule.tertiaryProviderName || "Tertiary Portal" });
     }
     if (rule.fallbackProviderId && !providerChain.some((p) => p.id === rule.fallbackProviderId)) {
       providerChain.push({ id: rule.fallbackProviderId, name: rule.fallbackProviderName || "Direct Switch Fallback" });
     }
 
-    if (providerChain.length === 0) {
-      providerChain.push(
-        { id: "aspfiy", name: "Aspfiy Payment Gateway" },
-        { id: "verifyng", name: "VerifyNG Gateway" },
-        { id: "identro", name: "Identro Gateway" }
-      );
+    // Always ensure all known active identity providers are in the failover chain
+    const defaultIdentityFallbacks = [
+      { id: "lumiid", name: "LumiID Portal" },
+      { id: "verifyng", name: "VerifyNG Portal" },
+      { id: "identro", name: "Identro Portal" },
+      { id: "aspfiy", name: "Aspfiy Portal" },
+    ];
+
+    for (const fb of defaultIdentityFallbacks) {
+      if (!providerChain.some((p) => p.id === fb.id)) {
+        providerChain.push(fb);
+      }
     }
 
     const attemptedChain: string[] = [];
-    let lastError = "All verification gateways failed to respond.";
+    let lastError = "All verification portals failed to respond.";
     let primaryRealError = "";
     let wasFailedOver = false;
     let failoverReason = "";
 
-    const metrics = this.getGatewayHealthMetrics(db);
+    const metrics = this.getProviderHealthMetrics(db);
 
     for (let i = 0; i < providerChain.length; i++) {
       const currentProvider = providerChain[i];
@@ -619,7 +625,7 @@ export class MultiGatewayRoutingEngine {
           wasFailedOver,
           failoverChain: attemptedChain,
           failoverReason: wasFailedOver ? failoverReason : undefined,
-          gatewayStrategyUsed: rule.strategy,
+          routingStrategyUsed: rule.strategy,
         };
       }
 
@@ -648,12 +654,12 @@ export class MultiGatewayRoutingEngine {
       failoverReason = `Primary [${currentProvider.name}] unavailable: ${lastError}`;
       const nextProvider = providerChain[i + 1];
 
-      if (!db.gateway_failover_logs) db.gateway_failover_logs = [];
+      if (!db.provider_failover_logs) db.provider_failover_logs = [];
       const maskedId = params.targetId.length > 6
         ? `${params.targetId.substring(0, 3)}****${params.targetId.substring(params.targetId.length - 4)}`
         : params.targetId;
 
-      const failoverLog: GatewayFailoverLog = {
+      const failoverLog: ProviderFailoverLog = {
         id: `FAILOVER_${Date.now()}_${Math.floor(1000 + Math.random() * 9000)}`,
         service: sType,
         reference: params.smartlinkReference,
@@ -669,7 +675,7 @@ export class MultiGatewayRoutingEngine {
         timestamp: new Date().toISOString(),
       };
 
-      db.gateway_failover_logs.unshift(failoverLog);
+      db.provider_failover_logs.unshift(failoverLog);
       if (providerMetric) {
         providerMetric.failoverTriggeredCount += 1;
       }
@@ -678,16 +684,16 @@ export class MultiGatewayRoutingEngine {
     // If all external providers were unreachable or failed, return strict failure - ZERO TOLERANCE for fabricated/dummy data
     return {
       success: false,
-      providerName: attemptedChain[0] || attemptedChain[attemptedChain.length - 1] || "Verification Gateway",
-      providerCode: "GATEWAY_FAILED",
+      providerName: attemptedChain[0] || attemptedChain[attemptedChain.length - 1] || "Verification Portal",
+      providerCode: "PORTAL_FAILED",
       providerReference: `FAILED-${Date.now()}`,
-      error: primaryRealError || lastError || "All configured identity verification gateways failed to confirm this record.",
+      error: lastError || primaryRealError || "All configured identity verification providers failed to confirm this record.",
       responseTimeMs: 320,
       statusCode: 502,
       wasFailedOver,
       failoverChain: attemptedChain,
       failoverReason: wasFailedOver ? failoverReason : undefined,
-      gatewayStrategyUsed: rule.strategy,
+      routingStrategyUsed: rule.strategy,
     };
   }
 
@@ -703,7 +709,7 @@ export class MultiGatewayRoutingEngine {
     db?: any
   ): Promise<{ success: boolean; providerReference?: string; transactionId?: string; data?: any; error?: string; responseTimeMs: number; statusCode?: number }> {
     const key = providerKey.toLowerCase().trim();
-    const timeoutMs = 8000;
+    const timeoutMs = Number(config?.timeoutMs) || 20000;
 
     const sType = (serviceType || "").toUpperCase();
     const cleanTarget = String(targetId || "").trim();
@@ -745,12 +751,32 @@ export class MultiGatewayRoutingEngine {
             smartlinkReference: `SML-VER-${Date.now()}`,
             extraData: { ...extraData, service: serviceType, type: serviceType, targetId },
           });
-          if (provRes.success) {
+          const candidateData = provRes.rawResponse?.data || provRes.rawResponse;
+          const hasIdentity = candidateData && (
+            candidateData.firstName ||
+            candidateData.first_name ||
+            candidateData.firstname ||
+            candidateData.fullName ||
+            candidateData.name ||
+            candidateData.lastName ||
+            candidateData.surname ||
+            candidateData.nin ||
+            candidateData.bvn ||
+            candidateData.birthdate ||
+            candidateData.birthDate ||
+            candidateData.dob ||
+            candidateData.dateOfBirth ||
+            candidateData.photo ||
+            candidateData.photoUrl ||
+            candidateData.rawFields ||
+            candidateData.rawPhoto
+          );
+          if (provRes.success && hasIdentity) {
             return {
               success: true,
               providerReference: provRes.providerReference || provRes.transactionId,
               transactionId: provRes.transactionId,
-              data: provRes.rawResponse?.data || provRes.rawResponse,
+              data: candidateData,
               responseTimeMs: provRes.responseTimeMs || 300,
               statusCode: provRes.statusCode || 200,
             };
@@ -767,7 +793,7 @@ export class MultiGatewayRoutingEngine {
 
       return {
         success: false,
-        error: `Identity verification gateway "${config.name || providerKey}" is not connected or credentials need verification.`,
+        error: `Identity verification provider "${config.name || providerKey}" is not connected or credentials need verification.`,
         responseTimeMs: 0,
       };
     };

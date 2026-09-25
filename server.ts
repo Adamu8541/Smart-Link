@@ -129,6 +129,24 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   next(err);
 });
 
+// Search Engine Crawler & Privacy Directives Middleware
+app.use((req, res, next) => {
+  const p = req.path.toLowerCase();
+  if (
+    p.startsWith("/api") ||
+    p.startsWith("/admin") ||
+    p.startsWith("/dashboard") ||
+    p.startsWith("/wallet") ||
+    p.startsWith("/reset-password") ||
+    p.startsWith("/verify-email") ||
+    p.startsWith("/auth/action") ||
+    p.startsWith("/__/auth")
+  ) {
+    res.setHeader("X-Robots-Tag", "noindex, nofollow, noarchive");
+  }
+  next();
+});
+
 // Global Maintenance Mode Middleware
 app.use(maintenanceMiddleware);
 
@@ -464,6 +482,9 @@ async function startServer() {
             }
           );
           const seoMetadata = resolveSEOMetadata(req);
+          if (seoMetadata.noIndex) {
+            res.setHeader("X-Robots-Tag", "noindex, nofollow, noarchive");
+          }
           const finalHtml = injectSEOTags(rawHtml, seoMetadata);
           res.setHeader("Content-Type", "text/html; charset=utf-8");
           res.setHeader("Cache-Control", "public, max-age=300");

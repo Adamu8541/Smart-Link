@@ -122,8 +122,7 @@ export default function Navigation({
       currentUser.role === UserRole.ADMIN ||
       currentUser.role === UserRole.SUB_ADMIN ||
       currentUser.role === UserRole.STAFF ||
-      currentUser.role === UserRole.FINANCE_OFFICER ||
-      currentUser.email?.toLowerCase() === "adamuamuhammad8541@gmail.com"
+      currentUser.role === UserRole.FINANCE_OFFICER
     )
   );
 
@@ -287,7 +286,7 @@ export default function Navigation({
         <div className="flex items-center shrink-0">
           <img
             src={logoUrl}
-            alt={`${siteName} Portal Gateway`}
+            alt={`${siteName} Portal Portal`}
             width={150}
             height={48}
             loading="eager"
@@ -350,7 +349,7 @@ export default function Navigation({
                 </div>
               ) : (
                 <div className="p-3 rounded-lg bg-[#111827]/40 border border-[#111827]/60 text-left">
-                  <span className="text-[9px] text-[#9CA3AF] font-mono">SECURE GATEWAY NODE</span>
+                  <span className="text-[9px] text-[#9CA3AF] font-mono">SECURE PORTAL NODE</span>
                   <p className="text-[10px] text-[#6B7280] font-light mt-1">Authenticate to begin processing identity logs.</p>
                 </div>
               )}

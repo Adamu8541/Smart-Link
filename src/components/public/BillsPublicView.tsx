@@ -80,7 +80,7 @@ export const BillsPublicView: React.FC<BillsPublicViewProps> = ({
     <div className="min-h-screen flex flex-col bg-[#F9FAFB] font-sans text-[#111827] antialiased">
       <SEOHead
         title="Electricity Disco Tokens, Cheap SME Data & Airtime VTU | Smart Link NG"
-        description="Instant utility bill payment gateway in Nigeria: Pay prepaid/postpaid electricity meter tokens for all 11 Discos with zero surcharge, buy cheap SME data from ₦240/GB, top up VTU airtime with cash rebates, and renew DSTV/GOtv/StarTimes subscriptions instantly."
+        description="Instant utility bill payment portal in Nigeria: Pay prepaid/postpaid electricity meter tokens for all 11 Discos with zero surcharge, buy cheap SME data from ₦240/GB, top up VTU airtime with cash rebates, and renew DSTV/GOtv/StarTimes subscriptions instantly."
         canonicalUrl="https://smartlinkng.com.ng/bills"
       />
 
@@ -97,7 +97,7 @@ export const BillsPublicView: React.FC<BillsPublicViewProps> = ({
         <div className="max-w-5xl mx-auto text-center space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 text-white text-xs font-semibold backdrop-blur-md border border-white/15">
             <Zap className="h-3.5 w-3.5 text-[#F59E0B]" />
-            <span>Automated 24/7 VTU &amp; Utility Billing Gateway</span>
+            <span>Automated 24/7 VTU &amp; Utility Billing Portal</span>
           </div>
 
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-white max-w-3xl mx-auto leading-tight">
@@ -231,7 +231,7 @@ export const BillsPublicView: React.FC<BillsPublicViewProps> = ({
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                    <span>Automatic multi-gateway redundancy to prevent failed recharges</span>
+                    <span>Automatic multi-provider redundancy to prevent failed recharges</span>
                   </div>
                 </div>
 

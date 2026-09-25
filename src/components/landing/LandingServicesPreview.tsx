@@ -235,10 +235,10 @@ export const LandingServicesPreview: React.FC<LandingServicesPreviewProps> = ({
               id="services-preview-explore-all"
               type="button"
               onClick={onExploreAll}
-              className="min-h-[48px] px-6 py-3 bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-xs touch-manipulation"
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white font-medium rounded-xl text-sm transition-colors cursor-pointer shadow-xs"
             >
               <span>Explore All Portal Services</span>
-              <ArrowRight className="h-4 w-4" />
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </button>
           </div>
         </div>

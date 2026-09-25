@@ -26,7 +26,7 @@ export function getResolvedSmtpConfig(customDb?: any): {
   const db = customDb || readDB();
   const emailSettings: SmtpConfig = db.system_settings?.email || {};
 
-  let smtpHost = process.env.SMTP_HOST || emailSettings.smtpHost || "smtp.gmail.com";
+  let smtpHost = process.env.SMTP_HOST || process.env.AUTH_SMTP_HOST || emailSettings.smtpHost || "smtp.gmail.com";
   
   // Normalize and clean invalid hostname typos (e.g., "smtp@gmail.com" -> "smtp.gmail.com")
   smtpHost = smtpHost.trim().toLowerCase();
@@ -35,12 +35,17 @@ export function getResolvedSmtpConfig(customDb?: any): {
   } else if (smtpHost.startsWith("smtp@")) {
     smtpHost = smtpHost.replace(/^smtp@/, "smtp.");
   }
-  const smtpPort = Number(process.env.SMTP_PORT || emailSettings.smtpPort || 587);
+  const smtpPort = Number(process.env.SMTP_PORT || process.env.AUTH_SMTP_PORT || emailSettings.smtpPort || 587);
   
   // Resolve username/email
   // Note: if user entered a display name in smtpUsername and an email in replyToAddress, pick the email
-  let smtpUser = process.env.SMTP_USER || emailSettings.smtpUser || emailSettings.smtpUsername || "";
-  const replyTo = emailSettings.replyToAddress || "adamuamuhammad8541@gmail.com";
+  let smtpUser = 
+    process.env.SMTP_USER || 
+    process.env.AUTH_SMTP_USER || 
+    emailSettings.smtpUser || 
+    emailSettings.smtpUsername || 
+    "";
+  const replyTo = emailSettings.replyToAddress || (emailSettings as any).fromAddress || process.env.AUTH_EMAIL_FROM || process.env.SUPPORT_EMAIL || "";
   
   if (!smtpUser || !smtpUser.includes("@")) {
     if (replyTo && replyTo.includes("@")) {
@@ -52,6 +57,8 @@ export function getResolvedSmtpConfig(customDb?: any): {
   let smtpPass = 
     process.env.SMTP_PASS || 
     process.env.SMTP_PASSWORD || 
+    process.env.AUTH_SMTP_PASS || 
+    process.env.AUTH_SMTP_PASSWORD || 
     process.env.GMAIL_APP_PASSWORD || 
     emailSettings.smtpPassword || 
     emailSettings.smtpPass || 
@@ -71,7 +78,7 @@ export function getResolvedSmtpConfig(customDb?: any): {
       transporter: null,
       config: { ...emailSettings, smtpHost, smtpPort, smtpUser, smtpPass },
       fromAddress,
-      error: "SMTP Password or Google App Password is missing or masked. Please enter the App Password in System Settings > Email Gateway.",
+      error: "SMTP Password or Google App Password is missing or masked. Please enter the App Password in System Settings > Email Portal.",
     };
   }
 

@@ -1,5 +1,5 @@
 /**
- * Generic Provider Gateway Manager
+ * Generic Provider Portal Manager
  * Resolves the correct adapter for a given payment provider ROW (from
  * db.api_providers[]) and calls it with that row's real credentials.
  * Add a new provider by: 1) writing a new adapter class implementing

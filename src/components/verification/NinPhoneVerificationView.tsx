@@ -152,7 +152,13 @@ export const NinPhoneVerificationView: React.FC<NinPhoneVerificationViewProps> =
       });
 
       if (res.success && res.result) {
-        setResult(res.result);
+        const enrichedResult: StandardizedVerificationResult = {
+          ...res.result,
+          slipType: selectedSlip?.id || "REGULAR",
+          formatId: selectedSlip?.formatId || "NIN_REGULAR",
+          selectedSlip: selectedSlip,
+        };
+        setResult(enrichedResult);
         setStepMode("SUCCESS");
         if (onBalanceUpdate) onBalanceUpdate();
         refreshBalance();
@@ -468,46 +474,19 @@ export const NinPhoneVerificationView: React.FC<NinPhoneVerificationViewProps> =
           <VerificationLoader
             currentStep={currentStep}
             serviceTitle="NIN With Phone Number"
-            providerName="NIMC Telco Gateway"
+            providerName="NIMC Telco Portal"
           />
         )}
 
         {/* Success Result View */}
         {stepMode === "SUCCESS" && result && (
-          <div className="space-y-5">
-            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
-                  <CheckCircle2 className="w-6 h-6" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-emerald-900 text-sm">
-                    Verification Successful
-                  </h3>
-                  <p className="text-xs text-emerald-700">
-                    Official NIN record retrieved and slip generated.
-                  </p>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setShowSlipModal(true)}
-                className="px-3.5 py-2 bg-[#0F2D5C] hover:bg-[#1E3A8A] text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer"
-              >
-                <Printer className="w-3.5 h-3.5" />
-                <span>Print Slip</span>
-              </button>
-            </div>
-
-            <VerificationSuccess
-              result={result}
-              userId={userId}
-              userEmail={userEmail}
-              onRepeatVerification={handleVerify}
-              onNewVerification={handleResetForm}
-            />
-          </div>
+          <VerificationSuccess
+            result={result}
+            userId={userId}
+            userEmail={userEmail}
+            onRepeatVerification={handleVerify}
+            onNewVerification={handleResetForm}
+          />
         )}
 
         {/* Error View */}

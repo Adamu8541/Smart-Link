@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Fingerprint,
   FileText,
@@ -33,6 +33,11 @@ export default function ServicesGrid({ onSelectService }: ServicesGridProps) {
   const { getServicePrice } = useSiteConfig();
   const [activeTab, setActiveTab] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState<string>("");
+
+  useEffect(() => {
+    // Proactively load ServiceModal so clicking any service tile opens instantly with 0ms delay
+    import("./ServiceModal").catch(() => {});
+  }, []);
 
   const categories = [
     { id: "ALL", label: "All Solutions", icon: HelpCircle },

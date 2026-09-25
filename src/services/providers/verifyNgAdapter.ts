@@ -22,6 +22,7 @@
 
 import crypto from "crypto";
 import { PaymentProviderConfig, ProviderAdapter } from "./aspfiyAdapter";
+import { IdentroAdapter } from "./identroAdapter";
 
 export interface VerifyNGVerificationResult {
   success: boolean;
@@ -40,10 +41,7 @@ export class VerifyNGAdapter implements ProviderAdapter {
   name = "VerifyNG (kyc.edirect.ng)";
 
   private baseUrl(config: PaymentProviderConfig): string {
-    const raw = (config.baseUrl || "https://kyc.edirect.ng").trim().replace(/\/+$/, "");
-    if (raw.includes("api.verifyn.ng")) {
-      return "https://kyc.edirect.ng";
-    }
+    const raw = (config.baseUrl || process.env.VERIFYNG_BASE_URL || "https://kyc.edirect.ng").trim().replace(/\/+$/, "");
     return raw;
   }
 
@@ -104,8 +102,11 @@ export class VerifyNGAdapter implements ProviderAdapter {
     }
 
     const body = "{}";
+    const base = this.baseUrl(config);
+    const endpointUrl = base.includes("/api/") ? `${base}/auth/token` : `${base}/api/v1/auth/token`;
     const headers = this.buildHmacHeaders(config, "POST", "/auth/token", body);
-    const res = await fetch(`${this.baseUrl(config)}/auth/token`, {
+
+    const res = await fetch(endpointUrl, {
       method: "POST",
       headers,
       body,
@@ -131,10 +132,11 @@ export class VerifyNGAdapter implements ProviderAdapter {
       gender: d.gender || "",
       dateOfBirth: d.date_of_birth || "",
       phoneNumber: d.phone_number || "",
-      email: "",
-      address: "",
-      stateOfOrigin: d.state_of_origin || "",
-      lga: "",
+      email: d.email || "",
+      address: d.residence_address || d.address || d.residential_address || "",
+      stateOfOrigin: d.state_of_origin || d.residence_state || d.state || "",
+      state: d.residence_state || d.state_of_residence || d.state_of_origin || d.state || "",
+      lga: d.residence_lga || d.lga_of_residence || d.lga_of_origin || d.lga || "",
       photoUrl: d.photo ? `data:image/jpeg;base64,${d.photo}` : "",
       confidence: d.confidence,
       rawFields: d,
@@ -156,7 +158,7 @@ export class VerifyNGAdapter implements ProviderAdapter {
       let hostResponded = false;
       let hostLatency = 0;
 
-      // 1. Check reachability of the gateway host (kyc.edirect.ng)
+      // 1. Check reachability of the portal host (kyc.edirect.ng)
       try {
         const pingRes = await fetch(base, {
           method: "GET",
@@ -195,7 +197,7 @@ export class VerifyNGAdapter implements ProviderAdapter {
       if (!clientKey || !apiSecret) {
         return {
           ok: true,
-          message: `VerifyNG Gateway Online & Reachable (${hostLatency}ms). Ready for Client Key and API Secret.`,
+          message: `VerifyNG Portal Online & Reachable (${hostLatency}ms). Ready for Client Key and API Secret.`,
           responseTimeMs: hostLatency,
         };
       }
@@ -213,7 +215,7 @@ export class VerifyNGAdapter implements ProviderAdapter {
         const elapsed = hostLatency || (Date.now() - startTime);
         return {
           ok: true,
-          message: `VerifyNG Gateway Online & Connected (${elapsed}ms, HMAC configured).`,
+          message: `VerifyNG Portal Online & Connected (${elapsed}ms, HMAC configured).`,
           responseTimeMs: elapsed,
         };
       }
@@ -238,16 +240,39 @@ export class VerifyNGAdapter implements ProviderAdapter {
     const cleanId = String(targetId).replace(/\D/g, "").trim();
     const reference = extraData.reference || `VNG-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
 
-    if (sType !== "NIN" && sType !== "BVN") {
-      return {
-        success: false,
-        providerReference: reference,
-        error: `VerifyNG adapter does not support service type "${sType}" — only NIN and BVN are wired up here (the API also supports drivers_license, voters_card, passport, cac if needed later).`,
-        responseTimeMs: 0,
-      };
+    const secretKey = this.apiSecret(config);
+    const clientKey = this.clientKey(config);
+
+    // If key format matches Identro/LumiID (starts with cs_) or points to kyc.edirect.ng, execute Identro protocol
+    if (secretKey.startsWith("cs_") || clientKey.startsWith("cs_") || (config.baseUrl && config.baseUrl.includes("edirect.ng"))) {
+      try {
+        const identro = new IdentroAdapter();
+        const identroRes = await identro.verifyIdentity(serviceType, targetId, extraData, {
+          ...config,
+          apiKey: secretKey.startsWith("cs_") ? secretKey : clientKey,
+          secretKey: secretKey.startsWith("cs_") ? secretKey : clientKey,
+        });
+        return {
+          success: identroRes.success,
+          providerReference: identroRes.providerReference || reference,
+          transactionId: identroRes.transactionId || reference,
+          data: identroRes.data,
+          error: identroRes.error,
+          responseTimeMs: Date.now() - startTime,
+          statusCode: identroRes.statusCode || (identroRes.success ? 200 : 400),
+        };
+      } catch (e: any) {
+        return {
+          success: false,
+          providerReference: reference,
+          error: e?.message || "Identity verification call failed.",
+          responseTimeMs: Date.now() - startTime,
+          statusCode: 502,
+        };
+      }
     }
 
-    if (!this.clientKey(config) || !this.apiSecret(config)) {
+    if (!clientKey || !secretKey) {
       return {
         success: false,
         providerReference: reference,
@@ -260,7 +285,27 @@ export class VerifyNGAdapter implements ProviderAdapter {
     const checkKey = sType.toLowerCase();
 
     try {
-      const jwt = await this.getJwt(config);
+      let jwt: string | null = null;
+      try {
+        jwt = await this.getJwt(config);
+      } catch (tokenErr: any) {
+        // If HMAC token exchange failed (e.g. HTTP 404), fallback to IdentroAdapter protocol
+        const identro = new IdentroAdapter();
+        const identroRes = await identro.verifyIdentity(serviceType, targetId, extraData, {
+          ...config,
+          apiKey: secretKey || clientKey,
+          secretKey: secretKey || clientKey,
+        });
+        return {
+          success: identroRes.success,
+          providerReference: identroRes.providerReference || reference,
+          transactionId: identroRes.transactionId || reference,
+          data: identroRes.data,
+          error: identroRes.error || tokenErr?.message || "Identity verification call failed.",
+          responseTimeMs: Date.now() - startTime,
+          statusCode: identroRes.statusCode || 400,
+        };
+      }
 
       const bodyObj: Record<string, any> = {
         checks: [checkKey],
@@ -282,7 +327,10 @@ export class VerifyNGAdapter implements ProviderAdapter {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 12000);
 
-      const res = await fetch(`${this.baseUrl(config)}/verify`, {
+      const base = this.baseUrl(config);
+      const verifyUrl = base.includes("/api/") ? `${base}/verify` : `${base}/api/v1/verify`;
+
+      const res = await fetch(verifyUrl, {
         method: "POST",
         headers,
         body,
@@ -317,7 +365,7 @@ export class VerifyNGAdapter implements ProviderAdapter {
       return {
         success: false,
         providerReference: reference,
-        error: err?.name === "AbortError" ? "VerifyNG request timed out after 12000ms." : (err?.message || "VerifyNG gateway error."),
+        error: err?.name === "AbortError" ? "VerifyNG request timed out after 12000ms." : (err?.message || "VerifyNG portal error."),
         responseTimeMs: elapsed,
         statusCode: 504,
       };

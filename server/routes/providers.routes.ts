@@ -22,13 +22,13 @@ import { ProviderExecutor, verifyWebhookSignature } from "../../src/services/pro
 import { adminAuthService, ADMIN_ROLES_CONFIG } from "../../src/services/adminAuthService";
 import { AutomaticWalletFundingEngine } from "../../src/services/automaticWalletFundingEngine";
 import { PaymentVerificationReconciliationEngine } from "../../src/services/paymentVerificationReconciliationEngine";
-import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerGateway";
+import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerConnector";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
 import { LumiIDAdapter } from "../../src/services/providers/lumiidAdapter";
 import { VerifyNGAdapter } from "../../src/services/providers/verifyNgAdapter";
 import { ClubkonnectAdapter } from "../../src/services/providers/clubkonnectAdapter";
 import { IdentroAdapter } from "../../src/services/providers/identroAdapter";
-import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
+import { MultiProviderRoutingEngine } from "../../src/services/multiProviderRoutingEngine";
 import { syncFromStorage, syncToStorage } from "../../src/services/settingsStore";
 import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
@@ -122,8 +122,8 @@ app.post("/api/admin/payment-providers", requireAdmin, async (req, res) => {
   const newProvider = {
     id: isAspfiy ? "prov_aspfiy" : "pay_prov_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
     name: trimmedName,
-    category: category || "PAYMENT_GATEWAY",
-    providerType: providerType || "PAYMENT_GATEWAY",
+    category: category || "PAYMENT_PROVIDER",
+    providerType: providerType || "PAYMENT_PROVIDER",
     secretKey: effectiveSecret,
     apiKey: effectiveSecret,
     webhookUrl: webhookUrl.trim(),
@@ -277,8 +277,8 @@ app.put("/api/admin/payment-providers/:id", requireAdmin, async (req, res) => {
       name: trimmedName,
       description: description !== undefined ? String(description).trim() : (existing.description || ""),
       notes: notes !== undefined ? String(notes).trim() : (existing.notes || ""),
-      category: category || existing.category || "PAYMENT_GATEWAY",
-      providerType: providerType || existing.providerType || "PAYMENT_GATEWAY",
+      category: category || existing.category || "PAYMENT_PROVIDER",
+      providerType: providerType || existing.providerType || "PAYMENT_PROVIDER",
       baseUrl: (baseUrl !== undefined && String(baseUrl).trim()) ? String(baseUrl).trim() : (existing.baseUrl || "https://api-v1.aspfiy.com"),
       webhookUrl: String(webhookUrl).trim(),
       callbackUrl: callbackUrl !== undefined ? String(callbackUrl).trim() : (existing.callbackUrl || ""),
@@ -335,8 +335,8 @@ app.put("/api/admin/payment-providers/:id", requireAdmin, async (req, res) => {
     updatedProvider = {
       ...existing,
       name: trimmedName,
-      category: category || existing.category || "PAYMENT_GATEWAY",
-      providerType: providerType || existing.providerType || "PAYMENT_GATEWAY",
+      category: category || existing.category || "PAYMENT_PROVIDER",
+      providerType: providerType || existing.providerType || "PAYMENT_PROVIDER",
       secretKey: resolvedSecretKey,
       apiKey: resolvedSecretKey,
       publicKey: resolvedPublicKey,
@@ -530,7 +530,7 @@ function getCentralActivePaymentProvider(db: any, isAdmin = false) {
         p.status !== "Inactive" &&
         p.status !== "DISABLED" &&
         ((p.category || "").toUpperCase().includes("PAYMENT") ||
-          (p.category || "").toUpperCase().includes("GATEWAY") ||
+          (p.category || "").toUpperCase().includes("PORTAL") ||
           p.supportsWalletFunding ||
           !p.category)
     ) ||
@@ -714,7 +714,7 @@ app.get("/api/wallet/funding-info", async (req, res) => {
     provider: activeProv,
     fundingMethods: [
       { id: "VIRTUAL_ACCOUNT", name: `Dynamic Virtual Account (${activeProv.name})`, enabled: true },
-      { id: "CARD_PAYMENT", name: `Card Gateway (${activeProv.name})`, enabled: true },
+      { id: "CARD_PAYMENT", name: `Card Portal (${activeProv.name})`, enabled: true },
       { id: "BANK_TRANSFER", name: `Direct Transfer (${activeProv.name})`, enabled: true }
     ]
   });
@@ -1166,15 +1166,15 @@ app.post("/api/admin/payment-providers/:id/test-connection", requireAdmin, async
 
 
 // =========================================================================
-// PHASE 2: MULTI-GATEWAY ROUTING, AUTOMATED FAILOVER & RECONCILIATION
+// PHASE 2: MULTI-PORTAL ROUTING, AUTOMATED FAILOVER & RECONCILIATION
 // =========================================================================
 
-// 1. Get Gateway Routing Rules, Health Metrics & Failover Summaries
-app.get("/api/admin/gateway-routing", async (req, res) => {
+// 1. Get Portal Routing Rules, Health Metrics & Failover Summaries
+app.get("/api/admin/routing", async (req, res) => {
   const db = readDB();
-  const rules = MultiGatewayRoutingEngine.getRoutingRules(db);
-  const metrics = MultiGatewayRoutingEngine.getGatewayHealthMetrics(db);
-  const failovers = db.gateway_failover_logs || [];
+  const rules = MultiProviderRoutingEngine.getRoutingRules(db);
+  const metrics = MultiProviderRoutingEngine.getProviderHealthMetrics(db);
+  const failovers = db.provider_failover_logs || [];
   const backgroundJobs = db.background_verification_jobs || [];
 
   return res.json({
@@ -1186,20 +1186,20 @@ app.get("/api/admin/gateway-routing", async (req, res) => {
   });
 });
 
-// 2. Update Service Gateway Routing Rule
-app.post("/api/admin/gateway-routing", async (req, res) => {
+// 2. Update Service Portal Routing Rule
+app.post("/api/admin/routing", async (req, res) => {
   const db = readDB();
   const { rule, rules } = req.body;
 
   if (rules && Array.isArray(rules)) {
-    db.gateway_routing_rules = rules;
+    db.provider_routing_rules = rules;
   } else if (rule && rule.id) {
-    if (!db.gateway_routing_rules) db.gateway_routing_rules = MultiGatewayRoutingEngine.getDefaultRoutingRules();
-    const idx = db.gateway_routing_rules.findIndex((r: any) => r.id === rule.id || r.service === rule.service);
+    if (!db.provider_routing_rules) db.provider_routing_rules = MultiProviderRoutingEngine.getDefaultRoutingRules();
+    const idx = db.provider_routing_rules.findIndex((r: any) => r.id === rule.id || r.service === rule.service);
     if (idx >= 0) {
-      db.gateway_routing_rules[idx] = { ...db.gateway_routing_rules[idx], ...rule, updatedAt: new Date().toISOString() };
+      db.provider_routing_rules[idx] = { ...db.provider_routing_rules[idx], ...rule, updatedAt: new Date().toISOString() };
     } else {
-      db.gateway_routing_rules.push({ ...rule, updatedAt: new Date().toISOString() });
+      db.provider_routing_rules.push({ ...rule, updatedAt: new Date().toISOString() });
     }
   }
 
@@ -1208,37 +1208,37 @@ app.post("/api/admin/gateway-routing", async (req, res) => {
 
   return res.json({
     success: true,
-    message: "Gateway routing configuration updated successfully.",
-    rules: db.gateway_routing_rules,
+    message: "Portal routing configuration updated successfully.",
+    rules: db.provider_routing_rules,
   });
 });
 
-// 3. Active Gateway Health Ping & Latency Probe
-app.post("/api/admin/gateway-ping", async (req, res) => {
+// 3. Active Portal Health Ping & Latency Probe
+app.post("/api/admin/portal-ping", async (req, res) => {
   const db = readDB();
   const { providerId } = req.body;
 
   if (!providerId) {
-    return res.status(400).json({ success: false, error: "Provider ID is required for gateway ping." });
+    return res.status(400).json({ success: false, error: "Provider ID is required for portal ping." });
   }
 
-  const pingResult = await MultiGatewayRoutingEngine.pingGateway(db, providerId);
+  const pingResult = await MultiProviderRoutingEngine.pingPortal(db, providerId);
   writeDB(db);
 
   return res.json({
     success: true,
     providerId,
     pingResult,
-    metrics: MultiGatewayRoutingEngine.getGatewayHealthMetrics(db),
+    metrics: MultiProviderRoutingEngine.getProviderHealthMetrics(db),
   });
 });
 
-// 4. Get Gateway Failover Logs Stream
-app.get("/api/admin/gateway-failovers", async (req, res) => {
+// 4. Get Portal Failover Logs Stream
+app.get("/api/admin/portal-failovers", async (req, res) => {
   const db = readDB();
   return res.json({
     success: true,
-    failovers: db.gateway_failover_logs || [],
+    failovers: db.provider_failover_logs || [],
   });
 });
 
@@ -1254,7 +1254,7 @@ app.get("/api/admin/background-jobs", async (req, res) => {
 // 6. Trigger Immediate Background Verification Sweep
 app.post("/api/admin/background-jobs/process", async (req, res) => {
   const db = readDB();
-  const result = await MultiGatewayRoutingEngine.processBackgroundJobs(db);
+  const result = await MultiProviderRoutingEngine.processBackgroundJobs(db);
   writeDB(db);
   await syncToStorage(db);
 
@@ -1279,7 +1279,7 @@ app.post("/api/admin/background-jobs/queue", async (req, res) => {
     ? `${targetId.substring(0, 3)}****${targetId.substring(targetId.length - 4)}`
     : targetId;
 
-  const job = MultiGatewayRoutingEngine.queueBackgroundJob(db, {
+  const job = MultiProviderRoutingEngine.queueBackgroundJob(db, {
     reference: `BG-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`,
     userId,
     userEmail: userEmail || "",
@@ -1287,7 +1287,7 @@ app.post("/api/admin/background-jobs/queue", async (req, res) => {
     targetId,
     maskedId,
     fee: Number(fee || 500),
-    providerName: "MultiGateway Queue",
+    providerName: "MultiPortal Queue",
     maxAttempts: 5,
   });
 
@@ -1304,18 +1304,18 @@ app.post("/api/admin/background-jobs/queue", async (req, res) => {
 
 
 // ==========================================
-// MODULE 8: GATEWAY INTEGRATION ENGINE (AUTHENTICATION & ACCESS TOKENS)
+// MODULE 8: PORTAL INTEGRATION ENGINE (AUTHENTICATION & ACCESS TOKENS)
 // ==========================================
 
-// Get Gateway Auth Status & Environment Configuration
-app.get(["/api/gateway/auth/status", "/api/monnify/auth/status"], async (req, res) => {
+// Get Portal Auth Status & Environment Configuration
+app.get(["/api/portal/auth/status", "/api/monnify/auth/status"], async (req, res) => {
   const db = readDB();
-  const provider = APIProviderManager.getActiveProvider(db, { feature: "funding" }) || APIProviderManager.getActiveProvider(db, { category: "PAYMENT_GATEWAY" });
+  const provider = APIProviderManager.getActiveProvider(db, { feature: "funding" }) || APIProviderManager.getActiveProvider(db, { category: "PAYMENT_PROVIDER" });
   res.json({ success: true, status: { isTokenValid: !!provider, providerName: provider?.name || "Configured Provider" } });
 });
 
-// Perform/Verify Gateway Authentication
-app.post(["/api/gateway/auth/login", "/api/monnify/auth/login"], async (req, res) => {
+// Perform/Verify Portal Authentication
+app.post(["/api/portal/auth/login", "/api/monnify/auth/login"], async (req, res) => {
   const db = readDB();
   const providersList = db.api_providers || db.apiProviders || [];
   const activeProv = Array.isArray(providersList)
@@ -1372,8 +1372,8 @@ app.post(["/api/gateway/auth/login", "/api/monnify/auth/login"], async (req, res
   });
 });
 
-// Run Automated Self-Tests for Gateway Authentication
-app.post(["/api/gateway/auth/test", "/api/monnify/auth/test"], async (req, res) => {
+// Run Automated Self-Tests for Portal Authentication
+app.post(["/api/portal/auth/test", "/api/monnify/auth/test"], async (req, res) => {
   const db = readDB();
   const providersList = db.api_providers || db.apiProviders || [];
   const activeProv = Array.isArray(providersList)
@@ -1386,14 +1386,14 @@ app.post(["/api/gateway/auth/test", "/api/monnify/auth/test"], async (req, res) 
       module: "Provider Authentication & Access Token",
       allPassed: false,
       error: "No active payment provider configured.",
-      results: [{ name: "Gateway Configuration Check", passed: false, error: "No active provider configured" }],
+      results: [{ name: "Portal Configuration Check", passed: false, error: "No active provider configured" }],
       metrics: {},
       timestamp: new Date().toISOString(),
     });
   }
 
   const adapter = getAdapterForProvider(activeProv);
-  let testResult = { ok: true, message: "Gateway credentials verified.", responseTimeMs: 10 };
+  let testResult = { ok: true, message: "Portal credentials verified.", responseTimeMs: 10 };
   if (adapter && typeof adapter.testConnection === "function") {
     testResult = await adapter.testConnection(activeProv);
   }
@@ -1404,7 +1404,7 @@ app.post(["/api/gateway/auth/test", "/api/monnify/auth/test"], async (req, res) 
     allPassed: testResult.ok,
     providerName: activeProv.name,
     results: [{
-      name: "Gateway API Credentials Verification",
+      name: "Portal API Credentials Verification",
       passed: testResult.ok,
       message: testResult.message,
       latencyMs: testResult.responseTimeMs
@@ -1436,10 +1436,10 @@ function seedModule6ProvidersIfEmpty(db: any) {
 
     const defaultAspfiy = {
       id: "prov_aspfiy",
-      name: "Aspfiy Payment Gateway",
-      category: "PAYMENT_GATEWAY",
-      providerType: "PAYMENT_GATEWAY",
-      description: "Aspfiy Reserved Virtual Accounts & Bank Transfer Gateway",
+      name: "Aspfiy Payment Portal",
+      category: "PAYMENT_PROVIDER",
+      providerType: "PAYMENT_PROVIDER",
+      description: "Aspfiy Reserved Virtual Accounts & Bank Transfer Portal",
       logoUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=60",
       baseUrl: "https://api-v1.aspfiy.com",
       apiVersion: "v1.0",
@@ -1480,7 +1480,7 @@ function seedModule6ProvidersIfEmpty(db: any) {
       name: "LumiID Identity Verification",
       category: "IDENTITY_API",
       providerType: "IDENTITY_API",
-      description: "LumiID Sovereign Identity Gateway & NIMC Verification (lumiid.com)",
+      description: "LumiID Sovereign Identity Portal & NIMC Verification (lumiid.com)",
       logoUrl: "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=100&auto=format&fit=crop&q=60",
       baseUrl: "https://api.lumiid.com",
       apiVersion: "v1.0",
@@ -1517,10 +1517,10 @@ function seedModule6ProvidersIfEmpty(db: any) {
   if (!db.api_providers.some((p: any) => p.id === "prov_verifyng" || (p.name || "").toLowerCase().includes("verifyng"))) {
     db.api_providers.push({
       id: "prov_verifyng",
-      name: "VerifyNG Identity Gateway",
+      name: "VerifyNG Identity Portal",
       category: "IDENTITY_API",
       providerType: "IDENTITY_API",
-      description: "VerifyNG Identity & KYC Verification Gateway (kyc.edirect.ng / verifyn.ng)",
+      description: "VerifyNG Identity & KYC Verification Portal (kyc.edirect.ng / verifyn.ng)",
       logoUrl: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=100&auto=format&fit=crop&q=60",
       baseUrl: "https://kyc.edirect.ng",
       apiVersion: "v1.0",
@@ -1583,14 +1583,14 @@ function seedModule6ProvidersIfEmpty(db: any) {
     });
   }
 
-  // Ensure Identro Gateway Provider (official base URL & built-in App ID)
+  // Ensure Identro Portal Provider (official base URL & built-in App ID)
   if (!db.api_providers.some((p: any) => p.id === "prov_identro" || (p.name || "").toLowerCase().includes("identro"))) {
     db.api_providers.push({
       id: "prov_identro",
-      name: "Identro Identity Gateway",
+      name: "Identro Identity Portal",
       category: "IDENTITY_API",
       providerType: "IDENTITY_API",
-      description: "Identro Identity, KYC & CAC Verification Gateway (identro.ng)",
+      description: "Identro Identity, KYC & CAC Verification Portal (identro.ng)",
       logoUrl: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=100&auto=format&fit=crop&q=60",
       baseUrl: "https://api.identro.ng",
       apiVersion: "v1.0",
@@ -1957,8 +1957,8 @@ app.post("/api/admin/providers/add", requireAdmin, async (req, res) => {
   const newProviderConfig = {
     id: newId,
     name: providerData.name,
-    category: providerData.category || "PAYMENT_GATEWAY",
-    providerType: providerData.category || "PAYMENT_GATEWAY",
+    category: providerData.category || "PAYMENT_PROVIDER",
+    providerType: providerData.category || "PAYMENT_PROVIDER",
     description: providerData.description || "",
     logoUrl: providerData.logoUrl || "",
     baseUrl: (providerData.baseUrl || (isAspfiy ? "https://api-v1.aspfiy.com" : "")).trim(),

@@ -58,7 +58,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
               <ShieldCheck className="h-5 w-5 text-[#0F2D5C] shrink-0 mt-0.5" aria-hidden="true" />
               <div>
                 <p className="text-sm font-bold text-[#0F2D5C]">Instant Verification &amp; Slips</p>
-                <p className="text-xs text-[#374151] mt-0.5">Standard/premium NIN slips, BVN cards, and CAC reports with QR codes.</p>
+                <p className="text-xs text-[#374151] mt-0.5">Regular/premium NIN slips, BVN cards, and CAC reports with QR codes.</p>
               </div>
             </div>
 

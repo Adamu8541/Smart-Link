@@ -95,7 +95,7 @@ app.post("/api/admin/manual-services/email-routes", requireAdmin, async (req, re
  * 
  * - Debits user wallet (if fee > 0)
  * - Saves attachments to local disk storage (NEVER sent or saved to cloud storage)
- * - Dispatches formatted HTML email with attachments to admin email (default adamuamuhammad8541@gmail.com or route)
+ * - Dispatches formatted HTML email with attachments to admin email (from settings or route)
  * - Returns clean "SUCCESS" response for the frontend to show "Submitted Successfully"
  */
 app.post("/api/manual-services/submit", async (req, res) => {

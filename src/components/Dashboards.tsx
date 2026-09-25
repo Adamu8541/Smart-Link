@@ -348,7 +348,7 @@ export default function Dashboards({
         accountNumber: userAny.virtualAccountNumber || userAny.accountNumber,
         accountName: userAny.virtualAccountName || userAny.accountName || currentUser.fullName || "SMARTLINK CUSTOMER",
         bankName: userAny.virtualBankName || userAny.bankName || "PalmPay",
-        providerName: userAny.providerName || "Aspfiy Payment Gateway",
+        providerName: userAny.providerName || "Aspfiy Payment Portal",
         providerReference: userAny.virtualAccountReference || userAny.reference || `SL-${currentUser.uid}`,
       });
     }
@@ -366,7 +366,7 @@ export default function Dashboards({
           accountNumber: acc.accountNumber || acc.account_number,
           accountName: acc.accountName || acc.account_name || currentUser.fullName || "SMARTLINK CUSTOMER",
           bankName: acc.bankName || acc.bank_name || "PalmPay",
-          providerName: acc.providerName || (res.provider as any)?.name || acc.bankName || "Aspfiy Gateway",
+          providerName: acc.providerName || (res.provider as any)?.name || acc.bankName || "Aspfiy Portal",
           providerReference: acc.providerReference || acc.reference || `SL-${currentUser.uid}`,
         });
         setFundError(null);
@@ -395,7 +395,7 @@ export default function Dashboards({
               accountNumber: genAcc.accountNumber || genAcc.account_number,
               accountName: genAcc.accountName || genAcc.account_name || currentUser.fullName || "SMARTLINK CUSTOMER",
               bankName: genAcc.bankName || genAcc.bank_name || "PalmPay",
-              providerName: genAcc.providerName || "Aspfiy Gateway",
+              providerName: genAcc.providerName || "Aspfiy Portal",
               providerReference: genAcc.providerReference || genAcc.reference || `SL-${currentUser.uid}`,
             });
             setFundError(null);
@@ -587,7 +587,7 @@ export default function Dashboards({
       const isFunding = tx.type === "WALLET_FUNDING";
       const title = isFunding ? "Digital Wallet Funded" : "Service Debit Transaction";
       const description = isFunding 
-        ? `Credited ${formatNaira(tx.amount, true)} via ${tx.gateway || "Paystack Gateway"}. Reference: ${tx.reference}`
+        ? `Credited ${formatNaira(tx.amount, true)} via ${tx.portal || "Paystack Portal"}. Reference: ${tx.reference}`
         : `Sent ${formatNaira(tx.amount, true)} to ${tx.description}. Reference: ${tx.reference}`;
       
       list.push({
@@ -682,7 +682,7 @@ export default function Dashboards({
       doc.setFontSize(7);
       doc.setFont("Helvetica", "normal");
       doc.setTextColor(120, 120, 120);
-      doc.text("PREMIER CORPORATE GOVERNMENT SERVICES GATEWAY", 12, 21);
+      doc.text("PREMIER CORPORATE GOVERNMENT SERVICES PORTAL", 12, 21);
       const receiptTimestamp = formatSafeDateTime(tx.createdAt, new Date().toISOString());
       doc.text(`RC: 9347502 | TIMESTAMP: ${receiptTimestamp}`, 12, 25);
 
@@ -702,7 +702,7 @@ export default function Dashboards({
 
       doc.setFont("Helvetica", "normal");
       doc.text("PAYMENT METHOD:", 12, 48);
-      doc.text(tx.gateway || "WALLET DEBIT", 45, 48);
+      doc.text(tx.portal || "WALLET DEBIT", 45, 48);
 
       doc.text("SERVICE DISPATCH:", 12, 54);
       doc.setFont("Helvetica", "bold");

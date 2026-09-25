@@ -53,7 +53,7 @@ interface BvnVerificationViewProps {
 export type BvnViewTab = "VERIFY" | "HISTORY";
 
 export interface BvnSlipType3 {
-  id: "BVN_CARD" | "BVN_SLIP_1" | "BVN_SLIP_2";
+  id: "BVN_CARD" | "BVN_SLIP_1";
   name: string;
   label: string;
   price: number;
@@ -66,8 +66,7 @@ export function getBvnSlipOptions(siteConfig?: any): BvnSlipType3[] {
   const slipPrices = priceMatrix.slipPrices || siteConfig?.systemSettings?.slipPrices || {};
 
   const cardPrice = typeof slipPrices.BVN_CARD === "number" ? slipPrices.BVN_CARD : 250;
-  const slip1Price = typeof slipPrices.BVN_SLIP_1 === "number" ? slipPrices.BVN_SLIP_1 : 200;
-  const slip2Price = typeof slipPrices.BVN_SLIP_2 === "number" ? slipPrices.BVN_SLIP_2 : 180;
+  const slip1Price = typeof slipPrices.BVN_SLIP_1 === "number" ? slipPrices.BVN_SLIP_1 : (typeof slipPrices.BVN_SLIP === "number" ? slipPrices.BVN_SLIP : 200);
 
   return [
     {
@@ -80,19 +79,11 @@ export function getBvnSlipOptions(siteConfig?: any): BvnSlipType3[] {
     },
     {
       id: "BVN_SLIP_1",
-      name: "BVN Slip 1",
-      label: "BVN Slip 1",
+      name: "BVN Slip",
+      label: "BVN Slip",
       price: slip1Price,
       badge: "Official Slip",
       formatId: "BVN_SLIP_1" as any,
-    },
-    {
-      id: "BVN_SLIP_2",
-      name: "BVN Slip 2",
-      label: "BVN Slip 2",
-      price: slip2Price,
-      badge: "Basic Slip",
-      formatId: "BVN_SLIP_2" as any,
     },
   ];
 }
@@ -143,7 +134,7 @@ export const BvnVerificationView: React.FC<BvnVerificationViewProps> = ({
   const [historyLoading, setHistoryLoading] = useState(false);
   const [selectedHistorySlip, setSelectedHistorySlip] = useState<StandardizedVerificationResult | null>(null);
 
-  const effectiveRegisteredEmail = userEmail || "adamuamuhammad8541@gmail.com";
+  const effectiveRegisteredEmail = userEmail || "";
   const displayTitle = serviceTitle || "BVN Slip Print & Verification";
 
   const refreshBalance = async () => {
@@ -370,7 +361,7 @@ export const BvnVerificationView: React.FC<BvnVerificationViewProps> = ({
                 </h2>
               </div>
 
-              {/* Dropdown with BVN Card, BVN Slip 1, BVN Slip 2 */}
+              {/* Dropdown with BVN Card, BVN Slip */}
               <div className="relative">
                 <select
                   id="bvn-slip-type-selector"

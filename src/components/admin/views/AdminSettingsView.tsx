@@ -471,7 +471,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                 System Settings & Platform Configuration
               </h1>
               <p className="text-xs text-[#9CA3AF] mt-1">
-                Centralized control panel to configure platform rules, branding, gateway thresholds, maintenance & security policies.
+                Centralized control panel to configure platform rules, branding, portal thresholds, maintenance & security policies.
               </p>
             </div>
           </div>
@@ -2301,7 +2301,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
             <div className="flex items-center justify-between border-b border-[#111827] pb-4">
               <div>
                 <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Mail className="h-5 w-5 text-[#9CA3AF]" /> Email Gateway & SMTP Server Config
+                  <Mail className="h-5 w-5 text-[#9CA3AF]" /> Email Portal & SMTP Server Config
                 </h2>
                 <p className="text-xs text-[#9CA3AF]">Configure outbound SMTP server credentials for email transaction dispatches.</p>
               </div>
@@ -2519,7 +2519,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                   value={manualDefaultEmail}
                   onChange={(e) => setManualDefaultEmail(e.target.value)}
                   disabled={!canEdit}
-                  placeholder="e.g. adamuamuhammad8541@gmail.com"
+                  placeholder="e.g. admin@smartlink.ng"
                   className="w-full bg-[#111827] border border-[#374151] rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C] font-mono"
                   required
                 />
@@ -2655,7 +2655,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                 <h2 className="text-lg font-bold text-white flex items-center gap-2">
                   <MessageSquare className="h-5 w-5 text-[#9CA3AF]" /> SMS Provider Configuration
                 </h2>
-                <p className="text-xs text-[#9CA3AF]">Configure SMS Gateway route (Termii / Twilio) and Sender ID.</p>
+                <p className="text-xs text-[#9CA3AF]">Configure SMS Portal route (Termii / Twilio) and Sender ID.</p>
               </div>
               <div className="flex items-center gap-3">
                 <button
@@ -2671,7 +2671,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                     disabled={saving}
                     className="py-2 px-5 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-lg shadow-none"
                   >
-                    <Save className="h-3.5 w-3.5" /> Save SMS Gateway
+                    <Save className="h-3.5 w-3.5" /> Save SMS Portal
                   </button>
                 )}
               </div>
@@ -2721,7 +2721,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                   disabled={saving}
                   className="py-2.5 px-6 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-lg shadow-none"
                 >
-                  <Save className="h-4 w-4" /> Save SMS Gateway
+                  <Save className="h-4 w-4" /> Save SMS Portal
                 </button>
               )}
             </div>
@@ -2730,7 +2730,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
 
         {/* 10. MAINTENANCE MODE SETTINGS */}
         {activeTab === "maintenance" && (() => {
-          const isSuperAdmin = session.role === "SUPER_ADMIN" || session.email?.toLowerCase() === "adamuamuhammad8541@gmail.com" || (session as any).isSuperAdmin;
+          const isSuperAdmin = session.role === "SUPER_ADMIN" || Boolean((session as any).isSuperAdmin);
           const isMaintenanceEditable = canEdit && isSuperAdmin;
 
           const MAINTENANCE_SERVICES_LIST = [
@@ -2739,10 +2739,10 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
             { code: "ELECTRICITY", name: "Electricity Bills", icon: "💡", desc: "IKEDC, EKEDC, AEDC, KEDCO bill payments" },
             { code: "CABLE_TV", name: "Cable TV Subscriptions", icon: "📺", desc: "DSTV, GOTV, Startimes, Showmax" },
             { code: "TRANSFER", name: "Wallet Debit & Transfers", icon: "💸", desc: "Bank transfers, P2P & wallet withdrawals" },
-            { code: "WALLET_FUND", name: "Wallet Funding Gateways", icon: "💳", desc: "Monnify, PalmPay, Paystack & manual funding" },
+            { code: "WALLET_FUND", name: "Wallet Funding Portals", icon: "💳", desc: "Monnify, PalmPay, Paystack & manual funding" },
             { code: "VIRTUAL_ACCOUNT", name: "Virtual Bank Accounts", icon: "🏦", desc: "Dedicated virtual account generation" },
             { code: "AI_ASSISTANT", name: "AI Assistant & Smart Genius", icon: "🤖", desc: "AI assistant query resolution" },
-            { code: "IDENTITY", name: "NIN, BVN & Identity", icon: "🪪", desc: "Identity verification & compliance gateways" },
+            { code: "IDENTITY", name: "NIN, BVN & Identity", icon: "🪪", desc: "Identity verification & compliance portals" },
             { code: "EDUCATION", name: "Education & Exam Pins", icon: "🎓", desc: "WAEC, NECO, NABTEB registration pins" },
             { code: "RESULT_CHECKER", name: "Result Checkers", icon: "📑", desc: "WAEC/NECO online result checker tokens" },
           ];
@@ -2953,7 +2953,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                       </span>
                     </h3>
                     <p className="text-xs text-[#9CA3AF]">
-                      Select one, many, or all individual service gateways to put under maintenance.
+                      Select one, many, or all individual service portals to put under maintenance.
                     </p>
                   </div>
 
@@ -3045,7 +3045,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                   </label>
                   <textarea
                     rows={3}
-                    placeholder="e.g. SmartLink is undergoing scheduled core database updates and API payment gateway optimizations to ensure faster delivery."
+                    placeholder="e.g. SmartLink is undergoing scheduled core database updates and API payment portal optimizations to ensure faster delivery."
                     value={maintenanceSettings.maintenanceMessage || ""}
                     onChange={(e) =>
                       setMaintenanceSettings({ ...maintenanceSettings, maintenanceMessage: e.target.value })
@@ -3139,7 +3139,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
             <div className="flex items-center justify-between border-b border-[#111827] pb-4">
               <div>
                 <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Server className="h-5 w-5 text-[#9CA3AF]" /> API Gateway & Rate Limits
+                  <Server className="h-5 w-5 text-[#9CA3AF]" /> API Portal & Rate Limits
                 </h2>
                 <p className="text-xs text-[#9CA3AF]">Configure global request timeouts, retry thresholds, and QPS throttling.</p>
               </div>
@@ -3156,14 +3156,14 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">Gateway Request Timeout (ms)</label>
+                <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">Portal Request Timeout (ms)</label>
                 <input
                   type="number"
-                  value={systemSettings.api?.gatewayTimeoutMs ?? 10000}
+                  value={systemSettings.api?.portalTimeoutMs ?? 10000}
                   onChange={(e) =>
                     setSystemSettings({
                       ...systemSettings,
-                      api: { ...systemSettings.api, gatewayTimeoutMs: parseInt(e.target.value) || 5000 },
+                      api: { ...systemSettings.api, portalTimeoutMs: parseInt(e.target.value) || 5000 },
                     })
                   }
                   disabled={!canEdit}
@@ -3204,7 +3204,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">Gateway Webhook Secret Reference</label>
+                <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">Portal Webhook Secret Reference</label>
                 <input
                   type="text"
                   value={systemSettings.api?.webhookSecretRef || "WH_SEC_****89a2"}

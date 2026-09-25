@@ -23,9 +23,9 @@ import { ProviderExecutor, verifyWebhookSignature } from "../../src/services/pro
 import { adminAuthService, ADMIN_ROLES_CONFIG } from "../../src/services/adminAuthService";
 import { AutomaticWalletFundingEngine } from "../../src/services/automaticWalletFundingEngine";
 import { PaymentVerificationReconciliationEngine } from "../../src/services/paymentVerificationReconciliationEngine";
-import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerGateway";
+import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerConnector";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
-import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
+import { MultiProviderRoutingEngine } from "../../src/services/multiProviderRoutingEngine";
 import { syncFromStorage, syncToStorage } from "../../src/services/settingsStore";
 import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
@@ -128,7 +128,7 @@ app.post("/api/services/vtu", async (req, res) => {
     return res.status(400).json({ error: "Recipient phone number is required.", errorCode: "INVALID_INPUT" });
   }
 
-  const secondaryProvider = provider || "Telecom Gateway";
+  const secondaryProvider = provider || "Telecom Portal";
   const reference = "SML-VTU-" + Math.floor(100000 + Math.random() * 900000);
   const txType = type === "AIRTIME" ? "VTU_AIRTIME" : "VTU_DATA";
 
@@ -531,7 +531,7 @@ app.get("/api/bills/categories", async (req, res) => {
     {
       id: "FUTURE_SERVICES",
       name: "Custom / Future Services",
-      description: "Extensible provider gateway for custom vendor bill collections.",
+      description: "Extensible provider portal for custom vendor bill collections.",
       icon: "Sparkles",
       estimatedProcessingTime: "Variable",
       providerStatus: "ONLINE",
@@ -602,7 +602,7 @@ app.get("/api/bills/providers", async (req, res) => {
       break;
     default:
       providers = [
-        { id: "generic", code: "GENERIC_PROVIDER", name: "SmartLink Unified Payment Gateway", category, status: "ACTIVE" },
+        { id: "generic", code: "GENERIC_PROVIDER", name: "SmartLink Unified Payment Portal", category, status: "ACTIVE" },
       ];
       break;
   }
@@ -954,7 +954,7 @@ app.post("/api/bills/pay", async (req, res) => {
       amountPaid: parseFloat(amount),
       totalDeducted: totalDeduction,
       status: "FAILED",
-      gateway: activeProvider.name || providerName || providerCode,
+      portal: activeProvider.name || providerName || providerCode,
       customerId: customerId || phoneNumber,
       customerName: customerName || "Customer",
       errorReason: execRes.error || execRes.message || "Provider execution failed",
@@ -1024,7 +1024,7 @@ app.post("/api/bills/pay", async (req, res) => {
     amountPaid: parseFloat(amount),
     totalDeducted: totalDeduction,
     status: "SUCCESSFUL",
-    gateway: activeProvider.name || providerName || providerCode,
+    portal: activeProvider.name || providerName || providerCode,
     customerId: customerId || phoneNumber,
     customerName: customerName || "Customer",
     token: realToken,

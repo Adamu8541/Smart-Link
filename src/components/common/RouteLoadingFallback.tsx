@@ -13,7 +13,7 @@ export const RouteLoadingFallback: React.FC<{ message?: string }> = ({
       </div>
       <div className="space-y-1">
         <p className="text-sm font-black text-[#111827] dark:text-white uppercase tracking-wider font-mono">
-          SmartLink Gateway
+          SmartLink Portal
         </p>
         <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] font-medium">
           {message}

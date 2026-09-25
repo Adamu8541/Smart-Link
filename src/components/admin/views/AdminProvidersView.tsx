@@ -67,7 +67,7 @@ export function AdminProvidersView() {
 
   // Add Provider Form Fields
   const [addName, setAddName] = useState("");
-  const [addCategory, setAddCategory] = useState("PAYMENT_GATEWAY");
+  const [addCategory, setAddCategory] = useState("PAYMENT_PROVIDER");
   const [addDescription, setAddDescription] = useState("");
   const [addLogoUrl, setAddLogoUrl] = useState("");
   const [addBaseUrl, setAddBaseUrl] = useState("");
@@ -129,9 +129,9 @@ export function AdminProvidersView() {
       setAddStatus("ENABLED");
       setToast("Clubkonnect preset applied. Please fill in your UserID (Merchant ID) and APIKey in API Credentials.");
     } else if (preset === "aspfiy") {
-      setAddName("Aspfiy Payment Gateway");
-      setAddCategory("PAYMENT_GATEWAY");
-      setAddDescription("Aspfiy Reserved Virtual Accounts & Bank Transfer Gateway");
+      setAddName("Aspfiy Payment Portal");
+      setAddCategory("PAYMENT_PROVIDER");
+      setAddDescription("Aspfiy Reserved Virtual Accounts & Bank Transfer Portal");
       setAddBaseUrl("https://api-v1.aspfiy.com");
       setAddApiVersion("v1.0");
       setAddAuthMethod("BEARER_TOKEN");
@@ -143,18 +143,18 @@ export function AdminProvidersView() {
     } else if (preset === "lumiid") {
       setAddName("LumiID Identity Verification");
       setAddCategory("IDENTITY_API");
-      setAddDescription("LumiID Official Identity & Verification Gateway");
+      setAddDescription("LumiID Official Identity & Verification Portal");
       setAddBaseUrl("https://api.lumiid.com");
       setAddAuthMethod("API_KEY");
       setToast("LumiID preset applied.");
     } else if (preset === "verifyng") {
-      setAddName("VerifyNG Identity Gateway");
+      setAddName("VerifyNG Identity Portal");
       setAddCategory("IDENTITY_API");
-      setAddDescription("VerifyNG KYC & Identity Verification Gateway");
+      setAddDescription("VerifyNG KYC & Identity Verification Portal");
       setAddBaseUrl("https://kyc.edirect.ng");
       setToast("VerifyNG preset applied.");
     } else if (preset === "identro") {
-      setAddName("Identro Identity Gateway");
+      setAddName("Identro Identity Portal");
       setAddCategory("IDENTITY_API");
       setAddDescription("Identro Merchant API for NIN, BVN, CAC & Identity Verification (identro.ng)");
       setAddBaseUrl("https://api.identro.ng");
@@ -397,7 +397,7 @@ export function AdminProvidersView() {
   const categoriesList = [
     "ALL",
     "WALLET_ENGINE",
-    "PAYMENT_GATEWAY",
+    "PAYMENT_PROVIDER",
     "IDENTITY_API",
     "TELECOM_VTU",
     "UTILITY_BILL",
@@ -421,7 +421,7 @@ export function AdminProvidersView() {
             <span>API Provider Management</span>
           </h1>
           <p className="text-xs text-[#9CA3AF] mt-1">
-            Dynamic provider manager for Payment Gateways, Wallet Engines, Identity APIs, VTU & Utilities.
+            Dynamic provider manager for Payment Portals, Wallet Engines, Identity APIs, VTU & Utilities.
           </p>
         </div>
 
@@ -826,7 +826,7 @@ export function AdminProvidersView() {
                 onClick={() => applyProviderPreset("aspfiy")}
                 className="px-2.5 py-1 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-300 rounded-lg font-medium transition cursor-pointer shrink-0"
               >
-                💳 Aspfiy (Gateway)
+                💳 Aspfiy (Portal)
               </button>
               <button
                 type="button"
@@ -903,7 +903,7 @@ export function AdminProvidersView() {
                         onChange={(e) => setAddCategory(e.target.value)}
                         className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
                       >
-                        <option value="PAYMENT_GATEWAY">PAYMENT_GATEWAY</option>
+                        <option value="PAYMENT_PROVIDER">PAYMENT_PROVIDER</option>
                         <option value="WALLET_ENGINE">WALLET_ENGINE</option>
                         <option value="IDENTITY_API">IDENTITY_API</option>
                         <option value="TELECOM_VTU">TELECOM_VTU</option>
@@ -1265,7 +1265,7 @@ export function AdminProvidersView() {
                       type="button"
                       onClick={() => setAddIsDefault(!addIsDefault)}
                       className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                        addIsDefault ? "bg-[#0F2D5C] text-[#111827]" : "bg-[#111827] text-[#9CA3AF]"
+                        addIsDefault ? "bg-emerald-600 hover:bg-emerald-500 text-white" : "bg-slate-700 hover:bg-slate-600 text-slate-300"
                       }`}
                     >
                       {addIsDefault ? "YES (Default)" : "NO"}

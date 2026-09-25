@@ -175,7 +175,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
         {/* Header */}
         <div className="p-5 border-b border-[#E5E7EB] dark:border-[#111827] flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
-            <div className="relative p-2.5 rounded-xl bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF]">
+            <div className="relative p-2.5 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300">
               <Bell className="w-5 h-5" />
               {unreadCount > 0 && (
                 <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#0F2D5C] text-white text-[10px] font-extrabold rounded-full flex items-center justify-center animate-pulse">
@@ -323,7 +323,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
               </div>
 
               {settingsMessage && (
-                <div className="p-3 bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 border border-[#E5E7EB] dark:border-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF] rounded-xl text-xs font-semibold flex items-center gap-2">
+                <div className="p-3 bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 border border-slate-200 dark:border-slate-700 text-[#0F2D5C] dark:text-[#9CA3AF] rounded-xl text-xs font-semibold flex items-center gap-2">
                   <Check className="w-4 h-4 text-[#0F2D5C]" />
                   {settingsMessage}
                 </div>
@@ -522,7 +522,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
                   {!n.read && (
                     <button
                       onClick={() => handleMarkRead(n.notificationId || n.id)}
-                      className="p-1.5 rounded-md hover:bg-[#E5E7EB] dark:hover:bg-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF] transition-colors"
+                      className="p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 hover:text-[#0F2D5C] dark:hover:text-white transition-colors"
                       title="Mark as Read"
                     >
                       <Check className="w-3.5 h-3.5" />
@@ -530,7 +530,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
                   )}
                   <button
                     onClick={() => handleDelete(n.notificationId || n.id)}
-                    className="p-1.5 rounded-md hover:bg-[#E5E7EB] dark:hover:bg-[#0F2D5C] text-[#9CA3AF] hover:text-[#0F2D5C] transition-colors"
+                    className="p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors"
                     title="Delete Notification"
                   >
                     <Trash2 className="w-3.5 h-3.5" />

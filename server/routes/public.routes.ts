@@ -22,9 +22,9 @@ import { ProviderExecutor, verifyWebhookSignature } from "../../src/services/pro
 import { adminAuthService, ADMIN_ROLES_CONFIG } from "../../src/services/adminAuthService";
 import { AutomaticWalletFundingEngine } from "../../src/services/automaticWalletFundingEngine";
 import { PaymentVerificationReconciliationEngine } from "../../src/services/paymentVerificationReconciliationEngine";
-import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerGateway";
+import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerConnector";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
-import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
+import { MultiProviderRoutingEngine } from "../../src/services/multiProviderRoutingEngine";
 import { syncFromStorage, syncToStorage } from "../../src/services/settingsStore";
 import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
@@ -54,7 +54,7 @@ app.get("/api/health", async (req, res) => {
         identityVerification: "OPERATIONAL",
         cacBusinessRegistration: "OPERATIONAL",
         vtuBillPayments: "OPERATIONAL",
-        providerGatewayWebhooks: "OPERATIONAL",
+        providerConnectorWebhooks: "OPERATIONAL",
         paystackWebhooks: "OPERATIONAL",
       }
     });
@@ -134,7 +134,7 @@ app.post("/api/admin/maintenance/toggle", async (req, res) => {
     return res.status(401).json({ success: false, message: "Unauthorized admin access." });
   }
 
-  const isSuperAdmin = val.session.role === "SUPER_ADMIN" || (val.session as any).isSuperAdmin || val.session.email?.toLowerCase() === "adamuamuhammad8541@gmail.com";
+  const isSuperAdmin = val.session.role === "SUPER_ADMIN" || Boolean((val.session as any).isSuperAdmin);
   if (!isSuperAdmin) {
     return res.status(403).json({ success: false, message: "Permission Denied: Only Super Administrators can configure or toggle Maintenance Mode settings." });
   }

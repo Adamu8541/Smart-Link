@@ -22,9 +22,9 @@ import { ProviderExecutor, verifyWebhookSignature } from "../../src/services/pro
 import { adminAuthService, ADMIN_ROLES_CONFIG } from "../../src/services/adminAuthService";
 import { AutomaticWalletFundingEngine } from "../../src/services/automaticWalletFundingEngine";
 import { PaymentVerificationReconciliationEngine } from "../../src/services/paymentVerificationReconciliationEngine";
-import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerGateway";
+import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerConnector";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
-import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
+import { MultiProviderRoutingEngine } from "../../src/services/multiProviderRoutingEngine";
 import { syncFromStorage, syncToStorage } from "../../src/services/settingsStore";
 import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
@@ -35,12 +35,12 @@ import * as notificationsStore from "../../src/services/notificationsStore";
 const router = express.Router();
 const app = router;
 
-function verifyGatewayWebhookSignature(req: express.Request, db: any): { isValid: boolean; reason?: string } {
+function verifyPortalWebhookSignature(req: express.Request, db: any): { isValid: boolean; reason?: string } {
   const provider =
     (db.api_providers || []).find((p: any) => (p.name || "").toLowerCase().includes("aspfiy") || (p.id || "").toLowerCase().includes("aspfiy")) ||
     (db.apiProviders || []).find((p: any) => (p.name || "").toLowerCase().includes("aspfiy") || (p.id || "").toLowerCase().includes("aspfiy")) ||
-    (db.api_providers || []).find((p: any) => (p.category || "").toLowerCase().includes("gateway") || (p.type || "").toLowerCase().includes("payment")) ||
-    (db.apiProviders || []).find((p: any) => (p.category || "").toLowerCase().includes("gateway") || (p.type || "").toLowerCase().includes("payment")) ||
+    (db.api_providers || []).find((p: any) => (p.category || "").toLowerCase().includes("portal") || (p.type || "").toLowerCase().includes("payment")) ||
+    (db.apiProviders || []).find((p: any) => (p.category || "").toLowerCase().includes("portal") || (p.type || "").toLowerCase().includes("payment")) ||
     (db.api_providers || []).find((p: any) => p.status === "Active" || p.isActive) ||
     (db.apiProviders || []).find((p: any) => p.status === "Active" || p.isActive);
 
@@ -124,7 +124,7 @@ const WEBHOOK_ENDPOINTS = [
   "/api/webhooks/aspfiy/",
   "/api/webhooks/incoming",
   "/api/webhooks/payment",
-  "/api/webhooks/gateway",
+  "/api/webhooks/portal",
   "/api/wallet/funding/webhook",
   "/api/wallet/webhook",
   "/api/v1/webhooks",
@@ -136,12 +136,12 @@ app.get(WEBHOOK_ENDPOINTS, (req, res) => {
   res.status(200).json({
     status: "SUCCESS",
     success: true,
-    message: "SmartLink Webhook Gateway is active, healthy, and listening for payment events.",
+    message: "SmartLink Webhook Portal is active, healthy, and listening for payment events.",
     timestamp: new Date().toISOString(),
   });
 });
 
-// Canonical ASPFIY & Compatibility Gateway Webhook Handler
+// Canonical ASPFIY & Compatibility Portal Webhook Handler
 app.post(
   WEBHOOK_ENDPOINTS,
   async (req, res) => {
@@ -155,7 +155,7 @@ app.post(
     });
 
     // 1. Validate Provider & Webhook Signature before processing any payment
-    const sigResult = verifyGatewayWebhookSignature(req, db);
+    const sigResult = verifyPortalWebhookSignature(req, db);
     if (!sigResult.isValid) {
       console.warn(`[Webhook] Signature check failed: ${sigResult.reason}`);
       // Record suspicious attempt in security audit ledger and unmatched payments

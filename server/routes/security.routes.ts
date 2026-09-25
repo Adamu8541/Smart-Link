@@ -4,7 +4,7 @@
  */
 
 import express from "express";
-import { readDB, writeDB } from "../db";
+import { readDB, writeDB, SUPER_ADMIN_EMAIL } from "../db";
 import { requireAdmin, optionalAdmin } from "../middleware/auth";
 import * as securityStore from "../../src/services/securityStore";
 import * as usersStore from "../../src/services/usersStore";
@@ -33,7 +33,7 @@ async function ensureSecurityDefaults(db: any) {
         title: "New Device Login Detected",
         description: "User logged in from an unrecognized browser environment (Safari / macOS)",
         severity: "Low",
-        userEmail: "adamuamuhammad8541@gmail.com",
+        userEmail: "security-audit@smartlinkng.com.ng",
         status: "Resolved",
         createdAt: new Date(Date.now() - 86400000).toISOString(),
         updatedAt: new Date().toISOString(),
@@ -62,7 +62,7 @@ async function ensureSecurityDefaults(db: any) {
         id: "SESS_ADMIN_PRIMARY",
         sessionId: "SESS_ADMIN_PRIMARY",
         userId: "usr_sa_primary",
-        userEmail: "adamuamuhammad8541@gmail.com",
+        userEmail: SUPER_ADMIN_EMAIL || "admin@smartlink.ng",
         ipAddress: "102.89.34.120",
         userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
         device: "Chrome Desktop / Windows",
@@ -150,7 +150,7 @@ app.get("/api/admin/security/login-history", optionalAdmin, async (req, res) => 
         {
           id: "LH_01",
           userId: "usr_sa_primary",
-          userEmail: "adamuamuhammad8541@gmail.com",
+          userEmail: SUPER_ADMIN_EMAIL || "admin@smartlink.ng",
           ipAddress: "102.89.34.120",
           device: "Chrome / Windows 11",
           location: "Kano, Nigeria",

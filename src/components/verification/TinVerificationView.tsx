@@ -212,7 +212,7 @@ export const TinVerificationView: React.FC<TinVerificationViewProps> = ({
         message: data.message || "TIN Verification Completed Successfully",
         data: data.data,
         timestamp: data.timestamp || new Date().toISOString(),
-        providerName: data.providerName || "Joint Tax Board (JTB) Gateway",
+        providerName: data.providerName || "Joint Tax Board (JTB) Portal",
         responseTime: data.responseTime || responseTime,
         receiptNumber: data.receiptNumber,
         service: "TIN",
@@ -230,8 +230,8 @@ export const TinVerificationView: React.FC<TinVerificationViewProps> = ({
     } catch (err: any) {
       setErrorState({
         code: "NETWORK_ERROR",
-        message: err.message || "Failed to communicate with Joint Tax Board Gateway.",
-        friendlyMessage: "JTB Tax Gateway Connection Failure",
+        message: err.message || "Failed to communicate with Joint Tax Board Portal.",
+        friendlyMessage: "JTB Tax Portal Connection Failure",
         details: "Please check your network connection and try again.",
       });
       setStepMode("ERROR");
@@ -292,8 +292,8 @@ export const TinVerificationView: React.FC<TinVerificationViewProps> = ({
                 <h1 className="text-lg font-black text-[#111827] dark:text-white tracking-tight">
                   Tax Identification Number (TIN) Verification
                 </h1>
-                <span className="px-2.5 py-0.5 text-[10px] font-extrabold uppercase bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C] dark:text-[#9CA3AF] rounded-full border border-[#E5E7EB] dark:border-[#0F2D5C]">
-                  JTB & FIRS Gateway
+                <span className="px-2.5 py-0.5 text-[10px] font-extrabold uppercase bg-blue-50 text-[#0F2D5C] dark:bg-blue-950/50 dark:text-blue-300 rounded-full border border-slate-200 dark:border-slate-700">
+                  JTB & FIRS Portal
                 </span>
               </div>
               <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-0.5">
@@ -395,7 +395,7 @@ export const TinVerificationView: React.FC<TinVerificationViewProps> = ({
                     }}
                     className={`p-3 rounded-2xl border text-center text-xs font-bold transition-all cursor-pointer flex flex-col items-center gap-1.5 ${
                       tinType === "VERIFY_BY_TIN"
-                        ? "border-[#0F2D5C] bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] shadow-xs"
+                        ? "border-[#0F2D5C] bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 shadow-xs"
                         : "border-[#E5E7EB] dark:border-[#4B5563] hover:bg-[#F5F7FA] dark:hover:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB]"
                     }`}
                   >
@@ -411,7 +411,7 @@ export const TinVerificationView: React.FC<TinVerificationViewProps> = ({
                     }}
                     className={`p-3 rounded-2xl border text-center text-xs font-bold transition-all cursor-pointer flex flex-col items-center gap-1.5 ${
                       tinType === "VERIFY_BY_BUSINESS_NAME"
-                        ? "border-[#0F2D5C] bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] shadow-xs"
+                        ? "border-[#0F2D5C] bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 shadow-xs"
                         : "border-[#E5E7EB] dark:border-[#4B5563] hover:bg-[#F5F7FA] dark:hover:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB]"
                     }`}
                   >
@@ -427,7 +427,7 @@ export const TinVerificationView: React.FC<TinVerificationViewProps> = ({
                     }}
                     className={`p-3 rounded-2xl border text-center text-xs font-bold transition-all cursor-pointer flex flex-col items-center gap-1.5 ${
                       tinType === "VERIFY_BY_RC_NUMBER"
-                        ? "border-[#0F2D5C] bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] shadow-xs"
+                        ? "border-[#0F2D5C] bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 shadow-xs"
                         : "border-[#E5E7EB] dark:border-[#4B5563] hover:bg-[#F5F7FA] dark:hover:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB]"
                     }`}
                   >
@@ -573,7 +573,7 @@ export const TinVerificationView: React.FC<TinVerificationViewProps> = ({
 
                 {/* Input Error Callout */}
                 {inputError && (
-                  <div className="p-3.5 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border border-[#E5E7EB] dark:border-[#0F2D5C]/60 rounded-xl flex items-center gap-2 text-xs text-[#0F2D5C] dark:text-[#9CA3AF]">
+                  <div className="p-3.5 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border border-slate-200 dark:border-slate-700 rounded-xl flex items-center gap-2 text-xs text-[#0F2D5C] dark:text-[#9CA3AF]">
                     <AlertCircle className="h-4 w-4 shrink-0 text-[#0F2D5C]" />
                     <span>{inputError}</span>
                   </div>
@@ -625,7 +625,7 @@ export const TinVerificationView: React.FC<TinVerificationViewProps> = ({
             <VerificationLoader
               currentStep={currentStep}
               serviceTitle="TIN Tax Verification"
-              providerName="Joint Tax Board (JTB) Gateway"
+              providerName="Joint Tax Board (JTB) Portal"
             />
           )}
 
@@ -694,7 +694,7 @@ export const TinVerificationView: React.FC<TinVerificationViewProps> = ({
                   className="p-4 bg-[#F5F7FA] dark:bg-[#111827]/40 rounded-2xl border border-[#E5E7EB] dark:border-[#111827] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:border-[#0F2D5C]/40 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 border border-[#E5E7EB] dark:border-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF]">
+                    <div className="p-2.5 rounded-xl bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 border border-slate-200 dark:border-slate-700 text-[#0F2D5C] dark:text-[#9CA3AF]">
                       <FileCheck className="h-5 w-5" />
                     </div>
                     <div className="space-y-0.5">
@@ -741,7 +741,7 @@ export const TinVerificationView: React.FC<TinVerificationViewProps> = ({
                         };
                         setSelectedHistoryReceipt(stdRes);
                       }}
-                      className="px-3 py-1.5 bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] hover:bg-[#E5E7EB] dark:hover:bg-[#0F2D5C]/60 border border-[#E5E7EB] dark:border-[#0F2D5C] rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5"
+                      className="px-3 py-1.5 bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 hover:bg-[#E5E7EB] dark:hover:bg-[#0F2D5C]/60 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5"
                     >
                       <FileText className="h-3.5 w-3.5" />
                       <span>Receipt</span>

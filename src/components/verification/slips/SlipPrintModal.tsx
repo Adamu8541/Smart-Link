@@ -32,6 +32,7 @@ import {
 import { SlipService as StorageSlipService } from "../../../services/slipService";
 import { SlipPrintEngine } from "../../../services/slipPrintEngine";
 import { EmailSlipService } from "../../../services/emailSlipService";
+import type { IdentitySlipData } from "../../../services/identitySlipPdfOverlay";
 
 interface SlipPrintModalProps {
   verificationResult: StandardizedVerificationResult;
@@ -77,7 +78,7 @@ export const SlipPrintModal: React.FC<SlipPrintModalProps> = ({
     message: string;
   }>({ type: null, message: "" });
 
-  const effectiveRegisteredEmail = userEmail || "adamuamuhammad8541@gmail.com";
+  const effectiveRegisteredEmail = userEmail || "";
 
   // Initialize or save slip to Storage
   useEffect(() => {
@@ -110,8 +111,300 @@ export const SlipPrintModal: React.FC<SlipPrintModalProps> = ({
     if (!activeSlip) return;
     setIsExporting(true);
 
+    const isNin = activeSlip.serviceType?.toUpperCase().includes("NIN") || Boolean(activeSlip.holderData?.nin);
+    const rawNin = (activeSlip.identificationNumber || activeSlip.holderData?.nin || "").toString().trim();
+    const safeNin = rawNin ? rawNin.replace(/[^a-zA-Z0-9_-]/g, "") : "";
+    const rawBvn = (
+      (activeSlip.holderData as any)?.bvn ||
+      verificationResult?.data?.bvn ||
+      (isBvn ? activeSlip.identificationNumber || verificationResult?.verifiedId : "") ||
+      ""
+    ).toString().trim();
+    const safeBvn = rawBvn ? rawBvn.replace(/[^a-zA-Z0-9_-]/g, "") : "";
+
+    const isBvnSlipSelected =
+      selectedFormat === "BVN_SLIP_1" ||
+      (selectedFormat as any) === "BVN_SLIP" ||
+      (typeof selectedFormat === "string" && selectedFormat.toUpperCase().includes("BVN_SLIP"));
+
+    const isBvnCardSelected =
+      !isBvnSlipSelected && (
+        isBvn ||
+        selectedFormat === "BVN_CARD" ||
+        (activeSlip.serviceType && activeSlip.serviceType.toUpperCase().includes("BVN"))
+      );
+
+    const isBvnSelected = isBvnSlipSelected || isBvnCardSelected;
+
+    const isRegularSelected =
+      !isBvnSelected &&
+      (selectedFormat === "NIN_REGULAR" ||
+        (typeof selectedFormat === "string" && selectedFormat.toUpperCase().includes("REGULAR")));
+
+    const isPremiumSelected =
+      !isBvnSelected &&
+      (selectedFormat === "NIN_PREMIUM_WHITE" ||
+        selectedFormat === "NIN_PREMIUM_GREEN" ||
+        (typeof selectedFormat === "string" && selectedFormat.toUpperCase().includes("PREMIUM")));
+
+    const filename = isBvnSlipSelected
+      ? (safeBvn ? `BVN Slip ${safeBvn}` : `BVN Slip`)
+      : isBvnCardSelected
+      ? (safeBvn ? `BVN ${safeBvn}` : `BVN`)
+      : isRegularSelected
+      ? (safeNin ? `NIN Regular slip ${safeNin}` : `NIN Regular slip`)
+      : isNin
+      ? (safeNin ? `NIN Premium card ${safeNin}` : `NIN Premium card`)
+      : `SmartLink_${activeSlip.serviceType}_Slip_${activeSlip.identificationNumber}`;
+
+    if (isRegularSelected || isPremiumSelected || isBvnSelected) {
+      const candidatePhoto = (
+        activeSlip.holderData?.photoUrl ||
+        (activeSlip.holderData as any)?.photo_url ||
+        (activeSlip.holderData as any)?.photo ||
+        (activeSlip.holderData as any)?.image ||
+        (activeSlip.holderData as any)?.rawPhoto ||
+        (activeSlip.holderData as any)?.base64Image ||
+        (activeSlip.holderData as any)?.applicant_photo ||
+        (activeSlip.holderData as any)?.picture ||
+        (activeSlip.holderData as any)?.avatar ||
+        verificationResult?.data?.photoUrl ||
+        (verificationResult?.data as any)?.photo_url ||
+        (verificationResult?.data as any)?.photo ||
+        (verificationResult?.data as any)?.image ||
+        (verificationResult?.data as any)?.rawPhoto ||
+        (verificationResult?.data as any)?.base64Image ||
+        (verificationResult?.data as any)?.applicant_photo ||
+        (verificationResult?.data as any)?.picture ||
+        (verificationResult?.data as any)?.avatar ||
+        verificationResult?.data?.rawFields?.photo ||
+        verificationResult?.data?.rawFields?.photoUrl ||
+        verificationResult?.data?.rawFields?.photo_url ||
+        verificationResult?.data?.rawFields?.image ||
+        verificationResult?.data?.rawFields?.applicant_photo ||
+        verificationResult?.data?.rawFields?.base64Image ||
+        (activeSlip.metadata as any)?.photoUrl ||
+        ""
+      ).toString().trim();
+
+      let fName = (
+        activeSlip.holderData?.firstName ||
+        verificationResult?.data?.firstName ||
+        (verificationResult?.data as any)?.first_name ||
+        (verificationResult?.data as any)?.firstname ||
+        ""
+      ).trim();
+
+      let lName = (
+        activeSlip.holderData?.surname ||
+        (activeSlip.holderData as any)?.lastName ||
+        verificationResult?.data?.lastName ||
+        (verificationResult?.data as any)?.surname ||
+        (verificationResult?.data as any)?.last_name ||
+        ""
+      ).trim();
+
+      const fFullName = (
+        activeSlip.holderData?.fullName ||
+        verificationResult?.data?.fullName ||
+        (verificationResult?.data as any)?.name ||
+        ""
+      ).trim();
+
+      // Disambiguate if surname is missing or identical to first name
+      if ((!lName || (fName && lName.toLowerCase() === fName.toLowerCase())) && fFullName) {
+        const parts = fFullName.split(/\s+/).filter(Boolean);
+        if (parts.length >= 2) {
+          const others = parts.filter((p) => !fName || p.toLowerCase() !== fName.toLowerCase());
+          if (others.length > 0) {
+            lName = others.join(" ");
+          } else {
+            lName = parts[1] || parts[0];
+          }
+        }
+      }
+
+      if (!fName && fFullName) {
+        const parts = fFullName.split(/\s+/).filter(Boolean);
+        if (parts.length >= 2) {
+          if (lName) {
+            const others = parts.filter((p) => p.toLowerCase() !== lName.toLowerCase());
+            fName = others[0] || parts[1];
+          } else {
+            lName = parts[0];
+            fName = parts[1];
+          }
+        } else {
+          fName = parts[0] || "";
+        }
+      }
+
+      const slipData: IdentitySlipData = {
+        firstName: fName,
+        lastName: lName,
+        surname: lName,
+        middleName: activeSlip.holderData?.middleName || verificationResult?.data?.middleName,
+        fullName: fFullName || [lName, fName].filter(Boolean).join(" "),
+        gender: activeSlip.holderData?.gender || verificationResult?.data?.gender,
+        dateOfBirth:
+          activeSlip.holderData?.dateOfBirth ||
+          (activeSlip.holderData as any)?.dob ||
+          (activeSlip.holderData as any)?.birthdate ||
+          (activeSlip.holderData as any)?.birthDate ||
+          (activeSlip.holderData as any)?.date_of_birth ||
+          (activeSlip.holderData as any)?.birth_date ||
+          verificationResult?.data?.dateOfBirth ||
+          (verificationResult?.data as any)?.dob ||
+          (verificationResult?.data as any)?.birthdate ||
+          (verificationResult?.data as any)?.birthDate ||
+          (verificationResult?.data as any)?.date_of_birth ||
+          (verificationResult?.data as any)?.birth_date ||
+          verificationResult?.data?.rawFields?.dateOfBirth ||
+          verificationResult?.data?.rawFields?.dob ||
+          verificationResult?.data?.rawFields?.birthdate ||
+          verificationResult?.data?.rawFields?.birthDate ||
+          verificationResult?.data?.rawFields?.date_of_birth ||
+          (verificationResult as any)?.dateOfBirth ||
+          (verificationResult as any)?.dob ||
+          (verificationResult as any)?.birthdate ||
+          "",
+        dob:
+          activeSlip.holderData?.dateOfBirth ||
+          (activeSlip.holderData as any)?.dob ||
+          (activeSlip.holderData as any)?.birthdate ||
+          verificationResult?.data?.dateOfBirth ||
+          (verificationResult?.data as any)?.birthdate ||
+          "",
+        birthdate:
+          activeSlip.holderData?.dateOfBirth ||
+          (activeSlip.holderData as any)?.birthdate ||
+          verificationResult?.data?.dateOfBirth ||
+          (verificationResult?.data as any)?.birthdate ||
+          "",
+        photoUrl: candidatePhoto,
+        photo: candidatePhoto,
+        rawPhoto: candidatePhoto,
+        nin: activeSlip.identificationNumber || activeSlip.holderData?.nin || verificationResult?.verifiedId,
+        bvn:
+          (activeSlip.holderData as any)?.bvn ||
+          verificationResult?.data?.bvn ||
+          (isBvn ? activeSlip.identificationNumber || verificationResult?.verifiedId : undefined),
+        idNumber: activeSlip.identificationNumber || verificationResult?.verifiedId,
+        trackingId:
+          (activeSlip.holderData as any)?.trackingId ||
+          (activeSlip.holderData as any)?.tracking_id ||
+          (activeSlip.holderData as any)?.trackingID ||
+          (activeSlip.holderData as any)?.rawFields?.trackingId ||
+          (activeSlip.holderData as any)?.rawFields?.tracking_id ||
+          (activeSlip.holderData as any)?.rawFields?.trackingID ||
+          verificationResult?.data?.trackingId ||
+          (verificationResult?.data as any)?.tracking_id ||
+          (verificationResult?.data as any)?.trackingID ||
+          verificationResult?.data?.rawFields?.trackingId ||
+          verificationResult?.data?.rawFields?.tracking_id ||
+          undefined,
+        phoneNumber:
+          activeSlip.holderData?.phoneNumber ||
+          activeSlip.holderData?.phone ||
+          (activeSlip.holderData as any)?.phone_number ||
+          (activeSlip.holderData as any)?.mobile ||
+          (activeSlip.holderData as any)?.phoneNo ||
+          verificationResult?.data?.phoneNumber ||
+          verificationResult?.data?.phone ||
+          (verificationResult?.data as any)?.phone_number ||
+          (verificationResult?.data as any)?.mobile,
+        phone:
+          activeSlip.holderData?.phone ||
+          activeSlip.holderData?.phoneNumber ||
+          verificationResult?.data?.phone ||
+          verificationResult?.data?.phoneNumber,
+        maritalStatus:
+          (activeSlip.holderData as any)?.maritalStatus ||
+          (activeSlip.holderData as any)?.marital_status ||
+          (verificationResult?.data as any)?.maritalStatus ||
+          (verificationResult?.data as any)?.marital_status,
+        enrolmentInstitution:
+          (activeSlip.holderData as any)?.enrolmentInstitution ||
+          (activeSlip.holderData as any)?.institution ||
+          (activeSlip.holderData as any)?.bank ||
+          (verificationResult?.data as any)?.enrolmentInstitution ||
+          (verificationResult?.data as any)?.institution ||
+          (verificationResult?.data as any)?.bank,
+        enrolmentBranch:
+          (activeSlip.holderData as any)?.enrolmentBranch ||
+          (activeSlip.holderData as any)?.branch ||
+          (verificationResult?.data as any)?.enrolmentBranch ||
+          (verificationResult?.data as any)?.branch,
+        originState:
+          (activeSlip.holderData as any)?.originState ||
+          (activeSlip.holderData as any)?.stateOfOrigin ||
+          (activeSlip.holderData as any)?.state_of_origin ||
+          (verificationResult?.data as any)?.originState ||
+          (verificationResult?.data as any)?.stateOfOrigin,
+        originLga:
+          (activeSlip.holderData as any)?.originLga ||
+          (activeSlip.holderData as any)?.lgaOfOrigin ||
+          (activeSlip.holderData as any)?.lga_of_origin ||
+          (verificationResult?.data as any)?.originLga ||
+          (verificationResult?.data as any)?.lgaOfOrigin,
+        residenceState:
+          (activeSlip.holderData as any)?.residenceState ||
+          (activeSlip.holderData as any)?.stateOfResidence ||
+          (activeSlip.holderData as any)?.residence_state ||
+          (verificationResult?.data as any)?.residenceState ||
+          (verificationResult?.data as any)?.stateOfResidence,
+        residenceLga:
+          (activeSlip.holderData as any)?.residenceLga ||
+          (activeSlip.holderData as any)?.lgaOfResidence ||
+          (activeSlip.holderData as any)?.residence_lga ||
+          (verificationResult?.data as any)?.residenceLga ||
+          (verificationResult?.data as any)?.lgaOfResidence,
+        address:
+          activeSlip.holderData?.address ||
+          (activeSlip.holderData as any)?.residence_address ||
+          verificationResult?.data?.address ||
+          (verificationResult?.data as any)?.residence_address,
+        addressLine1:
+          (activeSlip.holderData as any)?.addressLine1 ||
+          (activeSlip.holderData as any)?.street ||
+          verificationResult?.data?.addressLine1 ||
+          (verificationResult?.data as any)?.street,
+        addressLine2:
+          (activeSlip.holderData as any)?.addressLine2 ||
+          (activeSlip.holderData as any)?.lga ||
+          verificationResult?.data?.addressLine2 ||
+          (verificationResult?.data as any)?.lga,
+        lga:
+          (activeSlip.holderData as any)?.lga ||
+          (activeSlip.holderData as any)?.residence_lga ||
+          verificationResult?.data?.lga ||
+          (verificationResult?.data as any)?.residence_lga,
+        state:
+          (activeSlip.holderData as any)?.state ||
+          (activeSlip.holderData as any)?.residence_state ||
+          verificationResult?.data?.state ||
+          (verificationResult?.data as any)?.residence_state,
+        slipType: isBvnSlipSelected ? "BVN_SLIP" : isBvnCardSelected ? "BVN_CARD" : (isRegularSelected ? "REGULAR" : "PREMIUM"),
+        providerReference: activeSlip.reference || verificationResult?.reference,
+        engineTransactionId: activeSlip.slipId || activeSlip.id || verificationResult?.receiptNumber,
+        verificationDate: activeSlip.createdAt ? new Date(activeSlip.createdAt) : new Date(),
+      };
+
+      const success = isBvnSlipSelected
+        ? await SlipPrintEngine.exportBvnSlipPdf(slipData, filename)
+        : isBvnCardSelected
+        ? await SlipPrintEngine.exportBvnCardPdf(slipData, filename)
+        : isRegularSelected
+        ? await SlipPrintEngine.exportRegularNinPdf(slipData, filename)
+        : await SlipPrintEngine.exportPremiumNinPdf(slipData, filename);
+
+      if (success) {
+        setIsExporting(false);
+        return;
+      }
+    }
+
     const elementId = "active-printable-slip";
-    const filename = `SmartLink_${activeSlip.serviceType}_Slip_${activeSlip.identificationNumber}`;
     const isCard = selectedFormat === "NIN_PREMIUM_GREEN" || selectedFormat === "NIN_PREMIUM_WHITE";
 
     await SlipPrintEngine.exportToPdf({
@@ -129,7 +422,12 @@ export const SlipPrintModal: React.FC<SlipPrintModalProps> = ({
     setIsExporting(true);
 
     const elementId = "active-printable-slip";
-    const filename = `SmartLink_${activeSlip.serviceType}_Slip_${activeSlip.identificationNumber}`;
+    const isNin = activeSlip.serviceType?.toUpperCase().includes("NIN") || Boolean(activeSlip.holderData?.nin);
+    const rawNin = (activeSlip.identificationNumber || activeSlip.holderData?.nin || "").toString().trim();
+    const safeNin = rawNin ? rawNin.replace(/[^a-zA-Z0-9_-]/g, "") : "";
+    const filename = isNin
+      ? (safeNin ? `NIN Premium card ${safeNin}` : `NIN Premium card`)
+      : `SmartLink_${activeSlip.serviceType}_Slip_${activeSlip.identificationNumber}`;
 
     await SlipPrintEngine.exportToPng(elementId, filename);
     setIsExporting(false);
@@ -240,7 +538,7 @@ export const SlipPrintModal: React.FC<SlipPrintModalProps> = ({
                 <h3 className="text-base font-extrabold text-[#111827] dark:text-white">
                   Official Identity Slip Generator & Print Engine
                 </h3>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C] dark:text-[#9CA3AF] border border-[#E5E7EB] dark:border-[#0F2D5C]">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-50 text-[#0F2D5C] dark:bg-blue-950/50 dark:text-blue-300 border border-slate-200 dark:border-slate-700">
                   REAL VERIFIED
                 </span>
               </div>
@@ -257,7 +555,7 @@ export const SlipPrintModal: React.FC<SlipPrintModalProps> = ({
               className={`px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
                 showEmailPanel
                   ? "bg-[#0F2D5C] text-white shadow-md shadow-purple-600/20"
-                  : "bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 text-[#0F2D5C] dark:text-[#9CA3AF] border border-[#E5E7EB] dark:border-[#0F2D5C]/60 hover:bg-[#E5E7EB] dark:hover:bg-[#0F2D5C]/40"
+                  : "bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 border border-slate-200 dark:border-slate-700 hover:bg-[#E5E7EB] dark:hover:bg-[#0F2D5C]/40"
               }`}
               title="Email official verification slip"
             >
@@ -383,8 +681,8 @@ export const SlipPrintModal: React.FC<SlipPrintModalProps> = ({
                 <div
                   className={`text-xs font-semibold px-3 py-1.5 rounded-xl flex items-center gap-2 ${
                     emailStatus.type === "success"
-                      ? "bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C] dark:text-[#9CA3AF] border border-[#E5E7EB] dark:border-[#0F2D5C]"
-                      : "bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C] dark:text-[#9CA3AF] border border-[#E5E7EB] dark:border-[#0F2D5C]"
+                      ? "bg-blue-50 text-[#0F2D5C] dark:bg-blue-950/50 dark:text-blue-300 border border-slate-200 dark:border-slate-700"
+                      : "bg-blue-50 text-[#0F2D5C] dark:bg-blue-950/50 dark:text-blue-300 border border-slate-200 dark:border-slate-700"
                   }`}
                 >
                   {emailStatus.type === "success" ? (
@@ -427,19 +725,7 @@ export const SlipPrintModal: React.FC<SlipPrintModalProps> = ({
                   }`}
                 >
                   <FileText className="h-4 w-4" />
-                  <span>BVN Slip 1</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedFormat("BVN_SLIP_2" as any)}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
-                    selectedFormat === ("BVN_SLIP_2" as any)
-                      ? "bg-[#0F2D5C] text-white shadow-md shadow-emerald-600/20"
-                      : "bg-[#E5E7EB] dark:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563]"
-                  }`}
-                >
-                  <Layers className="h-4 w-4" />
-                  <span>BVN Slip 2</span>
+                  <span>BVN Slip</span>
                 </button>
               </>
             ) : (
@@ -455,19 +741,6 @@ export const SlipPrintModal: React.FC<SlipPrintModalProps> = ({
                 >
                   <Layers className="h-4 w-4" />
                   <span>Regular Slip</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setSelectedFormat("NIN_STANDARD")}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
-                    selectedFormat === "NIN_STANDARD"
-                      ? "bg-[#0F2D5C] text-white shadow-md shadow-emerald-600/20"
-                      : "bg-[#E5E7EB] dark:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563]"
-                  }`}
-                >
-                  <FileText className="h-4 w-4" />
-                  <span>Standard Slip</span>
                 </button>
 
                 <button
@@ -527,10 +800,8 @@ export const SlipPrintModal: React.FC<SlipPrintModalProps> = ({
               {/* Slip Card Render Container targeted by ID */}
               <div id="active-printable-slip" className="w-full max-w-xl flex items-center justify-center p-2 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
                 {isBvn ? (
-                  selectedFormat === "BVN_SLIP_2" ? (
-                    <img src="/assets/BVN%20Slip%202.webp" alt="BVN Slip 2" loading="eager" referrerPolicy="no-referrer" className="w-full h-auto object-contain rounded-xl" />
-                  ) : selectedFormat === "BVN_SLIP_1" ? (
-                    <img src="/assets/BVN%20Slip%201.webp" alt="BVN Slip 1" loading="eager" referrerPolicy="no-referrer" className="w-full h-auto object-contain rounded-xl" />
+                  selectedFormat === "BVN_SLIP_1" || (selectedFormat as any) === "BVN_SLIP" ? (
+                    <img src="/assets/BVN%20Slip%201.webp" alt="BVN Slip" loading="eager" referrerPolicy="no-referrer" className="w-full h-auto object-contain rounded-xl" />
                   ) : (
                     <img src="/assets/BVN%20Card.webp" alt="BVN Card" loading="eager" referrerPolicy="no-referrer" className="w-full h-auto object-contain rounded-xl" />
                   )
@@ -544,18 +815,6 @@ export const SlipPrintModal: React.FC<SlipPrintModalProps> = ({
                       onError={(e) => {
                         const target = e.currentTarget;
                         if (!target.src.includes("Premium.webp")) target.src = "/assets/Premium.webp";
-                      }}
-                      className="w-full h-auto object-contain rounded-xl"
-                    />
-                  ) : selectedFormat === "NIN_STANDARD" ? (
-                    <img
-                      src="/assets/standard.webp"
-                      alt="Standard Slip"
-                      loading="eager"
-                      referrerPolicy="no-referrer"
-                      onError={(e) => {
-                        const target = e.currentTarget;
-                        if (!target.src.includes("Standard.webp")) target.src = "/assets/Standard.webp";
                       }}
                       className="w-full h-auto object-contain rounded-xl"
                     />

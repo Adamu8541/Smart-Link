@@ -72,7 +72,7 @@ export const TransactionHistoryView: React.FC<TransactionHistoryViewProps> = ({
     let filteredList = res.transactions;
     if (providerFilter && providerFilter !== "ALL") {
       filteredList = filteredList.filter((t: any) =>
-        (t.provider || t.gateway || "").toUpperCase().includes(providerFilter.toUpperCase())
+        (t.provider || t.portal || "").toUpperCase().includes(providerFilter.toUpperCase())
       );
     }
 
@@ -203,7 +203,7 @@ export const TransactionHistoryView: React.FC<TransactionHistoryViewProps> = ({
               className="w-full px-3 py-2 bg-[#F5F7FA]  border border-[#E5E7EB]  rounded-xl text-xs text-[#111827]  focus:outline-none focus:ring-2 focus:ring-[#0F2D5C]"
             >
               <option value="ALL">All Providers</option>
-              <option value="GATEWAY">Payment Gateway</option>
+              <option value="PORTAL">Payment Portal</option>
               <option value="DYNAMIC">Dynamic Bank</option>
             </select>
           </div>

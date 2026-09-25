@@ -25,13 +25,13 @@ export const VerificationReceipt: React.FC<VerificationReceiptProps> = ({
 
   const handleQuickEmailDispatch = async () => {
     let userId = "guest_user";
-    let userEmail = "adamuamuhammad8541@gmail.com";
+    let userEmail = "";
     try {
       const stored = localStorage.getItem("smart_link_user");
       if (stored) {
         const u = JSON.parse(stored);
         userId = u.uid || u.id || userId;
-        userEmail = u.email || userEmail;
+        userEmail = u.email || "";
       }
     } catch {}
 
@@ -85,7 +85,7 @@ export const VerificationReceipt: React.FC<VerificationReceiptProps> = ({
           })()}\n` +
           `Response Time: ${result.responseTime}ms\n` +
           `==========================================\n` +
-          `Authenticity secured by SmartLink API Gateway.\n`
+          `Authenticity secured by SmartLink API Portal.\n`
       ],
       { type: "text/plain" }
     );
@@ -130,7 +130,7 @@ export const VerificationReceipt: React.FC<VerificationReceiptProps> = ({
         <div className="p-4 bg-[#F5F7FA] dark:bg-[#111827]/40 rounded-2xl space-y-3.5 text-xs border border-[#E5E7EB] dark:border-[#111827]">
           <div className="flex justify-between items-center pb-2 border-b border-[#E5E7EB]/80 dark:border-[#4B5563]/80">
             <span className="text-[#6B7280] dark:text-[#9CA3AF]">Verification Status</span>
-            <span className="inline-flex items-center gap-1 font-bold text-[#0F2D5C] dark:text-[#9CA3AF] bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 px-2.5 py-0.5 rounded-full border border-[#E5E7EB] dark:border-[#0F2D5C]">
+            <span className="inline-flex items-center gap-1 font-bold text-[#0F2D5C] dark:text-[#9CA3AF] bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 px-2.5 py-0.5 rounded-full border border-slate-200 dark:border-slate-700">
               <CheckCircle2 className="h-3.5 w-3.5" />
               <span>{result.status}</span>
             </span>
@@ -165,7 +165,7 @@ export const VerificationReceipt: React.FC<VerificationReceiptProps> = ({
           </div>
 
           <div className="flex justify-between items-center">
-            <span className="text-[#6B7280] dark:text-[#9CA3AF]">Provider Gateway</span>
+            <span className="text-[#6B7280] dark:text-[#9CA3AF]">Provider Portal</span>
             <span className="font-medium text-[#111827] dark:text-[#E5E7EB]">
               {result.providerName}
             </span>
@@ -199,9 +199,9 @@ export const VerificationReceipt: React.FC<VerificationReceiptProps> = ({
         </div>
 
         {/* QR Code & Authenticity Seal */}
-        <div className="p-3 bg-[#F5F7FA]/60 dark:bg-[#0F2D5C]/30 rounded-xl border border-[#E5E7EB] dark:border-[#0F2D5C]/40 flex items-center justify-between">
+        <div className="p-3 bg-[#F5F7FA]/60 dark:bg-[#0F2D5C]/30 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-white dark:bg-[#111827] rounded-lg shadow-xs border border-[#E5E7EB] dark:border-[#0F2D5C] text-[#0F2D5C]">
+            <div className="p-2 bg-white dark:bg-[#111827] rounded-lg shadow-xs border border-slate-200 dark:border-slate-700 text-[#0F2D5C]">
               <QrCode className="h-8 w-8" />
             </div>
             <div className="text-[11px]">
@@ -214,7 +214,7 @@ export const VerificationReceipt: React.FC<VerificationReceiptProps> = ({
         {/* Buttons - Hidden in Print */}
         <div className="flex flex-wrap items-center gap-2 pt-2 print:hidden">
           {emailStatusMsg && (
-            <div className="w-full p-2.5 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border border-[#E5E7EB] dark:border-[#0F2D5C] rounded-xl text-xs text-[#0F2D5C] dark:text-[#9CA3AF] font-bold flex items-center gap-2 animate-fade-in">
+            <div className="w-full p-2.5 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-[#0F2D5C] dark:text-[#9CA3AF] font-bold flex items-center gap-2 animate-fade-in">
               <CheckCircle2 className="h-4 w-4 text-[#0F2D5C] shrink-0" />
               <span>{emailStatusMsg}</span>
             </div>
@@ -225,7 +225,7 @@ export const VerificationReceipt: React.FC<VerificationReceiptProps> = ({
               type="button"
               onClick={handleQuickEmailDispatch}
               disabled={isSendingEmail}
-              className="w-full py-2.5 px-3 bg-[#F5F7FA] hover:bg-[#E5E7EB] dark:bg-[#0F2D5C]/50 dark:hover:bg-[#0F2D5C]/50 text-[#0F2D5C] dark:text-[#9CA3AF] border border-[#E5E7EB] dark:border-[#0F2D5C] font-bold rounded-xl text-xs transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full py-2.5 px-3 bg-[#F5F7FA] hover:bg-[#E5E7EB] dark:bg-[#0F2D5C]/50 dark:hover:bg-[#0F2D5C]/50 text-[#0F2D5C] dark:text-[#9CA3AF] border border-slate-200 dark:border-slate-700 font-bold rounded-xl text-xs transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <Mail className="h-4 w-4" />
               <span>{isSendingEmail ? "Dispatching..." : "Send Slip to Registered Email"}</span>

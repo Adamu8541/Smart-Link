@@ -37,7 +37,7 @@ export type ProviderHealthStatus =
 
 export type ProviderCategory =
   | "WALLET_ENGINE"
-  | "PAYMENT_GATEWAY"
+  | "PAYMENT_PROVIDER"
   | "IDENTITY_API"
   | "TELECOM_VTU"
   | "UTILITY_BILL"
@@ -70,7 +70,7 @@ export interface APIProviderConfig {
   description?: string;
   logoUrl?: string;
 
-  // API Credentials & Gateway Config
+  // API Credentials & Portal Config
   baseUrl: string;
   apiVersion?: string;
   authMethod?: AuthMethod;
@@ -204,7 +204,7 @@ export interface WebhookLogItem {
 
 export type RoutingStrategyType = "PRIORITY_ORDER" | "FASTEST_RESPONSE" | "LEAST_ERROR_RATE" | "ROUND_ROBIN";
 
-export interface GatewayRoutingRule {
+export interface ProviderRoutingRule {
   id: string;
   service: string; // "NIN" | "BVN" | "PHONE" | "CAC" | "TIN" | "DRIVER_LICENSE" | "PASSPORT" | "VOTER_CARD" | "EMAIL"
   serviceName: string;
@@ -226,7 +226,7 @@ export interface GatewayRoutingRule {
   updatedAt: string;
 }
 
-export interface GatewayHealthMetric {
+export interface ProviderHealthMetric {
   providerId: string;
   providerName: string;
   category: string;
@@ -246,7 +246,7 @@ export interface GatewayHealthMetric {
   lastError?: string;
 }
 
-export interface GatewayFailoverLog {
+export interface ProviderFailoverLog {
   id: string;
   service: string;
   reference: string;

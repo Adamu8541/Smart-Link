@@ -48,8 +48,8 @@ interface ServiceCard {
 
 const PUBLIC_SERVICES: ServiceCard[] = [
   {
-    id: "nin-standard-slip",
-    name: "Standard NIN Slip Print (vNIN & Direct)",
+    id: "nin-regular-slip",
+    name: "Regular NIN Slip Print (vNIN & Direct)",
     category: "identity",
     description: "Instant National Identity Number verification and printable official PDF slip with high-resolution QR verification code.",
     price: "₦350 - ₦600",

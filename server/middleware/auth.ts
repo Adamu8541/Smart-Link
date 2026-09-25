@@ -49,10 +49,6 @@ function verifyLocalSessionToken(token: string): any | null {
 export const SUPER_ADMIN_EMAILS = [
   (process.env.SUPER_ADMIN_EMAIL || "").toLowerCase().trim(),
   (SUPER_ADMIN_EMAIL || "").toLowerCase().trim(),
-  "smartlinkcomputerbusiness@gmail.com",
-  "adamuamuhammad8541@gmail.com",
-  "admin@smartlinkng.com.ng",
-  "admin@smartlink.ng"
 ].filter(Boolean);
 
 export interface AuthenticatedUserPayload {
@@ -71,22 +67,7 @@ export async function verifySessionToken(token: string): Promise<AuthenticatedUs
   if (!token || typeof token !== "string" || !token.trim()) return null;
   const cleanToken = token.trim();
 
-  // 1. Primary: Verify Supabase Auth JWT
-  try {
-    const supaResult = await validateSupabaseUserToken(cleanToken);
-    if (supaResult && supaResult.uid) {
-      return {
-        uid: supaResult.uid,
-        email: supaResult.email || "",
-        provider: "supabase",
-        user: supaResult.user
-      };
-    }
-  } catch (supaErr) {
-    // Continue to next verification strategy
-  }
-
-  // 3. Admin Signed HMAC JWT
+  // 1. Admin Signed HMAC JWT
   try {
     const jwtPayload = verifyAdminJwt(cleanToken);
     if (jwtPayload && jwtPayload.uid) {
@@ -101,6 +82,21 @@ export async function verifySessionToken(token: string): Promise<AuthenticatedUs
     }
   } catch (jwtErr) {
     // Continue to next strategy
+  }
+
+  // 2. Verify Supabase Auth JWT
+  try {
+    const supaResult = await validateSupabaseUserToken(cleanToken);
+    if (supaResult && supaResult.uid) {
+      return {
+        uid: supaResult.uid,
+        email: supaResult.email || "",
+        provider: "supabase",
+        user: supaResult.user
+      };
+    }
+  } catch (supaErr) {
+    // Continue to next verification strategy
   }
 
   // 4. Local Session Token fallback (development/admin session token)
@@ -319,8 +315,8 @@ export async function requireAdmin(req: express.Request, res: express.Response, 
   if (!adminData && (isSuperAdminEmail || decodedRole === "SUPER_ADMIN")) {
     adminData = {
       uid: uid || "usr_sa_primary",
-      email: email || "adamuamuhammad8541@gmail.com",
-      fullName: "Adamu A. Muhammad",
+      email: email,
+      fullName: ((req as any).user?.fullName as string) || email.split("@")[0] || "Super Admin",
       role: "SUPER_ADMIN",
       permissions: ["*"],
       status: "ACTIVE",

@@ -23,7 +23,7 @@ const AdminUsersView = lazyWithRetry(() => import("./components/admin/views/Admi
 const AdminWalletView = lazyWithRetry(() => import("./components/admin/views/AdminWalletView").then(m => ({ default: m.AdminWalletView })), "AdminWalletView");
 const AdminTransactionsView = lazyWithRetry(() => import("./components/admin/views/AdminTransactionsView").then(m => ({ default: m.AdminTransactionsView })), "AdminTransactionsView");
 const AdminProvidersView = lazyWithRetry(() => import("./components/admin/views/AdminProvidersView").then(m => ({ default: m.AdminProvidersView })), "AdminProvidersView");
-const AdminMultiGatewayView = lazyWithRetry(() => import("./components/admin/views/AdminMultiGatewayView").then(m => ({ default: m.AdminMultiGatewayView })), "AdminMultiGatewayView");
+const AdminMultiProviderView = lazyWithRetry(() => import("./components/admin/views/AdminMultiProviderView").then(m => ({ default: m.AdminMultiProviderView })), "AdminMultiProviderView");
 const ApiRequestBuilderView = lazyWithRetry(() => import("./components/admin/views/ApiRequestBuilderView"), "ApiRequestBuilderView");
 const ApiResponseMapperView = lazyWithRetry(() => import("./components/admin/views/ApiResponseMapperView"), "ApiResponseMapperView");
 const AdminSettingsView = lazyWithRetry(() => import("./components/admin/views/AdminSettingsView").then(m => ({ default: m.AdminSettingsView })), "AdminSettingsView");
@@ -324,7 +324,7 @@ export default function App() {
     "/admin/permissions": "ADMIN_PERMISSIONS",
     "/admin/services": "ADMIN_SERVICES",
     "/admin/providers": "ADMIN_PROVIDERS",
-    "/admin/gateway-routing": "ADMIN_GATEWAY_ROUTING",
+    "/admin/routing": "ADMIN_PROVIDER_ROUTING",
     "/admin/api-builder": "ADMIN_API_BUILDER",
     "/admin/response-mapper": "ADMIN_RESPONSE_MAPPER",
     "/admin/transactions": "ADMIN_TRANSACTIONS",
@@ -398,7 +398,7 @@ export default function App() {
     ADMIN_WALLET: "/admin/wallet",
     ADMIN_SERVICES: "/admin/services",
     ADMIN_PROVIDERS: "/admin/providers",
-    ADMIN_GATEWAY_ROUTING: "/admin/gateway-routing",
+    ADMIN_PROVIDER_ROUTING: "/admin/routing",
     ADMIN_TRANSACTIONS: "/admin/transactions",
     ADMIN_REFUNDS: "/admin/refunds",
     ADMIN_REPORTS: "/admin/reports",
@@ -824,9 +824,9 @@ export default function App() {
     const handleWalletCredited = (e: any) => {
       if (e?.detail?.amount) {
         const amount = Number(e.detail.amount);
-        const gateway = e.detail.gateway || "Gateway Webhook";
+        const portal = e.detail.portal || "Portal Webhook";
         setToast({
-          message: `💳 Real-Time Webhook Alert: ${formatNaira(amount, true)} credited to your digital wallet via ${gateway}!`,
+          message: `💳 Real-Time Webhook Alert: ${formatNaira(amount, true)} credited to your digital wallet via ${portal}!`,
           type: "success",
         });
       }
@@ -1158,7 +1158,7 @@ export default function App() {
 
                         {/* 5. Government Portals */}
                         <div className="p-3 bg-[#F5F7FA] rounded-xl border border-[#E5E7EB] space-y-1 hover:bg-[#E5E7EB] transition-colors">
-                          <span className="text-[11px] font-black text-[#0F2D5C] block">Government Gateway</span>
+                          <span className="text-[11px] font-black text-[#0F2D5C] block">Government Portal</span>
                           <p className="text-[10px] text-[#4B5563] leading-normal">
                             FRSC drivers licenses, international passports, and corporate filings.
                           </p>
@@ -1423,8 +1423,8 @@ export default function App() {
                         />
                       )}
 
-                      {currentView === "ADMIN_GATEWAY_ROUTING" && (
-                        <AdminMultiGatewayView />
+                      {currentView === "ADMIN_PROVIDER_ROUTING" && (
+                        <AdminMultiProviderView />
                       )}
 
                       {currentView === "ADMIN_API_BUILDER" && (

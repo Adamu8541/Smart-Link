@@ -265,7 +265,7 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
         headers: { ...headers, "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: currentUser.uid,
-          provider: "GATEWAY",
+          provider: "PORTAL",
           userEmail: currentUser.email,
           email: currentUser.email,
           userName: currentUser.fullName || currentUser.name,
@@ -280,7 +280,7 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
       const acc = data.virtualAccount || data.account;
       if (acc && (acc.accountNumber || acc.account_number)) {
         setReservedAccount({
-          provider: acc.providerName || acc.provider || "Aspfiy Payment Gateway",
+          provider: acc.providerName || acc.provider || "Aspfiy Payment Portal",
           bankName: acc.bankName || acc.bank_name || "PalmPay",
           accountNumber: acc.accountNumber || acc.account_number,
           accountName: acc.accountName || acc.account_name || currentUser.fullName || "Customer",
@@ -396,7 +396,7 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
         status: "ACCEPTED",
         metadata: {
           fundingAmount: amt,
-          gateway: "CARD_PAYMENT_3DS",
+          portal: "CARD_PAYMENT_3DS",
           reference: data.reference || `CARD-${Date.now()}`,
           timestamp: new Date().toISOString(),
         },
@@ -409,7 +409,7 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
         new CustomEvent("wallet_credited", {
           detail: {
             amount: amt,
-            gateway: "Debit Card (3D Secure)",
+            portal: "Debit Card (3D Secure)",
             reference: data.reference || `CARD-${Date.now()}`,
           },
         })
@@ -543,7 +543,7 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
     doc.text("Payment Metrics:", 110, 75);
     doc.setFont("helvetica", "normal");
     doc.text(`Amount Funded: NGN ${(receipt.amount || 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}`, 110, 82);
-    doc.text(`Gateway / Provider: ${receipt.gateway || receipt.provider || "SmartLink Gateway"}`, 110, 88);
+    doc.text(`Portal / Provider: ${receipt.portal || receipt.provider || "SmartLink Portal"}`, 110, 88);
     doc.text(`SmartLink Ref: ${receipt.smartlinkReference || receipt.reference || "N/A"}`, 110, 94);
     doc.text(`Status: ${receipt.status || "SUCCESSFUL"}`, 110, 100);
 
@@ -566,7 +566,7 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
   const filteredHistory = fundingHistory.filter((item) => {
     const matchesSearch =
       (item.reference || "").toLowerCase().includes(searchHistory.toLowerCase()) ||
-      (item.gateway || item.provider || "").toLowerCase().includes(searchHistory.toLowerCase()) ||
+      (item.portal || item.provider || "").toLowerCase().includes(searchHistory.toLowerCase()) ||
       (item.description || "").toLowerCase().includes(searchHistory.toLowerCase());
     const matchesStatus = statusFilter === "ALL" || item.status === statusFilter;
     return matchesSearch && matchesStatus;
@@ -655,7 +655,7 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
 
       {/* Active Provider Error Banner */}
       {!loadingProvider && !activeProvider && (
-        <div className="p-5 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border border-[#E5E7EB] dark:border-[#0F2D5C] rounded-2xl text-[#0F2D5C] dark:text-[#9CA3AF] font-bold text-sm flex items-center justify-between gap-3 animate-fadeIn">
+        <div className="p-5 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border border-slate-200 dark:border-slate-700 rounded-2xl text-[#0F2D5C] dark:text-[#9CA3AF] font-bold text-sm flex items-center justify-between gap-3 animate-fadeIn">
           <div className="flex items-center gap-3">
             <AlertCircle className="h-6 w-6 text-[#0F2D5C] shrink-0" />
             <div>
@@ -674,7 +674,7 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
 
       {/* Active Provider Status Badge */}
       {activeProvider && (
-        <div className="p-3.5 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border border-[#E5E7EB] dark:border-[#0F2D5C]/60 rounded-2xl flex items-center justify-between text-xs font-semibold text-[#0F2D5C] dark:text-[#9CA3AF]">
+        <div className="p-3.5 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border border-slate-200 dark:border-slate-700 rounded-2xl flex items-center justify-between text-xs font-semibold text-[#0F2D5C] dark:text-[#9CA3AF]">
           <div className="flex items-center gap-2">
             <ShieldCheck className="h-4 w-4 text-[#0F2D5C] dark:text-[#9CA3AF]" />
             <span>Active Payment Provider: <strong className="font-black text-[#111827] dark:text-white uppercase">{activeProvider.name}</strong></span>
@@ -758,8 +758,8 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
                       VA
                     </div>
                     <div>
-                      <h4 className="font-bold text-sm text-white">Payment Gateway Account</h4>
-                      <p className="text-[10px] text-[#9CA3AF] font-mono">Bank Transfer Gateway</p>
+                      <h4 className="font-bold text-sm text-white">Payment Portal Account</h4>
+                      <p className="text-[10px] text-[#9CA3AF] font-mono">Bank Transfer Portal</p>
                     </div>
                   </div>
                   <span className="text-[10px] uppercase tracking-wider font-bold text-[#9CA3AF] bg-[#0F2D5C]/20 border border-[#0F2D5C]/30 px-2.5 py-1 rounded-full">
@@ -776,7 +776,7 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
                       </span>
                       <button
                         onClick={() => copyToClipboard(reservedAccount.accountNumber, "reservedNum")}
-                        className="p-2.5 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-[#111827] font-bold rounded-xl transition-all cursor-pointer flex items-center gap-1 text-xs"
+                        className="p-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all cursor-pointer flex items-center gap-1 text-xs shadow-sm"
                       >
                         {copiedField === "reservedNum" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                         <span>{copiedField === "reservedNum" ? "Copied" : "Copy"}</span>
@@ -809,12 +809,12 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
 
               <div className="bg-[#F5F7FA] dark:bg-[#111827]/50 rounded-2xl p-5 border border-[#E5E7EB] dark:border-[#111827] space-y-4 text-xs">
                 <h4 className="font-bold text-[#111827] dark:text-white flex items-center gap-1.5">
-                  <ShieldCheck className="h-4 w-4 text-[#0F2D5C]" /> Gateway Integration
+                  <ShieldCheck className="h-4 w-4 text-[#0F2D5C]" /> Portal Integration
                 </h4>
                 <p className="text-[#4B5563] dark:text-[#E5E7EB] leading-relaxed">
                   Reserved Accounts are monitored 24/7 by automated banking webhooks. Any transfer to this account immediately triggers the SmartLink Wallet Engine.
                 </p>
-                <div className="p-3 bg-[#F5F7FA] dark:bg-[#0F2D5C]/30 rounded-xl border border-[#E5E7EB] dark:border-[#0F2D5C] text-[11px] text-[#0F2D5C] dark:text-[#9CA3AF] font-medium">
+                <div className="p-3 bg-[#F5F7FA] dark:bg-[#0F2D5C]/30 rounded-xl border border-slate-200 dark:border-slate-700 text-[11px] text-[#0F2D5C] dark:text-[#9CA3AF] font-medium">
                   💡 Zero minimum funding limit. All incoming transfers are credited instantly.
                 </div>
               </div>
@@ -843,7 +843,7 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
       {activeTab === "CARD" && (
         <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl p-6 md:p-8 space-y-6 shadow-sm">
           <div>
-            <h3 className="text-lg font-bold text-[#111827] dark:text-white">Debit / Credit Card Payment Gateway</h3>
+            <h3 className="text-lg font-bold text-[#111827] dark:text-white">Debit / Credit Card Payment Portal</h3>
             <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-1">
               Securely fund your wallet using Visa, Mastercard, Verve, or Interswitch cards with 3D Secure OTP authorization.
             </p>
@@ -982,7 +982,7 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
 
       {/* Tab 5: Admin Manual Credit */}
       {isAdmin && activeTab === "ADMIN_CREDIT" && (
-        <div className="bg-[#F5F7FA]/50 dark:bg-[#0F2D5C]/20 border border-[#E5E7EB] dark:border-[#0F2D5C] rounded-3xl p-6 md:p-8 space-y-6 shadow-sm">
+        <div className="bg-[#F5F7FA]/50 dark:bg-[#0F2D5C]/20 border border-slate-200 dark:border-slate-700 rounded-3xl p-6 md:p-8 space-y-6 shadow-sm">
           <div>
             <div className="flex items-center gap-2">
               <ShieldCheck className="h-5 w-5 text-[#0F2D5C]" />
@@ -1147,7 +1147,7 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
                       })}
                     </td>
                     <td className="py-3.5 px-4 font-bold text-[#111827] dark:text-white">
-                      {item.gateway || item.provider || "SmartLink Gateway"}
+                      {item.portal || item.provider || "SmartLink Portal"}
                     </td>
                     <td className="py-3.5 px-4 font-mono text-[#6B7280] dark:text-[#9CA3AF]">
                       {item.smartlinkReference || item.reference || "N/A"}
@@ -1202,7 +1202,7 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
               </p>
             </div>
 
-            <div className="p-3 bg-[#F5F7FA] dark:bg-[#0F2D5C]/30 border border-[#E5E7EB] dark:border-[#0F2D5C] rounded-xl text-xs text-[#0F2D5C] dark:text-[#9CA3AF] text-center font-mono">
+            <div className="p-3 bg-[#F5F7FA] dark:bg-[#0F2D5C]/30 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-[#0F2D5C] dark:text-[#9CA3AF] text-center font-mono">
               💡 Test Sandbox OTP Code: <strong>123456</strong>
             </div>
 
@@ -1280,7 +1280,7 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
 
             {/* Receipt Header */}
             <div className="border-b border-[#E5E7EB] dark:border-[#111827] pb-5 text-center space-y-2">
-              <div className="inline-flex items-center gap-2 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border border-[#E5E7EB] dark:border-[#0F2D5C] px-3 py-1 rounded-full text-[#0F2D5C] dark:text-[#9CA3AF] text-xs font-bold">
+              <div className="inline-flex items-center gap-2 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border border-slate-200 dark:border-slate-700 px-3 py-1 rounded-full text-[#0F2D5C] dark:text-[#9CA3AF] text-xs font-bold">
                 <ShieldCheck className="h-4 w-4 text-[#0F2D5C]" /> SmartLink Official Wallet Receipt
               </div>
               <h2 className="text-2xl font-black text-[#111827] dark:text-white">₦{(selectedReceipt.amount || 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</h2>
@@ -1294,8 +1294,8 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
                 <span className="font-bold text-[#111827] dark:text-white">{currentUser.fullName}</span>
               </div>
               <div className="flex justify-between py-1.5 border-b border-[#E5E7EB]/60 dark:border-[#4B5563]">
-                <span className="text-[#6B7280]">Payment Gateway</span>
-                <span className="font-bold text-[#111827] dark:text-white">{selectedReceipt.gateway || selectedReceipt.provider || "SmartLink Gateway"}</span>
+                <span className="text-[#6B7280]">Payment Portal</span>
+                <span className="font-bold text-[#111827] dark:text-white">{selectedReceipt.portal || selectedReceipt.provider || "SmartLink Portal"}</span>
               </div>
               <div className="flex justify-between py-1.5 border-b border-[#E5E7EB]/60 dark:border-[#4B5563]">
                 <span className="text-[#6B7280]">Date & Time</span>

@@ -322,7 +322,7 @@ export default function UserManagementAdmin({
                   <tr key={u.uid} className="hover:bg-[#F5F7FA] dark:hover:bg-[#111827]/40">
                     <td className="p-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-[#E5E7EB] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] font-black flex items-center justify-center text-sm border border-[#E5E7EB] dark:border-[#0F2D5C]">
+                        <div className="w-9 h-9 rounded-full bg-[#E5E7EB] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] font-black flex items-center justify-center text-sm border border-slate-200 dark:border-slate-700">
                           {u.fullName ? u.fullName.charAt(0).toUpperCase() : "U"}
                         </div>
                         <div>
@@ -335,11 +335,11 @@ export default function UserManagementAdmin({
                       <span
                         className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase font-mono ${
                           u.role === UserRole.SUPER_ADMIN
-                            ? "bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C] dark:text-[#9CA3AF] border border-[#E5E7EB]"
+                            ? "bg-blue-50 text-[#0F2D5C] dark:bg-blue-950/50 dark:text-blue-300 border border-[#E5E7EB]"
                             : u.role === UserRole.ADMIN
-                            ? "bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C] dark:text-[#9CA3AF] border border-[#E5E7EB]"
+                            ? "bg-blue-50 text-[#0F2D5C] dark:bg-blue-950/50 dark:text-blue-300 border border-[#E5E7EB]"
                             : u.role === UserRole.FINANCE_OFFICER
-                            ? "bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C] dark:text-[#9CA3AF] border border-[#E5E7EB]"
+                            ? "bg-blue-50 text-[#0F2D5C] dark:bg-blue-950/50 dark:text-blue-300 border border-[#E5E7EB]"
                             : "bg-[#E5E7EB] text-[#111827] dark:bg-[#111827] dark:text-[#E5E7EB]"
                         }`}
                       >
@@ -352,7 +352,7 @@ export default function UserManagementAdmin({
                     </td>
                     <td className="p-3">
                       {u.isVerified ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C] dark:text-[#9CA3AF]">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-[#0F2D5C] dark:bg-blue-950/50 dark:text-blue-300">
                           <CheckCircle2 className="h-3 w-3 text-[#0F2D5C]" />
                           VERIFIED
                         </span>
@@ -364,12 +364,12 @@ export default function UserManagementAdmin({
                     </td>
                     <td className="p-3">
                       {u.status === "SUSPENDED" ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C] dark:text-[#9CA3AF]">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-[#0F2D5C] dark:bg-blue-950/50 dark:text-blue-300">
                           <UserX className="h-3 w-3" />
                           SUSPENDED
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C] dark:text-[#9CA3AF]">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-[#0F2D5C] dark:bg-blue-950/50 dark:text-blue-300">
                           <UserCheck className="h-3 w-3" />
                           ACTIVE
                         </span>
@@ -574,8 +574,8 @@ export default function UserManagementAdmin({
                         <span
                           className={`px-2 py-0.2 rounded text-[10px] font-bold ${
                             log.status === "SUCCESS"
-                              ? "bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C] dark:text-[#9CA3AF]"
-                              : "bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C] dark:text-[#9CA3AF]"
+                              ? "bg-blue-50 text-[#0F2D5C] dark:bg-blue-950/50 dark:text-blue-300"
+                              : "bg-blue-50 text-[#0F2D5C] dark:bg-blue-950/50 dark:text-blue-300"
                           }`}
                         >
                           {log.status}

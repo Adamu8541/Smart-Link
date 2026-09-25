@@ -19,6 +19,7 @@ export interface SEOMetadata {
   twitterCard: "summary" | "summary_large_image";
   structuredData?: object;
   crawlableContentHtml?: string;
+  noIndex?: boolean;
 }
 
 const DEFAULT_TITLE = "Smart Link NG | NIN, BVN, CAC, SCUML, Bills, Airtime & Data Portal in Nigeria";
@@ -55,11 +56,11 @@ export function resolveSEOMetadata(req: Request): SEOMetadata {
   const ogType = "website";
   let crawlableContentHtml = "";
 
-  // 1. API Documentation & Developer Gateway
+  // 1. API Documentation & Developer Portal
   if (rawPath === "/api-docs" || rawPath === "/developer-api" || rawPath === "/docs" || rawPath.startsWith("/api-docs/")) {
-    title = `Developer REST API Documentation & Fintech Gateway | ${siteName}`;
+    title = `Developer REST API Documentation & Fintech Portal | ${siteName}`;
     description = "Integrate identity verification (NIN, BVN), automated VTU airtime/data vending, dedicated virtual accounts, and electricity meter bill payments into your apps with sub-450ms REST APIs.";
-    keywords = "Fintech API Nigeria, NIN API, BVN verification API, VTU API documentation, bill payment developer gateway, identity verification REST endpoints, Nigerian developer documentation";
+    keywords = "Fintech API Nigeria, NIN API, BVN verification API, VTU API documentation, bill payment developer portal, identity verification REST endpoints, Nigerian developer documentation";
     crawlableContentHtml = `
       <main style="max-width: 900px; margin: 0 auto; padding: 40px 20px; font-family: system-ui, sans-serif;">
         <h1>SmartLink Nigeria Developer REST API &amp; Webhooks Documentation</h1>
@@ -157,7 +158,7 @@ export function resolveSEOMetadata(req: Request): SEOMetadata {
         <p>SmartLink NG is Nigeria's all-in-one digital portal for identity lookups, business filings, utility bill settlements, education pins, and developer verification APIs.</p>
         <h2>Featured Digital Services</h2>
         <ul>
-          <li><strong>Standard NIN Slip Print:</strong> Printable official PDF slip with QR verification code.</li>
+          <li><strong>Regular NIN Slip Print:</strong> Printable official PDF slip with QR verification code.</li>
           <li><strong>Premium Plastic NIN Card:</strong> High-resolution CR80 double-sided card format.</li>
           <li><strong>BVN Verification &amp; Card:</strong> Instant central NIBSS validation and verification slip.</li>
           <li><strong>CAC Business Name Registration:</strong> Name reservation, certificate, and status report in 48-72 hours.</li>
@@ -173,14 +174,14 @@ export function resolveSEOMetadata(req: Request): SEOMetadata {
   // 7. Identity & Verification
   else if (rawPath === "/verification" || rawPath === "/nin" || rawPath === "/bvn" || rawPath === "/cac" || rawPath === "/scuml") {
     title = `National Identity Verification, NIN Slips, BVN & CAC Portal | ${siteName}`;
-    description = "Verify National Identity Numbers (NIN), print official standard & premium plastic ID slips, validate BVN records via NIBSS, and incorporate CAC Business Names & SCUML certificates in Nigeria.";
+    description = "Verify National Identity Numbers (NIN), print official regular & premium plastic ID slips, validate BVN records via NIBSS, and incorporate CAC Business Names & SCUML certificates in Nigeria.";
     keywords = "NIN verification, BVN validation, CAC business search, identity slip download, national ID card print, SCUML certificate Nigeria, corporate affairs commission";
     crawlableContentHtml = `
       <main style="max-width: 900px; margin: 0 auto; padding: 40px 20px; font-family: system-ui, sans-serif;">
         <h1>Instant NIN Verification, BVN Validation &amp; CAC Enterprise Registration</h1>
         <p>Verify National Identity Numbers via 11-digit NIN or virtual NIN (vNIN). Generate official PDF slips with tamper-evident QR codes and print-ready plastic card layouts.</p>
         <h2>Identity Services</h2>
-        <p>Standard NIN Slips, Premium Plastic Card CR80 Layouts, BVN Digital Certificates, High Court Affidavits, and Police Loss Reports.</p>
+        <p>Regular NIN Slips, Premium Plastic Card CR80 Layouts, BVN Digital Certificates, High Court Affidavits, and Police Loss Reports.</p>
         <h2>Corporate Registry Filings</h2>
         <p>CAC Business Name Registration (BN), Private Limited Companies (LTD), CAC Status Reports, and SCUML Anti-Money Laundering certificates.</p>
         <p><a href="/register">Verify / Register Business Now</a></p>
@@ -213,7 +214,7 @@ export function resolveSEOMetadata(req: Request): SEOMetadata {
         <h1>SmartLink Nigeria Refund Policy</h1>
         <p>SmartLink NG guarantees automated, friction-free wallet refunds for transactions that fail to dispense value.</p>
         <h2>Automated Reversals</h2>
-        <p>If an airtime top-up, data bundle, or electricity token recharge fails at the telecom or Disco gateway, your wallet is credited back automatically in real time.</p>
+        <p>If an airtime top-up, data bundle, or electricity token recharge fails at the telecom or Disco portal, your wallet is credited back automatically in real time.</p>
       </main>
     `;
   }
@@ -237,8 +238,24 @@ export function resolveSEOMetadata(req: Request): SEOMetadata {
     description = "Access all official legal documents, data protection notices, wallet terms, payment policies, and governance guidelines for SmartLink Nigeria.";
     keywords = "SmartLink legal center, wallet terms, KYC notice, acceptable use policy, cookie policy, data protection Nigeria";
   }
-  // 12. Authentication Pages
-  else if (rawPath.startsWith("/auth") || rawPath.startsWith("/login") || rawPath.startsWith("/register")) {
+  // 12. Authentication Pages & Private Routes
+  let noIndex = false;
+  if (
+    rawPath.startsWith("/admin") ||
+    rawPath.startsWith("/dashboard") ||
+    rawPath.startsWith("/wallet") ||
+    rawPath.startsWith("/reset-password") ||
+    rawPath.startsWith("/verify-email") ||
+    rawPath.startsWith("/auth/action") ||
+    rawPath.startsWith("/__/auth") ||
+    rawPath.startsWith("/api") ||
+    rawPath === "/account-security" ||
+    rawPath === "/security-settings"
+  ) {
+    noIndex = true;
+    title = `Secure Portal | ${siteName}`;
+    description = "SmartLink Nigeria Secure Portal.";
+  } else if (rawPath.startsWith("/auth") || rawPath.startsWith("/login") || rawPath.startsWith("/register")) {
     title = `Secure Agent & Business Portal Login | ${siteName}`;
     description = "Sign in or create your SmartLink Nigeria enterprise account to access identity services, digital wallets, bill payments, and developer API keys.";
   }
@@ -378,7 +395,7 @@ export function resolveSEOMetadata(req: Request): SEOMetadata {
           "name": "How does SmartLink NG handle failed transactions?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "SmartLink NG features an automated instant refund engine. If a telecom operator or electricity gateway fails to dispense value, the deducted amount is immediately reversed back to the user wallet in real time."
+            "text": "SmartLink NG features an automated instant refund engine. If a telecom operator or electricity portal fails to dispense value, the deducted amount is immediately reversed back to the user wallet in real time."
           }
         },
         {
@@ -443,10 +460,11 @@ export function resolveSEOMetadata(req: Request): SEOMetadata {
     ogImage: ogImageUrl,
     ogImageWidth: 1200,
     ogImageHeight: 630,
-    ogImageAlt: `${siteName} - Verification & Fintech Gateway`,
+    ogImageAlt: `${siteName} - Verification & Fintech Portal`,
     twitterCard: "summary_large_image",
     structuredData,
-    crawlableContentHtml
+    crawlableContentHtml,
+    noIndex,
   };
 }
 
@@ -456,15 +474,21 @@ export function resolveSEOMetadata(req: Request): SEOMetadata {
 export function injectSEOTags(html: string, metadata: SEOMetadata): string {
   const origin = metadata.canonicalUrl.replace(/(\/explore-services|\/verification|\/bills|\/api-docs|\/services|\/nin|\/bvn|\/cac|\/scuml|\/electricity|\/data|\/airtime|\/cable-tv|\/exam-pins|\/vtu|\/developer-api|\/docs|\/terms|\/privacy|\/compliance|\/refund-policy|\/security|\/sla|\/wallet-terms|\/payment-terms|\/cookie-policy|\/kyc-notice|\/acceptable-use|\/data-protection|\/disclaimer|\/marketing-policy|\/legal-center|\/legal.*|\/auth.*|\/login.*|\/register.*)$/, "");
 
+  const robotsTag = metadata.noIndex
+    ? `<meta name="robots" content="noindex, nofollow, noarchive" />
+    <meta name="googlebot" content="noindex, nofollow, noarchive" />
+    <meta name="bingbot" content="noindex, nofollow, noarchive" />`
+    : `<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+    <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />`;
+
   const metaTags = `
     <!-- Primary SEO Meta Tags -->
     <title>${escapeHtml(metadata.title)}</title>
     <meta name="title" content="${escapeHtml(metadata.title)}" />
     <meta name="description" content="${escapeHtml(metadata.description)}" />
     <meta name="keywords" content="${escapeHtml(metadata.keywords)}" />
-    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
-    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
-    <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+    ${robotsTag}
     <meta name="ai-content" content="authorized" />
     <meta name="author" content="SmartLink Nigeria Technology" />
     <meta http-equiv="content-language" content="en-NG" />
@@ -575,9 +599,8 @@ export function generateSitemapXml(origin: string = DEFAULT_DOMAIN): string {
   
   const pages = [
     // 1. Homepage & Core Portals
-    { path: "", priority: "1.00", changefreq: "daily", image: `${origin}/og-image.png`, title: "SmartLink Nigeria Digital Enterprise Gateway" },
+    { path: "", priority: "1.00", changefreq: "daily", image: `${origin}/og-image.png`, title: "SmartLink Nigeria Digital Enterprise Portal" },
     { path: "/explore-services", priority: "0.95", changefreq: "daily", image: `${origin}/og-image.png`, title: "Explore All Digital Services & Verification Solutions" },
-    { path: "/services", priority: "0.95", changefreq: "daily" },
     { path: "/verification", priority: "0.90", changefreq: "weekly" },
     { path: "/nin", priority: "0.90", changefreq: "weekly" },
     { path: "/bvn", priority: "0.90", changefreq: "weekly" },
@@ -595,8 +618,6 @@ export function generateSitemapXml(origin: string = DEFAULT_DOMAIN): string {
 
     // 3. Developer & API Documentation
     { path: "/api-docs", priority: "0.85", changefreq: "weekly" },
-    { path: "/developer-api", priority: "0.85", changefreq: "weekly" },
-    { path: "/docs", priority: "0.80", changefreq: "weekly" },
 
     // 4. Regulatory, Governance & Compliance
     { path: "/compliance", priority: "0.80", changefreq: "monthly" },
@@ -607,7 +628,6 @@ export function generateSitemapXml(origin: string = DEFAULT_DOMAIN): string {
     { path: "/refund-policy", priority: "0.75", changefreq: "monthly" },
 
     // 5. Legal Center & Specific Policies
-    { path: "/legal-center", priority: "0.75", changefreq: "monthly" },
     { path: "/legal", priority: "0.75", changefreq: "monthly" },
     { path: "/wallet-terms", priority: "0.70", changefreq: "monthly" },
     { path: "/payment-terms", priority: "0.70", changefreq: "monthly" },
@@ -617,14 +637,6 @@ export function generateSitemapXml(origin: string = DEFAULT_DOMAIN): string {
     { path: "/data-protection", priority: "0.70", changefreq: "monthly" },
     { path: "/disclaimer", priority: "0.70", changefreq: "monthly" },
     { path: "/marketing-policy", priority: "0.70", changefreq: "monthly" },
-
-    // 6. Direct Legal Subpaths
-    { path: "/legal/terms-of-service", priority: "0.70", changefreq: "monthly" },
-    { path: "/legal/privacy-policy", priority: "0.70", changefreq: "monthly" },
-    { path: "/legal/compliance", priority: "0.70", changefreq: "monthly" },
-    { path: "/legal/security", priority: "0.70", changefreq: "monthly" },
-    { path: "/legal/sla", priority: "0.70", changefreq: "monthly" },
-    { path: "/legal/refund-policy", priority: "0.70", changefreq: "monthly" },
   ];
 
   const urls = pages.map((page) => {

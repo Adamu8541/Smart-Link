@@ -244,7 +244,7 @@ export const LegalDocumentView: React.FC<LegalDocumentViewProps> = ({
         {/* Document Header Hero */}
         <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl p-6 sm:p-8 md:p-10 shadow-xs mb-8 text-left space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 border border-[#E5E7EB] dark:border-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF] text-xs font-bold">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 border border-slate-200 dark:border-slate-700 text-[#0F2D5C] dark:text-[#9CA3AF] text-xs font-bold">
               {getDocIcon(doc.iconName)}
               <span>{doc.categoryLabel}</span>
             </div>
@@ -326,7 +326,7 @@ export const LegalDocumentView: React.FC<LegalDocumentViewProps> = ({
                       onClick={() => handleScrollToSection(section.id)}
                       className={`w-full text-left px-3 py-2 rounded-xl text-xs transition-all flex items-center justify-between group cursor-pointer border-none ${
                         isActive
-                          ? "bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] font-bold"
+                          ? "bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 font-bold"
                           : "text-[#4B5563] dark:text-[#9CA3AF] hover:bg-[#F5F7FA] dark:hover:bg-[#111827] hover:text-[#111827] dark:hover:text-white"
                       }`}
                     >
@@ -368,7 +368,7 @@ export const LegalDocumentView: React.FC<LegalDocumentViewProps> = ({
             </div>
 
             {/* Need Legal Support? */}
-            <div className="bg-[#F5F7FA]/70 dark:bg-[#0F2D5C]/40 border border-[#E5E7EB] dark:border-[#0F2D5C]/60 rounded-2xl p-4 text-xs space-y-2">
+            <div className="bg-[#F5F7FA]/70 dark:bg-[#0F2D5C]/40 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 text-xs space-y-2">
               <span className="font-bold text-[#0F2D5C] dark:text-[#9CA3AF] flex items-center gap-1.5">
                 <Info className="h-4 w-4 text-[#0F2D5C]" />
                 <span>Need Clarification?</span>
@@ -427,12 +427,12 @@ export const LegalDocumentView: React.FC<LegalDocumentViewProps> = ({
                   <div
                     className={`rounded-2xl p-4 sm:p-5 border text-xs sm:text-sm leading-relaxed flex items-start gap-3 ${
                       section.callout.type === "warning"
-                        ? "bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border-[#E5E7EB] dark:border-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF]"
+                        ? "bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border-slate-200 dark:border-slate-700 text-[#0F2D5C] dark:text-[#9CA3AF]"
                         : section.callout.type === "success"
-                        ? "bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border-[#E5E7EB] dark:border-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF]"
+                        ? "bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border-slate-200 dark:border-slate-700 text-[#0F2D5C] dark:text-[#9CA3AF]"
                         : section.callout.type === "notice"
-                        ? "bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border-[#E5E7EB] dark:border-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF]"
-                        : "bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border-[#E5E7EB] dark:border-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF]"
+                        ? "bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border-slate-200 dark:border-slate-700 text-[#0F2D5C] dark:text-[#9CA3AF]"
+                        : "bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border-slate-200 dark:border-slate-700 text-[#0F2D5C] dark:text-[#9CA3AF]"
                     }`}
                   >
                     <Info className="h-5 w-5 shrink-0 mt-0.5" />

@@ -254,7 +254,7 @@ export class StorageToTursoMigrationService {
       {
         id: "prov_aspfiy",
         providerId: "prov_aspfiy",
-        name: "Aspfiy Payment Gateway",
+        name: "Aspfiy Payment Portal",
         category: "WALLET_ENGINE",
         providerType: "WALLET_ENGINE",
         baseUrl: "https://api-v1.aspfiy.com",

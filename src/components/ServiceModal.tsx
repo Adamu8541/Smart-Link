@@ -45,6 +45,39 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
     document.documentElement.scrollTop = 0;
   }, [service?.id]);
 
+  const referenceNumber = successResult
+    ? successResult.transaction?.reference ||
+      successResult.application?.id ||
+      (successResult.verification?.idNumber ? `SML-VER-${successResult.verification.idNumber}` : null) ||
+      successResult.id ||
+      "SML-REF-" + Math.floor(100000 + Math.random() * 900000)
+    : null;
+
+  useEffect(() => {
+    if (referenceNumber) {
+      QRCode.toDataURL(
+        referenceNumber,
+        {
+          width: 200,
+          margin: 2,
+          color: {
+            dark: "#0F2D5C",
+            light: "#0F2D5C",
+          },
+        },
+        (err, url) => {
+          if (err) {
+            console.error("QR Code generation error", err);
+            return;
+          }
+          setQrCodeUrl(url);
+        }
+      );
+    } else {
+      setQrCodeUrl("");
+    }
+  }, [referenceNumber]);
+
   if (!service) return null;
 
   if ((service.id === "wallet_funding" || service.id === "fund_wallet") && currentUser) {
@@ -276,52 +309,6 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
       </div>
     );
   }
-
-  const getReferenceNumber = () => {
-    if (!successResult) return null;
-    if (successResult.transaction && successResult.transaction.reference) {
-      return successResult.transaction.reference;
-    }
-    if (successResult.application && successResult.application.id) {
-      return successResult.application.id;
-    }
-    if (successResult.verification && successResult.verification.idNumber) {
-      return `SML-VER-${successResult.verification.idNumber}`;
-    }
-    if (successResult.id) {
-      return successResult.id;
-    }
-    return "SML-REF-" + Math.floor(100000 + Math.random() * 900000);
-  };
-
-  const referenceNumber = successResult ? getReferenceNumber() : null;
-
-  useEffect(() => {
-    if (referenceNumber) {
-      QRCode.toDataURL(
-        referenceNumber,
-        {
-          width: 200,
-          margin: 2,
-          color: {
-            dark: "#0F2D5C", // slate-900
-            light: "#0F2D5C",
-          },
-        },
-        (err, url) => {
-          if (err) {
-            console.error("QR Code generation error", err);
-            return;
-          }
-          setQrCodeUrl(url);
-        }
-      );
-    } else {
-      setQrCodeUrl("");
-    }
-  }, [referenceNumber]);
-
-  if (!service) return null;
 
   const handleInputChange = (fieldName: string, value: string) => {
     setFormData((prev) => ({ ...prev, [fieldName]: value }));
@@ -565,7 +552,7 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
                   </div>
 
                   <p className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF] leading-relaxed max-w-xs mx-auto">
-                    Scan this QR code with any mobile scanner to instantly verify the authenticity of this transaction on the Smart Link API Gateway.
+                    Scan this QR code with any mobile scanner to instantly verify the authenticity of this transaction on the Smart Link API Portal.
                   </p>
 
                   <div className="pt-1 flex justify-center gap-2">

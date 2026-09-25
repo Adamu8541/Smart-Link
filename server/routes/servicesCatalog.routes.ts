@@ -23,9 +23,9 @@ import { ProviderExecutor, verifyWebhookSignature } from "../../src/services/pro
 import { adminAuthService, ADMIN_ROLES_CONFIG } from "../../src/services/adminAuthService";
 import { AutomaticWalletFundingEngine } from "../../src/services/automaticWalletFundingEngine";
 import { PaymentVerificationReconciliationEngine } from "../../src/services/paymentVerificationReconciliationEngine";
-import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerGateway";
+import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerConnector";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
-import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
+import { MultiProviderRoutingEngine } from "../../src/services/multiProviderRoutingEngine";
 import { syncFromStorage, syncToStorage } from "../../src/services/settingsStore";
 import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
@@ -220,7 +220,7 @@ app.post("/api/admin/services", requireAdmin, async (req, res) => {
     name: service.name,
     category: service.category || "IDENTITY_VERIFICATION",
     description: service.description || "",
-    provider: service.provider || "SmartLink Gateway Direct",
+    provider: service.provider || "SmartLink Portal Direct",
     costPrice: parseFloat(service.costPrice) || 0,
     sellingFee: parseFloat(service.sellingFee) || 0,
     serviceCharge: parseFloat(service.serviceCharge) || 0,
@@ -480,8 +480,9 @@ app.post("/api/contact/submit", async (req, res) => {
   const adminTargetEmail = 
     process.env.ADMIN_NOTIFY_EMAIL || 
     process.env.SUPPORT_EMAIL || 
+    process.env.SUPER_ADMIN_EMAIL ||
     db.system_settings?.email?.replyToAddress || 
-    "adamuamuhammad8541@gmail.com";
+    "support@smartlink.ng";
 
   const adminNotificationHtml = `
     <!DOCTYPE html>

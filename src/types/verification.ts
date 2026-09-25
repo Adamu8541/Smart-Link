@@ -87,6 +87,9 @@ export interface VerificationResponseData {
   // Security / verification flags
   isVerified: boolean;
   verificationsPassed?: string[];
+  trackingId?: string;
+  tracking_id?: string;
+  trackingID?: string;
   rawFields?: Record<string, any>;
 }
 
@@ -106,6 +109,9 @@ export interface StandardizedVerificationResult {
   maskedId: string;
   signedQrContent?: string;
   userId?: string;
+  slipType?: string;
+  formatId?: string;
+  selectedSlip?: any;
 }
 
 export interface VerificationHistoryItem {

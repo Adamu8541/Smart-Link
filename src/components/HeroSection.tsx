@@ -288,7 +288,7 @@ export default function HeroSection({ onGetStarted }: HeroSectionProps) {
                 About SmartLink NG
               </span>
               <h2 className="text-3xl sm:text-4.5xl font-bold text-[#111827] tracking-tight leading-tight">
-                Nigeria's Premier Digital Verification & <span className="text-[#0F2D5C]">Technology Infrastructure Gateway</span>
+                Nigeria's Premier Digital Verification & <span className="text-[#0F2D5C]">Technology Infrastructure Portal</span>
               </h2>
             </div>
 

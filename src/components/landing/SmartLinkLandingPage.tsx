@@ -3,21 +3,18 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, Suspense } from "react";
+import React, { useState } from "react";
 import SEOHead from "./SEOHead";
 import LandingHeader from "./LandingHeader";
 import LandingHero from "./LandingHero";
-import { lazyWithRetry } from "../../utils/lazyRetry";
-
-// Below-the-fold sections lazy loaded with automatic retry
-const LandingTrustSection = lazyWithRetry(() => import("./LandingTrustSection"), "LandingTrustSection");
-const LandingServicesPreview = lazyWithRetry(() => import("./LandingServicesPreview"), "LandingServicesPreview");
-const LandingHowItWorks = lazyWithRetry(() => import("./LandingHowItWorks"), "LandingHowItWorks");
-const LandingFAQSection = lazyWithRetry(() => import("./LandingFAQSection"), "LandingFAQSection");
-const LandingContactSection = lazyWithRetry(() => import("./LandingContactSection"), "LandingContactSection");
-const LandingCTASection = lazyWithRetry(() => import("./LandingCTASection"), "LandingCTASection");
-const LandingFooter = lazyWithRetry(() => import("./LandingFooter"), "LandingFooter");
-const UserAnnouncementBanner = lazyWithRetry(() => import("../notification/UserAnnouncementBanner").then(m => ({ default: m.UserAnnouncementBanner })), "UserAnnouncementBanner");
+import LandingTrustSection from "./LandingTrustSection";
+import LandingServicesPreview from "./LandingServicesPreview";
+import LandingHowItWorks from "./LandingHowItWorks";
+import LandingFAQSection from "./LandingFAQSection";
+import LandingContactSection from "./LandingContactSection";
+import LandingCTASection from "./LandingCTASection";
+import LandingFooter from "./LandingFooter";
+import { UserAnnouncementBanner } from "../notification/UserAnnouncementBanner";
 
 interface SmartLinkLandingPageProps {
   onLogin: () => void;
@@ -113,73 +110,67 @@ export const SmartLinkLandingPage: React.FC<SmartLinkLandingPageProps> = ({
           onLogin={onLogin}
         />
 
-        {/* Live Homepage Announcement Banner Ticker - Loaded below hero to avoid CLS */}
-        <Suspense fallback={null}>
-          <UserAnnouncementBanner 
-            variant="homepage" 
-            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3"
-            onNavigate={handleAnnouncementNavigate} 
+        {/* Live Homepage Announcement Banner Ticker */}
+        <UserAnnouncementBanner 
+          variant="homepage" 
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3"
+          onNavigate={handleAnnouncementNavigate} 
+        />
+
+        {/* Trust Section */}
+        <div>
+          <LandingTrustSection />
+        </div>
+
+        {/* Services Preview */}
+        <div>
+          <LandingServicesPreview
+            onSelectService={onSelectService}
+            onExploreAll={onExploreServices}
           />
-        </Suspense>
+        </div>
 
-        <Suspense fallback={null}>
-          {/* Trust Section */}
-          <div className="content-visibility-auto">
-            <LandingTrustSection />
-          </div>
+        {/* How It Works */}
+        <div>
+          <LandingHowItWorks onGetStarted={onGetStarted} />
+        </div>
 
-          {/* Services Preview */}
-          <div className="content-visibility-auto">
-            <LandingServicesPreview
-              onSelectService={onSelectService}
-              onExploreAll={onExploreServices}
-            />
-          </div>
+        {/* FAQs */}
+        <div>
+          <LandingFAQSection 
+            onContactSupport={handleContactSales}
+            onGetStarted={onGetStarted}
+          />
+        </div>
 
-          {/* How It Works */}
-          <div className="content-visibility-auto">
-            <LandingHowItWorks onGetStarted={onGetStarted} />
-          </div>
+        {/* Contact Section */}
+        <div>
+          <LandingContactSection 
+            onNavigateFAQ={() => handleNavigateSection("faq-section")}
+          />
+        </div>
 
-          {/* FAQs */}
-          <div className="content-visibility-auto">
-            <LandingFAQSection 
-              onContactSupport={handleContactSales}
-              onGetStarted={onGetStarted}
-            />
-          </div>
-
-          {/* Contact Section */}
-          <div className="content-visibility-auto">
-            <LandingContactSection 
-              onNavigateFAQ={() => handleNavigateSection("faq-section")}
-            />
-          </div>
-
-          {/* Call To Action */}
-          <div className="content-visibility-auto">
-            <LandingCTASection
-              onRegister={onRegister}
-              onContactSales={handleContactSales}
-            />
-          </div>
-        </Suspense>
+        {/* Call To Action */}
+        <div>
+          <LandingCTASection
+            onRegister={onRegister}
+            onContactSales={handleContactSales}
+          />
+        </div>
 
       </main>
 
       {/* Footer - blocked completely when user logged in, appears only on homepage */}
       {!currentUser && (
-        <Suspense fallback={null}>
-          <LandingFooter
-            onNavigateSection={handleNavigateSection}
-            onLogin={onLogin}
-            onRegister={onRegister}
-            onAdminLogin={onAdminLogin}
-            onNavigateLegal={onNavigateLegal}
-            activeInfoTab={activeInfoTab}
-            setActiveInfoTab={setActiveInfoTab}
-          />
-        </Suspense>
+        <LandingFooter
+          onNavigateSection={handleNavigateSection}
+          onLogin={onLogin}
+          onRegister={onRegister}
+          onAdminLogin={onAdminLogin}
+          onNavigateLegal={onNavigateLegal}
+          activeInfoTab={activeInfoTab}
+          setActiveInfoTab={setActiveInfoTab}
+        />
       )}
     </div>
   );

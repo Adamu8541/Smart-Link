@@ -39,7 +39,7 @@ interface SystemHealthData {
     providersCount: number;
     auditLogsCount: number;
   };
-  apiGatewayLatencyMs: number;
+  apiPortalLatencyMs: number;
   timestamp: string;
 }
 
@@ -165,11 +165,11 @@ export function AdminSystemView({ session, onNavigate }: AdminSystemViewProps) {
 
         <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-[0_4px_12px_rgba(15,23,42,0.06)] space-y-1">
           <div className="flex items-center justify-between text-[#4B5563]">
-            <span className="text-xs font-semibold">Gateway Ping Latency</span>
+            <span className="text-xs font-semibold">Portal Ping Latency</span>
             <Zap className="h-4 w-4 text-[#0F2D5C]" />
           </div>
           <p className="text-2xl font-bold text-[#111827]">
-            {health?.apiGatewayLatencyMs || 85} ms
+            {health?.apiPortalLatencyMs || 85} ms
           </p>
           <span className="text-[11px] text-[#0F2D5C] font-medium">Sub-100ms ultra low latency</span>
         </div>
@@ -196,7 +196,7 @@ export function AdminSystemView({ session, onNavigate }: AdminSystemViewProps) {
             </p>
           </div>
           <div className="p-4 bg-[#F5F7FA] rounded-xl border border-[#E5E7EB]">
-            <span className="text-xs text-[#4B5563]">API Gateways Configured</span>
+            <span className="text-xs text-[#4B5563]">API Portals Configured</span>
             <p className="text-xl font-bold text-[#111827] mt-1">
               {health?.databaseRecords.providersCount.toLocaleString() || 0}
             </p>

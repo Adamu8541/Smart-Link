@@ -56,7 +56,7 @@ export const LandingFAQSection: React.FC<{ onContactSupport?: () => void; onGetS
       icon: Fingerprint,
       question: "How do I verify and download my NIN Slip in Nigeria?",
       answer:
-        "Simply enter the 11-digit National Identity Number (NIN) or registered phone number in our verification portal. The system validates the record directly against national databases and instantly generates downloadable, high-resolution Standard, Premium, or Digital Green PDF slips complete with verifiable QR barcodes.",
+        "Simply enter the 11-digit National Identity Number (NIN) or registered phone number in our verification portal. The system validates the record directly against national databases and instantly generates downloadable, high-resolution Regular Slip or Premium Plastic Card PDF layouts complete with verifiable QR barcodes.",
       keywords: "NIN slip download print PDF premium QR code NIMC",
     },
     {

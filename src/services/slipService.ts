@@ -44,6 +44,81 @@ export class SlipService {
 
     const nowISO = new Date().toISOString();
 
+    // Robust photo extraction from all potential provider fields
+    const candidatePhoto =
+      data?.photoUrl ||
+      (data as any)?.photo ||
+      (data as any)?.image ||
+      (data as any)?.rawPhoto ||
+      (data as any)?.base64Image ||
+      (data as any)?.applicant_photo ||
+      data?.rawFields?.photo ||
+      data?.rawFields?.photoUrl ||
+      data?.rawFields?.image ||
+      data?.rawFields?.applicant_photo ||
+      data?.rawFields?.base64Image ||
+      "";
+
+    let fName = (
+      data?.firstName ||
+      (data as any)?.first_name ||
+      (data as any)?.firstname ||
+      data?.rawFields?.firstName ||
+      data?.rawFields?.first_name ||
+      ""
+    ).trim();
+
+    let sName = (
+      data?.lastName ||
+      (data as any)?.surname ||
+      (data as any)?.last_name ||
+      data?.rawFields?.lastName ||
+      data?.rawFields?.surname ||
+      ""
+    ).trim();
+
+    const mName = (
+      data?.middleName ||
+      (data as any)?.middle_name ||
+      (data as any)?.middlename ||
+      data?.rawFields?.middleName ||
+      ""
+    ).trim();
+
+    let fullLegalName = (data?.fullName || (data as any)?.name || "").trim();
+
+    // Disambiguate if surname is missing or identical to first name
+    if ((!sName || (fName && sName.toLowerCase() === fName.toLowerCase())) && fullLegalName) {
+      const parts = fullLegalName.split(/\s+/).filter(Boolean);
+      if (parts.length >= 2) {
+        const distinct = parts.filter((p) => !fName || p.toLowerCase() !== fName.toLowerCase());
+        if (distinct.length > 0) {
+          sName = distinct.join(" ");
+        } else {
+          sName = parts[1] || parts[0];
+        }
+      }
+    }
+
+    if (!fName && fullLegalName) {
+      const parts = fullLegalName.split(/\s+/).filter(Boolean);
+      if (parts.length >= 2) {
+        if (sName) {
+          const distinct = parts.filter((p) => p.toLowerCase() !== sName.toLowerCase());
+          fName = distinct[0] || parts[1];
+        } else {
+          sName = parts[0];
+          fName = parts[1];
+        }
+      } else {
+        fName = parts[0] || "";
+      }
+    }
+
+    if (!fullLegalName) {
+      fullLegalName = [sName, fName, mName].filter(Boolean).join(" ") || "RECORD CONFIRMED";
+    }
+
     const slipRecord: GeneratedSlipRecord = {
       id: slipId,
       slipId,
@@ -53,14 +128,21 @@ export class SlipService {
       formatType,
       identificationNumber: verifiedId,
       maskedId,
-      trackingId: data?.rawFields?.trackingId || `20TO${verifiedId.substring(0, 4)}000008J`,
+      trackingId:
+        data?.trackingId ||
+        data?.tracking_id ||
+        data?.trackingID ||
+        data?.rawFields?.trackingId ||
+        data?.rawFields?.tracking_id ||
+        data?.rawFields?.trackingID ||
+        undefined,
       qrVerificationToken: qrToken,
       qrVerificationUrl,
       holderData: {
-        fullName: data?.fullName || "RECORD CONFIRMED",
-        surname: data?.lastName || data?.fullName?.split(" ")[0] || "",
-        firstName: data?.firstName || data?.fullName?.split(" ")[1] || "",
-        middleName: data?.middleName || data?.fullName?.split(" ").slice(2).join(" ") || "",
+        fullName: fullLegalName,
+        surname: sName,
+        firstName: fName,
+        middleName: mName || data?.fullName?.split(" ").slice(2).join(" ") || "",
         gender: data?.gender || "M",
         dateOfBirth: data?.dateOfBirth || "",
         issueDate: nowISO,
@@ -69,7 +151,7 @@ export class SlipService {
         lga: data?.lga || "",
         phoneNumber: data?.phoneNumber || "",
         email: data?.email || "",
-        photoUrl: data?.photoUrl || "",
+        photoUrl: candidatePhoto,
         nin: verifiedId,
         bvn: data?.bvn,
       },

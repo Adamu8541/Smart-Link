@@ -19,15 +19,9 @@ export const DB_DIR = IS_VERCEL ? "/tmp" : path.join(process.cwd(), "src", "data
 export const DB_FILE = IS_VERCEL ? path.join("/tmp", "db.json") : path.join(DB_DIR, "db.json");
 export const UPLOADS_DIR = path.join(DB_DIR, "uploads");
 
-// Admin credentials from environment variables (with fallback for dev/preview)
-if (!process.env.SUPER_ADMIN_EMAIL || !process.env.SUPER_ADMIN_EMAIL.trim()) {
-  console.warn("[Database] Notice: SUPER_ADMIN_EMAIL environment variable not set. Falling back to default super admin.");
-}
-if (!process.env.SUPER_ADMIN_PASSWORD || !process.env.SUPER_ADMIN_PASSWORD.trim()) {
-  console.warn("[Database] Notice: SUPER_ADMIN_PASSWORD environment variable not set. Falling back to default password.");
-}
-export const SUPER_ADMIN_EMAIL = (process.env.SUPER_ADMIN_EMAIL || "adamuamuhammad8541@gmail.com").toLowerCase().trim();
-export const SUPER_ADMIN_PASSWORD = (process.env.SUPER_ADMIN_PASSWORD || "Admin@123456").trim();
+// Admin credentials strictly from environment variables (no hardcoded credentials)
+export const SUPER_ADMIN_EMAIL = (process.env.SUPER_ADMIN_EMAIL || "").toLowerCase().trim();
+export const SUPER_ADMIN_PASSWORD = (process.env.SUPER_ADMIN_PASSWORD || "").trim();
 
 export function hashPassword(password: string, salt?: string): string {
   return bcrypt.hashSync(password, 12);
@@ -105,8 +99,24 @@ export function initializeDB() {
     console.warn("Notice: Storage directory initialization handled:", e);
   }
 
-  const superAdminHash = hashPassword(SUPER_ADMIN_PASSWORD);
-  const superAdminSalt = "";
+  const defaultUsers = (SUPER_ADMIN_EMAIL && SUPER_ADMIN_PASSWORD)
+    ? [
+        {
+          uid: "usr_superadmin",
+          email: SUPER_ADMIN_EMAIL,
+          fullName: "Super Admin",
+          phoneNumber: "+2348000000000",
+          role: "SUPER_ADMIN",
+          walletBalance: 0,
+          referralCode: "SUPER1",
+          passwordHash: hashPassword(SUPER_ADMIN_PASSWORD),
+          salt: "",
+          isVerified: true,
+          status: "ACTIVE",
+          createdAt: new Date().toISOString(),
+        },
+      ]
+    : [];
 
   const defaultSiteSettings = {
     siteName: "Smart Link Digital",
@@ -161,22 +171,7 @@ export function initializeDB() {
   };
 
   const defaultData = {
-    users: [
-      {
-        uid: "usr_superadmin",
-        email: SUPER_ADMIN_EMAIL,
-        fullName: "Adamu A. Muhammad",
-        phoneNumber: "+2348000000000",
-        role: "SUPER_ADMIN",
-        walletBalance: 0,
-        referralCode: "SUPER1",
-        passwordHash: superAdminHash,
-        salt: superAdminSalt,
-        isVerified: true,
-        status: "ACTIVE",
-        createdAt: new Date().toISOString(),
-      },
-    ],
+    users: defaultUsers,
     transactions: [],
     cacApplications: [],
     vendorServices: [],

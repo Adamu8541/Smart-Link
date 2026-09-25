@@ -373,7 +373,7 @@ export const MANUAL_SERVICES_CATALOG: ManualServiceConfig[] = [
       { name: "nextOfKinName", label: "Next of Kin Full Name & Relationship", type: "text", placeholder: "e.g. Zainab Muhammad (Sister)", required: true },
       { name: "nextOfKinPhone", label: "Next of Kin Phone Number", type: "tel", placeholder: "e.g. 08023456789", required: true },
       { name: "applicantPhone", label: "Applicant Phone Number", type: "tel", placeholder: "e.g. 08031234567", required: true },
-      { name: "applicantEmail", label: "Applicant Email", type: "email", placeholder: "e.g. adamuamuhammad8541@gmail.com", required: true },
+      { name: "applicantEmail", label: "Applicant Email", type: "email", placeholder: "e.g. applicant@example.com", required: true },
       // Files
       { name: "passportPhoto", label: "Applicant White-Background Passport Photo", type: "file", accept: "image/*", required: true },
       { name: "ninSlip", label: "Applicant NIN Slip Scan", type: "file", accept: "image/*,application/pdf", required: true },
@@ -396,15 +396,15 @@ export const MANUAL_SERVICES_CATALOG: ManualServiceConfig[] = [
       { name: "projectScope", label: "Project Description & Required Features", type: "textarea", placeholder: "Describe what you want the website or portal to do in detail...", required: true },
       { name: "targetBudget", label: "Estimated Target Budget Range (₦)", type: "select", options: ["₦100,000 - ₦250,000", "₦250,000 - ₦500,000", "₦500,000 - ₦1,000,000", "₦1,000,000+ Enterprise"], required: true },
       { name: "preferredTimeline", label: "Expected Delivery Timeline", type: "select", options: ["Urgent (Within 1 - 2 Weeks)", "Standard (2 - 4 Weeks)", "Flexible / Phase-by-Phase"], required: true },
-      { name: "contactPerson", label: "Contact Person Full Name", type: "text", placeholder: "e.g. Engr. Adamu", required: true },
+      { name: "contactPerson", label: "Contact Person Full Name", type: "text", placeholder: "e.g. Ibrahim Adamu", required: true },
       { name: "contactPhone", label: "Contact Phone / WhatsApp Number", type: "tel", placeholder: "e.g. 08031234567", required: true },
-      { name: "contactEmail", label: "Contact Email Address", type: "email", placeholder: "e.g. adamuamuhammad8541@gmail.com", required: true },
+      { name: "contactEmail", label: "Contact Email Address", type: "email", placeholder: "e.g. client@example.com", required: true },
       { name: "referenceDocOrLogo", label: "Upload Brand Logo or Project Spec Document (Optional)", type: "file", accept: "image/*,application/pdf,.doc,.docx", required: false }
     ]
   }
 ];
 
-export const DEFAULT_MANUAL_ADMIN_EMAIL = "adamuamuhammad8541@gmail.com";
+export const DEFAULT_MANUAL_ADMIN_EMAIL = "admin@smartlink.ng";
 
 export interface SubServiceOption {
   id: string;

@@ -38,38 +38,20 @@ export const SlipLivePreviewCard: React.FC<SlipLivePreviewCardProps> = ({
     );
   }
 
-  // Drop down: BVN Slip 1, image: BVN Slip 1.webp
+  // Drop down: BVN Slip, image: BVN Slip 1.webp
   if (
+    name === "bvn slip" ||
     name === "bvn slip 1" ||
     id === "BVN_SLIP_1" ||
-    name.includes("bvn slip 1") ||
-    (serviceType.toUpperCase().includes("BVN") && (id.includes("1") || name.includes("1")))
+    id === "BVN_SLIP" ||
+    name.includes("bvn slip") ||
+    (serviceType.toUpperCase().includes("BVN") && (id.includes("slip") || name.includes("slip")))
   ) {
     return (
       <div className="w-full flex items-center justify-center p-2 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden select-none">
         <img
           src="/assets/BVN%20Slip%201.webp"
-          alt="BVN Slip 1"
-          loading="eager"
-          referrerPolicy="no-referrer"
-          className="w-full h-auto max-w-lg rounded-xl object-contain shadow-xs block mx-auto"
-        />
-      </div>
-    );
-  }
-
-  // Drop down: BVN Slip 2, image: BVN Slip 2.webp
-  if (
-    name === "bvn slip 2" ||
-    id === "BVN_SLIP_2" ||
-    name.includes("bvn slip 2") ||
-    (serviceType.toUpperCase().includes("BVN") && (id.includes("2") || name.includes("2")))
-  ) {
-    return (
-      <div className="w-full flex items-center justify-center p-2 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden select-none">
-        <img
-          src="/assets/BVN%20Slip%202.webp"
-          alt="BVN Slip 2"
+          alt="BVN Slip"
           loading="eager"
           referrerPolicy="no-referrer"
           className="w-full h-auto max-w-lg rounded-xl object-contain shadow-xs block mx-auto"
@@ -101,34 +83,6 @@ export const SlipLivePreviewCard: React.FC<SlipLivePreviewCardProps> = ({
             const target = e.currentTarget;
             if (!target.src.includes("Premium.webp")) {
               target.src = "/assets/Premium.webp";
-            }
-          }}
-          className="w-full h-auto max-w-lg rounded-xl object-contain shadow-xs block mx-auto"
-        />
-      </div>
-    );
-  }
-
-  // Drop down: Standard Slip -> image: standard.webp
-  if (
-    name === "standard slip" ||
-    name === "nin standard slip" ||
-    id === "STANDARD" ||
-    id === "NIN_STANDARD" ||
-    id === "NIN_STANDARD_SLIP" ||
-    name.includes("standard")
-  ) {
-    return (
-      <div className="w-full flex items-center justify-center p-2 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden select-none">
-        <img
-          src="/assets/standard.webp"
-          alt="Standard Slip"
-          loading="eager"
-          referrerPolicy="no-referrer"
-          onError={(e) => {
-            const target = e.currentTarget;
-            if (!target.src.includes("Standard.webp")) {
-              target.src = "/assets/Standard.webp";
             }
           }}
           className="w-full h-auto max-w-lg rounded-xl object-contain shadow-xs block mx-auto"

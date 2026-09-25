@@ -599,7 +599,7 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
                 loadAdminStats();
               }}
               className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
-                viewMode === "ADMIN_STATS" ? "bg-[#0F2D5C] text-[#111827] font-bold" : "text-[#9CA3AF] hover:text-white hover:bg-white/10"
+                viewMode === "ADMIN_STATS" ? "bg-white text-[#0F2D5C] font-bold" : "text-[#E5E7EB] hover:text-white hover:bg-white/10"
               }`}
             >
               <BarChart3 className="h-3.5 w-3.5" /> Admin Analytics
@@ -630,7 +630,7 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
             </div>
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2 text-xs font-medium text-[#6B7280]">
-                <span className="h-2 w-2 rounded-full bg-[#0F2D5C]"></span> 100% Provider API Gateway Online
+                <span className="h-2 w-2 rounded-full bg-[#0F2D5C]"></span> 100% Provider API Portal Online
               </div>
               {onBackToDashboard && (
                 <button
@@ -660,10 +660,10 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
                 >
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <div className="h-12 w-12 rounded-xl bg-[#F5F7FA] dark:bg-[#0F2D5C]/50 border border-[#E5E7EB] dark:border-[#0F2D5C] flex items-center justify-center text-[#0F2D5C] dark:text-[#9CA3AF] group-hover:scale-110 transition-transform">
+                      <div className="h-12 w-12 rounded-xl bg-[#F5F7FA] dark:bg-[#0F2D5C]/50 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-[#0F2D5C] dark:text-[#9CA3AF] group-hover:scale-110 transition-transform">
                         {renderCategoryIcon(cat.icon)}
                       </div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 text-[#0F2D5C] dark:text-[#9CA3AF] border border-[#E5E7EB] dark:border-[#0F2D5C]">
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 border border-slate-200 dark:border-slate-700">
                         {cat.providerStatus}
                       </span>
                     </div>
@@ -1103,7 +1103,7 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
 
             {/* Customer Validation Success Details Box */}
             {customerValidation && customerValidation.valid && (
-              <div className="p-4 rounded-2xl bg-[#F5F7FA] dark:bg-[#0F2D5C]/30 border border-[#E5E7EB] dark:border-[#0F2D5C] space-y-2 animate-fadeIn text-xs text-[#0F2D5C] dark:text-[#9CA3AF]">
+              <div className="p-4 rounded-2xl bg-[#F5F7FA] dark:bg-[#0F2D5C]/30 border border-slate-200 dark:border-slate-700 space-y-2 animate-fadeIn text-xs text-[#0F2D5C] dark:text-[#9CA3AF]">
                 <div className="flex items-center gap-1.5 font-bold text-[#0F2D5C] dark:text-[#9CA3AF]">
                   <CheckCircle2 className="h-4 w-4 text-[#0F2D5C]" /> Account Verified Successfully
                 </div>
@@ -1197,7 +1197,7 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
                 )}
               </div>
 
-              <div className="bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 p-4 rounded-2xl space-y-2 border border-[#E5E7EB] dark:border-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF] font-medium">
+              <div className="bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 p-4 rounded-2xl space-y-2 border border-slate-200 dark:border-slate-700 text-[#0F2D5C] dark:text-[#9CA3AF] font-medium">
                 <div className="flex justify-between">
                   <span>Base Bill Amount</span>
                   <span>{formatNaira(((selectedPlan ? selectedPlan.amount : parseFloat(amount)) || 0), true)}</span>
@@ -1206,7 +1206,7 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
                   <span>Convenience Fee</span>
                   <span>{formatNaira(selectedCategory.id === "ELECTRICITY" || selectedCategory.id === "CABLE_TV" ? 100 : 0, true)}</span>
                 </div>
-                <div className="pt-2 border-t border-[#E5E7EB] dark:border-[#0F2D5C] flex justify-between font-bold text-sm text-[#0F2D5C] dark:text-white">
+                <div className="pt-2 border-t border-slate-200 dark:border-slate-700 flex justify-between font-bold text-sm text-[#0F2D5C] dark:text-white">
                   <span>Total Debit Amount</span>
                   <span className="font-mono text-base">
                     {formatNaira((((selectedPlan ? selectedPlan.amount : parseFloat(amount)) || 0) + (selectedCategory.id === "ELECTRICITY" || selectedCategory.id === "CABLE_TV" ? 100 : 0)), true)}
@@ -1300,12 +1300,12 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
             <div className="space-y-6">
               {/* Success Header */}
               <div className="text-center space-y-2 py-4 border-b border-[#E5E7EB] dark:border-[#111827]">
-                <div className="h-16 w-16 rounded-full bg-[#E5E7EB] dark:bg-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF] flex items-center justify-center mx-auto shadow-inner">
+                <div className="h-16 w-16 rounded-full bg-[#E5E7EB] dark:bg-[#0F2D5C] text-white dark:text-[#9CA3AF] flex items-center justify-center mx-auto shadow-inner">
                   <CheckCircle2 className="h-10 w-10" />
                 </div>
                 <h2 className="text-2xl font-black text-[#111827] dark:text-white">Bill Payment Successful!</h2>
                 <p className="text-xs text-[#6B7280]">
-                  Your transaction has been processed and settled instantly via SmartLink Provider Gateway.
+                  Your transaction has been processed and settled instantly via SmartLink Provider Portal.
                 </p>
               </div>
 
@@ -1321,7 +1321,7 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
                     </span>
                     <button
                       onClick={() => copyToClipboard(paymentResult.token!, "token")}
-                      className="px-3.5 py-2 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-[#111827] font-bold rounded-xl text-xs transition-all cursor-pointer flex items-center gap-1"
+                      className="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs transition-all cursor-pointer flex items-center gap-1 shadow-sm"
                     >
                       {copiedText === "token" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                       <span>{copiedText === "token" ? "Copied" : "Copy Token"}</span>
@@ -1453,13 +1453,13 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
           ) : (
             /* Failed Result View */
             <div className="text-center py-6 space-y-6">
-              <div className="h-16 w-16 rounded-full bg-[#E5E7EB] dark:bg-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF] flex items-center justify-center mx-auto shadow-inner">
+              <div className="h-16 w-16 rounded-full bg-[#E5E7EB] dark:bg-[#0F2D5C] text-white dark:text-[#9CA3AF] flex items-center justify-center mx-auto shadow-inner">
                 <AlertCircle className="h-10 w-10" />
               </div>
               <div className="space-y-2">
                 <h2 className="text-2xl font-black text-[#111827] dark:text-white">Bill Payment Failed</h2>
                 <p className="text-xs text-[#0F2D5C] dark:text-[#9CA3AF] max-w-md mx-auto font-medium">
-                  {paymentResult.errorMessage || "The payment could not be completed by the provider gateway."}
+                  {paymentResult.errorMessage || "The payment could not be completed by the provider portal."}
                 </p>
               </div>
 
@@ -1585,7 +1585,7 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
                             receiptId: item.receiptId || "REC-" + item.id,
                             serviceName: item.serviceName || item.service || "Bill Payment",
                             category: item.category || "AIRTIME",
-                            providerName: item.providerName || item.provider || "Gateway",
+                            providerName: item.providerName || item.provider || "Portal",
                             customerId: item.customerId || item.recipient || "N/A",
                             amountPaid: item.amount || 0,
                             charge: item.charge || 0,
@@ -1595,7 +1595,7 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
                             balanceAfter: item.balanceAfter || 0,
                             timestamp: item.createdAt || new Date().toISOString()
                           })}
-                          className="px-2.5 py-1 bg-[#F5F7FA] dark:bg-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF] hover:bg-[#E5E7EB] rounded-lg text-[11px] font-bold cursor-pointer transition-colors"
+                          className="px-2.5 py-1 bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 hover:bg-[#E5E7EB] rounded-lg text-[11px] font-bold cursor-pointer transition-colors"
                         >
                           Receipt
                         </button>
@@ -1622,7 +1622,7 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
             <button
               onClick={loadAdminStats}
               disabled={loadingAdminStats}
-              className="px-3.5 py-2 rounded-xl bg-[#0F2D5C]/10 text-[#0F2D5C] dark:text-[#9CA3AF] font-bold text-xs hover:bg-[#0F2D5C]/20 cursor-pointer flex items-center gap-1.5"
+              className="px-3.5 py-2 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 dark:text-[#9CA3AF] font-bold text-xs hover:bg-[#0F2D5C]/20 cursor-pointer flex items-center gap-1.5"
             >
               <RefreshCw className={`h-3.5 w-3.5 ${loadingAdminStats ? "animate-spin" : ""}`} /> Refresh Metrics
             </button>
@@ -1660,7 +1660,7 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
               {/* Provider Performance Table */}
               <div className="space-y-3">
                 <h3 className="text-xs font-bold text-[#111827] dark:text-[#E5E7EB] uppercase tracking-wider">
-                  Provider Gateway Performance
+                  Provider Portal Performance
                 </h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">

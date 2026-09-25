@@ -42,7 +42,7 @@ interface NinVerificationViewProps {
 }
 
 export interface NinSlipType3 {
-  id: "PREMIUM" | "STANDARD" | "REGULAR";
+  id: "PREMIUM" | "REGULAR";
   name: string;
   label: string;
   price: number;
@@ -55,7 +55,6 @@ export function getNinSlipOptions(siteConfig?: any): NinSlipType3[] {
   const slipPrices = priceMatrix.slipPrices || siteConfig?.systemSettings?.slipPrices || {};
 
   const regularPrice = typeof slipPrices.REGULAR === "number" ? slipPrices.REGULAR : (typeof slipPrices.regular === "number" ? slipPrices.regular : 180);
-  const standardPrice = typeof slipPrices.STANDARD === "number" ? slipPrices.STANDARD : (typeof slipPrices.standard === "number" ? slipPrices.standard : 200);
   const premiumPrice = typeof slipPrices.PREMIUM === "number" ? slipPrices.PREMIUM : (typeof slipPrices.premium === "number" ? slipPrices.premium : 250);
 
   return [
@@ -66,14 +65,6 @@ export function getNinSlipOptions(siteConfig?: any): NinSlipType3[] {
       price: regularPrice,
       badge: "Basic Slip",
       formatId: "NIN_REGULAR",
-    },
-    {
-      id: "STANDARD",
-      name: "Standard Slip",
-      label: "Standard Slip",
-      price: standardPrice,
-      badge: "Standard Slip",
-      formatId: "NIN_STANDARD",
     },
     {
       id: "PREMIUM",
@@ -96,7 +87,7 @@ export const mapSlipToConfig = (s: NinSlipType3): SlipOptionConfig => ({
   price: s.price,
   description: `${s.name} generated with official NIMC watermarks & scannable QR verification.`,
   dimensions: s.id === "PREMIUM" ? "CR80 Plastic Card Size" : "Standard A4 / Letter",
-  recommendedFor: s.id === "PREMIUM" ? "Plastic Card Printing & Wallet ID" : (s.id === "STANDARD" ? "Official Banking & KYC Verification" : "General Identity Verification"),
+  recommendedFor: s.id === "PREMIUM" ? "Plastic Card Printing & Wallet ID" : "General Identity Verification",
   themeColor: "#0F2D5C",
   bgGradient: "from-[#0F2D5C]/10 via-[#0F2D5C]/5 to-[#111827]/10",
   features: ["NIMC Verification Seal", "Scannable 2D QR Code", "Official Tracking ID", "Digital Watermark"],
@@ -207,7 +198,13 @@ export const NinVerificationView: React.FC<NinVerificationViewProps> = ({
       });
 
       if (res.success && res.result) {
-        setResult(res.result);
+        const enrichedResult: StandardizedVerificationResult = {
+          ...res.result,
+          slipType: selectedSlip?.id || "REGULAR",
+          formatId: selectedSlip?.formatId || "NIN_REGULAR",
+          selectedSlip: selectedSlip,
+        };
+        setResult(enrichedResult);
         setStepMode("SUCCESS");
         if (onBalanceUpdate) onBalanceUpdate();
         refreshBalance();
@@ -329,7 +326,7 @@ export const NinVerificationView: React.FC<NinVerificationViewProps> = ({
                 </h2>
               </div>
 
-              {/* Dropdown with EXACTLY 3 Options: Premium, Standard, Regular */}
+              {/* Dropdown with Options: Regular Slip, Premium Card */}
               <div className="relative">
                 <select
                   id="nin-slip-type-selector"
@@ -524,46 +521,19 @@ export const NinVerificationView: React.FC<NinVerificationViewProps> = ({
           <VerificationLoader
             currentStep={currentStep}
             serviceTitle={displayTitle}
-            providerName="NIMC Official Gateway"
+            providerName="NIMC Official Portal"
           />
         )}
 
         {/* Success Result View */}
         {stepMode === "SUCCESS" && result && (
-          <div className="space-y-5">
-            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
-                  <CheckCircle2 className="w-6 h-6" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-emerald-900 text-sm">
-                    {displayTitle} Successful
-                  </h3>
-                  <p className="text-xs text-emerald-700">
-                    Official record verified and slip generated.
-                  </p>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setShowSlipModal(true)}
-                className="px-3.5 py-2 bg-[#0F2D5C] hover:bg-[#1E3A8A] text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer"
-              >
-                <Printer className="w-3.5 h-3.5" />
-                <span>Print Slip</span>
-              </button>
-            </div>
-
-            <VerificationSuccess
-              result={result}
-              userId={userId}
-              userEmail={userEmail}
-              onRepeatVerification={handleVerify}
-              onNewVerification={handleResetForm}
-            />
-          </div>
+          <VerificationSuccess
+            result={result}
+            userId={userId}
+            userEmail={userEmail}
+            onRepeatVerification={handleVerify}
+            onNewVerification={handleResetForm}
+          />
         )}
 
         {/* Error View */}

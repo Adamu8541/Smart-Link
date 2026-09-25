@@ -22,9 +22,9 @@ import { ProviderExecutor, verifyWebhookSignature } from "../../src/services/pro
 import { adminAuthService, ADMIN_ROLES_CONFIG } from "../../src/services/adminAuthService";
 import { AutomaticWalletFundingEngine } from "../../src/services/automaticWalletFundingEngine";
 import { PaymentVerificationReconciliationEngine } from "../../src/services/paymentVerificationReconciliationEngine";
-import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerGateway";
+import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerConnector";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
-import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
+import { MultiProviderRoutingEngine } from "../../src/services/multiProviderRoutingEngine";
 import { syncFromStorage, syncToStorage } from "../../src/services/settingsStore";
 import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
@@ -358,7 +358,7 @@ app.all(["/api/admin/module1/test", "/api/admin/auth/test"], requireAdmin, async
   }
 });
 
-// Get Virtual Account for a user (Supports Active Provider via Gateway)
+// Get Virtual Account for a user (Supports Active Provider via Portal)
 app.get("/api/wallet/virtual-account", async (req, res) => {
   const userId = req.query.userId as string;
 
@@ -419,7 +419,7 @@ app.post("/api/wallet/fund/card", async (req, res) => {
   const db = readDB();
   const reference = `CARD-FUND-${Math.floor(100000 + Math.random() * 900000)}`;
   const receiptNumber = `REC-${reference}`;
-  const gatewayName = "Debit Card Gateway (3D Secure)";
+  const portalName = "Debit Card Portal (3D Secure)";
 
   let creditRes;
   try {
@@ -427,7 +427,7 @@ app.post("/api/wallet/fund/card", async (req, res) => {
       userId,
       amount: parseFloat(amount),
       serviceName: "Wallet Funding via Card",
-      provider: gatewayName,
+      provider: portalName,
       description: `Card deposit (${cardNumberMasked}) authorized by OTP`,
       reference,
       fee: 0,
@@ -451,7 +451,7 @@ app.post("/api/wallet/fund/card", async (req, res) => {
     amount: parseFloat(amount),
     amountPaid: parseFloat(amount),
     status: "SUCCESSFUL",
-    gateway: gatewayName,
+    portal: portalName,
     timestamp: new Date().toISOString(),
     createdAt: new Date().toISOString(),
   });
@@ -564,7 +564,7 @@ app.post("/api/admin/wallet/manual-credit", requireAdmin, async (req, res) => {
     amount: amt,
     amountPaid: amt,
     status: "SUCCESSFUL",
-    gateway: `Admin Audit (${adminEmail || adminUser.email})`,
+    portal: `Admin Audit (${adminEmail || adminUser.email})`,
     timestamp: new Date().toISOString(),
     createdAt: new Date().toISOString(),
   });

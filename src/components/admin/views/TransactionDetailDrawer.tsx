@@ -244,7 +244,7 @@ export function TransactionDetailDrawer({
                       <span className="font-mono font-bold text-[#E5E7EB]">{tx.providerRef || "N/A"}</span>
                     </div>
                     <div>
-                      <span className="text-[#9CA3AF] block text-[10px] uppercase font-bold">Provider Gateway</span>
+                      <span className="text-[#9CA3AF] block text-[10px] uppercase font-bold">Provider Portal</span>
                       <span className="font-medium text-[#E5E7EB]">{tx.providerName}</span>
                     </div>
                     <div>

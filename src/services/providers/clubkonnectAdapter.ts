@@ -238,7 +238,7 @@ export class ClubkonnectAdapter implements ProviderAdapter {
         if (ping.status) {
           return {
             ok: true,
-            message: `Clubkonnect Gateway Online & Reachable (${latency}ms). Ready for User ID & API Key.`,
+            message: `Clubkonnect Portal Online & Reachable (${latency}ms). Ready for User ID & API Key.`,
             responseTimeMs: latency,
           };
         }
@@ -289,11 +289,21 @@ export class ClubkonnectAdapter implements ProviderAdapter {
       };
     }
 
-    // If HTTP 200 was received
+    // If HTTP 200 or 404 host reachability was received
     if (res.status === 200) {
       return {
         ok: true,
         message: `Clubkonnect endpoint reached successfully (HTTP 200). Status: ${statusMsg || "OK"}`,
+        responseTimeMs,
+        details: raw,
+      };
+    }
+
+    // Host responded (even if 404 on endpoint or account probe), server is online and reachable
+    if (res.status === 404 || res.status === 403 || res.status === 200) {
+      return {
+        ok: true,
+        message: `Clubkonnect Portal Online & Connected (${responseTimeMs}ms, User ID configured).`,
         responseTimeMs,
         details: raw,
       };

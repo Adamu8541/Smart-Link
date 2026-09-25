@@ -22,10 +22,10 @@ import { ProviderExecutor, verifyWebhookSignature } from "../../src/services/pro
 import { adminAuthService, ADMIN_ROLES_CONFIG } from "../../src/services/adminAuthService";
 import { AutomaticWalletFundingEngine } from "../../src/services/automaticWalletFundingEngine";
 import { PaymentVerificationReconciliationEngine } from "../../src/services/paymentVerificationReconciliationEngine";
-import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerGateway";
+import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerConnector";
 import { sendPlatformEmail, getResolvedSmtpConfig } from "../services/email.service";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
-import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
+import { MultiProviderRoutingEngine } from "../../src/services/multiProviderRoutingEngine";
 import { syncFromStorage, syncToStorage } from "../../src/services/settingsStore";
 import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
@@ -545,7 +545,7 @@ app.post("/api/admin/remove-all-wallets", requireAdmin, async (req, res) => {
 // MODULE 6 & MONNIFY MODULE 2: WALLET FUNDING & RESERVED VIRTUAL ACCOUNT CREATION
 // ==========================================
 
-// Generic Virtual Account & Payment Gateway Webhook Handlers
+// Generic Virtual Account & Payment Portal Webhook Handlers
 // Virtual account endpoints are handled in virtualAccount.routes.ts with authentication and validation
 
 app.post("/api/receipt/email", async (req, res) => {
@@ -601,18 +601,18 @@ app.post("/api/receipt/email", async (req, res) => {
   });
 });
 
-// Generic Payment Gateway Verification & Self-Test
-app.get("/api/gateway/verify-transaction/:paymentReference", async (req, res) => {
+// Generic Payment Portal Verification & Self-Test
+app.get("/api/portal/verify-transaction/:paymentReference", async (req, res) => {
   const { paymentReference } = req.params;
   const db = readDB();
   try {
     const verificationData = await ProviderExecutor.executeTransactionVerification(db, {
       paymentReference,
-      category: "PAYMENT_GATEWAY",
+      category: "PAYMENT_PROVIDER",
     });
     res.json({
       success: true,
-      message: "Transaction verified successfully via active provider gateway.",
+      message: "Transaction verified successfully via active provider portal.",
       data: verificationData,
     });
   } catch (err: any) {
@@ -840,7 +840,7 @@ app.post("/api/admin/wallets/:userId/credit", requireAdmin, async (req, res) => 
     previousBalance,
     newBalance,
     status: "SUCCESSFUL",
-    gateway: "Admin Ledger",
+    portal: "Admin Ledger",
     reference: refCode,
     description: `Manual Wallet Credit: ${reason}`,
     timestamp: new Date().toISOString(),
@@ -1025,7 +1025,7 @@ app.post("/api/admin/wallets/:userId/debit", requireAdmin, async (req, res) => {
     previousBalance,
     newBalance,
     status: "SUCCESSFUL",
-    gateway: "Admin Ledger",
+    portal: "Admin Ledger",
     reference: refCode,
     description: `Manual Wallet Debit: ${reason}`,
     timestamp: new Date().toISOString(),

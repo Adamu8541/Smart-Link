@@ -17,7 +17,7 @@
 import { ServerWalletEngine } from "./serverWalletEngine";
 import { APIProviderManager } from "./apiProviderManager";
 import { ProviderExecutor, verifyWebhookSignature } from "./providerExecutor";
-import { getActiveProviderAndAdapter, getAdapterById } from "./providerGateway";
+import { getActiveProviderAndAdapter, getAdapterById } from "./providerConnector";
 import * as usersStore from "./usersStore";
 import { formatNaira } from "../utils/formatUtils";
 

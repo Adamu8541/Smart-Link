@@ -22,9 +22,9 @@ import { ProviderExecutor, verifyWebhookSignature } from "../../src/services/pro
 import { adminAuthService, ADMIN_ROLES_CONFIG } from "../../src/services/adminAuthService";
 import { AutomaticWalletFundingEngine } from "../../src/services/automaticWalletFundingEngine";
 import { PaymentVerificationReconciliationEngine } from "../../src/services/paymentVerificationReconciliationEngine";
-import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerGateway";
+import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerConnector";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
-import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
+import { MultiProviderRoutingEngine } from "../../src/services/multiProviderRoutingEngine";
 import { syncFromStorage, syncToStorage } from "../../src/services/settingsStore";
 import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
@@ -404,6 +404,72 @@ app.get("/api/admin/notifications/dashboard", optionalAdmin, async (req, res) =>
     },
     recentNotifications: notifications.slice(0, 10),
     announcements: announcements.slice(0, 10),
+  });
+});
+
+// 1b. GET /api/admin/notifications - Retrieve All Admin Notifications with Filtering
+app.get("/api/admin/notifications", optionalAdmin, async (req, res) => {
+  const db = readDB();
+  await syncFromStorage(db);
+
+  if (!db.notifications || db.notifications.length === 0) {
+    db.notifications = [
+      {
+        id: "notif_def_1",
+        title: "Platform Systems Operational",
+        message: "All verification and VTU APIs are operating at 99.9% uptime.",
+        channel: "In-App",
+        category: "SYSTEM",
+        priority: "Normal",
+        status: "Sent",
+        targetAudience: "ALL_USERS",
+        createdAt: new Date().toISOString(),
+        read: false,
+      },
+      {
+        id: "notif_def_2",
+        title: "Wallet Auto-Funding Active",
+        message: "Automated virtual account bank deposits are online and processing in real-time.",
+        channel: "In-App",
+        category: "FINANCIAL",
+        priority: "Normal",
+        status: "Sent",
+        targetAudience: "ALL_USERS",
+        createdAt: new Date(Date.now() - 3600000).toISOString(),
+        read: false,
+      }
+    ];
+    writeDB(db);
+  }
+
+  let list = [...(db.notifications || [])];
+  const { search = "", category = "ALL", priority = "ALL", status = "ALL" } = req.query as Record<string, string>;
+
+  if (search && search.trim()) {
+    const q = search.trim().toLowerCase();
+    list = list.filter((n: any) =>
+      (n.title || "").toLowerCase().includes(q) ||
+      (n.message || n.body || "").toLowerCase().includes(q) ||
+      (n.targetEmail || "").toLowerCase().includes(q)
+    );
+  }
+
+  if (category && category !== "ALL") {
+    list = list.filter((n: any) => (n.category || "GENERAL").toUpperCase() === category.toUpperCase());
+  }
+
+  if (priority && priority !== "ALL") {
+    list = list.filter((n: any) => (n.priority || "NORMAL").toUpperCase() === priority.toUpperCase());
+  }
+
+  if (status && status !== "ALL") {
+    list = list.filter((n: any) => (n.status || "SENT").toUpperCase() === status.toUpperCase());
+  }
+
+  return res.json({
+    success: true,
+    total: list.length,
+    notifications: list,
   });
 });
 

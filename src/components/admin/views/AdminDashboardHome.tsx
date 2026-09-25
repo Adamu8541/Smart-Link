@@ -53,7 +53,7 @@ interface DashboardStats {
   verificationRequests: number;
   billPaymentVolume: number;
   activeProviders: number;
-  gatewayStatus: string;
+  portalStatus: string;
 }
 
 export default function AdminDashboardHome({
@@ -76,7 +76,7 @@ export default function AdminDashboardHome({
     verificationRequests: 0,
     billPaymentVolume: 0,
     activeProviders: 0,
-    gatewayStatus: "OPERATIONAL",
+    portalStatus: "OPERATIONAL",
   });
   const [recentLogs, setRecentLogs] = useState<any[]>([]);
 
@@ -160,7 +160,7 @@ export default function AdminDashboardHome({
     {
       label: "Pending Transactions",
       value: stats.pendingTransactions.toLocaleString(),
-      sub: "Awaiting gateway confirmation",
+      sub: "Awaiting portal confirmation",
       icon: Clock,
       color: "text-[#0F2D5C]",
       path: "/admin/transactions",
@@ -168,7 +168,7 @@ export default function AdminDashboardHome({
     {
       label: "Failed Transactions",
       value: stats.failedTransactions.toLocaleString(),
-      sub: "Declined by gateway / network",
+      sub: "Declined by portal / network",
       icon: XCircle,
       color: "text-[#0F2D5C]",
       path: "/admin/transactions",
@@ -192,7 +192,7 @@ export default function AdminDashboardHome({
     {
       label: "Active API Providers",
       value: `${stats.activeProviders} Online`,
-      sub: "Aspfiy, NIN, VTU gateways",
+      sub: "Aspfiy, NIN, VTU portals",
       icon: Server,
       color: "text-[#0F2D5C]",
       path: "/admin/providers",
@@ -217,7 +217,7 @@ export default function AdminDashboardHome({
         className="bg-white border border-[#0F2D5C] rounded-2xl p-6 md:p-8 shadow-xs relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6"
       >
         <div className="space-y-3 max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0F2D5C] border border-[#0F2D5C] text-[#0F2D5C] font-semibold text-xs">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 text-[#0F2D5C] dark:text-blue-300 font-semibold text-xs">
             <ShieldCheck className="h-4 w-4" />
             <span>SmartLink Executive Administration Console</span>
           </div>
@@ -232,12 +232,12 @@ export default function AdminDashboardHome({
           </div>
 
           <div className="flex flex-wrap items-center gap-3 pt-1 text-xs text-[#0F2D5C]">
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-[#0F2D5C] border border-[#0F2D5C]">
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">
               <Clock className="h-3.5 w-3.5 text-[#0F2D5C]" />
               <span>Session: <strong className="text-[#0F2D5C] font-mono">Secure Token Active</strong></span>
             </div>
 
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-[#0F2D5C] border border-[#0F2D5C] text-[#0F2D5C]">
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">
               <Activity className="h-3.5 w-3.5 text-[#0F2D5C]" />
               <span>Database Sync: <strong className="text-[#0F2D5C]">Live 100% Operational</strong></span>
             </div>
@@ -248,9 +248,9 @@ export default function AdminDashboardHome({
           <button
             type="button"
             onClick={fetchStats}
-            className="p-3 rounded-xl border border-[#0F2D5C] bg-white text-[#0F2D5C] hover:bg-[#0F2D5C] transition-colors cursor-pointer text-xs flex items-center gap-2 font-bold"
+            className="p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer text-xs flex items-center gap-2 font-bold"
           >
-            <RefreshCw className={`h-4 w-4 text-[#0F2D5C] ${loading ? "animate-spin" : ""}`} />
+            <RefreshCw className={`h-4 w-4 text-slate-500 ${loading ? "animate-spin" : ""}`} />
             <span>Refresh Live Data</span>
           </button>
         </div>
@@ -325,28 +325,28 @@ export default function AdminDashboardHome({
               <Megaphone className="h-4 w-4" />
               <span>Platform Service Bulletins</span>
             </div>
-            <span className="px-2.5 py-0.5 rounded-full bg-[#0F2D5C] text-[#0F2D5C] border border-[#0F2D5C] text-[10px] font-bold">
+            <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[10px] font-bold">
               100% Uptime
             </span>
           </div>
 
           <div className="space-y-3">
-            <div className="p-4 bg-[#0F2D5C] border border-[#0F2D5C] rounded-xl space-y-1">
+            <div className="p-4 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl space-y-1">
               <div className="flex items-center justify-between">
-                <p className="text-xs font-bold text-[#0F2D5C]">Aspfiy Wallet & Payment Webhooks</p>
-                <span className="px-2 py-0.5 rounded bg-[#0F2D5C] text-[#0F2D5C] border border-[#0F2D5C] text-[9px] font-bold">ACTIVE</span>
+                <p className="text-xs font-bold text-slate-900 dark:text-white">Aspfiy Wallet & Payment Webhooks</p>
+                <span className="px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[9px] font-bold">ACTIVE</span>
               </div>
-              <p className="text-xs text-[#0F2D5C] leading-relaxed">
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                 Virtual dedicated accounts and automated bank transfer webhooks are connected and operational.
               </p>
             </div>
 
-            <div className="p-4 bg-[#0F2D5C] border border-[#0F2D5C] rounded-xl space-y-1">
+            <div className="p-4 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl space-y-1">
               <div className="flex items-center justify-between">
-                <p className="text-xs font-bold text-[#0F2D5C]">NIN, BVN & CAC Verification Engine</p>
-                <span className="px-2 py-0.5 rounded bg-[#0F2D5C] text-[#0F2D5C] border border-[#0F2D5C] text-[9px] font-bold">OPERATIONAL</span>
+                <p className="text-xs font-bold text-slate-900 dark:text-white">NIN, BVN & CAC Verification Engine</p>
+                <span className="px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[9px] font-bold">OPERATIONAL</span>
               </div>
-              <p className="text-xs text-[#0F2D5C] leading-relaxed">
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                 Identity lookups, business search, and instant PDF slips generated with official security seals.
               </p>
             </div>

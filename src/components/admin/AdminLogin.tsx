@@ -44,7 +44,7 @@ export default function AdminLogin({ onLoginSuccess, onNavigateHome }: AdminLogi
   const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotResponse, setForgotResponse] = useState<string | null>(null);
 
-  const establishAdminSession = async (token: string, fallbackSession?: any) => {
+  const establishAdminSession = async (token: string) => {
     try {
       const res = await fetch("/api/admin/auth/session", {
         method: "GET",
@@ -59,13 +59,6 @@ export default function AdminLogin({ onLoginSuccess, onNavigateHome }: AdminLogi
       try { data = text ? JSON.parse(text) : {}; } catch { data = {}; }
 
       if (!res.ok || !data.success) {
-        if (fallbackSession) {
-          const stored = { ...fallbackSession, sessionToken: fallbackSession.sessionToken || token };
-          sessionStorage.setItem("smart_link_admin_session", JSON.stringify(stored));
-          setSuccessMessage("Authentication successful! Loading Administrator Dashboard...");
-          setTimeout(() => onLoginSuccess(stored), 600);
-          return;
-        }
         setErrorMessage(data.error || data.message || "Access Denied: Your account does not have administrative privileges.");
         setLoading(false);
         return;
@@ -80,15 +73,8 @@ export default function AdminLogin({ onLoginSuccess, onNavigateHome }: AdminLogi
 
       setTimeout(() => {
         onLoginSuccess(finalSession);
-      }, 600);
+      }, 500);
     } catch (err: any) {
-      if (fallbackSession) {
-        const stored = { ...fallbackSession, sessionToken: fallbackSession.sessionToken || token };
-        sessionStorage.setItem("smart_link_admin_session", JSON.stringify(stored));
-        setSuccessMessage("Authentication successful! Loading Administrator Dashboard...");
-        setTimeout(() => onLoginSuccess(stored), 600);
-        return;
-      }
       setErrorMessage("Network error verifying admin session. Please try again.");
       setLoading(false);
     }
@@ -123,8 +109,8 @@ export default function AdminLogin({ onLoginSuccess, onNavigateHome }: AdminLogi
       let data: any = {};
       try { data = loginText ? JSON.parse(loginText) : {}; } catch { data = {}; }
 
-      if (res.ok && data.success && data.session) {
-        await establishAdminSession(data.session.sessionToken, data.session);
+      if (res.ok && data.success && data.session?.sessionToken) {
+        await establishAdminSession(data.session.sessionToken);
         return;
       }
 
@@ -161,7 +147,7 @@ export default function AdminLogin({ onLoginSuccess, onNavigateHome }: AdminLogi
   };
 
   return (
-    <div id="admin-login-page" style={{ backgroundColor: '#88c9f9' }} className="min-h-screen w-full text-slate-800 flex flex-col justify-center items-center p-4 md:p-6 relative overflow-hidden font-sans">
+    <div id="admin-login-page" className="min-h-screen w-full bg-[#F5F7FA] text-slate-800 flex flex-col justify-center items-center p-4 md:p-6 relative overflow-hidden font-sans">
       {/* Background ambient lighting */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#0F2D5C]/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-10 right-10 w-80 h-80 bg-[#0F2D5C]/5 rounded-full blur-3xl pointer-events-none" />
@@ -172,8 +158,7 @@ export default function AdminLogin({ onLoginSuccess, onNavigateHome }: AdminLogi
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        style={{ backgroundColor: '#d7dbf7' }}
-        className="w-full max-w-md border border-[#0F2D5C]/15 rounded-2xl p-6 md:p-8 shadow-xl relative z-10 space-y-6"
+        className="w-full max-w-md bg-white border border-[#0F2D5C]/15 rounded-2xl p-6 md:p-8 shadow-xl relative z-10 space-y-6"
       >
         {/* Header */}
         <div className="text-center space-y-3">

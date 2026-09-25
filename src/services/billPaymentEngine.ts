@@ -159,7 +159,7 @@ export class BillPaymentEngine {
         balanceBefore: 0,
         balanceAfter: 0,
         timestamp: new Date().toISOString(),
-        errorMessage: err.message || "Network error connecting to payment gateway.",
+        errorMessage: err.message || "Network error connecting to payment portal.",
         errorCode: "NETWORK_ERROR",
       };
     }
@@ -283,7 +283,7 @@ export class BillPaymentEngine {
       {
         id: "FUTURE_SERVICES",
         name: "Custom / Future Services",
-        description: "Extensible provider gateway for custom vendor bill collections.",
+        description: "Extensible provider portal for custom vendor bill collections.",
         icon: "Sparkles",
         estimatedProcessingTime: "Variable",
         providerStatus: "ONLINE",
@@ -343,7 +343,7 @@ export class BillPaymentEngine {
         ];
       default:
         return [
-          { id: "generic", code: "GENERIC_PROVIDER", name: "SmartLink Unified Payment Gateway", category, status: "ACTIVE" },
+          { id: "generic", code: "GENERIC_PROVIDER", name: "SmartLink Unified Payment Portal", category, status: "ACTIVE" },
         ];
     }
   }

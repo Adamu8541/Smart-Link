@@ -84,7 +84,7 @@ export default function AdminNotificationDrawer({
               {/* Header */}
               <div className="p-5 border-b border-[#0F2D5C] flex items-center justify-between bg-[#0F2D5C]">
                 <div className="flex items-center gap-2.5">
-                  <div className="p-2 bg-[#0F2D5C] border border-[#0F2D5C] rounded-xl text-[#0F2D5C]">
+                  <div className="p-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-300">
                     <Bell className="h-5 w-5" />
                   </div>
                   <div>
@@ -125,7 +125,7 @@ export default function AdminNotificationDrawer({
                   <button
                     type="button"
                     onClick={onMarkAllRead}
-                    className="ml-auto py-1 px-2.5 bg-white hover:bg-[#0F2D5C] text-[#0F2D5C] text-[10px] font-bold rounded-xl border border-[#0F2D5C] transition-colors cursor-pointer flex items-center gap-1 shrink-0"
+                    className="ml-auto py-1 px-2.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-[10px] font-bold rounded-xl border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer flex items-center gap-1 shrink-0"
                   >
                     <Check className="h-3 w-3" />
                     Mark All Read

@@ -26,7 +26,7 @@ export interface SlipOptionConfig {
 export interface ServiceSlipManifest {
   service: VerificationType;
   title: string;
-  gateway: string;
+  portal: string;
   searchMethods: {
     id: string;
     label: string;
@@ -56,24 +56,6 @@ export const NIN_SLIP_OPTIONS: SlipOptionConfig[] = [
       "Printable High-Resolution Layout",
     ],
     isOfficialDefault: true,
-    sampleLayout: "STANDARD_SLIP",
-  },
-  {
-    id: "NIN_STANDARD",
-    name: "Standard Slip",
-    badge: "Standard Slip",
-    badgeColor: "bg-[#F5F7FA] text-[#0F2D5C] border border-[#E5E7EB]",
-    price: 200,
-    description: "Standard NIN verification slip with security watermark and high-definition QR code.",
-    dimensions: "A4 / Letter (Portrait)",
-    recommendedFor: "Official Banking & KYC Verification",
-    themeColor: "#0F2D5C",
-    bgGradient: "from-[#0F2D5C]/10 via-[#0F2D5C]/5 to-[#111827]/10",
-    features: [
-      "NIMC Verification Seal",
-      "Demographic Profile & Address",
-      "Scannable 2D QR Code",
-    ],
     sampleLayout: "STANDARD_SLIP",
   },
   {
@@ -115,7 +97,7 @@ export const BVN_SLIP_OPTIONS: SlipOptionConfig[] = [
   },
   {
     id: "BVN_SLIP_1" as any,
-    name: "BVN Slip 1",
+    name: "BVN Slip",
     badge: "Official Slip",
     badgeColor: "bg-[#F5F7FA] text-[#0F2D5C] border border-[#E5E7EB]",
     price: 200,
@@ -128,27 +110,13 @@ export const BVN_SLIP_OPTIONS: SlipOptionConfig[] = [
     isOfficialDefault: true,
     sampleLayout: "STANDARD_SLIP",
   },
-  {
-    id: "BVN_SLIP_2" as any,
-    name: "BVN Slip 2",
-    badge: "Basic Slip",
-    badgeColor: "bg-[#F5F7FA] text-[#0F2D5C] border border-[#E5E7EB]",
-    price: 180,
-    description: "Basic verification slip format.",
-    dimensions: "A4 / Letter (Portrait)",
-    recommendedFor: "Basic Verification",
-    themeColor: "#059669",
-    bgGradient: "from-[#0F2D5C]/10 via-[#0F2D5C]/5 to-[#111827]/10",
-    features: ["Basic Profile", "Verification Seal"],
-    sampleLayout: "STANDARD_SLIP",
-  },
 ];
 
 export const SERVICE_MANIFESTS: Record<string, ServiceSlipManifest> = {
   NIN: {
     service: "NIN",
     title: "National Identification Number (NIN)",
-    gateway: "NIN Validation Gateway",
+    portal: "NIN Validation Portal",
     searchMethods: [
       {
         id: "BY_NIN",
@@ -194,7 +162,7 @@ export const SERVICE_MANIFESTS: Record<string, ServiceSlipManifest> = {
   BVN: {
     service: "BVN",
     title: "Bank Verification Number (BVN)",
-    gateway: "BVN Validation Gateway",
+    portal: "BVN Validation Portal",
     searchMethods: [
       {
         id: "BY_BVN",

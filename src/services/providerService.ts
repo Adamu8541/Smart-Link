@@ -10,10 +10,16 @@
 
 import { SupabaseAuthService, isSupabaseConfigured } from "./supabaseAuth";
 
-export async function getAuthHeaders(userId?: string): Promise<Record<string, string>> {
+export async function getAuthHeaders(userId?: string, customToken?: string): Promise<Record<string, string>> {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (userId) {
     headers["x-user-id"] = userId;
+  }
+
+  if (customToken) {
+    headers["Authorization"] = `Bearer ${customToken}`;
+    headers["x-admin-token"] = customToken;
+    return headers;
   }
 
   // 1. Check admin session token first if in admin context or storage

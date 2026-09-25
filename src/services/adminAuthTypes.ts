@@ -126,7 +126,7 @@ export const ADMIN_ROUTE_PERMISSIONS: Record<string, string[]> = {
   "/admin/wallet": ["MANAGE_WALLET", "VIEW_FINANCE"],
   "/admin/services": ["MANAGE_SERVICES", "VIEW_SERVICES"],
   "/admin/providers": ["MANAGE_PROVIDERS", "VIEW_PROVIDERS"],
-  "/admin/gateway-routing": ["MANAGE_PROVIDERS", "VIEW_PROVIDERS"],
+  "/admin/routing": ["MANAGE_PROVIDERS", "VIEW_PROVIDERS"],
   "/admin/transactions": ["MANAGE_TRANSACTIONS", "VIEW_TRANSACTIONS"],
   "/admin/refunds": ["MANAGE_REFUNDS", "VIEW_FINANCE"],
   "/admin/reports": ["MANAGE_REPORTS", "VIEW_REPORTS"],

@@ -95,7 +95,7 @@ export const LEGAL_DOCUMENTS: LegalDocument[] = [
         content: [
           "Smart Link Computer Business ('SmartLink NG', 'we', 'us', or 'our', CAC Registration Number: RC 9347502) is a fully registered Nigerian enterprise committed to safeguarding your personal data and upholding the highest standards of data privacy and informational security.",
           "Corporate Nomenclature and Brand Simplification: While our statutory registered name with the Corporate Affairs Commission (CAC) is 'Smart Link Computer Business', we utilize the trade names 'SmartLink NG' and 'Smart Link Nigeria' for public-facing digital services, mobile interfaces, email correspondence, and web domains. This brand simplification is established for crucial accessibility and technical reasons: First, the registered CAC name is structurally too long for standard digital domain names (e.g. 'smartlinkcomputerbusiness.com.ng' is cumbersome, making web navigation and search query recall highly error-prone for users on mobile devices). Utilizing 'smartlinkng.com.ng' provides a punchy, highly memorable, and user-friendly digital address. Second, our historical alignment has evolved from legacy hardware ('Computer Business') into modern, API-driven real-time verification and VTU infrastructure, which is best represented under 'SmartLink NG'. Third, responsive mobile layouts, receipt templates, and SMS alerts require concise trade names to prevent visual formatting overflows. All legal and statutory rights, liabilities, and data protection commitments of Smart Link Computer Business extend fully to these simplified operating brands.",
-          "This Privacy Policy describes our practices regarding the collection, use, storage, processing, disclosure, and protection of information obtained through the SmartLink NG web portal, mobile-optimized interfaces, API gateways, and associated digital services.",
+          "This Privacy Policy describes our practices regarding the collection, use, storage, processing, disclosure, and protection of information obtained through the SmartLink NG web portal, mobile-optimized interfaces, API portals, and associated digital services.",
           "By accessing our platform, registering an account, funding your wallet, or submitting verification queries, you acknowledge that you have read, understood, and consented to the practices described in this Privacy Policy.",
         ],
         callout: {
@@ -132,7 +132,7 @@ export const LEGAL_DOCUMENTS: LegalDocument[] = [
             points: [
               "Stored-value wallet ledger records, account balances, and transaction histories.",
               "Dedicated virtual bank account numbers assigned through partnering commercial and digital banks (e.g., Monnify, Opay, Wema Bank, Sterling Bank).",
-              "Payment gateway transaction references, bank transfer receipts, settlement statuses, and refund records.",
+              "Payment portal transaction references, bank transfer receipts, settlement statuses, and refund records.",
             ],
           },
           {
@@ -174,7 +174,7 @@ export const LEGAL_DOCUMENTS: LegalDocument[] = [
         title: "5. Data Sharing and Third-Party Disclosures",
         content: [
           "We do not sell, rent, trade, or monetize your personal data. We only share information with third parties under the following strictly defined conditions:",
-          "• Authorized Verification & Utility Providers: Transmitting query payloads (e.g. NIN, meter numbers, decoder numbers) to accredited third-party gateway APIs strictly to fulfill your requested transactions. SmartLink NG is a third-party platform and is not directly connected to primary providers like NIMC, NIBSS, CAC, or FRSC.",
+          "• Authorized Verification & Utility Providers: Transmitting query payloads (e.g. NIN, meter numbers, decoder numbers) to accredited third-party provider APIs strictly to fulfill your requested transactions. SmartLink NG is a third-party platform and is not directly connected to primary providers like NIMC, NIBSS, CAC, or FRSC.",
           "• Licensed Payment Processors: Partnering commercial banks and Central Bank of Nigeria (CBN)-licensed payment solution service providers (e.g., Monnify, Opay, Flutterwave) to process virtual account deposits and card settlements.",
           "• Legal & Regulatory Mandates: Disclosing records when formally required by a competent court of law, law enforcement agencies (e.g., NPF), or regulatory authorities pursuant to valid legal process.",
         ],
@@ -331,7 +331,7 @@ export const LEGAL_DOCUMENTS: LegalDocument[] = [
         title: "8. Limitation of Liability & Disclaimers",
         content: [
           "• As-Is Basis: Services are provided on an 'AS IS' and 'AS AVAILABLE' basis without express or implied warranties of any kind.",
-          "• Third-Party Dependencies: SmartLink NG relies on upstream infrastructure accessed via third-party gateway APIs connected to government registries (NIMC, NIBSS, CAC, FIRS, FRSC), telecommunication networks, and utility distributors. SmartLink NG is a third-party platform not directly connected to these primary providers. We shall not be liable for system downtime, API latency, network drops, or registry outages originating beyond our control.",
+          "• Third-Party Dependencies: SmartLink NG relies on upstream infrastructure accessed via third-party provider APIs connected to government registries (NIMC, NIBSS, CAC, FIRS, FRSC), telecommunication networks, and utility distributors. SmartLink NG is a third-party platform not directly connected to these primary providers. We shall not be liable for system downtime, API latency, network drops, or registry outages originating beyond our control.",
           "• Maximum Liability: In no event shall the total aggregate liability of SmartLink NG exceed the service fee paid by you for the specific disputed transaction giving rise to the claim.",
         ],
       },
@@ -367,7 +367,7 @@ export const LEGAL_DOCUMENTS: LegalDocument[] = [
       "Instant automatic wallet refunds for system-detected failed service deliveries",
       "Clear distinction between refundable system errors and non-refundable delivered queries",
       "Standard 24-48 hour resolution window for manual payment reconciliation queries",
-      "Full transparency on upstream third-party gateway non-refundable charges",
+      "Full transparency on upstream third-party provider non-refundable charges",
     ],
     relatedDocIds: ["wallet-terms", "payment-terms", "terms-of-service"],
     sections: [
@@ -384,7 +384,7 @@ export const LEGAL_DOCUMENTS: LegalDocument[] = [
         title: "2. Circumstances Eligible for Refunds",
         content: [
           "A transaction is eligible for an automatic or customer-requested refund under the following conditions:",
-          "• Failed Service Delivery: When your wallet is debited but the upstream provider fails to fulfill the requested service (e.g. meter token not generated, airtime top-up failed at telecom gateway, or registry returned a fatal provider timeout).",
+          "• Failed Service Delivery: When your wallet is debited but the upstream provider fails to fulfill the requested service (e.g. meter token not generated, airtime top-up failed at telecom portal, or registry returned a fatal provider timeout).",
           "• System Deductions on Error: Unintended duplicate wallet debits arising from network glitches or platform concurrency errors.",
           "• Uncredited Wallet Funding: Cleared bank transfers or card payments with confirmed bank transaction references that failed to automatically credit your SmartLink digital wallet due to webhook transmission delays.",
         ],
@@ -410,7 +410,7 @@ export const LEGAL_DOCUMENTS: LegalDocument[] = [
         content: [
           "• Wallet Balance Reversals: Eligible failed service transactions are credited back to your SmartLink wallet instantly or within two (2) hours of manual review.",
           "• Bank Account Reversals: In cases where wallet balance withdrawal or direct bank payout is approved by finance officers, processing takes between 1 to 3 business days, subject to interbank clearing protocols.",
-          "• Processing Fees: Service convenience fees incurred during payment gateway processing (e.g. card gateway gateway charges) may be non-refundable if the gateway provider does not remit them back.",
+          "• Processing Fees: Service convenience fees incurred during payment portal processing (e.g. card portal portal charges) may be non-refundable if the portal provider does not remit them back.",
         ],
       },
       {
@@ -476,7 +476,7 @@ export const LEGAL_DOCUMENTS: LegalDocument[] = [
         content: [
           "You may fund your SmartLink wallet through any of the approved channels:",
           "• Dedicated Virtual Accounts: Automated bank transfer to your uniquely assigned virtual account numbers (provided via licensed banking partners such as Monnify, Opay, Wema Bank, Sterling Bank). Transfers reflect in your wallet within 10 to 60 seconds upon bank confirmation.",
-          "• Online Card Payment: Instant funding via debit cards (Mastercard, Visa, Verve) processed through secure payment gateways.",
+          "• Online Card Payment: Instant funding via debit cards (Mastercard, Visa, Verve) processed through secure payment portals.",
           "• Admin/Manual Transfer: Bank payments confirmed through authorized manual reconciliation by SmartLink finance officers.",
         ],
       },
@@ -520,7 +520,7 @@ export const LEGAL_DOCUMENTS: LegalDocument[] = [
     category: "PAYMENTS_WALLET",
     categoryLabel: "Payments & Wallet",
     summary:
-      "Outlines payment authorization, processing gateways, merchant fee transparency, transaction settlement timelines, chargeback policies, and dispute workflows.",
+      "Outlines payment authorization, processing portals, merchant fee transparency, transaction settlement timelines, chargeback policies, and dispute workflows.",
     version: "2.1.0 (Active)",
     effectiveDate: "May 20, 2024",
     lastUpdated: "October 14, 2025",
@@ -528,7 +528,7 @@ export const LEGAL_DOCUMENTS: LegalDocument[] = [
     iconName: "CreditCard",
     highlights: [
       "Full transparency on service pricing and payment processing convenience fees",
-      "Integration with CBN-licensed payment gateways featuring 3D-Secure protection",
+      "Integration with CBN-licensed payment portals featuring 3D-Secure protection",
       "Strict chargeback investigation protocols to prevent fraudulent payment claims",
       "Standardized currency in Nigerian Naira (NGN - ₦) across all transactions",
     ],
@@ -543,8 +543,8 @@ export const LEGAL_DOCUMENTS: LegalDocument[] = [
         ],
       },
       {
-        id: "payment-methods-gateways",
-        title: "2. Supported Payment Methods & Gateways",
+        id: "payment-methods-portals",
+        title: "2. Supported Payment Methods & Portals",
         content: [
           "SmartLink NG integrates with accredited, PCI-DSS compliant, and Central Bank of Nigeria (CBN)-licensed payment processors, including:",
           "• Monnify (Moniepoint MFB / Wema Bank)",
@@ -560,7 +560,7 @@ export const LEGAL_DOCUMENTS: LegalDocument[] = [
         title: "3. Pricing, Tariffs & Transaction Surcharges",
         content: [
           "• Real-Time Pricing: Service prices for identity lookups, CAC filings, electricity tokens, data plans, and exam scratch cards are displayed clearly before transaction confirmation.",
-          "• Gateway Surcharges: Card payments and virtual account transfers may attract modest statutory or payment gateway processing fees (e.g. 1.0% - 1.5% capped at statutory limits) where applicable.",
+          "• Portal Surcharges: Card payments and virtual account transfers may attract modest statutory or payment portal processing fees (e.g. 1.0% - 1.5% capped at statutory limits) where applicable.",
           "• Price Adjustments: SmartLink NG reserves the right to adjust service rates in response to upstream price alterations by government agencies, DisCos, or telecommunication operators.",
         ],
       },
@@ -679,7 +679,7 @@ export const LEGAL_DOCUMENTS: LegalDocument[] = [
         title: "1. Purpose of Identity Verification & KYC",
         content: [
           "SmartLink Nigeria provides authorized verification interfaces to assist individuals, businesses, licensed agents, and corporate entities in confirming identity authenticity, fulfilling Know Your Customer (KYC) obligations, and validating registration credentials.",
-          "SmartLink NG is an independent third-party technology platform. We are NOT directly affiliated with, endorsed by, or directly connected to primary government providers such as the National Identity Management Commission (NIMC), Nigeria Inter-Bank Settlement System (NIBSS), Corporate Affairs Commission (CAC), Federal Road Safety Corps (FRSC), or Federal Inland Revenue Service (FIRS). Our verification engine interfaces solely with authorized third-party gateway APIs to facilitate these lookups.",
+          "SmartLink NG is an independent third-party technology platform. We are NOT directly affiliated with, endorsed by, or directly connected to primary government providers such as the National Identity Management Commission (NIMC), Nigeria Inter-Bank Settlement System (NIBSS), Corporate Affairs Commission (CAC), Federal Road Safety Corps (FRSC), or Federal Inland Revenue Service (FIRS). Our verification engine interfaces solely with authorized third-party provider APIs to facilitate these lookups.",
         ],
       },
       {
@@ -880,7 +880,7 @@ export const LEGAL_DOCUMENTS: LegalDocument[] = [
         id: "third-party-dependencies",
         title: "2. Third-Party Upstream Dependencies",
         content: [
-          "SmartLink NG explicitly clarifies that we are a third-party platform and we are NOT directly connected to primary providers. Our platform accesses external systems, statutory databases, financial institutions, and utility providers solely through authorized third-party API gateways, including lookups relating to:",
+          "SmartLink NG explicitly clarifies that we are a third-party platform and we are NOT directly connected to primary providers. Our platform accesses external systems, statutory databases, financial institutions, and utility providers solely through authorized third-party API portals, including lookups relating to:",
           "• National Identity Management Commission (NIMC) for NIN validation.",
           "• Nigeria Inter-Bank Settlement System (NIBSS) for BVN confirmation.",
           "• Corporate Affairs Commission (CAC) for business and company registry filings.",
@@ -1011,7 +1011,7 @@ export const LEGAL_DOCUMENTS: LegalDocument[] = [
         id: "regulatory-standing",
         title: "1. Regulatory Standing & Governance Overview",
         content: [
-          "Smart Link Computer Business ('SmartLink NG') operates as a registered Nigerian digital enterprise providing technology gateway infrastructure for identity verification assistance, utility billing automation, education scratch cards, and business facilitation services.",
+          "Smart Link Computer Business ('SmartLink NG') operates as a registered Nigerian digital enterprise providing technology portal infrastructure for identity verification assistance, utility billing automation, education scratch cards, and business facilitation services.",
           "Our platform operates in strict compliance with relevant Nigerian federal laws, including the Nigeria Data Protection Act 2023 (NDPA), the Cybercrimes (Prohibition, Prevention, etc.) Act, and the applicable consumer protection regulations established by the Federal Competition and Consumer Protection Commission (FCCPC).",
           "SmartLink NG does not operate as an unlicenced deposit-taking commercial bank; all stored-value wallet infrastructure and dedicated virtual bank accounts are provisioned in technical collaboration with Central Bank of Nigeria (CBN)-licensed financial institutions and licensed payment switches (including Providus Bank, Moniepoint MFB, Wema Bank, Sterling Bank, and Paystack).",
         ],
@@ -1072,7 +1072,7 @@ export const LEGAL_DOCUMENTS: LegalDocument[] = [
       "Bank-grade TLS 1.3 encryption in transit and AES-256 encryption at rest",
       "Automated IP rate limiting, DDoS filtering, and web application firewall protection",
       "Multi-factor authentication, cryptographic session hashing, and brute-force lockouts",
-      "PCI-DSS Level 1 compliant financial settlement gateways and secure virtual accounts",
+      "PCI-DSS Level 1 compliant financial settlement portals and secure virtual accounts",
     ],
     relatedDocIds: ["compliance", "privacy-policy", "acceptable-use", "sla"],
     sections: [
@@ -1152,7 +1152,7 @@ export const LEGAL_DOCUMENTS: LegalDocument[] = [
         ],
         callout: {
           type: "notice",
-          text: "External government database downtimes (e.g., scheduled NIMC central maintenance or Disco gateway outages) are beyond our direct control but are mitigated through automated multi-gateway fallback routing.",
+          text: "External government database downtimes (e.g., scheduled NIMC central maintenance or Disco portal outages) are beyond our direct control but are mitigated through automated multi-provider fallback routing.",
         },
       },
       {

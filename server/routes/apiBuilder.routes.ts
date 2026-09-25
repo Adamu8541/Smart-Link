@@ -15,7 +15,7 @@ function ensureApiBuilderDefaults(db: any) {
     db.api_builder_requests = [
       {
         id: "REQ_PREMBLY_NIN",
-        requestName: "Prembly NIN Verification Gateway",
+        requestName: "Prembly NIN Verification Portal",
         description: "Direct upstream HTTP request builder to Prembly NIN endpoint",
         serviceCategory: "VERIFICATION",
         targetService: "NIN_V2",

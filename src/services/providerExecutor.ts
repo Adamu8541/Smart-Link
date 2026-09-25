@@ -8,7 +8,7 @@
  */
 
 import crypto from "crypto";
-import { getActiveProviderAndAdapter, getAdapterForProvider } from "./providerGateway";
+import { getActiveProviderAndAdapter, getAdapterForProvider } from "./providerConnector";
 
 export interface ProviderExecutionParams {
   category: string; // AIRTIME, DATA, ELECTRICITY, CABLE, EDUCATION, UTILITY, etc.
@@ -156,7 +156,7 @@ export function verifyWebhookSignature(
     return { isValid: false, reason: `Webhook signing secret is not configured for provider '${providerConfig.name || providerConfig.id}'.` };
   }
 
-  // Direct match check (e.g. if the gateway passes the raw API secret or Bearer token)
+  // Direct match check (e.g. if the portal passes the raw API secret or Bearer token)
   if (receivedSig.toLowerCase() === signingSecret.trim().toLowerCase()) {
     return { isValid: true };
   }
@@ -227,26 +227,31 @@ export function getValueByJsonPath(obj: any, path: string | undefined): any {
  * Utility: Applies response mapping configuration to extract standard attributes from provider JSON response.
  */
 export function mapProviderResponseToStandard(mapping: any, rawJsonObj: any) {
-  const statusRaw = getValueByJsonPath(rawJsonObj, mapping.responseStatusPath);
+  const statusField = mapping.responseStatusPath || mapping.statusField || "status";
+  const statusRaw = getValueByJsonPath(rawJsonObj, statusField);
   let isSuccess = false;
 
-  if (mapping.successValue !== undefined && mapping.successValue !== null && mapping.successValue !== "" && statusRaw !== undefined) {
-    isSuccess = String(statusRaw).trim().toLowerCase() === String(mapping.successValue).trim().toLowerCase();
+  const targetSuccessVal = mapping.successValue !== undefined && mapping.successValue !== null && mapping.successValue !== ""
+    ? mapping.successValue
+    : (mapping.statusSuccessValue !== undefined ? mapping.statusSuccessValue : undefined);
+
+  if (targetSuccessVal !== undefined && statusRaw !== undefined) {
+    isSuccess = String(statusRaw).trim().toLowerCase() === String(targetSuccessVal).trim().toLowerCase();
   } else if (statusRaw !== undefined) {
     const str = String(statusRaw).toLowerCase();
     isSuccess = str === "true" || str === "00" || str === "0" || str === "success" || str === "ok" || str === "1" || str === "yes" || str === "200";
   }
 
-  const transactionId = getValueByJsonPath(rawJsonObj, mapping.transactionIdPath);
-  const transactionRef = getValueByJsonPath(rawJsonObj, mapping.transactionRefPath);
+  const transactionId = getValueByJsonPath(rawJsonObj, mapping.transactionIdPath || mapping.referenceField);
+  const transactionRef = getValueByJsonPath(rawJsonObj, mapping.transactionRefPath || mapping.referenceField);
   const amount = getValueByJsonPath(rawJsonObj, mapping.amountPath);
   const currency = getValueByJsonPath(rawJsonObj, mapping.currencyPath) || "NGN";
   const charges = getValueByJsonPath(rawJsonObj, mapping.chargesPath);
   const walletBalance = getValueByJsonPath(rawJsonObj, mapping.walletBalancePath);
   const customerName = getValueByJsonPath(rawJsonObj, mapping.customerNamePath);
-  const message = getValueByJsonPath(rawJsonObj, mapping.messagePath);
+  const message = getValueByJsonPath(rawJsonObj, mapping.messagePath || mapping.messageField);
   const errorCode = getValueByJsonPath(rawJsonObj, mapping.errorCodePath);
-  const errorMessage = getValueByJsonPath(rawJsonObj, mapping.errorMessagePath);
+  const errorMessage = getValueByJsonPath(rawJsonObj, mapping.errorMessagePath || mapping.messageField);
   const rawJson = mapping.rawJsonPath ? getValueByJsonPath(rawJsonObj, mapping.rawJsonPath) : rawJsonObj;
 
   // Additional token/units/pins paths if configured on mapping
@@ -329,14 +334,14 @@ export class ProviderExecutor {
       const nameLower = (p.name || "").toLowerCase();
       const idLower = (p.id || "").toLowerCase();
       if (catUpper === "IDENTITY_API") {
-        const isIdentityName = nameLower.includes("lumi") || nameLower.includes("verify") || nameLower.includes("nin") || nameLower.includes("bvn") || idLower.includes("lumi") || idLower.includes("verify") || idLower.includes("nin");
+        const isIdentityName = nameLower.includes("lumi") || nameLower.includes("verify") || nameLower.includes("identro") || nameLower.includes("nin") || nameLower.includes("bvn") || idLower.includes("lumi") || idLower.includes("verify") || idLower.includes("identro") || idLower.includes("nin");
         return (pCat === "IDENTITY_API" || isIdentityName) && !nameLower.includes("aspfiy") && idLower !== "prov_aspfiy";
       }
       if (catUpper === "VTU_API" || catUpper === "AIRTIME" || catUpper === "DATA") {
         return (pCat === "VTU_API" || pCat === "AIRTIME_API" || nameLower.includes("club")) && !nameLower.includes("aspfiy");
       }
-      if (catUpper === "PAYMENT_GATEWAY" || catUpper === "PAYMENT" || catUpper === "WALLET_ENGINE") {
-        return pCat === "PAYMENT_GATEWAY" || pCat === "PAYMENT" || pCat === "WALLET_ENGINE" || nameLower.includes("aspfiy");
+      if (catUpper === "PAYMENT_PROVIDER" || catUpper === "PAYMENT" || catUpper === "WALLET_ENGINE") {
+        return pCat === "PAYMENT_PROVIDER" || pCat === "PAYMENT" || pCat === "WALLET_ENGINE" || nameLower.includes("aspfiy");
       }
       return pCat === catUpper;
     });
@@ -391,8 +396,62 @@ export class ProviderExecutor {
       const sType = params.extraData?.type || params.extraData?.verificationType || params.extraData?.serviceType || params.extraData?.service || "NIN";
       const targetId = params.customerId || params.phoneNumber || params.extraData?.idNumber || params.extraData?.rcNumber || params.extraData?.nin || params.extraData?.bvn || "";
       const adapterRes = await (registeredAdapter as any).verifyIdentity(sType, targetId, params.extraData || {}, provider);
+      
+      if (adapterRes.success) {
+        return {
+          success: true,
+          providerName,
+          providerCode,
+          providerReference: adapterRes.providerReference,
+          transactionId: adapterRes.transactionId || adapterRes.providerReference,
+          rawResponse: adapterRes.data ? { success: true, data: adapterRes.data, ...(typeof adapterRes.data === 'object' ? adapterRes.data : {}) } : adapterRes,
+          statusCode: adapterRes.statusCode || 200,
+          responseTimeMs: adapterRes.responseTimeMs || (Date.now() - startTime),
+        };
+      }
+
+      // If primary provider returned 404, connection error, or failed, attempt failover across other active identity providers
+      const allProviders = (Array.isArray(db?.api_providers) && db.api_providers.length > 0)
+        ? db.api_providers
+        : (Array.isArray(db?.apiProviders) ? db.apiProviders : []);
+      
+      const fallbackCandidates = allProviders.filter((p: any) =>
+        p &&
+        p.id !== provider.id &&
+        (p.enabled !== false && p.isActive !== false) &&
+        p.status !== "Draft" &&
+        p.status !== "Inactive" &&
+        p.status !== "DISABLED" &&
+        ((p.category && p.category.toUpperCase() === "IDENTITY_API") ||
+         (p.providerType && p.providerType.toUpperCase() === "IDENTITY_API") ||
+         (p.name && /lumi|identro|verify/i.test(p.name)))
+      );
+
+      for (const altProvider of fallbackCandidates) {
+        const altAdapter = getAdapterForProvider(altProvider);
+        if (altAdapter && typeof (altAdapter as any).verifyIdentity === "function") {
+          try {
+            const altRes = await (altAdapter as any).verifyIdentity(sType, targetId, params.extraData || {}, altProvider);
+            if (altRes.success) {
+              return {
+                success: true,
+                providerName: altProvider.name || "Fallback Identity Provider",
+                providerCode: altProvider.id || "FALLBACK_PROV",
+                providerReference: altRes.providerReference,
+                transactionId: altRes.transactionId || altRes.providerReference,
+                rawResponse: altRes.data ? { success: true, data: altRes.data, ...(typeof altRes.data === 'object' ? altRes.data : {}) } : altRes,
+                statusCode: altRes.statusCode || 200,
+                responseTimeMs: Date.now() - startTime,
+              };
+            }
+          } catch (altErr) {
+            console.warn(`[ProviderExecutor] Failover verification to ${altProvider.name} failed:`, altErr);
+          }
+        }
+      }
+
       return {
-        success: Boolean(adapterRes.success),
+        success: false,
         providerName,
         providerCode,
         providerReference: adapterRes.providerReference,
@@ -745,7 +804,10 @@ export class ProviderExecutor {
     const responseMapping = responseMappings.find((m: any) =>
       m &&
       m.status !== "DISABLED" &&
-      (m.provider === provider.id || m.provider === provider.name || m.endpoint === requestTemplate?.endpoint)
+      (
+        (m.provider && (m.provider === provider.id || m.provider === provider.name)) ||
+        (m.endpoint && requestTemplate?.endpoint && m.endpoint === requestTemplate?.endpoint)
+      )
     );
 
     if (responseMapping) {
@@ -758,6 +820,9 @@ export class ProviderExecutor {
       const realPins = mapped.pins || getValueByJsonPath(responseJson, "pins") || getValueByJsonPath(responseJson, "data.pins");
       const realRef = mapped.transactionReference || mapped.transactionId || getValueByJsonPath(responseJson, "reference") || getValueByJsonPath(responseJson, "providerReference") || getValueByJsonPath(responseJson, "data.reference") || getValueByJsonPath(responseJson, "data.transaction_id");
 
+      const rawErr = mapped.errorMessage || mapped.errorCode || mapped.message || responseJson?.message || responseJson?.error || responseJson?.detail;
+      const fallbackErr = fetchRes.ok ? "Verification could not be confirmed with identity provider record." : `Provider HTTP error ${fetchRes.status}`;
+
       return {
         success: isSuccess,
         providerName,
@@ -767,7 +832,7 @@ export class ProviderExecutor {
         units: realUnits ? String(realUnits) : undefined,
         pins: Array.isArray(realPins) ? realPins : undefined,
         message: mapped.message || (isSuccess ? "Transaction successful" : "Transaction failed"),
-        error: isSuccess ? undefined : (mapped.errorMessage || mapped.errorCode || mapped.message || `Provider returned status ${fetchRes.status}`),
+        error: isSuccess ? undefined : (rawErr || fallbackErr),
         rawResponse: responseJson,
         statusCode: fetchRes.status,
         responseTimeMs,
@@ -813,7 +878,7 @@ export class ProviderExecutor {
     const providerRef = getValueByJsonPath(responseJson, "reference") || getValueByJsonPath(responseJson, "providerReference") || getValueByJsonPath(responseJson, "txRef") || getValueByJsonPath(responseJson, "transactionId") || getValueByJsonPath(responseJson, "data.reference") || getValueByJsonPath(responseJson, "data.transaction_id") || getValueByJsonPath(responseJson, "order_id");
 
     const message = responseJson?.message || responseJson?.msg || responseJson?.response_description || (isSuccess ? "Payment completed successfully." : "Payment failed.");
-    const errorMsg = isSuccess ? undefined : (responseJson?.error || responseJson?.errorMessage || responseJson?.message || responseJson?.description || `Provider HTTP error ${fetchRes.status}`);
+    const errorMsg = isSuccess ? undefined : (responseJson?.error || responseJson?.errorMessage || responseJson?.message || responseJson?.description || (fetchRes.ok ? "Identity record not found in provider response." : `Provider HTTP error ${fetchRes.status}`));
 
     return {
       success: isSuccess,
@@ -876,7 +941,7 @@ export class ProviderExecutor {
 
     const provider = this.getActiveProviderForCategory(
       db,
-      "PAYMENT_GATEWAY",
+      "PAYMENT_PROVIDER",
       params.providerCode,
       params.providerName
     ) || this.getActiveProviderForCategory(
@@ -1093,7 +1158,7 @@ export class ProviderExecutor {
 
     const provider = this.getActiveProviderForCategory(
       db,
-      params.category || "PAYMENT_GATEWAY",
+      params.category || "PAYMENT_PROVIDER",
       params.providerCode,
       params.providerName
     );

@@ -284,7 +284,7 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
           <div className="p-4 bg-[#111827]/80 border border-[#0F2D5C]/80 rounded-2xl space-y-1">
             <span className="text-[10px] font-bold uppercase tracking-wider text-[#9CA3AF]">Pending</span>
             <p className="text-lg font-black text-[#9CA3AF] font-mono">{metrics.pendingCount.toLocaleString()}</p>
-            <span className="text-[10px] text-[#0F2D5C] font-mono">Processing Gateway</span>
+            <span className="text-[10px] text-[#0F2D5C] font-mono">Processing Portal</span>
           </div>
 
           <div className="p-4 bg-[#111827]/80 border border-[#0F2D5C]/80 rounded-2xl space-y-1">
@@ -462,7 +462,7 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
               </div>
 
               <div>
-                <label className="block text-[10px] uppercase font-bold text-[#9CA3AF] mb-1">Provider Gateway</label>
+                <label className="block text-[10px] uppercase font-bold text-[#9CA3AF] mb-1">Provider Portal</label>
                 <select
                   value={providerFilter}
                   onChange={(e) => setProviderFilter(e.target.value)}
@@ -472,7 +472,7 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
                   <option value="Aspfiy">Aspfiy</option>
                   <option value="NIMC">NIN API</option>
                   <option value="Prembly">Prembly</option>
-                  <option value="VTU Direct">VTU Direct Gateway</option>
+                  <option value="VTU Direct">VTU Direct Portal</option>
                   <option value="Admin Ledger">Admin Ledger</option>
                 </select>
               </div>

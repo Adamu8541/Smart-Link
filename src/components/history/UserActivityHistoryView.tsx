@@ -205,7 +205,7 @@ export const UserActivityHistoryView: React.FC<UserActivityHistoryViewProps> = (
               className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
                 activeTab === "ADMIN_AUDIT"
                   ? "bg-[#0F2D5C] text-white shadow-sm"
-                  : "bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] hover:bg-[#E5E7EB]"
+                  : "bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 hover:bg-[#E5E7EB]"
               }`}
             >
               <Lock className="w-3.5 h-3.5" />
@@ -405,7 +405,7 @@ export const UserActivityHistoryView: React.FC<UserActivityHistoryViewProps> = (
         {activeTab === "CONSOLIDATED_HISTORY" && consolidatedData && (
           <div className="p-6 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 rounded-xl border border-[#E5E7EB] dark:border-[#0F2D5C]">
+              <div className="p-4 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 rounded-xl border border-slate-200 dark:border-slate-700">
                 <div className="text-xs text-[#0F2D5C] dark:text-[#9CA3AF] font-semibold">
                   Total Wallet Operations
                 </div>
@@ -414,7 +414,7 @@ export const UserActivityHistoryView: React.FC<UserActivityHistoryViewProps> = (
                 </div>
               </div>
 
-              <div className="p-4 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 rounded-xl border border-[#E5E7EB] dark:border-[#0F2D5C]">
+              <div className="p-4 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 rounded-xl border border-slate-200 dark:border-slate-700">
                 <div className="text-xs text-[#0F2D5C] dark:text-[#9CA3AF] font-semibold">
                   Identity Verifications
                 </div>
@@ -423,7 +423,7 @@ export const UserActivityHistoryView: React.FC<UserActivityHistoryViewProps> = (
                 </div>
               </div>
 
-              <div className="p-4 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 rounded-xl border border-[#E5E7EB] dark:border-[#0F2D5C]">
+              <div className="p-4 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 rounded-xl border border-slate-200 dark:border-slate-700">
                 <div className="text-xs text-[#0F2D5C] dark:text-[#9CA3AF] font-semibold">
                   Financial Transactions
                 </div>
@@ -499,7 +499,7 @@ export const UserActivityHistoryView: React.FC<UserActivityHistoryViewProps> = (
                         </div>
                       </div>
                       <div className="text-right">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C] dark:text-[#9CA3AF]">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-[#0F2D5C] dark:bg-blue-950/50 dark:text-blue-300">
                           VERIFIED
                         </span>
                         <div className="text-[10px] text-[#9CA3AF] mt-0.5">

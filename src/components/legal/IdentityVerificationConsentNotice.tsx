@@ -44,7 +44,7 @@ export function IdentityVerificationConsentNotice({
       {/* Narrative & Legal Explanation */}
       <p className="text-[11px] leading-relaxed text-[#4B5563]">
         SmartLink NG processes this query in strict compliance with the{" "}
-        <strong className="text-[#111827]">Nigeria Data Protection Act 2023 (NDPA)</strong>. Your search parameter is encrypted and transmitted directly to accredited verification gateways (third-party verification APIs) solely to authenticate identity.
+        <strong className="text-[#111827]">Nigeria Data Protection Act 2023 (NDPA)</strong>. Your search parameter is encrypted and transmitted directly to accredited verification portals (third-party verification APIs) solely to authenticate identity.
       </p>
 
       {/* Relevant Policy Links */}

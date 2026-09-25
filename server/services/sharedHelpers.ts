@@ -1,6 +1,6 @@
 import { readDB, writeDB } from "../db";
 import { adminAuthService } from "../../src/services/adminAuthService";
-import { getActiveProviderAndAdapter } from "../../src/services/providerGateway";
+import { getActiveProviderAndAdapter } from "../../src/services/providerConnector";
 import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
 import { VirtualAccountRepository } from "../turso/repositories";
@@ -70,7 +70,7 @@ export const DEFAULT_SERVICES_CATALOG = [
     name: "SME & Corporate Data",
     category: "TELECOM_DATA",
     description: "High-speed internet data bundles with instant provisioning.",
-    provider: "Aspfiy Data Gateway",
+    provider: "Aspfiy Data Portal",
     costPrice: 240,
     sellingFee: 260,
     serviceCharge: 0,
@@ -198,8 +198,8 @@ export async function getOrCreateUserVirtualAccount(
         const exactAccName = tursoVa.account_name || (tursoVa as any).accountName || userFallback?.fullName || "Customer";
         const bankName = tursoVa.bank_name || (tursoVa as any).bankName || "PalmPay";
         const providerName = String(tursoVa.provider || "").toLowerCase().includes("aspfiy")
-          ? "Aspfiy Payment Gateway"
-          : (tursoVa.provider || "Aspfiy Payment Gateway");
+          ? "Aspfiy Payment Portal"
+          : (tursoVa.provider || "Aspfiy Payment Portal");
 
         const existingAccount = {
           id: tursoVa.id || `va_${tursoVa.provider || "aspfiy"}_${userId}`,
@@ -283,7 +283,7 @@ export async function getOrCreateUserVirtualAccount(
           userName: userWallet.virtualAccountName || userFallback?.fullName || "",
           provider: userWallet.provider || "prov_aspfiy",
           providerId: userWallet.provider || "prov_aspfiy",
-          providerName: userWallet.providerName || "Aspfiy Payment Gateway",
+          providerName: userWallet.providerName || "Aspfiy Payment Portal",
           bankName: userWallet.virtualBankName || userWallet.bankName || "PalmPay",
           accountNumber: accNum,
           accountName:
@@ -371,7 +371,7 @@ export async function getOrCreateUserVirtualAccount(
       userName: user.fullName || "",
       provider: user.provider || "prov_aspfiy",
       providerId: user.provider || "prov_aspfiy",
-      providerName: "Aspfiy Payment Gateway",
+      providerName: "Aspfiy Payment Portal",
       bankName: user.virtualBankName || user.bankName || "PalmPay",
       accountNumber: accNum,
       accountName:
@@ -433,7 +433,7 @@ export async function getOrCreateUserVirtualAccount(
     userId,
     userEmail: user.email || userFallback?.email,
     userName: user.fullName || userFallback?.fullName,
-    provider: provider.id || "GATEWAY",
+    provider: provider.id || "PORTAL",
     providerId: provider.id,
     providerName: provider.name,
     bankName: result.bankName || "PalmPay",
@@ -605,7 +605,7 @@ export async function resolveVtuPlanAndPricing(
 }
 
 /**
- * Normalizes identity photos and signatures from external KYC Gateways:
+ * Normalizes identity photos and signatures from external KYC Portals:
  * - Prepend data URL image headers to raw base64 payloads
  * - Keep existing HTTP(S), storage paths, and valid data URIs unchanged
  * - Return empty string for null, undefined, none, or broken data
@@ -625,8 +625,17 @@ export function normalizePhotoUrl(raw: unknown): string {
     return "";
   }
 
+  if (trimmed.startsWith("data:image/")) {
+    const comma = trimmed.indexOf(",");
+    if (comma !== -1) {
+      const header = trimmed.substring(0, comma);
+      const dataPart = trimmed.substring(comma + 1).replace(/\s+/g, "");
+      return `${header},${dataPart}`;
+    }
+    return trimmed;
+  }
+
   if (
-    trimmed.startsWith("data:image/") ||
     trimmed.startsWith("http://") ||
     trimmed.startsWith("https://") ||
     trimmed.startsWith("blob:") ||

@@ -50,8 +50,8 @@ export function ProviderDetailDrawer({
 
   // SECTION 1: GENERAL
   const [name, setName] = useState("");
-  const [category, setCategory] = useState("PAYMENT_GATEWAY");
-  const [providerType, setProviderType] = useState("PAYMENT_GATEWAY");
+  const [category, setCategory] = useState("PAYMENT_PROVIDER");
+  const [providerType, setProviderType] = useState("PAYMENT_PROVIDER");
   const [description, setDescription] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
 
@@ -146,8 +146,8 @@ export function ProviderDetailDrawer({
 
         // Sync state
         setName(p.name || "");
-        setCategory(p.category || "PAYMENT_GATEWAY");
-        setProviderType(p.providerType || p.category || "PAYMENT_GATEWAY");
+        setCategory(p.category || "PAYMENT_PROVIDER");
+        setProviderType(p.providerType || p.category || "PAYMENT_PROVIDER");
         setDescription(p.description || "");
         setLogoUrl(p.logoUrl || "");
 
@@ -568,7 +568,7 @@ export function ProviderDetailDrawer({
                         }}
                         className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
                       >
-                        <option value="PAYMENT_GATEWAY">PAYMENT_GATEWAY</option>
+                        <option value="PAYMENT_PROVIDER">PAYMENT_PROVIDER</option>
                         <option value="WALLET_ENGINE">WALLET_ENGINE</option>
                         <option value="IDENTITY_API">IDENTITY_API</option>
                         <option value="TELECOM_VTU">TELECOM_VTU</option>
@@ -1001,7 +1001,7 @@ export function ProviderDetailDrawer({
                         type="button"
                         onClick={handleTestConnection}
                         disabled={testingConnection}
-                        className="py-2.5 px-5 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-[#111827] font-black text-xs rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-lg shadow-none"
+                        className="py-2.5 px-5 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-md"
                       >
                         {testingConnection ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
                         <span>{testingConnection ? "Pinging..." : "Run Connection Test"}</span>
@@ -1011,13 +1011,13 @@ export function ProviderDetailDrawer({
 
                   {testResult && (
                     <div className="p-5 bg-[#111827] border border-[#111827] rounded-2xl space-y-4 animate-fade-in">
-                      <div className="flex items-center justify-between border-b border-[#111827] pb-3">
+                      <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                         <span className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wider">Test Execution Result</span>
                         <span
                           className={`px-2.5 py-1 text-xs font-bold rounded-full border ${
                             testResult.status === "ONLINE"
-                              ? "bg-[#0F2D5C] text-[#9CA3AF] border-[#0F2D5C]"
-                              : "bg-[#0F2D5C] text-[#9CA3AF] border-[#0F2D5C]"
+                              ? "bg-emerald-950 text-emerald-300 border-emerald-800"
+                              : "bg-rose-950 text-rose-300 border-rose-800"
                           }`}
                         >
                           {testResult.status}

@@ -33,10 +33,8 @@ export function UserAnnouncementBanner({ variant = "dashboard", className = "", 
   };
 
   useEffect(() => {
-    // Non-blocking initial fetch so critical path and initial navigation paint unhindered
-    const timer = setTimeout(() => {
-      fetchActiveAnnouncements();
-    }, 1500);
+    // Immediate initial fetch so announcements appear synchronously with page load
+    fetchActiveAnnouncements();
 
     // Re-check periodically or on custom sync event
     const interval = setInterval(fetchActiveAnnouncements, 25000);
@@ -44,7 +42,6 @@ export function UserAnnouncementBanner({ variant = "dashboard", className = "", 
     window.addEventListener("announcements_updated", handleSync);
 
     return () => {
-      clearTimeout(timer);
       clearInterval(interval);
       window.removeEventListener("announcements_updated", handleSync);
     };
@@ -66,22 +63,22 @@ export function UserAnnouncementBanner({ variant = "dashboard", className = "", 
 
   const getStyleClasses = (style: string, priority: string) => {
     if (priority === "Critical" || style === "rose") {
-      return "bg-[#F5F7FA] dark:bg-[#0F2D5C]/80 border-[#E5E7EB] dark:border-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF] shadow-rose-500/5";
+      return "bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-900/60 text-rose-900 dark:text-rose-200 shadow-rose-500/5";
     }
     if (style === "amber" || priority === "High") {
-      return "bg-[#F5F7FA] dark:bg-[#0F2D5C]/80 border-[#E5E7EB] dark:border-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF] shadow-amber-500/5";
+      return "bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-900/60 text-amber-900 dark:text-amber-200 shadow-amber-500/5";
     }
     if (style === "emerald") {
-      return "bg-[#F5F7FA] dark:bg-[#0F2D5C]/80 border-[#E5E7EB] dark:border-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF] shadow-emerald-500/5";
+      return "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900/60 text-emerald-900 dark:text-emerald-200 shadow-emerald-500/5";
     }
-    return "bg-[#F5F7FA] dark:bg-[#0F2D5C]/80 border-[#E5E7EB] dark:border-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF] shadow-blue-500/5";
+    return "bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-900/60 text-blue-900 dark:text-blue-200 shadow-blue-500/5";
   };
 
   const getIcon = (type: string, priority: string) => {
-    if (type === "Security Alert" || priority === "Critical") return <ShieldAlert className="w-5 h-5 text-[#0F2D5C] dark:text-[#9CA3AF] shrink-0" />;
-    if (type === "System Maintenance" || type === "Service Downtime" || priority === "High") return <AlertTriangle className="w-5 h-5 text-[#0F2D5C] dark:text-[#9CA3AF] shrink-0" />;
-    if (type === "New Service Available" || type === "Promotional Campaign") return <Sparkles className="w-5 h-5 text-[#0F2D5C] dark:text-[#9CA3AF] shrink-0" />;
-    return <Megaphone className="w-5 h-5 text-[#0F2D5C] dark:text-[#9CA3AF] shrink-0" />;
+    if (type === "Security Alert" || priority === "Critical") return <ShieldAlert className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0" />;
+    if (type === "System Maintenance" || type === "Service Downtime" || priority === "High") return <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />;
+    if (type === "New Service Available" || type === "Promotional Campaign") return <Sparkles className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />;
+    return <Megaphone className="w-5 h-5 text-[#0F2D5C] dark:text-blue-400 shrink-0" />;
   };
 
   const handleActionClick = (url?: string) => {
@@ -175,7 +172,7 @@ export function UserAnnouncementBanner({ variant = "dashboard", className = "", 
                   {ann.type}
                 </span>
                 {ann.priority === "Critical" && (
-                  <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-[#0F2D5C] text-white font-black animate-pulse">
+                  <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-rose-600 text-white font-black animate-pulse">
                     CRITICAL
                   </span>
                 )}

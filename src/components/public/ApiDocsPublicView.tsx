@@ -48,7 +48,7 @@ export const ApiDocsPublicView: React.FC<ApiDocsPublicViewProps> = ({
   };
 
   const curlExample = `curl -X POST https://smartlinkng.com.ng/api/v1/nin/verify \\
-  -H "Authorization: Bearer sk_live_9a8b7c6d5e4f3g2h1" \\
+  -H "Authorization: Bearer REDACTED" \\
   -H "Content-Type: application/json" \\
   -d '{
     "nin": "12345678901",
@@ -67,7 +67,7 @@ const response = await axios.post(
   },
   {
     headers: {
-      'Authorization': 'Bearer sk_live_9a8b7c6d5e4f3g2h1',
+      'Authorization': 'Bearer REDACTED',
       'Content-Type': 'application/json'
     }
   }
@@ -80,7 +80,7 @@ console.log('PDF Slip Download URL:', response.data.slipUrl);`;
 
 url = "https://smartlinkng.com.ng/api/v1/nin/verify"
 headers = {
-    "Authorization": "Bearer sk_live_9a8b7c6d5e4f3g2h1",
+    "Authorization": "Bearer REDACTED",
     "Content-Type": "application/json"
 }
 payload = {
@@ -163,7 +163,7 @@ print("Result:", data)`;
   return (
     <div className="min-h-screen flex flex-col bg-[#0B132B] font-sans text-gray-100 antialiased selection:bg-[#F59E0B] selection:text-gray-900">
       <SEOHead
-        title="Developer REST API Documentation & Fintech Gateway | Smart Link NG"
+        title="Developer REST API Documentation & Fintech Portal | Smart Link NG"
         description="Integrate identity verification (NIN, BVN), automated VTU airtime/data vending, and electricity meter bill payments into your fintech applications with SmartLink Nigeria's sub-450ms REST API."
         canonicalUrl="https://smartlinkng.com.ng/api-docs"
       />
@@ -185,7 +185,7 @@ print("Result:", data)`;
           </div>
 
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-white max-w-3xl leading-tight">
-            High-Performance Identity &amp; VTU REST API Gateway
+            High-Performance Identity &amp; VTU REST API Portal
           </h1>
 
           <p className="text-sm sm:text-base text-gray-300 max-w-2xl leading-relaxed">

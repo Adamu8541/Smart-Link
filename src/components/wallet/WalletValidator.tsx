@@ -34,7 +34,7 @@ export const WalletValidator: React.FC<WalletValidatorProps> = ({
 
   if (valid) {
     return (
-      <div className={`p-3.5 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border border-[#E5E7EB] dark:border-[#0F2D5C]/60 rounded-xl space-y-2 text-xs text-[#0F2D5C] dark:text-[#9CA3AF] ${className}`}>
+      <div className={`p-3.5 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border border-slate-200 dark:border-slate-700 rounded-xl space-y-2 text-xs text-[#0F2D5C] dark:text-[#9CA3AF] ${className}`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4 text-[#0F2D5C] dark:text-[#9CA3AF] shrink-0" />
@@ -56,7 +56,7 @@ export const WalletValidator: React.FC<WalletValidatorProps> = ({
     const shortage = Math.max(0, (itemPrice ?? 0) - (availableBalance ?? 0));
 
     return (
-      <div className={`p-4 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border border-[#E5E7EB] dark:border-[#0F2D5C]/60 rounded-xl space-y-3 text-xs text-[#0F2D5C] dark:text-[#9CA3AF] ${className}`}>
+      <div className={`p-4 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border border-slate-200 dark:border-slate-700 rounded-xl space-y-3 text-xs text-[#0F2D5C] dark:text-[#9CA3AF] ${className}`}>
         <div className="flex items-start gap-2.5">
           <AlertTriangle className="h-5 w-5 text-[#0F2D5C] dark:text-[#9CA3AF] shrink-0 mt-0.5" />
           <div className="space-y-1">
@@ -93,7 +93,7 @@ export const WalletValidator: React.FC<WalletValidatorProps> = ({
   // Handle Wallet Suspended / Frozen
   if (errorCode === "WALLET_SUSPENDED") {
     return (
-      <div className={`p-4 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border border-[#E5E7EB] dark:border-[#0F2D5C]/60 rounded-xl flex items-start gap-2.5 text-xs text-[#0F2D5C] dark:text-[#9CA3AF] ${className}`}>
+      <div className={`p-4 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border border-slate-200 dark:border-slate-700 rounded-xl flex items-start gap-2.5 text-xs text-[#0F2D5C] dark:text-[#9CA3AF] ${className}`}>
         <ShieldAlert className="h-5 w-5 text-[#0F2D5C] dark:text-[#9CA3AF] shrink-0 mt-0.5" />
         <div>
           <h4 className="font-bold text-[#0F2D5C] dark:text-[#9CA3AF]">Wallet Account Suspended</h4>
@@ -108,7 +108,7 @@ export const WalletValidator: React.FC<WalletValidatorProps> = ({
   // Handle Wallet Not Found / Auth Required
   if (errorCode === "WALLET_NOT_FOUND") {
     return (
-      <div className={`p-4 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border border-[#E5E7EB] dark:border-[#0F2D5C]/60 rounded-xl flex items-start gap-2.5 text-xs text-[#0F2D5C] dark:text-[#9CA3AF] ${className}`}>
+      <div className={`p-4 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border border-slate-200 dark:border-slate-700 rounded-xl flex items-start gap-2.5 text-xs text-[#0F2D5C] dark:text-[#9CA3AF] ${className}`}>
         <Wallet className="h-5 w-5 text-[#0F2D5C] dark:text-[#9CA3AF] shrink-0 mt-0.5" />
         <div>
           <h4 className="font-bold text-[#0F2D5C] dark:text-[#9CA3AF]">Sign In Required</h4>

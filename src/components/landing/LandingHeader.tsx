@@ -51,7 +51,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
   return (
     <header
       id="site-header"
-      className={`sticky top-0 z-40 w-full min-h-[80px] sm:min-h-[96px] transition-colors duration-200 border-b ${
+      className={`sticky top-0 z-40 w-full min-h-[80px] sm:min-h-[96px] transition-colors duration-200 border-b mobile-gpu-layer ${
         isScrolled
           ? "bg-white/95 backdrop-blur-md shadow-sm border-[#E5E7EB]"
           : "bg-white border-[#E5E7EB]"
@@ -70,7 +70,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
           >
             <img
               src={activeLogo}
-              alt={`${siteName || "SmartLink Nigeria"} - Official Identity Verification & Fintech Gateway`}
+              alt={`${siteName || "SmartLink Nigeria"} - Official Identity Verification & Fintech Portal`}
               width={224}
               height={56}
               loading="eager"
@@ -121,7 +121,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
                   window.location.href = "/admin/login";
                 }
               }}
-              className="px-3.5 py-2 text-xs font-bold text-white bg-[#111827] hover:bg-[#0F2D5C] focus:ring-2 focus:ring-offset-2 focus:ring-[#0F2D5C] rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
+              className="px-3.5 py-2 text-xs font-bold text-white bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] focus:ring-2 focus:ring-offset-2 focus:ring-[#0F2D5C] rounded-xl transition-all cursor-pointer flex items-center gap-1.5 border border-[#0F2D5C] shadow-xs"
               title="Secured Admin Portal Login"
             >
               <ShieldCheck className="h-3.5 w-3.5 text-white" aria-hidden="true" />

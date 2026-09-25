@@ -1,10 +1,10 @@
 /**
- * Aspfiy Payment Gateway Adapter — REAL implementation.
+ * Aspfiy Payment Portal Adapter — REAL implementation.
  * Docs: https://aspfiy.readme.io/reference
  * Base URL: https://api-v1.aspfiy.com/
  * Auth: Authorization: Bearer <secretKey>
  *
- * Credentials come from the provider row saved in Admin → API Gateway
+ * Credentials come from the provider row saved in Admin → API Portal
  * Providers → Add Provider (db.api_providers[]). This class receives
  * that exact row's { secretKey, baseUrl, webhookUrl } — nothing is hardcoded
  * and nothing is read from environment variables.
@@ -108,7 +108,7 @@ export interface ProviderAdapter {
 
 export class AspfiyAdapter implements ProviderAdapter {
   id = "aspfiy";
-  name = "Aspfiy Payment Gateway";
+  name = "Aspfiy Payment Portal";
 
   private baseUrl(config: PaymentProviderConfig): string {
     return (config.baseUrl || "https://api-v1.aspfiy.com").replace(/\/+$/, "");
@@ -132,7 +132,7 @@ export class AspfiyAdapter implements ProviderAdapter {
 
     // Safe diagnostic logging before request without exposing the full secret
     console.log(
-      `[AspfiyAdapter] Prepared request to Aspfiy Gateway. Key preview: ${this.maskSecretForLogs(secretKey)}`
+      `[AspfiyAdapter] Prepared request to Aspfiy Portal. Key preview: ${this.maskSecretForLogs(secretKey)}`
     );
 
     return {

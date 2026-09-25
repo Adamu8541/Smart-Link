@@ -44,7 +44,7 @@ export const VerificationPublicView: React.FC<VerificationPublicViewProps> = ({
     <div className="min-h-screen flex flex-col bg-[#F9FAFB] font-sans text-[#111827] antialiased">
       <SEOHead
         title="National Identity Verification, NIN Slips, BVN & CAC Portal | Smart Link NG"
-        description="Verify National Identity Numbers (NIN), print official standard & premium plastic ID slips, validate BVN records via NIBSS, and incorporate CAC Business Names & SCUML certificates in Nigeria."
+        description="Verify National Identity Numbers (NIN), print official regular & premium plastic ID slips, validate BVN records via NIBSS, and incorporate CAC Business Names & SCUML certificates in Nigeria."
         canonicalUrl="https://smartlinkng.com.ng/verification"
       />
 
@@ -69,7 +69,7 @@ export const VerificationPublicView: React.FC<VerificationPublicViewProps> = ({
           </h1>
 
           <p className="text-sm sm:text-base text-gray-200 max-w-2xl mx-auto leading-relaxed">
-            Generate printable standard and premium plastic NIN slips with secure QR codes, validate Bank Verification Numbers (BVN), and incorporate businesses seamlessly.
+            Generate printable regular and premium plastic NIN slips with secure QR codes, validate Bank Verification Numbers (BVN), and incorporate businesses seamlessly.
           </p>
 
           <div className="pt-2 flex items-center justify-center gap-3">
@@ -154,7 +154,7 @@ export const VerificationPublicView: React.FC<VerificationPublicViewProps> = ({
                 </div>
 
                 <h2 className="text-2xl sm:text-3xl font-black text-gray-900 leading-snug">
-                  Standard NIN Slips &amp; High-Definition Plastic Cards
+                  Official NIN Slips &amp; High-Definition Plastic Cards
                 </h2>
 
                 <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
@@ -164,7 +164,7 @@ export const VerificationPublicView: React.FC<VerificationPublicViewProps> = ({
                 <div className="space-y-2.5 pt-2">
                   <div className="flex items-start gap-2 text-xs text-gray-700">
                     <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
-                    <span><strong>Standard Slip:</strong> Full legal format with biometric photo, personal demography, and scannable QR.</span>
+                    <span><strong>Regular Slip:</strong> Full legal format with biometric photo, personal demography, barcode, and scannable QR.</span>
                   </div>
                   <div className="flex items-start gap-2 text-xs text-gray-700">
                     <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />

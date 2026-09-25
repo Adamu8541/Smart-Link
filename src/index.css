@@ -28,30 +28,30 @@
 }
 
 /* Admin Dashboard Palette Classes */
-.bg-admin-navy { background-color: #0F2D5C !important; }
-.bg-admin-deep-blue { background-color: #17407E !important; }
-.bg-admin-primary-blue { background-color: #0F2D5C !important; }
-.bg-admin-light-blue { background-color: #F5F7FA !important; }
-.bg-admin-white { background-color: #FFFFFF !important; }
-.bg-admin-light-bg { background-color: #F5F7FA !important; }
-.bg-admin-border-gray { background-color: #E5E7EB !important; }
-.bg-admin-success { background-color: #10B981 !important; }
-.bg-admin-error { background-color: #EF4444 !important; }
+.bg-admin-navy { background-color: #0F2D5C; }
+.bg-admin-deep-blue { background-color: #17407E; }
+.bg-admin-primary-blue { background-color: #0F2D5C; }
+.bg-admin-light-blue { background-color: #F5F7FA; }
+.bg-admin-white { background-color: #FFFFFF; }
+.bg-admin-light-bg { background-color: #F5F7FA; }
+.bg-admin-border-gray { background-color: #E5E7EB; }
+.bg-admin-success { background-color: #10B981; }
+.bg-admin-error { background-color: #EF4444; }
 
-.text-admin-navy { color: #0F2D5C !important; }
-.text-admin-deep-blue { color: #17407E !important; }
-.text-admin-primary-blue { color: #0F2D5C !important; }
-.text-admin-text-gray { color: #4B5563 !important; }
-.text-admin-dark-text { color: #111827 !important; }
-.text-admin-success { color: #10B981 !important; }
-.text-admin-error { color: #EF4444 !important; }
-.text-admin-white { color: #FFFFFF !important; }
+.text-admin-navy { color: #0F2D5C; }
+.text-admin-deep-blue { color: #17407E; }
+.text-admin-primary-blue { color: #0F2D5C; }
+.text-admin-text-gray { color: #4B5563; }
+.text-admin-dark-text { color: #111827; }
+.text-admin-success { color: #10B981; }
+.text-admin-error { color: #EF4444; }
+.text-admin-white { color: #FFFFFF; }
 
-.border-admin-border-gray { border-color: #E5E7EB !important; }
-.border-admin-primary-blue { border-color: #0F2D5C !important; }
-.border-admin-navy { border-color: #0F2D5C !important; }
-.border-admin-success { border-color: #10B981 !important; }
-.border-admin-error { border-color: #EF4444 !important; }
+.border-admin-border-gray { border-color: #E5E7EB; }
+.border-admin-primary-blue { border-color: #0F2D5C; }
+.border-admin-navy { border-color: #0F2D5C; }
+.border-admin-success { border-color: #10B981; }
+.border-admin-error { border-color: #EF4444; }
 
 ::-webkit-scrollbar-track {
   background: transparent;
@@ -67,11 +67,48 @@
 }
 
 /* Global design system defaults */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  scroll-behavior: smooth;
+}
+
 body {
   background-color: #F5F7FA;
   color: #374151;
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+  width: 100%;
+  overscroll-behavior-y: none;
+}
+
+/* Eliminate 300ms tap delay and optimize mobile touch response */
+button, 
+a, 
+input, 
+select, 
+textarea, 
+[role="button"],
+.touch-target {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Mobile smooth scrolling container */
+.mobile-smooth-scroll {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Hardware accelerated sticky/fixed bars on mobile */
+.mobile-gpu-layer {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -141,19 +178,19 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Beautiful logo text styling */
 .beautiful-brand-logo {
-  color: #0F2D5C !important;
-  font-weight: 900 !important;
-  letter-spacing: -0.03em !important;
-  transition: all 0.3s ease !important;
+  color: #0F2D5C;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  transition: all 0.3s ease;
 }
 
 .beautiful-brand-logo:hover {
-  color: #17407E !important;
+  color: #17407E;
 }
 
 /* Force high-contrast white background for QR Code scanner compatibility */
 .keep-white-bg {
-  background-color: #ffffff !important;
+  background-color: #ffffff;
 }
 
 /* Offscreen section rendering optimization */

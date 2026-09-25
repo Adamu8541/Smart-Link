@@ -252,8 +252,8 @@ export interface WalletFundingDocument extends StandardBaseDocument {
   userId: string;
   walletId: string;
   amount: number;
-  gateway: "PAYSTACK" | "GATEWAY" | "MANUAL_BANK_TRANSFER";
-  gatewayReference: string;
+  portal: "PAYSTACK" | "PORTAL" | "MANUAL_BANK_TRANSFER";
+  portalReference: string;
   smartlinkReference: string;
 }
 

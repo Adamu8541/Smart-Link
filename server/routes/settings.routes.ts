@@ -22,9 +22,9 @@ import { ProviderExecutor, verifyWebhookSignature } from "../../src/services/pro
 import { adminAuthService, ADMIN_ROLES_CONFIG } from "../../src/services/adminAuthService";
 import { AutomaticWalletFundingEngine } from "../../src/services/automaticWalletFundingEngine";
 import { PaymentVerificationReconciliationEngine } from "../../src/services/paymentVerificationReconciliationEngine";
-import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerGateway";
+import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerConnector";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
-import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
+import { MultiProviderRoutingEngine } from "../../src/services/multiProviderRoutingEngine";
 import { syncFromStorage, syncToStorage } from "../../src/services/settingsStore";
 import * as usersStore from "../../src/services/usersStore";
 import { sendPlatformEmail, getResolvedSmtpConfig } from "../services/email.service";
@@ -47,7 +47,7 @@ app.get("/api/admin/layout/notifications", requireAdmin, async (req, res) => {
   const notifications = db.adminNotifications || [
     {
       id: "NOTIF_101",
-      title: "API Gateway Provider Warning",
+      title: "API Portal Provider Warning",
       message: "Monnify Sandbox provider responded with 429 Rate Limit (2 retry attempts recorded).",
       type: "WARNING",
       category: "SYSTEM",
@@ -58,7 +58,7 @@ app.get("/api/admin/layout/notifications", requireAdmin, async (req, res) => {
     {
       id: "NOTIF_102",
       title: "High Value Refund Request",
-      message: "User adamuamuhammad8541@gmail.com requested ₦25,000 wallet refund.",
+      message: "Customer requested ₦25,000 wallet refund.",
       type: "INFO",
       category: "FINANCE",
       timestamp: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
@@ -95,7 +95,7 @@ app.get("/api/admin/layout/announcements", requireAdmin, async (req, res) => {
   const announcements = [
     {
       id: "ANC_201",
-      title: "Scheduled Maintenance Window — Monnify & Payment Gateway",
+      title: "Scheduled Maintenance Window — Monnify & Payment Portal",
       content: "Scheduled API maintenance will occur on Sunday, 02:00 AM - 03:30 AM WAT. Automated failovers enabled.",
       priority: "HIGH",
       date: new Date().toLocaleDateString("en-NG", { dateStyle: "medium" }),
@@ -349,7 +349,7 @@ app.put("/api/admin/settings/:category", requireAdmin, async (req, res) => {
       versionNumber: ((db.branding_settings?.versionNumber || 0) + 1),
     };
   } else if (category === "maintenance") {
-    const isSuperAdmin = admin.role === "SUPER_ADMIN" || admin.isSuperAdmin || admin.email?.toLowerCase() === "adamuamuhammad8541@gmail.com";
+    const isSuperAdmin = admin.role === "SUPER_ADMIN" || Boolean(admin.isSuperAdmin);
     if (!isSuperAdmin) {
       return res.status(403).json({
         success: false,
@@ -458,7 +458,7 @@ app.post("/api/admin/settings/test-email", requireAdmin, async (req, res) => {
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px;">
         <div style="text-align: center; margin-bottom: 24px;">
           <h1 style="color: #0F2D5C; font-size: 22px; margin: 0;">${appName}</h1>
-          <p style="color: #64748b; font-size: 14px; margin: 4px 0 0 0;">System Email & SMTP Gateway Test</p>
+          <p style="color: #64748b; font-size: 14px; margin: 4px 0 0 0;">System Email & SMTP Portal Test</p>
         </div>
         <div style="background-color: #f8fafc; border-left: 4px solid #10b981; padding: 16px; border-radius: 6px; margin-bottom: 20px;">
           <p style="margin: 0; color: #0f172a; font-size: 15px; font-weight: bold;">✅ SMTP Outbound Dispatch Successful!</p>

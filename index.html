@@ -2,7 +2,11 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="format-detection" content="telephone=no" />
     <title>Smart Link NG | NIN, BVN, CAC, SCUML, Bills, Airtime &amp; Data Portal in Nigeria</title>
     <meta name="title" content="Smart Link NG | NIN, BVN, CAC, SCUML, Bills, Airtime &amp; Data Portal in Nigeria" />
     <meta name="description" content="Nigeria's all-in-one digital portal for NIN Verification &amp; Slip/ID Card Printing, BVN Validation, CAC Business Name Registration &amp; Filing, SCUML Certificates, High Court Affidavits, Electricity Disco Meter Tokens, Cheap VTU Airtime &amp; SME Data Bundles (MTN, Airtel, Glo, 9mobile), Cable TV Subscriptions (DSTV, GOtv, StarTimes), Exam Result Scratch Cards (WAEC, NECO, NABTEB), and Developer Verification APIs." />
@@ -45,7 +49,7 @@
     <meta property="og:image:type" content="image/png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Smart Link NG - Identity Verification, Utility Bills &amp; VTU Gateway" />
+    <meta property="og:image:alt" content="Smart Link NG - Identity Verification, Utility Bills &amp; VTU Portal" />
     <meta property="og:locale" content="en_NG" />
 
     <!-- Twitter / X Card Meta Tags -->
@@ -56,7 +60,7 @@
     <meta name="twitter:title" content="Smart Link NG | NIN, BVN, CAC, Bills, Airtime &amp; Data Portal" />
     <meta name="twitter:description" content="Nigeria's all-in-one digital portal for NIN Verification &amp; Slip/ID Card Printing, BVN Validation, CAC Business Name Registration &amp; Filing, SCUML Certificates, High Court Affidavits, Electricity Disco Meter Tokens, Cheap VTU Airtime &amp; SME Data Bundles (MTN, Airtel, Glo, 9mobile), Cable TV Subscriptions (DSTV, GOtv, StarTimes), Exam Result Scratch Cards (WAEC, NECO, NABTEB), and Developer Verification APIs." />
     <meta name="twitter:image" content="https://smartlinkng.com.ng/og-image.png" />
-    <meta name="twitter:image:alt" content="Smart Link NG - Identity Verification, Utility Bills &amp; VTU Gateway" />
+    <meta name="twitter:image:alt" content="Smart Link NG - Identity Verification, Utility Bills &amp; VTU Portal" />
 
     <!-- JSON-LD Structured Data Graph -->
     <script type="application/ld+json">
@@ -142,7 +146,7 @@
               "Automated Electricity Disco token recharge (IKEDC, EKEDC, AEDC, IBEDC, etc.)",
               "VTU Airtime & cheap data bundles across MTN, Airtel, Glo, and 9mobile",
               "DSTV, GOtv & StarTimes cable TV subscription renewal",
-              "High-performance REST API gateway for fintechs, agents, and business platforms"
+              "High-performance REST API portal for fintechs, agents, and business platforms"
             ]
           },
           {
@@ -424,7 +428,7 @@
           primaryColor: "#0F2D5C",
           secondaryColor: "#17407E",
           accentColor: "#2563EB",
-          headerAnnouncementText: "NIN & BVN Gateway Synchronized • Live SLA: 99.98%",
+          headerAnnouncementText: "NIN & BVN Portal Synchronized • Live SLA: 99.98%",
           showHeaderAnnouncement: true
         },
         general: {
@@ -467,7 +471,7 @@
                 >
                   <img
                     src="/logo.webp"
-                    alt="SmartLink Nigeria - Official Identity Verification &amp; Fintech Gateway"
+                    alt="SmartLink Nigeria - Official Identity Verification &amp; Fintech Portal"
                     width="224"
                     height="56"
                     loading="eager"
@@ -486,19 +490,19 @@
                   <a href="#contact-section" id="nav-link-contact-section" class="px-4 py-2 rounded-lg text-xs font-bold text-[#374151] hover:text-[#0F2D5C] hover:bg-[#F5F7FA]">Contact</a>
                 </nav>
                 <div id="header-right-actions" class="hidden lg:flex items-center gap-3">
-                  <a id="header-btn-admin-login" href="/admin/login" class="px-3.5 py-2 text-xs font-bold text-white bg-[#111827] rounded-xl flex items-center gap-1.5">
+                  <a id="header-btn-admin-login" href="/admin/login" rel="nofollow" class="px-3.5 py-2 text-xs font-bold text-white bg-[#111827] rounded-xl flex items-center gap-1.5">
                     <svg class="h-3.5 w-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /><path d="m9 12 2 2 4-4" /></svg>
                     Admin Login
                   </a>
-                  <a id="header-btn-login" href="/login" class="px-4 py-2 text-xs font-bold text-white bg-[#111827] rounded-xl flex items-center gap-1.5">
+                  <a id="header-btn-login" href="/login" rel="nofollow" class="px-4 py-2 text-xs font-bold text-white bg-[#111827] rounded-xl flex items-center gap-1.5">
                     <svg class="h-3.5 w-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" /><polyline points="10 17 15 12 10 7" /><line x1="15" x2="3" y1="12" y2="12" /></svg>
                     Login
                   </a>
-                  <a id="header-btn-register" href="/register" class="px-4 py-2 text-xs font-bold text-white bg-[#111827] rounded-xl flex items-center gap-1.5">
+                  <a id="header-btn-register" href="/register" rel="nofollow" class="px-4 py-2 text-xs font-bold text-white bg-[#111827] rounded-xl flex items-center gap-1.5">
                     <svg class="h-3.5 w-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><line x1="19" x2="19" y1="8" y2="14" /><line x1="22" x2="16" y1="11" y2="11" /></svg>
                     Register
                   </a>
-                  <a id="header-btn-get-started" href="/register" class="px-5 py-2.5 bg-[#111827] text-white font-bold rounded-xl text-xs shadow-xs flex items-center gap-2">
+                  <a id="header-btn-get-started" href="/register" rel="nofollow" class="px-5 py-2.5 bg-[#111827] text-white font-bold rounded-xl text-xs shadow-xs flex items-center gap-2">
                     Get Started
                     <svg class="h-3.5 w-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
                   </a>

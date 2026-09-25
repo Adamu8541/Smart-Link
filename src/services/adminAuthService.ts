@@ -101,8 +101,21 @@ export function signAdminJwt(payload: {
   expiresAt: string;
 }): string {
   const header = { alg: "HS256", typ: "JWT" };
+  const nowSec = Math.floor(Date.now() / 1000);
+  const expSec = Math.floor(new Date(payload.expiresAt).getTime() / 1000);
+  const jwtPayload = {
+    sub: payload.uid,
+    uid: payload.uid,
+    email: payload.email,
+    role: payload.role,
+    permissions: payload.permissions,
+    iat: nowSec,
+    exp: expSec,
+    expiresAt: payload.expiresAt,
+    iss: "smartlink-admin"
+  };
   const encodedHeader = base64UrlEncode(JSON.stringify(header));
-  const encodedPayload = base64UrlEncode(JSON.stringify(payload));
+  const encodedPayload = base64UrlEncode(JSON.stringify(jwtPayload));
   const signatureInput = `${encodedHeader}.${encodedPayload}`;
   const signature = crypto
     .createHmac("sha256", getJwtSecret())
@@ -121,8 +134,8 @@ export function verifyAdminJwt(token: string): {
   permissions: string[];
   expiresAt: string;
 } | null {
-  if (!token || typeof token !== "string") return null;
-  const parts = token.split(".");
+  if (!token || typeof token !== "string" || !token.trim()) return null;
+  const parts = token.trim().split(".");
   if (parts.length !== 3) return null;
 
   const [encodedHeader, encodedPayload, signature] = parts;
@@ -143,11 +156,34 @@ export function verifyAdminJwt(token: string): {
   try {
     const payloadStr = base64UrlDecode(encodedPayload);
     const payload = JSON.parse(payloadStr);
-    if (!payload.expiresAt) return null;
-    if (new Date(payload.expiresAt).getTime() <= Date.now()) {
-      return null; // Expired
+
+    // Validate expiration
+    if (payload.expiresAt) {
+      if (new Date(payload.expiresAt).getTime() <= Date.now()) {
+        return null; // Expired
+      }
+    } else if (payload.exp) {
+      const expMs = payload.exp > 1e11 ? payload.exp : payload.exp * 1000;
+      if (expMs <= Date.now()) {
+        return null; // Expired
+      }
     }
-    return payload;
+
+    const uid = payload.uid || payload.sub;
+    if (!uid) return null;
+
+    const email = (payload.email || "").toLowerCase().trim();
+    const role = (payload.role as AdminRoleType) || "ADMIN";
+    const permissions = Array.isArray(payload.permissions) ? payload.permissions : (ADMIN_ROLES_CONFIG[role]?.permissions || ["*"]);
+    const expiresAt = payload.expiresAt || (payload.exp ? new Date(payload.exp * 1000).toISOString() : new Date(Date.now() + 30 * 60 * 1000).toISOString());
+
+    return {
+      uid,
+      email,
+      role,
+      permissions,
+      expiresAt,
+    };
   } catch (err) {
     return null;
   }
@@ -373,35 +409,105 @@ export class AdminAuthService {
 
     let adminUser: AdminUserDocument | undefined;
 
-    // Fetch from Storage collection admin_users
+    // 1. Primary: Lookup admin user in usersStore (Turso relational database + local storage)
     try {
-      const fsDb = getFsDb();
-      if (fsDb) {
-        const querySnap = await fsDb.collection("admin_users").where("email", "==", email).get();
-        if (!querySnap.empty) {
-          adminUser = querySnap.docs[0].data() as AdminUserDocument;
+      const usersStore = await import("./usersStore");
+      const uStoreDoc = await usersStore.getUserByEmail(email);
+      if (uStoreDoc) {
+        const superAdminEmail = (process.env.SUPER_ADMIN_EMAIL || "").toLowerCase().trim();
+        const isSuperAdminEmail = Boolean(
+          (superAdminEmail && email === superAdminEmail) ||
+          email === "info.smartlinkng@gmail.com" ||
+          email === "adamuamuhammad8541@gmail.com"
+        );
+        const adminRoles = ["SUPER_ADMIN", "ADMIN", "SUB_ADMIN", "STAFF", "FINANCE_MANAGER", "VERIFICATION_OFFICER", "READ_ONLY_AUDITOR"];
+        
+        if (adminRoles.includes(uStoreDoc.role || "") || isSuperAdminEmail) {
+          const assignedRole: AdminRoleType = (isSuperAdminEmail || uStoreDoc.role === "SUPER_ADMIN") ? "SUPER_ADMIN" : ((uStoreDoc.role as AdminRoleType) || "ADMIN");
+          const perms = Array.isArray(uStoreDoc.permissions) && uStoreDoc.permissions.length > 0
+            ? uStoreDoc.permissions
+            : (ADMIN_ROLES_CONFIG[assignedRole]?.permissions || (assignedRole === "SUPER_ADMIN" ? ["*"] : ["VIEW_DASHBOARD"]));
+
+          adminUser = {
+            uid: uStoreDoc.uid || uStoreDoc.id || `adm_${Date.now()}`,
+            email: email,
+            fullName: uStoreDoc.fullName || uStoreDoc.full_name || email.split("@")[0],
+            role: assignedRole,
+            permissions: perms,
+            status: (uStoreDoc.status as any) || "ACTIVE",
+            passwordHash: (uStoreDoc as any).passwordHash || (uStoreDoc as any).password_hash || "",
+            salt: (uStoreDoc as any).salt || "",
+            createdAt: uStoreDoc.createdAt || new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
         }
       }
     } catch (err) {
-      console.warn("[AdminAuthService] loginAdmin Storage admin_users fetch error:", err);
+      console.warn("[AdminAuthService] loginAdmin usersStore lookup error:", err);
     }
 
-    // Check memory DB fallback if not found in Storage
+    // 2. Query Turso admin_users table directly
+    if (!adminUser) {
+      try {
+        const { executeTurso } = await import("../../server/turso/client");
+        const aRes = await executeTurso("SELECT * FROM admin_users WHERE lower(email) = lower(?) LIMIT 1;", [email]);
+        if (aRes.rows && aRes.rows.length > 0) {
+          const aRow: any = aRes.rows[0];
+          let rawPerms: string[] = [];
+          if (aRow.permissions) {
+            try {
+              rawPerms = typeof aRow.permissions === "string" ? JSON.parse(aRow.permissions) : aRow.permissions;
+            } catch { rawPerms = []; }
+          }
+          const aRole = (aRow.role as AdminRoleType) || "ADMIN";
+          adminUser = {
+            uid: String(aRow.uid || aRow.id || ""),
+            email: email,
+            fullName: String(aRow.full_name || "Administrator"),
+            role: aRole,
+            permissions: rawPerms.length ? rawPerms : (ADMIN_ROLES_CONFIG[aRole]?.permissions || ["*"]),
+            status: (aRow.status as any) || "ACTIVE",
+            passwordHash: String(aRow.password_hash || aRow.passwordHash || ""),
+            salt: String(aRow.salt || ""),
+            createdAt: String(aRow.created_at || new Date().toISOString()),
+            updatedAt: new Date().toISOString(),
+          };
+        }
+      } catch (err) {
+        console.warn("[AdminAuthService] loginAdmin Turso admin_users lookup error:", err);
+      }
+    }
+
+    // 3. Fetch from Storage collection admin_users
+    if (!adminUser) {
+      try {
+        const fsDb = getFsDb();
+        if (fsDb) {
+          const querySnap = await fsDb.collection("admin_users").where("email", "==", email).get();
+          if (!querySnap.empty) {
+            adminUser = querySnap.docs[0].data() as AdminUserDocument;
+          }
+        }
+      } catch (err) {
+        console.warn("[AdminAuthService] loginAdmin Storage admin_users fetch error:", err);
+      }
+    }
+
+    // 4. Check memory DB fallback if not found in Storage
     if (!adminUser && db && db.admin_users) {
       adminUser = db.admin_users.find((u: any) => u.email && u.email.toLowerCase() === email);
     }
 
-    // Check users collection fallback
+    // 5. Check users collection fallback
     if (!adminUser && db && db.users) {
       const uData = db.users.find((u: any) => u.email && u.email.toLowerCase() === email);
       if (uData) {
-        const superAdminEmails = [
-          (process.env.SUPER_ADMIN_EMAIL || "").toLowerCase().trim(),
-          "adamuamuhammad8541@gmail.com",
-          "admin@smartlinkng.com.ng",
-          "admin@smartlink.ng"
-        ].filter(Boolean);
-        const isSuperAdminEmail = Boolean(email && superAdminEmails.includes(email));
+        const superAdminEmail = (process.env.SUPER_ADMIN_EMAIL || "").toLowerCase().trim();
+        const isSuperAdminEmail = Boolean(
+          (superAdminEmail && email === superAdminEmail) ||
+          email === "info.smartlinkng@gmail.com" ||
+          email === "adamuamuhammad8541@gmail.com"
+        );
         const adminRoles = ["SUPER_ADMIN", "ADMIN", "SUB_ADMIN", "STAFF", "FINANCE_MANAGER", "VERIFICATION_OFFICER", "READ_ONLY_AUDITOR"];
 
         if (adminRoles.includes(uData.role) || isSuperAdminEmail) {
@@ -414,7 +520,7 @@ export class AdminAuthService {
             role: assignedRole,
             permissions: uData.permissions?.length ? uData.permissions : ADMIN_ROLES_CONFIG[assignedRole]?.permissions || ["*"],
             status: uData.status || "ACTIVE",
-            passwordHash: uData.passwordHash || "",
+            passwordHash: uData.passwordHash || uData.password_hash || "",
             salt: uData.salt || "",
             createdAt: uData.createdAt || new Date().toISOString(),
             updatedAt: new Date().toISOString(),
@@ -423,21 +529,16 @@ export class AdminAuthService {
       }
     }
 
-    // Super Admin ENV fallback
-    const superAdminEmails = [
-      (process.env.SUPER_ADMIN_EMAIL || "").toLowerCase().trim(),
-      "adamuamuhammad8541@gmail.com",
-      "admin@smartlinkng.com.ng",
-      "admin@smartlink.ng"
-    ].filter(Boolean);
+    // 6. Super Admin ENV check (only when explicitly set in environment)
+    const superAdminEmail = (process.env.SUPER_ADMIN_EMAIL || "").toLowerCase().trim();
     const saEnvPass = (process.env.SUPER_ADMIN_PASSWORD || "").trim();
-    if (!adminUser && superAdminEmails.includes(email)) {
-      const passwordHash = saEnvPass ? hashPassword(saEnvPass) : "";
+    if (!adminUser && superAdminEmail && email === superAdminEmail && saEnvPass) {
+      const passwordHash = hashPassword(saEnvPass);
       const salt = "";
       adminUser = {
         uid: `adm_sa_${Date.now()}`,
         email: email,
-        fullName: "Adamu A. Muhammad",
+        fullName: "Super Admin",
         role: "SUPER_ADMIN",
         permissions: ADMIN_ROLES_CONFIG["SUPER_ADMIN"].permissions,
         status: "ACTIVE",
@@ -509,7 +610,7 @@ export class AdminAuthService {
       vResult = verifyPassword(password, adminUser.passwordHash, userSalt);
       isValidPass = vResult.match;
 
-      if (!isValidPass && superAdminEmails.includes(email) && saEnvPass && password === saEnvPass) {
+      if (!isValidPass && superAdminEmail && email === superAdminEmail && saEnvPass && password === saEnvPass) {
         isValidPass = true;
       }
 

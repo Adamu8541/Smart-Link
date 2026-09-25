@@ -367,7 +367,7 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
   const getConnectionBadge = (status?: string, lastResult?: string) => {
     if (status === "Connected" || lastResult === "Connected") {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/80 dark:text-[#9CA3AF] border border-[#E5E7EB] dark:border-[#0F2D5C]">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/80 dark:text-[#9CA3AF] border border-slate-200 dark:border-slate-700">
           <span className="w-1.5 h-1.5 rounded-full bg-[#0F2D5C] animate-pulse"></span>
           Connected
         </span>
@@ -375,7 +375,7 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
     }
     if (status === "Warning" || lastResult === "Invalid Base URL" || lastResult === "Timeout") {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/80 dark:text-[#9CA3AF] border border-[#E5E7EB] dark:border-[#0F2D5C]">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/80 dark:text-[#9CA3AF] border border-slate-200 dark:border-slate-700">
           <span className="w-1.5 h-1.5 rounded-full bg-[#0F2D5C]"></span>
           Warning
         </span>
@@ -383,7 +383,7 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
     }
     if (status === "Disconnected" || (lastResult && lastResult !== "Untested")) {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/80 dark:text-[#9CA3AF] border border-[#E5E7EB] dark:border-[#0F2D5C]">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/80 dark:text-[#9CA3AF] border border-slate-200 dark:border-slate-700">
           <span className="w-1.5 h-1.5 rounded-full bg-[#0F2D5C]"></span>
           Disconnected
         </span>
@@ -402,14 +402,14 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
     switch (status) {
       case "Active":
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/80 dark:text-[#9CA3AF] border border-[#E5E7EB] dark:border-[#0F2D5C]">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/80 dark:text-[#9CA3AF] border border-slate-200 dark:border-slate-700">
             <span className="w-2 h-2 rounded-full bg-[#0F2D5C] animate-pulse"></span>
             Active
           </span>
         );
       case "Inactive":
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/80 dark:text-[#9CA3AF] border border-[#E5E7EB] dark:border-[#0F2D5C]">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/80 dark:text-[#9CA3AF] border border-slate-200 dark:border-slate-700">
             <span className="w-2 h-2 rounded-full bg-[#0F2D5C]"></span>
             Inactive
           </span>
@@ -417,7 +417,7 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
       case "Draft":
       default:
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/80 dark:text-[#9CA3AF] border border-[#E5E7EB] dark:border-[#0F2D5C]">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/80 dark:text-[#9CA3AF] border border-slate-200 dark:border-slate-700">
             <span className="w-2 h-2 rounded-full bg-[#0F2D5C]"></span>
             Draft
           </span>
@@ -469,7 +469,7 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
               Payment Provider Management
             </h2>
             <p className="text-xs text-[#E5E7EB] max-w-2xl mt-1 leading-relaxed">
-              Configure and manage payment gateway credentials stored permanently in the database.
+              Configure and manage payment portal credentials stored permanently in the database.
               <strong className="text-[#9CA3AF] font-bold ml-1">Only one provider can be Active at any time.</strong>
             </p>
           </div>
@@ -882,7 +882,7 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
                       <td className="p-3 text-[#6B7280] font-mono text-[11px] whitespace-nowrap">{log.transactionId}</td>
                       <td className="p-3 text-[#9CA3AF] text-[11px] whitespace-nowrap">{log.userId}</td>
                       <td className="p-3 whitespace-nowrap">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C] dark:text-[#9CA3AF]">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-blue-50 text-[#0F2D5C] dark:bg-blue-950/50 dark:text-blue-300">
                           200 SUCCESS
                         </span>
                       </td>
@@ -930,7 +930,7 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. Aspfiy Payment Gateway, Generic Gateway, Paystack"
+                    placeholder="e.g. Aspfiy Payment Portal, Generic Portal, Paystack"
                     value={paymentForm.name}
                     onChange={(e) => {
                       setPaymentForm({ ...paymentForm, name: e.target.value });
@@ -951,7 +951,7 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
                     </label>
                     <input
                       type="password"
-                      placeholder="e.g. SK_LIVE_9823749823"
+                      placeholder="e.g. YOUR_API_KEY_HERE"
                       value={paymentForm.secretKey}
                       onChange={(e) => {
                         setPaymentForm({ ...paymentForm, secretKey: e.target.value });

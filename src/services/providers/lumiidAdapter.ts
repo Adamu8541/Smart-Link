@@ -1,5 +1,5 @@
 /**
- * LumiID Sovereign Identity Verification Gateway Adapter
+ * LumiID Sovereign Identity Verification Portal Adapter
  * Official Documentation: https://lumiid.com | https://docs.lumiid.com
  * Base URL: https://api.lumiid.com/v1 (or custom baseUrl / sandbox)
  * Authentication:
@@ -38,7 +38,7 @@ export interface LumiIDVerificationResult {
 
 export class LumiIDAdapter implements ProviderAdapter {
   id = "lumiid";
-  name = "LumiID Sovereign Identity Gateway (lumiid.com)";
+  name = "LumiID Sovereign Identity Portal (lumiid.com)";
 
   /**
    * Resolve Base URL for LumiID API (built-in official default: https://api.lumiid.com)
@@ -207,6 +207,7 @@ export class LumiIDAdapter implements ProviderAdapter {
       rawPhoto: photoUrl,
 
       // Specific Identity Numbers
+      trackingId: d.tracking_id || d.trackingId || d.trackingID || undefined,
       nin: d.nin || d.national_identity_number || d.vNin || d.vnin || undefined,
       bvn: d.bvn || d.bank_verification_number || d.id_number || d.idNumber || (serviceType && serviceType.toUpperCase().includes("BVN") ? (d.search_value || d.number) : undefined),
       tin: d.tin || d.tax_identification_number || d.taxId || undefined,
@@ -492,7 +493,7 @@ export class LumiIDAdapter implements ProviderAdapter {
               const balStr = balanceNum !== undefined ? ` (Wallet Balance: ${formatNaira(balanceNum)})` : "";
               return {
                 ok: true,
-                message: `LumiID Gateway Connected Successfully${balStr}`,
+                message: `LumiID Portal Connected Successfully${balStr}`,
                 responseTimeMs: Date.now() - startTime,
                 balance: balanceNum,
               };
@@ -506,7 +507,7 @@ export class LumiIDAdapter implements ProviderAdapter {
       if (isMasked) {
         return {
           ok: true,
-          message: `LumiID Gateway Online & Reachable (${elapsed}ms). Server key has masked placeholder characters; enter full unmasked key for live verification.`,
+          message: `LumiID Portal Online & Reachable (${elapsed}ms). Server key has masked placeholder characters; enter full unmasked key for live verification.`,
           responseTimeMs: elapsed,
         };
       }
@@ -514,14 +515,14 @@ export class LumiIDAdapter implements ProviderAdapter {
       if (!safeKey) {
         return {
           ok: true,
-          message: `LumiID Gateway Online & Reachable (${elapsed}ms). Ready for API credentials.`,
+          message: `LumiID Portal Online & Reachable (${elapsed}ms). Ready for API credentials.`,
           responseTimeMs: elapsed,
         };
       }
 
       return {
         ok: true,
-        message: `LumiID Identity Gateway Connected (Host online, ${elapsed}ms)`,
+        message: `LumiID Identity Portal Connected (Host online, ${elapsed}ms)`,
         responseTimeMs: elapsed,
       };
     } catch (err: any) {
@@ -710,7 +711,7 @@ export class LumiIDAdapter implements ProviderAdapter {
     return {
       success: false,
       providerReference: reference,
-      error: lastError || "Failed to complete verification via LumiID Gateway.",
+      error: lastError || "Failed to complete verification via LumiID Portal.",
       rawResponse: lastRawResponse,
       responseTimeMs: Date.now() - startTime,
       statusCode: lastStatusCode,

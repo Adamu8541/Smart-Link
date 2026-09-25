@@ -74,7 +74,7 @@ export const VerificationHistory: React.FC<VerificationHistoryProps> = ({
       {/* Header & Filter Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <div className="p-2 rounded-xl bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF]">
+          <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300">
             <History className="h-4 w-4" />
           </div>
           <div>
@@ -148,7 +148,7 @@ export const VerificationHistory: React.FC<VerificationHistoryProps> = ({
               className="p-3.5 bg-white dark:bg-[#111827] border border-[#E5E7EB]/80 dark:border-[#111827] rounded-xl hover:border-[#0F2D5C]/40 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
             >
               <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] shrink-0">
+                <div className="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 shrink-0">
                   <ShieldCheck className="h-5 w-5" />
                 </div>
                 <div>
@@ -192,7 +192,7 @@ export const VerificationHistory: React.FC<VerificationHistoryProps> = ({
                     <button
                       type="button"
                       onClick={() => onRepeatVerification(item.service, item.verifiedId)}
-                      className="px-2.5 py-1.5 rounded-lg bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 hover:bg-[#E5E7EB] dark:hover:bg-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF] font-semibold text-[11px] transition-colors cursor-pointer flex items-center gap-1"
+                      className="px-2.5 py-1.5 rounded-lg bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 hover:text-[#0F2D5C] dark:hover:text-white font-semibold text-[11px] transition-colors cursor-pointer flex items-center gap-1"
                     >
                       <RefreshCw className="h-3 w-3" />
                       <span>Repeat</span>

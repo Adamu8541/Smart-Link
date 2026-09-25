@@ -22,7 +22,7 @@ export const VERIFICATION_SERVICES: VerificationServiceConfig[] = [
   {
     id: "NIN_DEMOGRAPHY",
     title: "NIN Demography Verification",
-    subtitle: "NIMC Demographics Gateway",
+    subtitle: "NIMC Demographics Portal",
     description: "Verify identity records via official NIMC demographic details (First Name, Last Name, Gender & Date of Birth).",
     icon: "Users",
     category: "IDENTITY",
@@ -37,12 +37,12 @@ export const VERIFICATION_SERVICES: VerificationServiceConfig[] = [
   {
     id: "NIN",
     title: "NIN Identity Verification",
-    subtitle: "NIN Gateway API",
-    description: "Verify NIN profiles via third-party gateways using 11-digit NIN.",
+    subtitle: "NIN Portal API",
+    description: "Verify NIN profiles via third-party providers using 11-digit NIN.",
     icon: "Fingerprint",
     category: "IDENTITY",
     fee: 500,
-    providerName: "NIN Validation Gateway",
+    providerName: "NIN Validation Portal",
     primaryInputLabel: "National Identification Number (NIN)",
     primaryInputPlaceholder: "e.g. 12345678901",
     primaryInputName: "nin",
@@ -61,12 +61,12 @@ export const VERIFICATION_SERVICES: VerificationServiceConfig[] = [
   {
     id: "BVN",
     title: "BVN Banking Verification",
-    subtitle: "CBN / BVN Gateway",
+    subtitle: "CBN / BVN Portal",
     description: "Validate Bank Verification Number records with Central Bank of Nigeria database.",
     icon: "ShieldCheck",
     category: "IDENTITY",
     fee: 500,
-    providerName: "BVN Gateway",
+    providerName: "BVN Portal",
     primaryInputLabel: "Bank Verification Number (BVN)",
     primaryInputPlaceholder: "e.g. 22233344455",
     primaryInputName: "bvn",
@@ -85,12 +85,12 @@ export const VERIFICATION_SERVICES: VerificationServiceConfig[] = [
   {
     id: "NIN_PHONE",
     title: "NIN With Phone Number",
-    subtitle: "NIMC Phone Lookup Gateway",
+    subtitle: "NIMC Phone Lookup Portal",
     description: "Verify NIN records using candidate's 11-digit registered phone number.",
     icon: "Phone",
     category: "IDENTITY",
     fee: 500,
-    providerName: "NIMC Phone Registry Gateway",
+    providerName: "NIMC Phone Registry Portal",
     primaryInputLabel: "Phone Number",
     primaryInputPlaceholder: "e.g. 08012345678",
     primaryInputName: "phoneNumber",
@@ -100,7 +100,7 @@ export const VERIFICATION_SERVICES: VerificationServiceConfig[] = [
   {
     id: "PHONE",
     title: "Phone Number Identity Lookup",
-    subtitle: "Telco KYC Gateway",
+    subtitle: "Telco KYC Portal",
     description: "Lookup identity, SIM registration data, and network provider for phone numbers.",
     icon: "Phone",
     category: "IDENTITY",
@@ -120,7 +120,7 @@ export const VERIFICATION_SERVICES: VerificationServiceConfig[] = [
     icon: "Mail",
     category: "CREDENTIAL",
     fee: 200,
-    providerName: "SmartLink Anti-Fraud Gateway",
+    providerName: "SmartLink Anti-Fraud Portal",
     primaryInputLabel: "Email Address",
     primaryInputPlaceholder: "e.g. user@example.com",
     primaryInputName: "email",
@@ -150,7 +150,7 @@ export const VERIFICATION_SERVICES: VerificationServiceConfig[] = [
     icon: "FileCheck2",
     category: "TAX",
     fee: 500,
-    providerName: "TIN Gateway Engine",
+    providerName: "TIN Portal Engine",
     primaryInputLabel: "Tax Identification Number (TIN)",
     primaryInputPlaceholder: "e.g. 12345678-0001",
     primaryInputName: "tin",
@@ -175,12 +175,12 @@ export const VERIFICATION_SERVICES: VerificationServiceConfig[] = [
   {
     id: "PASSPORT",
     title: "International Passport Verification",
-    subtitle: "Nigerian Immigration Service Gateway",
+    subtitle: "Nigerian Immigration Service Portal",
     description: "Verify NIS e-passport validity, document number, and immigration verification status.",
     icon: "Globe",
     category: "CREDENTIAL",
     fee: 1000,
-    providerName: "NIS Immigration Central Gateway",
+    providerName: "NIS Immigration Central Portal",
     primaryInputLabel: "Passport Number",
     primaryInputPlaceholder: "e.g. A12345678",
     primaryInputName: "passportNumber",
@@ -228,12 +228,12 @@ export class VerificationEngine {
     return {
       id: serviceType,
       title: `${serviceType} Verification Service`,
-      subtitle: "SmartLink Verification Gateway",
+      subtitle: "SmartLink Verification Portal",
       description: `Perform real-time verification query for ${serviceType}.`,
       icon: "ShieldCheck",
       category: "IDENTITY",
       fee: 500,
-      providerName: "SmartLink Federal Gateway",
+      providerName: "SmartLink Federal Portal",
       primaryInputLabel: "Target Identification Number",
       primaryInputPlaceholder: "Enter target ID",
       primaryInputName: "targetId",
@@ -333,7 +333,7 @@ export class VerificationEngine {
 
     onProgressUpdate?.(VERIFICATION_PROGRESS_STEPS[3]);
 
-    // Step 4: Call Backend API Gateway
+    // Step 4: Call Backend API Portal
     try {
       const startTime = Date.now();
       let authHeaders: Record<string, string> = { "Content-Type": "application/json" };
@@ -370,7 +370,7 @@ export class VerificationEngine {
         cleaned = cleaned.replace(/<[^>]+>/g, " ");
         cleaned = cleaned.replace(/\s+/g, " ").trim();
         if (cleaned.includes(":root") || cleaned.includes("color-scheme") || cleaned.length > 250) {
-          return "Verification gateway temporarily busy. Please retry your query in a few moments.";
+          return "Verification portal temporarily busy. Please retry your query in a few moments.";
         }
         return cleaned;
       };
@@ -439,10 +439,10 @@ export class VerificationEngine {
             } else {
               const cleaned = cleanErrorString(rawText);
               data = {
-                error: cleaned || `Verification gateway responded with status ${response.status}`,
-                errorCode: response.status === 502 ? "GATEWAY_ERROR" : "SERVER_ERROR",
+                error: cleaned || `Verification portal responded with status ${response.status}`,
+                errorCode: response.status === 502 ? "PORTAL_ERROR" : "SERVER_ERROR",
                 friendlyMessage: "Verification Provider Error",
-                details: cleaned || `HTTP ${response.status}: Failed to parse gateway response`,
+                details: cleaned || `HTTP ${response.status}: Failed to parse portal response`,
               };
             }
           }
@@ -459,7 +459,7 @@ export class VerificationEngine {
             error: fetchErr.message || "Network connection failed",
             errorCode: "NETWORK_ERROR",
             friendlyMessage: "Connection Error",
-            details: "Could not reach verification gateway. Please check your internet connection.",
+            details: "Could not reach verification portal. Please check your internet connection.",
           };
           break;
         }
@@ -483,9 +483,9 @@ export class VerificationEngine {
         return {
           success: false,
           errorState: {
-            code: data.errorCode || (isNotFound ? "RECORD_NOT_FOUND" : isInsufficientCredits ? "PROVIDER_CREDITS_EXHAUSTED" : statusCode === 401 || statusCode === 403 ? "AUTH_ERROR" : statusCode === 502 ? "GATEWAY_ERROR" : "VERIFICATION_FAILED"),
+            code: data.errorCode || (isNotFound ? "RECORD_NOT_FOUND" : isInsufficientCredits ? "PROVIDER_CREDITS_EXHAUSTED" : statusCode === 401 || statusCode === 403 ? "AUTH_ERROR" : statusCode === 502 ? "PORTAL_ERROR" : "VERIFICATION_FAILED"),
             message: cleanErrMsg,
-            friendlyMessage: data.friendlyMessage || (isNotFound ? "Identity Record Not Found" : isInsufficientCredits ? "Provider Balance Depleted" : data.errorCode === "GATEWAY_VERIFICATION_FAILED" ? "Verification Unsuccessful" : "Verification Failed"),
+            friendlyMessage: data.friendlyMessage || (isNotFound ? "Identity Record Not Found" : isInsufficientCredits ? "Provider Balance Depleted" : data.errorCode === "PORTAL_VERIFICATION_FAILED" ? "Verification Unsuccessful" : "Verification Failed"),
             details: cleanDetails,
           },
         };
@@ -512,6 +512,8 @@ export class VerificationEngine {
         verifiedId: primaryInput,
         maskedId: VerificationValidator.maskID(primaryInput),
         userId,
+        slipType: (additionalFields as any)?.slipType || slipType,
+        formatId: slipType || (additionalFields as any)?.formatId,
       };
 
       return {

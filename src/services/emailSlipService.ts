@@ -17,6 +17,8 @@ export interface SendEmailSlipParams {
   slipData?: GeneratedSlipRecord;
   formatType?: SlipFormatType;
   customNote?: string;
+  pdfBase64?: string;
+  pdfFilename?: string;
 }
 
 export interface EmailDispatchResponse {

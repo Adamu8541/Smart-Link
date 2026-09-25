@@ -354,7 +354,7 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
   const getResultBadge = (resultStatus?: string, statusCode?: number) => {
     if (resultStatus === "Success") {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/80 dark:text-[#9CA3AF] border border-[#E5E7EB] dark:border-[#0F2D5C]">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/80 dark:text-[#9CA3AF] border border-slate-200 dark:border-slate-700">
           <CheckCircle2 className="h-3 w-3 text-[#0F2D5C] dark:text-[#9CA3AF]" />
           Success {statusCode ? `(${statusCode})` : ""}
         </span>
@@ -362,7 +362,7 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
     }
     if (resultStatus === "Unauthorized") {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/80 dark:text-[#9CA3AF] border border-[#E5E7EB] dark:border-[#0F2D5C]">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/80 dark:text-[#9CA3AF] border border-slate-200 dark:border-slate-700">
           <Shield className="h-3 w-3 text-[#0F2D5C] dark:text-[#9CA3AF]" />
           Unauthorized {statusCode ? `(${statusCode})` : ""}
         </span>
@@ -370,7 +370,7 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
     }
     if (resultStatus === "Timeout") {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/80 dark:text-[#9CA3AF] border border-[#E5E7EB] dark:border-[#0F2D5C]">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/80 dark:text-[#9CA3AF] border border-slate-200 dark:border-slate-700">
           <Clock className="h-3 w-3 text-[#0F2D5C] dark:text-[#9CA3AF]" />
           Timeout
         </span>
@@ -378,7 +378,7 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
     }
     if (resultStatus === "Invalid URL") {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/80 dark:text-[#9CA3AF] border border-[#E5E7EB] dark:border-[#0F2D5C]">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/80 dark:text-[#9CA3AF] border border-slate-200 dark:border-slate-700">
           <AlertTriangle className="h-3 w-3 text-[#0F2D5C] dark:text-[#9CA3AF]" />
           Invalid URL
         </span>
@@ -386,7 +386,7 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
     }
     if (resultStatus === "Failed") {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/80 dark:text-[#9CA3AF] border border-[#E5E7EB] dark:border-[#0F2D5C]">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/80 dark:text-[#9CA3AF] border border-slate-200 dark:border-slate-700">
           <XCircle className="h-3 w-3 text-[#0F2D5C] dark:text-[#9CA3AF]" />
           Failed {statusCode ? `(${statusCode})` : ""}
         </span>
@@ -568,7 +568,7 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
                         </div>
                       </div>
 
-                      <span className="px-2.5 py-1 bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] rounded-xl text-[10px] font-black uppercase tracking-wider shrink-0 font-mono border border-[#E5E7EB] dark:border-[#0F2D5C]">
+                      <span className="px-2.5 py-1 bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 rounded-xl text-[10px] font-black uppercase tracking-wider shrink-0 font-mono border border-slate-200 dark:border-slate-700">
                         {wh.httpMethod || "POST"}
                       </span>
                     </div>
@@ -821,7 +821,7 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
                       placeholder="e.g., user.subscription.renewed"
                       value={formData.customEventType}
                       onChange={e => setFormData({ ...formData, customEventType: e.target.value })}
-                      className="w-full px-3.5 py-2 bg-[#F5F7FA]/50 dark:bg-[#0F2D5C]/40 border border-[#E5E7EB] dark:border-[#0F2D5C] rounded-xl text-xs focus:ring-2 focus:ring-[#0F2D5C] outline-none"
+                      className="w-full px-3.5 py-2 bg-[#F5F7FA]/50 dark:bg-[#0F2D5C]/40 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:ring-2 focus:ring-[#0F2D5C] outline-none"
                     />
                   </div>
                 )}

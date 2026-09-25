@@ -40,6 +40,7 @@ import {
   FileCode,
 } from "lucide-react";
 import { AdminSession } from "../../../services/adminAuthTypes";
+import { getAuthHeaders } from "../../../services/providerService";
 
 interface AdminNotificationsViewProps {
   session: AdminSession;
@@ -326,7 +327,8 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
 
   const fetchSystemSwitches = async () => {
     try {
-      const res = await fetch("/api/admin/notifications/system-switches");
+      const headers = await getAuthHeaders(session?.uid, session?.sessionToken);
+      const res = await fetch("/api/admin/notifications/system-switches", { headers });
       const data = await res.json();
       if (data.success && data.switches) {
         setSystemSwitches(data.switches);
@@ -342,9 +344,10 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
     const nextVal = !currentVal;
 
     try {
+      const headers = await getAuthHeaders(session?.uid, session?.sessionToken);
       const res = await fetch("/api/admin/notifications/toggle-switch", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { ...headers, "Content-Type": "application/json" },
         body: JSON.stringify({ switchKey, enabled: nextVal }),
       });
       const data = await res.json();
@@ -373,7 +376,8 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
 
   const fetchDashboardMetrics = async () => {
     try {
-      const res = await fetch("/api/admin/notifications/dashboard");
+      const headers = await getAuthHeaders(session?.uid, session?.sessionToken);
+      const res = await fetch("/api/admin/notifications/dashboard", { headers });
       const data = await res.json();
       if (data.success) {
         setDashboardData(data);
@@ -386,7 +390,8 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
   const fetchNotifications = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/notifications?search=${searchQuery}&category=${filterCategory}&priority=${filterPriority}&status=${filterStatus}`);
+      const headers = await getAuthHeaders(session?.uid, session?.sessionToken);
+      const res = await fetch(`/api/admin/notifications?search=${searchQuery}&category=${filterCategory}&priority=${filterPriority}&status=${filterStatus}`, { headers });
       const data = await res.json();
       if (data.success) {
         setNotifications(data.notifications || []);
@@ -400,7 +405,8 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
 
   const fetchAnnouncements = async () => {
     try {
-      const res = await fetch("/api/admin/announcements");
+      const headers = await getAuthHeaders(session?.uid, session?.sessionToken);
+      const res = await fetch("/api/admin/announcements", { headers });
       const data = await res.json();
       if (data.success) {
         setAnnouncements(data.announcements || []);
@@ -413,9 +419,10 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
   const handleToggleAnnouncement = async (id: string, currentState: boolean) => {
     setToggleLoadingKey(`ann_${id}`);
     try {
+      const headers = await getAuthHeaders(session?.uid, session?.sessionToken);
       const res = await fetch(`/api/admin/announcements/toggle/${id}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { ...headers, "Content-Type": "application/json" },
         body: JSON.stringify({ isActive: !currentState }),
       });
       const data = await res.json();
@@ -443,7 +450,8 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
 
   const fetchTemplates = async () => {
     try {
-      const res = await fetch("/api/admin/notifications/templates");
+      const headers = await getAuthHeaders(session?.uid, session?.sessionToken);
+      const res = await fetch("/api/admin/notifications/templates", { headers });
       const data = await res.json();
       if (data.success) {
         setTemplates(data.templates || []);
@@ -455,7 +463,8 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
 
   const fetchHistory = async () => {
     try {
-      const res = await fetch("/api/admin/notification/history");
+      const headers = await getAuthHeaders(session?.uid, session?.sessionToken);
+      const res = await fetch("/api/admin/notification/history", { headers });
       const data = await res.json();
       if (data.success) {
         setHistoryLogs(data.history || []);
@@ -502,9 +511,10 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
     }
 
     try {
+      const headers = await getAuthHeaders(session?.uid, session?.sessionToken);
       const res = await fetch("/api/admin/notifications/create", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { ...headers, "Content-Type": "application/json" },
         body: JSON.stringify({
           ...createForm,
           createdBy: session.fullName || session.email || "Administrator",
@@ -541,17 +551,18 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
     if (!annForm.title || !annForm.content) return;
 
     try {
+      const headers = await getAuthHeaders(session?.uid, session?.sessionToken);
       let res;
       if (editingAnnId) {
         res = await fetch(`/api/admin/announcements/${editingAnnId}`, {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: { ...headers, "Content-Type": "application/json" },
           body: JSON.stringify(annForm),
         });
       } else {
         res = await fetch("/api/admin/announcements/create", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { ...headers, "Content-Type": "application/json" },
           body: JSON.stringify(annForm),
         });
       }
@@ -603,7 +614,8 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
   const handleDeleteAnnouncement = async (id: string) => {
     if (!window.confirm("Are you sure you want to permanently delete this announcement?")) return;
     try {
-      await fetch(`/api/admin/announcements/${id}`, { method: "DELETE" });
+      const headers = await getAuthHeaders(session?.uid, session?.sessionToken);
+      await fetch(`/api/admin/announcements/${id}`, { method: "DELETE", headers });
       fetchAnnouncements();
       fetchDashboardMetrics();
       window.dispatchEvent(new Event("announcements_updated"));
@@ -617,9 +629,10 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
   const handleSaveTemplate = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const headers = await getAuthHeaders(session?.uid, session?.sessionToken);
       const res = await fetch("/api/admin/notifications/templates", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { ...headers, "Content-Type": "application/json" },
         body: JSON.stringify(templateForm),
       });
       const data = await res.json();
@@ -635,7 +648,8 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
   const handleRunSelfTest = async () => {
     setTestRunning(true);
     try {
-      const res = await fetch("/api/admin/module9/self-test");
+      const headers = await getAuthHeaders(session?.uid, session?.sessionToken);
+      const res = await fetch("/api/admin/module9/self-test", { headers });
       const data = await res.json();
       if (data.success) {
         setTestResults(data.testResults || []);
@@ -844,7 +858,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 font-bold text-xs">
                 <Mail className={`w-4 h-4 ${systemSwitches.emailEnabled ? "text-[#9CA3AF]" : "text-[#6B7280]"}`} />
-                <span>Email Gateway</span>
+                <span>Email Portal</span>
               </div>
               <button
                 id="btn-toggle-email-master"
@@ -874,7 +888,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
             </div>
           </div>
 
-          {/* Switch 4: SMS Gateway Gateway */}
+          {/* Switch 4: SMS Portal Portal */}
           <div className={`p-4 rounded-xl border transition-all ${
             systemSwitches.smsEnabled 
               ? "bg-[#0F2D5C]/20 border-[#0F2D5C]/40 text-[#9CA3AF]" 
@@ -883,7 +897,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 font-bold text-xs">
                 <Smartphone className={`w-4 h-4 ${systemSwitches.smsEnabled ? "text-[#9CA3AF]" : "text-[#6B7280]"}`} />
-                <span>SMS Gateway</span>
+                <span>SMS Portal</span>
               </div>
               <button
                 id="btn-toggle-sms-master"
@@ -892,7 +906,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                 className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                   systemSwitches.smsEnabled ? "bg-[#0F2D5C]" : "bg-[#4B5563]"
                 }`}
-                title="Toggle SMS Gateway"
+                title="Toggle SMS Portal"
               >
                 <span
                   className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${

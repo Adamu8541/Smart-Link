@@ -142,7 +142,7 @@ export interface TursoPayment {
   currency: string;
   account_number?: string | null;
   bank_name?: string | null;
-  channel: "VIRTUAL_ACCOUNT" | "CARD" | "TRANSFER" | "GATEWAY" | "MANUAL_ADMIN";
+  channel: "VIRTUAL_ACCOUNT" | "CARD" | "TRANSFER" | "PORTAL" | "MANUAL_ADMIN";
   status: "PENDING" | "VERIFIED" | "FAILED" | "UNMATCHED" | "REVERSED";
   raw_webhook_payload?: string | null;
   verified_at?: string | null;

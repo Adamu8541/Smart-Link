@@ -365,7 +365,7 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
                       <strong>Interface Layout Integrity:</strong> Mobile receipt layouts, custom thermal printer slips, SMS confirmations, and transaction dashboards have extremely strict horizontal width boundaries. Truncating the brand name prevents visual wrapping overflows and ensures design clarity.
                     </li>
                     <li>
-                      <strong>Modern Technological Focus:</strong> Our historical foundations involved physical computer systems and repairs. The updated brand names better represent our growth into a high-performance cloud gateway that routes thousands of digital transactions and government registry checks.
+                      <strong>Modern Technological Focus:</strong> Our historical foundations involved physical computer systems and repairs. The updated brand names better represent our growth into a high-performance cloud portal that routes thousands of digital transactions and government registry checks.
                     </li>
                   </ul>
 

@@ -37,6 +37,7 @@ import {
   Trash2
 } from "lucide-react";
 import { AdminSession } from "../../../services/adminAuthTypes";
+import { getAuthHeaders } from "../../../services/providerService";
 
 interface AdminSecurityViewProps {
   session: AdminSession;
@@ -106,16 +107,17 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
     setLoading(true);
     setActionError(null);
     try {
+      const headers = await getAuthHeaders(session?.uid, session?.sessionToken);
       const [dashRes, lhRes, sessRes, locksRes, bdevRes, bipRes, suspRes, alertRes, audRes] = await Promise.all([
-        fetch("/api/admin/security/dashboard"),
-        fetch("/api/admin/security/login-history"),
-        fetch("/api/admin/security/active-sessions"),
-        fetch("/api/admin/security/account-locks"),
-        fetch("/api/admin/security/blocked-devices"),
-        fetch("/api/admin/security/blocked-ips"),
-        fetch("/api/admin/security/suspicious-activity"),
-        fetch("/api/admin/security/alerts"),
-        fetch("/api/admin/security/audit-logs"),
+        fetch("/api/admin/security/dashboard", { headers }),
+        fetch("/api/admin/security/login-history", { headers }),
+        fetch("/api/admin/security/active-sessions", { headers }),
+        fetch("/api/admin/security/account-locks", { headers }),
+        fetch("/api/admin/security/blocked-devices", { headers }),
+        fetch("/api/admin/security/blocked-ips", { headers }),
+        fetch("/api/admin/security/suspicious-activity", { headers }),
+        fetch("/api/admin/security/alerts", { headers }),
+        fetch("/api/admin/security/audit-logs", { headers }),
       ]);
 
       const dashData = await dashRes.json();
@@ -159,9 +161,10 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
   // Actions
   const handleTerminateSession = async (sessionId: string, userEmail?: string, terminateAll: boolean = false) => {
     try {
+      const headers = await getAuthHeaders(session?.uid, session?.sessionToken);
       const res = await fetch("/api/admin/security/sessions/terminate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { ...headers, "Content-Type": "application/json" },
         body: JSON.stringify({
           sessionId,
           userEmail,
@@ -182,9 +185,10 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
 
   const handleAccountLockAction = async (lockId: string, action: string) => {
     try {
+      const headers = await getAuthHeaders(session?.uid, session?.sessionToken);
       const res = await fetch("/api/admin/security/account-locks/action", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { ...headers, "Content-Type": "application/json" },
         body: JSON.stringify({
           lockId,
           action,
@@ -206,9 +210,10 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
     e.preventDefault();
     if (!blockIpForm.ipAddress || !blockIpForm.reason) return;
     try {
+      const headers = await getAuthHeaders(session?.uid, session?.sessionToken);
       const res = await fetch("/api/admin/security/blocked-ips/block", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { ...headers, "Content-Type": "application/json" },
         body: JSON.stringify({
           ...blockIpForm,
           adminEmail: session.email,
@@ -229,9 +234,10 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
 
   const handleUnblockIp = async (ipAddress: string) => {
     try {
+      const headers = await getAuthHeaders(session?.uid, session?.sessionToken);
       const res = await fetch("/api/admin/security/blocked-ips/unblock", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { ...headers, "Content-Type": "application/json" },
         body: JSON.stringify({ ipAddress, adminEmail: session.email }),
       });
       const data = await res.json();
@@ -249,9 +255,10 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
     e.preventDefault();
     if (!blockDeviceForm.deviceId || !blockDeviceForm.reason) return;
     try {
+      const headers = await getAuthHeaders(session?.uid, session?.sessionToken);
       const res = await fetch("/api/admin/security/blocked-devices/block", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { ...headers, "Content-Type": "application/json" },
         body: JSON.stringify({
           ...blockDeviceForm,
           adminEmail: session.email,
@@ -272,9 +279,10 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
 
   const handleUnblockDevice = async (deviceId: string) => {
     try {
+      const headers = await getAuthHeaders(session?.uid, session?.sessionToken);
       const res = await fetch("/api/admin/security/blocked-devices/unblock", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { ...headers, "Content-Type": "application/json" },
         body: JSON.stringify({ deviceId, adminEmail: session.email }),
       });
       const data = await res.json();
@@ -290,9 +298,10 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
 
   const handleResolveSuspicious = async (activityId: string, status: string) => {
     try {
+      const headers = await getAuthHeaders(session?.uid, session?.sessionToken);
       const res = await fetch("/api/admin/security/suspicious-activity/resolve", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { ...headers, "Content-Type": "application/json" },
         body: JSON.stringify({
           activityId,
           status,
@@ -313,9 +322,10 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
 
   const handleAlertAction = async (alertId: string, action: string, noteText: string = "") => {
     try {
+      const headers = await getAuthHeaders(session?.uid, session?.sessionToken);
       const res = await fetch("/api/admin/security/alerts/action", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { ...headers, "Content-Type": "application/json" },
         body: JSON.stringify({
           alertId,
           action,
@@ -341,7 +351,8 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
   const handleRunSelfTest = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/module10/self-test");
+      const headers = await getAuthHeaders(session?.uid, session?.sessionToken);
+      const res = await fetch("/api/admin/module10/self-test", { headers });
       const data = await res.json();
       setTestResults(data);
       triggerSuccess("Module 10 Self-Test Suite completed successfully!");
@@ -1137,7 +1148,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <Globe className="h-4 w-4 text-[#9CA3AF]" /> Blocked IP Address Firewall Table
               </h3>
-              <p className="text-[11px] text-[#9CA3AF]">Blacklisted IP subnets & Tor exit nodes denied gateway access</p>
+              <p className="text-[11px] text-[#9CA3AF]">Blacklisted IP subnets & Tor exit nodes denied portal access</p>
             </div>
             <button
               type="button"

@@ -126,7 +126,11 @@ export async function validateSupabaseUserToken(token: string): Promise<{ uid: s
       return null;
     }
 
-    // Verify Supabase audience / issuer
+    // Verify Supabase audience / issuer (must not be smartlink-admin internal JWT)
+    if (payload.iss === "smartlink-admin") {
+      return null;
+    }
+
     const isSupabaseAud = payload.aud === "authenticated" || (payload.iss && payload.iss.includes("supabase"));
     if (!isSupabaseAud && !payload.sub) {
       return null;

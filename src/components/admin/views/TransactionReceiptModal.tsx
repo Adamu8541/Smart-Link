@@ -34,7 +34,7 @@ export function TransactionReceiptModal({ isOpen, onClose, transaction, user }: 
       `--------------------------------------------------\n` +
       `TRANSACTION DETAILS:\n` +
       `Service: ${transaction.serviceName || transaction.serviceType}\n` +
-      `Provider: ${transaction.provider || "VTU Gateway"}\n` +
+      `Provider: ${transaction.provider || "VTU Portal"}\n` +
       `Payment Method: ${transaction.paymentMethod || "WALLET"}\n` +
       `Amount: ₦${(transaction.amount || 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}\n` +
       `Charges: ₦${(transaction.charges || 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}\n` +
@@ -136,8 +136,8 @@ export function TransactionReceiptModal({ isOpen, onClose, transaction, user }: 
               <span className="font-mono font-bold text-[#E5E7EB] print:text-black">{transaction.providerRef || "PRV-PENDING"}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-[#9CA3AF] print:text-[#4B5563]">Payment Gateway:</span>
-              <span className="font-medium text-[#E5E7EB] print:text-black">{transaction.provider || "VTU Gateway"}</span>
+              <span className="text-[#9CA3AF] print:text-[#4B5563]">Payment Portal:</span>
+              <span className="font-medium text-[#E5E7EB] print:text-black">{transaction.provider || "VTU Portal"}</span>
             </div>
           </div>
 

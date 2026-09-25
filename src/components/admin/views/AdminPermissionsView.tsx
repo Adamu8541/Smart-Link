@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { AdminSession } from "../../../services/adminAuthTypes";
 import { SubAdminPermission, UserRole } from "../../../types";
+import { getAuthHeaders } from "../../../services/providerService";
 
 interface SubAdminUser {
   uid: string;
@@ -43,7 +44,7 @@ const ALL_PERMISSIONS: { id: SubAdminPermission; label: string; desc: string }[]
   { id: SubAdminPermission.MANAGE_USERS, label: "Users & KYC", desc: "View and manage user accounts, status & KYC" },
   { id: SubAdminPermission.MANAGE_TRANSACTIONS, label: "Transactions", desc: "View, approve & refund user wallet transactions" },
   { id: SubAdminPermission.MANAGE_SERVICES, label: "VTU Services", desc: "Manage VTU data, airtime, power & cable services" },
-  { id: SubAdminPermission.MANAGE_PRICES, label: "Provider APIs", desc: "Configure gateway providers & API credentials" },
+  { id: SubAdminPermission.MANAGE_PRICES, label: "Provider APIs", desc: "Configure portal providers & API credentials" },
   { id: SubAdminPermission.MANAGE_THEME, label: "System Settings", desc: "Configure system maintenance & site branding" },
   { id: SubAdminPermission.MANAGE_CAC, label: "CAC Verification", desc: "Process identity and CAC business verification" },
   { id: SubAdminPermission.MANAGE_SUBADMINS, label: "Sub-Admins", desc: "Create sub-admins & assign system permissions" },
@@ -81,7 +82,8 @@ export default function AdminPermissionsView({ session, onNavigate }: AdminPermi
     setLoading(true);
     setStatusMessage(null);
     try {
-      const res = await fetch("/api/admin/subadmins");
+      const headers = await getAuthHeaders(session?.uid, session?.sessionToken);
+      const res = await fetch("/api/admin/subadmins", { headers });
       if (!res.ok) throw new Error("Failed to fetch sub-admins");
       const data = await res.json();
       const list: SubAdminUser[] = data.subAdmins || [];
@@ -114,10 +116,11 @@ export default function AdminPermissionsView({ session, onNavigate }: AdminPermi
     setSavingTarget(targetUid);
     setStatusMessage(null);
     try {
+      const headers = await getAuthHeaders(session?.uid, session?.sessionToken);
       const targetPerms = matrixState[targetUid] || [];
       const res = await fetch("/api/admin/subadmins/update-permissions", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { ...headers, "Content-Type": "application/json" },
         body: JSON.stringify({
           adminUid: session.uid,
           targetUid,
@@ -141,6 +144,7 @@ export default function AdminPermissionsView({ session, onNavigate }: AdminPermi
     setBatchSaving(true);
     setStatusMessage(null);
     try {
+      const headers = await getAuthHeaders(session?.uid, session?.sessionToken);
       const updates = Object.entries(matrixState).map(([targetUid, permissions]) => ({
         targetUid,
         permissions
@@ -148,7 +152,7 @@ export default function AdminPermissionsView({ session, onNavigate }: AdminPermi
 
       const res = await fetch("/api/admin/subadmins/batch-update-permissions", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { ...headers, "Content-Type": "application/json" },
         body: JSON.stringify({
           adminUid: session.uid,
           updates
@@ -171,9 +175,10 @@ export default function AdminPermissionsView({ session, onNavigate }: AdminPermi
     if (!confirm(`Are you sure you want to revoke sub-admin access for ${name}?`)) return;
     setStatusMessage(null);
     try {
+      const headers = await getAuthHeaders(session?.uid, session?.sessionToken);
       const res = await fetch("/api/admin/subadmins/revoke", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { ...headers, "Content-Type": "application/json" },
         body: JSON.stringify({
           adminUid: session.uid,
           targetUid
@@ -200,9 +205,10 @@ export default function AdminPermissionsView({ session, onNavigate }: AdminPermi
     setCreating(true);
     setStatusMessage(null);
     try {
+      const headers = await getAuthHeaders(session?.uid, session?.sessionToken);
       const res = await fetch("/api/admin/subadmins/create", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { ...headers, "Content-Type": "application/json" },
         body: JSON.stringify({
           adminUid: session.uid,
           fullName: newFullName,
@@ -250,15 +256,15 @@ export default function AdminPermissionsView({ session, onNavigate }: AdminPermi
       <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl p-6 md:p-8 space-y-6 shadow-xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E5E7EB] dark:border-[#111827] pb-5">
           <div className="flex items-center gap-3.5">
-            <div className="p-3 bg-[#F5F7FA] dark:bg-[#0F2D5C] border border-[#E5E7EB] dark:border-[#0F2D5C] rounded-2xl text-[#0F2D5C] dark:text-[#9CA3AF]">
+            <div className="p-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-700 dark:text-slate-300">
               <KeyRound className="h-7 w-7" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#0F2D5C] dark:text-[#9CA3AF]">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
                   Role-Based Access Control (RBAC)
                 </span>
-                <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-[#F5F7FA] dark:bg-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF] border border-[#E5E7EB] dark:border-[#0F2D5C]">
+                <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 border border-slate-200 dark:border-slate-700">
                   ENFORCED
                 </span>
               </div>
@@ -309,19 +315,19 @@ export default function AdminPermissionsView({ session, onNavigate }: AdminPermi
 
           <div className="p-4 bg-[#F5F7FA] dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-2xl">
             <p className="text-[10px] text-[#6B7280] dark:text-[#9CA3AF] uppercase font-bold">Active Sessions</p>
-            <p className="text-xl font-extrabold text-[#0F2D5C] dark:text-[#9CA3AF] mt-1">
+            <p className="text-xl font-extrabold text-slate-700 dark:text-slate-300 mt-1">
               {subAdmins.filter((s) => s.status !== "INACTIVE" && s.status !== "BLOCKED").length} Active
             </p>
           </div>
 
           <div className="p-4 bg-[#F5F7FA] dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-2xl">
             <p className="text-[10px] text-[#6B7280] dark:text-[#9CA3AF] uppercase font-bold">Module Scope</p>
-            <p className="text-xl font-extrabold text-[#0F2D5C] dark:text-[#9CA3AF] mt-1">8 Permissions</p>
+            <p className="text-xl font-extrabold text-slate-700 dark:text-slate-300 mt-1">8 Permissions</p>
           </div>
 
           <div className="p-4 bg-[#F5F7FA] dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-2xl">
             <p className="text-[10px] text-[#6B7280] dark:text-[#9CA3AF] uppercase font-bold">Governance Status</p>
-            <p className="text-xl font-extrabold text-[#0F2D5C] dark:text-[#9CA3AF] mt-1">AES-256 RBAC</p>
+            <p className="text-xl font-extrabold text-slate-700 dark:text-slate-300 mt-1">AES-256 RBAC</p>
           </div>
         </div>
 
@@ -432,7 +438,7 @@ export default function AdminPermissionsView({ session, onNavigate }: AdminPermi
                       {/* Sub-Admin Identity */}
                       <td className="p-4">
                         <div className="flex items-center gap-3">
-                          <div className="h-9 w-9 rounded-xl bg-[#E5E7EB] dark:bg-[#0F2D5C] border border-[#E5E7EB] dark:border-[#0F2D5C] flex items-center justify-center text-[#0F2D5C] dark:text-[#9CA3AF] font-bold shrink-0 text-xs">
+                          <div className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-300 font-bold shrink-0 text-xs">
                             {sa.fullName ? sa.fullName.substring(0, 2).toUpperCase() : "SA"}
                           </div>
                           <div className="min-w-0">
@@ -447,8 +453,8 @@ export default function AdminPermissionsView({ session, onNavigate }: AdminPermi
                         <span
                           className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border ${
                             isSuperAdmin
-                              ? "bg-[#E5E7EB] dark:bg-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF] border-[#E5E7EB] dark:border-[#0F2D5C]"
-                              : "bg-[#E5E7EB] dark:bg-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF] border-[#E5E7EB] dark:border-[#0F2D5C]"
+                              ? "bg-slate-100 dark:bg-slate-800 text-white dark:text-[#9CA3AF] border-slate-200 dark:border-slate-700"
+                              : "bg-slate-100 dark:bg-slate-800 text-white dark:text-[#9CA3AF] border-slate-200 dark:border-slate-700"
                           }`}
                         >
                           {sa.role}
@@ -480,7 +486,7 @@ export default function AdminPermissionsView({ session, onNavigate }: AdminPermi
                               type="button"
                               onClick={() => handleSaveSingleUser(sa.uid)}
                               disabled={savingTarget === sa.uid}
-                              className="p-1.5 bg-[#F5F7FA] dark:bg-[#0F2D5C]/80 hover:bg-[#E5E7EB] dark:hover:bg-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF] border border-[#E5E7EB] dark:border-[#0F2D5C] rounded-lg cursor-pointer transition-colors"
+                              className="p-1.5 bg-slate-50 dark:bg-slate-800/60/80 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 hover:text-[#0F2D5C] dark:hover:text-white border border-slate-200 dark:border-slate-700 rounded-lg cursor-pointer transition-colors"
                               title="Save permissions for this sub-admin"
                             >
                               <Save className={`h-3.5 w-3.5 ${savingTarget === sa.uid ? "animate-spin" : ""}`} />
@@ -489,7 +495,7 @@ export default function AdminPermissionsView({ session, onNavigate }: AdminPermi
                             <button
                               type="button"
                               onClick={() => handleRevokeSubAdmin(sa.uid, sa.fullName)}
-                              className="p-1.5 bg-[#F5F7FA] dark:bg-[#0F2D5C]/80 hover:bg-[#E5E7EB] dark:hover:bg-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF] border border-[#E5E7EB] dark:border-[#0F2D5C] rounded-lg cursor-pointer transition-colors"
+                              className="p-1.5 bg-slate-50 dark:bg-slate-800/60/80 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 hover:text-[#0F2D5C] dark:hover:text-white border border-slate-200 dark:border-slate-700 rounded-lg cursor-pointer transition-colors"
                               title="Revoke sub-admin account"
                             >
                               <Trash2 className="h-3.5 w-3.5" />
@@ -512,7 +518,7 @@ export default function AdminPermissionsView({ session, onNavigate }: AdminPermi
           <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl w-full max-w-lg p-6 space-y-5 shadow-2xl">
             <div className="flex items-center justify-between border-b border-[#E5E7EB] dark:border-[#111827] pb-4">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-[#F5F7FA] dark:bg-[#0F2D5C] border border-[#E5E7EB] dark:border-[#0F2D5C] rounded-xl text-[#0F2D5C] dark:text-[#9CA3AF]">
+                <div className="p-2 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-300">
                   <UserPlus className="h-5 w-5" />
                 </div>
                 <div>

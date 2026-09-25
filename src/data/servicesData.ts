@@ -29,7 +29,7 @@ export const SMART_LINK_SERVICES: ServiceItem[] = [
     id: "id_nin_ver",
     name: "NIN Verification",
     category: "IDENTITY",
-    description: "Verify NIN profiles via third-party gateways instantly using the candidate's NIN. Secure database lookup.",
+    description: "Verify NIN profiles via third-party providers instantly using the candidate's NIN. Secure database lookup.",
     price: 500,
     actionLabel: "Verify NIN Profile",
     fields: [
@@ -88,7 +88,7 @@ export const SMART_LINK_SERVICES: ServiceItem[] = [
     id: "id_nin_mod",
     name: "NIN Modification",
     category: "IDENTITY",
-    description: "Submit corrections and modifications of birth dates, name spelling, or phone linkage for NIN registry updates via authorized gateways.",
+    description: "Submit corrections and modifications of birth dates, name spelling, or phone linkage for NIN registry updates via authorized portals.",
     price: 15000,
     actionLabel: "Modify Profile",
     fields: [
@@ -177,7 +177,7 @@ export const SMART_LINK_SERVICES: ServiceItem[] = [
     id: "id_bvn_user",
     name: "BVN User",
     category: "IDENTITY",
-    description: "Query user bio-data logs via third-party BVN gateways.",
+    description: "Query user bio-data logs via third-party BVN portals.",
     price: 500,
     actionLabel: "Query BVN User Profile",
     fields: [
@@ -253,7 +253,7 @@ export const SMART_LINK_SERVICES: ServiceItem[] = [
     id: "id_bank_account_verification",
     name: "Bank Account Verification",
     category: "IDENTITY",
-    description: "Confirm bank account holder name via third-party bank gateways.",
+    description: "Confirm bank account holder name via third-party bank portals.",
     price: 100,
     actionLabel: "Verify Account Name",
     fields: [

@@ -101,7 +101,7 @@ const DEFAULT_CONFIG: SiteConfig = {
     primaryColor: "#0F2D5C",
     secondaryColor: "#17407E",
     accentColor: "#2563EB",
-    headerAnnouncementText: "NIN & BVN Gateway Synchronized • Live SLA: 99.98%",
+    headerAnnouncementText: "NIN & BVN Portal Synchronized • Live SLA: 99.98%",
     showHeaderAnnouncement: true,
   },
   general: {

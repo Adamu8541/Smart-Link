@@ -37,6 +37,13 @@ function sanitizeUserRecord(row: any): UserDoc {
     ? (row.pin_required_for_transactions === 1 || row.pin_required_for_transactions === true)
     : (row.pinRequiredForTransactions !== undefined ? Boolean(row.pinRequiredForTransactions) : true);
 
+  const pwdHash = row.password_hash || row.passwordHash || undefined;
+  const salt = row.salt || undefined;
+  let perms = row.permissions;
+  if (typeof perms === "string") {
+    try { perms = JSON.parse(perms); } catch { perms = []; }
+  }
+
   return {
     ...row,
     id: uid,
@@ -49,6 +56,10 @@ function sanitizeUserRecord(row: any): UserDoc {
     referralCode: row.referral_code || row.referralCode || "",
     isVerified: row.is_verified !== undefined ? Boolean(row.is_verified) : (row.isVerified !== undefined ? Boolean(row.isVerified) : true),
     status: row.status || "ACTIVE",
+    passwordHash: pwdHash,
+    password_hash: pwdHash,
+    salt: salt,
+    permissions: Array.isArray(perms) ? perms : (row.role === "SUPER_ADMIN" ? ["*"] : undefined),
     hasTransactionPin: hasPin,
     transactionPinHash: pinHash,
     pinRequiredForTransactions: pinRequired,

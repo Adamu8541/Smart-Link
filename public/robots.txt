@@ -51,7 +51,7 @@ Allow: /logo.webp
 Allow: /favicon.webp
 Allow: /assets/
 
-# Explicit Directives for AI Search Engines, Assistants & Agentic LLMs
+# Explicit Directives for AI Search Engines, Assistants, LLMs & Agents
 User-agent: GPTBot
 Allow: /
 Allow: /llms.txt
@@ -77,6 +77,11 @@ Allow: /
 Allow: /llms.txt
 Allow: /llms-full.txt
 
+User-agent: GoogleOther
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+
 User-agent: Googlebot
 Allow: /
 
@@ -94,6 +99,21 @@ Allow: /llms.txt
 Allow: /llms-full.txt
 
 User-agent: Applebot-Extended
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+
+User-agent: DeepSeekBot
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+
+User-agent: GrokBot
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+
+User-agent: Meta-ExternalAgent
 Allow: /
 Allow: /llms.txt
 Allow: /llms-full.txt
@@ -140,4 +160,3 @@ Disallow: /verify-token
 # Crawl Delay & Sitemap Reference
 Crawl-delay: 1
 Sitemap: https://smartlinkng.com.ng/sitemap.xml
-

@@ -71,7 +71,7 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
   const [code, setCode] = useState("");
   const [category, setCategory] = useState("IDENTITY_VERIFICATION");
   const [description, setDescription] = useState("");
-  const [provider, setProvider] = useState("SmartLink Gateway Direct");
+  const [provider, setProvider] = useState("SmartLink Portal Direct");
   const [costPrice, setCostPrice] = useState<number | string>(0);
   const [sellingFee, setSellingFee] = useState<number | string>(0);
   const [serviceCharge, setServiceCharge] = useState<number | string>(0);
@@ -193,7 +193,7 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
     setCode("");
     setCategory("IDENTITY_VERIFICATION");
     setDescription("");
-    setProvider("SmartLink Gateway Direct");
+    setProvider("SmartLink Portal Direct");
     setCostPrice(0);
     setSellingFee(0);
     setServiceCharge(0);
@@ -214,7 +214,7 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
     setCode(service.code || "");
     setCategory(service.category || "IDENTITY_VERIFICATION");
     setDescription(service.description || "");
-    setProvider(service.provider || "SmartLink Gateway Direct");
+    setProvider(service.provider || "SmartLink Portal Direct");
     setCostPrice(service.costPrice ?? 0);
     setSellingFee(service.sellingFee ?? 0);
     setServiceCharge(service.serviceCharge ?? 0);
@@ -546,7 +546,7 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
               <span>SUPER ADMIN PRICING CONTROL</span>
             </div>
             <h3 className="text-lg font-black text-white mt-0.5">
-              NIN Verification Slip Rates (Premium, Standard, Regular)
+              NIN Verification Slip Rates (Premium Card, Regular Slip)
             </h3>
             <p className="text-xs text-[#9CA3AF]">
               Adjust official fees automatically deducted from user wallets upon successful NIN verification.
@@ -563,12 +563,12 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Premium Slip */}
           <div className="p-4 bg-[#111827] border border-amber-500/30 rounded-2xl space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-extrabold text-amber-300 uppercase tracking-wider">
-                Premium Slip
+                Premium Card
               </span>
               <span className="text-[10px] bg-amber-500/20 text-amber-300 font-bold px-2 py-0.5 rounded-full border border-amber-500/30">
                 PLASTIC CARD
@@ -587,31 +587,6 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
               />
             </div>
             <p className="text-[10px] text-[#6B7280]">Default: ₦250.00 • Green Guilloche Plastic</p>
-          </div>
-
-          {/* Standard Slip */}
-          <div className="p-4 bg-[#111827] border border-blue-500/30 rounded-2xl space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-extrabold text-blue-300 uppercase tracking-wider">
-                Standard Slip
-              </span>
-              <span className="text-[10px] bg-blue-500/20 text-blue-300 font-bold px-2 py-0.5 rounded-full border border-blue-500/30">
-                RECOMMENDED
-              </span>
-            </div>
-            <label className="block text-[11px] text-[#9CA3AF]">Fee Amount (₦)</label>
-            <div className="relative">
-              <span className="absolute left-3 top-2.5 text-[#9CA3AF] font-mono font-bold text-xs">₦</span>
-              <input
-                type="number"
-                step="1"
-                min="0"
-                value={slipPriceState.STANDARD}
-                onChange={(e) => setSlipPriceState({ ...slipPriceState, STANDARD: parseFloat(e.target.value) || 0 })}
-                className="w-full bg-[#111827] border border-[#111827] rounded-xl pl-7 pr-3 py-2 text-sm text-white font-mono font-bold focus:outline-hidden focus:border-blue-400"
-              />
-            </div>
-            <p className="text-[10px] text-[#6B7280]">Default: ₦200.00 • Standard Verification Rate</p>
           </div>
 
           {/* Regular Slip */}
@@ -649,8 +624,8 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
             onClick={() => setSelectedCategory("ALL")}
             className={`py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               selectedCategory === "ALL"
-                ? "bg-[#0F2D5C] text-[#111827] shadow-md shadow-none"
-                : "bg-[#111827] text-[#9CA3AF] hover:text-white border border-[#111827]"
+                ? "bg-[#0F2D5C] text-white border border-blue-400/40 shadow-sm"
+                : "bg-slate-800 text-slate-300 hover:text-white border border-slate-700"
             }`}
           >
             All Categories
@@ -659,8 +634,8 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
             onClick={() => setSelectedCategory("IDENTITY_VERIFICATION")}
             className={`py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               selectedCategory === "IDENTITY_VERIFICATION"
-                ? "bg-[#0F2D5C] text-[#111827] shadow-md shadow-none"
-                : "bg-[#111827] text-[#9CA3AF] hover:text-white border border-[#111827]"
+                ? "bg-[#0F2D5C] text-white border border-blue-400/40 shadow-sm"
+                : "bg-slate-800 text-slate-300 hover:text-white border border-slate-700"
             }`}
           >
             Identity Verification
@@ -669,8 +644,8 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
             onClick={() => setSelectedCategory("TELECOM_VTU")}
             className={`py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               selectedCategory === "TELECOM_VTU"
-                ? "bg-[#0F2D5C] text-[#111827] shadow-md shadow-none"
-                : "bg-[#111827] text-[#9CA3AF] hover:text-white border border-[#111827]"
+                ? "bg-[#0F2D5C] text-white border border-blue-400/40 shadow-sm"
+                : "bg-slate-800 text-slate-300 hover:text-white border border-slate-700"
             }`}
           >
             Telecom & VTU
@@ -679,8 +654,8 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
             onClick={() => setSelectedCategory("UTILITY_BILLS")}
             className={`py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               selectedCategory === "UTILITY_BILLS"
-                ? "bg-[#0F2D5C] text-[#111827] shadow-md shadow-none"
-                : "bg-[#111827] text-[#9CA3AF] hover:text-white border border-[#111827]"
+                ? "bg-[#0F2D5C] text-white border border-blue-400/40 shadow-sm"
+                : "bg-slate-800 text-slate-300 hover:text-white border border-slate-700"
             }`}
           >
             Bills & Utilities
@@ -689,8 +664,8 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
             onClick={() => setSelectedCategory("EDUCATION_RESULT_PINS")}
             className={`py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               selectedCategory === "EDUCATION_RESULT_PINS"
-                ? "bg-[#0F2D5C] text-[#111827] shadow-md shadow-none"
-                : "bg-[#111827] text-[#9CA3AF] hover:text-white border border-[#111827]"
+                ? "bg-[#0F2D5C] text-white border border-blue-400/40 shadow-sm"
+                : "bg-slate-800 text-slate-300 hover:text-white border border-slate-700"
             }`}
           >
             Education Pins

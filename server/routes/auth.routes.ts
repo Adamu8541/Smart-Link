@@ -22,10 +22,10 @@ import { ProviderExecutor, verifyWebhookSignature } from "../../src/services/pro
 import { adminAuthService, ADMIN_ROLES_CONFIG } from "../../src/services/adminAuthService";
 import { AutomaticWalletFundingEngine } from "../../src/services/automaticWalletFundingEngine";
 import { PaymentVerificationReconciliationEngine } from "../../src/services/paymentVerificationReconciliationEngine";
-import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerGateway";
+import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerConnector";
 import { sendPlatformEmail } from "../services/email.service";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
-import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
+import { MultiProviderRoutingEngine } from "../../src/services/multiProviderRoutingEngine";
 import { syncFromStorage, syncToStorage } from "../../src/services/settingsStore";
 import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
@@ -97,8 +97,8 @@ app.post("/api/auth/sync-supabase-user", async (req, res) => {
   const lowerEmail = email.toLowerCase().trim();
   let existingUser = await usersStore.getUserByEmail(lowerEmail);
 
-  const superAdminEmails = [SUPER_ADMIN_EMAIL, "adamuamuhammad8541@gmail.com"];
-  const isSuperAdminEmail = superAdminEmails.includes(lowerEmail);
+  const superAdminEmails = [SUPER_ADMIN_EMAIL].filter(Boolean);
+  const isSuperAdminEmail = Boolean(lowerEmail && superAdminEmails.includes(lowerEmail));
 
   if (phoneNumber !== undefined && phoneNumber !== null && phoneNumber !== "") {
     if (typeof phoneNumber !== "string" || !/^0\d{10}$/.test(phoneNumber.trim())) {
@@ -208,12 +208,8 @@ app.post("/api/auth/login", async (req, res) => {
   const lowerEmail = email.toLowerCase().trim();
   let user = await usersStore.getUserByEmail(lowerEmail);
 
-  const superAdminEmails = [
-    SUPER_ADMIN_EMAIL,
-    "adamuamuhammad8541@gmail.com"
-  ];
-
-  const isSuperAdminEmail = superAdminEmails.includes(lowerEmail);
+  const superAdminEmails = [SUPER_ADMIN_EMAIL].filter(Boolean);
+  const isSuperAdminEmail = Boolean(lowerEmail && superAdminEmails.includes(lowerEmail));
 
   // Maintenance Mode check for Website Login
   const db = readDB();
@@ -233,7 +229,7 @@ app.post("/api/auth/login", async (req, res) => {
 
   if (isSuperAdminEmail) {
     if (!user) {
-      if (password !== SUPER_ADMIN_PASSWORD) {
+      if (!SUPER_ADMIN_PASSWORD || password !== SUPER_ADMIN_PASSWORD) {
         return res.status(401).json({ error: "incorrect password, try forgot password instead" });
       }
       const saHash = hashPassword(password);
@@ -241,8 +237,8 @@ app.post("/api/auth/login", async (req, res) => {
       user = await usersStore.createUser({
         uid: "usr_sa_primary",
         email: lowerEmail,
-        fullName: "Adamu A. Muhammad",
-        phoneNumber: "+2348030008541",
+        fullName: "Super Admin",
+        phoneNumber: "+2348000000000",
         role: "SUPER_ADMIN",
         walletBalance: 0.0,
         referralCode: "SUPER1",
@@ -313,8 +309,8 @@ app.post("/api/auth/register", async (req, res) => {
   }
 
   const lowerEmail = email.toLowerCase().trim();
-  const superAdminEmails = [SUPER_ADMIN_EMAIL, "adamuamuhammad8541@gmail.com"];
-  const isSuperAdminEmail = superAdminEmails.includes(lowerEmail);
+  const superAdminEmails = [SUPER_ADMIN_EMAIL].filter(Boolean);
+  const isSuperAdminEmail = Boolean(lowerEmail && superAdminEmails.includes(lowerEmail));
 
   // Maintenance Mode check for Registration / Signup
   const db = readDB();
@@ -335,7 +331,7 @@ app.post("/api/auth/register", async (req, res) => {
   const adminRoles = ["SUPER_ADMIN", "ADMIN", "SUB_ADMIN", "STAFF", "FINANCE_MANAGER", "SUPPORT_OFFICER", "VERIFICATION_OFFICER", "READ_ONLY_AUDITOR"];
   if (role && adminRoles.includes(role.toUpperCase()) && !isSuperAdminEmail) {
     return res.status(400).json({
-      error: "Admin self-registration is strictly blocked. Administrative access can only be assigned by the Super Admin (adamuamuhammad8541@gmail.com)."
+      error: "Admin self-registration is strictly blocked. Administrative access can only be assigned by the Super Admin."
     });
   }
 
@@ -1184,8 +1180,8 @@ app.post("/api/auth/step-up/verify", async (req, res) => {
       }
     }
 
-    // Check super admin default password if applicable
-    if (!passwordValid && [SUPER_ADMIN_EMAIL, "adamuamuhammad8541@gmail.com"].includes(user.email.toLowerCase().trim())) {
+    // Check super admin password from environment variable if configured
+    if (!passwordValid && SUPER_ADMIN_EMAIL && SUPER_ADMIN_PASSWORD && user.email.toLowerCase().trim() === SUPER_ADMIN_EMAIL) {
       if (password === SUPER_ADMIN_PASSWORD) {
         passwordValid = true;
       }
@@ -1388,7 +1384,7 @@ app.put("/api/users/:uid", async (req, res) => {
   res.json({ user: updated });
 });
 
-// --- GATEWAY SIGNATURE & SECURE DIGITAL WALLET HELPER FUNCTIONS ---
+// --- PORTAL SIGNATURE & SECURE DIGITAL WALLET HELPER FUNCTIONS ---
 
 
 // --- USER MANAGEMENT & RBAC AUTH ENDPOINTS ---

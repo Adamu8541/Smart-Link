@@ -288,13 +288,13 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
       <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl p-6 md:p-8 space-y-6 shadow-xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E5E7EB] dark:border-[#111827] pb-5">
           <div className="flex items-center gap-3.5">
-            <div className="p-3 bg-[#F5F7FA] dark:bg-[#0F2D5C] border border-[#E5E7EB] dark:border-[#0F2D5C] rounded-2xl text-[#0F2D5C] dark:text-[#9CA3AF]">
+            <div className="p-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl text-[#0F2D5C] dark:text-[#9CA3AF]">
               <Users className="h-7 w-7" />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[#0F2D5C] dark:text-[#9CA3AF]">User Governance Engine</span>
-                <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-[#F5F7FA] dark:bg-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF] border border-[#E5E7EB] dark:border-[#0F2D5C]">MODULE 3 ACTIVE</span>
+                <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 border border-slate-200 dark:border-slate-700">MODULE 3 ACTIVE</span>
               </div>
               <h1 className="text-xl md:text-2xl font-bold text-[#111827] dark:text-white">SmartLink Users Directory</h1>
               <p className="text-xs text-[#4B5563] dark:text-[#9CA3AF] mt-0.5">Manage user profiles, account statuses, wallet floats, KYC verifications, and audit controls.</p>
@@ -305,7 +305,7 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
             <button
               type="button"
               onClick={() => setIsExportModalOpen(true)}
-              className="py-2.5 px-4 bg-[#F5F7FA] dark:bg-[#0F2D5C] hover:bg-[#E5E7EB] dark:hover:bg-[#0F2D5C] text-[#0F2D5C] dark:text-[#9CA3AF] border border-[#E5E7EB] dark:border-[#0F2D5C] rounded-xl text-xs font-bold flex items-center gap-2 transition-colors cursor-pointer"
+              className="py-2.5 px-4 bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 hover:text-[#0F2D5C] dark:hover:text-white border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold flex items-center gap-2 transition-colors cursor-pointer"
             >
               <Download className="h-4 w-4 text-[#0F2D5C] dark:text-[#9CA3AF]" /> Export Data ({filteredUsers.length})
             </button>
@@ -552,7 +552,7 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
                       <tr
                         key={u.uid}
                         className={`hover:bg-[#E5E7EB] dark:hover:bg-[#111827]/60 transition-colors ${
-                          isSelected ? "bg-[#F5F7FA] dark:bg-[#0F2D5C]/20" : ""
+                          isSelected ? "bg-slate-50 dark:bg-slate-800/60/20" : ""
                         }`}
                       >
                         {/* Checkbox */}

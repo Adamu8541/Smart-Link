@@ -12,7 +12,7 @@ interface VerificationLoaderProps {
 export const VerificationLoader: React.FC<VerificationLoaderProps> = ({
   currentStep,
   serviceTitle,
-  providerName = "Federal E-Verification Gateway",
+  providerName = "Federal E-Verification Portal",
 }) => {
   return (
     <div className="p-8 text-center space-y-6 animate-fade-in max-w-md mx-auto">
@@ -31,7 +31,7 @@ export const VerificationLoader: React.FC<VerificationLoaderProps> = ({
         </h3>
         <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] flex items-center justify-center gap-1">
           <Lock className="h-3 w-3 text-[#0F2D5C] shrink-0" />
-          <span>Encrypted Gateway: {providerName}</span>
+          <span>Encrypted Portal: {providerName}</span>
         </p>
       </div>
 

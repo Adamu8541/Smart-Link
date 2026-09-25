@@ -43,7 +43,7 @@ export const WalletHistory: React.FC<WalletHistoryProps> = ({
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <div className="p-2 rounded-xl bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF]">
+          <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300">
             <History className="h-4 w-4" />
           </div>
           <div>
@@ -143,7 +143,7 @@ export const WalletHistory: React.FC<WalletHistoryProps> = ({
             </button>
 
             <div className="text-center space-y-2 pt-2">
-              <div className="mx-auto w-12 h-12 rounded-2xl bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] flex items-center justify-center">
+              <div className="mx-auto w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 flex items-center justify-center">
                 <FileText className="h-6 w-6" />
               </div>
               <h3 className="text-base font-bold text-[#111827] dark:text-white">Transaction Receipt</h3>

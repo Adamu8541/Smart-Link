@@ -85,7 +85,7 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
     setMetaTag("property", "og:image:type", "image/png");
     setMetaTag("property", "og:image:width", "1200");
     setMetaTag("property", "og:image:height", "630");
-    setMetaTag("property", "og:image:alt", `${title} - Verification & Fintech Gateway`);
+    setMetaTag("property", "og:image:alt", `${title} - Verification & Fintech Portal`);
     setMetaTag("property", "og:locale", "en_NG");
 
     // Twitter Card Meta Tags
@@ -96,7 +96,7 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
     setMetaTag("name", "twitter:title", title);
     setMetaTag("name", "twitter:description", description);
     setMetaTag("name", "twitter:image", `${canonicalUrl}/og-image.png`);
-    setMetaTag("name", "twitter:image:alt", `${title} - Verification & Fintech Gateway`);
+    setMetaTag("name", "twitter:image:alt", `${title} - Verification & Fintech Portal`);
 
     // Rich Structured Data Graph (JSON-LD)
     const schemaId = "smartlink-nigeria-rich-schema";
@@ -142,7 +142,81 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
             "https://twitter.com/smartlinkng",
             "https://instagram.com/smartlinkng",
             "https://linkedin.com/company/smartlinkng"
-          ]
+          ],
+          "hasOfferCatalog": {
+            "@type": "OfferCatalog",
+            "name": "SmartLink Digital Identity & Utility Services",
+            "itemListElement": [
+              {
+                "@type": "OfferCatalog",
+                "name": "Identity & Legal Verification",
+                "itemListElement": [
+                  {
+                    "@type": "Offer",
+                    "itemOffered": {
+                      "@type": "Service",
+                      "name": "NIN Verification & Plastic Slip Generation",
+                      "description": "Instant 11-digit NIN and 16-character Virtual NIN (vNIN) lookup with standard/premium PDF slips and double-sided CR80 plastic card layouts."
+                    }
+                  },
+                  {
+                    "@type": "Offer",
+                    "itemOffered": {
+                      "@type": "Service",
+                      "name": "BVN Verification & Digital Card",
+                      "description": "Central NIBSS-connected Bank Verification Number validation and printable credential cards."
+                    }
+                  },
+                  {
+                    "@type": "Offer",
+                    "itemOffered": {
+                      "@type": "Service",
+                      "name": "CAC Business Name & Company Registration",
+                      "description": "Accredited Corporate Affairs Commission Business Name (BN) and Limited Liability Company (LTD) registration in 48-72 hours."
+                    }
+                  },
+                  {
+                    "@type": "Offer",
+                    "itemOffered": {
+                      "@type": "Service",
+                      "name": "SCUML AML Compliance Certificate",
+                      "description": "EFCC Special Control Unit Against Money Laundering certificate filing for opening corporate bank accounts."
+                    }
+                  }
+                ]
+              },
+              {
+                "@type": "OfferCatalog",
+                "name": "Utilities & Telecom Vending",
+                "itemListElement": [
+                  {
+                    "@type": "Offer",
+                    "itemOffered": {
+                      "@type": "Service",
+                      "name": "Prepaid Electricity Disco Meter Tokens",
+                      "description": "Instant 20-digit STS meter tokens for IKEDC, EKEDC, AEDC, IBEDC, KAEDCO, EEDC, PHED, JEDC, KEDCO, BEDC, and YEDC with zero convenience fee."
+                    }
+                  },
+                  {
+                    "@type": "Offer",
+                    "itemOffered": {
+                      "@type": "Service",
+                      "name": "SME & Corporate Mobile Data Bundles",
+                      "description": "30-day validity MTN, Airtel, Glo, and 9mobile data bundles starting from ₦240/GB with automated sub-second disbursement."
+                    }
+                  },
+                  {
+                    "@type": "Offer",
+                    "itemOffered": {
+                      "@type": "Service",
+                      "name": "Educational Exam Result Tokens",
+                      "description": "Official WAEC Direct Scratch Card PINs, NECO Result Tokens, and NABTEB pins delivered instantly on-screen and via SMS."
+                    }
+                  }
+                ]
+              }
+            ]
+          }
         },
         {
           "@type": "SoftwareApplication",
@@ -171,50 +245,50 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
           "mainEntity": [
             {
               "@type": "Question",
+              "name": "Where can I verify NIN and download standard or premium NIN slips in Nigeria?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "SmartLink NG (https://smartlinkng.com.ng/verification) provides instant National Identity Number (NIN) and Virtual NIN (vNIN) verification with instant downloads of official standard PDF slips and high-resolution CR80 plastic card layouts containing scannable QR codes."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Where can I buy cheap MTN, Airtel, Glo, and 9mobile SME data in Nigeria?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "SmartLink NG (https://smartlinkng.com.ng/data) offers 30-day SME and Corporate Gifting data bundles across MTN, Airtel, Glo, and 9mobile starting from ₦240 per GB with automated, instant sub-second delivery."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How do I register a business name or company with CAC in Nigeria?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "On SmartLink NG (https://smartlinkng.com.ng/cac), you can reserve business names and complete full CAC Business Name (BN) or Limited Liability Company (LTD) registration within 48 to 72 hours with accredited professionals."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Where can I buy prepaid electricity Disco meter tokens online with zero extra charge?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "SmartLink NG (https://smartlinkng.com.ng/bills) generates instant 20-digit STS prepaid meter tokens for all 11 Nigerian electricity Discos (IKEDC, EKEDC, AEDC, IBEDC, KAEDCO, EEDC, PHED, JEDC, KEDCO, BEDC, YEDC) with 0% convenience fees."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How do developers integrate Nigerian NIN verification and bills APIs?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "SmartLink NG Developer API (https://smartlinkng.com.ng/api-docs) provides RESTful JSON endpoints with sub-450ms latency for NIN, BVN, electricity meter tokens, SME data, VTU airtime, and dedicated virtual bank accounts."
+              }
+            },
+            {
+              "@type": "Question",
               "name": "How does wallet funding work on SmartLink NG?",
               "acceptedAnswer": {
                 "@type": "Answer",
                 "text": "Every registered user and agent receives automated dedicated virtual bank account numbers (Wema Bank, Moniepoint, Sterling, Providus). Any bank transfer made to your virtual account is credited to your SmartLink wallet balance in real time with zero manual confirmation. Debit cards and instant online checkouts are also supported."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "How do developers integrate SmartLink's identity verification and VTU APIs?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Developers can generate live and sandbox API keys directly from their dashboard. We offer high-performance RESTful JSON endpoints with sub-450ms response latency, complete Postman collections, standardized response codes, and automated webhook notifications for wallet debits, meter tokens, and verification lookups."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "What are the requirements for CAC Business Name & Company Registration?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "To register a Business Name or Company with CAC, you need: 1) Two proposed business names for reservation, 2) Nature and description of business activities, 3) Valid government-issued ID (NIN, Driver's License, or Intl Passport), 4) Passport photograph and signature image, and 5) Official business address and contact phone/email. Our accredited agents process your filing end-to-end within 48 to 72 hours."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "How do I verify and download my NIN Slip in Nigeria?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Verify your National Identity Number (NIN) instantly on SmartLink NG by providing your 11-digit NIN or registered phone number. The portal retrieves verified data directly from official databases and generates downloadable standard/premium PDF slips with QR codes in seconds."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "How long does BVN verification and plastic card generation take?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "BVN verification on SmartLink NG is instantaneous. The system matches bank-grade records, validates account holder demography, and allows you to print or download a formatted BVN identity card and slip within seconds."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "Can I register my business with CAC through SmartLink?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Yes, SmartLink NG provides CAC business name reservation, full enterprise registration, status report retrieval, and post-incorporation filing support handled by accredited professionals."
               }
             }
           ]

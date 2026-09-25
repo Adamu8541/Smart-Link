@@ -23,17 +23,18 @@ import { ProviderExecutor, verifyWebhookSignature } from "../../src/services/pro
 import { adminAuthService, ADMIN_ROLES_CONFIG } from "../../src/services/adminAuthService";
 import { AutomaticWalletFundingEngine } from "../../src/services/automaticWalletFundingEngine";
 import { PaymentVerificationReconciliationEngine } from "../../src/services/paymentVerificationReconciliationEngine";
-import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerGateway";
+import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerConnector";
 import { sendPlatformEmail } from "../services/email.service";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
 import { LumiIDAdapter } from "../../src/services/providers/lumiidAdapter";
-import { MultiGatewayRoutingEngine } from "../../src/services/multiGatewayRoutingEngine";
+import { MultiProviderRoutingEngine } from "../../src/services/multiProviderRoutingEngine";
 import { syncFromStorage, syncToStorage } from "../../src/services/settingsStore";
 import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
 import * as securityStore from "../../src/services/securityStore";
 import * as notificationsStore from "../../src/services/notificationsStore";
 import { signQRPayload } from "../services/qrSecurity";
+import { generateIdentitySlipPdf, type IdentitySlipData } from "../../identitySlipPdfOverlay";
 
 
 const router = express.Router();
@@ -173,7 +174,7 @@ app.post("/api/verify/identity", async (req, res) => {
       userId,
       amount: verificationFee,
       serviceName: `${type} Identity Verification`,
-      provider: providerResult.providerName || "Identity Verification Gateway",
+      provider: providerResult.providerName || "Identity Verification Portal",
       description: `KYC Identity Verification: ${type} Lookup`,
       reference,
       recipientDetails: `${type}: ${idNumber}`,
@@ -196,7 +197,7 @@ app.post("/api/verify/identity", async (req, res) => {
     localGov: rawData.localGov || rawData.lga || "",
     photoUrl: normalizePhotoUrl(rawData.photoUrl || rawData.photo || rawData.image || faceImage || ""),
     status: rawData.status || "VERIFIED_ACTIVE",
-    verificationLog: rawData.verificationLog || "Identity verified via active KYC Gateway.",
+    verificationLog: rawData.verificationLog || "Identity verified via active KYC Portal.",
     rawResponse: providerResult.rawResponse,
   };
 
@@ -320,6 +321,194 @@ function extractDynamicIdentityData(rawData: any, mapping: any, options: {
   return verifiedData;
 }
 
+async function extractVerifiedIdentityFields(rawData: any, extraFields: any = {}) {
+  const d = rawData?.data || rawData?.result || rawData?.response || rawData?.payload || rawData || {};
+  const rawFields = rawData?.rawFields || d?.rawFields || {};
+
+  let candidateFirstName = (
+    rawData.firstName ||
+    d.firstName ||
+    d.first_name ||
+    d.firstname ||
+    d.given_name ||
+    d.given_names ||
+    rawFields.firstName ||
+    rawFields.first_name ||
+    rawFields.firstname ||
+    ""
+  ).trim();
+
+  let candidateLastName = (
+    rawData.lastName ||
+    rawData.surname ||
+    d.lastName ||
+    d.last_name ||
+    d.lastname ||
+    d.surname ||
+    d.sur_name ||
+    d.family_name ||
+    rawFields.lastName ||
+    rawFields.last_name ||
+    rawFields.lastname ||
+    rawFields.surname ||
+    rawFields.sur_name ||
+    ""
+  ).trim();
+
+  const candidateMiddleName = (
+    rawData.middleName ||
+    d.middleName ||
+    d.middle_name ||
+    d.middlename ||
+    d.other_names ||
+    d.otherNames ||
+    rawFields.middleName ||
+    rawFields.middle_name ||
+    rawFields.middlename ||
+    ""
+  ).trim();
+
+  let fullLegalName = (
+    rawData.fullName ||
+    d.fullName ||
+    d.full_name ||
+    d.name ||
+    rawFields.fullName ||
+    rawFields.full_name ||
+    rawFields.name ||
+    extraFields.fullName ||
+    ""
+  ).trim();
+
+  // If surname/lastName is missing or identical to firstName, disambiguate from fullName
+  if ((!candidateLastName || (candidateFirstName && candidateLastName.toLowerCase() === candidateFirstName.toLowerCase())) && fullLegalName) {
+    const parts = fullLegalName.split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) {
+      const distinct = parts.filter((p: string) => !candidateFirstName || p.toLowerCase() !== candidateFirstName.toLowerCase());
+      if (distinct.length > 0) {
+        candidateLastName = distinct.join(" ");
+      } else {
+        candidateLastName = parts[1] || parts[0];
+      }
+    }
+  }
+
+  if (!candidateFirstName && fullLegalName) {
+    const parts = fullLegalName.split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) {
+      if (candidateLastName) {
+        const distinct = parts.filter((p: string) => p.toLowerCase() !== candidateLastName.toLowerCase());
+        candidateFirstName = distinct[0] || parts[1];
+      } else {
+        candidateLastName = parts[0];
+        candidateFirstName = parts[1];
+      }
+    } else {
+      candidateFirstName = parts[0] || "";
+    }
+  }
+
+  if (!fullLegalName) {
+    fullLegalName = [candidateLastName, candidateFirstName, candidateMiddleName].filter(Boolean).join(" ");
+  }
+
+  const rawPhoto =
+    rawData.photoUrl ||
+    rawData.photo_url ||
+    rawData.photo ||
+    rawData.image ||
+    rawData.image_url ||
+    rawData.base64Image ||
+    rawData.base64_image ||
+    rawData.applicant_photo ||
+    rawData.avatar ||
+    rawData.picture ||
+    rawData.rawPhoto ||
+    d.photoUrl ||
+    d.photo_url ||
+    d.photo ||
+    d.image ||
+    d.image_url ||
+    d.base64Image ||
+    d.base64_image ||
+    d.applicant_photo ||
+    d.avatar ||
+    d.picture ||
+    rawFields.photo ||
+    rawFields.photo_url ||
+    rawFields.image ||
+    rawFields.applicant_photo ||
+    rawFields.base64Image ||
+    "";
+
+  let resolvedPhotoUrl = normalizePhotoUrl(rawPhoto);
+  if (resolvedPhotoUrl && (resolvedPhotoUrl.startsWith("http://") || resolvedPhotoUrl.startsWith("https://"))) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 6000);
+      const photoFetch = await fetch(resolvedPhotoUrl, { signal: controller.signal });
+      clearTimeout(timeout);
+      if (photoFetch.ok) {
+        const contentType = photoFetch.headers.get("content-type") || "image/jpeg";
+        const ab = await photoFetch.arrayBuffer();
+        const b64 = Buffer.from(ab).toString("base64");
+        resolvedPhotoUrl = `data:${contentType.includes("png") ? "image/png" : "image/jpeg"};base64,${b64}`;
+      }
+    } catch (e) {
+      console.warn("[extractVerifiedIdentityFields] Pre-fetching remote photo timed out or failed:", e);
+    }
+  }
+
+  const candidateDob = (
+    rawData.dateOfBirth ||
+    rawData.dob ||
+    rawData.birthdate ||
+    rawData.birthDate ||
+    rawData.date_of_birth ||
+    rawData.birth_date ||
+    d.dateOfBirth ||
+    d.dob ||
+    d.birthdate ||
+    d.birthDate ||
+    d.date_of_birth ||
+    d.birth_date ||
+    rawFields.dateOfBirth ||
+    rawFields.dob ||
+    rawFields.birthdate ||
+    rawFields.birthDate ||
+    rawFields.date_of_birth ||
+    rawFields.birth_date ||
+    extraFields.dateOfBirth ||
+    extraFields.dob ||
+    extraFields.birthdate ||
+    ""
+  ).toString().trim();
+
+  const candidateGender = (
+    rawData.gender ||
+    rawData.sex ||
+    d.gender ||
+    d.sex ||
+    rawFields.gender ||
+    rawFields.sex ||
+    ""
+  ).toString().trim();
+
+  return {
+    firstName: candidateFirstName,
+    lastName: candidateLastName,
+    surname: candidateLastName,
+    middleName: candidateMiddleName,
+    fullName: fullLegalName,
+    dateOfBirth: candidateDob,
+    dob: candidateDob,
+    birthdate: candidateDob,
+    gender: candidateGender,
+    photoUrl: resolvedPhotoUrl,
+    rawPhoto: resolvedPhotoUrl,
+  };
+}
+
 // Centralized Verification Engine Backend Endpoint
 app.post("/api/verify/engine", async (req, res) => {
   const startTime = Date.now();
@@ -334,7 +523,7 @@ app.post("/api/verify/engine", async (req, res) => {
 
     const effectiveUserId = authCheck.isAdmin ? userId : (authCheck.authenticatedUid || userId);
 
-    // --- MULTI-GATEWAY INTELLIGENT ROUTING & AUTOMATED FAILOVER PIPELINE ---
+    // --- MULTI-PORTAL INTELLIGENT ROUTING & AUTOMATED FAILOVER PIPELINE ---
     if (!effectiveUserId) {
       return res.status(401).json({ error: "User authentication required.", errorCode: "AUTH_ERROR" });
     }
@@ -353,8 +542,8 @@ app.post("/api/verify/engine", async (req, res) => {
     const reference = `SML-VER-${Math.floor(100000 + Math.random() * 900000)}`;
     const receiptNumber = `REC-${reference}`;
 
-    // Execute verification via MultiGatewayRoutingEngine with real connected providers
-    const gatewayResult = await MultiGatewayRoutingEngine.executeWithFailover(db, {
+    // Execute verification via MultiProviderRoutingEngine with real connected providers
+    const portalResult = await MultiProviderRoutingEngine.executeWithFailover(db, {
       service: sType,
       targetId,
       userId: effectiveUserId,
@@ -378,24 +567,24 @@ app.post("/api/verify/engine", async (req, res) => {
       preferredProviderId: req.body.providerId || req.body.preferredProvider,
     });
 
-    if (!gatewayResult.success) {
-      const isConfigMissing = (gatewayResult.error || "").toLowerCase().includes("not configured") ||
-        (gatewayResult.error || "").toLowerCase().includes("credentials need verification") ||
-        (gatewayResult.error || "").toLowerCase().includes("api key") ||
-        (gatewayResult.error || "").toLowerCase().includes("secret key");
+    if (!portalResult.success) {
+      const isConfigMissing = (portalResult.error || "").toLowerCase().includes("not configured") ||
+        (portalResult.error || "").toLowerCase().includes("credentials need verification") ||
+        (portalResult.error || "").toLowerCase().includes("api key") ||
+        (portalResult.error || "").toLowerCase().includes("secret key");
       return res.status(isConfigMissing ? 400 : 422).json({
-        error: gatewayResult.error || "Verification gateways failed to confirm this identity record.",
-        errorCode: isConfigMissing ? "GATEWAY_CONFIG_REQUIRED" : "GATEWAY_VERIFICATION_FAILED",
-        friendlyMessage: isConfigMissing ? "Identity Gateway Not Configured" : `${sType} Verification Failed`,
+        error: portalResult.error || "Verification portals failed to confirm this identity record.",
+        errorCode: isConfigMissing ? "PORTAL_CONFIG_REQUIRED" : "PORTAL_VERIFICATION_FAILED",
+        friendlyMessage: isConfigMissing ? "Identity Portal Not Configured" : `${sType} Verification Failed`,
         details: isConfigMissing
           ? "No active Identity API credentials configured. Please navigate to Admin Dashboard > API Providers to set your LumiID, Identro, or VerifyNG API credentials."
-          : gatewayResult.error,
-        wasFailedOver: gatewayResult.wasFailedOver,
-        failoverChain: gatewayResult.failoverChain,
+          : portalResult.error,
+        wasFailedOver: portalResult.wasFailedOver,
+        failoverChain: portalResult.failoverChain,
       });
     }
 
-    const resolvedProviderName = gatewayResult.providerName || "Identity Verification Gateway";
+    const resolvedProviderName = portalResult.providerName || "Identity Verification Portal";
 
     // 2. Debit wallet only after provider verification succeeds
     let debitRes;
@@ -410,8 +599,8 @@ app.post("/api/verify/engine", async (req, res) => {
         fee: 0,
         recipientDetails: `${sType}: ${targetId}`,
         type: `${sType}_VERIFICATION`,
-        providerReference: gatewayResult.providerReference || gatewayResult.transactionId,
-        rawResponse: gatewayResult.data,
+        providerReference: portalResult.providerReference || portalResult.transactionId,
+        rawResponse: portalResult.data,
       });
     } catch (err: any) {
       return res.status(400).json({
@@ -422,27 +611,33 @@ app.post("/api/verify/engine", async (req, res) => {
     }
 
     // 3. Map verified data dynamically
-    const rawData = gatewayResult.data || {};
+    const rawData = portalResult.data || {};
+    const parsedFields = await extractVerifiedIdentityFields(rawData, extraFields);
+
     const verifiedData: any = {
       ...rawData,
-      fullName: rawData.fullName || rawData.name || [rawData.firstName, rawData.lastName].filter(Boolean).join(" ") || extraFields.fullName || "",
-      firstName: rawData.firstName || "",
-      lastName: rawData.lastName || "",
-      middleName: rawData.middleName || "",
-      gender: rawData.gender || rawData.sex || "",
-      dateOfBirth: rawData.dateOfBirth || rawData.dob || "",
+      fullName: parsedFields.fullName || rawData.fullName || rawData.name || [parsedFields.firstName, parsedFields.lastName].filter(Boolean).join(" ") || extraFields.fullName || "",
+      firstName: parsedFields.firstName,
+      lastName: parsedFields.lastName,
+      surname: parsedFields.surname,
+      middleName: parsedFields.middleName || rawData.middleName || "",
+      gender: parsedFields.gender || rawData.gender || rawData.sex || "",
+      dateOfBirth: parsedFields.dateOfBirth || rawData.dateOfBirth || rawData.dob || rawData.birthdate || rawData.date_of_birth || "",
+      dob: parsedFields.dob || rawData.dob || rawData.dateOfBirth || rawData.birthdate || "",
+      birthdate: parsedFields.birthdate || rawData.birthdate || rawData.dateOfBirth || "",
       phoneNumber: rawData.phoneNumber || rawData.phone || extraFields.phoneNumber || "",
       email: rawData.email || extraFields.email || "",
       address: rawData.address || rawData.residence || "",
       stateOfOrigin: rawData.stateOfOrigin || rawData.state || "",
       lga: rawData.lga || rawData.localGov || "",
-      photoUrl: normalizePhotoUrl(rawData.photoUrl || rawData.photo || rawData.image || ""),
+      photoUrl: parsedFields.photoUrl || normalizePhotoUrl(rawData.photoUrl || rawData.photo || rawData.image || rawData.rawPhoto || ""),
+      rawPhoto: parsedFields.photoUrl || normalizePhotoUrl(rawData.photoUrl || rawData.photo || rawData.image || rawData.rawPhoto || ""),
       isVerified: true,
-      verificationsPassed: rawData.verificationsPassed || ["Database Record Match", "KYC Identity Verified", "Gateway Switch Integrity Passed"],
+      verificationsPassed: rawData.verificationsPassed || ["Database Record Match", "KYC Identity Verified", "Portal Switch Integrity Passed"],
       provider: resolvedProviderName,
-      rawResponse: gatewayResult.data,
-      wasFailedOver: gatewayResult.wasFailedOver,
-      failoverChain: gatewayResult.failoverChain,
+      rawResponse: portalResult.data,
+      wasFailedOver: portalResult.wasFailedOver,
+      failoverChain: portalResult.failoverChain,
     };
 
     if (sType === "NIN") verifiedData.nin = rawData.nin || targetId;
@@ -462,7 +657,7 @@ app.post("/api/verify/engine", async (req, res) => {
     });
   }
 
-  const responseTime = gatewayResult.responseTimeMs || Math.max(180, Date.now() - startTime);
+  const responseTime = portalResult.responseTimeMs || Math.max(180, Date.now() - startTime);
 
   // 4. Save Verification Record to DB History
   if (!db.verificationHistory) db.verificationHistory = [];
@@ -488,7 +683,7 @@ app.post("/api/verify/engine", async (req, res) => {
     createdAt: new Date().toISOString(),
     signedQrContent,
     data: verifiedData,
-    wasFailedOver: gatewayResult.wasFailedOver,
+    wasFailedOver: portalResult.wasFailedOver,
   };
 
   db.verificationHistory.unshift(historyItem);
@@ -500,7 +695,7 @@ app.post("/api/verify/engine", async (req, res) => {
     receiptId: receiptNumber,
     reference,
     smartlinkReference: reference,
-    providerReference: gatewayResult.providerReference || `PRV-GW-${Math.floor(100000 + Math.random() * 900000)}`,
+    providerReference: portalResult.providerReference || `PRV-GW-${Math.floor(100000 + Math.random() * 900000)}`,
     userId,
     service: sType,
     serviceTitle: `${sType} Identity Verification`,
@@ -571,7 +766,7 @@ app.post("/api/verify/engine", async (req, res) => {
   }
 });
 
-// Dedicated NIN Verification API Route (Production Gateway)
+// Dedicated NIN Verification API Route (Production Portal)
 app.post("/api/services/nin-verify", async (req, res) => {
   const startTime = Date.now();
   const { userId, nin, fullName, consent } = req.body;
@@ -608,8 +803,8 @@ app.post("/api/services/nin-verify", async (req, res) => {
   const reference = `SML-VER-NIN-${Math.floor(100000 + Math.random() * 900000)}`;
   const receiptNumber = `REC-${reference}`;
 
-  // Execute verification via MultiGatewayRoutingEngine with real connected providers (LumiID, VerifyNG, Identro)
-  const gatewayResult = await MultiGatewayRoutingEngine.executeWithFailover(db, {
+  // Execute verification via MultiProviderRoutingEngine with real connected providers (LumiID, VerifyNG, Identro)
+  const portalResult = await MultiProviderRoutingEngine.executeWithFailover(db, {
     service: "NIN",
     targetId: cleanNin,
     userId: effectiveUserId,
@@ -620,18 +815,18 @@ app.post("/api/services/nin-verify", async (req, res) => {
     preferredProviderId: req.body.providerId || req.body.provider || req.body.preferredProvider,
   });
 
-  if (!gatewayResult.success) {
+  if (!portalResult.success) {
     return res.status(422).json({
-      error: gatewayResult.error || "Identity verification provider could not confirm this record.",
+      error: portalResult.error || "Identity verification provider could not confirm this record.",
       errorCode: "PROVIDER_FAILED",
       friendlyMessage: "NIN Verification Failed",
-      details: gatewayResult.error,
-      wasFailedOver: gatewayResult.wasFailedOver,
-      failoverChain: gatewayResult.failoverChain,
+      details: portalResult.error,
+      wasFailedOver: portalResult.wasFailedOver,
+      failoverChain: portalResult.failoverChain,
     });
   }
 
-  const resolvedProviderName = gatewayResult.providerName || "NIMC Gateway";
+  const resolvedProviderName = portalResult.providerName || "NIMC Portal";
 
   // 2. Debit wallet only after provider verification succeeds
   let debitRes;
@@ -646,8 +841,8 @@ app.post("/api/services/nin-verify", async (req, res) => {
       fee: 0,
       recipientDetails: `NIN: ${cleanNin}`,
       type: "NIN_VERIFICATION",
-      providerReference: gatewayResult.providerReference || gatewayResult.transactionId,
-      rawResponse: gatewayResult.data,
+      providerReference: portalResult.providerReference || portalResult.transactionId,
+      rawResponse: portalResult.data,
     });
   } catch (err: any) {
     return res.status(400).json({
@@ -660,26 +855,32 @@ app.post("/api/services/nin-verify", async (req, res) => {
   const maskedId = `${cleanNin.substring(0, 3)}****${cleanNin.substring(7)}`;
 
   // 3. Extract real verified data directly from provider's response
-  const rawData = gatewayResult.data || {};
+  const rawData = portalResult.data || {};
+  const parsedFields = await extractVerifiedIdentityFields(rawData);
+
   const verifiedData: any = {
     ...rawData,
     nin: rawData.nin || rawData.idNumber || cleanNin,
-    fullName: rawData.fullName || rawData.name || [rawData.firstName, rawData.lastName].filter(Boolean).join(" ") || fullName || "",
-    firstName: rawData.firstName || "",
-    lastName: rawData.lastName || "",
-    middleName: rawData.middleName || "",
-    gender: rawData.gender || rawData.sex || "",
-    dateOfBirth: rawData.dateOfBirth || rawData.dob || "",
+    fullName: parsedFields.fullName || rawData.fullName || rawData.name || [parsedFields.firstName, parsedFields.lastName].filter(Boolean).join(" ") || fullName || "",
+    firstName: parsedFields.firstName,
+    lastName: parsedFields.lastName,
+    surname: parsedFields.surname,
+    middleName: parsedFields.middleName || rawData.middleName || "",
+    gender: parsedFields.gender || rawData.gender || rawData.sex || "",
+    dateOfBirth: parsedFields.dateOfBirth || rawData.dateOfBirth || rawData.dob || rawData.birthdate || rawData.date_of_birth || "",
+    dob: parsedFields.dob || rawData.dob || rawData.dateOfBirth || rawData.birthdate || "",
+    birthdate: parsedFields.birthdate || rawData.birthdate || rawData.dateOfBirth || "",
     phoneNumber: rawData.phoneNumber || rawData.phone || rawData.mobile || "",
     address: rawData.address || rawData.residence || "",
     stateOfOrigin: rawData.stateOfOrigin || rawData.state || "",
     lga: rawData.lga || rawData.localGov || "",
-    photoUrl: normalizePhotoUrl(rawData.photoUrl || rawData.photo || rawData.image || ""),
+    photoUrl: parsedFields.photoUrl || normalizePhotoUrl(rawData.photoUrl || rawData.photo || rawData.image || rawData.rawPhoto || ""),
+    rawPhoto: parsedFields.photoUrl || normalizePhotoUrl(rawData.photoUrl || rawData.photo || rawData.image || rawData.rawPhoto || ""),
     isVerified: true,
     verificationsPassed: rawData.verificationsPassed || ["NIMC Database Record Match", "Identity Verified"],
     provider: resolvedProviderName,
-    rawResponse: gatewayResult.data,
-    wasFailedOver: gatewayResult.wasFailedOver,
+    rawResponse: portalResult.data,
+    wasFailedOver: portalResult.wasFailedOver,
   };
 
   // Generate cryptographically signed QR payload for direct offline validation
@@ -691,7 +892,7 @@ app.post("/api/services/nin-verify", async (req, res) => {
     dob: verifiedData.dateOfBirth,
   });
 
-  const responseTime = gatewayResult.responseTimeMs || Math.max(180, Date.now() - startTime);
+  const responseTime = portalResult.responseTimeMs || Math.max(180, Date.now() - startTime);
 
   const historyItem = {
     id: `ver_${Math.random().toString(36).substring(2, 9)}`,
@@ -710,7 +911,7 @@ app.post("/api/services/nin-verify", async (req, res) => {
     createdAt: new Date().toISOString(),
     signedQrContent,
     data: verifiedData,
-    wasFailedOver: gatewayResult.wasFailedOver,
+    wasFailedOver: portalResult.wasFailedOver,
   };
 
   if (!db.verificationHistory) db.verificationHistory = [];
@@ -722,7 +923,7 @@ app.post("/api/services/nin-verify", async (req, res) => {
     receiptId: receiptNumber,
     reference,
     smartlinkReference: reference,
-    providerReference: gatewayResult.providerReference || `NIMC-GW-${Math.floor(100000 + Math.random() * 900000)}`,
+    providerReference: portalResult.providerReference || `NIMC-GW-${Math.floor(100000 + Math.random() * 900000)}`,
     userId: effectiveUserId,
     service: "NIN",
     serviceTitle: "NIN Identity Verification",
@@ -781,7 +982,7 @@ app.post("/api/services/nin-verify", async (req, res) => {
   });
 });
 
-// Dedicated BVN Verification API Route (Production NIBSS Gateway)
+// Dedicated BVN Verification API Route (Production NIBSS Portal)
 app.post("/api/services/bvn-verify", async (req, res) => {
   const startTime = Date.now();
   const { userId, bvn, fullName, consent, referenceNote, verificationPurpose } = req.body;
@@ -818,8 +1019,8 @@ app.post("/api/services/bvn-verify", async (req, res) => {
   const reference = `SML-VER-BVN-${Math.floor(100000 + Math.random() * 900000)}`;
   const receiptNumber = `REC-${reference}`;
 
-  // Execute verification via MultiGatewayRoutingEngine with real connected providers (LumiID, VerifyNG, Identro)
-  const gatewayResult = await MultiGatewayRoutingEngine.executeWithFailover(db, {
+  // Execute verification via MultiProviderRoutingEngine with real connected providers (LumiID, VerifyNG, Identro)
+  const portalResult = await MultiProviderRoutingEngine.executeWithFailover(db, {
     service: "BVN",
     targetId: cleanBvn,
     userId: effectiveUserId,
@@ -842,18 +1043,18 @@ app.post("/api/services/bvn-verify", async (req, res) => {
     preferredProviderId: req.body.providerId || req.body.provider || req.body.preferredProvider,
   });
 
-  if (!gatewayResult.success) {
+  if (!portalResult.success) {
     return res.status(422).json({
-      error: gatewayResult.error || "Verification provider could not confirm this record.",
+      error: portalResult.error || "Verification provider could not confirm this record.",
       errorCode: "PROVIDER_FAILED",
       friendlyMessage: "BVN Verification Failed",
-      details: gatewayResult.error,
-      wasFailedOver: gatewayResult.wasFailedOver,
-      failoverChain: gatewayResult.failoverChain,
+      details: portalResult.error,
+      wasFailedOver: portalResult.wasFailedOver,
+      failoverChain: portalResult.failoverChain,
     });
   }
 
-  const resolvedProviderName = gatewayResult.providerName || "NIBSS Gateway";
+  const resolvedProviderName = portalResult.providerName || "NIBSS Portal";
 
   // 2. Debit wallet only after provider verification succeeds
   let debitRes;
@@ -868,8 +1069,8 @@ app.post("/api/services/bvn-verify", async (req, res) => {
       fee: 0,
       recipientDetails: `BVN: ${cleanBvn}`,
       type: "BVN_VERIFICATION",
-      providerReference: gatewayResult.providerReference || gatewayResult.transactionId,
-      rawResponse: gatewayResult.data,
+      providerReference: portalResult.providerReference || portalResult.transactionId,
+      rawResponse: portalResult.data,
     });
   } catch (err: any) {
     return res.status(400).json({
@@ -882,7 +1083,7 @@ app.post("/api/services/bvn-verify", async (req, res) => {
   const maskedId = `${cleanBvn.substring(0, 3)}****${cleanBvn.substring(7)}`;
 
   // 3. Extract real verified data directly from provider's response
-  const rawData = gatewayResult.data || {};
+  const rawData = portalResult.data || {};
   const verifiedData: any = {
     ...rawData,
     bvn: rawData.bvn || rawData.idNumber || cleanBvn,
@@ -902,11 +1103,11 @@ app.post("/api/services/bvn-verify", async (req, res) => {
     referenceNote: referenceNote || "",
     verificationsPassed: rawData.verificationsPassed || ["NIBSS Central Switch Match", "Bank Account Linkage Active"],
     provider: resolvedProviderName,
-    rawResponse: gatewayResult.data,
-    wasFailedOver: gatewayResult.wasFailedOver,
+    rawResponse: portalResult.data,
+    wasFailedOver: portalResult.wasFailedOver,
   };
 
-  const responseTime = gatewayResult.responseTimeMs || Math.max(180, Date.now() - startTime);
+  const responseTime = portalResult.responseTimeMs || Math.max(180, Date.now() - startTime);
 
   const historyItem = {
     id: `ver_${Math.random().toString(36).substring(2, 9)}`,
@@ -924,7 +1125,7 @@ app.post("/api/services/bvn-verify", async (req, res) => {
     responseTime,
     createdAt: new Date().toISOString(),
     data: verifiedData,
-    wasFailedOver: gatewayResult.wasFailedOver,
+    wasFailedOver: portalResult.wasFailedOver,
   };
 
   if (!db.verificationHistory) db.verificationHistory = [];
@@ -936,7 +1137,7 @@ app.post("/api/services/bvn-verify", async (req, res) => {
     receiptId: receiptNumber,
     reference,
     smartlinkReference: reference,
-    providerReference: gatewayResult.providerReference || `NIBSS-GW-${Math.floor(100000 + Math.random() * 900000)}`,
+    providerReference: portalResult.providerReference || `NIBSS-GW-${Math.floor(100000 + Math.random() * 900000)}`,
     userId: effectiveUserId,
     service: "BVN",
     serviceTitle: "BVN Identity Verification",
@@ -1220,7 +1421,7 @@ app.post("/api/services/cac-verify", async (req, res) => {
   });
 });
 
-// Dedicated TIN Tax Verification API Route (Joint Tax Board Gateway)
+// Dedicated TIN Tax Verification API Route (Joint Tax Board Portal)
 app.post("/api/services/tin-verify", async (req, res) => {
   const startTime = Date.now();
   const {
@@ -1313,7 +1514,7 @@ app.post("/api/services/tin-verify", async (req, res) => {
     });
   }
 
-  const resolvedProviderName = providerResult.providerName || "Joint Tax Board (JTB) Gateway";
+  const resolvedProviderName = providerResult.providerName || "Joint Tax Board (JTB) Portal";
 
   // 2. Debit wallet only after provider verification succeeds
   let debitRes;
@@ -1491,7 +1692,7 @@ app.get("/api/services/banks", async (req, res) => {
   res.json({ success: true, count: banks.length, banks });
 });
 
-// Dedicated Bank Account Verification API Route (NIBSS Gateway)
+// Dedicated Bank Account Verification API Route (NIBSS Portal)
 app.post("/api/services/bank-account-verify", async (req, res) => {
   const startTime = Date.now();
   const {
@@ -1557,7 +1758,7 @@ app.post("/api/services/bank-account-verify", async (req, res) => {
     });
   }
 
-  const resolvedProviderName = providerResult.providerName || "NIBSS Instant Payment (NIP) Gateway";
+  const resolvedProviderName = providerResult.providerName || "NIBSS Instant Payment (NIP) Portal";
 
   // 2. Debit wallet only after provider verification succeeds
   let debitRes;
@@ -1756,6 +1957,429 @@ app.post("/api/slips", async (req, res) => {
   res.json({ success: true, slip: slipData });
 });
 
+// =========================================================================
+// OFFICIAL VECTOR PDF OVERLAY GENERATION ENGINE (pdf-lib)
+// =========================================================================
+
+// POST /api/slips/generate-overlay-pdf
+app.post("/api/slips/generate-overlay-pdf", async (req, res) => {
+  try {
+    const body = req.body || {};
+    let fName = (body.firstName || body.holderData?.firstName || "").trim();
+    let lName = (body.lastName || body.holderData?.surname || body.holderData?.lastName || body.surname || "").trim();
+    const fullLegal = (body.fullName || body.holderData?.fullName || "").trim();
+
+    if ((!lName || (fName && lName.toLowerCase() === fName.toLowerCase())) && fullLegal) {
+      const parts = fullLegal.split(/\s+/).filter(Boolean);
+      if (parts.length >= 2) {
+        const others = parts.filter((p: string) => !fName || p.toLowerCase() !== fName.toLowerCase());
+        if (others.length > 0) lName = others.join(" ");
+        else lName = parts[1] || parts[0];
+      }
+    }
+
+    if (!fName && fullLegal) {
+      const parts = fullLegal.split(/\s+/).filter(Boolean);
+      if (parts.length >= 2) {
+        if (lName) {
+          const others = parts.filter((p: string) => p.toLowerCase() !== lName.toLowerCase());
+          fName = others[0] || parts[1];
+        } else {
+          lName = parts[0];
+          fName = parts[1];
+        }
+      } else {
+        fName = parts[0] || "";
+      }
+    }
+
+    const candidateDob = (
+      body.dateOfBirth ||
+      body.dob ||
+      body.birthdate ||
+      body.birthDate ||
+      body.date_of_birth ||
+      body.birth_date ||
+      body.holderData?.dateOfBirth ||
+      body.holderData?.dob ||
+      body.holderData?.birthdate ||
+      body.holderData?.birthDate ||
+      body.holderData?.date_of_birth ||
+      body.holderData?.birth_date ||
+      ""
+    ).toString().trim();
+
+    const candidatePhoto = (
+      body.photoUrl ||
+      body.photo ||
+      body.image ||
+      body.rawPhoto ||
+      body.base64Image ||
+      body.applicant_photo ||
+      body.picture ||
+      body.avatar ||
+      body.photo_url ||
+      body.holderData?.photoUrl ||
+      body.holderData?.photo ||
+      body.holderData?.image ||
+      body.holderData?.rawPhoto ||
+      body.holderData?.base64Image ||
+      body.holderData?.applicant_photo ||
+      body.holderData?.picture ||
+      body.holderData?.avatar ||
+      body.holderData?.photo_url ||
+      ""
+    ).toString().trim();
+
+    const slipData: IdentitySlipData = {
+      firstName: fName,
+      lastName: lName,
+      surname: lName,
+      middleName: body.middleName || body.holderData?.middleName,
+      fullName: fullLegal || [lName, fName].filter(Boolean).join(" "),
+      gender: body.gender || body.holderData?.gender,
+      dateOfBirth: candidateDob,
+      dob: candidateDob,
+      birthdate: candidateDob,
+      birthDate: candidateDob,
+      photoUrl: candidatePhoto,
+      photo: candidatePhoto,
+      rawPhoto: candidatePhoto,
+      image: candidatePhoto,
+      nin:
+        body.nin ||
+        body.holderData?.nin ||
+        body.identificationNumber ||
+        body.holderData?.identificationNumber ||
+        body.national_identity_number ||
+        body.nationalId ||
+        body.national_id ||
+        body.vnin ||
+        body.vNin ||
+        body.idNumber,
+      idNumber: body.idNumber || body.identificationNumber || body.nin || body.holderData?.nin,
+      phoneNumber:
+        body.phoneNumber ||
+        body.phone ||
+        body.phone_number ||
+        body.holderData?.phoneNumber ||
+        body.holderData?.phone ||
+        body.holderData?.phone_number ||
+        (body.rawFields as any)?.phoneNumber ||
+        (body.rawFields as any)?.phone ||
+        (body.rawFields as any)?.phone_number,
+      phone:
+        body.phone ||
+        body.phoneNumber ||
+        body.holderData?.phone ||
+        body.holderData?.phoneNumber,
+      maritalStatus:
+        body.maritalStatus ||
+        body.marital_status ||
+        body.holderData?.maritalStatus ||
+        body.holderData?.marital_status ||
+        (body.rawFields as any)?.maritalStatus ||
+        (body.rawFields as any)?.marital_status,
+      enrolmentInstitution:
+        body.enrolmentInstitution ||
+        body.institution ||
+        body.bank ||
+        body.holderData?.enrolmentInstitution ||
+        body.holderData?.institution ||
+        body.holderData?.bank,
+      enrolmentBranch:
+        body.enrolmentBranch ||
+        body.branch ||
+        body.holderData?.enrolmentBranch ||
+        body.holderData?.branch,
+      originState:
+        body.originState ||
+        body.stateOfOrigin ||
+        body.state_of_origin ||
+        body.holderData?.originState ||
+        body.holderData?.stateOfOrigin,
+      originLga:
+        body.originLga ||
+        body.lgaOfOrigin ||
+        body.lga_of_origin ||
+        body.holderData?.originLga ||
+        body.holderData?.lgaOfOrigin,
+      residenceState:
+        body.residenceState ||
+        body.stateOfResidence ||
+        body.residence_state ||
+        body.holderData?.residenceState ||
+        body.holderData?.stateOfResidence,
+      residenceLga:
+        body.residenceLga ||
+        body.lgaOfResidence ||
+        body.residence_lga ||
+        body.holderData?.residenceLga ||
+        body.holderData?.lgaOfResidence,
+      providerReference: body.providerReference || body.reference,
+      engineTransactionId: body.engineTransactionId || body.slipId || body.id,
+      verificationDate: body.verificationDate ? new Date(body.verificationDate) : new Date(),
+    };
+
+    const isBvnSlip =
+      body.slipType === "BVN_SLIP" ||
+      body.slipType === "BVN_SLIP_1" ||
+      body.formatType === "BVN_SLIP_1" ||
+      body.formatType === "BVN_SLIP" ||
+      (typeof body.slipType === "string" && body.slipType.toUpperCase().includes("BVN_SLIP")) ||
+      (typeof body.formatType === "string" && body.formatType.toUpperCase().includes("BVN_SLIP"));
+
+    const isBvnCard =
+      !isBvnSlip && (
+        body.slipType === "BVN_CARD" ||
+        body.formatType === "BVN_CARD" ||
+        body.slipType === "BVN" ||
+        (typeof body.slipType === "string" && body.slipType.toUpperCase().includes("BVN_CARD")) ||
+        (typeof body.formatType === "string" && body.formatType.toUpperCase().includes("BVN_CARD")) ||
+        Boolean(slipData.bvn && !slipData.nin)
+      );
+
+    const isRegular =
+      !isBvnSlip && !isBvnCard && (
+        body.slipType === "REGULAR" ||
+        body.slipType === "NIN_REGULAR" ||
+        body.formatType === "NIN_REGULAR" ||
+        (typeof body.slipType === "string" && body.slipType.toUpperCase().includes("REGULAR")) ||
+        (typeof body.formatType === "string" && body.formatType.toUpperCase().includes("REGULAR"))
+      );
+
+    const templateName = isBvnSlip
+      ? "BVN Slip.pdf"
+      : isBvnCard
+      ? "BVN Card.pdf"
+      : isRegular
+      ? "Regular Slip.pdf"
+      : "Premium NIN Slip.pdf";
+    const altTemplateName = isBvnSlip
+      ? "BVN SLIP.pdf"
+      : isBvnCard
+      ? "BVN Card.pdf"
+      : isRegular
+      ? "Regular slip.pdf"
+      : "Premium NIN Slip.pdf";
+
+    let templatePath = path.resolve(process.cwd(), templateName);
+    if (!fs.existsSync(templatePath)) {
+      templatePath = path.resolve(process.cwd(), altTemplateName);
+    }
+    if (!fs.existsSync(templatePath)) {
+      templatePath = path.resolve(process.cwd(), "public", templateName);
+    }
+    if (!fs.existsSync(templatePath)) {
+      templatePath = path.resolve(process.cwd(), "public", "assets", templateName);
+    }
+    if (!fs.existsSync(templatePath)) {
+      templatePath = path.resolve(process.cwd(), "public", "templates", templateName);
+    }
+    if (!fs.existsSync(templatePath)) {
+      return res.status(500).json({ error: `Background template PDF (${templateName}) not found on server.` });
+    }
+
+    const templateBytes = fs.readFileSync(templatePath);
+    const pdfBytes = await generateIdentitySlipPdf(templateBytes, {
+      ...slipData,
+      trackingId: body.trackingId || body.tracking_id || (body.rawFields as any)?.trackingId || slipData.trackingId || undefined,
+      address: body.address || body.residence_address,
+      addressLine1: body.addressLine1 || body.street,
+      addressLine2: body.addressLine2 || body.lga,
+      lga: body.lga || body.residence_lga,
+      state: body.state || body.residence_state,
+      slipType: isBvnSlip ? "BVN_SLIP" : isBvnCard ? "BVN_CARD" : isRegular ? "REGULAR" : "PREMIUM",
+    });
+
+    const rawId = (slipData.bvn || slipData.nin || slipData.idNumber || "").toString().trim();
+    const safeId = rawId ? rawId.replace(/[^a-zA-Z0-9_-]/g, "") : "";
+    const downloadFilename = isBvnSlip
+      ? (safeId ? `BVN Slip ${safeId}.pdf` : "BVN Slip.pdf")
+      : isBvnCard
+      ? (safeId ? `BVN ${safeId}.pdf` : "BVN.pdf")
+      : isRegular
+      ? (safeId ? `NIN Regular slip ${safeId}.pdf` : "NIN Regular slip.pdf")
+      : (safeId ? `NIN Premium card ${safeId}.pdf` : "NIN Premium card.pdf");
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="${downloadFilename}"`);
+    return res.send(Buffer.from(pdfBytes));
+  } catch (err: any) {
+    console.error("[generate-overlay-pdf] Error:", err);
+    return res.status(500).json({ error: err.message || "Failed to generate overlay PDF." });
+  }
+});
+
+// Proxy endpoint for remote photos to prevent CORS issues in client-side canvas
+app.get("/api/slips/proxy-image", async (req, res) => {
+  try {
+    const rawUrl = String(req.query.url || "").trim();
+    if (!rawUrl || (!rawUrl.startsWith("http://") && !rawUrl.startsWith("https://"))) {
+      return res.status(400).send("Invalid image URL");
+    }
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    const fetchRes = await fetch(rawUrl, { signal: controller.signal });
+    clearTimeout(timeout);
+    if (!fetchRes.ok) {
+      return res.status(fetchRes.status).send("Failed to fetch remote image");
+    }
+    const contentType = fetchRes.headers.get("content-type") || "image/jpeg";
+    const arrayBuffer = await fetchRes.arrayBuffer();
+    res.setHeader("Content-Type", contentType);
+    res.setHeader("Cache-Control", "public, max-age=86400");
+    return res.send(Buffer.from(arrayBuffer));
+  } catch (err: any) {
+    return res.status(500).send(err.message || "Proxy error");
+  }
+});
+
+// GET /api/slips/:slipId/pdf
+app.get("/api/slips/:slipId/pdf", async (req, res) => {
+  try {
+    const { slipId } = req.params;
+    const db = readDB();
+    const slip = (db.slips || []).find((s: any) => s.slipId === slipId || s.id === slipId);
+    if (!slip) {
+      return res.status(404).json({ error: "Slip record not found." });
+    }
+
+    const isBvnSlip =
+      slip.slipType === "BVN_SLIP" ||
+      slip.formatType === "BVN_SLIP_1" ||
+      slip.formatType === "BVN_SLIP" ||
+      (typeof slip.formatType === "string" && slip.formatType.toUpperCase().includes("BVN_SLIP")) ||
+      (slip.serviceType?.toUpperCase().includes("BVN") && (slip.formatType === "BVN_SLIP_1" || slip.formatType === "BVN_SLIP"));
+
+    const isBvnCard =
+      !isBvnSlip && (
+        slip.formatType === "BVN_CARD" ||
+        slip.slipType === "BVN_CARD" ||
+        slip.formatType === "BVN_STANDARD" ||
+        (slip.serviceType?.toUpperCase().includes("BVN") && slip.formatType !== "NIN_REGULAR") ||
+        Boolean(slip.holderData?.bvn && !slip.holderData?.nin)
+      );
+
+    const isRegular =
+      !isBvnSlip && !isBvnCard && (
+        slip.slipType === "REGULAR" ||
+        slip.formatType === "NIN_REGULAR" ||
+        slip.slipType === "NIN_REGULAR" ||
+        (typeof slip.formatType === "string" && slip.formatType.toUpperCase().includes("REGULAR")) ||
+        (typeof slip.slipType === "string" && slip.slipType.toUpperCase().includes("REGULAR"))
+      );
+
+    const slipData: IdentitySlipData = {
+      firstName: slip.holderData?.firstName,
+      lastName: slip.holderData?.surname || slip.holderData?.lastName,
+      middleName: slip.holderData?.middleName,
+      fullName: slip.holderData?.fullName,
+      gender: slip.holderData?.gender,
+      dateOfBirth: slip.holderData?.dateOfBirth,
+      photoUrl: slip.holderData?.photoUrl,
+      nin: slip.identificationNumber || slip.holderData?.nin,
+      bvn: slip.holderData?.bvn || (slip.serviceType?.toUpperCase().includes("BVN") ? slip.identificationNumber : undefined),
+      idNumber: slip.identificationNumber,
+      phoneNumber:
+        slip.holderData?.phoneNumber ||
+        slip.holderData?.phone ||
+        slip.holderData?.phone_number ||
+        (slip.holderData?.rawFields as any)?.phoneNumber ||
+        (slip.holderData?.rawFields as any)?.phone,
+      phone:
+        slip.holderData?.phone ||
+        slip.holderData?.phoneNumber,
+      maritalStatus:
+        slip.holderData?.maritalStatus ||
+        slip.holderData?.marital_status,
+      enrolmentInstitution:
+        slip.holderData?.enrolmentInstitution ||
+        slip.holderData?.institution ||
+        slip.holderData?.bank,
+      enrolmentBranch:
+        slip.holderData?.enrolmentBranch ||
+        slip.holderData?.branch,
+      originState:
+        slip.holderData?.originState ||
+        slip.holderData?.stateOfOrigin ||
+        slip.holderData?.state_of_origin,
+      originLga:
+        slip.holderData?.originLga ||
+        slip.holderData?.lgaOfOrigin ||
+        slip.holderData?.lga_of_origin,
+      residenceState:
+        slip.holderData?.residenceState ||
+        slip.holderData?.stateOfResidence ||
+        slip.holderData?.residence_state,
+      residenceLga:
+        slip.holderData?.residenceLga ||
+        slip.holderData?.lgaOfResidence ||
+        slip.holderData?.residence_lga,
+      trackingId: slip.holderData?.trackingId || slip.holderData?.tracking_id || slip.holderData?.trackingID || (slip.holderData?.rawFields as any)?.trackingId || undefined,
+      address: slip.holderData?.address || slip.holderData?.residence_address,
+      addressLine1: slip.holderData?.addressLine1 || slip.holderData?.street,
+      addressLine2: slip.holderData?.addressLine2 || slip.holderData?.lga,
+      lga: slip.holderData?.lga || slip.holderData?.residence_lga,
+      state: slip.holderData?.state || slip.holderData?.residence_state,
+      slipType: isBvnSlip ? "BVN_SLIP" : isBvnCard ? "BVN_CARD" : isRegular ? "REGULAR" : "PREMIUM",
+      providerReference: slip.reference,
+      engineTransactionId: slip.slipId || slip.id,
+      verificationDate: slip.createdAt ? new Date(slip.createdAt) : new Date(),
+    };
+
+    const templateName = isBvnSlip
+      ? "BVN Slip.pdf"
+      : isBvnCard
+      ? "BVN Card.pdf"
+      : isRegular
+      ? "Regular Slip.pdf"
+      : "Premium NIN Slip.pdf";
+    const altTemplateName = isBvnSlip
+      ? "BVN SLIP.pdf"
+      : isBvnCard
+      ? "BVN Card.pdf"
+      : isRegular
+      ? "Regular slip.pdf"
+      : "Premium NIN Slip.pdf";
+
+    let templatePath = path.resolve(process.cwd(), templateName);
+    if (!fs.existsSync(templatePath)) {
+      templatePath = path.resolve(process.cwd(), altTemplateName);
+    }
+    if (!fs.existsSync(templatePath)) {
+      templatePath = path.resolve(process.cwd(), "public", templateName);
+    }
+    if (!fs.existsSync(templatePath)) {
+      templatePath = path.resolve(process.cwd(), "public", "assets", templateName);
+    }
+    if (!fs.existsSync(templatePath)) {
+      templatePath = path.resolve(process.cwd(), "public", "templates", templateName);
+    }
+    if (!fs.existsSync(templatePath)) {
+      return res.status(500).json({ error: `Background template PDF (${templateName}) not found on server.` });
+    }
+
+    const templateBytes = fs.readFileSync(templatePath);
+    const pdfBytes = await generateIdentitySlipPdf(templateBytes, slipData);
+
+    const rawId = (slipData.bvn || slipData.nin || slipData.idNumber || "").toString().trim();
+    const safeId = rawId ? rawId.replace(/[^a-zA-Z0-9_-]/g, "") : "";
+    const downloadFilename = isBvnSlip
+      ? (safeId ? `BVN Slip ${safeId}.pdf` : "BVN Slip.pdf")
+      : isBvnCard
+      ? (safeId ? `BVN ${safeId}.pdf` : "BVN.pdf")
+      : isRegular
+      ? (safeId ? `NIN Regular slip ${safeId}.pdf` : "NIN Regular slip.pdf")
+      : (safeId ? `NIN Premium card ${safeId}.pdf` : "NIN Premium card.pdf");
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="${downloadFilename}"`);
+    return res.send(Buffer.from(pdfBytes));
+  } catch (err: any) {
+    console.error("[slips/:slipId/pdf] Error:", err);
+    return res.status(500).json({ error: err.message || "Failed to generate slip PDF." });
+  }
+});
+
 
 
 // =========================================================================
@@ -1846,7 +2470,7 @@ function buildSlipEmailHtml(params: {
   <div class="email-container">
     <!-- Header Banner -->
     <div class="header-banner">
-      <div class="header-pill">Federal Identity Gateway Verification</div>
+      <div class="header-pill">Federal Identity Portal Verification</div>
       <h1 class="header-title">SmartLink Verification Certificate</h1>
       <p class="header-subtitle">${serviceBadgeTitle}</p>
     </div>
@@ -1858,7 +2482,7 @@ function buildSlipEmailHtml(params: {
           <tr>
             <td>
               <div style="font-size: 14px; font-weight: 800; color: #0f172a;">Official Status: CONFIRMED &amp; VALID</div>
-              <div style="font-size: 12px; color: #64748b; margin-top: 2px;">Provider: ${providerName || "NIMC / NIBSS Federal Trust Gateway"}</div>
+              <div style="font-size: 12px; color: #64748b; margin-top: 2px;">Provider: ${providerName || "NIMC / NIBSS Federal Trust Portal"}</div>
             </td>
             <td style="text-align: right;">
               <span class="badge-verified">&#10003; VERIFIED</span>
@@ -1969,8 +2593,10 @@ app.post("/api/verification/send-email-slip", async (req, res) => {
       customRecipientEmail,
       verificationResult,
       slipData,
-      formatType = "NIN_STANDARD",
+      formatType = "NIN_REGULAR",
       customNote = "",
+      pdfBase64,
+      pdfFilename,
     } = req.body;
 
     if (!userId) {
@@ -1985,7 +2611,7 @@ app.post("/api/verification/send-email-slip", async (req, res) => {
     // Resolve user's registered email
     const allUsers = db.users || [];
     const matchedUser = allUsers.find((u: any) => u.id === userId || u.uid === userId || u.email === recipientEmail);
-    const registeredEmail = matchedUser?.email || recipientEmail || "adamuamuhammad8541@gmail.com";
+    const registeredEmail = matchedUser?.email || recipientEmail || "";
 
     // Determine target recipient(s)
     const targetEmails: string[] = [];
@@ -2038,22 +2664,139 @@ app.post("/api/verification/send-email-slip", async (req, res) => {
       qrVerificationUrl,
       slipId,
       verifiedAt,
-      providerName: verificationResult?.providerName || slipData?.providerName || "NIMC / NIBSS Federal Trust Gateway",
+      providerName: verificationResult?.providerName || slipData?.providerName || "NIMC / NIBSS Federal Trust Portal",
       customNote,
       appUrl,
     });
 
     const subject = `Official ${serviceType.toUpperCase()} Verification Slip & Certificate - ${holderName} [#${reference}]`;
 
-    // Attempt SMTP dispatch
+    // Attempt SMTP dispatch with PDF attachment if available
     let deliveryMode: "LIVE_SMTP" | "SIMULATED_SANDBOX" = "SIMULATED_SANDBOX";
     let smtpError: string | null = null;
+
+    let emailAttachments: Array<{ filename: string; content?: any; contentType?: string }> | undefined;
+    try {
+      if (pdfBase64 && typeof pdfBase64 === "string") {
+        const isNinService = serviceType.toUpperCase().includes("NIN");
+        const rawMaskedId = (maskedId !== "VERIFIED" ? maskedId : reference).toString().trim();
+        const safeMaskedId = rawMaskedId.replace(/[^a-zA-Z0-9_-]/g, "");
+        const defaultPdfFilename = isNinService
+          ? (safeMaskedId ? `NIN Premium card ${safeMaskedId}.pdf` : "NIN Premium card.pdf")
+          : `SmartLink_Premium_${serviceType.toUpperCase()}_Slip_${safeMaskedId}.pdf`;
+
+        emailAttachments = [
+          {
+            filename: pdfFilename || defaultPdfFilename,
+            content: Buffer.from(pdfBase64.replace(/\s+/g, ""), "base64"),
+            contentType: "application/pdf",
+          },
+        ];
+      } else {
+        const isRegularSlip =
+          formatType === "NIN_REGULAR" ||
+          (typeof formatType === "string" && formatType.toUpperCase().includes("REGULAR"));
+
+        const templateName = isRegularSlip ? "Regular Slip.pdf" : "Premium NIN Slip.pdf";
+        let templatePath = path.resolve(process.cwd(), templateName);
+        if (!fs.existsSync(templatePath) && isRegularSlip) {
+          templatePath = path.resolve(process.cwd(), "Regular slip.pdf");
+        }
+        if (!fs.existsSync(templatePath)) {
+          templatePath = path.resolve(process.cwd(), "public", templateName);
+        }
+
+        const isIdentitySlip =
+          serviceType === "NIN" ||
+          formatType === "NIN_PREMIUM_WHITE" ||
+          formatType === "NIN_PREMIUM_GREEN" ||
+          formatType === "NIN_REGULAR" ||
+          formatType === "NIN_STANDARD" ||
+          (typeof formatType === "string" && (formatType.toUpperCase().includes("PREMIUM") || formatType.toUpperCase().includes("NIN") || formatType.toUpperCase().includes("REGULAR")));
+
+        if (fs.existsSync(templatePath) && isIdentitySlip) {
+          let fName = (verificationResult?.data?.firstName || slipData?.holderData?.firstName || "").trim();
+          let lName = (verificationResult?.data?.surname || verificationResult?.data?.lastName || slipData?.holderData?.surname || slipData?.holderData?.lastName || "").trim();
+          const fFullName = (holderName || "").trim();
+
+          if ((!lName || (fName && lName.toLowerCase() === fName.toLowerCase())) && fFullName) {
+            const parts = fFullName.split(/\s+/).filter(Boolean);
+            if (parts.length >= 2) {
+              const others = parts.filter((p: string) => !fName || p.toLowerCase() !== fName.toLowerCase());
+              lName = others.length > 0 ? others.join(" ") : parts[1] || parts[0];
+            }
+          }
+          if (!fName && fFullName) {
+            const parts = fFullName.split(/\s+/).filter(Boolean);
+            if (parts.length >= 2) {
+              if (lName) {
+                const others = parts.filter((p: string) => p.toLowerCase() !== lName.toLowerCase());
+                fName = others[0] || parts[1];
+              } else {
+                lName = parts[0];
+                fName = parts[1];
+              }
+            } else {
+              fName = parts[0] || "";
+            }
+          }
+
+          const candidatePhoto =
+            verificationResult?.data?.photoUrl ||
+            verificationResult?.data?.photo ||
+            verificationResult?.data?.image ||
+            slipData?.holderData?.photoUrl ||
+            "";
+
+          const slipOverlayData: IdentitySlipData = {
+            firstName: fName,
+            lastName: lName,
+            surname: lName,
+            middleName: verificationResult?.data?.middleName || slipData?.holderData?.middleName,
+            fullName: fFullName || [lName, fName].filter(Boolean).join(" "),
+            gender: gender,
+            dateOfBirth: dateOfBirth,
+            photoUrl: candidatePhoto,
+            nin: maskedId !== "VERIFIED" ? maskedId : slipData?.identificationNumber,
+            idNumber: slipData?.identificationNumber || maskedId,
+            trackingId: trackingId || undefined,
+            address: address,
+            addressLine1: verificationResult?.data?.addressLine1 || verificationResult?.data?.street,
+            addressLine2: verificationResult?.data?.addressLine2 || lga,
+            lga: lga,
+            state: stateOfOrigin,
+            slipType: isRegularSlip ? "REGULAR" : "PREMIUM",
+            providerReference: reference,
+            engineTransactionId: slipId,
+            verificationDate: new Date(),
+          };
+          const templateBytes = fs.readFileSync(templatePath);
+          const pdfBytes = await generateIdentitySlipPdf(templateBytes, slipOverlayData);
+          const rawEmailNin = (slipOverlayData.nin || slipOverlayData.idNumber || "").toString().trim();
+          const safeEmailNin = rawEmailNin ? rawEmailNin.replace(/[^a-zA-Z0-9_-]/g, "") : "";
+          const emailAttachmentFilename = isRegularSlip
+            ? (safeEmailNin ? `NIN Regular slip ${safeEmailNin}.pdf` : "NIN Regular slip.pdf")
+            : (safeEmailNin ? `NIN Premium card ${safeEmailNin}.pdf` : "NIN Premium card.pdf");
+
+          emailAttachments = [
+            {
+              filename: emailAttachmentFilename,
+              content: Buffer.from(pdfBytes),
+              contentType: "application/pdf",
+            },
+          ];
+        }
+      }
+    } catch (attachErr) {
+      console.warn("[SlipEmailDispatch] Could not generate PDF attachment:", attachErr);
+    }
 
     for (const destEmail of targetEmails) {
       const emailRes = await sendPlatformEmail({
         to: destEmail,
         subject,
         html: emailHtml,
+        attachments: emailAttachments,
       });
       if (emailRes.success) {
         deliveryMode = "LIVE_SMTP";

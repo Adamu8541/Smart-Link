@@ -189,7 +189,7 @@ export interface Transaction {
   description: string;
   createdAt: string;
   commissionEarned?: number;
-  gateway?: string;
+  portal?: string;
 }
 
 export interface CACApplication {

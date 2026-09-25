@@ -94,17 +94,17 @@ export function MaintenanceScreen({
 
   if (scope === "LOGIN") {
     title = "Website Login Under Maintenance";
-    badgeText = "AUTHENTICATION GATEWAY MAINTENANCE";
+    badgeText = "AUTHENTICATION PORTAL MAINTENANCE";
     description =
       "User sign-in and account access are currently undergoing scheduled maintenance. Administrators can still access the dashboard via the Admin Portal.";
   } else if (scope === "REGISTRATION") {
     title = "Account Registration Suspended";
     badgeText = "NEW USER SIGNUP MAINTENANCE";
     description =
-      "New user account creations and registration gateways are temporarily paused while we upgrade our verification systems.";
+      "New user account creations and registration portals are temporarily paused while we upgrade our verification systems.";
   } else if (scope === "SERVICE") {
     title = `${serviceName || "Service"} Under Maintenance`;
-    badgeText = "SERVICE GATEWAY MAINTENANCE";
+    badgeText = "SERVICE PORTAL MAINTENANCE";
     description = `The ${serviceName || "requested service"} is currently undergoing scheduled provider maintenance. All other unaffected services remain operational.`;
   }
 

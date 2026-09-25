@@ -14,18 +14,16 @@ export function lazyWithRetry<T extends ComponentType<any>>(
 
     try {
       const module = await componentImport();
-      // Ensure we extract the default export or handle named export bridges
       if (module && typeof module === "object") {
         if (module.default) {
-          return module;
+          return { default: module.default };
         }
-        // If the module itself is a React component or has a known component property
-        const keys = Object.keys(module);
-        for (const key of keys) {
-          if (typeof module[key] === "function" || typeof module[key] === "object") {
-            return { default: module[key] };
-          }
+        if (componentName && module[componentName]) {
+          return { default: module[componentName] };
         }
+      }
+      if (typeof module === "function") {
+        return { default: module };
       }
       return module;
     } catch (error: any) {

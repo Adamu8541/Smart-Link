@@ -80,7 +80,7 @@ export const VerificationService: React.FC<VerificationServiceProps> = ({
             <span>Verification Services</span>
           </h2>
           <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">
-            Official central gateway for Federal Identity, Corporate, Tax & Credential Verifications
+            Official central portal for Federal Identity, Corporate, Tax & Credential Verifications
           </p>
         </div>
 

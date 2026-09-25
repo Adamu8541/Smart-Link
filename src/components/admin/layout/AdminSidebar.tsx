@@ -69,11 +69,11 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    title: "SERVICES & GATEWAYS",
+    title: "SERVICES & PORTALS",
     items: [
       { id: "NAV_SERVICES", label: "Verification Services", path: "/admin/services", icon: CheckSquare, requiredPermissions: ["MANAGE_SERVICES", "VIEW_SERVICES"] },
-      { id: "NAV_PROVIDERS", label: "API Gateway Providers", path: "/admin/providers", icon: Server, requiredPermissions: ["MANAGE_PROVIDERS", "VIEW_PROVIDERS"] },
-      { id: "NAV_GATEWAY_ROUTING", label: "Multi-Gateway Routing", path: "/admin/gateway-routing", icon: ArrowRightLeft, requiredPermissions: ["MANAGE_PROVIDERS", "VIEW_PROVIDERS"], badge: "Failover" },
+      { id: "NAV_PROVIDERS", label: "API Providers", path: "/admin/providers", icon: Server, requiredPermissions: ["MANAGE_PROVIDERS", "VIEW_PROVIDERS"] },
+      { id: "NAV_PORTAL_ROUTING", label: "Multi-Provider Routing", path: "/admin/routing", icon: ArrowRightLeft, requiredPermissions: ["MANAGE_PROVIDERS", "VIEW_PROVIDERS"], badge: "Failover" },
       { id: "NAV_API_BUILDER", label: "API Request Builder", path: "/admin/api-builder", icon: Code, requiredPermissions: ["MANAGE_PROVIDERS", "VIEW_PROVIDERS"] },
       { id: "NAV_RESPONSE_MAPPER", label: "API Response Mapper", path: "/admin/response-mapper", icon: ArrowRightLeft, requiredPermissions: ["MANAGE_PROVIDERS", "VIEW_PROVIDERS"] },
     ],
@@ -111,7 +111,7 @@ export default function AdminSidebar({
 
   const roleDef = ADMIN_ROLES_CONFIG[session.role] || {
     displayName: session.role,
-    colorBadge: "bg-[#0F2D5C] text-[#0F2D5C] border-[#0F2D5C]",
+    colorBadge: "bg-blue-50 text-[#0F2D5C] dark:bg-blue-950/50 dark:text-blue-200 border-blue-200 dark:border-blue-800",
   };
 
   const checkHasAccess = (requiredPerms: string[]) => {
@@ -120,13 +120,12 @@ export default function AdminSidebar({
   };
 
   return (
-    <aside
-      className={`h-full bg-white text-[#0F2D5C] border-r border-[#0F2D5C] flex flex-col justify-between transition-all duration-300 relative select-none shadow-[2px_0_8px_rgba(11,31,58,0.04)] ${
+    <aside className={`h-full bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between transition-all duration-300 relative select-none shadow-[2px_0_8px_rgba(11,31,58,0.04)] ${
         collapsed && !isMobileDrawer ? "w-20" : "w-72"
       }`}
     >
       {/* Top Header Logo */}
-      <div className="p-4 border-b border-[#0F2D5C] flex items-center justify-between bg-[#0F2D5C]">
+      <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900 dark:bg-slate-950 text-white">
         <div
           className="flex items-center gap-3 overflow-hidden cursor-pointer"
           onClick={() => onNavigate("/admin/dashboard")}
@@ -145,12 +144,10 @@ export default function AdminSidebar({
           {(!collapsed || isMobileDrawer) && (
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-sm text-[#0F2D5C] tracking-tight">SmartLink</span>
-                <span className="px-1.5 py-0.2 rounded bg-[#0F2D5C] text-[#0F2D5C] font-mono text-[9px] font-bold">
-                  ADMIN
-                </span>
+                <span className="font-extrabold text-sm text-white tracking-tight">SmartLink</span>
+                <span className="px-1.5 py-0.5 rounded bg-white/20 text-white font-mono text-[9px] font-bold">ADMIN</span>
               </div>
-              <p className="text-[10px] text-[#0F2D5C] truncate">Enterprise Control</p>
+              <p className="text-[10px] text-slate-300 truncate">Enterprise Control</p>
             </div>
           )}
         </div>
@@ -159,7 +156,7 @@ export default function AdminSidebar({
           <button
             type="button"
             onClick={onToggleCollapse}
-            className="p-1.5 rounded-xl bg-white hover:bg-[#0F2D5C] border border-[#0F2D5C] text-[#0F2D5C] hover:text-[#0F2D5C] transition-colors cursor-pointer"
+            className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white transition-colors cursor-pointer"
             title={collapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           >
             {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
@@ -168,7 +165,7 @@ export default function AdminSidebar({
       </div>
 
       {/* Admin User Card (Snapshot) */}
-      <div className="p-4 border-b border-[#0F2D5C] bg-white">
+      <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-xl bg-[#0F2D5C] text-white flex items-center justify-center font-extrabold text-sm shrink-0">
             {session.fullName.charAt(0).toUpperCase()}
@@ -176,9 +173,9 @@ export default function AdminSidebar({
 
           {(!collapsed || isMobileDrawer) && (
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold text-[#0F2D5C] truncate">{session.fullName}</p>
+              <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{session.fullName}</p>
               <div className="flex items-center gap-1.5 mt-0.5">
-                <span className="px-2 py-0.5 rounded-md font-mono text-[10px] font-bold bg-[#0F2D5C] text-[#0F2D5C] border border-[#0F2D5C]">
+                <span className="px-2 py-0.5 rounded-md font-mono text-[10px] font-bold bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 border border-blue-200 dark:border-blue-800">
                   {roleDef.displayName}
                 </span>
               </div>
@@ -192,7 +189,7 @@ export default function AdminSidebar({
         {ADMIN_NAV_GROUPS.map((group) => (
           <div key={group.title} className="space-y-1">
             {(!collapsed || isMobileDrawer) && (
-              <p className="px-3 text-[10px] font-bold text-[#0F2D5C] uppercase tracking-wider mb-2">
+              <p className="px-3 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">
                 {group.title}
               </p>
             )}
@@ -213,15 +210,14 @@ export default function AdminSidebar({
                     className={`w-full py-2.5 px-3 rounded-xl flex items-center justify-between text-xs font-semibold transition-all cursor-pointer group ${
                       isActive
                         ? "bg-[#0F2D5C] text-white"
-                        : hasAccess
-                        ? "text-[#0F2D5C] hover:bg-[#0F2D5C] hover:text-[#0F2D5C]"
-                        : "text-[#0F2D5C] opacity-40 cursor-not-allowed"
+                        : hasAccess ? "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-[#0F2D5C] dark:hover:text-white"
+                        : "text-slate-400 dark:text-slate-600 opacity-40 cursor-not-allowed"
                     }`}
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <IconComp
                         className={`h-4 w-4 shrink-0 transition-transform group-hover:scale-110 ${
-                          isActive ? "text-white" : hasAccess ? "text-[#0F2D5C] group-hover:text-[#0F2D5C]" : "text-[#0F2D5C]"
+                          isActive ? "text-white" : hasAccess ? "text-slate-500 group-hover:text-[#0F2D5C] dark:group-hover:text-white" : "text-slate-400"
                         }`}
                       />
                       {(!collapsed || isMobileDrawer) && (
@@ -232,12 +228,12 @@ export default function AdminSidebar({
                     {(!collapsed || isMobileDrawer) && (
                       <div className="flex items-center gap-1.5 shrink-0">
                         {!hasAccess && (
-                          <Lock className="h-3 w-3 text-[#0F2D5C]" title="Permission Denied by RBAC" />
+                          <Lock className="h-3 w-3 text-slate-400" title="Permission Denied by RBAC" />
                         )}
                         {item.badge && hasAccess && (
                           <span
                             className={`px-1.5 py-0.2 rounded-full font-mono text-[10px] font-bold ${
-                              isActive ? "bg-white text-[#0F2D5C]" : "bg-[#0F2D5C] text-[#0F2D5C] border border-[#0F2D5C]"
+                              isActive ? "bg-white text-[#0F2D5C]" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
                             }`}
                           >
                             {item.badge}
@@ -254,23 +250,23 @@ export default function AdminSidebar({
       </div>
 
       {/* Footer System Status & Logout */}
-      <div className="p-3 border-t border-[#0F2D5C] bg-[#0F2D5C] space-y-2">
+      <div className="p-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 space-y-2">
         {(!collapsed || isMobileDrawer) && (
-          <div className="p-2 rounded-xl bg-white border border-[#0F2D5C] flex items-center justify-between text-[10px] text-[#0F2D5C]">
+          <div className="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-between text-[10px] text-slate-600 dark:text-slate-300">
             <div className="flex items-center gap-1.5">
-              <Globe className="h-3.5 w-3.5 text-[#0F2D5C]" />
-              <span>Region: <strong className="text-[#0F2D5C]">Nigeria (WAT)</strong></span>
+              <Globe className="h-3.5 w-3.5 text-emerald-500" />
+              <span>Region: <strong className="text-slate-900 dark:text-white">Nigeria (WAT)</strong></span>
             </div>
-            <span className="h-2 w-2 rounded-full bg-[#0F2D5C]" />
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
           </div>
         )}
 
         <button
           type="button"
           onClick={onLogout}
-          className="w-full py-2.5 px-3 rounded-xl bg-white hover:bg-[#0F2D5C] border border-[#0F2D5C] text-[#0F2D5C] font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full py-2.5 px-3 rounded-xl bg-white dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-slate-200 dark:border-slate-700 hover:border-rose-200 text-slate-700 dark:text-slate-200 hover:text-rose-600 dark:hover:text-rose-400 font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
         >
-          <LogOut className="h-4 w-4 shrink-0 text-[#0F2D5C]" />
+          <LogOut className="h-4 w-4 shrink-0" />
           {(!collapsed || isMobileDrawer) && <span>Logout Session</span>}
         </button>
       </div>

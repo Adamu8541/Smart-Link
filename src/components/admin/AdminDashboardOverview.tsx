@@ -61,7 +61,7 @@ export default function AdminDashboardOverview({
     { path: "/admin/wallet", label: "Wallet Management", icon: Wallet, desc: "Review user balances, funding & debits", color: "bg-white border border-[#E5E7EB] hover:border-[#0F2D5C]" },
     { path: "/admin/transactions", label: "Transaction Ledger", icon: BarChart3, desc: "Audit live transaction histories & status", color: "bg-white border border-[#E5E7EB] hover:border-[#0F2D5C]" },
     { path: "/admin/refunds", label: "Refunds Portal", icon: DollarSign, desc: "Process refund requests & ledger", color: "bg-white border border-[#E5E7EB] hover:border-[#0F2D5C]" },
-    { path: "/admin/providers", label: "API Gateway Providers", icon: Server, desc: "Paystack, Aspfiy, VTU provider status", color: "bg-white border border-[#E5E7EB] hover:border-[#0F2D5C]" },
+    { path: "/admin/providers", label: "API Providers", icon: Server, desc: "Paystack, Aspfiy, VTU provider status", color: "bg-white border border-[#E5E7EB] hover:border-[#0F2D5C]" },
     { path: "/admin/settings", label: "System Settings", icon: Settings, desc: "Platform rates, fees & configuration", color: "bg-white border border-[#E5E7EB] hover:border-[#0F2D5C]" },
     { path: "/admin/reports", label: "Settlement & Audit Reports", icon: FileText, desc: "Export financial & reconciliation reports", color: "bg-white border border-[#E5E7EB] hover:border-[#0F2D5C]" },
   ];

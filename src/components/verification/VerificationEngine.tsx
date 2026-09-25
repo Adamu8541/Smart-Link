@@ -201,7 +201,7 @@ export const VerificationEngine: React.FC<VerificationEngineProps> = ({
                 <span>{selectedService ? selectedService.title : "SmartLink Central Verification Engine"}</span>
               </h2>
               <p className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF]">
-                {selectedService ? selectedService.subtitle : "Select an official service gateway"}
+                {selectedService ? selectedService.subtitle : "Select an official service portal"}
               </p>
             </div>
           </div>
@@ -239,7 +239,7 @@ export const VerificationEngine: React.FC<VerificationEngineProps> = ({
             <div className="p-4 bg-[#F5F7FA]/60 dark:bg-[#0F2D5C]/40 rounded-2xl border border-[#E5E7EB] dark:border-[#0F2D5C]/40 flex items-center justify-between">
               <div className="space-y-0.5">
                 <span className="text-[10px] uppercase font-bold text-[#0F2D5C] dark:text-[#9CA3AF] tracking-wider">
-                  {selectedService.category} GATEWAY
+                  {selectedService.category} PORTAL
                 </span>
                 <p className="text-xs font-semibold text-[#4B5563] dark:text-[#E5E7EB]">
                   {selectedService.providerName}
