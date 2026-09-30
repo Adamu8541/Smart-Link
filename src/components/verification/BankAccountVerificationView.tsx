@@ -34,9 +34,10 @@ import { BankService, Bank } from "../../services/bankService";
 import { ConfirmationDialog } from "../wallet/ConfirmationDialog";
 import { VerificationLoader } from "./VerificationLoader";
 import { VerificationError } from "./VerificationError";
-import { VerificationSuccess } from "./VerificationSuccess";
+import { SlipPrintEngine } from "../../services/slipPrintEngine";
 import { VerificationReceipt } from "./VerificationReceipt";
 import { formatNaira, formatSafeDateTime } from "../../utils/formatUtils";
+import { getAuthHeaders } from "../../services/providerService";
 
 interface BankAccountVerificationViewProps {
   userId: string;
@@ -73,10 +74,15 @@ export const BankAccountVerificationView: React.FC<BankAccountVerificationViewPr
   const [userBalance, setUserBalance] = useState<number>(0);
 
   // Execution View Modes
-  const [stepMode, setStepMode] = useState<"INPUT" | "CONFIRMATION" | "LOADING" | "SUCCESS" | "ERROR">("INPUT");
+  const [stepMode, setStepMode] = useState<"INPUT" | "CONFIRMATION" | "LOADING" | "ERROR">("INPUT");
   const [currentStep, setCurrentStep] = useState<VerificationProgressStep>(VERIFICATION_PROGRESS_STEPS[0]);
   const [result, setResult] = useState<StandardizedVerificationResult | null>(null);
   const [errorState, setErrorState] = useState<VerificationErrorState | null>(null);
+
+  // Cached PDF Slip for instant download & email dispatch right from loader
+  const [cachedPdfBytes, setCachedPdfBytes] = useState<Uint8Array | null>(null);
+  const [cachedBlob, setCachedBlob] = useState<Blob | null>(null);
+  const [cachedFilename, setCachedFilename] = useState<string>("Official_Bank_Account_Slip.pdf");
 
   // History States
   const [history, setHistory] = useState<VerificationHistoryItem[]>([]);
@@ -181,9 +187,13 @@ export const BankAccountVerificationView: React.FC<BankAccountVerificationViewPr
       const startTime = Date.now();
       onProgressUpdate(VERIFICATION_PROGRESS_STEPS[1]);
 
+      const authHeaders = await getAuthHeaders(userId);
       const response = await fetch("/api/services/bank-account-verify", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...authHeaders,
+        },
         body: JSON.stringify({
           userId,
           accountNumber: cleanAccount,
@@ -233,8 +243,34 @@ export const BankAccountVerificationView: React.FC<BankAccountVerificationViewPr
         userId,
       };
 
+      // 1. Advance to 90%: Applying authentic security overlay
+      onProgressUpdate({
+        id: 5,
+        label: "Applying Official Security Overlay & Preparing Slip...",
+        progress: 90,
+      });
+
+      // 2. Perform the overlay and auto-download right during the loader!
+      try {
+        const exportResult = await SlipPrintEngine.autoExportIdentitySlip(standardizedResult);
+        if (exportResult.success && exportResult.pdfBytes) {
+          setCachedPdfBytes(exportResult.pdfBytes);
+          setCachedBlob(exportResult.blob || new Blob([exportResult.pdfBytes], { type: "application/pdf" }));
+          setCachedFilename(exportResult.filename);
+        }
+      } catch (overlayErr) {
+        console.error("Auto-overlay error during loading:", overlayErr);
+      }
+
+      // 3. Advance to 100%: Completed!
+      onProgressUpdate({
+        id: 6,
+        label: "Verification Complete & Official Slip Auto-Downloaded",
+        progress: 100,
+      });
       setResult(standardizedResult);
-      setStepMode("SUCCESS");
+
+      // Keep in LOADING mode so VerificationLoader displays the 100% complete state with buttons!
       refreshBalance();
       onBalanceUpdate?.();
     } catch (err: any) {
@@ -594,20 +630,17 @@ export const BankAccountVerificationView: React.FC<BankAccountVerificationViewPr
             currentBalance={userBalance}
           />
 
-          {/* Loading State */}
+          {/* Loading State (0% -> 55% -> 90% -> 100% with inline action buttons) */}
           {stepMode === "LOADING" && (
             <VerificationLoader
               currentStep={currentStep}
               serviceTitle="Bank Account Verification"
               providerName="NIBSS NIP Name Enquiry Portal"
-            />
-          )}
-
-          {/* Success View */}
-          {stepMode === "SUCCESS" && result && (
-            <VerificationSuccess
               result={result}
-              onRepeatVerification={() => setStepMode("CONFIRMATION")}
+              userId={userId}
+              cachedBlob={cachedBlob}
+              cachedPdfBytes={cachedPdfBytes}
+              cachedFilename={cachedFilename}
               onNewVerification={handleResetForm}
             />
           )}

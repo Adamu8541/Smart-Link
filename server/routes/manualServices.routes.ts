@@ -119,17 +119,14 @@ app.post("/api/manual-services/submit", async (req, res) => {
   let userEmail = "user@smartlink.ng";
   let userFullName = "SmartLink User";
 
-  const authHeader = (req.headers["authorization"] || req.headers["Authorization"]) as string;
-  if (authHeader && authHeader.startsWith("Bearer ")) {
-    try {
-      const authCheck = await verifyUserOrAdminSession(req, userId, db);
-      if (authCheck.authorized && authCheck.authenticatedUid) {
-        effectiveUserId = authCheck.authenticatedUid;
-      }
-    } catch (authErr) {
-      console.warn("[Manual Services Auth] Token verification note:", authErr);
-    }
+  const authCheck = await verifyUserOrAdminSession(req, userId, db);
+  if (!authCheck.authorized) {
+    return res.status(authCheck.reason?.includes("Authentication required") ? 401 : 403).json({
+      error: authCheck.reason || "Authentication required to submit applications.",
+      errorCode: "AUTH_ERROR"
+    });
   }
+  effectiveUserId = authCheck.isAdmin ? (userId || authCheck.authenticatedUid) : authCheck.authenticatedUid;
 
   const user = (db.users || []).find((u: any) => u.uid === effectiveUserId || u.id === effectiveUserId);
   if (user) {

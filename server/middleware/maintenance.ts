@@ -134,11 +134,32 @@ export function sanitizePublicSettings(db: any, maintenanceDetails?: any) {
   const sysGeneral = db.system_settings?.general || {};
   const rawLogo = branding.logoUrl || branding.lightLogoUrl || "";
   const resolvedLogoUrl = rawLogo || "/logo.png";
+  const rawSys = db.system_settings || db.systemSettings || {};
+  const safeSystemSettings = {
+    general: {
+      platformName: sysGeneral.platformName || "SmartLink Digital",
+      currency: sysGeneral.currency || "NGN",
+      currencySymbol: sysGeneral.currencySymbol || "₦",
+      supportEmail: sysGeneral.supportEmail || "support@smartlinkdigital.ng",
+      supportPhone: sysGeneral.supportPhone || "+2348000000000",
+      allowRegistration: sysGeneral.allowRegistration !== false,
+      requireEmailVerification: Boolean(sysGeneral.requireEmailVerification),
+      requirePhoneVerification: Boolean(sysGeneral.requirePhoneVerification),
+    },
+    transactions: {
+      walletFundingMinAmount: rawSys.transactions?.walletFundingMinAmount || 100,
+      walletFundingMaxAmount: rawSys.transactions?.walletFundingMaxAmount || 1000000,
+      airtimeDiscountPercent: rawSys.transactions?.airtimeDiscountPercent || 0,
+      dataDiscountPercent: rawSys.transactions?.dataDiscountPercent || 0,
+      autoRefundOnFailure: rawSys.transactions?.autoRefundOnFailure !== false,
+    },
+  };
+
   return {
     success: true,
     priceMatrix: db.priceMatrix || {},
     servicesCatalog: db.servicesCatalog || [],
-    systemSettings: db.system_settings || db.systemSettings || {},
+    systemSettings: safeSystemSettings,
     settings: {
       appName: branding.appName || sysGeneral.platformName || "SmartLink Digital",
       tagline: branding.tagline || "Enterprise Digital & Identity Services Platform",

@@ -208,7 +208,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
             type="button"
             onClick={onClose}
             disabled={isLoading || isVerifyingPin}
-            className="flex-1 py-2.5 px-4 bg-[#E5E7EB] dark:bg-[#111827] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563] text-[#4B5563] dark:text-[#E5E7EB] font-semibold rounded-xl text-xs transition-colors cursor-pointer"
+            className="flex-1 py-2.5 px-4 bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white font-semibold rounded-xl text-xs transition-colors cursor-pointer"
           >
             Cancel
           </button>

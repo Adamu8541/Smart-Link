@@ -76,7 +76,7 @@ html {
 
 body {
   background-color: #F5F7FA;
-  color: #374151;
+  color: #1F2937;
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -84,6 +84,80 @@ body {
   overflow-x: hidden;
   width: 100%;
   overscroll-behavior-y: none;
+}
+
+/* High-contrast visibility for dropdown options across native OS pickers and dark/light modes */
+select option {
+  background-color: #FFFFFF !important;
+  color: #111827 !important;
+  font-weight: 600;
+}
+
+.dark select option,
+html.dark select option,
+.bg-\[\#111827\] select option,
+.bg-\[\#0F2D5C\] select option {
+  background-color: #111827 !important;
+  color: #FFFFFF !important;
+}
+
+/* Ensure disabled inputs and controls maintain high-contrast legibility */
+input:disabled,
+select:disabled,
+textarea:disabled,
+button:disabled {
+  opacity: 0.88 !important;
+  color: #374151 !important;
+  cursor: not-allowed;
+}
+
+.dark input:disabled,
+.dark select:disabled,
+.dark textarea:disabled,
+.dark button:disabled,
+.bg-\[\#111827\] input:disabled,
+.bg-\[\#111827\] select:disabled {
+  color: #E5E7EB !important;
+}
+
+/* High-contrast input placeholder contrast */
+input::placeholder,
+textarea::placeholder {
+  color: #4B5563 !important;
+  opacity: 1 !important;
+}
+
+/* High contrast typography & optical visibility guarantees */
+label {
+  color: #1F2937;
+  font-weight: 600;
+}
+
+.dark label,
+.bg-\[\#111827\] label {
+  color: #F3F4F6;
+}
+
+/* Ensure table cells, values, and badges remain sharp and visible */
+th, td {
+  color: inherit;
+}
+
+/* High contrast overrides for faint slate/gray utility classes */
+.text-slate-400,
+.text-gray-400,
+.text-zinc-400 {
+  color: #4B5563;
+}
+
+.dark .text-slate-400,
+.dark .text-gray-400,
+.dark .text-zinc-400,
+.bg-\[\#111827\] .text-slate-400,
+.bg-\[\#111827\] .text-gray-400,
+.bg-\[\#0F2D5C\] .text-slate-400,
+.bg-\[\#111827\] .text-\[\#9CA3AF\] {
+  color: #D1D5DB;
 }
 
 /* Eliminate 300ms tap delay and optimize mobile touch response */

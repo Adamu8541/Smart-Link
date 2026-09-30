@@ -50,7 +50,7 @@ const DEFAULT_PROVIDERS = [
   "All Providers"
 ];
 
-export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminUid }) => {
+export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps>= ({ adminUid }) => {
   const [webhooks, setWebhooks] = useState<WebhookItem[]>([]);
   const [webhookLogs, setWebhookLogs] = useState<WebhookLogItem[]>([]);
   const [registeredProviders, setRegisteredProviders] = useState<string[]>(DEFAULT_PROVIDERS);
@@ -430,10 +430,10 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
             <button
               onClick={fetchWebhooks}
               disabled={loading}
-              className="p-2.5 bg-white/10 hover:bg-white/20 text-white rounded-2xl transition-all cursor-pointer border border-white/10"
+              className=" p-2.5 rounded-2xl transition-all cursor-pointer border border-white/10"
               title="Refresh Webhooks"
             >
-              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+              <RefreshCw className={`h-4 w-4${loading ? "animate-spin" : ""}`} />
             </button>
           </div>
         </div>
@@ -458,7 +458,7 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
         <div className="flex items-center gap-2">
           <button
             onClick={() => setActiveTab("CONFIGURATIONS")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer${
               activeTab === "CONFIGURATIONS"
                 ? "bg-[#0F2D5C] text-white shadow-md"
                 : "bg-[#E5E7EB] dark:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563]"
@@ -469,7 +469,7 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
           </button>
           <button
             onClick={() => setActiveTab("TEST_LOGS")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer${
               activeTab === "TEST_LOGS"
                 ? "bg-[#0F2D5C] text-white shadow-md"
                 : "bg-[#E5E7EB] dark:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563]"
@@ -483,20 +483,20 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
         {activeTab === "CONFIGURATIONS" && (
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative min-w-[200px]">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-[#9CA3AF]" />
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
               <input
                 type="text"
                 placeholder="Search webhooks..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-xl text-xs focus:ring-2 focus:ring-[#0F2D5C] outline-none"
+                className="w-full pl-9 pr-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:border-blue-500 outline-none"
               />
             </div>
 
             <select
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value)}
-              className="px-3 py-2 bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#0F2D5C] outline-none cursor-pointer"
+              className="px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs font-medium text-slate-200 focus:border-blue-500 outline-none cursor-pointer"
             >
               <option value="ALL">All Statuses</option>
               <option value="Enabled">Enabled Only</option>
@@ -506,7 +506,7 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
             <select
               value={providerFilter}
               onChange={e => setProviderFilter(e.target.value)}
-              className="px-3 py-2 bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#0F2D5C] outline-none cursor-pointer"
+              className="px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs font-medium text-slate-200 focus:border-blue-500 outline-none cursor-pointer"
             >
               <option value="ALL">All Providers</option>
               {registeredProviders.map(p => (
@@ -522,19 +522,19 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
         <div className="space-y-4">
           {loading ? (
             <div className="py-16 text-center space-y-3">
-              <RefreshCw className="h-8 w-8 text-[#0F2D5C] animate-spin mx-auto" />
-              <p className="text-xs text-[#6B7280] font-medium">Loading webhook configurations...</p>
+              <RefreshCw className="h-8 w-8 text-blue-400 animate-spin mx-auto" />
+              <p className="text-xs text-slate-400 font-medium">Loading webhook configurations...</p>
             </div>
           ) : filteredWebhooks.length === 0 ? (
-            <div className="py-16 bg-[#F5F7FA] dark:bg-[#111827]/50 border border-dashed border-[#E5E7EB] dark:border-[#111827] rounded-3xl text-center space-y-3">
-              <Webhook className="h-10 w-10 text-[#9CA3AF] mx-auto" />
-              <h3 className="text-sm font-bold text-[#4B5563] dark:text-[#E5E7EB]">No Webhooks Found</h3>
-              <p className="text-xs text-[#6B7280] max-w-sm mx-auto">
+            <div className="py-16 bg-slate-900 border border-dashed border-slate-800 rounded-3xl text-center space-y-3">
+              <Webhook className="h-10 w-10 text-slate-600 mx-auto" />
+              <h3 className="text-sm font-bold text-white">No Webhooks Found</h3>
+              <p className="text-xs text-slate-400 max-w-sm mx-auto">
                 No webhooks match your search criteria. Click "Add Webhook" above to create a new dynamic webhook endpoint.
               </p>
               <button
                 onClick={handleOpenAddModal}
-                className="px-4 py-2 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-bold rounded-xl text-xs transition-all cursor-pointer"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs transition-all cursor-pointer shadow-md"
               >
                 Create Webhook
               </button>
@@ -544,93 +544,93 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
               {filteredWebhooks.map(wh => (
                 <div
                   key={wh.id}
-                  className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+                  className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl hover:border-slate-700 transition-all flex flex-col justify-between space-y-4"
                 >
                   <div className="space-y-3">
                     {/* Top Row: Name, Status & Provider */}
                     <div className="flex items-start justify-between gap-2">
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <h3 className="text-sm font-black text-[#111827] dark:text-white line-clamp-1">{wh.name}</h3>
+                          <h3 className="text-sm font-bold text-white line-clamp-1">{wh.name}</h3>
                           <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
                               wh.status === "Enabled"
-                                ? "bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/80 dark:text-[#9CA3AF]"
-                                : "bg-[#E5E7EB] text-[#4B5563] dark:bg-[#111827] dark:text-[#9CA3AF]"
+                                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                                : "bg-slate-800 text-slate-400 border-slate-700"
                             }`}
                           >
                             {wh.status}
                           </span>
                         </div>
-                        <div className="flex items-center gap-1.5 text-xs text-[#6B7280] dark:text-[#9CA3AF] font-mono">
-                          <Server className="h-3.5 w-3.5 text-[#0F2D5C] shrink-0" />
+                        <div className="flex items-center gap-1.5 text-xs text-slate-400 font-mono">
+                          <Server className="h-3.5 w-3.5 text-blue-400 shrink-0" />
                           <span>{wh.provider || "All Providers"}</span>
                         </div>
                       </div>
 
-                      <span className="px-2.5 py-1 bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 rounded-xl text-[10px] font-black uppercase tracking-wider shrink-0 font-mono border border-slate-200 dark:border-slate-700">
+                      <span className="px-2.5 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-xl text-[10px] font-black uppercase tracking-wider shrink-0 font-mono">
                         {wh.httpMethod || "POST"}
                       </span>
                     </div>
 
                     {/* Event Type Badge */}
-                    <div className="p-2 bg-[#F5F7FA] dark:bg-[#111827] rounded-xl border border-[#E5E7EB]/80 dark:border-[#111827] flex items-center justify-between text-xs font-mono">
-                      <span className="text-[10px] text-[#9CA3AF] font-sans uppercase tracking-wider font-bold">Event Type</span>
-                      <span className="font-extrabold text-[#0F2D5C] dark:text-[#9CA3AF]">{wh.eventType}</span>
+                    <div className="p-2 bg-slate-950/60 rounded-xl border border-slate-800 flex items-center justify-between text-xs font-mono">
+                      <span className="text-[10px] text-slate-400 font-sans uppercase tracking-wider font-bold">Event Type</span>
+                      <span className="font-extrabold text-blue-400">{wh.eventType}</span>
                     </div>
 
                     {/* Webhook URL Box */}
                     <div className="space-y-1">
-                      <span className="text-[10px] font-mono text-[#9CA3AF] uppercase tracking-wider font-bold">Endpoint URL</span>
-                      <div className="p-2.5 bg-[#111827] text-[#E5E7EB] rounded-xl font-mono text-xs flex items-center justify-between gap-2 border border-[#111827]">
-                        <span className="truncate text-[11px] text-[#9CA3AF]" title={wh.url}>{wh.url}</span>
+                      <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider font-bold">Endpoint URL</span>
+                      <div className="p-2.5 bg-slate-950 text-slate-200 rounded-xl font-mono text-xs flex items-center justify-between gap-2 border border-slate-800">
+                        <span className="truncate text-[11px] text-slate-300" title={wh.url}>{wh.url}</span>
                         <button
                           onClick={() => copyToClipboard(wh.url, wh.id)}
-                          className="p-1 text-[#9CA3AF] hover:text-white transition-colors cursor-pointer shrink-0"
+                          className="p-1 hover:text-white text-slate-400 transition-colors cursor-pointer shrink-0"
                           title="Copy URL"
                         >
-                          {copiedId === wh.id ? <Check className="h-3.5 w-3.5 text-[#9CA3AF]" /> : <Copy className="h-3.5 w-3.5" />}
+                          {copiedId === wh.id ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
                         </button>
                       </div>
                     </div>
 
                     {/* Metadata Specs */}
-                    <div className="grid grid-cols-2 gap-2 text-[11px] font-mono pt-1 text-[#4B5563] dark:text-[#9CA3AF]">
+                    <div className="grid grid-cols-2 gap-2 text-[11px] font-mono pt-1 text-slate-400">
                       <div>
-                        <span className="text-[#9CA3AF] font-sans block text-[10px]">Signature Header:</span>
-                        <span className="font-bold text-[#111827] dark:text-[#E5E7EB]">{wh.signatureHeader || "X-Webhook-Signature"}</span>
+                        <span className="text-slate-500 font-sans block text-[10px]">Signature Header:</span>
+                        <span className="font-bold text-slate-200">{wh.signatureHeader || "X-Webhook-Signature"}</span>
                       </div>
                       <div>
-                        <span className="text-[#9CA3AF] font-sans block text-[10px]">Retry Policy:</span>
-                        <span className="font-bold text-[#111827] dark:text-[#E5E7EB]">{wh.retryCount ?? 3} retries / {wh.retryInterval ?? 5}s</span>
+                        <span className="text-slate-500 font-sans block text-[10px]">Retry Policy:</span>
+                        <span className="font-bold text-slate-200">{wh.retryCount ?? 3} retries / {wh.retryInterval ?? 5}s</span>
                       </div>
                     </div>
 
                     {/* Last Tested & Status Panel */}
-                    <div className="p-2.5 bg-[#F5F7FA] dark:bg-[#111827]/80 rounded-xl border border-[#E5E7EB]/80 dark:border-[#111827] space-y-1.5 text-xs font-mono">
+                    <div className="p-2.5 bg-slate-950/60 rounded-xl border border-slate-800 space-y-1.5 text-xs font-mono">
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] text-[#9CA3AF] font-sans">Last Result:</span>
+                        <span className="text-[10px] text-slate-400 font-sans">Last Result:</span>
                         <div>{getResultBadge(wh.lastResult, wh.lastStatusCode)}</div>
                       </div>
-                      <div className="flex items-center justify-between text-[11px] text-[#6B7280]">
-                        <span className="font-sans text-[#9CA3AF] text-[10px]">Last Tested:</span>
+                      <div className="flex items-center justify-between text-[11px] text-slate-400">
+                        <span className="font-sans text-slate-500 text-[10px]">Last Tested:</span>
                         <span>{wh.lastTestedAt ? formatSafeDateTime(wh.lastTestedAt, "Never") : "Never"}</span>
                       </div>
                     </div>
 
                     {wh.notes && (
-                      <p className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF] italic line-clamp-2">
+                      <p className="text-[11px] text-slate-400 italic line-clamp-2">
                         "{wh.notes}"
                       </p>
                     )}
                   </div>
 
                   {/* Actions Bar */}
-                  <div className="pt-3 border-t border-[#E5E7EB] dark:border-[#111827] flex items-center justify-between gap-2">
+                  <div className="pt-3 border-t border-slate-800 flex items-center justify-between gap-2">
                     <button
                       onClick={() => handleTestWebhook(wh)}
                       disabled={testingWebhookId === wh.id}
-                      className="px-3 py-1.5 bg-[#0F2D5C] hover:bg-[#0F2D5C] active:bg-[#0F2D5C] text-white font-bold rounded-xl text-xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-xs"
+                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-bold rounded-xl text-xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-xs"
                       title="Send simulated webhook payload"
                     >
                       {testingWebhookId === wh.id ? (
@@ -649,10 +649,10 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => handleToggleStatus(wh)}
-                        className={`p-1.5 rounded-xl transition-all cursor-pointer ${
+                        className={`p-1.5 rounded-xl transition-all cursor-pointer border ${
                           wh.status === "Enabled"
-                            ? "bg-[#F5F7FA] hover:bg-[#E5E7EB] dark:bg-[#0F2D5C]/50 text-[#0F2D5C] dark:text-[#9CA3AF]"
-                            : "bg-[#F5F7FA] hover:bg-[#E5E7EB] dark:bg-[#0F2D5C]/50 text-[#0F2D5C] dark:text-[#9CA3AF]"
+                            ? "bg-slate-800 hover:bg-slate-700 text-emerald-400 border-slate-700"
+                            : "bg-slate-800 hover:bg-slate-700 text-slate-400 border-slate-700"
                         }`}
                         title={wh.status === "Enabled" ? "Disable Webhook" : "Enable Webhook"}
                       >
@@ -661,7 +661,7 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
 
                       <button
                         onClick={() => handleOpenEditModal(wh)}
-                        className="p-1.5 bg-[#E5E7EB] hover:bg-[#E5E7EB] dark:bg-[#111827] dark:hover:bg-[#4B5563] text-[#4B5563] dark:text-[#E5E7EB] rounded-xl transition-all cursor-pointer"
+                        className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-all cursor-pointer"
                         title="Edit Webhook"
                       >
                         <Edit3 className="h-4 w-4" />
@@ -669,7 +669,7 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
 
                       <button
                         onClick={() => handleDeleteWebhook(wh)}
-                        className="p-1.5 bg-[#F5F7FA] hover:bg-[#E5E7EB] dark:bg-[#0F2D5C]/50 text-[#0F2D5C] dark:text-[#9CA3AF] rounded-xl transition-all cursor-pointer"
+                        className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-rose-400 hover:text-rose-300 border border-slate-700 transition-all cursor-pointer"
                         title="Delete Webhook"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -685,26 +685,26 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
 
       {/* TAB 2: TEST & EXECUTION AUDIT LOGS */}
       {activeTab === "TEST_LOGS" && (
-        <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl p-6 shadow-xs space-y-4">
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4 text-slate-100">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-base font-extrabold text-[#111827] dark:text-white">Webhook Execution & Audit Logs</h3>
-              <p className="text-xs text-[#6B7280]">Detailed records of simulated tests and dynamic webhook deliveries</p>
+              <h3 className="text-base font-extrabold text-white">Webhook Execution & Audit Logs</h3>
+              <p className="text-xs text-slate-400">Detailed records of simulated tests and dynamic webhook deliveries</p>
             </div>
-            <span className="px-3 py-1 bg-[#E5E7EB] dark:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB] rounded-full text-xs font-mono font-bold">
+            <span className="px-3 py-1 bg-slate-800 text-slate-300 border border-slate-700 rounded-full text-xs font-mono font-bold">
               Total Logs: {webhookLogs.length}
             </span>
           </div>
 
           {webhookLogs.length === 0 ? (
-            <div className="py-12 text-center text-[#9CA3AF] text-xs">
+            <div className="py-12 text-center text-slate-500 text-xs">
               No webhook test or execution logs recorded yet.
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="border-b border-[#E5E7EB] dark:border-[#111827] text-[#9CA3AF] font-mono text-[11px] uppercase">
+                  <tr className="border-b border-slate-800 text-slate-400 font-mono text-[11px] uppercase bg-slate-950/60">
                     <th className="p-3">Date & Time</th>
                     <th className="p-3">Webhook Name</th>
                     <th className="p-3">Provider</th>
@@ -715,19 +715,19 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
                     <th className="p-3">Tested By</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#6B7280] dark:divide-[#6B7280] font-mono">
+                <tbody className="divide-y divide-slate-800/60 font-mono">
                   {webhookLogs.map(log => (
-                    <tr key={log.id} className="hover:bg-[#F5F7FA] dark:hover:bg-[#111827]/50 transition-colors">
-                      <td className="p-3 text-[#6B7280] font-sans whitespace-nowrap">
+                    <tr key={log.id} className="hover:bg-slate-800/40 transition-colors">
+                      <td className="p-3 text-slate-400 font-sans whitespace-nowrap">
                         {formatSafeDateTime(log.timestamp, "Recently")}
                       </td>
-                      <td className="p-3 font-bold text-[#111827] dark:text-white font-sans">{log.webhookName}</td>
-                      <td className="p-3 text-[#4B5563] dark:text-[#E5E7EB]">{log.provider}</td>
-                      <td className="p-3 font-bold text-[#0F2D5C] dark:text-[#9CA3AF]">{log.eventType}</td>
+                      <td className="p-3 font-bold text-white font-sans">{log.webhookName}</td>
+                      <td className="p-3 text-slate-300">{log.provider}</td>
+                      <td className="p-3 font-bold text-blue-400">{log.eventType}</td>
                       <td className="p-3">{getResultBadge(log.resultStatus, log.statusCode)}</td>
-                      <td className="p-3 font-bold text-[#4B5563] dark:text-[#E5E7EB]">{log.statusCode || "N/A"}</td>
-                      <td className="p-3 text-[#6B7280]">{log.responseTimeMs} ms</td>
-                      <td className="p-3 text-[#9CA3AF] font-sans">{log.testedBy}</td>
+                      <td className="p-3 font-bold text-slate-200">{log.statusCode || "N/A"}</td>
+                      <td className="p-3 text-slate-400">{log.responseTimeMs} ms</td>
+                      <td className="p-3 text-slate-400 font-sans">{log.testedBy}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -739,23 +739,23 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
 
       {/* ADD / EDIT WEBHOOK MODAL */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 bg-[#111827]/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl max-w-xl w-full p-6 shadow-2xl relative text-left space-y-5 overflow-y-auto max-h-[90vh]">
-            <div className="flex items-center justify-between border-b border-[#E5E7EB] dark:border-[#111827] pb-4">
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-xl w-full p-6 shadow-2xl relative text-left space-y-5 overflow-y-auto max-h-[90vh] text-slate-100">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
               <div className="flex items-center gap-2.5">
-                <div className="p-2.5 bg-[#E5E7EB] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] rounded-2xl">
+                <div className="p-2.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-2xl">
                   <Webhook className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-extrabold text-[#111827] dark:text-white">
+                  <h3 className="text-base font-extrabold text-white">
                     {editingWebhook ? "Edit Webhook Endpoint" : "Add New Dynamic Webhook"}
                   </h3>
-                  <p className="text-xs text-[#6B7280]">Configure URL, headers, and event hooks permanently in DB</p>
+                  <p className="text-xs text-slate-400">Configure URL, headers, and event hooks permanently in DB</p>
                 </div>
               </div>
               <button
                 onClick={() => setIsAddModalOpen(false)}
-                className="p-1.5 rounded-xl hover:bg-[#E5E7EB] dark:hover:bg-[#111827] text-[#9CA3AF] hover:text-[#4B5563] dark:hover:text-[#E5E7EB] transition-colors cursor-pointer"
+                className="p-1.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
               >
                 ✕
               </button>
@@ -765,8 +765,8 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Webhook Name */}
                 <div className="space-y-1 sm:col-span-2">
-                  <label className="text-xs font-bold text-[#4B5563] dark:text-[#E5E7EB]">
-                    Webhook Name <span className="text-[#0F2D5C]">*</span>
+                  <label className="text-xs font-bold text-slate-300">
+                    Webhook Name <span className="text-rose-400">*</span>
                   </label>
                   <input
                     type="text"
@@ -774,19 +774,19 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
                     placeholder="e.g., Primary PayVessel Funding Webhook"
                     value={formData.name}
                     onChange={e => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-[#F5F7FA] dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-xl text-xs focus:ring-2 focus:ring-[#0F2D5C] outline-none"
+                    className="w-full px-3.5 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:border-blue-500 outline-none"
                   />
                 </div>
 
                 {/* Provider Dropdown */}
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-[#4B5563] dark:text-[#E5E7EB]">
+                  <label className="text-xs font-bold text-slate-300">
                     Payment Provider
                   </label>
                   <select
                     value={formData.provider}
                     onChange={e => setFormData({ ...formData, provider: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-[#F5F7FA] dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#0F2D5C] outline-none cursor-pointer"
+                    className="w-full px-3.5 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-medium text-white focus:border-blue-500 outline-none cursor-pointer"
                   >
                     {registeredProviders.map(p => (
                       <option key={p} value={p}>{p}</option>
@@ -796,13 +796,13 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
 
                 {/* Event Type Dropdown */}
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-[#4B5563] dark:text-[#E5E7EB]">
-                    Event Type <span className="text-[#0F2D5C]">*</span>
+                  <label className="text-xs font-bold text-slate-300">
+                    Event Type <span className="text-rose-400">*</span>
                   </label>
                   <select
                     value={formData.eventType}
                     onChange={e => setFormData({ ...formData, eventType: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-[#F5F7FA] dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#0F2D5C] outline-none cursor-pointer"
+                    className="w-full px-3.5 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-medium text-white focus:border-blue-500 outline-none cursor-pointer"
                   >
                     {DEFAULT_EVENT_TYPES.map(evt => (
                       <option key={evt} value={evt}>{evt}</option>
@@ -812,8 +812,8 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
 
                 {formData.eventType === "Custom Event" && (
                   <div className="space-y-1 sm:col-span-2">
-                    <label className="text-xs font-bold text-[#0F2D5C] dark:text-[#9CA3AF]">
-                      Custom Event Name <span className="text-[#0F2D5C]">*</span>
+                    <label className="text-xs font-bold text-blue-400">
+                      Custom Event Name <span className="text-rose-400">*</span>
                     </label>
                     <input
                       type="text"
@@ -821,15 +821,15 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
                       placeholder="e.g., user.subscription.renewed"
                       value={formData.customEventType}
                       onChange={e => setFormData({ ...formData, customEventType: e.target.value })}
-                      className="w-full px-3.5 py-2 bg-[#F5F7FA]/50 dark:bg-[#0F2D5C]/40 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:ring-2 focus:ring-[#0F2D5C] outline-none"
+                      className="w-full px-3.5 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:border-blue-500 outline-none"
                     />
                   </div>
                 )}
 
                 {/* Webhook URL */}
                 <div className="space-y-1 sm:col-span-2">
-                  <label className="text-xs font-bold text-[#4B5563] dark:text-[#E5E7EB]">
-                    Webhook URL <span className="text-[#0F2D5C]">*</span>
+                  <label className="text-xs font-bold text-slate-300">
+                    Webhook URL <span className="text-rose-400">*</span>
                   </label>
                   <input
                     type="url"
@@ -837,14 +837,14 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
                     placeholder="https://yourdomain.com/api/webhooks/listener"
                     value={formData.url}
                     onChange={e => setFormData({ ...formData, url: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-[#F5F7FA] dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-xl text-xs font-mono focus:ring-2 focus:ring-[#0F2D5C] outline-none"
+                    className="w-full px-3.5 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-mono text-white focus:border-blue-500 outline-none"
                   />
-                  <p className="text-[10px] text-[#9CA3AF]">Saving changes here immediately updates the target destination across all services.</p>
+                  <p className="text-[10px] text-slate-400">Saving changes here immediately updates the target destination across all services.</p>
                 </div>
 
                 {/* Secret Token */}
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-[#4B5563] dark:text-[#E5E7EB]">
+                  <label className="text-xs font-bold text-slate-300">
                     Secret Token (Optional)
                   </label>
                   <input
@@ -852,13 +852,13 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
                     placeholder="whsec_..."
                     value={formData.secretToken}
                     onChange={e => setFormData({ ...formData, secretToken: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-[#F5F7FA] dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-xl text-xs font-mono focus:ring-2 focus:ring-[#0F2D5C] outline-none"
+                    className="w-full px-3.5 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-mono text-white focus:border-blue-500 outline-none"
                   />
                 </div>
 
                 {/* Signature Header */}
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-[#4B5563] dark:text-[#E5E7EB]">
+                  <label className="text-xs font-bold text-slate-300">
                     Signature Header
                   </label>
                   <input
@@ -866,19 +866,19 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
                     placeholder="X-Webhook-Signature"
                     value={formData.signatureHeader}
                     onChange={e => setFormData({ ...formData, signatureHeader: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-[#F5F7FA] dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-xl text-xs font-mono focus:ring-2 focus:ring-[#0F2D5C] outline-none"
+                    className="w-full px-3.5 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-mono text-white focus:border-blue-500 outline-none"
                   />
                 </div>
 
                 {/* HTTP Method */}
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-[#4B5563] dark:text-[#E5E7EB]">
+                  <label className="text-xs font-bold text-slate-300">
                     HTTP Method
                   </label>
                   <select
                     value={formData.httpMethod}
                     onChange={e => setFormData({ ...formData, httpMethod: e.target.value as any })}
-                    className="w-full px-3.5 py-2 bg-[#F5F7FA] dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-xl text-xs font-mono font-bold focus:ring-2 focus:ring-[#0F2D5C] outline-none cursor-pointer"
+                    className="w-full px-3.5 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-mono font-bold text-white focus:border-blue-500 outline-none cursor-pointer"
                   >
                     <option value="POST">POST</option>
                     <option value="PUT">PUT</option>
@@ -888,7 +888,7 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
 
                 {/* Retry Count */}
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-[#4B5563] dark:text-[#E5E7EB]">
+                  <label className="text-xs font-bold text-slate-300">
                     Retry Count
                   </label>
                   <input
@@ -897,13 +897,13 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
                     max={10}
                     value={formData.retryCount}
                     onChange={e => setFormData({ ...formData, retryCount: parseInt(e.target.value) || 0 })}
-                    className="w-full px-3.5 py-2 bg-[#F5F7FA] dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-xl text-xs focus:ring-2 focus:ring-[#0F2D5C] outline-none"
+                    className="w-full px-3.5 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:border-blue-500 outline-none"
                   />
                 </div>
 
                 {/* Retry Interval */}
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-[#4B5563] dark:text-[#E5E7EB]">
+                  <label className="text-xs font-bold text-slate-300">
                     Retry Interval (Seconds)
                   </label>
                   <input
@@ -912,19 +912,19 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
                     max={3600}
                     value={formData.retryInterval}
                     onChange={e => setFormData({ ...formData, retryInterval: parseInt(e.target.value) || 5 })}
-                    className="w-full px-3.5 py-2 bg-[#F5F7FA] dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-xl text-xs focus:ring-2 focus:ring-[#0F2D5C] outline-none"
+                    className="w-full px-3.5 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:border-blue-500 outline-none"
                   />
                 </div>
 
                 {/* Status Toggle */}
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-[#4B5563] dark:text-[#E5E7EB]">
+                  <label className="text-xs font-bold text-slate-300">
                     Status
                   </label>
                   <select
                     value={formData.status}
                     onChange={e => setFormData({ ...formData, status: e.target.value as WebhookStatus })}
-                    className="w-full px-3.5 py-2 bg-[#F5F7FA] dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-xl text-xs font-bold focus:ring-2 focus:ring-[#0F2D5C] outline-none cursor-pointer"
+                    className="w-full px-3.5 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold text-white focus:border-blue-500 outline-none cursor-pointer"
                   >
                     <option value="Enabled">Enabled</option>
                     <option value="Disabled">Disabled</option>
@@ -933,7 +933,7 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
 
                 {/* Notes */}
                 <div className="space-y-1 sm:col-span-2">
-                  <label className="text-xs font-bold text-[#4B5563] dark:text-[#E5E7EB]">
+                  <label className="text-xs font-bold text-slate-300">
                     Notes (Optional)
                   </label>
                   <textarea
@@ -941,22 +941,22 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
                     placeholder="Internal reference notes..."
                     value={formData.notes}
                     onChange={e => setFormData({ ...formData, notes: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-[#F5F7FA] dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-xl text-xs focus:ring-2 focus:ring-[#0F2D5C] outline-none resize-none"
+                    className="w-full px-3.5 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:border-blue-500 outline-none resize-none"
                   />
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-[#E5E7EB] dark:border-[#111827] flex items-center justify-end gap-3">
+              <div className="pt-4 border-t border-slate-800 flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2 bg-[#E5E7EB] dark:bg-[#111827] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563] text-[#4B5563] dark:text-[#E5E7EB] font-bold text-xs rounded-xl transition-all cursor-pointer"
+                  className="px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 font-bold text-xs transition-all cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[#0F2D5C] hover:bg-[#0F2D5C] active:bg-[#0F2D5C] text-white font-bold text-xs rounded-xl transition-all cursor-pointer shadow-md"
+                  className="px-5 py-2 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-bold text-xs rounded-xl transition-all cursor-pointer shadow-md"
                 >
                   {editingWebhook ? "Save Changes" : "Create Webhook"}
                 </button>
@@ -968,56 +968,56 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
 
       {/* TEST RESULT DRAWER / MODAL */}
       {showTestResultModal && lastTestResultData && (
-        <div className="fixed inset-0 z-50 bg-[#111827]/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl max-w-lg w-full p-6 shadow-2xl relative text-left space-y-4 font-mono text-xs">
-            <div className="flex items-center justify-between border-b border-[#E5E7EB] dark:border-[#111827] pb-3">
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative text-left space-y-4 font-mono text-xs text-slate-100">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
-                <Activity className="h-5 w-5 text-[#0F2D5C]" />
-                <h3 className="text-sm font-extrabold text-[#111827] dark:text-white font-sans">
+                <Activity className="h-5 w-5 text-blue-400" />
+                <h3 className="text-sm font-extrabold text-white font-sans">
                   Webhook Test Results
                 </h3>
               </div>
               <button
                 onClick={() => setShowTestResultModal(false)}
-                className="p-1.5 rounded-xl hover:bg-[#E5E7EB] dark:hover:bg-[#111827] text-[#9CA3AF] hover:text-[#4B5563] dark:hover:text-[#E5E7EB] transition-colors cursor-pointer"
+                className="p-1.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
             <div className="space-y-2">
-              <div className="flex justify-between items-center text-[#6B7280]">
+              <div className="flex justify-between items-center text-slate-400">
                 <span className="font-sans font-bold">Webhook:</span>
-                <span className="font-bold text-[#111827] dark:text-[#E5E7EB]">{lastTestResultData.webhookName}</span>
+                <span className="font-bold text-white">{lastTestResultData.webhookName}</span>
               </div>
-              <div className="flex justify-between items-center text-[#6B7280]">
+              <div className="flex justify-between items-center text-slate-400">
                 <span className="font-sans font-bold">Event Type:</span>
-                <span className="text-[#0F2D5C] dark:text-[#9CA3AF] font-bold">{lastTestResultData.eventType}</span>
+                <span className="text-blue-400 font-bold">{lastTestResultData.eventType}</span>
               </div>
-              <div className="flex justify-between items-center text-[#6B7280]">
+              <div className="flex justify-between items-center text-slate-400">
                 <span className="font-sans font-bold">Result Status:</span>
                 <div>{getResultBadge(lastTestResultData.resultStatus, lastTestResultData.statusCode)}</div>
               </div>
-              <div className="flex justify-between items-center text-[#6B7280]">
+              <div className="flex justify-between items-center text-slate-400">
                 <span className="font-sans font-bold">HTTP Code:</span>
-                <span className="font-bold text-[#111827] dark:text-[#E5E7EB]">{lastTestResultData.statusCode || "N/A"}</span>
+                <span className="font-bold text-white">{lastTestResultData.statusCode || "N/A"}</span>
               </div>
-              <div className="flex justify-between items-center text-[#6B7280]">
+              <div className="flex justify-between items-center text-slate-400">
                 <span className="font-sans font-bold">Response Latency:</span>
-                <span className="text-[#111827] dark:text-[#E5E7EB] font-bold">{lastTestResultData.responseTimeMs} ms</span>
+                <span className="text-white font-bold">{lastTestResultData.responseTimeMs} ms</span>
               </div>
             </div>
 
-            <div className="space-y-1 border-t border-[#E5E7EB] dark:border-[#111827] pt-3">
-              <span className="font-sans font-bold text-[#6B7280] text-[11px]">Endpoint URL:</span>
-              <div className="p-2 bg-[#111827] text-[#9CA3AF] rounded-xl text-[11px] truncate">
+            <div className="space-y-1 border-t border-slate-800 pt-3">
+              <span className="font-sans font-bold text-slate-400 text-[11px]">Endpoint URL:</span>
+              <div className="p-2 bg-slate-950 text-slate-300 rounded-xl text-[11px] truncate border border-slate-800">
                 {lastTestResultData.url}
               </div>
             </div>
 
-            <div className="space-y-1 border-t border-[#E5E7EB] dark:border-[#111827] pt-3">
-              <span className="font-sans font-bold text-[#6B7280] text-[11px]">Response Body:</span>
-              <div className="p-3 bg-[#111827] text-[#E5E7EB] rounded-xl text-[11px] font-mono overflow-x-auto max-h-40 whitespace-pre-wrap border border-[#111827]">
+            <div className="space-y-1 border-t border-slate-800 pt-3">
+              <span className="font-sans font-bold text-slate-400 text-[11px]">Response Body:</span>
+              <div className="p-3 bg-slate-950 text-slate-200 rounded-xl text-[11px] font-mono overflow-x-auto max-h-40 whitespace-pre-wrap border border-slate-800">
                 {lastTestResultData.responseBody || "No response body returned."}
               </div>
             </div>
@@ -1025,7 +1025,7 @@ export const WebhookManagerAdmin: React.FC<WebhookManagerAdminProps> = ({ adminU
             <div className="pt-2 flex justify-end">
               <button
                 onClick={() => setShowTestResultModal(false)}
-                className="px-5 py-2 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-bold rounded-xl text-xs cursor-pointer font-sans"
+                className="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs cursor-pointer font-sans shadow-md"
               >
                 Done
               </button>

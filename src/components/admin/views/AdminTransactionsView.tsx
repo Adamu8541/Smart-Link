@@ -242,7 +242,7 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
             <button
               type="button"
               onClick={() => setShowTestPanel(!showTestPanel)}
-              className="py-2.5 px-4 bg-[#0F2D5C] hover:bg-[#0F2D5C] border border-[#0F2D5C]/80 text-[#9CA3AF] text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition-colors"
+              className=" py-2.5 px-4 border border-[#0F2D5C]/80 text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition-colors"
             >
               <Terminal className="h-4 w-4" />
               <span>{showTestPanel ? "Hide Self-Test Suite" : "Run Module 5 Self-Tests"}</span>
@@ -252,15 +252,15 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
               type="button"
               onClick={() => fetchTransactions(pagination.pageNum, true)}
               disabled={refreshing}
-              className="py-2.5 px-3 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer transition-colors"
+              className=" py-2.5 px-3 text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer transition-colors"
             >
-              <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin text-[#9CA3AF]" : ""}`} />
+              <RefreshCw className={`h-4 w-4${refreshing ? "animate-spin text-[#9CA3AF]" : ""}`} />
             </button>
 
             <button
               type="button"
               onClick={() => onNavigate("/admin/dashboard")}
-              className="py-2.5 px-4 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition-colors"
+              className=" py-2.5 px-4 text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition-colors"
             >
               <ArrowLeft className="h-3.5 w-3.5" /> Back
             </button>
@@ -269,40 +269,40 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
 
         {/* Top Summary Widgets / Stat Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          <div className="p-4 bg-[#111827]/80 border border-[#111827]/80 rounded-2xl space-y-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#9CA3AF]">Total Transactions</span>
+          <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Transactions</span>
             <p className="text-lg font-black text-white font-mono">{metrics.totalTransactions.toLocaleString()}</p>
-            <span className="text-[10px] text-[#6B7280] font-mono">Vol: ₦{(metrics.totalVolume / 1000).toFixed(1)}k</span>
+            <span className="text-[10px] text-slate-500 font-mono">Vol: ₦{(metrics.totalVolume / 1000).toFixed(1)}k</span>
           </div>
 
-          <div className="p-4 bg-[#111827]/80 border border-[#0F2D5C]/80 rounded-2xl space-y-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#9CA3AF]">Successful</span>
-            <p className="text-lg font-black text-[#9CA3AF] font-mono">{metrics.successfulCount.toLocaleString()}</p>
-            <span className="text-[10px] text-[#0F2D5C] font-mono">100% Settled</span>
+          <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Successful</span>
+            <p className="text-lg font-black text-emerald-400 font-mono">{metrics.successfulCount.toLocaleString()}</p>
+            <span className="text-[10px] text-emerald-400/90 font-mono">100% Settled</span>
           </div>
 
-          <div className="p-4 bg-[#111827]/80 border border-[#0F2D5C]/80 rounded-2xl space-y-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#9CA3AF]">Pending</span>
-            <p className="text-lg font-black text-[#9CA3AF] font-mono">{metrics.pendingCount.toLocaleString()}</p>
-            <span className="text-[10px] text-[#0F2D5C] font-mono">Processing Portal</span>
+          <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Pending</span>
+            <p className="text-lg font-black text-amber-400 font-mono">{metrics.pendingCount.toLocaleString()}</p>
+            <span className="text-[10px] text-amber-400/90 font-mono">Processing Portal</span>
           </div>
 
-          <div className="p-4 bg-[#111827]/80 border border-[#0F2D5C]/80 rounded-2xl space-y-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#9CA3AF]">Failed</span>
-            <p className="text-lg font-black text-[#9CA3AF] font-mono">{metrics.failedCount.toLocaleString()}</p>
-            <span className="text-[10px] text-[#0F2D5C] font-mono">Safe Retry Eligible</span>
+          <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Failed</span>
+            <p className="text-lg font-black text-rose-400 font-mono">{metrics.failedCount.toLocaleString()}</p>
+            <span className="text-[10px] text-rose-400/90 font-mono">Safe Retry Eligible</span>
           </div>
 
-          <div className="p-4 bg-[#111827]/80 border border-[#0F2D5C]/80 rounded-2xl space-y-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#9CA3AF]">Revenue Today</span>
-            <p className="text-lg font-black text-[#9CA3AF] font-mono">₦{metrics.revenueToday.toLocaleString()}</p>
-            <span className="text-[10px] text-[#0F2D5C] font-mono">24h Volume</span>
+          <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Revenue Today</span>
+            <p className="text-lg font-black text-blue-400 font-mono">₦{metrics.revenueToday.toLocaleString()}</p>
+            <span className="text-[10px] text-blue-400/90 font-mono">24h Volume</span>
           </div>
 
-          <div className="p-4 bg-[#111827]/80 border border-[#0F2D5C]/80 rounded-2xl space-y-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#9CA3AF]">Revenue This Month</span>
-            <p className="text-lg font-black text-[#9CA3AF] font-mono">₦{(metrics.revenueThisMonth / 1000).toFixed(1)}k</p>
-            <span className="text-[10px] text-[#0F2D5C] font-mono">MTD Ledger</span>
+          <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Revenue This Month</span>
+            <p className="text-lg font-black text-indigo-400 font-mono">₦{(metrics.revenueThisMonth / 1000).toFixed(1)}k</p>
+            <span className="text-[10px] text-indigo-400/90 font-mono">MTD Ledger</span>
           </div>
         </div>
       </div>
@@ -334,13 +334,13 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
             <button
               type="button"
               onClick={() => setShowFilterDrawer(!showFilterDrawer)}
-              className={`py-2.5 px-4 border text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition-colors ${
+              className={`py-2.5 px-4 border text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition-colors${
                 showFilterDrawer
                   ? "bg-[#0F2D5C] border-[#0F2D5C] text-[#9CA3AF]"
                   : "bg-[#111827] border-[#111827] text-[#E5E7EB] hover:bg-[#111827]"
               }`}
             >
-              <SlidersHorizontal className="h-4 w-4" /> Filters
+              <SlidersHorizontal className=" h-4 w-4" /> Filters
             </button>
 
             {/* Export Menu */}
@@ -349,7 +349,7 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
                 type="button"
                 onClick={() => handleExport("FILTERED_RESULTS", "CSV")}
                 disabled={exporting}
-                className="py-2.5 px-4 bg-[#0F2D5C] hover:bg-[#0F2D5C] border border-[#0F2D5C]/80 text-[#9CA3AF] text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition-colors shadow-lg shadow-none"
+                className=" py-2.5 px-4 border border-[#0F2D5C]/80 text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition-colors shadow-lg shadow-none"
               >
                 {exporting ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
                 <span>Export CSV</span>
@@ -364,42 +364,42 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
           <button
             type="button"
             onClick={() => { setStatusFilter("ALL"); setServiceFilter("ALL"); fetchTransactions(1); }}
-            className={`px-3 py-1.5 rounded-xl font-bold cursor-pointer transition-colors shrink-0 ${statusFilter === "ALL" && serviceFilter === "ALL" ? "bg-[#0F2D5C] text-white" : "bg-[#111827] text-[#9CA3AF] hover:text-white"}`}
+            className={`px-3 py-1.5 rounded-xl font-bold cursor-pointer transition-colors shrink-0${statusFilter === "ALL" && serviceFilter === "ALL" ? "bg-[#0F2D5C] text-white" : "bg-[#111827] text-[#9CA3AF] hover:text-white"}`}
           >
             All Ledger
           </button>
           <button
             type="button"
             onClick={() => { setStatusFilter("SUCCESSFUL"); fetchTransactions(1); }}
-            className={`px-3 py-1.5 rounded-xl font-bold cursor-pointer transition-colors shrink-0 ${statusFilter === "SUCCESSFUL" ? "bg-[#0F2D5C] text-white" : "bg-[#111827] text-[#9CA3AF] hover:text-white"}`}
+            className={`px-3 py-1.5 rounded-xl font-bold cursor-pointer transition-colors shrink-0${statusFilter === "SUCCESSFUL" ? "bg-[#0F2D5C] text-white" : "bg-[#111827] text-[#9CA3AF] hover:text-white"}`}
           >
             Successful
           </button>
           <button
             type="button"
             onClick={() => { setStatusFilter("FAILED"); fetchTransactions(1); }}
-            className={`px-3 py-1.5 rounded-xl font-bold cursor-pointer transition-colors shrink-0 ${statusFilter === "FAILED" ? "bg-[#0F2D5C] text-white" : "bg-[#111827] text-[#9CA3AF] hover:text-white"}`}
+            className={`px-3 py-1.5 rounded-xl font-bold cursor-pointer transition-colors shrink-0${statusFilter === "FAILED" ? "bg-[#0F2D5C] text-white" : "bg-[#111827] text-[#9CA3AF] hover:text-white"}`}
           >
             Failed / Errors
           </button>
           <button
             type="button"
             onClick={() => { setStatusFilter("PENDING"); fetchTransactions(1); }}
-            className={`px-3 py-1.5 rounded-xl font-bold cursor-pointer transition-colors shrink-0 ${statusFilter === "PENDING" ? "bg-[#0F2D5C] text-white" : "bg-[#111827] text-[#9CA3AF] hover:text-white"}`}
+            className={`px-3 py-1.5 rounded-xl font-bold cursor-pointer transition-colors shrink-0${statusFilter === "PENDING" ? "bg-[#0F2D5C] text-white" : "bg-[#111827] text-[#9CA3AF] hover:text-white"}`}
           >
             Pending
           </button>
           <button
             type="button"
             onClick={() => { setServiceFilter("WALLET_FUNDING"); fetchTransactions(1); }}
-            className={`px-3 py-1.5 rounded-xl font-bold cursor-pointer transition-colors shrink-0 ${serviceFilter === "WALLET_FUNDING" ? "bg-[#0F2D5C] text-white" : "bg-[#111827] text-[#9CA3AF] hover:text-white"}`}
+            className={`px-3 py-1.5 rounded-xl font-bold cursor-pointer transition-colors shrink-0${serviceFilter === "WALLET_FUNDING" ? "bg-[#0F2D5C] text-white" : "bg-[#111827] text-[#9CA3AF] hover:text-white"}`}
           >
             Wallet Funding
           </button>
           <button
             type="button"
             onClick={() => { setServiceFilter("NIN_VERIFICATION"); fetchTransactions(1); }}
-            className={`px-3 py-1.5 rounded-xl font-bold cursor-pointer transition-colors shrink-0 ${serviceFilter === "NIN_VERIFICATION" ? "bg-[#0F2D5C] text-white" : "bg-[#111827] text-[#9CA3AF] hover:text-white"}`}
+            className={`px-3 py-1.5 rounded-xl font-bold cursor-pointer transition-colors shrink-0${serviceFilter === "NIN_VERIFICATION" ? "bg-[#0F2D5C] text-white" : "bg-[#111827] text-[#9CA3AF] hover:text-white"}`}
           >
             Verifications
           </button>
@@ -407,7 +407,7 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
 
         {/* Expanded Multi-Filter Drawer Panel */}
         {showFilterDrawer && (
-          <div className="p-5 bg-[#111827] border border-[#111827] rounded-2xl space-y-4 text-xs animate-in fade-in duration-150">
+          <div className=" p-5 border border-[#111827] rounded-2xl space-y-4 text-xs animate-in fade-in duration-150">
             <div className="flex items-center justify-between border-b border-[#111827] pb-3">
               <span className="font-bold text-white uppercase tracking-wider text-[11px] flex items-center gap-2">
                 <SlidersHorizontal className="h-4 w-4 text-[#9CA3AF]" /> Advanced Filter Combinator
@@ -415,7 +415,7 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
               <button
                 type="button"
                 onClick={handleResetFilters}
-                className="text-xs text-[#9CA3AF] hover:underline cursor-pointer"
+                className=" text-xs hover:underline cursor-pointer"
               >
                 Reset All Filters
               </button>
@@ -609,7 +609,7 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
                         ₦{(tx.charges || 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}
                       </td>
                       <td className="p-4 text-center font-sans">
-                        <span className={`px-2.5 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider ${getStatusBadge(tx.status)}`}>
+                        <span className={`px-2.5 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider${getStatusBadge(tx.status)}`}>
                           {tx.status}
                         </span>
                       </td>
@@ -624,7 +624,7 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
                             type="button"
                             title="Investigate Transaction"
                             onClick={() => handleOpenDetail(tx.id)}
-                            className="p-1.5 hover:bg-[#111827] text-[#E5E7EB] hover:text-[#9CA3AF] rounded-lg transition-colors cursor-pointer"
+                            className=" p-1.5 rounded-lg transition-colors cursor-pointer"
                           >
                             <Eye className="h-4 w-4" />
                           </button>
@@ -632,7 +632,7 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
                             type="button"
                             title="View Receipt"
                             onClick={() => handleOpenReceipt(tx, { fullName: tx.userName, email: tx.userEmail, phoneNumber: tx.userPhone })}
-                            className="p-1.5 hover:bg-[#111827] text-[#E5E7EB] hover:text-[#9CA3AF] rounded-lg transition-colors cursor-pointer"
+                            className=" p-1.5 rounded-lg transition-colors cursor-pointer"
                           >
                             <FileText className="h-4 w-4" />
                           </button>
@@ -658,7 +658,7 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
                 type="button"
                 onClick={() => fetchTransactions(pagination.pageNum - 1)}
                 disabled={pagination.pageNum <= 1 || loading}
-                className="py-1.5 px-3 bg-[#111827] border border-[#111827] hover:bg-[#111827] disabled:opacity-40 text-[#E5E7EB] font-bold rounded-lg flex items-center gap-1 cursor-pointer transition-colors"
+                className=" py-1.5 px-3 border border-[#111827] disabled:opacity-40 font-bold rounded-lg flex items-center gap-1 cursor-pointer transition-colors"
               >
                 <ChevronLeft className="h-4 w-4" /> Previous
               </button>
@@ -671,7 +671,7 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
                 type="button"
                 onClick={() => fetchTransactions(pagination.pageNum + 1)}
                 disabled={pagination.pageNum >= pagination.totalPages || loading}
-                className="py-1.5 px-3 bg-[#111827] border border-[#111827] hover:bg-[#111827] disabled:opacity-40 text-[#E5E7EB] font-bold rounded-lg flex items-center gap-1 cursor-pointer transition-colors"
+                className=" py-1.5 px-3 border border-[#111827] disabled:opacity-40 font-bold rounded-lg flex items-center gap-1 cursor-pointer transition-colors"
               >
                 Next <ChevronRight className="h-4 w-4" />
               </button>

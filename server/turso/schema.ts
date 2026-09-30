@@ -28,6 +28,7 @@ export const TURSO_TABLES = {
   AUDIT_LOGS: "audit_logs",
   APPLICATION_SETTINGS: "application_settings",
   WEBHOOK_EVENTS: "webhook_events",
+  USER_PASSKEYS: "user_passkeys",
   MIGRATIONS: "_migrations",
 } as const;
 
@@ -223,6 +224,18 @@ export interface TursoWebhookEvent {
   ip_address?: string | null;
   processed_at?: string | null;
   created_at: string;
+}
+
+export interface TursoUserPasskey {
+  id: string;
+  user_id: string;
+  credential_id: string;
+  public_key: string;
+  counter: number;
+  device_name?: string | null;
+  transports?: string | null;
+  created_at: string;
+  last_used_at?: string | null;
 }
 
 import { TursoMigrator } from "./migrator";

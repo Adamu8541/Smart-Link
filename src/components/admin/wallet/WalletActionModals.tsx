@@ -109,7 +109,7 @@ export function CreditWalletModal({ user, session, onClose, onSuccess }: CreditW
               <p className="text-xs text-[#9CA3AF]">Issue direct financial credit to user account</p>
             </div>
           </div>
-          <button type="button" onClick={onClose} className="p-1.5 text-[#9CA3AF] hover:text-white rounded-xl cursor-pointer">
+          <button type="button" onClick={onClose} className=" p-1.5 rounded-xl cursor-pointer">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -182,7 +182,7 @@ export function CreditWalletModal({ user, session, onClose, onSuccess }: CreditW
             <button
               type="button"
               onClick={confirmStep ? () => setConfirmStep(false) : onClose}
-              className="px-4 py-2 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] text-xs font-bold rounded-xl cursor-pointer"
+              className=" px-4 py-2 text-xs font-bold rounded-xl cursor-pointer"
             >
               {confirmStep ? "Back to Edit" : "Cancel"}
             </button>
@@ -293,7 +293,7 @@ export function DebitWalletModal({ user, session, onClose, onSuccess }: DebitWal
               <p className="text-xs text-[#9CA3AF]">Deduct funds from user account with ledger audit</p>
             </div>
           </div>
-          <button type="button" onClick={onClose} className="p-1.5 text-[#9CA3AF] hover:text-white rounded-xl cursor-pointer">
+          <button type="button" onClick={onClose} className=" p-1.5 rounded-xl cursor-pointer">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -366,7 +366,7 @@ export function DebitWalletModal({ user, session, onClose, onSuccess }: DebitWal
             <button
               type="button"
               onClick={confirmStep ? () => setConfirmStep(false) : onClose}
-              className="px-4 py-2 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] text-xs font-bold rounded-xl cursor-pointer"
+              className=" px-4 py-2 text-xs font-bold rounded-xl cursor-pointer"
             >
               {confirmStep ? "Back to Edit" : "Cancel"}
             </button>
@@ -448,7 +448,7 @@ export function WalletStatusModal({ user, targetStatus, session, onClose, onSucc
       >
         <div className="p-5 bg-[#111827] border-b border-[#111827] flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className={`p-2.5 rounded-2xl border ${
+            <div className={`p-2.5 rounded-2xl border${
               targetStatus === "ACTIVE"
                 ? "bg-[#0F2D5C] text-[#9CA3AF] border-[#0F2D5C]"
                 : targetStatus === "FROZEN"
@@ -464,7 +464,7 @@ export function WalletStatusModal({ user, targetStatus, session, onClose, onSucc
               <p className="text-xs text-[#9CA3AF]">Security state governance control</p>
             </div>
           </div>
-          <button type="button" onClick={onClose} className="p-1.5 text-[#9CA3AF] hover:text-white rounded-xl cursor-pointer">
+          <button type="button" onClick={onClose} className=" p-1.5 rounded-xl cursor-pointer">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -498,14 +498,14 @@ export function WalletStatusModal({ user, targetStatus, session, onClose, onSucc
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] text-xs font-bold rounded-xl cursor-pointer"
+              className=" px-4 py-2 text-xs font-bold rounded-xl cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className={`px-5 py-2 text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition-all shadow-md ${
+              className={`px-5 py-2 text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition-all shadow-md${
                 targetStatus === "ACTIVE" ? "bg-[#0F2D5C] hover:bg-[#0F2D5C]" : targetStatus === "FROZEN" ? "bg-[#0F2D5C] hover:bg-[#0F2D5C]" : "bg-[#0F2D5C] hover:bg-[#0F2D5C]"
               }`}
             >

@@ -22,18 +22,29 @@ import {
 } from "lucide-react";
 import { NigerianCoatOfArmsSvg, NinOfficialLogoSvg } from "./slips/SlipSecurityAssets";
 import { WalletService } from "../../services/walletService";
-import { VerificationEngine as VerificationEngineService } from "../../services/verificationEngine";
-import { StandardizedVerificationResult, GeneratedSlipRecord } from "../../types/verification";
+import {
+  VerificationEngine as VerificationEngineService,
+  VERIFICATION_PROGRESS_STEPS,
+} from "../../services/verificationEngine";
+import {
+  StandardizedVerificationResult,
+  GeneratedSlipRecord,
+  VerificationProgressStep,
+  VerificationErrorState,
+} from "../../types/verification";
 import { SlipPrintModal } from "./slips/SlipPrintModal";
 import { SlipLivePreviewCard } from "./slips/SlipLivePreviewCard";
 import { useSiteConfig } from "../../context/SiteConfigContext";
 import { THREE_NIN_SLIPS, mapSlipToConfig, NinSlipType3, getNinSlipOptions } from "./NinVerificationView";
 import { formatNaira } from "../../utils/formatUtils";
-import { VerificationSuccess } from "./VerificationSuccess";
+import { SlipPrintEngine } from "../../services/slipPrintEngine";
+import { VerificationLoader } from "./VerificationLoader";
+import { VerificationError } from "./VerificationError";
 
 interface NinDemographyViewProps {
   userId: string;
   userEmail?: string;
+  serviceTitle?: string;
   onBackToDashboard?: () => void;
   onBalanceUpdate?: () => void;
   onOpenFundWallet?: () => void;
@@ -42,6 +53,7 @@ interface NinDemographyViewProps {
 export const NinDemographyView: React.FC<NinDemographyViewProps> = ({
   userId,
   userEmail,
+  serviceTitle,
   onBackToDashboard,
   onBalanceUpdate,
   onOpenFundWallet,
@@ -55,15 +67,25 @@ export const NinDemographyView: React.FC<NinDemographyViewProps> = ({
   const [lastName, setLastName] = useState("");
   const [gender, setGender] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
+  const [ninNumber, setNinNumber] = useState("");
   const [hasConsent, setHasConsent] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState<string>("");
 
   // Status & Execution State
+  const [stepMode, setStepMode] = useState<"INPUT" | "LOADING" | "ERROR">("INPUT");
+  const [currentStep, setCurrentStep] = useState<VerificationProgressStep>(VERIFICATION_PROGRESS_STEPS[0]);
+  const [errorState, setErrorState] = useState<VerificationErrorState | null>(null);
   const [userBalance, setUserBalance] = useState<number>(0);
   const [isLoadingBalance, setIsLoadingBalance] = useState(true);
   const [isVerifying, setIsVerifying] = useState(false);
-  const [verificationStage, setVerificationStage] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [verificationResult, setVerificationResult] = useState<StandardizedVerificationResult | null>(null);
+
+  // Cached PDF Slip for instant download & email dispatch right from loader
+  const [cachedPdfBytes, setCachedPdfBytes] = useState<Uint8Array | null>(null);
+  const [cachedBlob, setCachedBlob] = useState<Blob | null>(null);
+  const [cachedFilename, setCachedFilename] = useState<string>("Official_NIN_Demography_Slip.pdf");
+
   const [showSlipModal, setShowSlipModal] = useState(false);
 
   // Refresh wallet balance
@@ -97,6 +119,7 @@ export const NinDemographyView: React.FC<NinDemographyViewProps> = ({
   const handleVerify = async () => {
     if (!selectedSlip || !isFormValid || isVerifying) return;
     setErrorMessage(null);
+    setErrorState(null);
 
     // Balance check
     const slipPrice = selectedSlip?.price ?? 0;
@@ -108,21 +131,18 @@ export const NinDemographyView: React.FC<NinDemographyViewProps> = ({
     }
 
     setIsVerifying(true);
-    setVerificationStage("Connecting to NIMC Demographics Registry...");
+    setStepMode("LOADING");
+    setCurrentStep(VERIFICATION_PROGRESS_STEPS[0]);
+
+    const timer1 = setTimeout(() => setCurrentStep(VERIFICATION_PROGRESS_STEPS[1]), 700);
+    const timer2 = setTimeout(() => setCurrentStep(VERIFICATION_PROGRESS_STEPS[2]), 1400);
+    const timer3 = setTimeout(() => setCurrentStep(VERIFICATION_PROGRESS_STEPS[3]), 2100);
 
     try {
-      setTimeout(() => {
-        setVerificationStage("Matching demographic identity & biometric archives...");
-      }, 900);
-
-      setTimeout(() => {
-        setVerificationStage("Generating authentic National Identification verification slip...");
-      }, 1800);
-
       const targetId = `${firstName.trim()} ${lastName.trim()}`;
       const res = await VerificationEngineService.executeVerification({
         userId,
-        serviceType: "NIN",
+        serviceType: "NIN_DEMOGRAPHY",
         primaryInput: targetId,
         customFee: selectedSlip.price,
         slipType: selectedSlip.formatId,
@@ -132,11 +152,23 @@ export const NinDemographyView: React.FC<NinDemographyViewProps> = ({
           fullName: `${firstName.trim()} ${lastName.trim()}`,
           gender,
           dateOfBirth,
+          nin: ninNumber.trim() || undefined,
+          id_number: ninNumber.trim() || undefined,
+          idNumber: ninNumber.trim() || undefined,
           searchMethod: "BY_DEMOGRAPHICS",
           slipType: selectedSlip.id,
           consent: true,
+          ...(selectedProvider ? {
+            providerId: selectedProvider,
+            preferredProvider: selectedProvider,
+          } : {}),
         },
+        onProgressUpdate: (step) => setCurrentStep(step),
       });
+
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
 
       if (res.success && res.result) {
         const enrichedResult: StandardizedVerificationResult = {
@@ -145,27 +177,78 @@ export const NinDemographyView: React.FC<NinDemographyViewProps> = ({
           formatId: selectedSlip?.formatId || "NIN_REGULAR",
           selectedSlip: selectedSlip,
         };
+
+        // 1. Advance to 90%: Applying authentic security overlay
+        setCurrentStep({
+          id: 5,
+          label: "Applying Official Security Overlay & Preparing Slip...",
+          progress: 90,
+        });
+
+        // 2. Perform the overlay and auto-download right during the loader!
+        try {
+          const exportResult = await SlipPrintEngine.autoExportIdentitySlip(enrichedResult);
+          if (exportResult.success && exportResult.pdfBytes) {
+            setCachedPdfBytes(exportResult.pdfBytes);
+            setCachedBlob(exportResult.blob || new Blob([exportResult.pdfBytes], { type: "application/pdf" }));
+            setCachedFilename(exportResult.filename);
+          }
+        } catch (overlayErr) {
+          console.error("Auto-overlay error during loading:", overlayErr);
+        }
+
+        // 3. Advance to 100%: Completed!
+        setCurrentStep({
+          id: 6,
+          label: "Verification Complete & Official Slip Auto-Downloaded",
+          progress: 100,
+        });
         setVerificationResult(enrichedResult);
+
+        // Keep in LOADING mode so VerificationLoader displays the 100% complete state with buttons!
         if (onBalanceUpdate) onBalanceUpdate();
         fetchBalance();
       } else {
-        setErrorMessage(
-          res.errorState?.message ||
+        const errObj: VerificationErrorState = res.errorState || {
+          code: "VERIFICATION_FAILED",
+          title: "Demographic Verification Notice",
+          message:
+            res.errorState?.message ||
             res.errorState?.details ||
-            "Demographic verification failed. Please verify that the name, gender, and birth date match NIMC records exactly."
-        );
+            "Demographic verification failed. Please verify that the name, gender, and birth date match NIMC records exactly.",
+          details: res.errorState?.details,
+          retryable: true,
+        };
+        setErrorState(errObj);
+        setErrorMessage(errObj.message);
+        setStepMode("ERROR");
       }
     } catch (err: any) {
-      setErrorMessage(err.message || "An unexpected error occurred during verification. Please try again.");
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+      const errObj: VerificationErrorState = {
+        code: "SYSTEM_ERROR",
+        title: "Verification Notice",
+        message: err.message || "An unexpected error occurred during verification. Please try again.",
+        retryable: true,
+      };
+      setErrorState(errObj);
+      setErrorMessage(errObj.message);
+      setStepMode("ERROR");
     } finally {
       setIsVerifying(false);
-      setVerificationStage("");
     }
   };
 
   const handleReset = () => {
     setVerificationResult(null);
+    setCachedBlob(null);
+    setCachedPdfBytes(null);
     setErrorMessage(null);
+    setErrorState(null);
+    setCurrentStep(VERIFICATION_PROGRESS_STEPS[0]);
+    setStepMode("INPUT");
     setFirstName("");
     setLastName("");
     setGender("");
@@ -210,16 +293,53 @@ export const NinDemographyView: React.FC<NinDemographyViewProps> = ({
 
       {/* Main Content Area */}
       <div className="p-4 sm:p-6 space-y-5">
-        {/* Verification Success View */}
-        {verificationResult ? (
-          <VerificationSuccess
-            result={verificationResult}
-            userId={userId}
-            userEmail={userEmail}
-            onRepeatVerification={handleVerify}
-            onNewVerification={handleReset}
-          />
-        ) : (
+        {/* Loading State: Animated VerificationLoader (0% -> 55% -> 90% -> 100% with inline action buttons) */}
+        {stepMode === "LOADING" && (
+          <div className="py-6">
+            <VerificationLoader
+              currentStep={currentStep}
+              serviceTitle={serviceTitle || "NIN Demography Verification"}
+              providerName={verificationResult?.providerName || (selectedProvider ? `${selectedProvider.toUpperCase()} Portal` : "NIMC Demographic Registry")}
+              serviceId="NIN_DEMOGRAPHY"
+              idNumber={`${firstName} ${lastName}`.trim()}
+              result={verificationResult}
+              userId={userId}
+              userEmail={userEmail}
+              cachedBlob={cachedBlob}
+              cachedPdfBytes={cachedPdfBytes}
+              cachedFilename={cachedFilename}
+              onNewVerification={handleReset}
+            />
+          </div>
+        )}
+
+        {/* Verification Error View */}
+        {stepMode === "ERROR" && (
+          <div className="py-4">
+            <VerificationError
+              errorState={
+                errorState || {
+                  code: "DEMOGRAPHY_VERIFICATION_FAILED",
+                  message: errorMessage || "Demographic verification failed.",
+                  details: "Please verify that the name, gender, and birth date match NIMC records exactly.",
+                  retryable: true,
+                }
+              }
+              onRetry={() => {
+                setStepMode("INPUT");
+                setErrorState(null);
+                setErrorMessage(null);
+              }}
+              onBack={() => {
+                setStepMode("INPUT");
+                setErrorState(null);
+                setErrorMessage(null);
+              }}
+            />
+          </div>
+        )}
+
+        {stepMode === "INPUT" && (
           <>
             {/* SECTION 1: SLIP TYPE & PREVIEW */}
             <div className="space-y-3">
@@ -427,19 +547,10 @@ export const NinDemographyView: React.FC<NinDemographyViewProps> = ({
                   type="button"
                   onClick={handleVerify}
                   disabled={!isFormValid || isVerifying}
-                  className="w-full bg-[#0F2D5C] hover:bg-[#1E3A8A] active:bg-[#0B2144] disabled:bg-slate-300 disabled:cursor-not-allowed text-white py-3.5 px-5 rounded-xl font-bold text-sm sm:text-base flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all duration-200"
+                  className="w-full bg-[#0F2D5C] hover:bg-[#1E3A8A] active:bg-[#0B2144] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#0F2D5C] text-white py-3.5 px-5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all duration-200"
                 >
-                  {isVerifying ? (
-                    <>
-                      <RefreshCw className="w-5 h-5 animate-spin" />
-                      <span>{verificationStage || "Verifying Demographic Record..."}</span>
-                    </>
-                  ) : (
-                    <>
-                      <Users className="w-5 h-5" />
-                      <span>Verify Data</span>
-                    </>
-                  )}
+                  <Users className="w-5 h-5" />
+                  <span>Verify Data</span>
                 </button>
               </div>
 

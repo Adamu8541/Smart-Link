@@ -1,4 +1,4 @@
-import { readDB, writeDB } from "../../server/db";
+import { executeTurso } from "../../server/turso/client";
 
 export interface AdminConfigDoc {
   system_settings?: any;
@@ -11,52 +11,81 @@ export interface AdminConfigDoc {
   services_catalog?: any[];
   priceMatrix?: any;
   siteSettings?: any;
+  provider_routing_rules?: any[];
+  providerRoutingRules?: any[];
+  routing_rules?: any[];
   settings_audit_logs?: any[];
 }
 
 export async function getSettingsDoc(): Promise<AdminConfigDoc | null> {
   try {
-    const db = readDB();
-    if (db) {
-      return {
-        system_settings: db.system_settings,
-        branding_settings: db.branding_settings,
-        maintenance_settings: db.maintenance_settings,
-        platform_configuration: db.platform_configuration,
-        apiProviders: db.api_providers || db.apiProviders || [],
-        api_providers: db.api_providers || db.apiProviders || [],
-        servicesCatalog: db.servicesCatalog || [],
-        services_catalog: db.servicesCatalog || [],
-        priceMatrix: db.priceMatrix,
-        siteSettings: db.siteSettings,
-        settings_audit_logs: db.settings_audit_logs || [],
-      };
+    const res = await executeTurso("SELECT key, value FROM application_settings;");
+    if (!res.rows) return null;
+
+    const doc: Record<string, any> = {};
+    for (const row of res.rows) {
+      const key = String(row.key);
+      const valStr = String(row.value || "{}");
+      try {
+        doc[key] = JSON.parse(valStr);
+      } catch {
+        doc[key] = valStr;
+      }
     }
-  } catch (err) {}
-  return null;
+
+    return {
+      system_settings: doc.system_settings,
+      branding_settings: doc.branding_settings,
+      maintenance_settings: doc.maintenance_settings,
+      platform_configuration: doc.platform_configuration,
+      apiProviders: doc.api_providers || doc.apiProviders || [],
+      api_providers: doc.api_providers || doc.apiProviders || [],
+      servicesCatalog: doc.servicesCatalog || [],
+      services_catalog: doc.servicesCatalog || [],
+      priceMatrix: doc.priceMatrix || doc.price_matrix,
+      siteSettings: doc.siteSettings || doc.site_settings,
+      provider_routing_rules: doc.provider_routing_rules || doc.routing_rules || [],
+      providerRoutingRules: doc.provider_routing_rules || doc.routing_rules || [],
+      routing_rules: doc.provider_routing_rules || doc.routing_rules || [],
+      settings_audit_logs: doc.settings_audit_logs || [],
+    };
+  } catch (err) {
+    console.error("[settingsStore] Turso getSettingsDoc failed:", err);
+    return null;
+  }
 }
 
 export async function saveSettingsDoc(data: AdminConfigDoc): Promise<boolean> {
   try {
-    const db = readDB();
-    if (data.system_settings) db.system_settings = data.system_settings;
-    if (data.branding_settings) db.branding_settings = data.branding_settings;
-    if (data.maintenance_settings) db.maintenance_settings = data.maintenance_settings;
-    if (data.platform_configuration) db.platform_configuration = data.platform_configuration;
-    if (data.api_providers || data.apiProviders) {
-      db.api_providers = data.api_providers || data.apiProviders;
-      db.apiProviders = db.api_providers;
+    const now = new Date().toISOString();
+    const entriesToSave: Array<{ key: string; val: any }> = [];
+
+    if (data.system_settings !== undefined) entriesToSave.push({ key: "system_settings", val: data.system_settings });
+    if (data.branding_settings !== undefined) entriesToSave.push({ key: "branding_settings", val: data.branding_settings });
+    if (data.maintenance_settings !== undefined) entriesToSave.push({ key: "maintenance_settings", val: data.maintenance_settings });
+    if (data.platform_configuration !== undefined) entriesToSave.push({ key: "platform_configuration", val: data.platform_configuration });
+    if (data.api_providers || data.apiProviders) entriesToSave.push({ key: "api_providers", val: data.api_providers || data.apiProviders });
+    if (data.servicesCatalog || data.services_catalog) entriesToSave.push({ key: "servicesCatalog", val: data.servicesCatalog || data.services_catalog });
+    if (data.priceMatrix !== undefined) entriesToSave.push({ key: "priceMatrix", val: data.priceMatrix });
+    if (data.siteSettings !== undefined) entriesToSave.push({ key: "siteSettings", val: data.siteSettings });
+    if (data.provider_routing_rules || data.providerRoutingRules || data.routing_rules) {
+      entriesToSave.push({ key: "provider_routing_rules", val: data.provider_routing_rules || data.providerRoutingRules || data.routing_rules });
     }
-    if (data.servicesCatalog || data.services_catalog) {
-      db.servicesCatalog = data.servicesCatalog || data.services_catalog;
+    if (data.settings_audit_logs !== undefined) entriesToSave.push({ key: "settings_audit_logs", val: data.settings_audit_logs });
+
+    for (const { key, val } of entriesToSave) {
+      const jsonVal = typeof val === "string" ? val : JSON.stringify(val);
+      const id = `setting_${key}`;
+      await executeTurso(
+        `INSERT INTO application_settings (id, key, category, value, is_public, updated_at)
+         VALUES (?, ?, 'ADMIN_CONFIG', ?, 1, ?)
+         ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at;`,
+        [id, key, jsonVal, now]
+      );
     }
-    if (data.priceMatrix) db.priceMatrix = data.priceMatrix;
-    if (data.siteSettings) db.siteSettings = data.siteSettings;
-    if (data.settings_audit_logs) db.settings_audit_logs = data.settings_audit_logs;
-    writeDB(db);
     return true;
   } catch (err) {
-    console.error("[settingsStore] saveSettingsDoc failed:", err);
+    console.error("[settingsStore] Turso saveSettingsDoc failed:", err);
     return false;
   }
 }

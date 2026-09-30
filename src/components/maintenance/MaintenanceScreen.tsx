@@ -27,6 +27,7 @@ import { useSiteConfig } from "../../context/SiteConfigContext";
 import { formatSafeDateTime } from "../../utils/formatUtils";
 import { safeFetchJson } from "../../utils/authErrorHandler";
 import { AdminSession } from "../../services/adminAuthTypes";
+import { LoginLoaderModal } from "../auth/LoginLoaderModal";
 
 interface MaintenanceScreenProps {
   onAdminLoginRequested?: () => void;
@@ -577,6 +578,13 @@ export function MaintenanceScreen({
           <span>NIGERIA DIGITAL INFRASTRUCTURE</span>
         </div>
       </footer>
+
+      {/* Verification-Style Admin Login Loader Modal */}
+      <LoginLoaderModal
+        isOpen={adminLoading}
+        title="Administrator Authentication"
+        providerName="SmartLink Admin Security Core"
+      />
 
       {/* Embedded Admin Login Modal */}
       <AnimatePresence>

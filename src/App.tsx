@@ -8,10 +8,11 @@ import SmartLinkLandingPage from "./components/landing/SmartLinkLandingPage";
 import { RouteLoadingFallback } from "./components/common/RouteLoadingFallback";
 import { lazyWithRetry } from "./utils/lazyRetry";
 
+import ServiceModal from "./components/ServiceModal";
+
 // Lazy-loaded routes & heavy components with automatic retry & stale chunk recovery
 const Navigation = lazyWithRetry(() => import("./components/Navigation"), "Navigation");
 const ServicesGrid = lazyWithRetry(() => import("./components/ServicesGrid"), "ServicesGrid");
-const ServiceModal = lazyWithRetry(() => import("./components/ServiceModal"), "ServiceModal");
 const Dashboards = lazyWithRetry(() => import("./components/Dashboards"), "Dashboards");
 const AdminLogin = lazyWithRetry(() => import("./components/admin/AdminLogin"), "AdminLogin");
 const AdminGuard = lazyWithRetry(() => import("./components/admin/AdminGuard"), "AdminGuard");
@@ -42,7 +43,10 @@ const VerifyEmailView = lazyWithRetry(() => import("./components/auth/VerifyEmai
 const AuthActionHandler = lazyWithRetry(() => import("./components/auth/AuthActionHandler").then(m => ({ default: m.AuthActionHandler })), "AuthActionHandler");
 const LegalCenter = lazyWithRetry(() => import("./components/legal").then(m => ({ default: m.LegalCenter })), "LegalCenter");
 const LegalDocumentView = lazyWithRetry(() => import("./components/legal").then(m => ({ default: m.LegalDocumentView })), "LegalDocumentView");
-const LegalQuickModal = lazyWithRetry(() => import("./components/legal").then(m => ({ default: m.LegalQuickModal })), "LegalQuickModal");
+import { LegalQuickModal } from "./components/legal";
+import { ServiceOpeningLoaderModal } from "./components/common/ServiceOpeningLoaderModal";
+import { BiometricEnrollPromptModal } from "./components/auth/BiometricEnrollPromptModal";
+import { BiometricAuthService } from "./services/biometricAuthService";
 const UserLegalAgreementsModal = lazyWithRetry(() => import("./components/legal").then(m => ({ default: m.UserLegalAgreementsModal })), "UserLegalAgreementsModal");
 const PolicyUpdateReAcceptanceModal = lazyWithRetry(() => import("./components/legal").then(m => ({ default: m.PolicyUpdateReAcceptanceModal })), "PolicyUpdateReAcceptanceModal");
 const AuthPortal = lazyWithRetry(() => import("./components/auth/AuthPortal").then(m => ({ default: m.AuthPortal })), "AuthPortal");
@@ -286,6 +290,25 @@ export default function App() {
   });
   const [selectedService, setSelectedService] = useState<ServiceItem | null>(null);
   useModalBackHandler(selectedService !== null, "app-service-modal", () => setSelectedService(null));
+  const [openingService, setOpeningService] = useState<ServiceItem | null>(null);
+  const [showBiometricEnrollPrompt, setShowBiometricEnrollPrompt] = useState<boolean>(false);
+
+  const handleSelectServiceWithLoader = (service: ServiceItem | null) => {
+    if (!service) {
+      setOpeningService(null);
+      setSelectedService(null);
+      return;
+    }
+    setOpeningService(service);
+  };
+
+  const handleFinishServiceOpening = () => {
+    if (openingService) {
+      const s = openingService;
+      setOpeningService(null);
+      setSelectedService(s);
+    }
+  };
   const [showServicesSummaryDropdown, setShowServicesSummaryDropdown] = useState<boolean>(false);
   const [showLogoutModal, setShowLogoutModal] = useState<boolean>(false);
   useModalBackHandler(showLogoutModal, "app-logout-modal", () => setShowLogoutModal(false));
@@ -547,15 +570,15 @@ export default function App() {
   }, []);
 
   const siteSettings = {
-    appName: siteConfig?.general?.siteName || "Smart Link Nigeria",
-    tagline: siteConfig?.general?.tagline || "Unified Nigeria Digital Platform",
-    announcement: siteConfig?.general?.announcementText || "",
-    announcementText: siteConfig?.general?.announcementText || "",
-    showAnnouncement: siteConfig?.general?.showAnnouncement ?? false,
+    appName: siteConfig?.branding?.siteName || siteConfig?.general?.platformName || "Smart Link Nigeria",
+    tagline: siteConfig?.branding?.tagline || "Unified Nigeria Digital Platform",
+    announcement: siteConfig?.branding?.headerAnnouncementText || "",
+    announcementText: siteConfig?.branding?.headerAnnouncementText || "",
+    showAnnouncement: siteConfig?.branding?.showHeaderAnnouncement ?? false,
     maintenanceMode: siteConfig?.maintenance?.maintenanceMode ?? false,
-    ninFee: siteConfig?.pricing?.ninVerificationFee ?? 500,
-    bvnFee: siteConfig?.pricing?.bvnVerificationFee ?? 500,
-    cacBaseFee: siteConfig?.pricing?.cacBusinessNameFee ?? 28000,
+    ninFee: siteConfig?.priceMatrix?.ninVerificationFee ?? 500,
+    bvnFee: siteConfig?.priceMatrix?.bvnVerificationFee ?? 500,
+    cacBaseFee: siteConfig?.priceMatrix?.cacBusinessNameFee ?? 28000,
   };
 
   useEffect(() => {
@@ -963,26 +986,32 @@ export default function App() {
       {/* Real-time Global Toast Notifications */}
       {toast && (
         <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4 pointer-events-none transition-all duration-200 ease-out animate-in fade-in slide-in-from-top-4">
-          <div className="pointer-events-auto flex items-start gap-3 p-4 rounded-xl border border-[#E5E7EB] bg-[#111827]/95 shadow-xl backdrop-blur-md text-xs font-medium text-white">
-            <div className="mt-0.5">
+          <div className={`pointer-events-auto flex items-start gap-3.5 p-4 rounded-xl border shadow-2xl backdrop-blur-md text-xs font-semibold text-white ${
+            toast.type === "success"
+              ? "bg-emerald-700 border-emerald-500 text-white"
+              : toast.type === "error"
+              ? "bg-red-700 border-red-500 text-white"
+              : "bg-[#0F2D5C] border-[#17407E] text-white"
+          }`}>
+            <div className="mt-0.5 shrink-0">
               {toast.type === "success" ? (
-                <Check className="h-4 w-4 text-[#FFFFFF] shrink-0" />
+                <Check className="h-5 w-5 text-emerald-200 shrink-0" />
               ) : toast.type === "error" ? (
-                <AlertCircle className="h-4 w-4 text-[#9CA3AF] shrink-0" />
+                <AlertCircle className="h-5 w-5 text-red-200 shrink-0" />
               ) : (
                 <SmartLinkLogoMark size="xs" color="#FFFFFF" animating={true} />
               )}
             </div>
             <div className="flex-1 text-left">
-              <p className="font-bold uppercase tracking-wider text-[10px] opacity-80">
+              <p className="font-bold uppercase tracking-wider text-[11px] opacity-95">
                 {toast.type === "success" ? "Operation Successful" : toast.type === "error" ? "System Error Alert" : "System Notification"}
               </p>
-              <p className="mt-1 text-[11px] leading-relaxed font-normal">{toast.message}</p>
+              <p className="mt-1 text-xs leading-relaxed font-normal text-white/95">{toast.message}</p>
             </div>
             <button
               type="button"
               onClick={() => setToast(null)}
-              className="text-[10px] hover:text-white underline cursor-pointer shrink-0 ml-1 opacity-70 hover:opacity-100 font-mono focus:outline-none"
+              className="text-xs hover:text-white underline cursor-pointer shrink-0 ml-1 opacity-80 hover:opacity-100 font-bold focus:outline-none"
             >
               Dismiss
             </button>
@@ -1027,7 +1056,7 @@ export default function App() {
             onLogout={handleLogout}
             isDarkMode={isDarkMode}
             onToggleDarkMode={handleToggleDarkMode}
-            onSelectService={setSelectedService}
+            onSelectService={handleSelectServiceWithLoader}
             onRefreshUser={fetchUserProfile}
             onSetAuthStates={({ isRegistering }) => { setIsRegistering(isRegistering); }}
           />
@@ -1214,20 +1243,8 @@ export default function App() {
               </button>
             </div>
 
-            {/* Right Login Button */}
-            <div>
-              <button
-                onClick={() => {
-                  setCurrentView("DASHBOARD");
-                  setIsRegistering(false);
-                  
-                  
-                }}
-                className="px-6 py-2.5 bg-[#082051] hover:bg-[#06183e] text-white font-bold rounded-full text-xs shadow-md transition-all cursor-pointer"
-              >
-                Client Login
-              </button>
-            </div>
+            {/* Right Header Space */}
+            <div />
           </div>
         </header>
       )}
@@ -1276,17 +1293,10 @@ export default function App() {
       ) : (
         <main className="flex-1 overflow-x-hidden min-h-screen flex flex-col justify-between">
           <div className="w-full">
-            {siteSettings?.showAnnouncement && siteSettings?.announcementText && (
-              <div className="bg-[#0F2D5C] text-white px-4 py-2.5 text-xs font-semibold text-center flex items-center justify-center gap-2 shadow-xs border-b border-white/10">
-                <Sparkles className="h-4 w-4 shrink-0 text-[#E5E7EB] animate-pulse" />
-                <span>{siteSettings.announcementText}</span>
-              </div>
-            )}
-
             <Suspense fallback={<RouteLoadingFallback />}>
             {currentView === "SERVICES" && (
               currentUser ? (
-                <ServicesGrid onSelectService={setSelectedService} />
+                <ServicesGrid onSelectService={handleSelectServiceWithLoader} />
               ) : (
                 <div className="max-w-md mx-auto my-16 px-4">
                   <div className="bg-white border border-[#E5E7EB] rounded-2xl p-8 shadow-sm text-center space-y-6">
@@ -1542,7 +1552,7 @@ export default function App() {
                 onSwitchView={navigateToView}
                 isDarkMode={isDarkMode}
                 onToggleDarkMode={handleToggleDarkMode}
-                onSelectService={setSelectedService}
+                onSelectService={handleSelectServiceWithLoader}
               />
             )}
 
@@ -1671,7 +1681,7 @@ export default function App() {
                 onNavigateHome={() => navigateToView(currentUser ? "DASHBOARD" : "HOME")}
                 onSelectService={(service) => {
                   if (currentUser) {
-                    setSelectedService(service);
+                    handleSelectServiceWithLoader(service);
                   } else {
                     navigateToView("DASHBOARD");
                     setIsRegistering(false);
@@ -1693,7 +1703,7 @@ export default function App() {
                 onNavigateHome={() => navigateToView(currentUser ? "DASHBOARD" : "HOME")}
                 onSelectService={(service) => {
                   if (currentUser) {
-                    setSelectedService(service);
+                    handleSelectServiceWithLoader(service);
                   } else {
                     navigateToView("DASHBOARD");
                     setIsRegistering(false);
@@ -1715,7 +1725,7 @@ export default function App() {
                 onNavigateHome={() => navigateToView(currentUser ? "DASHBOARD" : "HOME")}
                 onSelectService={(service) => {
                   if (currentUser) {
-                    setSelectedService(service);
+                    handleSelectServiceWithLoader(service);
                   } else {
                     navigateToView("DASHBOARD");
                     setIsRegistering(false);
@@ -1817,6 +1827,12 @@ export default function App() {
                       setCurrentUser(user);
                       navigateToView("DASHBOARD");
                       setIsRegistering(false);
+                      // Check if biometric enrollment prompt modal should appear immediately after manual login
+                      BiometricAuthService.isBiometricSupported().then((supported) => {
+                        if (supported) {
+                          setTimeout(() => setShowBiometricEnrollPrompt(true), 500);
+                        }
+                      });
                     }}
                     onNavigateHome={() => navigateToView("HOME")}
                     onOpenLegalDoc={(docId) => setQuickLegalModalDocId(docId)}
@@ -1830,6 +1846,24 @@ export default function App() {
         </div>
       </main>
       )}
+
+      {/* Service Opening Loader Modal (Progressive verification-style loader before opening modal) */}
+      <ServiceOpeningLoaderModal
+        service={openingService}
+        isOpen={openingService !== null}
+        onReadyToOpen={handleFinishServiceOpening}
+      />
+
+      {/* Biometric Fingerprint Enrollment Prompt Modal (Fintech-style after manual login) */}
+      <BiometricEnrollPromptModal
+        isOpen={showBiometricEnrollPrompt}
+        onClose={() => setShowBiometricEnrollPrompt(false)}
+        onSuccess={() => {
+          setToast({ message: "Fingerprint sign-in successfully enabled! You can now log in with 1 touch.", type: "success" });
+        }}
+        userFullName={currentUser?.fullName || "Valued User"}
+        userEmail={currentUser?.email}
+      />
 
       {/* Global Action Modal for Ordering/Verifying */}
       <Suspense fallback={null}>

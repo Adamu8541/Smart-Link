@@ -109,7 +109,7 @@ export function AdminProvidersView() {
   const [addEnvironment, setAddEnvironment] = useState("Production");
   const [addIsDefault, setAddIsDefault] = useState(false);
 
-  const applyProviderPreset = (preset: "clubkonnect" | "aspfiy" | "lumiid" | "verifyng" | "identro") => {
+  const applyProviderPreset = (preset: "clubkonnect" | "aspfiy" | "lumiid" | "verifyng" | "identro" | "prembley") => {
     if (preset === "clubkonnect") {
       setAddName("Clubkonnect VTU & Bill Payment");
       setAddCategory("TELECOM_VTU");
@@ -170,6 +170,24 @@ export function AdminProvidersView() {
       setAddEnvironment("Production");
       setAddStatus("ENABLED");
       setToast("Identro preset applied. Enter your x-api-key in API Credentials.");
+    } else if (preset === "prembley") {
+      setAddName("Prembley Portal (Identitypass)");
+      setAddCategory("IDENTITY_API");
+      setAddDescription("Prembley (Identitypass) API for NIN, BVN, CAC, TIN, Driver's License & Biometrics");
+      setAddBaseUrl("https://api.myidentitypay.com");
+      setAddApiVersion("v2.0");
+      setAddAuthMethod("API_KEY");
+      setAddSupportsWalletFunding(false);
+      setAddSupportsBankTransfer(false);
+      setAddSupportsCardPayment(false);
+      setAddSupportsVirtualAccount(false);
+      setAddSupportsPaymentLink(false);
+      setAddSupportsPayout(false);
+      setAddSupportsRefund(false);
+      setAddSupportsTxVerification(true);
+      setAddEnvironment("Production");
+      setAddStatus("ENABLED");
+      setToast("Prembley (Identitypass) preset applied. Enter your Public Key and Secret Key in API Credentials.");
     }
   };
 
@@ -437,9 +455,9 @@ export function AdminProvidersView() {
           <button
             onClick={fetchProviders}
             disabled={loading}
-            className="py-2.5 px-4 bg-[#111827] hover:bg-[#111827] border border-[#111827] text-[#E5E7EB] font-bold text-xs rounded-xl flex items-center gap-2 transition-all cursor-pointer"
+            className=" py-2.5 px-4 border border-[#111827] font-bold text-xs rounded-xl flex items-center gap-2 transition-all cursor-pointer"
           >
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-[#9CA3AF]" : ""}`} />
+            <RefreshCw className={`h-4 w-4${loading ? "animate-spin text-[#9CA3AF]" : ""}`} />
             <span>Refresh</span>
           </button>
         </div>
@@ -448,7 +466,7 @@ export function AdminProvidersView() {
       {toast && (
         <div className="p-4 bg-[#111827] border border-[#0F2D5C]/80 text-[#9CA3AF] text-xs font-medium rounded-2xl flex items-center justify-between shadow-lg">
           <span>{toast}</span>
-          <button onClick={() => setToast(null)} className="text-[#9CA3AF] hover:text-white">✕</button>
+          <button onClick={() => setToast(null)} > ✕</button>
         </div>
       )}
 
@@ -584,7 +602,7 @@ export function AdminProvidersView() {
                 setCategory(cat);
                 setPagination((p) => ({ ...p, pageNum: 1 }));
               }}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer${
                 category === cat
                   ? "bg-[#0F2D5C] text-white shadow-lg shadow-none"
                   : "bg-[#111827] text-[#9CA3AF] hover:text-white hover:bg-[#111827]"
@@ -597,7 +615,7 @@ export function AdminProvidersView() {
       </div>
 
       {/* Main Providers Table */}
-      <div className="bg-[#111827] border border-[#111827] rounded-3xl overflow-hidden shadow-xl">
+      <div className=" border border-[#111827] rounded-3xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
@@ -643,16 +661,16 @@ export function AdminProvidersView() {
                             <span className="font-bold text-white text-sm flex items-center gap-2">
                               <span>{p.name}</span>
                               {p.isDefault && (
-                                <span className="px-1.5 py-0.5 bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C] text-[9px] font-bold rounded">DEFAULT</span>
+                                <span className="px-1.5 py-0.5 bg-blue-900/60 text-blue-300 border border-blue-700 text-[9px] font-bold rounded">DEFAULT</span>
                               )}
                             </span>
-                            <span className="text-[11px] text-[#9CA3AF] font-mono line-clamp-1">{p.baseUrl}</span>
+                            <span className="text-[11px] text-slate-400 font-mono line-clamp-1">{p.baseUrl}</span>
                           </div>
                         </div>
                       </td>
 
-                      <td className="py-4 px-4 font-medium text-[#E5E7EB]">
-                        <span className="px-2.5 py-1 bg-[#111827] border border-[#111827] rounded-lg text-[#E5E7EB] text-[11px] font-semibold">
+                      <td className="py-4 px-4 font-medium text-slate-200">
+                        <span className="px-2.5 py-1 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 text-[11px] font-semibold">
                           {p.category || p.providerType}
                         </span>
                       </td>
@@ -661,10 +679,8 @@ export function AdminProvidersView() {
                         <span
                           className={`px-2.5 py-1 text-[10px] font-bold rounded-full border ${
                             p.environment === "Production"
-                              ? "bg-[#0F2D5C] text-[#9CA3AF] border-[#0F2D5C]"
-                              : p.environment === "Sandbox"
-                              ? "bg-[#0F2D5C] text-[#9CA3AF] border-[#0F2D5C]"
-                              : "bg-[#0F2D5C] text-[#9CA3AF] border-[#0F2D5C]"
+                              ? "bg-emerald-950/60 text-emerald-300 border-emerald-800"
+                              : "bg-amber-950/60 text-amber-300 border-amber-800"
                           }`}
                         >
                           {p.environment || "Production"}
@@ -680,12 +696,12 @@ export function AdminProvidersView() {
                             className="cursor-pointer"
                           >
                             {isEnabled ? (
-                              <ToggleRight className="h-6 w-6 text-[#9CA3AF]" />
+                              <ToggleRight className="h-6 w-6 text-emerald-400" />
                             ) : (
-                              <ToggleLeft className="h-6 w-6 text-[#4B5563]" />
+                              <ToggleLeft className="h-6 w-6 text-slate-500" />
                             )}
                           </button>
-                          <span className={`font-bold text-xs ${isEnabled ? "text-[#9CA3AF]" : "text-[#6B7280]"}`}>
+                          <span className={`font-bold text-xs ${isEnabled ? "text-emerald-400" : "text-slate-400"}`}>
                             {isEnabled ? "ACTIVE" : "INACTIVE"}
                           </span>
                         </div>
@@ -693,21 +709,21 @@ export function AdminProvidersView() {
 
                       <td className="py-4 px-4">
                         {p.isDefault ? (
-                          <span className="text-[#9CA3AF] font-bold text-xs flex items-center gap-1">
-                            <Check className="h-4 w-4" /> Default
+                          <span className="text-blue-400 font-bold text-xs flex items-center gap-1">
+                            <Check className="h-4 w-4 text-blue-400" /> Default
                           </span>
                         ) : (
                           <button
                             type="button"
                             onClick={() => handleSetDefault(p)}
-                            className="py-1 px-2.5 bg-[#111827] hover:bg-[#111827] border border-[#111827] text-[#9CA3AF] hover:text-white rounded-lg text-[10px] font-bold cursor-pointer"
+                            className="py-1 px-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-lg text-[10px] font-bold cursor-pointer transition-colors"
                           >
                             Set Default
                           </button>
                         )}
                       </td>
 
-                      <td className="py-4 px-4 font-mono font-bold text-[#9CA3AF]">
+                      <td className="py-4 px-4 font-mono font-bold text-slate-200">
                         {p.avgResponseTimeMs || p.avgResponseTime || 180} ms
                       </td>
 
@@ -717,15 +733,15 @@ export function AdminProvidersView() {
                             type="button"
                             onClick={() => handleTestConnection(p.id)}
                             title="Test Connection Ping"
-                            className="p-1.5 bg-[#0F2D5C]/40 hover:bg-[#0F2D5C]/60 border border-[#0F2D5C]/60 text-[#9CA3AF] rounded-lg cursor-pointer transition-all"
+                            className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-lg cursor-pointer transition-all"
                           >
-                            <Zap className="h-3.5 w-3.5" />
+                            <Zap className="h-3.5 w-3.5 text-amber-400" />
                           </button>
 
                           <button
                             type="button"
                             onClick={() => handleOpenDrawer(p.id)}
-                            className="py-1.5 px-3 bg-[#0F2D5C]/20 hover:bg-[#0F2D5C] border border-[#0F2D5C] text-[#9CA3AF] hover:text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
+                            className="py-1.5 px-3 bg-blue-900/40 hover:bg-blue-800/80 border border-blue-700/80 text-blue-200 hover:text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
                           >
                             <Settings className="h-3.5 w-3.5" />
                             <span>Manage</span>
@@ -735,7 +751,7 @@ export function AdminProvidersView() {
                             type="button"
                             onClick={() => handleDeleteProvider(p)}
                             title="Delete Provider"
-                            className="p-1.5 bg-[#0F2D5C]/40 hover:bg-[#0F2D5C]/60 border border-[#0F2D5C]/60 text-[#9CA3AF] rounded-lg cursor-pointer transition-all"
+                            className="p-1.5 bg-rose-950/40 hover:bg-rose-900/80 text-rose-300 border border-rose-800/80 rounded-lg cursor-pointer transition-all"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
@@ -760,7 +776,7 @@ export function AdminProvidersView() {
             <button
               disabled={pagination.pageNum <= 1}
               onClick={() => setPagination((p) => ({ ...p, pageNum: p.pageNum - 1 }))}
-              className="p-2 bg-[#111827] border border-[#111827] rounded-xl text-[#9CA3AF] hover:text-white disabled:opacity-40 cursor-pointer"
+              className=" p-2 border border-[#111827] rounded-xl disabled:opacity-40 cursor-pointer"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -772,7 +788,7 @@ export function AdminProvidersView() {
             <button
               disabled={pagination.pageNum >= pagination.totalPages}
               onClick={() => setPagination((p) => ({ ...p, pageNum: p.pageNum + 1 }))}
-              className="p-2 bg-[#111827] border border-[#111827] rounded-xl text-[#9CA3AF] hover:text-white disabled:opacity-40 cursor-pointer"
+              className=" p-2 border border-[#111827] rounded-xl disabled:opacity-40 cursor-pointer"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
@@ -805,7 +821,7 @@ export function AdminProvidersView() {
               <button
                 type="button"
                 onClick={() => setIsAddModalOpen(false)}
-                className="p-2 bg-[#111827] hover:bg-[#4B5563] text-[#9CA3AF] hover:text-white rounded-xl cursor-pointer"
+                className=" p-2 rounded-xl cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -817,37 +833,44 @@ export function AdminProvidersView() {
               <button
                 type="button"
                 onClick={() => applyProviderPreset("clubkonnect")}
-                className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 rounded-lg font-medium transition cursor-pointer shrink-0 flex items-center gap-1"
+                className=" px-2.5 py-1 border border-amber-500/30 rounded-lg font-medium transition cursor-pointer shrink-0 flex items-center gap-1"
               >
                 ⚡ Clubkonnect (VTU & Bills)
               </button>
               <button
                 type="button"
                 onClick={() => applyProviderPreset("aspfiy")}
-                className="px-2.5 py-1 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-300 rounded-lg font-medium transition cursor-pointer shrink-0"
+                className=" px-2.5 py-1 border border-blue-500/30 rounded-lg font-medium transition cursor-pointer shrink-0"
               >
                 💳 Aspfiy (Portal)
               </button>
               <button
                 type="button"
                 onClick={() => applyProviderPreset("lumiid")}
-                className="px-2.5 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 rounded-lg font-medium transition cursor-pointer shrink-0"
+                className=" px-2.5 py-1 border border-emerald-500/30 rounded-lg font-medium transition cursor-pointer shrink-0"
               >
                 🆔 LumiID (Identity)
               </button>
               <button
                 type="button"
                 onClick={() => applyProviderPreset("verifyng")}
-                className="px-2.5 py-1 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 rounded-lg font-medium transition cursor-pointer shrink-0"
+                className=" px-2.5 py-1 border border-cyan-500/30 rounded-lg font-medium transition cursor-pointer shrink-0"
               >
                 🔍 VerifyNG (KYC)
               </button>
               <button
                 type="button"
                 onClick={() => applyProviderPreset("identro")}
-                className="px-2.5 py-1 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 rounded-lg font-medium transition cursor-pointer shrink-0"
+                className=" px-2.5 py-1 border border-indigo-500/30 rounded-lg font-medium transition cursor-pointer shrink-0"
               >
                 🪪 Identro (identro.ng)
+              </button>
+              <button
+                type="button"
+                onClick={() => applyProviderPreset("prembley")}
+                className=" px-2.5 py-1 border border-blue-500/30 rounded-lg font-medium transition cursor-pointer shrink-0"
+              >
+                🛡️ Prembley (Identitypass)
               </button>
             </div>
 
@@ -867,7 +890,7 @@ export function AdminProvidersView() {
                     key={tab.id}
                     type="button"
                     onClick={() => setAddFormTab(tab.id as any)}
-                    className={`py-2 px-3 text-xs font-bold border-b-2 flex items-center gap-1.5 cursor-pointer whitespace-nowrap transition-all ${
+                    className={`py-2 px-3 text-xs font-bold border-b-2 flex items-center gap-1.5 cursor-pointer whitespace-nowrap transition-all${
                       addFormTab === tab.id
                         ? "border-[#0F2D5C] text-[#9CA3AF]"
                         : "border-transparent text-[#9CA3AF] hover:text-white"
@@ -1264,7 +1287,7 @@ export function AdminProvidersView() {
                     <button
                       type="button"
                       onClick={() => setAddIsDefault(!addIsDefault)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer${
                         addIsDefault ? "bg-emerald-600 hover:bg-emerald-500 text-white" : "bg-slate-700 hover:bg-slate-600 text-slate-300"
                       }`}
                     >
@@ -1274,11 +1297,11 @@ export function AdminProvidersView() {
                 </div>
               )}
 
-              <div className="pt-4 border-t border-[#111827] flex items-center justify-between">
+              <div className=" pt-4 border-t border-[#111827] flex items-center justify-between">
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="py-2.5 px-5 bg-[#111827] hover:bg-[#111827] text-[#9CA3AF] font-bold text-xs rounded-xl"
+                  className=" py-2.5 px-5 font-bold text-xs rounded-xl"
                 >
                   Cancel
                 </button>

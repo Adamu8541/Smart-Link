@@ -93,7 +93,7 @@ app.post("/api/admin/subadmins/create", requireAdmin, async (req, res) => {
     role: newSubAdmin.role,
     permissions: newSubAdmin.permissions,
     status: "ACTIVE",
-    passwordHash: password,
+    passwordHash: userHash,
     createdAt: newSubAdmin.createdAt,
     updatedAt: newSubAdmin.createdAt
   });

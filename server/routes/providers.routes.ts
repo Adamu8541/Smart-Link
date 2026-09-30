@@ -25,9 +25,9 @@ import { PaymentVerificationReconciliationEngine } from "../../src/services/paym
 import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerConnector";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
 import { LumiIDAdapter } from "../../src/services/providers/lumiidAdapter";
-import { VerifyNGAdapter } from "../../src/services/providers/verifyNgAdapter";
 import { ClubkonnectAdapter } from "../../src/services/providers/clubkonnectAdapter";
 import { IdentroAdapter } from "../../src/services/providers/identroAdapter";
+import { PrembleyAdapter } from "../../src/services/providers/prembleyAdapter";
 import { MultiProviderRoutingEngine } from "../../src/services/multiProviderRoutingEngine";
 import { syncFromStorage, syncToStorage } from "../../src/services/settingsStore";
 import * as usersStore from "../../src/services/usersStore";
@@ -577,16 +577,16 @@ function getCentralActivePaymentProvider(db: any, isAdmin = false) {
     activeProvider.apiKey = activeProvider.secretKey;
     activeProvider.clientId = activeProvider.clientId || String(process.env.LUMIID_APP_ID || process.env.LUMIID_CLIENT_ID || "smartlink_identity_app").trim();
     activeProvider.baseUrl = activeProvider.baseUrl || "https://api.lumiid.com";
-  } else if (activeProvName.includes("verifyng")) {
-    activeProvider.secretKey = activeProvider.secretKey || String(process.env.VERIFYNG_API_KEY || process.env.VERIFYNG_SECRET_KEY || process.env.VERIFYNG_API_SECRET || "").trim();
-    activeProvider.clientId = activeProvider.clientId || String(process.env.VERIFYNG_CLIENT_KEY || process.env.VERIFYNG_API_KEY || "smartlink_kyc_app").trim();
-    activeProvider.apiKey = activeProvider.clientId;
-    activeProvider.baseUrl = (activeProvider.baseUrl && !activeProvider.baseUrl.includes("verifyn.ng")) ? activeProvider.baseUrl : "https://kyc.edirect.ng";
   } else if (activeProvName.includes("identro")) {
     activeProvider.secretKey = activeProvider.secretKey || String(process.env.IDENTRO_API_KEY || process.env.IDENTRO_SECRET_KEY || "").trim();
     activeProvider.clientId = activeProvider.clientId || String(process.env.IDENTRO_CLIENT_ID || "smartlink_identro_app").trim();
     activeProvider.apiKey = activeProvider.secretKey;
     activeProvider.baseUrl = activeProvider.baseUrl || "https://api.identro.ng";
+  } else if (activeProvName.includes("prembley") || activeProvName.includes("prembly") || activeProvName.includes("identitypass")) {
+    activeProvider.secretKey = activeProvider.secretKey || String(process.env.PREMBLEY_SECRET_KEY || process.env.IDENTITYPASS_SECRET_KEY || "").trim();
+    activeProvider.publicKey = activeProvider.publicKey || String(process.env.PREMBLEY_PUBLIC_KEY || process.env.PREMBLEY_API_KEY || process.env.IDENTITYPASS_PUBLIC_KEY || process.env.IDENTITYPASS_API_KEY || "").trim();
+    activeProvider.apiKey = activeProvider.publicKey || activeProvider.secretKey;
+    activeProvider.baseUrl = activeProvider.baseUrl || "https://api.prembly.com";
   } else if (activeProvName.includes("clubkonnect")) {
     activeProvider.secretKey = activeProvider.secretKey || String(process.env.CLUBKONNECT_API_KEY || "").trim();
     activeProvider.clientId = activeProvider.clientId || String(process.env.CLUBKONNECT_USER_ID || "smartlink_vtu").trim();
@@ -985,16 +985,16 @@ app.post("/api/admin/payment-providers/:id/test-connection", requireAdmin, async
     provider.apiKey = provider.secretKey;
     provider.clientId = provider.clientId || String(process.env.LUMIID_APP_ID || process.env.LUMIID_CLIENT_ID || "smartlink_identity_app").trim();
     provider.baseUrl = provider.baseUrl || "https://api.lumiid.com";
-  } else if (testProvName.includes("verifyng")) {
-    provider.secretKey = provider.secretKey || String(process.env.VERIFYNG_API_KEY || process.env.VERIFYNG_SECRET_KEY || process.env.VERIFYNG_API_SECRET || "").trim();
-    provider.clientId = provider.clientId || String(process.env.VERIFYNG_CLIENT_KEY || process.env.VERIFYNG_API_KEY || "smartlink_kyc_app").trim();
-    provider.apiKey = provider.clientId;
-    provider.baseUrl = (provider.baseUrl && !provider.baseUrl.includes("verifyn.ng")) ? provider.baseUrl : "https://kyc.edirect.ng";
   } else if (testProvName.includes("identro")) {
     provider.secretKey = provider.secretKey || String(process.env.IDENTRO_API_KEY || process.env.IDENTRO_SECRET_KEY || "").trim();
     provider.clientId = provider.clientId || String(process.env.IDENTRO_CLIENT_ID || "smartlink_identro_app").trim();
     provider.apiKey = provider.secretKey;
     provider.baseUrl = provider.baseUrl || "https://api.identro.ng";
+  } else if (testProvName.includes("prembley") || testProvName.includes("prembly") || testProvName.includes("identitypass")) {
+    provider.secretKey = provider.secretKey || String(process.env.PREMBLEY_SECRET_KEY || process.env.IDENTITYPASS_SECRET_KEY || "").trim();
+    provider.publicKey = provider.publicKey || String(process.env.PREMBLEY_PUBLIC_KEY || process.env.PREMBLEY_API_KEY || process.env.IDENTITYPASS_PUBLIC_KEY || process.env.IDENTITYPASS_API_KEY || "").trim();
+    provider.apiKey = provider.publicKey || provider.secretKey;
+    provider.baseUrl = provider.baseUrl || "https://api.prembly.com";
   } else if (testProvName.includes("clubkonnect")) {
     provider.secretKey = provider.secretKey || String(process.env.CLUBKONNECT_API_KEY || "").trim();
     provider.clientId = provider.clientId || String(process.env.CLUBKONNECT_USER_ID || "smartlink_vtu").trim();
@@ -1170,7 +1170,7 @@ app.post("/api/admin/payment-providers/:id/test-connection", requireAdmin, async
 // =========================================================================
 
 // 1. Get Portal Routing Rules, Health Metrics & Failover Summaries
-app.get("/api/admin/routing", async (req, res) => {
+app.get("/api/admin/routing", requireAdmin, async (req, res) => {
   const db = readDB();
   const rules = MultiProviderRoutingEngine.getRoutingRules(db);
   const metrics = MultiProviderRoutingEngine.getProviderHealthMetrics(db);
@@ -1187,7 +1187,7 @@ app.get("/api/admin/routing", async (req, res) => {
 });
 
 // 2. Update Service Portal Routing Rule
-app.post("/api/admin/routing", async (req, res) => {
+app.post("/api/admin/routing", requireAdmin, async (req, res) => {
   const db = readDB();
   const { rule, rules } = req.body;
 
@@ -1214,7 +1214,7 @@ app.post("/api/admin/routing", async (req, res) => {
 });
 
 // 3. Active Portal Health Ping & Latency Probe
-app.post("/api/admin/portal-ping", async (req, res) => {
+app.post("/api/admin/portal-ping", requireAdmin, async (req, res) => {
   const db = readDB();
   const { providerId } = req.body;
 
@@ -1234,7 +1234,7 @@ app.post("/api/admin/portal-ping", async (req, res) => {
 });
 
 // 4. Get Portal Failover Logs Stream
-app.get("/api/admin/portal-failovers", async (req, res) => {
+app.get("/api/admin/portal-failovers", requireAdmin, async (req, res) => {
   const db = readDB();
   return res.json({
     success: true,
@@ -1243,7 +1243,7 @@ app.get("/api/admin/portal-failovers", async (req, res) => {
 });
 
 // 5. Get Background Verification Reconciliation Queue
-app.get("/api/admin/background-jobs", async (req, res) => {
+app.get("/api/admin/background-jobs", requireAdmin, async (req, res) => {
   const db = readDB();
   return res.json({
     success: true,
@@ -1252,7 +1252,7 @@ app.get("/api/admin/background-jobs", async (req, res) => {
 });
 
 // 6. Trigger Immediate Background Verification Sweep
-app.post("/api/admin/background-jobs/process", async (req, res) => {
+app.post("/api/admin/background-jobs/process", requireAdmin, async (req, res) => {
   const db = readDB();
   const result = await MultiProviderRoutingEngine.processBackgroundJobs(db);
   writeDB(db);
@@ -1267,7 +1267,7 @@ app.post("/api/admin/background-jobs/process", async (req, res) => {
 });
 
 // 7. Queue a New Background Verification Job
-app.post("/api/admin/background-jobs/queue", async (req, res) => {
+app.post("/api/admin/background-jobs/queue", requireAdmin, async (req, res) => {
   const db = readDB();
   const { service, targetId, userId, userEmail, fee } = req.body;
 
@@ -1618,6 +1618,40 @@ function seedModule6ProvidersIfEmpty(db: any) {
     });
   }
 
+  // Ensure Prembley (Identitypass) Portal Provider
+  if (!db.api_providers.some((p: any) => p.id === "prov_prembley" || (p.name || "").toLowerCase().includes("prembley") || (p.name || "").toLowerCase().includes("identitypass"))) {
+    db.api_providers.push({
+      id: "prov_prembley",
+      name: "Prembley Portal (Identitypass)",
+      category: "IDENTITY_API",
+      providerType: "IDENTITY_API",
+      description: "Prembley (Identitypass) Identity, NIN, BVN, CAC & KYB Verification API",
+      logoUrl: "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=100&auto=format&fit=crop&q=60",
+      baseUrl: "https://api.prembly.com",
+      apiVersion: "v2.0",
+      authMethod: "API_KEY",
+      secretKey: String(process.env.PREMBLEY_SECRET_KEY || process.env.IDENTITYPASS_SECRET_KEY || "").trim(),
+      publicKey: String(process.env.PREMBLEY_PUBLIC_KEY || process.env.PREMBLEY_API_KEY || process.env.IDENTITYPASS_PUBLIC_KEY || process.env.IDENTITYPASS_API_KEY || "").trim(),
+      apiKey: String(process.env.PREMBLEY_PUBLIC_KEY || process.env.PREMBLEY_API_KEY || process.env.PREMBLEY_SECRET_KEY || "").trim(),
+      supportsWalletFunding: false,
+      supportsBankTransfer: false,
+      supportsCardPayment: false,
+      supportsVirtualAccount: false,
+      supportsPaymentLink: false,
+      supportsPayout: false,
+      supportsRefund: false,
+      supportsTxVerification: true,
+      timeout: 15000,
+      retryAttempts: 3,
+      healthStatus: "ONLINE",
+      priority: 5,
+      environment: "PRODUCTION",
+      status: "ENABLED",
+      enabled: true,
+      isActive: true,
+    });
+  }
+
   db.apiProviders = db.api_providers;
 }
 
@@ -1906,7 +1940,7 @@ app.delete("/api/admin/providers/:providerId", requireAdmin, async (req, res) =>
 });
 
 // 3c. POST /api/admin/providers/:providerId/set-default — Set Default Provider
-app.post("/api/admin/providers/:providerId/set-default", async (req, res) => {
+app.post("/api/admin/providers/:providerId/set-default", requireAdmin, async (req, res) => {
   const { providerId } = req.params;
   const db = readDB();
   await syncFromStorage(db);
@@ -2083,6 +2117,15 @@ app.post("/api/admin/providers/:providerId/test-connection", requireAdmin, async
       provider.secretKey = process.env.IDENTRO_API_KEY || process.env.IDENTRO_SECRET_KEY || provider.secretKey;
     }
     provider.apiKey = provider.secretKey;
+  } else if (pName.includes("prembley") || pId.includes("prembley") || pName.includes("prembly") || pId.includes("prembly") || pName.includes("identitypass") || pId.includes("identitypass")) {
+    provider.baseUrl = provider.baseUrl || "https://api.prembly.com";
+    if (!provider.secretKey || provider.secretKey.includes("•")) {
+      provider.secretKey = process.env.PREMBLEY_SECRET_KEY || process.env.IDENTITYPASS_SECRET_KEY || provider.secretKey;
+    }
+    if (!provider.publicKey || provider.publicKey.includes("•")) {
+      provider.publicKey = process.env.PREMBLEY_PUBLIC_KEY || process.env.PREMBLEY_API_KEY || process.env.IDENTITYPASS_PUBLIC_KEY || process.env.IDENTITYPASS_API_KEY || provider.publicKey;
+    }
+    provider.apiKey = provider.publicKey || provider.secretKey;
   } else if (pName.includes("clubkonnect") || pId.includes("clubkonnect")) {
     provider.baseUrl = provider.baseUrl || "https://www.clubkonnect.com/API";
     provider.secretKey = provider.secretKey || process.env.CLUBKONNECT_API_KEY;
@@ -2104,12 +2147,12 @@ app.post("/api/admin/providers/:providerId/test-connection", requireAdmin, async
   } else if (provider.name.toLowerCase().includes("lumiid")) {
     const lumiAdapter = new LumiIDAdapter();
     testResult = await lumiAdapter.testConnection(provider);
-  } else if (provider.name.toLowerCase().includes("verifyng") || provider.name.toLowerCase().includes("verify-ng") || provider.name.toLowerCase().includes("edirect")) {
-    const verifyNgAdapter = new VerifyNGAdapter();
-    testResult = await verifyNgAdapter.testConnection(provider);
   } else if (provider.name.toLowerCase().includes("identro") || (provider.id && provider.id.toLowerCase().includes("identro"))) {
     const identroAdapter = new IdentroAdapter();
     testResult = await identroAdapter.testConnection(provider);
+  } else if (provider.name.toLowerCase().includes("prembley") || (provider.id && provider.id.toLowerCase().includes("prembley")) || provider.name.toLowerCase().includes("identitypass") || (provider.id && provider.id.toLowerCase().includes("identitypass"))) {
+    const prembleyAdapter = new PrembleyAdapter();
+    testResult = await prembleyAdapter.testConnection(provider);
   } else if (provider.name.toLowerCase().includes("clubkonnect") || provider.name.toLowerCase().includes("club konnect")) {
     const clubkonnectAdapter = new ClubkonnectAdapter();
     testResult = await clubkonnectAdapter.testConnection(provider);

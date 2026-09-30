@@ -18,10 +18,14 @@ import {
   Zap,
   Sliders,
   X,
+  Fingerprint,
+  Trash2,
+  Plus,
 } from "lucide-react";
 import { UserProfile } from "../../types";
 import { SensitiveActionPurpose } from "../../types/auth";
 import { SupabaseAuthService } from "../../services/supabaseAuth";
+import { BiometricAuthService, BiometricDevice } from "../../services/biometricAuthService";
 import { soundFx } from "../../utils/audioEffects";
 
 interface AccountSecurityViewProps {
@@ -31,9 +35,9 @@ interface AccountSecurityViewProps {
   isDarkMode?: boolean;
 }
 
-type TabType = "PASSWORD" | "EMAIL" | "PHONE" | "PIN";
+type TabType = "PASSWORD" | "EMAIL" | "PHONE" | "PIN" | "BIOMETRIC";
 
-export const AccountSecurityView: React.FC<AccountSecurityViewProps> = ({
+export const AccountSecurityView: React.FC<AccountSecurityViewProps>= ({
   currentUser,
   onBack,
   onRefreshUser,
@@ -76,6 +80,67 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps> = ({
   const isPinActive = currentUser.pinRequiredForTransactions !== false && Boolean(currentUser.hasTransactionPin);
   const [localPinRequired, setLocalPinRequired] = useState<boolean>(isPinActive);
   const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error" | "info"; text: string } | null>(null);
+
+  // Biometric passkey state
+  const [biometricDevices, setBiometricDevices] = useState<BiometricDevice[]>([]);
+  const [isEnrollingBiometrics, setIsEnrollingBiometrics] = useState(false);
+  const [isBiometricSupported, setIsBiometricSupported] = useState(false);
+  const [loadingBiometricList, setLoadingBiometricList] = useState(false);
+
+  useEffect(() => {
+    BiometricAuthService.isBiometricSupported().then(setIsBiometricSupported);
+    loadBiometricDevices();
+  }, []);
+
+  const loadBiometricDevices = async () => {
+    setLoadingBiometricList(true);
+    try {
+      const list = await BiometricAuthService.listRegisteredPasskeys();
+      setBiometricDevices(list);
+    } catch {
+      // ignore
+    } finally {
+      setLoadingBiometricList(false);
+    }
+  };
+
+  const handleEnrollBiometrics = async () => {
+    if (isEnrollingBiometrics) return;
+    setIsEnrollingBiometrics(true);
+    setStatusMessage(null);
+    try {
+      const res = await BiometricAuthService.enrollBiometrics();
+      if (res.success) {
+        soundFx.playSuccessSound();
+        setStatusMessage({
+          type: "success",
+          text: "Fingerprint authenticator registered successfully! You can now sign in with 1 touch.",
+        });
+        await loadBiometricDevices();
+      }
+    } catch (err: any) {
+      soundFx.playErrorSound();
+      setStatusMessage({
+        type: "error",
+        text: err.message || "Failed to register fingerprint device.",
+      });
+    } finally {
+      setIsEnrollingBiometrics(false);
+    }
+  };
+
+  const handleDeletePasskey = async (id: string) => {
+    try {
+      const ok = await BiometricAuthService.deletePasskey(id);
+      if (ok) {
+        soundFx.playSuccessSound();
+        setStatusMessage({ type: "info", text: "Biometric passkey removed." });
+        await loadBiometricDevices();
+      }
+    } catch {
+      // ignore
+    }
+  };
 
   useEffect(() => {
     setLocalPinRequired(currentUser.pinRequiredForTransactions !== false && Boolean(currentUser.hasTransactionPin));
@@ -189,7 +254,7 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps> = ({
       });
 
       if (onRefreshUser) {
-        onRefreshUser(targetUid, res.user);
+        onRefreshUser(targetUid);
       }
     } catch (err: any) {
       soundFx.playErrorSound();
@@ -349,7 +414,7 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps> = ({
           <button
             type="button"
             onClick={onBack}
-            className="flex items-center gap-2 text-xs font-bold text-[#0F2D5C] hover:text-[#17407E] transition-colors cursor-pointer bg-white px-3 py-2 rounded-lg border border-[#E5E7EB] shadow-xs"
+            className="bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white flex items-center gap-2 text-xs font-bold transition-colors cursor-pointer px-3 py-2 rounded-lg border border-[#E5E7EB] shadow-xs"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Dashboard
@@ -391,16 +456,16 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps> = ({
             role="tab"
             aria-selected={activeTab === "PASSWORD"}
             onClick={() => handleTabSwitch("PASSWORD")}
-            className={`group relative flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-xs font-bold tracking-tight transition-all duration-200 cursor-pointer ${
+            className={`bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white group relative flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-xs font-bold tracking-tight transition-all duration-200 cursor-pointer${
               activeTab === "PASSWORD"
                 ? "bg-[#0F2D5C] text-white shadow-xs ring-1 ring-[#0F2D5C]/30"
                 : "bg-transparent text-slate-600 hover:text-[#0F2D5C] hover:bg-white border border-transparent hover:border-slate-200/80 hover:shadow-2xs"
-            }`}
+            }bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white`}
           >
             <Key className={`h-4 w-4 transition-colors ${activeTab === "PASSWORD" ? "text-amber-300" : "text-slate-400 group-hover:text-[#0F2D5C]"}`} />
             <span>Change Password</span>
             {activeTab === "PASSWORD" && (
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0 shadow-xs animate-pulse" />
+              <span className="bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white w-1.5 h-1.5 rounded-full shrink-0 shadow-xs animate-pulse" />
             )}
           </button>
 
@@ -410,16 +475,16 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps> = ({
             role="tab"
             aria-selected={activeTab === "EMAIL"}
             onClick={() => handleTabSwitch("EMAIL")}
-            className={`group relative flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-xs font-bold tracking-tight transition-all duration-200 cursor-pointer ${
+            className={`bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white group relative flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-xs font-bold tracking-tight transition-all duration-200 cursor-pointer${
               activeTab === "EMAIL"
                 ? "bg-[#0F2D5C] text-white shadow-xs ring-1 ring-[#0F2D5C]/30"
                 : "bg-transparent text-slate-600 hover:text-[#0F2D5C] hover:bg-white border border-transparent hover:border-slate-200/80 hover:shadow-2xs"
-            }`}
+            }bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white`}
           >
             <Mail className={`h-4 w-4 transition-colors ${activeTab === "EMAIL" ? "text-amber-300" : "text-slate-400 group-hover:text-[#0F2D5C]"}`} />
             <span>Change Email</span>
             {activeTab === "EMAIL" && (
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0 shadow-xs animate-pulse" />
+              <span className="bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white w-1.5 h-1.5 rounded-full shrink-0 shadow-xs animate-pulse" />
             )}
           </button>
 
@@ -429,16 +494,16 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps> = ({
             role="tab"
             aria-selected={activeTab === "PHONE"}
             onClick={() => handleTabSwitch("PHONE")}
-            className={`group relative flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-xs font-bold tracking-tight transition-all duration-200 cursor-pointer ${
+            className={`bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white group relative flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-xs font-bold tracking-tight transition-all duration-200 cursor-pointer${
               activeTab === "PHONE"
                 ? "bg-[#0F2D5C] text-white shadow-xs ring-1 ring-[#0F2D5C]/30"
                 : "bg-transparent text-slate-600 hover:text-[#0F2D5C] hover:bg-white border border-transparent hover:border-slate-200/80 hover:shadow-2xs"
-            }`}
+            }bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white`}
           >
             <Phone className={`h-4 w-4 transition-colors ${activeTab === "PHONE" ? "text-amber-300" : "text-slate-400 group-hover:text-[#0F2D5C]"}`} />
             <span>Change Phone</span>
             {activeTab === "PHONE" && (
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0 shadow-xs animate-pulse" />
+              <span className="bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white w-1.5 h-1.5 rounded-full shrink-0 shadow-xs animate-pulse" />
             )}
           </button>
 
@@ -448,16 +513,37 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps> = ({
             role="tab"
             aria-selected={activeTab === "PIN"}
             onClick={() => handleTabSwitch("PIN")}
-            className={`group relative flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-xs font-bold tracking-tight transition-all duration-200 cursor-pointer ${
+            className={`bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white group relative flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-xs font-bold tracking-tight transition-all duration-200 cursor-pointer${
               activeTab === "PIN"
                 ? "bg-[#0F2D5C] text-white shadow-xs ring-1 ring-[#0F2D5C]/30"
                 : "bg-transparent text-slate-600 hover:text-[#0F2D5C] hover:bg-white border border-transparent hover:border-slate-200/80 hover:shadow-2xs"
-            }`}
+            }bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white`}
           >
             <Lock className={`h-4 w-4 transition-colors ${activeTab === "PIN" ? "text-amber-300" : "text-slate-400 group-hover:text-[#0F2D5C]"}`} />
             <span>Transaction PIN</span>
             {activeTab === "PIN" && (
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0 shadow-xs animate-pulse" />
+              <span className="bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white w-1.5 h-1.5 rounded-full shrink-0 shadow-xs animate-pulse" />
+            )}
+          </button>
+
+          <button
+            id="tab-btn-biometrics"
+            type="button"
+            role="tab"
+            aria-selected={activeTab === "BIOMETRIC"}
+            onClick={() => handleTabSwitch("BIOMETRIC")}
+            className={`bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white group relative flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-xs font-bold tracking-tight transition-all duration-200 cursor-pointer${
+              activeTab === "BIOMETRIC"
+                ? "bg-[#0F2D5C] text-white shadow-xs ring-1 ring-[#0F2D5C]/30"
+                : "bg-transparent text-slate-600 hover:text-[#0F2D5C] hover:bg-white border border-transparent hover:border-slate-200/80 hover:shadow-2xs"
+            }bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white`}
+          >
+            <Fingerprint className={`h-4 w-4 transition-colors ${activeTab === "BIOMETRIC" ? "text-amber-300" : "text-slate-400 group-hover:text-[#0F2D5C]"}`} />
+            <span>Biometrics / Passkeys</span>
+            {biometricDevices.length > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full text-[9px] bg-emerald-400 text-slate-900 font-extrabold">
+                {biometricDevices.length}
+              </span>
             )}
           </button>
         </div>
@@ -515,7 +601,7 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps> = ({
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-3 text-[#9CA3AF] hover:text-[#4B5563]"
+                        className="bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white absolute right-3 top-3"
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
@@ -584,14 +670,14 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps> = ({
                       type="button"
                       onClick={handleRequestOtp}
                       disabled={resendCooldown > 0 || isRequestingOtp}
-                      className="text-[#0F2D5C] font-bold hover:underline disabled:opacity-50 disabled:no-underline cursor-pointer"
+                      className="bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white font-bold hover:underline disabled:opacity-50 disabled:no-underline cursor-pointer"
                     >
                       {resendCooldown > 0 ? `Resend Code in ${resendCooldown}s` : "Resend Verification Code"}
                     </button>
                     <button
                       type="button"
                       onClick={resetFormStates}
-                      className="text-slate-500 hover:text-slate-700 underline"
+                      className="bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white underline"
                     >
                       Cancel / Re-enter
                     </button>
@@ -600,7 +686,7 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps> = ({
                   <button
                     type="submit"
                     disabled={isVerifying || otpCode.length !== 6}
-                    className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold tracking-wide uppercase transition-all shadow-xs disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                    className="bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white w-full py-3 rounded-xl text-xs font-bold tracking-wide uppercase transition-all shadow-xs disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
                   >
                     {isVerifying ? (
                       <>
@@ -705,14 +791,14 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps> = ({
                       type="button"
                       onClick={handleRequestOtp}
                       disabled={resendCooldown > 0 || isRequestingOtp}
-                      className="text-[#0F2D5C] font-bold hover:underline disabled:opacity-50 disabled:no-underline cursor-pointer"
+                      className="bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white font-bold hover:underline disabled:opacity-50 disabled:no-underline cursor-pointer"
                     >
                       {resendCooldown > 0 ? `Resend Code in ${resendCooldown}s` : "Resend Verification Code"}
                     </button>
                     <button
                       type="button"
                       onClick={resetFormStates}
-                      className="text-slate-500 hover:text-slate-700 underline"
+                      className="bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white underline"
                     >
                       Cancel / Re-enter
                     </button>
@@ -721,7 +807,7 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps> = ({
                   <button
                     type="submit"
                     disabled={isVerifying || otpCode.length !== 6}
-                    className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold tracking-wide uppercase transition-all shadow-xs disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                    className="bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white w-full py-3 rounded-xl text-xs font-bold tracking-wide uppercase transition-all shadow-xs disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
                   >
                     {isVerifying ? (
                       <>
@@ -827,14 +913,14 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps> = ({
                       type="button"
                       onClick={handleRequestOtp}
                       disabled={resendCooldown > 0 || isRequestingOtp}
-                      className="text-[#0F2D5C] font-bold hover:underline disabled:opacity-50 disabled:no-underline cursor-pointer"
+                      className="bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white font-bold hover:underline disabled:opacity-50 disabled:no-underline cursor-pointer"
                     >
                       {resendCooldown > 0 ? `Resend Code in ${resendCooldown}s` : "Resend Verification Code"}
                     </button>
                     <button
                       type="button"
                       onClick={resetFormStates}
-                      className="text-slate-500 hover:text-slate-700 underline"
+                      className="bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white underline"
                     >
                       Cancel / Re-enter
                     </button>
@@ -843,7 +929,7 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps> = ({
                   <button
                     type="submit"
                     disabled={isVerifying || otpCode.length !== 6}
-                    className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold tracking-wide uppercase transition-all shadow-xs disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                    className="bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white w-full py-3 rounded-xl text-xs font-bold tracking-wide uppercase transition-all shadow-xs disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
                   >
                     {isVerifying ? (
                       <>
@@ -905,11 +991,11 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps> = ({
                       aria-checked={localPinRequired}
                       onClick={handleInitiateTogglePinRequirement}
                       disabled={isTogglingOtpRequest}
-                      className={`relative inline-flex h-7 w-14 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#0F2D5C] focus:ring-offset-2 ${
+                      className={`bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white relative inline-flex h-7 w-14 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#0F2D5C] focus:ring-offset-2${
                         localPinRequired
                           ? "bg-[#0F2D5C]"
                           : "bg-slate-300 dark:bg-slate-700"
-                      } ${isTogglingOtpRequest ? "opacity-60 cursor-wait" : ""}`}
+                      }bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white${isTogglingOtpRequest ? "opacity-60 cursor-wait" : ""}bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white`}
                     >
                       <span
                         aria-hidden="true"
@@ -920,7 +1006,7 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps> = ({
                         }`}
                       >
                         {isTogglingOtpRequest ? (
-                          <RefreshCw className="h-3 w-3 text-[#0F2D5C] animate-spin" />
+                          <RefreshCw className="h-3 w-3 animate-spin" />
                         ) : localPinRequired ? (
                           <Lock className="h-3 w-3 text-[#0F2D5C]" />
                         ) : (
@@ -950,7 +1036,7 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps> = ({
                       type="button"
                       onClick={() => setShowToggleModal(false)}
                       disabled={isVerifyingToggleOtp}
-                      className="absolute top-4 right-4 p-1.5 rounded-full text-[#9CA3AF] hover:text-[#4B5563] dark:hover:text-white transition-colors cursor-pointer"
+                      className="bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white absolute top-4 right-4 p-1.5 rounded-full dark:transition-colors cursor-pointer"
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -1012,14 +1098,14 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps> = ({
                           type="button"
                           onClick={handleResendToggleOtp}
                           disabled={toggleResendCooldown > 0 || isTogglingOtpRequest}
-                          className="text-[#0F2D5C] dark:text-sky-400 font-bold hover:underline disabled:opacity-50 disabled:no-underline cursor-pointer"
+                          className="bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white dark:font-bold hover:underline disabled:opacity-50 disabled:no-underline cursor-pointer"
                         >
                           {toggleResendCooldown > 0 ? `Resend Code in ${toggleResendCooldown}s` : "Resend Verification Code"}
                         </button>
                         <button
                           type="button"
                           onClick={() => setShowToggleModal(false)}
-                          className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 underline cursor-pointer"
+                          className="bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white dark:underline cursor-pointer"
                         >
                           Cancel
                         </button>
@@ -1030,7 +1116,7 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps> = ({
                           type="button"
                           onClick={() => setShowToggleModal(false)}
                           disabled={isVerifyingToggleOtp}
-                          className="flex-1 py-2.5 px-4 rounded-xl border border-[#E5E7EB] dark:border-[#4B5563] text-xs font-semibold text-[#4B5563] dark:text-[#E5E7EB] hover:bg-[#F3F4F6] dark:hover:bg-[#111827] cursor-pointer"
+                          className="bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white flex-1 py-2.5 px-4 rounded-xl border border-[#E5E7EB] dark:border-[#4B5563] text-xs font-semibold dark:cursor-pointer"
                         >
                           Cancel
                         </button>
@@ -1086,7 +1172,7 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps> = ({
                         <button
                           type="button"
                           onClick={() => setShowPin(!showPin)}
-                          className="absolute right-3 top-3 text-[#9CA3AF] hover:text-[#4B5563] dark:hover:text-[#E5E7EB] cursor-pointer"
+                          className="bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white absolute right-3 top-3 dark:cursor-pointer"
                         >
                           {showPin ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
@@ -1156,14 +1242,14 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps> = ({
                         type="button"
                         onClick={handleRequestOtp}
                         disabled={resendCooldown > 0 || isRequestingOtp}
-                        className="text-[#0F2D5C] dark:text-sky-400 font-bold hover:underline disabled:opacity-50 disabled:no-underline cursor-pointer"
+                        className="bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white dark:font-bold hover:underline disabled:opacity-50 disabled:no-underline cursor-pointer"
                       >
                         {resendCooldown > 0 ? `Resend Code in ${resendCooldown}s` : "Resend Verification Code"}
                       </button>
                       <button
                         type="button"
                         onClick={resetFormStates}
-                        className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 underline"
+                        className="bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white dark:underline"
                       >
                         Cancel / Re-enter
                       </button>
@@ -1172,7 +1258,7 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps> = ({
                     <button
                       type="submit"
                       disabled={isVerifying || otpCode.length !== 6}
-                      className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold tracking-wide uppercase transition-all shadow-xs disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                      className="bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white w-full py-3 rounded-xl text-xs font-bold tracking-wide uppercase transition-all shadow-xs disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
                     >
                       {isVerifying ? (
                         <>
@@ -1188,6 +1274,116 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps> = ({
                     </button>
                   </form>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 5: BIOMETRIC FINGERPRINT & PASSKEYS */}
+          {activeTab === "BIOMETRIC" && (
+            <div className="space-y-6">
+              <div className="p-5 sm:p-6 bg-gradient-to-br from-white to-[#F9FAFB] dark:from-[#111827] dark:to-[#0F2D5C]/10 rounded-2xl border border-[#E5E7EB] dark:border-[#374151] shadow-xs space-y-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="p-1.5 rounded-lg bg-[#0F2D5C]/10 dark:bg-[#0F2D5C]/30 text-[#0F2D5C] dark:text-sky-400">
+                        <Fingerprint className="h-5 w-5" />
+                      </span>
+                      <h4 className="text-sm font-bold text-[#111827] dark:text-white">
+                        Biometric Fingerprint & Device Passkeys
+                      </h4>
+                      {biometricDevices.length > 0 ? (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                          {biometricDevices.length} Enrolled
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                          Not Enrolled
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] max-w-xl">
+                      Sign in instantly with 1 touch using Android Fingerprint, Touch ID, Face ID, or Windows Hello. Your biometric data stays private on your device.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleEnrollBiometrics}
+                    disabled={isEnrollingBiometrics || !isBiometricSupported}
+                    className="px-4 py-2.5 bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white rounded-xl text-xs font-bold tracking-wide transition-all shadow-xs disabled:opacity-50 cursor-pointer flex items-center gap-2 shrink-0"
+                  >
+                    {isEnrollingBiometrics ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 animate-spin" />
+                        Scanning Sensor...
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="h-4 w-4" />
+                        Enroll This Device
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {!isBiometricSupported && (
+                  <div className="p-3 bg-amber-50 border border-amber-200 text-amber-900 text-xs rounded-xl font-medium">
+                    Notice: Biometric platform authenticator was not detected on this browser session. Ensure your device has fingerprint or FaceID enabled.
+                  </div>
+                )}
+
+                {/* Enrolled Devices List */}
+                <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-3">
+                  <h5 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                    Enrolled Biometric Devices
+                  </h5>
+
+                  {loadingBiometricList ? (
+                    <div className="py-6 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                      <span>Loading enrolled devices...</span>
+                    </div>
+                  ) : biometricDevices.length === 0 ? (
+                    <div className="p-6 bg-slate-50 dark:bg-slate-900/50 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl text-center space-y-2">
+                      <Fingerprint className="h-8 w-8 text-slate-300 dark:text-slate-600 mx-auto" />
+                      <p className="text-xs text-slate-500 font-medium">
+                        No biometric devices enrolled yet. Click "Enroll This Device" above to register your fingerprint.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {biometricDevices.map((dev) => (
+                        <div
+                          key={dev.id}
+                          className="flex items-center justify-between p-3.5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400">
+                              <Fingerprint className="h-5 w-5" />
+                            </div>
+                            <div>
+                              <p className="text-xs font-bold text-slate-900 dark:text-white">
+                                {dev.deviceName || "Biometric Authenticator"}
+                              </p>
+                              <p className="text-[10px] text-slate-400 font-mono">
+                                Registered: {new Date(dev.createdAt).toLocaleDateString()} &bull; ID: {dev.credentialId}
+                              </p>
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDeletePasskey(dev.id)}
+                            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors cursor-pointer"
+                            title="Delete Passkey"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}

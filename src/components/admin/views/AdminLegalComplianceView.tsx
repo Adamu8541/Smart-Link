@@ -177,9 +177,9 @@ export function AdminLegalComplianceView({ session, onNavigate }: AdminLegalComp
             type="button"
             onClick={loadData}
             disabled={loading}
-            className="px-3.5 py-2 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] border border-[#4B5563] rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+            className=" px-3.5 py-2 border border-[#4B5563] rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
           >
-            <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
+            <RefreshCw className={`h-3.5 w-3.5${loading ? "animate-spin" : ""}`} />
             <span>Sync Data</span>
           </button>
         </div>
@@ -245,7 +245,7 @@ export function AdminLegalComplianceView({ session, onNavigate }: AdminLegalComp
           <button
             type="button"
             onClick={() => setActiveTab("POLICIES")}
-            className={`py-3 px-4 text-xs font-bold border-b-2 cursor-pointer transition-all whitespace-nowrap ${
+            className={`py-3 px-4 text-xs font-bold border-b-2 cursor-pointer transition-all whitespace-nowrap${
               activeTab === "POLICIES"
                 ? "border-[#0F2D5C] text-[#0F2D5C] bg-white shadow-2xs"
                 : "border-transparent text-[#6B7280] hover:text-[#111827]"
@@ -256,7 +256,7 @@ export function AdminLegalComplianceView({ session, onNavigate }: AdminLegalComp
           <button
             type="button"
             onClick={() => setActiveTab("ANALYTICS")}
-            className={`py-3 px-4 text-xs font-bold border-b-2 cursor-pointer transition-all whitespace-nowrap ${
+            className={`py-3 px-4 text-xs font-bold border-b-2 cursor-pointer transition-all whitespace-nowrap${
               activeTab === "ANALYTICS"
                 ? "border-[#0F2D5C] text-[#0F2D5C] bg-white shadow-2xs"
                 : "border-transparent text-[#6B7280] hover:text-[#111827]"
@@ -267,19 +267,19 @@ export function AdminLegalComplianceView({ session, onNavigate }: AdminLegalComp
           <button
             type="button"
             onClick={() => setActiveTab("AUDIT_LOGS")}
-            className={`py-3 px-4 text-xs font-bold border-b-2 cursor-pointer transition-all whitespace-nowrap flex items-center gap-1.5 ${
+            className={`py-3 px-4 text-xs font-bold border-b-2 cursor-pointer transition-all whitespace-nowrap flex items-center gap-1.5${
               activeTab === "AUDIT_LOGS"
                 ? "border-[#0F2D5C] text-[#0F2D5C] bg-white shadow-2xs"
                 : "border-transparent text-[#6B7280] hover:text-[#111827]"
             }`}
           >
-            <Lock className="h-3.5 w-3.5 text-[#6B7280]" />
+            <Lock className=" h-3.5 w-3.5" />
             <span>Immutable Acceptance Logs ({filteredLogs.length})</span>
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("DPO")}
-            className={`py-3 px-4 text-xs font-bold border-b-2 cursor-pointer transition-all whitespace-nowrap ${
+            className={`py-3 px-4 text-xs font-bold border-b-2 cursor-pointer transition-all whitespace-nowrap${
               activeTab === "DPO"
                 ? "border-[#0F2D5C] text-[#0F2D5C] bg-white shadow-2xs"
                 : "border-transparent text-[#6B7280] hover:text-[#111827]"
@@ -289,7 +289,7 @@ export function AdminLegalComplianceView({ session, onNavigate }: AdminLegalComp
           </button>
         </div>
 
-        <div className="p-6">
+        <div className=" p-6">
           {/* TAB 1: POLICIES */}
           {activeTab === "POLICIES" && (
             <div className="space-y-4">
@@ -350,7 +350,7 @@ export function AdminLegalComplianceView({ session, onNavigate }: AdminLegalComp
                           <button
                             type="button"
                             onClick={() => handleOpenEditModal(p)}
-                            className="px-2.5 py-1 bg-[#E5E7EB] hover:bg-[#F5F7FA] hover:text-[#0F2D5C] border border-[#E5E7EB] rounded-lg text-xs font-semibold transition-all inline-flex items-center gap-1 cursor-pointer"
+                            className=" px-2.5 py-1 border border-[#E5E7EB] rounded-lg text-xs font-semibold transition-all inline-flex items-center gap-1 cursor-pointer"
                           >
                             <Edit3 className="h-3 w-3" />
                             <span>Update Version</span>
@@ -464,7 +464,7 @@ export function AdminLegalComplianceView({ session, onNavigate }: AdminLegalComp
                 <button
                   type="button"
                   onClick={exportAuditLogsCsv}
-                  className="px-3 py-1.5 bg-[#111827] hover:bg-[#111827] text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
+                  className=" px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
                 >
                   <Download className="h-3.5 w-3.5" />
                   <span>Export CSV</span>
@@ -624,7 +624,7 @@ export function AdminLegalComplianceView({ session, onNavigate }: AdminLegalComp
               <button
                 type="button"
                 onClick={() => setEditingPolicy(null)}
-                className="text-[#9CA3AF] hover:text-[#4B5563]"
+                className=""
               >
                 <X className="h-4 w-4" />
               </button>
@@ -681,7 +681,7 @@ export function AdminLegalComplianceView({ session, onNavigate }: AdminLegalComp
               <button
                 type="button"
                 onClick={() => setEditingPolicy(null)}
-                className="px-3 py-1.5 text-xs text-[#4B5563] hover:bg-[#E5E7EB] rounded-lg cursor-pointer"
+                className=" px-3 py-1.5 text-xs rounded-lg cursor-pointer"
               >
                 Cancel
               </button>

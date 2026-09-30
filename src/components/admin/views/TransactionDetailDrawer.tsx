@@ -173,21 +173,21 @@ export function TransactionDetailDrawer({
       <div className="absolute inset-y-0 right-0 max-w-full flex pl-10">
         <div className="w-screen max-w-2xl bg-[#111827] border-l border-[#111827] shadow-2xl flex flex-col">
           {/* Header */}
-          <div className="p-6 border-b border-[#111827] bg-[#111827]/60 flex items-center justify-between">
+          <div className="p-6 border-b border-slate-800 bg-slate-900/90 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-[#0F2D5C] border border-[#0F2D5C] rounded-2xl text-[#9CA3AF]">
+              <div className="p-3 bg-blue-900/40 border border-blue-700/60 rounded-2xl text-blue-300">
                 <FileText className="h-6 w-6" />
               </div>
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#9CA3AF]">Transaction Investigation</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Transaction Investigation</span>
                 <h2 className="text-lg font-bold text-white">SmartLink Reference Audit</h2>
-                <p className="text-xs font-mono text-[#9CA3AF]">{tx?.smartLinkRef || transactionId}</p>
+                <p className="text-xs font-mono text-slate-300">{tx?.smartLinkRef || transactionId}</p>
               </div>
             </div>
             <button
               type="button"
               onClick={onClose}
-              className="p-2 text-[#9CA3AF] hover:text-white bg-[#111827] hover:bg-[#4B5563] rounded-xl cursor-pointer transition-colors"
+              className="p-2 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl cursor-pointer transition-colors"
             >
               <X className="h-5 w-5" />
             </button>
@@ -197,25 +197,25 @@ export function TransactionDetailDrawer({
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
             {loading ? (
               <div className="py-20 text-center space-y-3">
-                <RefreshCw className="h-8 w-8 text-[#9CA3AF] animate-spin mx-auto" />
-                <p className="text-xs text-[#9CA3AF]">Loading comprehensive ledger sub-documents...</p>
+                <RefreshCw className="h-8 w-8 text-blue-400 animate-spin mx-auto" />
+                <p className="text-xs text-slate-400">Loading comprehensive ledger sub-documents...</p>
               </div>
             ) : error ? (
-              <div className="p-4 bg-[#0F2D5C]/50 border border-[#0F2D5C]/80 rounded-2xl text-xs text-[#9CA3AF] flex items-center gap-3">
-                <AlertTriangle className="h-5 w-5 shrink-0" />
+              <div className="p-4 bg-rose-950/40 border border-rose-800/80 rounded-2xl text-xs text-rose-200 flex items-center gap-3">
+                <AlertTriangle className="h-5 w-5 shrink-0 text-rose-400" />
                 <span>{error}</span>
               </div>
             ) : tx ? (
               <>
                 {/* Status & Readonly Banner */}
-                <div className="flex items-center justify-between p-4 bg-[#111827]/80 border border-[#111827] rounded-2xl">
+                <div className="flex items-center justify-between p-4 bg-slate-900/90 border border-slate-800 rounded-2xl">
                   <div className="flex items-center gap-3">
                     <span className={`px-3 py-1 rounded-full border text-xs font-bold uppercase tracking-wider ${getStatusBadge(tx.status)}`}>
                       {tx.status}
                     </span>
                     {tx.status === "SUCCESSFUL" && (
-                      <span className="text-[11px] text-[#9CA3AF] flex items-center gap-1 font-mono">
-                        <Shield className="h-3.5 w-3.5 text-[#9CA3AF]" /> Read-Only Protection Active
+                      <span className="text-[11px] text-emerald-400 flex items-center gap-1 font-mono">
+                        <Shield className="h-3.5 w-3.5 text-emerald-400" /> Read-Only Protection Active
                       </span>
                     )}
                   </div>
@@ -223,7 +223,7 @@ export function TransactionDetailDrawer({
                   <button
                     type="button"
                     onClick={() => onOpenReceipt(tx, user)}
-                    className="py-1.5 px-3 bg-[#0F2D5C] hover:bg-[#0F2D5C] border border-[#0F2D5C]/80 text-[#9CA3AF] text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer transition-colors"
+                    className="py-1.5 px-3.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer transition-colors shadow-xs"
                   >
                     <Printer className="h-3.5 w-3.5" /> View Receipt
                   </button>
@@ -396,8 +396,8 @@ export function TransactionDetailDrawer({
                 </div>
 
                 {/* Section 6: Administrative Actions Panel */}
-                <div className="p-5 bg-[#111827]/80 border border-[#111827] rounded-2xl space-y-3">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#9CA3AF] block">Permitted Admin Actions</span>
+                <div className="p-5 bg-slate-900/90 border border-slate-800 rounded-2xl space-y-3">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Permitted Admin Actions</span>
                   
                   <div className="grid grid-cols-2 gap-3">
                     {/* Retry Action for Failed or Pending */}
@@ -405,13 +405,13 @@ export function TransactionDetailDrawer({
                       <button
                         type="button"
                         onClick={() => setShowRetryConfirm(true)}
-                        className="py-2.5 px-4 bg-[#0F2D5C] hover:bg-[#0F2D5C] border border-[#0F2D5C]/80 text-[#9CA3AF] text-xs font-bold rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                        className="py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-xs"
                       >
                         <RotateCcw className="h-4 w-4" /> Retry Failed Transaction
                       </button>
                     ) : (
-                      <div className="p-2.5 bg-[#111827] border border-[#111827]/80 rounded-xl text-[11px] text-[#9CA3AF] flex items-center gap-2">
-                        <CheckCircle2 className="h-4 w-4 text-[#9CA3AF] shrink-0" />
+                      <div className="p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-[11px] text-emerald-400 flex items-center gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
                         <span>Completed (Read-Only)</span>
                       </div>
                     )}
@@ -426,7 +426,7 @@ export function TransactionDetailDrawer({
                           alert(`Initiate refund workflow for transaction ${tx.smartLinkRef}`);
                         }
                       }}
-                      className="py-2.5 px-4 bg-[#0F2D5C] hover:bg-[#0F2D5C] border border-[#0F2D5C]/80 text-[#9CA3AF] text-xs font-bold rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                      className="py-2.5 px-4 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-xs"
                     >
                       <ShieldAlert className="h-4 w-4" /> Initiate Refund Workflow
                     </button>
@@ -434,11 +434,11 @@ export function TransactionDetailDrawer({
 
                   {/* Retry Confirmation Modal */}
                   {showRetryConfirm && (
-                    <div className="p-4 bg-[#0F2D5C]/80 border border-[#0F2D5C]/80 rounded-xl text-xs space-y-3">
-                      <div className="flex items-center gap-2 text-[#9CA3AF] font-bold">
+                    <div className="p-4 bg-slate-800/95 border border-slate-700 rounded-xl text-xs space-y-3">
+                      <div className="flex items-center gap-2 text-amber-300 font-bold">
                         <Info className="h-4 w-4" /> Confirm Safe Retry Execution
                       </div>
-                      <p className="text-[#E5E7EB] text-[11px]">
+                      <p className="text-slate-200 text-[11px]">
                         Re-executing transaction request for <strong>{tx.smartLinkRef}</strong>. Ensure provider status has been audited before re-triggering.
                       </p>
                       <input
@@ -446,13 +446,13 @@ export function TransactionDetailDrawer({
                         value={retryReason}
                         onChange={(e) => setRetryReason(e.target.value)}
                         placeholder="Mandatory administrative reason for retry..."
-                        className="w-full bg-[#111827] border border-[#111827] rounded-lg p-2 text-xs text-white"
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-white placeholder:text-slate-500"
                       />
                       <div className="flex justify-end gap-2">
                         <button
                           type="button"
                           onClick={() => setShowRetryConfirm(false)}
-                          className="py-1.5 px-3 bg-[#111827] text-[#E5E7EB] rounded-lg font-bold"
+                          className="py-1.5 px-3 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg font-bold transition-colors cursor-pointer"
                         >
                           Cancel
                         </button>
@@ -460,7 +460,7 @@ export function TransactionDetailDrawer({
                           type="button"
                           onClick={handleExecuteRetry}
                           disabled={isRetrying}
-                          className="py-1.5 px-4 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white rounded-lg font-bold flex items-center gap-1.5"
+                          className="py-1.5 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
                         >
                           {isRetrying && <RefreshCw className="h-3.5 w-3.5 animate-spin" />}
                           Confirm & Retry Now

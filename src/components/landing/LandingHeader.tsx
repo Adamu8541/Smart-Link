@@ -109,25 +109,8 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
             ))}
           </nav>
 
-          {/* Right: Actions (Login, Register, Get Started, Admin Login) */}
+          {/* Right: Actions (Login, Register, Get Started) */}
           <div id="header-right-actions" className="hidden lg:flex items-center gap-3">
-            <button
-              id="header-btn-admin-login"
-              type="button"
-              onClick={() => {
-                if (onAdminLogin) {
-                  onAdminLogin();
-                } else {
-                  window.location.href = "/admin/login";
-                }
-              }}
-              className="px-3.5 py-2 text-xs font-bold text-white bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] focus:ring-2 focus:ring-offset-2 focus:ring-[#0F2D5C] rounded-xl transition-all cursor-pointer flex items-center gap-1.5 border border-[#0F2D5C] shadow-xs"
-              title="Secured Admin Portal Login"
-            >
-              <ShieldCheck className="h-3.5 w-3.5 text-white" aria-hidden="true" />
-              Admin Login
-            </button>
-
             <button
               id="header-btn-login"
               type="button"
@@ -179,82 +162,61 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
 
       {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
-        <div
-          id="mobile-drawer-overlay"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Mobile Navigation Menu"
-          className="lg:hidden fixed inset-x-0 top-20 bg-white border-b border-[#E5E7EB] shadow-2xl p-6 transition-all z-50 max-h-[calc(100vh-80px)] overflow-y-auto"
-        >
-          <div className="space-y-4">
-            <div className="space-y-1">
-              {[
-                { id: "hero-section", label: "Home" },
-                { id: "services-section", label: "Services" },
-                { id: "pricing-section", label: "Pricing" },
-                { id: "api-section", label: "API" },
-                { id: "about-section", label: "About" },
-                { id: "contact-section", label: "Contact" },
-              ].map((item) => {
-                const isModalLink = item.id === "about-section" || item.id === "contact-section";
-                return (
-                  <button
-                    key={item.id}
-                    id={`mobile-nav-link-${item.id}`}
-                    type="button"
-                    onClick={() => handleNavClick(item.id)}
-                    className={`w-full text-left px-4 py-3.5 min-h-[48px] text-sm font-semibold transition-colors rounded-xl cursor-pointer flex items-center justify-between touch-manipulation ${
-                      isModalLink
-                        ? "text-[#0F2D5C] bg-[#F5F7FA] border-l-2 border-[#0F2D5C] rounded-l-none"
-                        : "text-[#111827] hover:bg-[#F5F7FA]"
-                    }`}
-                  >
-                    <span className="flex items-center gap-2">
-                      <span className="text-sm font-semibold">{item.label}</span>
-                      {isModalLink && (
-                        <span className="text-[9px] font-bold uppercase tracking-wider text-[#0F2D5C] bg-[#0F2D5C]/10 px-2 py-0.5 rounded-full">
-                          Info
-                        </span>
-                      )}
-                    </span>
-                    <ArrowRight className={`h-4 w-4 ${isModalLink ? "text-[#0F2D5C]" : "text-[#6B7280]"}`} />
-                  </button>
-                );
-              })}
-            </div>
+        <>
+          {/* Backdrop Overlay */}
+          <div
+            className="lg:hidden fixed inset-0 top-20 bg-slate-900/40 backdrop-blur-xs z-40 transition-opacity"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-hidden="true"
+          />
 
-            {/* Mobile CTAs with min 48px height */}
-            <div className="pt-4 border-t border-[#E5E7EB]">
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  id="mobile-drawer-btn-login"
-                  type="button"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    onLogin();
-                  }}
-                  className="w-full min-h-[48px] px-3 py-2.5 bg-[#F5F7FA] hover:bg-[#E5E7EB] text-[#111827] font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer touch-manipulation"
-                >
-                  <LogIn className="h-3.5 w-3.5" />
-                  <span>Login</span>
-                </button>
-                <button
-                  id="mobile-drawer-btn-register"
-                  type="button"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    onRegister();
-                  }}
-                  className="w-full min-h-[48px] px-3 py-2.5 bg-[#F5F7FA] hover:bg-[#E5E7EB] text-[#111827] font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer touch-manipulation"
-                >
-                  <UserPlus className="h-3.5 w-3.5" />
-                  <span>Register</span>
-                </button>
+          {/* Side Drawer Panel */}
+          <div
+            id="mobile-drawer-overlay"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Mobile Navigation Menu"
+            className="lg:hidden fixed top-20 right-0 w-3/4 sm:w-1/2 max-w-xs h-[calc(100vh-80px)] bg-white border-l border-slate-200 shadow-2xl p-5 transition-all z-50 overflow-y-auto"
+          >
+            <div className="space-y-4">
+              <div className="space-y-1">
+                {[
+                  { id: "hero-section", label: "Home" },
+                  { id: "services-section", label: "Services" },
+                  { id: "pricing-section", label: "Pricing" },
+                  { id: "api-section", label: "API" },
+                  { id: "about-section", label: "About" },
+                  { id: "contact-section", label: "Contact" },
+                ].map((item) => {
+                  const isModalLink = item.id === "about-section" || item.id === "contact-section";
+                  return (
+                    <button
+                      key={item.id}
+                      id={`mobile-nav-link-${item.id}`}
+                      type="button"
+                      onClick={() => handleNavClick(item.id)}
+                      className={`w-full text-left px-3.5 py-3 min-h-[44px] text-sm font-semibold transition-colors rounded-xl cursor-pointer flex items-center justify-between touch-manipulation ${
+                        isModalLink
+                          ? "text-[#0F2D5C] bg-blue-50/80 border-l-2 border-[#0F2D5C] rounded-l-none"
+                          : "text-slate-800 hover:bg-slate-50"
+                      }`}
+                    >
+                      <span className="flex items-center gap-2">
+                        <span className="text-sm font-semibold">{item.label}</span>
+                        {isModalLink && (
+                          <span className="text-[9px] font-bold uppercase tracking-wider text-[#0F2D5C] bg-[#0F2D5C]/10 px-2 py-0.5 rounded-full">
+                            Info
+                          </span>
+                        )}
+                      </span>
+                      <ArrowRight className={`h-4 w-4 ${isModalLink ? "text-[#0F2D5C]" : "text-slate-400"}`} />
+                    </button>
+                  );
+                })}
               </div>
             </div>
-
           </div>
-        </div>
+        </>
       )}
     </header>
   );

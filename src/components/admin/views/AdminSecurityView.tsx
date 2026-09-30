@@ -450,14 +450,14 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
             type="button"
             onClick={fetchAllData}
             disabled={loading}
-            className="py-2 px-3 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] text-xs font-bold rounded-xl flex items-center gap-2 border border-[#4B5563] cursor-pointer transition"
+            className=" py-2 px-3 text-xs font-bold rounded-xl flex items-center gap-2 border border-[#4B5563] cursor-pointer transition"
           >
-            <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} /> Refresh Telemetry
+            <RefreshCw className={`h-3.5 w-3.5${loading ? "animate-spin" : ""}`} /> Refresh Telemetry
           </button>
           <button
             type="button"
             onClick={() => onNavigate("/admin/dashboard")}
-            className="py-2 px-4 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition border border-[#4B5563]"
+            className=" py-2 px-4 text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition border border-[#4B5563]"
           >
             <ArrowLeft className="h-3.5 w-3.5" /> Dashboard
           </button>
@@ -503,13 +503,13 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
                 setActiveTab(tab.id as any);
                 onNavigate(tab.path);
               }}
-              className={`py-2.5 px-3.5 rounded-xl text-xs font-bold flex items-center gap-2 whitespace-nowrap transition cursor-pointer ${
+              className={`py-2.5 px-3.5 rounded-xl text-xs font-bold flex items-center gap-2 whitespace-nowrap transition cursor-pointer${
                 isActive
                   ? "bg-[#0F2D5C] text-white shadow-lg shadow-none"
                   : "bg-[#111827]/60 hover:bg-[#111827] text-[#9CA3AF] hover:text-[#E5E7EB] border border-[#111827]/60"
               }`}
             >
-              <Icon className="h-3.5 w-3.5" />
+              <Icon className=" h-3.5 w-3.5" />
               <span>{tab.label}</span>
               {tab.badge !== null && tab.badge !== undefined && (
                 <span
@@ -690,7 +690,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
               <button
                 type="button"
                 onClick={() => setActiveTab("ALERTS")}
-                className="text-xs text-[#9CA3AF] hover:text-[#9CA3AF] font-bold flex items-center gap-1 cursor-pointer"
+                className=" text-xs font-bold flex items-center gap-1 cursor-pointer"
               >
                 View All Alerts ({securityAlerts.length}) →
               </button>
@@ -713,7 +713,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
                     <tr key={alert.id ? `sec-alert-${alert.id}-${idx}` : `sec-alert-${idx}`} className="hover:bg-[#111827]/50">
                       <td className="py-3 px-3">
                         <span
-                          className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                          className={`px-2 py-0.5 rounded-md text-[10px] font-bold${
                             alert.severity === "Critical"
                               ? "bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C]"
                               : alert.severity === "High"
@@ -751,7 +751,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
                             setSelectedAlert(alert);
                             setActiveTab("ALERTS");
                           }}
-                          className="py-1 px-2.5 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] text-[11px] font-bold rounded-lg cursor-pointer"
+                          className=" py-1 px-2.5 text-[11px] font-bold rounded-lg cursor-pointer"
                         >
                           Details
                         </button>
@@ -859,7 +859,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
                       </td>
                       <td className="py-3 px-4">
                         <span
-                          className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                          className={`px-2 py-0.5 rounded-md text-[10px] font-bold${
                             log.severity === "Critical"
                               ? "bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C]"
                               : log.severity === "High"
@@ -1043,7 +1043,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
                         <button
                           type="button"
                           onClick={() => handleAccountLockAction(lock.id, "RESET_ATTEMPTS")}
-                          className="py-1.5 px-3 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] font-bold text-xs rounded-lg cursor-pointer transition border border-[#4B5563]"
+                          className=" py-1.5 px-3 font-bold text-xs rounded-lg cursor-pointer transition border border-[#4B5563]"
                         >
                           Reset Counter
                         </button>
@@ -1119,7 +1119,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
                         <button
                           type="button"
                           onClick={() => handleUnblockDevice(dev.deviceId)}
-                          className="py-1 px-3 bg-[#111827] hover:bg-[#4B5563] text-[#9CA3AF] hover:text-[#9CA3AF] border border-[#4B5563] font-bold text-xs rounded-lg cursor-pointer"
+                          className=" py-1 px-3 border border-[#4B5563] font-bold text-xs rounded-lg cursor-pointer"
                         >
                           Unblock Device
                         </button>
@@ -1189,7 +1189,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
                         <button
                           type="button"
                           onClick={() => handleUnblockIp(ip.ipAddress)}
-                          className="py-1 px-3 bg-[#111827] hover:bg-[#4B5563] text-[#9CA3AF] hover:text-[#9CA3AF] border border-[#4B5563] font-bold text-xs rounded-lg cursor-pointer"
+                          className=" py-1 px-3 border border-[#4B5563] font-bold text-xs rounded-lg cursor-pointer"
                         >
                           Unblock IP
                         </button>
@@ -1243,7 +1243,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
                     <tr key={act.id ? `susp-act-${act.id}-${idx}` : `susp-act-${idx}`} className="hover:bg-[#111827]/50">
                       <td className="py-3.5 px-4">
                         <span
-                          className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                          className={`px-2 py-0.5 rounded-md text-[10px] font-bold${
                             act.severity === "Critical"
                               ? "bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C]"
                               : act.severity === "High"
@@ -1286,7 +1286,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
                             <button
                               type="button"
                               onClick={() => handleResolveSuspicious(act.id, "Flagged")}
-                              className="py-1 px-3 bg-[#111827] hover:bg-[#4B5563] text-[#9CA3AF] border border-[#4B5563] font-bold text-xs rounded-lg cursor-pointer"
+                              className=" py-1 px-3 border border-[#4B5563] font-bold text-xs rounded-lg cursor-pointer"
                             >
                               Flag Account
                             </button>
@@ -1365,7 +1365,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
                         <button
                           type="button"
                           onClick={() => handleTerminateSession(sess.sessionId, sess.userEmail, true)}
-                          className="py-1.5 px-3 bg-[#111827] hover:bg-[#4B5563] text-[#9CA3AF] border border-[#4B5563] font-bold text-xs rounded-lg cursor-pointer transition"
+                          className=" py-1.5 px-3 border border-[#4B5563] font-bold text-xs rounded-lg cursor-pointer transition"
                         >
                           Force Logout User All
                         </button>
@@ -1401,7 +1401,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
                   <div
                     key={alert.id ? `alert-card-${alert.id}-${idx}` : `alert-card-${idx}`}
                     onClick={() => setSelectedAlert(alert)}
-                    className={`p-4 rounded-xl border transition cursor-pointer ${
+                    className={`p-4 rounded-xl border transition cursor-pointer${
                       selectedAlert?.id === alert.id
                         ? "bg-[#0F2D5C]/40 border-[#0F2D5C]"
                         : "bg-[#111827]/60 hover:bg-[#111827] border-[#111827]"
@@ -1595,7 +1595,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
               <button
                 type="button"
                 onClick={() => setShowBlockIpModal(false)}
-                className="text-[#9CA3AF] hover:text-white cursor-pointer"
+                className=" cursor-pointer"
               >
                 ✕
               </button>
@@ -1641,7 +1641,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
                 <button
                   type="button"
                   onClick={() => setShowBlockIpModal(false)}
-                  className="py-2 px-4 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] font-bold rounded-xl cursor-pointer"
+                  className=" py-2 px-4 font-bold rounded-xl cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -1668,7 +1668,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
               <button
                 type="button"
                 onClick={() => setShowBlockDeviceModal(false)}
-                className="text-[#9CA3AF] hover:text-white cursor-pointer"
+                className=" cursor-pointer"
               >
                 ✕
               </button>
@@ -1725,7 +1725,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
                 <button
                   type="button"
                   onClick={() => setShowBlockDeviceModal(false)}
-                  className="py-2 px-4 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] font-bold rounded-xl cursor-pointer"
+                  className=" py-2 px-4 font-bold rounded-xl cursor-pointer"
                 >
                   Cancel
                 </button>

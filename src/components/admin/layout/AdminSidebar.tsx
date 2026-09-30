@@ -120,12 +120,12 @@ export default function AdminSidebar({
   };
 
   return (
-    <aside className={`h-full bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between transition-all duration-300 relative select-none shadow-[2px_0_8px_rgba(11,31,58,0.04)] ${
+    <aside className={`h-full bg-[#0F2D5C] text-white border-r border-[#17407E]/40 flex flex-col justify-between transition-all duration-300 relative select-none shadow-[2px_0_12px_rgba(11,31,58,0.15)] ${
         collapsed && !isMobileDrawer ? "w-20" : "w-72"
       }`}
     >
       {/* Top Header Logo */}
-      <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900 dark:bg-slate-950 text-white">
+      <div className="p-4 border-b border-[#17407E]/50 flex items-center justify-between bg-[#0B2144] text-white">
         <div
           className="flex items-center gap-3 overflow-hidden cursor-pointer"
           onClick={() => onNavigate("/admin/dashboard")}
@@ -134,12 +134,12 @@ export default function AdminSidebar({
             <img
               src={activeLogo}
               alt={siteName || "SmartLink Logo"}
-              className="h-10 w-auto max-w-[130px] rounded-lg object-contain bg-white border border-[#0F2D5C] p-1"
+              className="h-10 w-auto max-w-[130px] rounded-lg object-contain bg-white border border-[#17407E] p-1 shadow-sm"
               onError={(e: any) => {
                 e.currentTarget.src = "/logo.webp";
               }}
             />
-            <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 bg-[#0F2D5C] rounded-full border-2 border-white" />
+            <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 bg-emerald-400 rounded-full border-2 border-[#0B2144]" />
           </div>
           {(!collapsed || isMobileDrawer) && (
             <div className="min-w-0">
@@ -156,7 +156,7 @@ export default function AdminSidebar({
           <button
             type="button"
             onClick={onToggleCollapse}
-            className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white transition-colors cursor-pointer"
+            className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 active:bg-white/30 text-white border border-white/10 transition-colors cursor-pointer"
             title={collapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           >
             {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
@@ -165,17 +165,17 @@ export default function AdminSidebar({
       </div>
 
       {/* Admin User Card (Snapshot) */}
-      <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
+      <div className="p-3.5 border-b border-[#17407E]/40 bg-[#17407E]/25">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-[#0F2D5C] text-white flex items-center justify-center font-extrabold text-sm shrink-0">
+          <div className="h-9 w-9 rounded-xl bg-white text-[#0F2D5C] flex items-center justify-center font-extrabold text-sm shrink-0 shadow-sm">
             {session.fullName.charAt(0).toUpperCase()}
           </div>
 
           {(!collapsed || isMobileDrawer) && (
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{session.fullName}</p>
+              <p className="text-xs font-bold text-white truncate">{session.fullName}</p>
               <div className="flex items-center gap-1.5 mt-0.5">
-                <span className="px-2 py-0.5 rounded-md font-mono text-[10px] font-bold bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                <span className="px-2 py-0.5 rounded-md font-mono text-[9px] font-bold bg-white/20 text-white border border-white/20">
                   {roleDef.displayName}
                 </span>
               </div>
@@ -185,11 +185,11 @@ export default function AdminSidebar({
       </div>
 
       {/* Navigation Groups List */}
-      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
+      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-4 scrollbar-thin">
         {ADMIN_NAV_GROUPS.map((group) => (
           <div key={group.title} className="space-y-1">
             {(!collapsed || isMobileDrawer) && (
-              <p className="px-3 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">
+              <p className="px-3 text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 font-mono">
                 {group.title}
               </p>
             )}
@@ -206,34 +206,39 @@ export default function AdminSidebar({
                     type="button"
                     disabled={!hasAccess}
                     onClick={() => onNavigate(item.path)}
-                    title={collapsed ? `${item.label} ${!hasAccess ? "(Restricted)" : ""}` : undefined}
-                    className={`w-full py-2.5 px-3 rounded-xl flex items-center justify-between text-xs font-semibold transition-all cursor-pointer group ${
-                      isActive
-                        ? "bg-[#0F2D5C] text-white"
-                        : hasAccess ? "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-[#0F2D5C] dark:hover:text-white"
-                        : "text-slate-400 dark:text-slate-600 opacity-40 cursor-not-allowed"
+                    title={item.label + (!hasAccess ? " (Restricted)" : "")}
+                    className={`w-full py-2 px-3 rounded-xl flex items-center justify-between text-xs font-semibold whitespace-nowrap overflow-hidden transition-all group ${
+                      !hasAccess
+                        ? "text-slate-400/40 cursor-not-allowed opacity-40"
+                        : isActive
+                        ? "bg-[#17407E] text-white border-l-4 border-white shadow-xs pl-2.5 font-bold"
+                        : "text-slate-200/90 hover:bg-white/10 hover:text-white cursor-pointer"
                     }`}
                   >
-                    <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
                       <IconComp
-                        className={`h-4 w-4 shrink-0 transition-transform group-hover:scale-110 ${
-                          isActive ? "text-white" : hasAccess ? "text-slate-500 group-hover:text-[#0F2D5C] dark:group-hover:text-white" : "text-slate-400"
+                        className={`h-4 w-4 shrink-0 transition-transform group-hover:scale-105 ${
+                          isActive ? "text-white" : "text-slate-300"
                         }`}
                       />
                       {(!collapsed || isMobileDrawer) && (
-                        <span className="truncate">{item.label}</span>
+                        <span className="truncate whitespace-nowrap text-left">{item.label}</span>
                       )}
                     </div>
 
                     {(!collapsed || isMobileDrawer) && (
-                      <div className="flex items-center gap-1.5 shrink-0">
+                      <div className="flex items-center gap-1.5 shrink-0 ml-1">
                         {!hasAccess && (
-                          <Lock className="h-3 w-3 text-slate-400" title="Permission Denied by RBAC" />
+                          <span title="Permission Denied by RBAC">
+                            <Lock className="h-3 w-3 text-slate-400" />
+                          </span>
                         )}
                         {item.badge && hasAccess && (
                           <span
-                            className={`px-1.5 py-0.2 rounded-full font-mono text-[10px] font-bold ${
-                              isActive ? "bg-white text-[#0F2D5C]" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
+                            className={`px-1.5 py-0.5 rounded-full font-mono text-[9px] font-bold ${
+                              isActive
+                                ? "bg-white text-[#0F2D5C]"
+                                : "bg-white/15 text-slate-200"
                             }`}
                           >
                             {item.badge}
@@ -250,21 +255,21 @@ export default function AdminSidebar({
       </div>
 
       {/* Footer System Status & Logout */}
-      <div className="p-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 space-y-2">
+      <div className="p-3 border-t border-[#17407E]/50 bg-[#0A1E3F]/60 space-y-2">
         {(!collapsed || isMobileDrawer) && (
-          <div className="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-between text-[10px] text-slate-600 dark:text-slate-300">
+          <div className="p-2 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between text-[10px] text-slate-300">
             <div className="flex items-center gap-1.5">
-              <Globe className="h-3.5 w-3.5 text-emerald-500" />
-              <span>Region: <strong className="text-slate-900 dark:text-white">Nigeria (WAT)</strong></span>
+              <Globe className="h-3.5 w-3.5 text-emerald-400" />
+              <span>Region: <strong className="text-white">Nigeria (WAT)</strong></span>
             </div>
-            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
           </div>
         )}
 
         <button
           type="button"
           onClick={onLogout}
-          className="w-full py-2.5 px-3 rounded-xl bg-white dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-slate-200 dark:border-slate-700 hover:border-rose-200 text-slate-700 dark:text-slate-200 hover:text-rose-600 dark:hover:text-rose-400 font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full py-2.5 px-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 active:bg-rose-500/30 text-rose-200 border border-rose-400/20 font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
         >
           <LogOut className="h-4 w-4 shrink-0" />
           {(!collapsed || isMobileDrawer) && <span>Logout Session</span>}

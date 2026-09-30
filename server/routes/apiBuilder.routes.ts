@@ -5,7 +5,7 @@
 
 import express from "express";
 import { readDB, writeDB } from "../db";
-import { requireAdmin, optionalAdmin } from "../middleware/auth";
+import { requireAdmin } from "../middleware/auth";
 import { syncFromStorage, syncToStorage } from "../../src/services/settingsStore";
 
 const router = express.Router();
@@ -102,7 +102,7 @@ function ensureApiBuilderDefaults(db: any) {
 // =========================================================================
 
 // 1. GET /api/admin/api-builder/requests
-router.get("/api/admin/api-builder/requests", optionalAdmin, async (req, res) => {
+router.get("/api/admin/api-builder/requests", requireAdmin, async (req, res) => {
   try {
     const db = readDB();
     ensureApiBuilderDefaults(db);
@@ -172,7 +172,7 @@ router.put("/api/admin/api-builder/requests", requireAdmin, async (req, res) => 
 });
 
 // 4. GET /api/admin/api-builder/logs
-router.get("/api/admin/api-builder/logs", optionalAdmin, async (req, res) => {
+router.get("/api/admin/api-builder/logs", requireAdmin, async (req, res) => {
   try {
     const db = readDB();
     ensureApiBuilderDefaults(db);
@@ -290,7 +290,7 @@ router.post("/api/admin/api-builder/test", requireAdmin, async (req, res) => {
 // =========================================================================
 
 // 1. GET /api/admin/response-mapper/mappings
-router.get("/api/admin/response-mapper/mappings", optionalAdmin, async (req, res) => {
+router.get("/api/admin/response-mapper/mappings", requireAdmin, async (req, res) => {
   try {
     const db = readDB();
     ensureApiBuilderDefaults(db);
@@ -360,7 +360,7 @@ router.put("/api/admin/response-mapper/mappings/:id", requireAdmin, async (req, 
 });
 
 // 4. GET /api/admin/response-mapper/logs
-router.get("/api/admin/response-mapper/logs", optionalAdmin, async (req, res) => {
+router.get("/api/admin/response-mapper/logs", requireAdmin, async (req, res) => {
   try {
     const db = readDB();
     ensureApiBuilderDefaults(db);

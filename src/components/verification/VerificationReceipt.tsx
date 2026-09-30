@@ -246,18 +246,18 @@ export const VerificationReceipt: React.FC<VerificationReceiptProps> = ({
           <button
             type="button"
             onClick={handleDownloadPDF}
-            className="flex-1 py-2.5 px-3 bg-[#E5E7EB] dark:bg-[#111827] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563] text-[#4B5563] dark:text-[#E5E7EB] font-semibold rounded-xl text-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+            className="flex-1 py-2.5 px-3 bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white font-semibold rounded-xl text-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5"
           >
-            <Download className="h-3.5 w-3.5" />
+            <Download className="h-3.5 w-3.5 text-white" />
             <span>Download</span>
           </button>
 
           <button
             type="button"
             onClick={handlePrint}
-            className="flex-1 py-2.5 px-3 bg-[#0F2D5C] hover:bg-[#0F2D5C] active:scale-98 text-white font-semibold rounded-xl text-xs transition-all shadow-md shadow-blue-600/20 cursor-pointer flex items-center justify-center gap-1.5"
+            className="flex-1 py-2.5 px-3 bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white font-semibold rounded-xl text-xs transition-all shadow-md shadow-[#0F2D5C]/20 cursor-pointer flex items-center justify-center gap-1.5"
           >
-            <Printer className="h-3.5 w-3.5" />
+            <Printer className="h-3.5 w-3.5 text-white" />
             <span>Print Receipt</span>
           </button>
         </div>

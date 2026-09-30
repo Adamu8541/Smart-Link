@@ -112,7 +112,7 @@ export function UserExportModal({ isOpen, onClose, usersToExport, activeFilterSu
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-5 right-5 p-1.5 rounded-xl bg-[#111827] text-[#9CA3AF] hover:text-white cursor-pointer"
+          className=" absolute top-5 right-5 p-1.5 rounded-xl cursor-pointer"
         >
           <X className="h-4 w-4" />
         </button>
@@ -140,7 +140,7 @@ export function UserExportModal({ isOpen, onClose, usersToExport, activeFilterSu
           <button
             type="button"
             onClick={handleExportCSV}
-            className="w-full p-4 bg-[#111827] hover:bg-[#111827] border border-[#111827] hover:border-[#0F2D5C] rounded-2xl flex items-center justify-between text-left transition-all cursor-pointer group"
+            className=" w-full p-4 border border-[#111827] hover:border-[#0F2D5C] rounded-2xl flex items-center justify-between text-left transition-all cursor-pointer group"
           >
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-[#0F2D5C] border border-[#0F2D5C] rounded-xl text-[#9CA3AF] group-hover:scale-105 transition-transform">
@@ -157,7 +157,7 @@ export function UserExportModal({ isOpen, onClose, usersToExport, activeFilterSu
           <button
             type="button"
             onClick={handleExportExcel}
-            className="w-full p-4 bg-[#111827] hover:bg-[#111827] border border-[#111827] hover:border-[#0F2D5C] rounded-2xl flex items-center justify-between text-left transition-all cursor-pointer group"
+            className=" w-full p-4 border border-[#111827] hover:border-[#0F2D5C] rounded-2xl flex items-center justify-between text-left transition-all cursor-pointer group"
           >
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-[#0F2D5C] border border-[#0F2D5C] rounded-xl text-[#9CA3AF] group-hover:scale-105 transition-transform">
@@ -174,7 +174,7 @@ export function UserExportModal({ isOpen, onClose, usersToExport, activeFilterSu
           <button
             type="button"
             onClick={handlePrintPDF}
-            className="w-full p-4 bg-[#111827] hover:bg-[#111827] border border-[#111827] hover:border-[#0F2D5C] rounded-2xl flex items-center justify-between text-left transition-all cursor-pointer group"
+            className=" w-full p-4 border border-[#111827] hover:border-[#0F2D5C] rounded-2xl flex items-center justify-between text-left transition-all cursor-pointer group"
           >
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-[#0F2D5C] border border-[#0F2D5C] rounded-xl text-[#9CA3AF] group-hover:scale-105 transition-transform">
@@ -193,7 +193,7 @@ export function UserExportModal({ isOpen, onClose, usersToExport, activeFilterSu
           <button
             type="button"
             onClick={onClose}
-            className="py-2.5 px-5 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] font-bold rounded-xl text-xs cursor-pointer"
+            className=" py-2.5 px-5 font-bold rounded-xl text-xs cursor-pointer"
           >
             Close
           </button>

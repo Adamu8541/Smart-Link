@@ -48,7 +48,7 @@ export const ApiDocsPublicView: React.FC<ApiDocsPublicViewProps> = ({
   };
 
   const curlExample = `curl -X POST https://smartlinkng.com.ng/api/v1/nin/verify \\
-  -H "Authorization: Bearer REDACTED" \\
+  -H "Authorization: Bearer YOUR_API_KEY_HERE" \\
   -H "Content-Type: application/json" \\
   -d '{
     "nin": "12345678901",
@@ -67,7 +67,7 @@ const response = await axios.post(
   },
   {
     headers: {
-      'Authorization': 'Bearer REDACTED',
+      'Authorization': 'Bearer YOUR_API_KEY_HERE',
       'Content-Type': 'application/json'
     }
   }
@@ -80,7 +80,7 @@ console.log('PDF Slip Download URL:', response.data.slipUrl);`;
 
 url = "https://smartlinkng.com.ng/api/v1/nin/verify"
 headers = {
-    "Authorization": "Bearer REDACTED",
+    "Authorization": "Bearer YOUR_API_KEY_HERE",
     "Content-Type": "application/json"
 }
 payload = {

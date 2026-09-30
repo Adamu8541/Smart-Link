@@ -46,7 +46,7 @@ const PROVIDER_OPTIONS = [
   "Custom Provider"
 ];
 
-const SAMPLE_JSON_TEMPLATES: Record<string, string> = {
+const SAMPLE_JSON_TEMPLATES: Record<string, string>= {
   "Paystack Verification": JSON.stringify(
     {
       status: true,
@@ -388,14 +388,14 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border ${
+            className={`fixed top-6 right-6 z-50 px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 border font-semibold text-white ${
               toastMessage.type === "success"
-                ? "bg-emerald-950/90 text-emerald-200 border-emerald-700"
-                : "bg-red-950/90 text-red-200 border-red-700"
+                ? "bg-emerald-700 text-white border-emerald-500"
+                : "bg-red-700 text-white border-red-500"
             }`}
           >
-            {toastMessage.type === "success" ? <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" /> : <AlertTriangle className="h-5 w-5 text-red-400 shrink-0" />}
-            <span className="text-sm font-medium">{toastMessage.text}</span>
+            {toastMessage.type === "success" ? <CheckCircle2 className="h-5 w-5 text-emerald-200 shrink-0" /> : <AlertTriangle className="h-5 w-5 text-red-200 shrink-0" />}
+            <span className="text-sm font-semibold">{toastMessage.text}</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -420,16 +420,16 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
           <button
             type="button"
             onClick={() => { fetchMappings(); fetchLogs(); }}
-            className="px-4 py-2.5 rounded-xl bg-[#111827] hover:bg-[#4B5563] border border-[#4B5563] text-[#E5E7EB] hover:text-white font-medium text-xs flex items-center gap-2 transition cursor-pointer"
+            className=" px-4 py-2.5 rounded-xl border border-[#4B5563] font-medium text-xs flex items-center gap-2 transition cursor-pointer"
           >
-            <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+            <RefreshCw className={`h-4 w-4${isLoading ? "animate-spin" : ""}`} />
             Refresh
           </button>
 
           <button
             type="button"
             onClick={() => setIsLogsOpen(true)}
-            className="px-4 py-2.5 rounded-xl bg-[#111827] hover:bg-[#4B5563] border border-[#4B5563] text-[#E5E7EB] hover:text-white font-medium text-xs flex items-center gap-2 transition cursor-pointer"
+            className=" px-4 py-2.5 rounded-xl border border-[#4B5563] font-medium text-xs flex items-center gap-2 transition cursor-pointer"
           >
             <FileText className="h-4 w-4 text-[#9CA3AF]" />
             Test Logs ({logs.length})
@@ -438,7 +438,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
           <button
             type="button"
             onClick={handleCreateNew}
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0F2D5C] to-[#0F2D5C] hover:from-[#0F2D5C] hover:to-[#0F2D5C] text-white font-semibold text-xs flex items-center gap-2 shadow-lg shadow-none transition cursor-pointer"
+            className=" px-5 py-2.5 rounded-xl from-[#0F2D5C] to-[#0F2D5C] hover:from-[#0F2D5C] hover:to-[#0F2D5C] font-semibold text-xs flex items-center gap-2 shadow-lg shadow-none transition cursor-pointer"
           >
             <Plus className="h-4 w-4" />
             Add Response Mapping
@@ -572,7 +572,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                       <button
                         type="button"
                         onClick={(e) => handleToggleStatus(m.id, e)}
-                        className={`px-3 py-1 rounded-full font-semibold text-[10px] border transition cursor-pointer inline-flex items-center gap-1.5 ${
+                        className={`px-3 py-1 rounded-full font-semibold text-[10px] border transition cursor-pointer inline-flex items-center gap-1.5${
                           m.status === "ENABLED"
                             ? "bg-[#0F2D5C]/80 text-[#9CA3AF] border-[#0F2D5C] hover:bg-[#0F2D5C]"
                             : "bg-[#111827] text-[#9CA3AF] border-[#4B5563] hover:bg-[#4B5563]"
@@ -584,7 +584,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                     </td>
 
                     {/* Actions */}
-                    <td className="px-6 py-4 text-right">
+                    <td className=" px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
                           type="button"
@@ -598,7 +598,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                         <button
                           type="button"
                           onClick={(e) => handleDuplicate(m.id, e)}
-                          className="p-2 rounded-xl bg-[#111827] hover:bg-[#4B5563] border border-[#4B5563] text-[#E5E7EB] hover:text-white transition cursor-pointer"
+                          className=" p-2 rounded-xl border border-[#4B5563] transition cursor-pointer"
                           title="Duplicate Mapping"
                         >
                           <CopyPlus className="h-3.5 w-3.5" />
@@ -607,7 +607,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                         <button
                           type="button"
                           onClick={() => handleEdit(m)}
-                          className="p-2 rounded-xl bg-[#111827] hover:bg-[#4B5563] border border-[#4B5563] text-[#E5E7EB] hover:text-white transition cursor-pointer"
+                          className=" p-2 rounded-xl border border-[#4B5563] transition cursor-pointer"
                           title="Edit Configuration"
                         >
                           <Edit3 className="h-3.5 w-3.5" />
@@ -616,7 +616,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                         <button
                           type="button"
                           onClick={() => handleDelete(m.id, m.mappingName)}
-                          className="p-2 rounded-xl bg-[#0F2D5C]/50 hover:bg-[#0F2D5C]/80 border border-[#0F2D5C]/80 text-[#9CA3AF] hover:text-[#9CA3AF] transition cursor-pointer"
+                          className=" p-2 rounded-xl border border-[#0F2D5C]/80 transition cursor-pointer"
                           title="Delete Mapping"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -660,7 +660,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                 <button
                   type="button"
                   onClick={() => setIsEditorOpen(false)}
-                  className="p-2 rounded-xl bg-[#111827] hover:bg-[#4B5563] text-[#9CA3AF] hover:text-white transition cursor-pointer"
+                  className=" p-2 rounded-xl transition cursor-pointer"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -1000,7 +1000,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                   <button
                     type="button"
                     onClick={() => setIsEditorOpen(false)}
-                    className="px-4 py-2.5 rounded-xl bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] font-medium text-xs cursor-pointer transition"
+                    className=" px-4 py-2.5 rounded-xl font-medium text-xs cursor-pointer transition"
                   >
                     Cancel
                   </button>
@@ -1044,7 +1044,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                 <button
                   type="button"
                   onClick={() => setIsTestRunnerOpen(false)}
-                  className="p-2 rounded-xl bg-[#111827] hover:bg-[#4B5563] text-[#9CA3AF] hover:text-white transition cursor-pointer"
+                  className=" p-2 rounded-xl transition cursor-pointer"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -1061,7 +1061,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                         key={tplKey}
                         type="button"
                         onClick={() => setSampleInputJson(SAMPLE_JSON_TEMPLATES[tplKey])}
-                        className="px-2 py-1 rounded bg-[#111827] hover:bg-[#4B5563] text-[10px] text-[#9CA3AF] font-medium transition cursor-pointer"
+                        className=" px-2 py-1 rounded text-[10px] font-medium transition cursor-pointer"
                       >
                         {tplKey}
                       </button>
@@ -1084,7 +1084,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                     disabled={isTesting}
                     className="px-5 py-2 rounded-xl bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-semibold text-xs flex items-center gap-2 shadow-lg shadow-none transition cursor-pointer disabled:opacity-50"
                   >
-                    <RefreshCw className={`h-4 w-4 ${isTesting ? "animate-spin" : ""}`} />
+                    <RefreshCw className={`h-4 w-4${isTesting ? "animate-spin" : ""}`} />
                     {isTesting ? "Evaluating..." : "Run Test Evaluation"}
                   </button>
                 </div>
@@ -1161,7 +1161,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                       <button
                         type="button"
                         onClick={() => handleCopyText(JSON.stringify(testResult.parsedOutput, null, 2), "parsedOutput")}
-                        className="text-[11px] text-[#9CA3AF] hover:underline flex items-center gap-1 cursor-pointer"
+                        className=" text-[11px] hover:underline flex items-center gap-1 cursor-pointer"
                       >
                         {copiedKey === "parsedOutput" ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                         Copy Output JSON
@@ -1174,7 +1174,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                         return (
                           <div key={key} className="p-2.5 bg-[#111827]/80 rounded-xl border border-[#111827] flex flex-col justify-between">
                             <span className="text-[10px] text-[#6B7280] uppercase tracking-wider font-sans font-semibold">{key}</span>
-                            <span className={`font-bold truncate mt-1 ${
+                            <span className={`font-bold truncate mt-1${
                               key === "status"
                                 ? val === "SUCCESS" ? "text-emerald-400" : "text-red-400"
                                 : val !== null && val !== undefined ? "text-[#E5E7EB]" : "text-[#4B5563] italic"
@@ -1201,7 +1201,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                 <button
                   type="button"
                   onClick={() => setIsTestRunnerOpen(false)}
-                  className="px-5 py-2.5 rounded-xl bg-[#111827] hover:bg-[#4B5563] text-white font-medium text-xs transition cursor-pointer"
+                  className=" px-5 py-2.5 rounded-xl font-medium text-xs transition cursor-pointer"
                 >
                   Close
                 </button>
@@ -1235,7 +1235,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                 <button
                   type="button"
                   onClick={() => setIsLogsOpen(false)}
-                  className="p-2 rounded-xl bg-[#111827] hover:bg-[#4B5563] text-[#9CA3AF] hover:text-white transition cursor-pointer"
+                  className=" p-2 rounded-xl transition cursor-pointer"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -1268,7 +1268,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                           </td>
                           <td className="px-4 py-3">
                             <span
-                              className={`px-2.5 py-0.5 rounded-full font-bold text-[10px] border ${
+                              className={`px-2.5 py-0.5 rounded-full font-bold text-[10px] border${
                                 log.testResult === "SUCCESS"
                                   ? "bg-[#0F2D5C] text-[#9CA3AF] border-[#0F2D5C]"
                                   : log.testResult === "PARTIAL"
@@ -1292,7 +1292,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                 <button
                   type="button"
                   onClick={() => setIsLogsOpen(false)}
-                  className="px-5 py-2.5 rounded-xl bg-[#111827] hover:bg-[#4B5563] text-white font-medium text-xs transition cursor-pointer"
+                  className=" px-5 py-2.5 rounded-xl font-medium text-xs transition cursor-pointer"
                 >
                   Close
                 </button>

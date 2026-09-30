@@ -88,16 +88,16 @@ export function AdminReconciliationView({ session, onNavigate }: AdminReconcilia
       <div className="bg-[#111827] border border-[#111827] rounded-3xl p-6 md:p-8 space-y-6 shadow-xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#111827] pb-5">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-[#0F2D5C] border border-[#0F2D5C] rounded-2xl text-[#9CA3AF] shadow-lg shadow-none">
-              <ShieldCheck className="h-6 w-6" />
+            <div className="p-3 bg-[#0F2D5C] border border-[#17407E] rounded-2xl text-slate-100 shadow-md">
+              <ShieldCheck className="h-6 w-6 text-emerald-400" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#9CA3AF]">Financial Audit</span>
-                <span className="px-2 py-0.5 bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C] rounded-full text-[10px] font-mono font-bold">PROVIDER-INDEPENDENT</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300">Financial Audit</span>
+                <span className="px-2 py-0.5 bg-[#0F2D5C] text-emerald-300 border border-[#17407E] rounded-full text-[10px] font-mono font-bold">PROVIDER-INDEPENDENT</span>
               </div>
               <h1 className="text-xl font-bold text-white">Payment Verification & Reconciliation</h1>
-              <p className="text-xs text-[#9CA3AF] mt-0.5">Audit verified payments, unmatched deposits, state transitions & provider comparison results.</p>
+              <p className="text-xs text-slate-300 mt-0.5">Audit verified payments, unmatched deposits, state transitions & provider comparison results.</p>
             </div>
           </div>
 
@@ -106,15 +106,15 @@ export function AdminReconciliationView({ session, onNavigate }: AdminReconcilia
               type="button"
               onClick={() => fetchReconciliations(true)}
               disabled={refreshing}
-              className="py-2.5 px-3 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer transition-colors"
+              className=" py-2.5 px-3 text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer transition-colors"
             >
-              <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin text-[#9CA3AF]" : ""}`} />
+              <RefreshCw className={`h-4 w-4${refreshing ? "animate-spin text-[#9CA3AF]" : ""}`} />
             </button>
 
             <button
               type="button"
               onClick={() => onNavigate("/admin/dashboard")}
-              className="py-2.5 px-4 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition-colors"
+              className=" py-2.5 px-4 text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition-colors"
             >
               <ArrowLeft className="h-3.5 w-3.5" /> Back
             </button>
@@ -128,7 +128,7 @@ export function AdminReconciliationView({ session, onNavigate }: AdminReconcilia
               key={st}
               type="button"
               onClick={() => setStatusFilter(st)}
-              className={`px-3 py-1.5 rounded-xl font-bold cursor-pointer transition-colors shrink-0 ${
+              className={`px-3 py-1.5 rounded-xl font-bold cursor-pointer transition-colors shrink-0${
                 statusFilter === st ? "bg-[#0F2D5C] text-white" : "bg-[#111827] text-[#9CA3AF] hover:text-white"
               }`}
             >
@@ -139,7 +139,7 @@ export function AdminReconciliationView({ session, onNavigate }: AdminReconcilia
       </div>
 
       {/* Main Table Container */}
-      <div className="bg-[#111827] border border-[#111827] rounded-3xl p-6 md:p-8 space-y-6 shadow-xl">
+      <div className=" border border-[#111827] rounded-3xl p-6 md:p-8 space-y-6 shadow-xl">
         <form onSubmit={handleSearch} className="flex items-center gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3.5 top-3 h-4 w-4 text-[#6B7280]" />
@@ -199,7 +199,7 @@ export function AdminReconciliationView({ session, onNavigate }: AdminReconcilia
                         ₦{(rec.amount || 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}
                       </td>
                       <td className="p-4 text-center font-sans">
-                        <span className={`px-2.5 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider ${getStatusBadge(rec.status)}`}>
+                        <span className={`px-2.5 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider${getStatusBadge(rec.status)}`}>
                           {rec.status}
                         </span>
                       </td>
@@ -212,7 +212,7 @@ export function AdminReconciliationView({ session, onNavigate }: AdminReconcilia
                         <button
                           type="button"
                           onClick={() => setSelectedRecord(rec)}
-                          className="p-1.5 hover:bg-[#111827] text-[#E5E7EB] hover:text-[#9CA3AF] rounded-lg transition-colors cursor-pointer"
+                          className=" p-1.5 rounded-lg transition-colors cursor-pointer"
                           title="View Verification Details"
                         >
                           <Eye className="h-4 w-4" />
@@ -239,7 +239,7 @@ export function AdminReconciliationView({ session, onNavigate }: AdminReconcilia
               <button
                 type="button"
                 onClick={() => setSelectedRecord(null)}
-                className="p-1 hover:bg-[#111827] text-[#9CA3AF] rounded-lg"
+                className=" p-1 rounded-lg"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -268,7 +268,7 @@ export function AdminReconciliationView({ session, onNavigate }: AdminReconcilia
 
               <div className="p-3 bg-[#111827] border border-[#111827] rounded-xl space-y-1">
                 <span className="text-[10px] uppercase font-bold text-[#6B7280]">Status</span>
-                <span className={`inline-block px-2 py-0.5 rounded border text-[10px] font-bold ${getStatusBadge(selectedRecord.status)}`}>
+                <span className={`inline-block px-2 py-0.5 rounded border text-[10px] font-bold${getStatusBadge(selectedRecord.status)}`}>
                   {selectedRecord.status}
                 </span>
               </div>
@@ -325,7 +325,7 @@ export function AdminReconciliationView({ session, onNavigate }: AdminReconcilia
               <button
                 type="button"
                 onClick={() => setSelectedRecord(null)}
-                className="py-2 px-5 bg-[#111827] hover:bg-[#4B5563] text-white text-xs font-bold rounded-xl cursor-pointer"
+                className=" py-2 px-5 text-xs font-bold rounded-xl cursor-pointer"
               >
                 Close
               </button>

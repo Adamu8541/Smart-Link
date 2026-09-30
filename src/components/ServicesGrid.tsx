@@ -90,7 +90,7 @@ export default function ServicesGrid({ onSelectService }: ServicesGridProps) {
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#6B7280] hover:text-[#0F2D5C] transition-colors"
+                className="bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white absolute inset-y-0 right-0 pr-3.5 flex items-center transition-colors"
                 title="Clear Search"
               >
                 <X className="h-4.5 w-4.5" />
@@ -115,11 +115,11 @@ export default function ServicesGrid({ onSelectService }: ServicesGridProps) {
                   setSearchQuery(tag.query);
                   setActiveTab("ALL");
                 }}
-                className={`px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all ${
+                className={`bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all${
                   searchQuery.toLowerCase() === tag.query.toLowerCase()
                     ? "bg-[#0F2D5C] text-white shadow-xs"
                     : "bg-white border border-[#E5E7EB] text-[#4B5563] hover:bg-[#F5F7FA] hover:text-[#0F2D5C]"
-                }`}
+                }bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white`}
               >
                 {tag.label}
               </button>
@@ -128,7 +128,7 @@ export default function ServicesGrid({ onSelectService }: ServicesGridProps) {
 
           {/* Matches Counter */}
           {searchQuery && (
-            <p className="text-center text-xs font-bold text-[#0F2D5C]">
+            <p className="bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white text-center text-xs font-bold">
               Found {filteredServices.length} {filteredServices.length === 1 ? "solution" : "solutions"} matching &quot;{searchQuery}&quot;
             </p>
           )}
@@ -144,11 +144,11 @@ export default function ServicesGrid({ onSelectService }: ServicesGridProps) {
                 key={cat.id}
                 onClick={() => setActiveTab(cat.id)}
                 id={`tab-service-${cat.id}`}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                className={`bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all${
                   isSelected
                     ? "bg-[#0F2D5C] text-white shadow-xs border border-[#0F2D5C]"
                     : "bg-white text-[#4B5563] border border-[#E5E7EB] hover:border-[#0F2D5C]"
-                }`}
+                }bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white`}
               >
                 <IconComp className="h-3.5 w-3.5" />
                 {cat.label}
@@ -228,7 +228,7 @@ export default function ServicesGrid({ onSelectService }: ServicesGridProps) {
                   setActiveTab("ALL");
                   setSearchQuery("");
                 }}
-                className="px-4 py-2 bg-white border border-[#E5E7EB] text-[#111827] hover:border-[#0F2D5C] rounded-xl text-xs font-bold"
+                className="bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white px-4 py-2 border border-[#E5E7EB] hover:border-[#0F2D5C] rounded-xl text-xs font-bold"
               >
                 Clear Filters
               </button>

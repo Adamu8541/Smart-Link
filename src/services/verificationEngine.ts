@@ -83,6 +83,21 @@ export const VERIFICATION_SERVICES: VerificationServiceConfig[] = [
     ],
   },
   {
+    id: "BVN_PHONE",
+    title: "BVN Verification with Phone Number",
+    subtitle: "NIBSS Phone Portal",
+    description: "Verify BVN identity records using candidate's 11-digit linked phone number.",
+    icon: "Phone",
+    category: "IDENTITY",
+    fee: 500,
+    providerName: "BVN Banking Registry",
+    primaryInputLabel: "Phone Number",
+    primaryInputPlaceholder: "e.g. 08012345678",
+    primaryInputName: "phoneNumber",
+    primaryInputHelp: "Enter 11-digit phone number linked to the BVN.",
+    inputType: "text",
+  },
+  {
     id: "NIN_PHONE",
     title: "NIN With Phone Number",
     subtitle: "NIMC Phone Lookup Portal",
@@ -205,13 +220,13 @@ export const VERIFICATION_SERVICES: VerificationServiceConfig[] = [
 ];
 
 export const VERIFICATION_PROGRESS_STEPS: VerificationProgressStep[] = [
-  { id: 1, label: "Checking Wallet Balance...", progress: 15 },
-  { id: 2, label: "Connecting Securely to Provider...", progress: 35 },
-  { id: 3, label: "Sending Verification Request...", progress: 55 },
-  { id: 4, label: "Waiting for Provider Response...", progress: 75 },
-  { id: 5, label: "Receiving & Validating Data...", progress: 90 },
-  { id: 6, label: "Generating Official Digital Receipt...", progress: 98 },
-  { id: 7, label: "Almost Done...", progress: 100 },
+  { id: 1, label: "Checking Wallet Balance & Parameters...", progress: 15 },
+  { id: 2, label: "Connecting Securely to Verification Registry...", progress: 35 },
+  { id: 3, label: "Sending Verification Query...", progress: 55 },
+  { id: 4, label: "Querying Registry Database & Validating...", progress: 75 },
+  { id: 5, label: "Applying Official Security Overlay & Preparing Slip...", progress: 90 },
+  { id: 6, label: "Finalizing Verification...", progress: 98 },
+  { id: 7, label: "Verification Complete & Official Slip Auto-Downloaded", progress: 100 },
 ];
 
 export class VerificationEngine {
@@ -398,15 +413,26 @@ export class VerificationEngine {
               targetId: validation.formattedValue || String(primaryInput || "").trim(),
               extraFields: {
                 ...additionalFields,
-                ...(serviceType === "BVN" ? {
+                ...(serviceType === "NIN" ? {
+                  nin: validation.formattedValue || String(primaryInput || "").trim(),
+                  id_number: validation.formattedValue || String(primaryInput || "").trim(),
+                  idNumber: validation.formattedValue || String(primaryInput || "").trim(),
+                } : {}),
+                ...(serviceType === "BVN" && additionalFields?.searchMethod !== "BY_PHONE" && additionalFields?.searchMethod !== "BY_PHONE_NUMBER" ? {
                   bvn: validation.formattedValue || String(primaryInput || "").trim(),
                   id_number: validation.formattedValue || String(primaryInput || "").trim(),
                   idNumber: validation.formattedValue || String(primaryInput || "").trim(),
+                } : {}),
+                ...(additionalFields?.providerId || additionalFields?.preferredProvider ? {
+                  preferredProvider: additionalFields?.providerId || additionalFields?.preferredProvider,
+                  providerId: additionalFields?.providerId || additionalFields?.preferredProvider,
                 } : {}),
               },
               fee: effectiveFee,
               slipType,
               autoEmailToRegistered,
+              providerId: additionalFields?.providerId || additionalFields?.preferredProvider || undefined,
+              preferredProvider: additionalFields?.preferredProvider || additionalFields?.providerId || undefined,
             }),
             signal: controller.signal,
           });

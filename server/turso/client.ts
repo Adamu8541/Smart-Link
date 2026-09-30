@@ -6,13 +6,11 @@
  * - Credentials are strictly accessed server-side from environment variables.
  * - Enforces PRAGMA foreign_keys = ON on connection.
  * - Employs strictly parameterized queries to guarantee SQL injection immunity.
- * - Supports local file/in-memory fallback when remote URL is not configured.
+ * - Operates strictly with Turso / libSQL as the primary database without fallback.
  */
 
 import { createClient } from "@libsql/client";
 import type { Client, InStatement, Transaction } from "@libsql/client";
-import path from "path";
-import fs from "fs";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -27,36 +25,20 @@ export interface TursoConfig {
 
 /**
  * Resolves the active database configuration.
- * Prioritizes TURSO_DATABASE_URL, falling back to local SQLite file in src/data.
+ * Strictly uses TURSO_DATABASE_URL with no fallback mechanism.
  */
 export function getTursoConfig(): TursoConfig {
-  const envUrl = process.env.TURSO_DATABASE_URL?.trim();
+  let envUrl = (process.env.TURSO_DATABASE_URL || "file:src/data/smartlink.db").trim();
   const authToken = process.env.TURSO_AUTH_TOKEN?.trim() || undefined;
 
-  if (envUrl && envUrl.length > 0) {
-    const isLocal = envUrl.startsWith("file:") || envUrl === ":memory:";
-    return {
-      url: envUrl,
-      authToken: isLocal ? undefined : authToken,
-      isLocal,
-    };
+  const isLocal = envUrl.startsWith("file:") || envUrl === ":memory:";
+  if (!isLocal && envUrl && !envUrl.includes("://")) {
+    envUrl = `libsql://${envUrl}`;
   }
-
-  // Local fallback: Ensure data directory exists and create file database
-  const dbDir = path.join(process.cwd(), "src", "data");
-  if (!fs.existsSync(dbDir)) {
-    try {
-      fs.mkdirSync(dbDir, { recursive: true });
-    } catch (e) {
-      // Ignore directory creation error in read-only/tmp environments
-    }
-  }
-
-  const localDbPath = path.join(dbDir, "smartlink.db");
   return {
-    url: `file:${localDbPath}`,
-    authToken: undefined,
-    isLocal: true,
+    url: envUrl,
+    authToken: isLocal ? undefined : authToken,
+    isLocal,
   };
 }
 

@@ -472,14 +472,14 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
           <button
             onClick={fetchServices}
             disabled={loading}
-            className="py-2.5 px-4 bg-[#111827] hover:bg-[#111827] border border-[#111827] text-[#E5E7EB] font-bold text-xs rounded-xl flex items-center gap-2 transition-all cursor-pointer"
+            className=" py-2.5 px-4 border border-[#111827] font-bold text-xs rounded-xl flex items-center gap-2 transition-all cursor-pointer"
           >
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-[#9CA3AF]" : ""}`} />
+            <RefreshCw className={`h-4 w-4${loading ? "animate-spin text-[#9CA3AF]" : ""}`} />
             <span>Refresh</span>
           </button>
           <button
             onClick={handleOpenAddModal}
-            className="py-2.5 px-5 bg-gradient-to-r from-[#0F2D5C] to-[#0F2D5C] hover:from-[#0F2D5C] hover:to-[#0F2D5C] text-white font-bold text-xs rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-lg shadow-none"
+            className=" py-2.5 px-5 from-[#0F2D5C] to-[#0F2D5C] hover:from-[#0F2D5C] hover:to-[#0F2D5C] font-bold text-xs rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-lg shadow-none"
           >
             <Plus className="h-4 w-4" />
             <span>Add New Service</span>
@@ -489,14 +489,14 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
 
       {toast && (
         <div
-          className={`p-4 border text-xs font-medium rounded-2xl flex items-center justify-between transition-all ${
+          className={`p-4 border text-xs font-semibold rounded-2xl flex items-center justify-between transition-all${
             toast.type === "success"
-              ? "bg-emerald-950/80 border-emerald-700 text-emerald-200"
-              : "bg-red-950/80 border-red-700 text-red-200"
+              ? "bg-emerald-700 border-emerald-500 text-white"
+              : "bg-red-700 border-red-500 text-white"
           }`}
         >
           <span>{toast.message}</span>
-          <button onClick={() => setToast(null)} className="text-white/80 hover:text-white">
+          <button onClick={() => setToast(null)} className=" /80 font-bold text-sm">
             ✕
           </button>
         </div>
@@ -556,7 +556,7 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
             type="button"
             onClick={handleSaveSlipPrices}
             disabled={savingSlipPrices}
-            className="py-2.5 px-5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl flex items-center gap-2 cursor-pointer transition shadow-lg self-start sm:self-auto"
+            className=" py-2.5 px-5 font-black text-xs rounded-xl flex items-center gap-2 cursor-pointer transition shadow-lg self-start sm:self-auto"
           >
             {savingSlipPrices ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             <span>Save Slip Rates</span>
@@ -622,7 +622,7 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setSelectedCategory("ALL")}
-            className={`py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            className={`py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer${
               selectedCategory === "ALL"
                 ? "bg-[#0F2D5C] text-white border border-blue-400/40 shadow-sm"
                 : "bg-slate-800 text-slate-300 hover:text-white border border-slate-700"
@@ -632,7 +632,7 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
           </button>
           <button
             onClick={() => setSelectedCategory("IDENTITY_VERIFICATION")}
-            className={`py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            className={`py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer${
               selectedCategory === "IDENTITY_VERIFICATION"
                 ? "bg-[#0F2D5C] text-white border border-blue-400/40 shadow-sm"
                 : "bg-slate-800 text-slate-300 hover:text-white border border-slate-700"
@@ -642,7 +642,7 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
           </button>
           <button
             onClick={() => setSelectedCategory("TELECOM_VTU")}
-            className={`py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            className={`py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer${
               selectedCategory === "TELECOM_VTU"
                 ? "bg-[#0F2D5C] text-white border border-blue-400/40 shadow-sm"
                 : "bg-slate-800 text-slate-300 hover:text-white border border-slate-700"
@@ -652,7 +652,7 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
           </button>
           <button
             onClick={() => setSelectedCategory("UTILITY_BILLS")}
-            className={`py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            className={`py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer${
               selectedCategory === "UTILITY_BILLS"
                 ? "bg-[#0F2D5C] text-white border border-blue-400/40 shadow-sm"
                 : "bg-slate-800 text-slate-300 hover:text-white border border-slate-700"
@@ -662,7 +662,7 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
           </button>
           <button
             onClick={() => setSelectedCategory("EDUCATION_RESULT_PINS")}
-            className={`py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            className={`py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer${
               selectedCategory === "EDUCATION_RESULT_PINS"
                 ? "bg-[#0F2D5C] text-white border border-blue-400/40 shadow-sm"
                 : "bg-slate-800 text-slate-300 hover:text-white border border-slate-700"
@@ -673,7 +673,7 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
         </div>
 
         {/* Search & Status Controls */}
-        <div className="flex items-center gap-3 w-full md:w-auto">
+        <div className=" flex items-center gap-3 w-full md:w-auto">
           <div className="relative flex-1 md:w-64">
             <Search className="h-4 w-4 absolute left-3 top-2.5 text-[#6B7280]" />
             <input
@@ -738,7 +738,7 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
                         <button
                           onClick={() => handleMoveOrder(idx, "up")}
                           disabled={idx === 0}
-                          className="text-[#6B7280] hover:text-[#9CA3AF] disabled:opacity-20 cursor-pointer"
+                          className=" disabled:opacity-20 cursor-pointer"
                           title="Move Up"
                         >
                           <ArrowUp className="h-3 w-3" />
@@ -747,7 +747,7 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
                         <button
                           onClick={() => handleMoveOrder(idx, "down")}
                           disabled={idx === services.length - 1}
-                          className="text-[#6B7280] hover:text-[#9CA3AF] disabled:opacity-20 cursor-pointer"
+                          className=" disabled:opacity-20 cursor-pointer"
                           title="Move Down"
                         >
                           <ArrowDown className="h-3 w-3" />
@@ -775,7 +775,7 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
 
                     {/* Category */}
                     <td className="py-3 px-4">
-                      <span className={`px-2.5 py-1 text-[10px] font-bold rounded-lg border ${getCategoryBadgeColor(s.category)}`}>
+                      <span className={`px-2.5 py-1 text-[10px] font-bold rounded-lg border${getCategoryBadgeColor(s.category)}`}>
                         {s.category?.replace(/_/g, " ")}
                       </span>
                     </td>
@@ -809,7 +809,7 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
                     <td className="py-3 px-4 text-center">
                       <button
                         onClick={() => handleToggleStatus(s.id, s.isActive)}
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border cursor-pointer transition-all ${
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border cursor-pointer transition-all${
                           s.isActive
                             ? "bg-[#0F2D5C]/80 border-[#0F2D5C] text-[#9CA3AF] hover:bg-[#0F2D5C]/60"
                             : "bg-[#0F2D5C]/80 border-[#0F2D5C] text-[#9CA3AF] hover:bg-[#0F2D5C]/60"
@@ -817,7 +817,7 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
                       >
                         {s.isActive ? (
                           <>
-                            <Eye className="h-3 w-3 text-[#9CA3AF]" />
+                            <Eye className=" h-3 w-3" />
                             <span>Active</span>
                           </>
                         ) : (
@@ -834,21 +834,21 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => handleOpenPricingModal(s)}
-                          className="p-1.5 bg-[#111827] hover:bg-[#111827] border border-[#111827] text-[#9CA3AF] rounded-lg cursor-pointer transition"
+                          className=" p-1.5 border border-[#111827] rounded-lg cursor-pointer transition"
                           title="Edit Pricing & Fees"
                         >
                           <DollarSign className="h-3.5 w-3.5" />
                         </button>
                         <button
                           onClick={() => handleOpenEditModal(s)}
-                          className="p-1.5 bg-[#111827] hover:bg-[#111827] border border-[#111827] text-[#9CA3AF] rounded-lg cursor-pointer transition"
+                          className=" p-1.5 border border-[#111827] rounded-lg cursor-pointer transition"
                           title="Edit Service Details"
                         >
                           <Edit2 className="h-3.5 w-3.5" />
                         </button>
                         <button
                           onClick={() => setDeletingId(s.id)}
-                          className="p-1.5 bg-[#111827] hover:bg-[#0F2D5C] border border-[#111827] text-[#9CA3AF] rounded-lg cursor-pointer transition"
+                          className=" p-1.5 border border-[#111827] rounded-lg cursor-pointer transition"
                           title="Delete Service"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -872,7 +872,7 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
                 <CheckSquare className="h-5 w-5 text-[#9CA3AF]" />
                 <span>{editingService ? "Edit Service" : "Add New Service to Catalog"}</span>
               </h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-[#9CA3AF] hover:text-white">
+              <button onClick={() => setIsModalOpen(false)} className="">
                 ✕
               </button>
             </div>
@@ -1008,13 +1008,13 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
                   <button
                     type="button"
                     onClick={() => setIsActive(!isActive)}
-                    className={`w-full py-2 px-4 rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer transition ${
+                    className={`w-full py-2 px-4 rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer transition${
                       isActive
                         ? "bg-[#0F2D5C] border border-[#0F2D5C] text-[#9CA3AF]"
                         : "bg-[#0F2D5C] border border-[#0F2D5C] text-[#9CA3AF]"
                     }`}
                   >
-                    {isActive ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                    {isActive ? <Eye className=" h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                     <span>{isActive ? "ACTIVE & VISIBLE" : "HIDDEN / INACTIVE"}</span>
                   </button>
                 </div>
@@ -1024,7 +1024,7 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="py-2.5 px-5 bg-[#111827] hover:bg-[#111827] border border-[#111827] text-[#E5E7EB] font-bold rounded-xl"
+                  className=" py-2.5 px-5 border border-[#111827] font-bold rounded-xl"
                 >
                   Cancel
                 </button>
@@ -1051,7 +1051,7 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
                 <DollarSign className="h-5 w-5 text-[#9CA3AF]" />
                 <span>Adjust Pricing for {pricingService.name}</span>
               </h3>
-              <button onClick={() => setIsPricingModalOpen(false)} className="text-[#9CA3AF] hover:text-white">
+              <button onClick={() => setIsPricingModalOpen(false)} className="">
                 ✕
               </button>
             </div>
@@ -1105,7 +1105,7 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
                 <button
                   type="button"
                   onClick={() => setIsPricingModalOpen(false)}
-                  className="py-2.5 px-4 bg-[#111827] hover:bg-[#111827] border border-[#111827] text-[#E5E7EB] font-bold rounded-xl"
+                  className=" py-2.5 px-4 border border-[#111827] font-bold rounded-xl"
                 >
                   Cancel
                 </button>
@@ -1137,7 +1137,7 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
             <div className="flex items-center justify-center gap-3 pt-2">
               <button
                 onClick={() => setDeletingId(null)}
-                className="py-2 px-4 bg-[#111827] hover:bg-[#111827] border border-[#111827] text-[#E5E7EB] text-xs font-bold rounded-xl"
+                className=" py-2 px-4 border border-[#111827] text-xs font-bold rounded-xl"
               >
                 Cancel
               </button>

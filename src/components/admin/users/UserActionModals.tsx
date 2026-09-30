@@ -101,7 +101,7 @@ export function EditProfileModal({ isOpen, onClose, session, onSuccess, user }: 
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-5 right-5 p-1.5 rounded-xl bg-[#111827] text-[#9CA3AF] hover:text-white cursor-pointer"
+          className=" absolute top-5 right-5 p-1.5 rounded-xl cursor-pointer"
         >
           <X className="h-4 w-4" />
         </button>
@@ -195,7 +195,7 @@ export function EditProfileModal({ isOpen, onClose, session, onSuccess, user }: 
             <button
               type="button"
               onClick={onClose}
-              className="py-2.5 px-4 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] font-bold rounded-xl cursor-pointer"
+              className=" py-2.5 px-4 font-bold rounded-xl cursor-pointer"
             >
               Cancel
             </button>
@@ -285,13 +285,13 @@ export function StatusChangeModal({ isOpen, onClose, session, onSuccess, user, t
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-5 right-5 p-1.5 rounded-xl bg-[#111827] text-[#9CA3AF] hover:text-white cursor-pointer"
+          className=" absolute top-5 right-5 p-1.5 rounded-xl cursor-pointer"
         >
           <X className="h-4 w-4" />
         </button>
 
         <div className="flex items-center gap-3 border-b border-[#111827] pb-4 mb-5">
-          <div className={`p-3 border rounded-2xl ${statusColors[targetStatus]}`}>
+          <div className={`p-3 border rounded-2xl${statusColors[targetStatus]}`}>
             <Shield className="h-5 w-5" />
           </div>
           <div>
@@ -335,18 +335,18 @@ export function StatusChangeModal({ isOpen, onClose, session, onSuccess, user, t
             <button
               type="button"
               onClick={onClose}
-              className="py-2.5 px-4 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] font-bold rounded-xl cursor-pointer"
+              className=" py-2.5 px-4 font-bold rounded-xl cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className={`py-2.5 px-5 font-bold rounded-xl flex items-center gap-2 cursor-pointer disabled:opacity-50 text-white ${
+              className={`py-2.5 px-5 font-bold rounded-xl flex items-center gap-2 cursor-pointer disabled:opacity-50${
                 targetStatus === "ACTIVE" ? "bg-[#0F2D5C] hover:bg-[#0F2D5C]" : targetStatus === "SUSPENDED" ? "bg-[#0F2D5C] hover:bg-[#0F2D5C]" : "bg-[#0F2D5C] hover:bg-[#0F2D5C]"
               }`}
             >
-              {loading && <RefreshCw className="h-3.5 w-3.5 animate-spin" />}
+              {loading && <RefreshCw className=" h-3.5 w-3.5 animate-spin" />}
               Confirm Status Change
             </button>
           </div>
@@ -426,7 +426,7 @@ export function WalletAdjustmentModal({ isOpen, onClose, session, onSuccess, use
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-5 right-5 p-1.5 rounded-xl bg-[#111827] text-[#9CA3AF] hover:text-white cursor-pointer"
+          className=" absolute top-5 right-5 p-1.5 rounded-xl cursor-pointer"
         >
           <X className="h-4 w-4" />
         </button>
@@ -455,26 +455,26 @@ export function WalletAdjustmentModal({ isOpen, onClose, session, onSuccess, use
               <button
                 type="button"
                 onClick={() => setAction("CREDIT")}
-                className={`py-2.5 px-3 rounded-xl border font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors ${
+                className={`py-2.5 px-3 rounded-xl border font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors${
                   action === "CREDIT"
                     ? "bg-[#0F2D5C] border-[#0F2D5C] text-[#9CA3AF]"
                     : "bg-[#111827] border-[#111827] text-[#9CA3AF] hover:text-[#E5E7EB]"
                 }`}
               >
-                <PlusCircle className="h-4 w-4 text-[#9CA3AF]" />
+                <PlusCircle className=" h-4 w-4" />
                 Credit Float (+)
               </button>
 
               <button
                 type="button"
                 onClick={() => setAction("DEBIT")}
-                className={`py-2.5 px-3 rounded-xl border font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors ${
+                className={`py-2.5 px-3 rounded-xl border font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors${
                   action === "DEBIT"
                     ? "bg-[#0F2D5C] border-[#0F2D5C] text-[#9CA3AF]"
                     : "bg-[#111827] border-[#111827] text-[#9CA3AF] hover:text-[#E5E7EB]"
                 }`}
               >
-                <MinusCircle className="h-4 w-4 text-[#9CA3AF]" />
+                <MinusCircle className=" h-4 w-4" />
                 Debit Float (-)
               </button>
             </div>
@@ -513,18 +513,18 @@ export function WalletAdjustmentModal({ isOpen, onClose, session, onSuccess, use
             <button
               type="button"
               onClick={onClose}
-              className="py-2.5 px-4 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] font-bold rounded-xl cursor-pointer"
+              className=" py-2.5 px-4 font-bold rounded-xl cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className={`py-2.5 px-5 font-bold rounded-xl flex items-center gap-2 cursor-pointer disabled:opacity-50 text-white ${
+              className={`py-2.5 px-5 font-bold rounded-xl flex items-center gap-2 cursor-pointer disabled:opacity-50${
                 action === "CREDIT" ? "bg-[#0F2D5C] hover:bg-[#0F2D5C]" : "bg-[#0F2D5C] hover:bg-[#0F2D5C]"
               }`}
             >
-              {loading && <RefreshCw className="h-3.5 w-3.5 animate-spin" />}
+              {loading && <RefreshCw className=" h-3.5 w-3.5 animate-spin" />}
               Execute {action === "CREDIT" ? "Credit" : "Debit"} Adjustment
             </button>
           </div>
@@ -594,7 +594,7 @@ export function SendNotificationModal({ isOpen, onClose, session, onSuccess, use
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-5 right-5 p-1.5 rounded-xl bg-[#111827] text-[#9CA3AF] hover:text-white cursor-pointer"
+          className=" absolute top-5 right-5 p-1.5 rounded-xl cursor-pointer"
         >
           <X className="h-4 w-4" />
         </button>
@@ -659,7 +659,7 @@ export function SendNotificationModal({ isOpen, onClose, session, onSuccess, use
             <button
               type="button"
               onClick={onClose}
-              className="py-2.5 px-4 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] font-bold rounded-xl cursor-pointer"
+              className=" py-2.5 px-4 font-bold rounded-xl cursor-pointer"
             >
               Cancel
             </button>
@@ -750,7 +750,7 @@ export function BulkActionModal({ isOpen, onClose, session, onSuccess, selectedU
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-5 right-5 p-1.5 rounded-xl bg-[#111827] text-[#9CA3AF] hover:text-white cursor-pointer"
+          className=" absolute top-5 right-5 p-1.5 rounded-xl cursor-pointer"
         >
           <X className="h-4 w-4" />
         </button>
@@ -819,7 +819,7 @@ export function BulkActionModal({ isOpen, onClose, session, onSuccess, selectedU
             <button
               type="button"
               onClick={onClose}
-              className="py-2.5 px-4 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] font-bold rounded-xl cursor-pointer"
+              className=" py-2.5 px-4 font-bold rounded-xl cursor-pointer"
             >
               Cancel
             </button>

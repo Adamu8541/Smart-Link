@@ -4,7 +4,7 @@ import fs from "fs";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 import { readDB, writeDB, initializeDB, DB_DIR, DB_FILE, UPLOADS_DIR, SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD, hashPassword, safeCompareHash, generateSalt, isMaskedValue } from "../db";
-import { verifyUserOrAdminSession, requireAdmin, requireAuth, optionalAdmin } from "../middleware/auth";
+import { verifyUserOrAdminSession, requireAdmin, requireAuth } from "../middleware/auth";
 import { isMaintenanceModeActive, getMaintenanceDetails, getValueByJsonPath, seedModule7SettingsIfEmpty, sanitizePublicSettings } from "../middleware/maintenance";
 import { getAI } from "../services/ai";
 import { 
@@ -382,7 +382,7 @@ app.get("/api/user-history/:userId", async (req, res) => {
 // =========================================================================
 
 // 1. GET /api/admin/notifications/dashboard - Notifications Metric Stats
-app.get("/api/admin/notifications/dashboard", optionalAdmin, async (req, res) => {
+app.get("/api/admin/notifications/dashboard", requireAdmin, async (req, res) => {
   const db = readDB();
   await syncFromStorage(db);
 
@@ -408,7 +408,7 @@ app.get("/api/admin/notifications/dashboard", optionalAdmin, async (req, res) =>
 });
 
 // 1b. GET /api/admin/notifications - Retrieve All Admin Notifications with Filtering
-app.get("/api/admin/notifications", optionalAdmin, async (req, res) => {
+app.get("/api/admin/notifications", requireAdmin, async (req, res) => {
   const db = readDB();
   await syncFromStorage(db);
 
@@ -474,7 +474,7 @@ app.get("/api/admin/notifications", optionalAdmin, async (req, res) => {
 });
 
 // 2. GET /api/admin/notifications/templates - Notification Templates
-app.get("/api/admin/notifications/templates", optionalAdmin, async (req, res) => {
+app.get("/api/admin/notifications/templates", requireAdmin, async (req, res) => {
   const db = readDB();
   await syncFromStorage(db);
 
@@ -510,7 +510,7 @@ app.post("/api/admin/notifications/templates", requireAdmin, async (req, res) =>
 });
 
 // 4. GET /api/admin/notifications/system-switches - Notification Toggles
-app.get("/api/admin/notifications/system-switches", optionalAdmin, async (req, res) => {
+app.get("/api/admin/notifications/system-switches", requireAdmin, async (req, res) => {
   const db = readDB();
   await syncFromStorage(db);
 
@@ -552,7 +552,7 @@ app.post("/api/admin/notifications/toggle-switch", requireAdmin, async (req, res
 });
 
 // 6. GET /api/admin/notification/history - History of Sent Notifications
-app.get("/api/admin/notification/history", optionalAdmin, async (req, res) => {
+app.get("/api/admin/notification/history", requireAdmin, async (req, res) => {
   const db = readDB();
   await syncFromStorage(db);
 
@@ -607,7 +607,7 @@ app.post("/api/admin/notifications/create", requireAdmin, async (req, res) => {
 });
 
 // 8. GET /api/admin/announcements - Retrieve Admin Announcements
-app.get("/api/admin/announcements", optionalAdmin, async (req, res) => {
+app.get("/api/admin/announcements", requireAdmin, async (req, res) => {
   const db = readDB();
   await syncFromStorage(db);
 
@@ -740,7 +740,7 @@ app.post("/api/admin/emails/send", requireAdmin, async (req, res) => {
 });
 
 // 12. GET & POST /api/admin/module9/self-test - Module 9 Diagnostic Test
-app.all("/api/admin/module9/self-test", optionalAdmin, async (req, res) => {
+app.all("/api/admin/module9/self-test", requireAdmin, async (req, res) => {
   const db = readDB();
   await syncFromStorage(db);
 

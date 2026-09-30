@@ -144,7 +144,10 @@ export class ClubkonnectAdapter implements ProviderAdapter {
       ""
     ).trim();
 
-    return { userId, apiKey };
+    const cleanUserId = userId.replace(/[\u200B-\u200D\uFEFF\u200E\u200F\s]/g, "");
+    const cleanApiKey = apiKey.replace(/[\u200B-\u200D\uFEFF\u200E\u200F\s]/g, "");
+
+    return { userId: cleanUserId, apiKey: cleanApiKey };
   }
 
   /**

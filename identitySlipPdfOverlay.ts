@@ -210,6 +210,13 @@ export const REGULAR_SLIP_CONFIG = {
     color: rgb(0, 0, 0),
     bold: false,
   },
+  dateOfBirth: {
+    x: 82.0, // Exactly 1 space after "Date of birth:" label (y=644.44)
+    y: 644.44,
+    size: 11.34,
+    color: rgb(0, 0, 0),
+    bold: false,
+  },
   surname: {
     x: 264.18, // Exactly 1 character space after "Surname:" colon (ends at x=261.03)
     y: 718.07,
@@ -240,21 +247,21 @@ export const REGULAR_SLIP_CONFIG = {
   },
   addressLine1: {
     x: 351.64,
-    y: 694.82,
+    y: 718.07, // Perfectly aligned with Surname baseline (y=718.07)
     size: 11.34,
     color: rgb(0, 0, 0),
     bold: false,
   },
   addressLine2: {
     x: 351.64,
-    y: 661.67,
+    y: 689.42, // Perfectly aligned with First Name baseline (y=689.42)
     size: 11.34,
     color: rgb(0, 0, 0),
     bold: false,
   },
   addressLine3: {
     x: 351.64,
-    y: 634.27,
+    y: 661.67, // Perfectly aligned with Middle Name baseline (y=661.67)
     size: 11.34,
     color: rgb(0, 0, 0),
     bold: false,
@@ -1049,68 +1056,158 @@ export async function generatePremiumCardPdf(
 }
 
 /**
+ * Formats raw date string into clean uppercase NIMC date format (e.g. 20 JUL 1996 or 20-07-1996).
+ */
+export function formatDobForSlip(rawDate?: string): string {
+  if (!rawDate) return "";
+  const s = rawDate.toString().trim();
+  if (!s) return "";
+
+  if (/^\d{1,2}[\s\/\-][A-Za-z]{3,9}[\s\/\-]\d{4}$/i.test(s) || /^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4}$/.test(s)) {
+    return s.toUpperCase();
+  }
+
+  const isoMatch = s.match(/^(\d{4})[-\/\. ](\d{1,2})[-\/\. ](\d{1,2})/);
+  if (isoMatch) {
+    const year = isoMatch[1];
+    const monthNum = parseInt(isoMatch[2], 10);
+    const day = parseInt(isoMatch[3], 10).toString().padStart(2, "0");
+    const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+    if (monthNum >= 1 && monthNum <= 12) {
+      return `${day} ${months[monthNum - 1]} ${year}`;
+    }
+  }
+
+  return s.toUpperCase();
+}
+
+/**
  * Splits and formats candidate address fields into the 3 official NIMC Regular Slip lines:
  * Line 1: Street / Residential address
  * Line 2: Local Government Area (LGA) / Town
  * Line 3: State of Residence
  */
 export function splitRegularSlipAddress(data: IdentitySlipData): { line1: string; line2: string; line3: string } {
-  let rawLga = (
-    data.lga ||
-    (data as any).residence_lga ||
-    (data as any).lga_of_residence ||
-    (data as any).lgaOfResidence ||
-    (data as any).lgaOfOrigin ||
-    (data as any).lga_of_origin ||
-    (data as any).town ||
-    (data as any).city ||
-    ""
-  ).trim();
+  const d = (data || {}) as any;
+  const rawFields = d.rawFields || {};
+  const holderData = d.holderData || {};
+  const innerData = d.data || {};
+
+  // 1. Extract raw State
   let rawState = (
-    data.state ||
-    (data as any).residence_state ||
-    (data as any).state_of_residence ||
-    (data as any).stateOfResidence ||
-    (data as any).stateOfOrigin ||
-    (data as any).state_of_origin ||
+    d.residenceState ||
+    d.stateOfResidence ||
+    d.state ||
+    d.residence_state ||
+    d.state_of_residence ||
+    d.stateOfOrigin ||
+    d.state_of_origin ||
+    rawFields.residenceState ||
+    rawFields.stateOfResidence ||
+    rawFields.residence_state ||
+    rawFields.state_of_residence ||
+    rawFields.state ||
+    holderData.residenceState ||
+    holderData.stateOfResidence ||
+    holderData.state ||
+    innerData.residenceState ||
+    innerData.stateOfResidence ||
+    innerData.state ||
+    innerData.residence_state ||
     ""
-  ).trim();
-  let rawStreet = (data.addressLine1 || (data as any).street || "").trim();
-  let rawFullAddress = (data.address || (data as any).residence_address || (data as any).residential_address || (data as any).home_address || "").trim();
+  ).toString().trim();
 
-  let fullText = rawFullAddress || rawStreet;
-  if (!fullText && (rawLga || rawState)) {
-    fullText = [rawStreet, rawLga, rawState].filter(Boolean).join(", ");
-  }
+  // 2. Extract raw LGA
+  let rawLga = (
+    d.residenceLga ||
+    d.lgaOfResidence ||
+    d.lga ||
+    d.residence_lga ||
+    d.lga_of_residence ||
+    d.lgaOfOrigin ||
+    d.lga_of_origin ||
+    d.town ||
+    d.city ||
+    rawFields.residenceLga ||
+    rawFields.lgaOfResidence ||
+    rawFields.residence_lga ||
+    rawFields.lga_of_residence ||
+    rawFields.lga ||
+    holderData.residenceLga ||
+    holderData.lgaOfResidence ||
+    holderData.lga ||
+    innerData.residenceLga ||
+    innerData.lgaOfResidence ||
+    innerData.lga ||
+    innerData.residence_lga ||
+    ""
+  ).toString().trim();
 
-  let line1 = rawStreet;
+  // 3. Extract raw Residential / Street Address
+  let rawAddress = (
+    d.address ||
+    d.residence_address ||
+    d.residential_address ||
+    d.residenceAddress ||
+    d.residentialAddress ||
+    d.addressLine1 ||
+    d.street ||
+    d.home_address ||
+    d.registered_address ||
+    rawFields.address ||
+    rawFields.residence_address ||
+    rawFields.residential_address ||
+    rawFields.residenceAddress ||
+    rawFields.residentialAddress ||
+    rawFields.addressLine1 ||
+    rawFields.street ||
+    rawFields.home_address ||
+    holderData.address ||
+    holderData.residence_address ||
+    holderData.residential_address ||
+    holderData.addressLine1 ||
+    holderData.street ||
+    innerData.address ||
+    innerData.residence_address ||
+    innerData.residential_address ||
+    innerData.addressLine1 ||
+    innerData.street ||
+    ""
+  ).toString().trim();
+
+  let line1 = rawAddress;
   let line2 = rawLga;
   let line3 = rawState;
 
-  // If line2 (LGA) or line3 (State) is missing, attempt smart comma-splitting from fullText or line1
-  const textToSplit = (line1 && line1.includes(",")) ? line1 : fullText;
-  if ((!line2 || !line3) && textToSplit) {
-    const parts = textToSplit.split(/[\n,;]+/).map((s: string) => s.trim()).filter(Boolean);
-    if (parts.length >= 3) {
-      if (!line1 || line1.includes(",")) line1 = parts.slice(0, parts.length - 2).join(", ");
-      if (!line2) line2 = parts[parts.length - 2];
-      if (!line3) line3 = parts[parts.length - 1];
-    } else if (parts.length === 2) {
-      if (!line1 || line1.includes(",")) line1 = parts[0];
-      if (!line2) line2 = parts[1];
+  // Clean trailing state/lga repetitions from line1 ONLY IF line1 contains full text that ends with them and leaving non-empty text
+  if (line1) {
+    let clean = line1;
+    if (line3) {
+      const baseState = line3.replace(/\s*\([^)]*\)/g, "").trim();
+      if (baseState) {
+        const re = new RegExp(`[,\\s]+(?:${line3.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&")}|${baseState.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&")})(?:\\s+STATE)?$`, "i");
+        const testClean = clean.replace(re, "").trim();
+        if (testClean.length > 0) clean = testClean;
+      }
     }
+    if (line2) {
+      const baseLga = line2.replace(/\s*\([^)]*\)/g, "").trim();
+      if (baseLga) {
+        const re = new RegExp(`[,\\s]+(?:${line2.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&")}|${baseLga.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&")})(?:\\s+LGA)?$`, "i");
+        const testClean = clean.replace(re, "").trim();
+        if (testClean.length > 0) clean = testClean;
+      }
+    }
+    line1 = clean;
   }
 
-  // Deduplicate line1 if line2/line3 are repeated at the end of street string
-  if (line1 && line2 && line1.toUpperCase().endsWith(line2.toUpperCase())) {
-    line1 = line1.substring(0, line1.length - line2.length).replace(/[\s,]+$/, "").trim();
-  }
-  if (line1 && line3 && line1.toUpperCase().endsWith(line3.toUpperCase())) {
-    line1 = line1.substring(0, line1.length - line3.length).replace(/[\s,]+$/, "").trim();
+  // Prevent duplicate line1 if line1 is exactly identical to line2 or line3 when those are already present
+  if (line1 && ((line2 && line1.toUpperCase() === line2.toUpperCase()) || (line3 && line1.toUpperCase() === line3.toUpperCase()))) {
+    line1 = "";
   }
 
   return {
-    line1: (line1 || fullText).toUpperCase(),
+    line1: line1.toUpperCase(),
     line2: line2.toUpperCase(),
     line3: line3.toUpperCase(),
   };
@@ -1244,6 +1341,29 @@ export async function generateRegularSlipPdf(
       size: REGULAR_SLIP_CONFIG.nin.size,
       font: fontRegular,
       color: REGULAR_SLIP_CONFIG.nin.color,
+    });
+  }
+
+  // 4b. Date of Birth
+  const rawDob = (
+    data.dateOfBirth ||
+    (data as any).dob ||
+    (data as any).birth_date ||
+    (data as any).birthDate ||
+    (data as any).rawFields?.dateOfBirth ||
+    (data as any).rawFields?.dob ||
+    (data as any).holderData?.dateOfBirth ||
+    (data as any).holderData?.dob ||
+    ""
+  ).toString().trim();
+  const formattedDob = formatDobForSlip(rawDob);
+  if (formattedDob) {
+    page.drawText(formattedDob, {
+      x: REGULAR_SLIP_CONFIG.dateOfBirth.x,
+      y: REGULAR_SLIP_CONFIG.dateOfBirth.y,
+      size: REGULAR_SLIP_CONFIG.dateOfBirth.size,
+      font: fontRegular,
+      color: REGULAR_SLIP_CONFIG.dateOfBirth.color,
     });
   }
 

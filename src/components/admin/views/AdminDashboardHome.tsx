@@ -200,46 +200,46 @@ export default function AdminDashboardHome({
   ];
 
   const shortcutButtons = [
-    { label: "User Directory", path: "/admin/users", icon: UserPlus, color: "bg-[#0F2D5C] hover:bg-[#0F2D5C]" },
-    { label: "Wallet Funding", path: "/admin/wallet", icon: Wallet, color: "bg-[#0F2D5C] hover:bg-[#0F2D5C]" },
-    { label: "Transactions", path: "/admin/transactions", icon: BarChart3, color: "bg-[#0F2D5C] hover:bg-[#0F2D5C]" },
-    { label: "Refunds Portal", path: "/admin/refunds", icon: RotateCcw, color: "bg-[#0F2D5C] hover:bg-[#0F2D5C]" },
-    { label: "Financial Reports", path: "/admin/reports", icon: FileText, color: "bg-[#0F2D5C] hover:bg-[#0F2D5C]" },
-    { label: "System Health", path: "/admin/system", icon: Settings, color: "bg-[#0F2D5C] hover:bg-[#0F2D5C]" },
+    { label: "User Directory", path: "/admin/users", icon: UserPlus, color: "bg-blue-600 hover:bg-blue-700 text-white" },
+    { label: "Wallet Funding", path: "/admin/wallet", icon: Wallet, color: "bg-emerald-600 hover:bg-emerald-700 text-white" },
+    { label: "Transactions", path: "/admin/transactions", icon: BarChart3, color: "bg-indigo-600 hover:bg-indigo-700 text-white" },
+    { label: "Refunds Portal", path: "/admin/refunds", icon: RotateCcw, color: "bg-amber-600 hover:bg-amber-700 text-white" },
+    { label: "Financial Reports", path: "/admin/reports", icon: FileText, color: "bg-purple-600 hover:bg-purple-700 text-white" },
+    { label: "System Health", path: "/admin/system", icon: Settings, color: "bg-slate-700 hover:bg-slate-800 text-white" },
   ];
 
   return (
-    <div className="space-y-6 text-[#0F2D5C]">
+    <div className="space-y-6 text-slate-100">
       {/* Top Banner */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white border border-[#0F2D5C] rounded-2xl p-6 md:p-8 shadow-xs relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6"
+        className="bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8 shadow-xl relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6"
       >
         <div className="space-y-3 max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 text-[#0F2D5C] dark:text-blue-300 font-semibold text-xs">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-950/70 border border-blue-800/80 text-blue-300 font-semibold text-xs">
             <ShieldCheck className="h-4 w-4" />
             <span>SmartLink Executive Administration Console</span>
           </div>
 
           <div>
-            <h1 className="text-xl md:text-3xl font-extrabold text-[#0F2D5C] tracking-tight">
+            <h1 className="text-xl md:text-3xl font-extrabold text-white tracking-tight">
               Welcome back, {session.fullName}!
             </h1>
-            <p className="text-xs md:text-sm text-[#0F2D5C] mt-1 leading-relaxed">
-              {roleDef.description} • Role: <strong className="text-[#0F2D5C]">{session.role}</strong>
+            <p className="text-xs md:text-sm text-slate-300 mt-1 leading-relaxed">
+              {roleDef.description} • Role: <strong className="text-blue-400">{session.role}</strong>
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 pt-1 text-xs text-[#0F2D5C]">
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">
-              <Clock className="h-3.5 w-3.5 text-[#0F2D5C]" />
-              <span>Session: <strong className="text-[#0F2D5C] font-mono">Secure Token Active</strong></span>
+          <div className="flex flex-wrap items-center gap-3 pt-1 text-xs">
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-800 border border-slate-700 text-slate-300">
+              <Clock className="h-3.5 w-3.5 text-blue-400" />
+              <span>Session: <strong className="text-white font-mono">Secure Token Active</strong></span>
             </div>
 
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">
-              <Activity className="h-3.5 w-3.5 text-[#0F2D5C]" />
-              <span>Database Sync: <strong className="text-[#0F2D5C]">Live 100% Operational</strong></span>
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-800 border border-slate-700 text-slate-300">
+              <Activity className="h-3.5 w-3.5 text-emerald-400" />
+              <span>Database Sync: <strong className="text-emerald-400">Live 100% Operational</strong></span>
             </div>
           </div>
         </div>
@@ -248,19 +248,19 @@ export default function AdminDashboardHome({
           <button
             type="button"
             onClick={fetchStats}
-            className="p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer text-xs flex items-center gap-2 font-bold"
+            className="p-3 bg-slate-800 hover:bg-slate-700 text-slate-100 rounded-xl border border-slate-700 transition-colors cursor-pointer text-xs flex items-center gap-2 font-bold shadow-xs"
           >
-            <RefreshCw className={`h-4 w-4 text-slate-500 ${loading ? "animate-spin" : ""}`} />
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-blue-400" : "text-slate-400"}`} />
             <span>Refresh Live Data</span>
           </button>
         </div>
       </motion.div>
 
       {/* Quick Action Shortcuts Bar */}
-      <div className="bg-white border border-[#0F2D5C] rounded-2xl p-5 space-y-3 shadow-xs">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3 shadow-xl">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#0F2D5C]">
-            <Zap className="h-4 w-4 text-[#0F2D5C]" />
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-300">
+            <Zap className="h-4 w-4 text-amber-400" />
             <span>Administrator Fast Action Panel</span>
           </div>
         </div>
@@ -273,7 +273,7 @@ export default function AdminDashboardHome({
                 key={btn.label}
                 type="button"
                 onClick={() => onNavigate(btn.path)}
-                className={`p-3.5 rounded-xl ${btn.color} text-white font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs`}
+                className={`p-3.5 rounded-xl ${btn.color} font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs`}
               >
                 <IconComp className="h-4 w-4 shrink-0" />
                 <span className="truncate">{btn.label}</span>
@@ -286,11 +286,11 @@ export default function AdminDashboardHome({
       {/* 10 Key Performance Metric Cards */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-bold text-[#0F2D5C] uppercase tracking-wider flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-[#0F2D5C]" />
+          <h2 className="text-sm font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+            <TrendingUp className="h-4 w-4 text-blue-400" />
             <span>Core Performance & Transaction Metrics</span>
           </h2>
-          <span className="text-xs text-[#0F2D5C]">Real-time Database Telemetry</span>
+          <span className="text-xs text-slate-400">Real-time Database Telemetry</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -300,16 +300,16 @@ export default function AdminDashboardHome({
               <div
                 key={card.label}
                 onClick={() => onNavigate(card.path)}
-                className="bg-white border border-[#0F2D5C] rounded-2xl p-5 space-y-2 hover:border-[#0F2D5C] transition-all group cursor-pointer shadow-xs"
+                className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-2 hover:border-blue-500 transition-all group cursor-pointer shadow-xl"
               >
-                <div className="flex items-center justify-between text-[#0F2D5C] text-xs">
+                <div className="flex items-center justify-between text-slate-400 text-xs">
                   <span className="truncate max-w-[130px] font-medium">{card.label}</span>
                   <IconComp className={`h-4 w-4 ${card.color} group-hover:scale-110 transition-transform`} />
                 </div>
-                <p className="text-xl font-extrabold text-[#0F2D5C] truncate">
+                <p className="text-xl font-extrabold text-white truncate">
                   {loading ? "..." : card.value}
                 </p>
-                <p className="text-[11px] text-[#0F2D5C] truncate">{card.sub}</p>
+                <p className="text-[11px] text-slate-400 truncate">{card.sub}</p>
               </div>
             );
           })}
@@ -319,34 +319,34 @@ export default function AdminDashboardHome({
       {/* Bottom Info Grid: Announcements & Live Activity Feed */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* System Announcements */}
-        <div className="bg-white border border-[#0F2D5C] rounded-2xl p-6 space-y-4 shadow-xs">
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4 shadow-xl">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-[#0F2D5C] text-xs font-bold uppercase tracking-wider">
-              <Megaphone className="h-4 w-4" />
+            <div className="flex items-center gap-2 text-slate-200 text-xs font-bold uppercase tracking-wider">
+              <Megaphone className="h-4 w-4 text-blue-400" />
               <span>Platform Service Bulletins</span>
             </div>
-            <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[10px] font-bold">
+            <span className="px-2.5 py-0.5 rounded-full bg-emerald-950/70 text-emerald-300 border border-emerald-800 text-[10px] font-bold">
               100% Uptime
             </span>
           </div>
 
           <div className="space-y-3">
-            <div className="p-4 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl space-y-1">
+            <div className="p-4 bg-slate-800/80 border border-slate-700/80 rounded-xl space-y-1">
               <div className="flex items-center justify-between">
-                <p className="text-xs font-bold text-slate-900 dark:text-white">Aspfiy Wallet & Payment Webhooks</p>
-                <span className="px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[9px] font-bold">ACTIVE</span>
+                <p className="text-xs font-bold text-white">Aspfiy Wallet & Payment Webhooks</p>
+                <span className="px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-800 text-[9px] font-bold">ACTIVE</span>
               </div>
-              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+              <p className="text-xs text-slate-300 leading-relaxed">
                 Virtual dedicated accounts and automated bank transfer webhooks are connected and operational.
               </p>
             </div>
 
-            <div className="p-4 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl space-y-1">
+            <div className="p-4 bg-slate-800/80 border border-slate-700/80 rounded-xl space-y-1">
               <div className="flex items-center justify-between">
-                <p className="text-xs font-bold text-slate-900 dark:text-white">NIN, BVN & CAC Verification Engine</p>
-                <span className="px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[9px] font-bold">OPERATIONAL</span>
+                <p className="text-xs font-bold text-white">NIN, BVN & CAC Verification Engine</p>
+                <span className="px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-800 text-[9px] font-bold">OPERATIONAL</span>
               </div>
-              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+              <p className="text-xs text-slate-300 leading-relaxed">
                 Identity lookups, business search, and instant PDF slips generated with official security seals.
               </p>
             </div>
@@ -354,16 +354,16 @@ export default function AdminDashboardHome({
         </div>
 
         {/* Live System Activity Feed */}
-        <div className="bg-white border border-[#0F2D5C] rounded-2xl p-6 space-y-4 shadow-xs">
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4 shadow-xl">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-[#0F2D5C] text-xs font-bold uppercase tracking-wider">
-              <Activity className="h-4 w-4" />
+            <div className="flex items-center gap-2 text-slate-200 text-xs font-bold uppercase tracking-wider">
+              <Activity className="h-4 w-4 text-emerald-400" />
               <span>Live Administrative Audit Stream</span>
             </div>
             <button
               type="button"
               onClick={() => onNavigate("/admin/security")}
-              className="text-[#0F2D5C] hover:underline text-xs font-bold flex items-center gap-1 cursor-pointer"
+              className="text-blue-400 hover:text-blue-300 hover:underline text-xs font-bold flex items-center gap-1 cursor-pointer"
             >
               Full Logs <ArrowRight className="h-3 w-3" />
             </button>
@@ -371,20 +371,20 @@ export default function AdminDashboardHome({
 
           <div className="space-y-2.5">
             {recentLogs.length === 0 ? (
-              <div className="p-4 text-center text-xs text-[#0F2D5C]">
+              <div className="p-4 text-center text-xs text-slate-400">
                 No recent admin activity recorded.
               </div>
             ) : (
               recentLogs.map((feed, idx) => (
                 <div
                   key={feed.id ? `admin-feed-${feed.id}-${idx}` : `admin-feed-${idx}`}
-                  className="p-3 bg-[#0F2D5C] border border-[#0F2D5C] rounded-xl flex items-center justify-between text-xs"
+                  className="p-3 bg-slate-800/80 border border-slate-700/80 rounded-xl flex items-center justify-between text-xs"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <span className="h-2 w-2 rounded-full bg-[#0F2D5C] shrink-0" />
-                    <p className="text-[#0F2D5C] truncate font-medium">{feed.details || feed.action}</p>
+                    <span className="h-2 w-2 rounded-full bg-blue-400 shrink-0" />
+                    <p className="text-slate-200 truncate font-medium">{feed.details || feed.action}</p>
                   </div>
-                  <span className="text-[10px] text-[#0F2D5C] font-mono shrink-0 ml-2">
+                  <span className="text-[10px] text-slate-400 font-mono shrink-0 ml-2">
                     {new Date(feed.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                   </span>
                 </div>

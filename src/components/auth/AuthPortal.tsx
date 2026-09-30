@@ -13,6 +13,7 @@ import {
   Check,
   Eye,
   EyeOff,
+  Fingerprint,
 } from "lucide-react";
 import { SmartLinkLogoMark } from "../ui/SmartLinkLogoMark";
 import { getFriendlyErrorMessage, safeFetchJson } from "../../utils/authErrorHandler";
@@ -21,6 +22,8 @@ import { UserProfile, UserRole } from "../../types";
 import { LegalConsentBox } from "../legal";
 import { legalConsentService } from "../../services/legalConsentService";
 import { SupabaseAuthService, isSupabaseConfigured } from "../../services/supabaseAuth";
+import { BiometricAuthService } from "../../services/biometricAuthService";
+import { LoginLoaderModal } from "./LoginLoaderModal";
 
 interface PasswordStrength {
   score: number;
@@ -83,7 +86,7 @@ export interface AuthPortalProps {
   setToast: (toast: { message: string; type: "success" | "error" | "info" } | null) => void;
 }
 
-export const AuthPortal: React.FC<AuthPortalProps> = ({
+export const AuthPortal: React.FC<AuthPortalProps>= ({
   initialIsRegistering = false,
   onAuthSuccess,
   onNavigateHome,
@@ -105,6 +108,36 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [authSuccessState, setAuthSuccessState] = useState<"login" | "register" | null>(null);
+
+  // Biometric / Passkey State
+  const [isBiometricSupported, setIsBiometricSupported] = useState(false);
+  const [isBiometricLoading, setIsBiometricLoading] = useState(false);
+
+  useEffect(() => {
+    BiometricAuthService.isBiometricSupported().then(setIsBiometricSupported);
+  }, []);
+
+  const handleBiometricSignIn = async () => {
+    if (authLoading || isBiometricLoading) return;
+    setIsBiometricLoading(true);
+    setAuthError(null);
+    try {
+      const res = await BiometricAuthService.authenticateWithBiometrics(authEmail);
+      if (res.success && res.user) {
+        setAuthSuccessState("login");
+        soundFx.playSuccessSound();
+        setToast({ message: "Biometric authentication verified!", type: "success" });
+        setTimeout(() => {
+          onAuthSuccess(res.user);
+        }, 500);
+      }
+    } catch (err: any) {
+      soundFx.playErrorSound();
+      setAuthError(err.message || "Biometric authentication failed. Please sign in with password.");
+    } finally {
+      setIsBiometricLoading(false);
+    }
+  };
 
   // Registration Form State
   const [regFullName, setRegFullName] = useState("");
@@ -651,12 +684,47 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
   };
 
   return (
-    <div className="w-full bg-[#F5F7FA] min-h-[calc(100vh-75px)] flex flex-col items-center justify-center py-16 px-4">
-      <div className="w-full max-w-[460px] bg-white border border-[#E5E7EB] rounded-[28px] p-8 md:p-10 shadow-[0_10px_30px_rgba(0,0,0,0.03)] text-left overflow-hidden transition-all duration-300">
+    <div className="w-full bg-[#F5F7FA] min-h-[calc(100vh-75px)] flex flex-col items-center justify-center py-12 px-4 font-sans">
+      {/* Verification-Style Auth Loader Modal */}
+      <LoginLoaderModal
+        isOpen={authLoading}
+        title={
+          isResetPassword
+            ? "Resetting Password Credentials"
+            : isRegistering
+            ? "Creating SmartLink Account"
+            : "SmartLink User Authentication"
+        }
+        providerName="SmartLink Security Authority"
+        customSteps={
+          isResetPassword
+            ? [
+                { progress: 25, label: "Validating recovery parameters..." },
+                { progress: 55, label: "Verifying security credentials..." },
+                { progress: 85, label: "Updating security keys..." },
+                { progress: 100, label: "Password updated successfully!" },
+              ]
+            : isRegistering
+            ? [
+                { progress: 25, label: "Processing account registration..." },
+                { progress: 55, label: "Generating cryptographic credentials..." },
+                { progress: 85, label: "Provisioning user wallet & workspace..." },
+                { progress: 100, label: "Account created successfully!" },
+              ]
+            : [
+                { progress: 25, label: "Processing credentials..." },
+                { progress: 55, label: "Authenticating security token..." },
+                { progress: 85, label: "Verifying account privileges..." },
+                { progress: 100, label: "Loading user workspace..." },
+              ]
+        }
+      />
+
+      <div className="w-full max-w-[480px] bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-xl text-left overflow-hidden transition-all duration-300">
         <button
           type="button"
           onClick={onNavigateHome}
-          className="mb-4 inline-flex items-center gap-1.5 text-xs font-semibold text-[#6B7280] hover:text-[#111827] transition-colors cursor-pointer"
+          className="mb-5 inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-[#0F2D5C] transition-colors cursor-pointer"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           Back to Home
@@ -665,29 +733,29 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
         {isVerifyingEmail ? (
           <div className="space-y-6 animate-fadeIn">
             <div className="text-center space-y-1.5">
-              <div className="h-14 w-14 rounded-2xl bg-[#F5F7FA] text-[#0F2D5C] flex items-center justify-center mx-auto border border-[#E5E7EB] shadow-xs">
+              <div className="h-14 w-14 rounded-2xl bg-blue-50 text-[#0F2D5C] flex items-center justify-center mx-auto border border-blue-100 shadow-xs">
                 <Mail className="h-7 w-7" />
               </div>
-              <h2 className="text-xl font-bold text-[#111827] tracking-tight">Check Your Email Inbox</h2>
-              <p className="text-xs text-[#4B5563] font-medium leading-relaxed max-w-sm mx-auto">
-                We have sent a secure verification link to <strong className="text-[#111827]">{verificationEmail}</strong>.
+              <h2 className="text-xl font-bold text-slate-900 tracking-tight">Check Your Email Inbox</h2>
+              <p className="text-xs text-slate-600 font-medium leading-relaxed max-w-sm mx-auto">
+                We have sent a secure verification link to <strong className="text-slate-900">{verificationEmail}</strong>.
               </p>
             </div>
 
             {authError && (
-              <div className="p-3.5 bg-[#F5F7FA] border border-[#E5E7EB] text-[#111827] text-xs rounded-xl font-medium animate-fadeIn leading-relaxed flex items-start gap-2">
-                <AlertCircle className="h-4 w-4 shrink-0 text-[#6B7280] mt-0.5" />
+              <div className="p-3.5 bg-red-50 border border-red-200 text-red-800 text-xs rounded-xl font-medium animate-fadeIn leading-relaxed flex items-start gap-2">
+                <AlertCircle className="h-4 w-4 shrink-0 text-red-600 mt-0.5" />
                 <div>{authError}</div>
               </div>
             )}
 
-            <div className="p-4 bg-[#F5F7FA] border border-[#E5E7EB] rounded-2xl text-left space-y-2 shadow-xs">
+            <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-left space-y-2 shadow-xs">
               <div className="flex items-center gap-2 text-[#0F2D5C] font-bold text-xs">
                 <span className="h-2 w-2 rounded-full bg-[#0F2D5C] animate-ping" />
                 Verification Dispatched
               </div>
-              <p className="text-[11px] leading-relaxed text-[#4B5563] font-normal">
-                Check your email inbox and <strong className="font-semibold text-[#111827]">Spam or Junk folder</strong> for the verification link.
+              <p className="text-[11px] leading-relaxed text-slate-600 font-normal">
+                Check your email inbox and <strong className="font-semibold text-slate-800">Spam or Junk folder</strong> for the verification link.
               </p>
             </div>
 
@@ -696,7 +764,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                 type="button"
                 onClick={handleCheckVerificationStatus}
                 disabled={authLoading}
-                className="w-full py-3.5 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold rounded-xl text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-slate-500/10 disabled:opacity-50"
+                className="w-full py-3.5 bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white font-bold rounded-xl text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-50"
               >
                 {authLoading ? (
                   <>
@@ -715,13 +783,11 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                 type="button"
                 onClick={handleResendSupabaseVerification}
                 disabled={authLoading}
-                className="w-full py-3 bg-[#F5F7FA] hover:bg-[#E5E7EB] text-[#111827] font-semibold rounded-xl text-xs transition-all flex items-center justify-center gap-2 cursor-pointer border border-[#E5E7EB] disabled:opacity-50"
+                className="w-full py-3 bg-white hover:bg-slate-50 active:bg-slate-100 text-[#0F2D5C] font-semibold rounded-xl text-xs transition-all flex items-center justify-center gap-2 cursor-pointer border border-slate-200 disabled:opacity-50"
               >
                 <Mail className="h-3.5 w-3.5 text-[#0F2D5C]" />
                 Resend Verification Link
               </button>
-
-
             </div>
 
             <div className="pt-2 text-center">
@@ -731,7 +797,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                   setVerificationEmail("");
                   setAuthError(null);
                 }}
-                className="text-xs text-[#4B5563] hover:text-[#0F2D5C] font-semibold hover:underline cursor-pointer focus:outline-none"
+                className="text-xs font-semibold text-[#0F2D5C] hover:underline cursor-pointer focus:outline-none"
               >
                 ← Back to Secure Login
               </button>
@@ -740,21 +806,21 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
         ) : isResetPassword ? (
           <div className="space-y-6 animate-fadeIn">
             <div className="text-center space-y-1">
-              <div className="h-12 w-12 rounded-full bg-[#F5F7FA] text-[#0F2D5C] flex items-center justify-center mx-auto border border-[#E5E7EB]">
+              <div className="h-12 w-12 rounded-full bg-blue-50 text-[#0F2D5C] flex items-center justify-center mx-auto border border-blue-100">
                 <ShieldCheck className="h-6 w-6" />
               </div>
-              <h2 className="text-xl font-bold text-[#111827] tracking-tight">Security Reset Portal</h2>
-              <p className="text-xs text-[#4B5563] font-medium">Enter your secure reset token to update password</p>
+              <h2 className="text-xl font-bold text-slate-900 tracking-tight">Security Reset Portal</h2>
+              <p className="text-xs text-slate-600 font-medium">Enter your secure reset token to update password</p>
             </div>
 
             {authError && (
-              <div className="p-3 bg-[#F5F7FA] border border-[#E5E7EB] text-[#111827] text-xs rounded font-medium animate-fadeIn">
+              <div className="p-3 bg-red-50 border border-red-200 text-red-800 text-xs rounded-xl font-medium animate-fadeIn">
                 {authError}
               </div>
             )}
 
             {recoverySuccessMessage && (
-              <div className="p-3 bg-[#F5F7FA] border border-[#E5E7EB] text-[#111827] text-xs rounded font-medium animate-fadeIn">
+              <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl font-medium animate-fadeIn">
                 {recoverySuccessMessage}
               </div>
             )}
@@ -762,9 +828,9 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
             <form onSubmit={handleResetPassword} className="space-y-4">
               <div className="space-y-1.5 text-left">
                 <div className="flex justify-between items-center">
-                  <label className="text-xs font-semibold text-[#4B5563]">Security Reset Token</label>
+                  <label className="text-xs font-semibold text-slate-700">Security Reset Token</label>
                   {recoveryToken && (
-                    <span className={`text-[10px] font-bold ${isTokenValid ? "text-[#0F2D5C]" : "text-[#6B7280]"}`}>
+                    <span className={`text-[10px] font-bold ${isTokenValid ? "text-emerald-600" : "text-amber-600"}`}>
                       {isTokenValid ? "✓ Valid format" : !isHex ? "✗ Non-hex characters" : `⚠ Partial (${recoveryToken.length}/40)`}
                     </span>
                   )}
@@ -775,13 +841,13 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                   value={recoveryToken}
                   onChange={(e) => setRecoveryToken(e.target.value)}
                   placeholder="Enter the secure hex security token"
-                  className="w-full px-4 py-3 border border-[#E5E7EB] rounded-xl text-sm outline-none transition-all font-mono tracking-wider bg-white focus:border-[#0F2D5C] focus:ring-4 focus:ring-[#E5E7EB]"
+                  className="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm outline-none transition-all font-mono tracking-wider bg-white focus:border-[#0F2D5C] focus:ring-2 focus:ring-[#0F2D5C]/15"
                 />
               </div>
 
               <div className="space-y-1.5 text-left">
                 <div className="flex justify-between items-center">
-                  <label className="text-xs font-semibold text-[#4B5563]">New Access Password</label>
+                  <label className="text-xs font-semibold text-slate-700">New Access Password</label>
                   {newPassword && (() => {
                     const strength = getPasswordStrength(newPassword);
                     return <span className={`text-[10px] font-bold ${strength.textColorClass}`}>{strength.label}</span>;
@@ -794,15 +860,15 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Minimum 6 characters required"
-                    className="w-full pl-4 pr-12 py-3 border border-[#E5E7EB] rounded-xl text-sm outline-none transition-all bg-white focus:border-[#0F2D5C] focus:ring-4 focus:ring-[#E5E7EB]"
+                    className="w-full pl-4 pr-12 py-3 border border-slate-300 rounded-xl text-sm outline-none transition-all bg-white focus:border-[#0F2D5C] focus:ring-2 focus:ring-[#0F2D5C]/15"
                   />
                   <button
                     type="button"
                     onClick={() => setShowNewPassword(!showNewPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#6B7280] focus:outline-none transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none transition-colors p-1 cursor-pointer"
                     aria-label={showNewPassword ? "Hide password" : "Show password"}
                   >
-                    {showNewPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
               </div>
@@ -810,7 +876,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
               <button
                 type="submit"
                 disabled={authLoading}
-                className="w-full py-3.5 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold rounded-xl text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-[#0F2D5C]/10"
+                className="w-full py-3.5 bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white font-bold rounded-xl text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md"
               >
                 {authLoading ? (
                   <>
@@ -831,7 +897,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                   setAuthError(null);
                   setRecoverySuccessMessage(null);
                 }}
-                className="text-xs text-[#0F2D5C] hover:text-[#17407E] font-bold hover:underline cursor-pointer focus:outline-none"
+                className="text-xs font-bold text-[#0F2D5C] hover:underline cursor-pointer focus:outline-none"
               >
                 ← Back to Secure Login
               </button>
@@ -839,24 +905,52 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
           </div>
         ) : !isRegistering ? (
           <div className="space-y-6 animate-fadeIn">
+            {/* Header / Brand */}
             <div className="flex flex-col items-center justify-center space-y-3">
-              <span className="text-2xl sm:text-3xl font-black tracking-[0.08em] text-[#111827] uppercase font-sans text-center">
-                SMART LINK NIGERIA
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl sm:text-3xl font-black tracking-tight text-[#0F2D5C] font-sans text-center">
+                  SmartLink
+                </span>
+                <span className="px-2 py-0.5 rounded-md bg-[#0F2D5C] text-white font-mono text-[10px] font-bold">NIGERIA</span>
+              </div>
               <div className="text-center space-y-1">
-                <h2 className="text-2xl font-bold text-[#111827] tracking-tight">Welcome back!</h2>
-                <p className="text-xs text-[#6B7280] font-medium">Happy to see you again!</p>
+                <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Welcome Back</h2>
+                <p className="text-xs text-slate-500 font-medium">Log in to access your dashboard and services</p>
               </div>
             </div>
 
+            {/* Segmented Tab Switcher */}
+            <div className="p-1 bg-slate-100 rounded-2xl flex items-center border border-slate-200">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsRegistering(false);
+                  setAuthError(null);
+                }}
+                className="flex-1 py-2 rounded-xl text-xs font-bold transition-all bg-white text-[#0F2D5C] shadow-xs cursor-pointer"
+              >
+                Log In
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsRegistering(true);
+                  setAuthError(null);
+                }}
+                className="flex-1 py-2 rounded-xl text-xs font-bold transition-all text-slate-600 hover:text-[#0F2D5C] cursor-pointer"
+              >
+                Register / Sign Up
+              </button>
+            </div>
+
             {authError && (
-              <div role="alert" aria-live="polite" className="p-3.5 bg-[#F5F7FA] border border-[#E5E7EB] text-[#111827] text-xs rounded-xl font-medium flex items-start gap-2.5 animate-fadeIn text-left">
-                <AlertCircle className="h-4 w-4 text-[#0F2D5C] shrink-0 mt-0.5" />
+              <div role="alert" aria-live="polite" className="p-3.5 bg-red-50 border border-red-200 text-red-800 text-xs rounded-xl font-medium flex items-start gap-2.5 animate-fadeIn text-left">
+                <AlertCircle className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />
                 <div className="flex-1 leading-relaxed">
                   <div>{authError}</div>
                   {(authError.toLowerCase().includes("not verified") || authError.toLowerCase().includes("email is not verify") || authError.toLowerCase().includes("confirmation link")) && (
-                    <div className="mt-2 pt-2 border-t border-[#E5E7EB]/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-                      <span className="text-[11px] text-[#4B5563] font-normal">Need the verification link resent?</span>
+                    <div className="mt-2 pt-2 border-t border-red-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                      <span className="text-[11px] text-red-700 font-normal">Need the verification link resent?</span>
                       <button
                         type="button"
                         onClick={() => {
@@ -868,22 +962,22 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                             setIsVerifyingEmail(true);
                           }
                         }}
-                        className="text-xs font-bold text-[#0F2D5C] hover:text-[#17407E] underline flex items-center gap-1 cursor-pointer bg-transparent border-none p-0 focus:outline-none"
+                        className="text-xs font-bold text-[#0F2D5C] underline flex items-center gap-1 cursor-pointer border-none p-0 focus:outline-none"
                       >
                         Send verify link to email →
                       </button>
                     </div>
                   )}
                   {(authError.includes("sign up if not register before") || authError.includes("check email and try again") || authError.includes("register please") || authError.includes("sign up")) && (
-                    <div className="mt-2 pt-2 border-t border-[#E5E7EB]/80 flex items-center justify-between">
-                      <span className="text-[11px] text-[#4B5563] font-normal">Need an account?</span>
+                    <div className="mt-2 pt-2 border-t border-red-200/80 flex items-center justify-between">
+                      <span className="text-[11px] text-red-700 font-normal">Need an account?</span>
                       <button
                         type="button"
                         onClick={() => {
                           setIsRegistering(true);
                           setAuthError(null);
                         }}
-                        className="text-xs font-bold text-[#0F2D5C] hover:text-[#17407E] underline flex items-center gap-1 cursor-pointer bg-transparent border-none p-0 focus:outline-none"
+                        className="text-xs font-bold text-[#0F2D5C] underline flex items-center gap-1 cursor-pointer border-none p-0 focus:outline-none"
                       >
                         Sign up / Register now →
                       </button>
@@ -895,7 +989,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
 
             <form onSubmit={handleDirectLogin} className="space-y-4">
               <div className="space-y-1.5 text-left">
-                <label htmlFor="auth-email-input" className="text-xs font-semibold text-[#111827]">
+                <label htmlFor="auth-email-input" className="text-xs font-semibold text-slate-700">
                   Email Address
                 </label>
                 <input
@@ -906,12 +1000,12 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                   value={authEmail}
                   onChange={(e) => setAuthEmail(e.target.value)}
                   placeholder="name@company.com"
-                  className="w-full px-4 py-3 border border-[#E5E7EB] rounded-xl text-sm outline-none transition-all placeholder-[#9CA3AF] text-[#111827] bg-white focus:border-[#0F2D5C] focus:ring-2 focus:ring-[#0F2D5C]/15 disabled:bg-[#F5F7FA] disabled:text-[#6B7280]"
+                  className="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm outline-none transition-all placeholder-slate-400 text-slate-900 bg-white focus:border-[#0F2D5C] focus:ring-2 focus:ring-[#0F2D5C]/15 disabled:bg-slate-100 disabled:text-slate-500"
                 />
               </div>
 
               <div className="space-y-1.5 text-left">
-                <label htmlFor="auth-password-input" className="text-xs font-semibold text-[#111827]">
+                <label htmlFor="auth-password-input" className="text-xs font-semibold text-slate-700">
                   Password
                 </label>
                 <div className="relative">
@@ -923,15 +1017,15 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                     value={authPassword}
                     onChange={(e) => setAuthPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full pl-4 pr-12 py-3 border border-[#E5E7EB] rounded-xl text-sm outline-none transition-all placeholder-[#9CA3AF] text-[#111827] bg-white focus:border-[#0F2D5C] focus:ring-2 focus:ring-[#0F2D5C]/15 disabled:bg-[#F5F7FA] disabled:text-[#6B7280]"
+                    className="w-full pl-4 pr-12 py-3 border border-slate-300 rounded-xl text-sm outline-none transition-all placeholder-slate-400 text-slate-900 bg-white focus:border-[#0F2D5C] focus:ring-2 focus:ring-[#0F2D5C]/15 disabled:bg-slate-100 disabled:text-slate-500"
                   />
                   <button
                     type="button"
                     onClick={() => setShowAuthPassword(!showAuthPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[#6B7280] hover:text-[#111827] focus:outline-none transition-colors cursor-pointer"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none transition-colors cursor-pointer p-1"
                     aria-label={showAuthPassword ? "Hide password" : "Show password"}
                   >
-                    {showAuthPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    {showAuthPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
               </div>
@@ -941,10 +1035,10 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                   <input
                     id="remember-me"
                     type="checkbox"
-                    className="h-4 w-4 rounded border-[#E5E7EB] text-[#0F2D5C] accent-[#0F2D5C] focus:ring-[#0F2D5C] cursor-pointer"
+                    className="h-4 w-4 rounded border-slate-300 text-[#0F2D5C] accent-[#0F2D5C] focus:ring-[#0F2D5C] cursor-pointer"
                     defaultChecked
                   />
-                  <label htmlFor="remember-me" className="text-xs text-[#6B7280] font-medium select-none cursor-pointer">
+                  <label htmlFor="remember-me" className="text-xs text-slate-600 font-medium select-none cursor-pointer">
                     Keep me signed in
                   </label>
                 </div>
@@ -952,27 +1046,21 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                   <button
                     type="button"
                     onClick={onNavigateForgotPassword}
-                    className="text-xs font-semibold text-[#0F2D5C] hover:underline cursor-pointer bg-transparent border-none p-0 focus:outline-none"
+                    className="text-xs font-semibold text-[#0F2D5C] hover:text-[#17407E] hover:underline cursor-pointer border-none p-0 focus:outline-none"
                   >
                     Forgot password?
                   </button>
                 )}
               </div>
 
-
-
               <button
                 type="submit"
                 disabled={authLoading || authSuccessState !== null}
-                className={`w-full py-3.5 text-white font-bold rounded-xl text-sm tracking-wider uppercase transition-all cursor-pointer flex items-center justify-center gap-2 mt-4 shadow-sm focus:outline-none ${
-                  authSuccessState === "login"
-                    ? "bg-[#0F2D5C] hover:bg-[#17407E]"
-                    : "bg-[#082051] hover:bg-[#06183e] active:scale-98 disabled:opacity-60 disabled:cursor-not-allowed"
-                }`}
+                className="w-full py-3.5 bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white font-bold rounded-xl text-sm tracking-wider uppercase transition-all cursor-pointer flex items-center justify-center gap-2 mt-4 shadow-md hover:shadow-lg focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {authSuccessState === "login" ? (
                   <>
-                    <CheckCircle2 className="h-5 w-5 text-white animate-bounce" />
+                    <CheckCircle2 className="h-5 w-5 animate-bounce" />
                     <span>SIGN IN SUCCESSFUL!</span>
                   </>
                 ) : authLoading ? (
@@ -985,28 +1073,56 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                 )}
               </button>
 
-              <div className="pt-2 text-[11px] text-[#9CA3AF] text-center">
-                NDPR Compliant &bull;{" "}
-                <button
-                  type="button"
-                  onClick={() => onOpenLegalDoc("privacy-policy")}
-                  className="text-[#4B5563] hover:text-[#0F2D5C] font-medium hover:underline bg-transparent border-none p-0 inline cursor-pointer"
-                >
-                  Privacy
-                </button>{" "}
-                &bull;{" "}
+              {/* Biometric Passkey / Fingerprint Sign-in Option */}
+              {isBiometricSupported && (
+                <div className="pt-3">
+                  <button
+                    type="button"
+                    onClick={handleBiometricSignIn}
+                    disabled={authLoading || authSuccessState !== null}
+                    className="w-full py-5 px-4 bg-slate-50 hover:bg-slate-100 active:bg-slate-200 text-slate-800 font-bold rounded-2xl tracking-wider border-2 border-slate-200 hover:border-[#0F2D5C]/60 hover:shadow-md transition-all duration-200 cursor-pointer flex flex-col items-center justify-center gap-3 group disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white shadow-md border-2 border-slate-200 flex items-center justify-center p-2.5 text-[#0F2D5C] group-hover:scale-105 group-hover:text-[#17407E] group-hover:border-[#0F2D5C]/50 transition-all duration-200 shrink-0">
+                      <Fingerprint className="w-full h-full text-[#0F2D5C] group-hover:text-[#17407E] transition-colors stroke-[1.6]" />
+                    </div>
+                    <span className="text-xs sm:text-sm font-extrabold text-[#0F2D5C] tracking-wider uppercase text-center">
+                      SIGN IN WITH BIOMETRICS / FINGERPRINT
+                    </span>
+                  </button>
+                </div>
+              )}
+
+              <div className="pt-2 text-[11.5px] text-slate-500 leading-relaxed text-center px-1">
+                By signing in, you agree to our{" "}
                 <button
                   type="button"
                   onClick={() => onOpenLegalDoc("terms-of-service")}
-                  className="text-[#4B5563] hover:text-[#0F2D5C] font-medium hover:underline bg-transparent border-none p-0 inline cursor-pointer"
+                  className="font-semibold text-[#0F2D5C] hover:text-[#17407E] hover:underline border-none p-0 inline cursor-pointer"
                 >
-                  Terms
+                  Terms of Service
                 </button>
+                {", "}
+                <button
+                  type="button"
+                  onClick={() => onOpenLegalDoc("privacy-policy")}
+                  className="font-semibold text-[#0F2D5C] hover:text-[#17407E] hover:underline border-none p-0 inline cursor-pointer"
+                >
+                  Privacy Policy
+                </button>
+                {", and "}
+                <button
+                  type="button"
+                  onClick={() => onOpenLegalDoc("ndpr-compliance")}
+                  className="font-semibold text-[#0F2D5C] hover:text-[#17407E] hover:underline border-none p-0 inline cursor-pointer"
+                >
+                  NDPR Compliance
+                </button>
+                {" standards."}
               </div>
             </form>
 
-            <div className="pt-3 text-center">
-              <p className="text-xs text-[#111827] font-medium">
+            <div className="pt-3 text-center border-t border-slate-100">
+              <p className="text-xs text-slate-600 font-medium">
                 Don't have an account?{" "}
                 <button
                   type="button"
@@ -1015,32 +1131,61 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                     setAuthError(null);
                     setRecoverySuccessMessage(null);
                   }}
-                  className="text-[#0F2D5C] hover:text-[#17407E] font-bold hover:underline cursor-pointer bg-transparent border-none p-0 focus:outline-none"
+                  className="font-bold text-[#0F2D5C] hover:text-[#17407E] hover:underline cursor-pointer border-none p-0 focus:outline-none"
                 >
-                  Sign up
+                  Sign up now
                 </button>
               </p>
             </div>
           </div>
         ) : (
           <div className="space-y-6 animate-fadeIn">
+            {/* Header / Brand */}
             <div className="flex flex-col items-center justify-center space-y-3">
-              <span className="text-2xl sm:text-3xl font-black tracking-[0.08em] text-[#111827] uppercase font-sans text-center">
-                SMART LINK NIGERIA
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl sm:text-3xl font-black tracking-tight text-[#0F2D5C] font-sans text-center">
+                  SmartLink
+                </span>
+                <span className="px-2 py-0.5 rounded-md bg-[#0F2D5C] text-white font-mono text-[10px] font-bold">NIGERIA</span>
+              </div>
               <div className="text-center space-y-1">
-                <h2 className="text-xl font-bold text-[#111827] tracking-tight">Create Secure Account</h2>
+                <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Create Secure Account</h2>
+                <p className="text-xs text-slate-500 font-medium">Join SmartLink for fast NIN, BVN & VTU services</p>
               </div>
             </div>
 
+            {/* Segmented Tab Switcher */}
+            <div className="p-1 bg-slate-100 rounded-2xl flex items-center border border-slate-200">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsRegistering(false);
+                  setAuthError(null);
+                }}
+                className="flex-1 py-2 rounded-xl text-xs font-bold transition-all text-slate-600 hover:text-[#0F2D5C] cursor-pointer"
+              >
+                Log In
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsRegistering(true);
+                  setAuthError(null);
+                }}
+                className="flex-1 py-2 rounded-xl text-xs font-bold transition-all bg-white text-[#0F2D5C] shadow-xs cursor-pointer"
+              >
+                Register / Sign Up
+              </button>
+            </div>
+
             {authError && (
-              <div role="alert" aria-live="polite" className="p-3.5 bg-[#F5F7FA] border border-[#E5E7EB] text-[#111827] text-xs rounded-xl font-medium flex items-start gap-2.5 animate-fadeIn text-left">
-                <AlertCircle className="h-4 w-4 text-[#0F2D5C] shrink-0 mt-0.5" />
+              <div role="alert" aria-live="polite" className="p-3.5 bg-red-50 border border-red-200 text-red-800 text-xs rounded-xl font-medium flex items-start gap-2.5 animate-fadeIn text-left">
+                <AlertCircle className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />
                 <div className="flex-1 leading-relaxed">
                   <div>{authError}</div>
                   {authError.toLowerCase().includes("email exist") && (
-                    <div className="mt-2 pt-2 border-t border-[#E5E7EB]/80 flex items-center justify-between">
-                      <span className="text-[11px] text-[#4B5563] font-normal">Already have an account?</span>
+                    <div className="mt-2 pt-2 border-t border-red-200/80 flex items-center justify-between">
+                      <span className="text-[11px] text-red-700 font-normal">Already have an account?</span>
                       <button
                         type="button"
                         onClick={() => {
@@ -1048,7 +1193,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                           setAuthEmail(regEmail);
                           setAuthError(null);
                         }}
-                        className="text-xs font-bold text-[#0F2D5C] hover:text-[#17407E] underline flex items-center gap-1 cursor-pointer bg-transparent border-none p-0 focus:outline-none"
+                        className="text-xs font-bold text-[#0F2D5C] underline flex items-center gap-1 cursor-pointer border-none p-0 focus:outline-none"
                       >
                         Sign In now →
                       </button>
@@ -1060,56 +1205,56 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
 
             <form onSubmit={handleRegister} className="space-y-4">
               <div className="space-y-1.5 text-left">
-                <label className="text-xs font-semibold text-[#111827]">Full Name</label>
+                <label className="text-xs font-semibold text-slate-700">Full Name</label>
                 <input
                   type="text"
                   required
                   value={regFullName}
                   onChange={(e) => setRegFullName(e.target.value)}
                   placeholder="e.g. Abubakar Muhammad"
-                  className="w-full px-4 py-3 border border-[#E5E7EB] rounded-xl text-sm outline-none transition-all bg-white focus:border-[#0F2D5C] focus:ring-4 focus:ring-[#E5E7EB]"
+                  className="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm outline-none transition-all bg-white text-slate-900 focus:border-[#0F2D5C] focus:ring-2 focus:ring-[#0F2D5C]/15"
                 />
               </div>
 
               <div className="space-y-1.5 text-left">
-                <label className="text-xs font-semibold text-[#111827]">Email</label>
+                <label className="text-xs font-semibold text-slate-700">Email Address</label>
                 <input
                   type="email"
                   required
                   value={regEmail}
                   onChange={(e) => setRegEmail(e.target.value)}
                   placeholder="e.g. client@company.com"
-                  className="w-full px-4 py-3 border border-[#E5E7EB] rounded-xl text-sm outline-none transition-all bg-white focus:border-[#0F2D5C] focus:ring-4 focus:ring-[#E5E7EB]"
+                  className="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm outline-none transition-all bg-white text-slate-900 focus:border-[#0F2D5C] focus:ring-2 focus:ring-[#0F2D5C]/15"
                 />
               </div>
 
               <div className="space-y-1.5 text-left">
-                <label className="text-xs font-semibold text-[#111827]">Password</label>
+                <label className="text-xs font-semibold text-slate-700">Password</label>
                 <div className="relative">
                   <input
                     type={showRegPassword ? "text" : "password"}
                     required
                     value={regPassword}
                     onChange={(e) => setRegPassword(e.target.value)}
-                    placeholder="Minimum 6 characters recommended"
-                    className="w-full pl-4 pr-12 py-3 border border-[#E5E7EB] rounded-xl text-sm outline-none transition-all bg-white focus:border-[#0F2D5C] focus:ring-4 focus:ring-[#E5E7EB]"
+                    placeholder="Minimum 6 characters"
+                    className="w-full pl-4 pr-12 py-3 border border-slate-300 rounded-xl text-sm outline-none transition-all bg-white text-slate-900 focus:border-[#0F2D5C] focus:ring-2 focus:ring-[#0F2D5C]/15"
                   />
                   <button
                     type="button"
                     onClick={() => setShowRegPassword(!showRegPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#4B5563] focus:outline-none transition-colors"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none transition-colors p-1 cursor-pointer"
                     aria-label={showRegPassword ? "Hide password" : "Show password"}
                   >
-                    {showRegPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    {showRegPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
 
                 {regPassword && (() => {
                   const strength = getPasswordStrength(regPassword);
                   return (
-                    <div className="mt-2.5 space-y-2 p-3 rounded-xl bg-[#F5F7FA] border border-[#E5E7EB] animate-fadeIn text-left">
-                      <div className="flex items-center justify-between text-[10px] font-bold text-[#6B7280]">
-                        <span>Password Strength</span>
+                    <div className="mt-2.5 space-y-2 p-3 rounded-xl bg-slate-50 border border-slate-200 animate-fadeIn text-left">
+                      <div className="flex items-center justify-between text-[10px] font-bold text-slate-500">
+                        <span>Password Strength:</span>
                         <span className={`font-bold ${strength.textColorClass}`}>{strength.label}</span>
                       </div>
                       <div className="flex gap-1 h-1">
@@ -1117,7 +1262,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                           <div
                             key={index}
                             className={`h-full rounded-full flex-1 transition-all duration-300 ${
-                              index <= strength.score ? strength.colorClass : "bg-[#E5E7EB]"
+                              index <= strength.score ? strength.colorClass : "bg-slate-200"
                             }`}
                           />
                         ))}
@@ -1128,7 +1273,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
               </div>
 
               <div className="space-y-1.5 text-left">
-                <label className="text-xs font-semibold text-[#111827]">Confirm Password</label>
+                <label className="text-xs font-semibold text-slate-700">Confirm Password</label>
                 <div className="relative">
                   <input
                     type={showRegConfirmPassword ? "text" : "password"}
@@ -1136,21 +1281,21 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                     value={regConfirmPassword}
                     onChange={(e) => setRegConfirmPassword(e.target.value)}
                     placeholder="Re-enter your password"
-                    className="w-full pl-4 pr-12 py-3 border border-[#E5E7EB] rounded-xl text-sm outline-none transition-all bg-white focus:border-[#0F2D5C] focus:ring-4 focus:ring-[#E5E7EB]"
+                    className="w-full pl-4 pr-12 py-3 border border-slate-300 rounded-xl text-sm outline-none transition-all bg-white text-slate-900 focus:border-[#0F2D5C] focus:ring-2 focus:ring-[#0F2D5C]/15"
                   />
                   <button
                     type="button"
                     onClick={() => setShowRegConfirmPassword(!showRegConfirmPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#4B5563] focus:outline-none transition-colors"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none transition-colors p-1 cursor-pointer"
                     aria-label={showRegConfirmPassword ? "Hide password" : "Show password"}
                   >
-                    {showRegConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    {showRegConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
               </div>
 
               <div className="space-y-1.5 text-left">
-                <label className="text-xs font-semibold text-[#111827]">Phone Number</label>
+                <label className="text-xs font-semibold text-slate-700">Phone Number</label>
                 <input
                   type="tel"
                   required
@@ -1158,7 +1303,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                   value={regPhoneNumber}
                   onChange={(e) => setRegPhoneNumber(e.target.value)}
                   placeholder="e.g. 08012345678"
-                  className="w-full px-4 py-3 border border-[#E5E7EB] rounded-xl text-sm outline-none transition-all bg-white font-mono tracking-wide focus:border-[#0F2D5C] focus:ring-4 focus:ring-[#E5E7EB]"
+                  className="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm outline-none transition-all bg-white text-slate-900 font-mono tracking-wide focus:border-[#0F2D5C] focus:ring-2 focus:ring-[#0F2D5C]/15"
                 />
               </div>
 
@@ -1177,20 +1322,14 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                 />
               </div>
 
-
-
               <button
                 type="submit"
                 disabled={authLoading || authSuccessState !== null}
-                className={`w-full py-3.5 text-white font-bold rounded-xl text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md mt-4 focus:ring-4 focus:outline-none ${
-                  authSuccessState === "register"
-                    ? "bg-[#0F2D5C] hover:bg-[#17407E] focus:ring-[#E5E7EB]"
-                    : "bg-[#082051] hover:bg-[#06183e] active:scale-98 shadow-sm focus:ring-[#E5E7EB] disabled:opacity-60 disabled:cursor-not-allowed"
-                }`}
+                className="w-full py-3.5 bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white font-bold rounded-xl text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md hover:shadow-lg mt-4 focus:ring-2 focus:ring-[#0F2D5C]/20 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {authSuccessState === "register" ? (
                   <>
-                    <CheckCircle2 className="h-5 w-5 text-white animate-bounce" />
+                    <CheckCircle2 className="h-5 w-5 animate-bounce" />
                     <span>Account Created Successfully!</span>
                   </>
                 ) : authLoading ? (
@@ -1204,8 +1343,8 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
               </button>
             </form>
 
-            <div className="pt-4 text-center">
-              <p className="text-xs text-[#111827] font-medium">
+            <div className="pt-4 text-center border-t border-slate-100">
+              <p className="text-xs text-slate-600 font-medium">
                 Already have an account?{" "}
                 <button
                   type="button"
@@ -1214,7 +1353,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({
                     setAuthError(null);
                     setRecoverySuccessMessage(null);
                   }}
-                  className="text-[#0F2D5C] hover:text-[#17407E] font-bold hover:underline cursor-pointer bg-transparent border-none p-0 focus:outline-none"
+                  className="font-bold text-[#0F2D5C] hover:text-[#17407E] hover:underline cursor-pointer border-none p-0 focus:outline-none"
                 >
                   Sign In
                 </button>

@@ -85,7 +85,7 @@ export default function AdminDashboardLayout({
   const unreadNotifCount = notifications.filter((n) => !n.read).length;
 
   return (
-    <div className="min-h-screen flex flex-col font-sans bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
+    <div className="dark min-h-screen flex flex-col font-sans bg-slate-950 text-slate-100">
       <div className="flex-1 flex overflow-hidden">
         {/* Desktop Left Sidebar */}
         <div className="hidden lg:block shrink-0 sticky top-0 h-screen z-20">
@@ -110,14 +110,14 @@ export default function AdminDashboardLayout({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={() => setMobileDrawerOpen(false)}
-                className="fixed inset-0 bg-[#0F2D5C]/60 backdrop-blur-xs"
+                className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs"
               />
               <motion.div
                 initial={{ x: "-100%" }}
                 animate={{ x: 0 }}
                 exit={{ x: "-100%" }}
                 transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                className="relative w-80 max-w-full h-full z-10 bg-white text-[#0F2D5C] shadow-2xl"
+                className="relative w-80 max-w-full h-full z-10 bg-slate-900 text-white shadow-2xl"
               >
                 <AdminSidebar
                   currentRoute={currentRoute}
@@ -137,7 +137,7 @@ export default function AdminDashboardLayout({
         </AnimatePresence>
 
         {/* Right Main Container */}
-        <div className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-[#0F2D5C]">
+        <div className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-slate-950 text-slate-100">
           {/* Top Sticky Header */}
           <AdminHeader
             session={session}
@@ -152,14 +152,14 @@ export default function AdminDashboardLayout({
 
           {/* Maintenance Active Warning Banner */}
           {maintenanceActive && (
-            <div className="bg-[#0F2D5C] text-white px-4 md:px-8 py-2.5 flex flex-wrap items-center justify-between gap-3 font-semibold text-xs shadow-sm border-b border-[#0F2D5C]/40">
+            <div className="bg-amber-600 text-white px-4 md:px-8 py-2.5 flex flex-wrap items-center justify-between gap-3 font-semibold text-xs shadow-sm border-b border-amber-700">
               <div className="flex items-center gap-2.5">
                 <span className="relative flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-400"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
                 </span>
                 <span>
-                  <strong className="tracking-wide text-amber-300">MAINTENANCE MODE IS CURRENTLY ON:</strong> All user transactions and customer services are restricted. Admins have access.
+                  <strong className="tracking-wide text-amber-100">MAINTENANCE MODE IS CURRENTLY ON:</strong> All user transactions and customer services are restricted. Admins have access.
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -167,14 +167,14 @@ export default function AdminDashboardLayout({
                   type="button"
                   onClick={handleQuickDisableMaintenance}
                   disabled={disablingMaintenance}
-                  className="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-md text-[11px] transition-colors cursor-pointer disabled:opacity-50"
+                  className="px-3 py-1 bg-white hover:bg-amber-50 text-amber-900 font-bold rounded-md text-[11px] transition-colors cursor-pointer disabled:opacity-50"
                 >
                   {disablingMaintenance ? "Disabling..." : "Turn OFF Maintenance Mode"}
                 </button>
                 <button
                   type="button"
                   onClick={() => onNavigate("/admin/settings")}
-                  className="px-2.5 py-1 bg-white/20 hover:bg-white/30 text-white font-bold rounded-md text-[11px] transition-colors cursor-pointer"
+                  className="px-2.5 py-1 bg-amber-700/80 hover:bg-amber-750 text-white font-bold rounded-md text-[11px] transition-colors cursor-pointer"
                 >
                   Configure
                 </button>
@@ -183,7 +183,7 @@ export default function AdminDashboardLayout({
           )}
 
           {/* Breadcrumbs Bar */}
-          <div className="px-4 md:px-8 py-2.5 border-b border-[#0F2D5C] bg-white text-[#0F2D5C]">
+          <div className="px-4 md:px-8 py-2.5 border-b border-slate-800 bg-slate-900/90 text-slate-300 shadow-xs backdrop-blur-xs">
             <AdminBreadcrumbs breadcrumbs={breadcrumbs} onNavigate={onNavigate} />
           </div>
 

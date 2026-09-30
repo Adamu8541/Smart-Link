@@ -710,7 +710,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
         <div className="flex items-center gap-2 shrink-0 flex-wrap">
           <button
             onClick={() => setActiveTab("SEND_EMAIL")}
-            className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-xs rounded-xl shadow-lg transition-all flex items-center gap-2 cursor-pointer border border-blue-400/30"
+            className=" px-4 py-2 from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 font-semibold text-xs rounded-xl shadow-lg transition-all flex items-center gap-2 cursor-pointer border border-blue-400/30"
           >
             <Mail className="w-4 h-4" />
             <span>Send Direct Email</span>
@@ -769,7 +769,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           
           {/* Switch 1: Homepage & Dashboard Announcements */}
-          <div className={`p-4 rounded-xl border transition-all ${
+          <div className={`p-4 rounded-xl border transition-all${
             systemSwitches.announcementsEnabled 
               ? "bg-[#0F2D5C]/20 border-[#0F2D5C]/40 text-[#9CA3AF]" 
               : "bg-[#111827]/60 border-[#111827] text-[#9CA3AF]"
@@ -783,7 +783,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                 id="btn-toggle-announcements-master"
                 onClick={() => handleToggleSystemSwitch("announcements", systemSwitches.announcementsEnabled)}
                 disabled={toggleLoadingKey === "announcements"}
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none${
                   systemSwitches.announcementsEnabled ? "bg-[#0F2D5C]" : "bg-[#4B5563]"
                 }`}
                 title="Toggle Homepage Announcements"
@@ -795,7 +795,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                 />
               </button>
             </div>
-            <div className="mt-3 flex items-center justify-between text-[11px]">
+            <div className=" mt-3 flex items-center justify-between text-[11px]">
               <span className="font-mono">
                 {systemSwitches.announcementsEnabled ? (
                   <span className="text-[#9CA3AF] font-bold flex items-center gap-1">
@@ -825,7 +825,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                 id="btn-toggle-notifications-master"
                 onClick={() => handleToggleSystemSwitch("notifications", systemSwitches.notificationsEnabled)}
                 disabled={toggleLoadingKey === "notifications"}
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none${
                   systemSwitches.notificationsEnabled ? "bg-[#0F2D5C]" : "bg-[#4B5563]"
                 }`}
                 title="Toggle In-App Notifications"
@@ -837,7 +837,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                 />
               </button>
             </div>
-            <div className="mt-3 flex items-center justify-between text-[11px]">
+            <div className=" mt-3 flex items-center justify-between text-[11px]">
               <span className="font-mono">
                 {systemSwitches.notificationsEnabled ? (
                   <span className="text-[#9CA3AF] font-bold">ACTIVE & DISPATCHING</span>
@@ -864,7 +864,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                 id="btn-toggle-email-master"
                 onClick={() => handleToggleSystemSwitch("email", systemSwitches.emailEnabled)}
                 disabled={toggleLoadingKey === "email"}
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none${
                   systemSwitches.emailEnabled ? "bg-[#0F2D5C]" : "bg-[#4B5563]"
                 }`}
                 title="Toggle Email Dispatch"
@@ -876,7 +876,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                 />
               </button>
             </div>
-            <div className="mt-3 flex items-center justify-between text-[11px]">
+            <div className=" mt-3 flex items-center justify-between text-[11px]">
               <span className="font-mono">
                 {systemSwitches.emailEnabled ? (
                   <span className="text-[#9CA3AF] font-bold">ONLINE</span>
@@ -903,7 +903,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                 id="btn-toggle-sms-master"
                 onClick={() => handleToggleSystemSwitch("sms", systemSwitches.smsEnabled)}
                 disabled={toggleLoadingKey === "sms"}
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none${
                   systemSwitches.smsEnabled ? "bg-[#0F2D5C]" : "bg-[#4B5563]"
                 }`}
                 title="Toggle SMS Portal"
@@ -915,7 +915,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                 />
               </button>
             </div>
-            <div className="mt-3 flex items-center justify-between text-[11px]">
+            <div className=" mt-3 flex items-center justify-between text-[11px]">
               <span className="font-mono">
                 {systemSwitches.smsEnabled ? (
                   <span className="text-[#9CA3AF] font-bold">ONLINE</span>
@@ -934,29 +934,29 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
       <div className="flex items-center gap-2 border-b border-[#111827] overflow-x-auto pb-2">
         <button
           onClick={() => setActiveTab("OVERVIEW")}
-          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-2 ${
+          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-2${
             activeTab === "OVERVIEW" ? "bg-[#0F2D5C] text-white shadow-md" : "text-[#9CA3AF] hover:text-white hover:bg-[#111827]"
           }`}
         >
-          <Layers className="w-4 h-4" />
+          <Layers className=" w-4 h-4" />
           <span>Overview</span>
         </button>
         <button
           onClick={() => setActiveTab("SEND_EMAIL")}
-          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-2 ${
+          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-2${
             activeTab === "SEND_EMAIL" ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md ring-1 ring-blue-400/50" : "text-[#9CA3AF] hover:text-white hover:bg-[#111827]"
           }`}
         >
-          <Mail className="w-4 h-4 text-blue-300" />
+          <Mail className=" w-4 h-4" />
           <span>Send Direct Email</span>
         </button>
         <button
           onClick={() => setActiveTab("ANNOUNCEMENTS")}
-          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-2 ${
+          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-2${
             activeTab === "ANNOUNCEMENTS" ? "bg-[#0F2D5C] text-white shadow-md" : "text-[#9CA3AF] hover:text-white hover:bg-[#111827]"
           }`}
         >
-          <Megaphone className="w-4 h-4" />
+          <Megaphone className=" w-4 h-4" />
           <span>Announcements & Homepage Banners</span>
           <span className="px-1.5 py-0.5 rounded-full bg-black/40 text-[10px] font-mono">
             {activeAnnCount}/{announcements.length}
@@ -964,29 +964,29 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
         </button>
         <button
           onClick={() => setActiveTab("CREATE")}
-          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-2 ${
+          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-2${
             activeTab === "CREATE" ? "bg-[#0F2D5C] text-white shadow-md" : "text-[#9CA3AF] hover:text-white hover:bg-[#111827]"
           }`}
         >
-          <Send className="w-4 h-4" />
+          <Send className=" w-4 h-4" />
           <span>Create & Dispatch</span>
         </button>
         <button
           onClick={() => setActiveTab("TEMPLATES")}
-          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-2 ${
+          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-2${
             activeTab === "TEMPLATES" ? "bg-[#0F2D5C] text-white shadow-md" : "text-[#9CA3AF] hover:text-white hover:bg-[#111827]"
           }`}
         >
-          <FileText className="w-4 h-4" />
+          <FileText className=" w-4 h-4" />
           <span>Templates</span>
         </button>
         <button
           onClick={() => setActiveTab("HISTORY")}
-          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-2 ${
+          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-2${
             activeTab === "HISTORY" ? "bg-[#0F2D5C] text-white shadow-md" : "text-[#9CA3AF] hover:text-white hover:bg-[#111827]"
           }`}
         >
-          <History className="w-4 h-4" />
+          <History className=" w-4 h-4" />
           <span>Audit & History</span>
         </button>
         <button
@@ -994,11 +994,11 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
             setActiveTab("TEST_SUITE");
             handleRunSelfTest();
           }}
-          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-2 ${
+          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-2${
             activeTab === "TEST_SUITE" ? "bg-[#0F2D5C] text-white shadow-md" : "text-[#9CA3AF] hover:text-[#9CA3AF] hover:bg-[#0F2D5C]/40"
           }`}
         >
-          <Sparkles className="w-4 h-4" />
+          <Sparkles className=" w-4 h-4" />
           <span>Module 9 Tests</span>
         </button>
       </div>
@@ -1021,13 +1021,13 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                 <button
                   type="button"
                   onClick={() => setEmailPreviewMode(!emailPreviewMode)}
-                  className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition-all flex items-center gap-1.5 cursor-pointer ${
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition-all flex items-center gap-1.5 cursor-pointer${
                     emailPreviewMode
                       ? "bg-blue-600 text-white border-blue-500 shadow"
                       : "bg-[#111827] text-[#9CA3AF] border-[#111827] hover:text-white"
                   }`}
                 >
-                  <Eye className="w-3.5 h-3.5" />
+                  <Eye className=" w-3.5 h-3.5" />
                   <span>{emailPreviewMode ? "Back to Editor" : "Live Email Preview"}</span>
                 </button>
               </div>
@@ -1042,7 +1042,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                 </div>
                 <button
                   onClick={() => setEmailSuccessMsg(null)}
-                  className="text-emerald-400 hover:text-white p-1 rounded cursor-pointer"
+                  className=" p-1 rounded cursor-pointer"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -1058,7 +1058,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                 </div>
                 <button
                   onClick={() => setEmailErrorMsg(null)}
-                  className="text-rose-400 hover:text-white p-1 rounded cursor-pointer"
+                  className=" p-1 rounded cursor-pointer"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -1162,14 +1162,14 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                     <button
                       type="button"
                       onClick={() => setEmailForm({ ...emailForm, recipientMode: "individual" })}
-                      className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex items-center gap-3 ${
+                      className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex items-center gap-3${
                         emailForm.recipientMode === "individual"
                           ? "bg-blue-600/20 border-blue-500 text-white shadow"
                           : "bg-[#111827] border-[#111827] text-[#9CA3AF] hover:text-white"
                       }`}
                     >
                       <div className={`p-2 rounded-lg ${emailForm.recipientMode === "individual" ? "bg-blue-600 text-white" : "bg-[#111827] text-[#9CA3AF]"}`}>
-                        <UserCheck className="w-4 h-4" />
+                        <UserCheck className=" w-4 h-4" />
                       </div>
                       <div>
                         <div className="text-xs font-bold">Individual User</div>
@@ -1180,14 +1180,14 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                     <button
                       type="button"
                       onClick={() => setEmailForm({ ...emailForm, recipientMode: "selective" })}
-                      className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex items-center gap-3 ${
+                      className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex items-center gap-3${
                         emailForm.recipientMode === "selective"
                           ? "bg-blue-600/20 border-blue-500 text-white shadow"
                           : "bg-[#111827] border-[#111827] text-[#9CA3AF] hover:text-white"
                       }`}
                     >
                       <div className={`p-2 rounded-lg ${emailForm.recipientMode === "selective" ? "bg-blue-600 text-white" : "bg-[#111827] text-[#9CA3AF]"}`}>
-                        <Users className="w-4 h-4" />
+                        <Users className=" w-4 h-4" />
                       </div>
                       <div>
                         <div className="text-xs font-bold">Selective Users</div>
@@ -1198,14 +1198,14 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                     <button
                       type="button"
                       onClick={() => setEmailForm({ ...emailForm, recipientMode: "all" })}
-                      className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex items-center gap-3 ${
+                      className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex items-center gap-3${
                         emailForm.recipientMode === "all"
                           ? "bg-amber-500/20 border-amber-500 text-white shadow"
                           : "bg-[#111827] border-[#111827] text-[#9CA3AF] hover:text-white"
                       }`}
                     >
                       <div className={`p-2 rounded-lg ${emailForm.recipientMode === "all" ? "bg-amber-500 text-white" : "bg-[#111827] text-[#9CA3AF]"}`}>
-                        <Radio className="w-4 h-4" />
+                        <Radio className=" w-4 h-4" />
                       </div>
                       <div>
                         <div className="text-xs font-bold">All Registered Users</div>
@@ -1263,7 +1263,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                               );
                               handleSelectAllFilteredUsers(filtered);
                             }}
-                            className="px-2.5 py-1 bg-[#111827] hover:bg-[#111827] text-blue-400 border border-[#111827] rounded-lg text-[11px] font-bold cursor-pointer"
+                            className=" px-2.5 py-1 border border-[#111827] rounded-lg text-[11px] font-bold cursor-pointer"
                           >
                             Select All Filtered
                           </button>
@@ -1271,7 +1271,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                             <button
                               type="button"
                               onClick={handleClearUserSelection}
-                              className="px-2.5 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg text-[11px] font-bold cursor-pointer"
+                              className=" px-2.5 py-1 border border-rose-500/30 rounded-lg text-[11px] font-bold cursor-pointer"
                             >
                               Clear Selection
                             </button>
@@ -1304,7 +1304,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                               <div
                                 key={u.id || u.uid || u.email}
                                 onClick={() => toggleUserRecipient(u.email)}
-                                className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all ${
+                                className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all${
                                   isSelected ? "bg-blue-600/20 border border-blue-500/40" : "hover:bg-[#111827]"
                                 }`}
                               >
@@ -1450,7 +1450,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                           <button
                             type="button"
                             onClick={() => handleRemoveAttachment(index)}
-                            className="text-gray-400 hover:text-rose-400 p-0.5 rounded cursor-pointer ml-1"
+                            className=" p-0.5 rounded cursor-pointer ml-1"
                             title="Remove Attachment"
                           >
                             <X className="w-3.5 h-3.5" />
@@ -1478,7 +1478,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                       setEmailSuccessMsg(null);
                       setEmailErrorMsg(null);
                     }}
-                    className="px-4 py-2.5 bg-[#111827] hover:bg-[#111827] text-gray-400 hover:text-white text-xs font-bold rounded-xl transition-all cursor-pointer w-full sm:w-auto"
+                    className=" px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer w-full sm:w-auto"
                   >
                     Clear Form
                   </button>
@@ -1486,7 +1486,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                   <button
                     type="submit"
                     disabled={emailSending}
-                    className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer w-full sm:w-auto border border-blue-400/30"
+                    className=" px-6 py-2.5 from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-50 font-bold text-xs rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer w-full sm:w-auto border border-blue-400/30"
                   >
                     {emailSending ? (
                       <>
@@ -1548,7 +1548,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
               </div>
               <button
                 onClick={() => setActiveTab("ANNOUNCEMENTS")}
-                className="text-xs text-[#9CA3AF] hover:text-[#9CA3AF] font-bold flex items-center gap-1 cursor-pointer"
+                className=" text-xs font-bold flex items-center gap-1 cursor-pointer"
               >
                 <span>Manage All ({announcements.length})</span>
                 <ExternalLink className="w-3.5 h-3.5" />
@@ -1559,7 +1559,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
               {announcements.slice(0, 4).map((ann) => (
                 <div
                   key={ann.id}
-                  className={`p-4 rounded-xl border flex items-center justify-between gap-3 transition-all ${
+                  className={`p-4 rounded-xl border flex items-center justify-between gap-3 transition-all${
                     ann.isActive
                       ? "bg-[#111827]/80 border-[#0F2D5C]/30"
                       : "bg-[#111827]/40 border-[#111827] opacity-70"
@@ -1582,13 +1582,13 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                     <button
                       onClick={() => handleToggleAnnouncement(ann.id, ann.isActive)}
                       disabled={toggleLoadingKey === `ann_${ann.id}`}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer${
                         ann.isActive
                           ? "bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white shadow-xs"
                           : "bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB]"
                       }`}
                     >
-                      <Power className="w-3.5 h-3.5" />
+                      <Power className=" w-3.5 h-3.5" />
                       <span>{ann.isActive ? "ON" : "OFF"}</span>
                     </button>
                   </div>
@@ -1778,7 +1778,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
               <div className="flex bg-[#111827] p-1 rounded-lg border border-[#111827]">
                 <button
                   onClick={() => setAnnFilterStatus("ALL")}
-                  className={`px-3 py-1 text-xs font-bold rounded-md transition-all cursor-pointer ${
+                  className={`px-3 py-1 text-xs font-bold rounded-md transition-all cursor-pointer${
                     annFilterStatus === "ALL" ? "bg-[#0F2D5C] text-white" : "text-[#9CA3AF] hover:text-white"
                   }`}
                 >
@@ -1786,7 +1786,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                 </button>
                 <button
                   onClick={() => setAnnFilterStatus("ACTIVE")}
-                  className={`px-3 py-1 text-xs font-bold rounded-md transition-all cursor-pointer ${
+                  className={`px-3 py-1 text-xs font-bold rounded-md transition-all cursor-pointer${
                     annFilterStatus === "ACTIVE" ? "bg-[#0F2D5C] text-white" : "text-[#9CA3AF] hover:text-white"
                   }`}
                 >
@@ -1794,7 +1794,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                 </button>
                 <button
                   onClick={() => setAnnFilterStatus("INACTIVE")}
-                  className={`px-3 py-1 text-xs font-bold rounded-md transition-all cursor-pointer ${
+                  className={`px-3 py-1 text-xs font-bold rounded-md transition-all cursor-pointer${
                     annFilterStatus === "INACTIVE" ? "bg-[#4B5563] text-white" : "text-[#9CA3AF] hover:text-white"
                   }`}
                 >
@@ -1803,7 +1803,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
               </div>
             </div>
 
-            <div className="text-xs text-[#9CA3AF] font-mono hidden md:block">
+            <div className=" text-xs font-mono hidden md:block">
               {systemSwitches.announcementsEnabled ? (
                 <span className="text-[#9CA3AF] font-bold">● System Broadcast is ON</span>
               ) : (
@@ -1836,7 +1836,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                 <div
                   key={ann.id}
                   id={`admin-ann-card-${ann.id}`}
-                  className={`bg-[#111827] border rounded-2xl p-5 relative space-y-4 transition-all duration-200 ${
+                  className={`border rounded-2xl p-5 relative space-y-4 transition-all duration-200${
                     ann.isActive
                       ? "border-[#0F2D5C]/40 shadow-lg shadow-none"
                       : "border-[#111827] opacity-75"
@@ -1877,14 +1877,14 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                         id={`btn-toggle-ann-${ann.id}`}
                         onClick={() => handleToggleAnnouncement(ann.id, ann.isActive)}
                         disabled={toggleLoadingKey === `ann_${ann.id}`}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm ${
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm${
                           ann.isActive
                             ? "bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white"
                             : "bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] border border-[#4B5563]"
                         }`}
                         title={ann.isActive ? "Click to Turn OFF (Hide from Homepage)" : "Click to Turn ON (Show on Homepage)"}
                       >
-                        <Power className="w-3.5 h-3.5" />
+                        <Power className=" w-3.5 h-3.5" />
                         <span>{ann.isActive ? "SWITCH OFF" : "SWITCH ON"}</span>
                       </button>
                     </div>
@@ -1914,14 +1914,14 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => setPreviewAnnouncement(ann)}
-                        className="px-2.5 py-1 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] rounded-lg text-xs font-semibold flex items-center gap-1 cursor-pointer transition-colors"
+                        className=" px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 cursor-pointer transition-colors"
                       >
                         <Eye className="w-3.5 h-3.5 text-[#9CA3AF]" />
                         <span>Live Preview</span>
                       </button>
                       <button
                         onClick={() => handleOpenEditAnn(ann)}
-                        className="px-2.5 py-1 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] rounded-lg text-xs font-semibold flex items-center gap-1 cursor-pointer transition-colors"
+                        className=" px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 cursor-pointer transition-colors"
                       >
                         <Edit className="w-3.5 h-3.5 text-[#9CA3AF]" />
                         <span>Edit</span>
@@ -1930,7 +1930,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
 
                     <button
                       onClick={() => handleDeleteAnnouncement(ann.id)}
-                      className="p-1.5 hover:bg-[#0F2D5C]/20 text-[#9CA3AF] hover:text-[#9CA3AF] rounded-lg transition-colors cursor-pointer"
+                      className=" p-1.5 rounded-lg transition-colors cursor-pointer"
                       title="Delete Announcement"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -2036,7 +2036,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                         type="button"
                         key={ch}
                         onClick={() => handleChannelToggle(ch)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer${
                           active ? "bg-[#0F2D5C] text-white" : "bg-[#111827] text-[#9CA3AF] border border-[#111827]"
                         }`}
                       >
@@ -2048,7 +2048,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-[#E5E7EB] block mb-2">Priority</label>
+                <label className=" text-xs font-semibold block mb-2">Priority</label>
                 <select
                   value={createForm.priority}
                   onChange={(e) => setCreateForm({ ...createForm, priority: e.target.value })}
@@ -2109,7 +2109,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                     selectedTemplateId: "",
                   })
                 }
-                className="px-4 py-2 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] rounded-xl text-xs font-semibold cursor-pointer"
+                className=" px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer"
               >
                 Clear Form
               </button>
@@ -2171,7 +2171,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                       });
                       setSelectedTemplate(tpl);
                     }}
-                    className="p-1 hover:bg-[#111827] rounded text-[#9CA3AF] hover:text-white transition-colors cursor-pointer"
+                    className=" p-1 rounded transition-colors cursor-pointer"
                   >
                     <Edit className="w-3.5 h-3.5" />
                   </button>
@@ -2192,7 +2192,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
             </div>
             <button
               onClick={handleExportCSV}
-              className="px-3.5 py-2 bg-[#111827] hover:bg-[#4B5563] text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+              className=" px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
             >
               <Download className="w-3.5 h-3.5 text-[#9CA3AF]" />
               <span>Export CSV</span>
@@ -2303,7 +2303,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                       <span className="text-[11px] text-[#9CA3AF]">{test.details}</span>
                     </div>
                   </div>
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold${
                     test.passed ? "bg-[#0F2D5C]/20 text-[#9CA3AF]" : "bg-[#0F2D5C]/20 text-[#9CA3AF]"
                   }`}>
                     {test.passed ? "PASSED" : "FAILED"}
@@ -2329,7 +2329,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                   setShowAnnModal(false);
                   setEditingAnnId(null);
                 }}
-                className="p-1 hover:bg-[#111827] rounded-lg text-[#9CA3AF] hover:text-white"
+                className=" p-1 rounded-lg"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2425,7 +2425,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                 <button
                   type="button"
                   onClick={() => setAnnForm({ ...annForm, isActive: !annForm.isActive })}
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none${
                     annForm.isActive ? "bg-[#0F2D5C]" : "bg-[#4B5563]"
                   }`}
                 >
@@ -2437,14 +2437,14 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                 </button>
               </div>
 
-              <div className="pt-3 border-t border-[#111827] flex justify-end gap-3">
+              <div className=" pt-3 border-t border-[#111827] flex justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => {
                     setShowAnnModal(false);
                     setEditingAnnId(null);
                   }}
-                  className="px-4 py-2 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] rounded-xl text-xs font-semibold cursor-pointer"
+                  className=" px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -2472,7 +2472,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
               </div>
               <button
                 onClick={() => setPreviewAnnouncement(null)}
-                className="p-1 hover:bg-[#111827] rounded-lg text-[#9CA3AF] hover:text-white"
+                className=" p-1 rounded-lg"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2482,7 +2482,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
               <span className="text-xs font-semibold text-[#9CA3AF]">How it appears to visitors on the Homepage & Dashboard:</span>
               
               {/* Render Preview Banner */}
-              <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg ${
+              <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg${
                 previewAnnouncement.bannerStyle === "rose" || previewAnnouncement.priority === "Critical"
                   ? "bg-[#0F2D5C]/80 border-[#0F2D5C] text-[#9CA3AF]"
                   : previewAnnouncement.bannerStyle === "emerald"
@@ -2513,7 +2513,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                 </div>
 
                 {previewAnnouncement.actionText && (
-                  <button className="px-3 py-1.5 bg-white/10 border border-white/20 rounded-lg text-xs font-semibold text-white flex items-center gap-1 shrink-0">
+                  <button className=" px-3 py-1.5 border border-white/20 rounded-lg text-xs font-semibold flex items-center gap-1 shrink-0">
                     <span>{previewAnnouncement.actionText}</span>
                     <ExternalLink className="w-3.5 h-3.5" />
                   </button>
@@ -2524,7 +2524,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
             <div className="flex justify-end pt-3 border-t border-[#111827]">
               <button
                 onClick={() => setPreviewAnnouncement(null)}
-                className="px-4 py-2 bg-[#111827] hover:bg-[#4B5563] text-white rounded-xl text-xs font-semibold cursor-pointer"
+                className=" px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer"
               >
                 Close Preview
               </button>
@@ -2539,7 +2539,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
           <div className="bg-[#111827] border border-[#111827] rounded-3xl p-6 text-white w-full max-w-md space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-[#111827] pb-3">
               <h3 className="font-bold text-base">Edit Notification Template</h3>
-              <button onClick={() => setSelectedTemplate(null)} className="p-1 hover:bg-[#111827] rounded-lg text-[#9CA3AF]">
+              <button onClick={() => setSelectedTemplate(null)} className=" p-1 rounded-lg">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -2582,7 +2582,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
                 <button
                   type="button"
                   onClick={() => setSelectedTemplate(null)}
-                  className="px-4 py-1.5 bg-[#111827] text-[#E5E7EB] text-xs rounded-xl"
+                  className=" px-4 py-1.5 text-xs rounded-xl"
                 >
                   Cancel
                 </button>

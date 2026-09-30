@@ -1102,3 +1102,87 @@ export class ReconciliationRepository {
     return result.rows[0] || null;
   }
 }
+
+// -----------------------------------------------------------------------------
+// 14. PROVIDER REPOSITORY
+// -----------------------------------------------------------------------------
+export class ProviderRepository {
+  static async listAll() {
+    const sql = `SELECT * FROM providers ORDER BY priority ASC, name ASC;`;
+    const result = await executeTurso(sql);
+    return result.rows || [];
+  }
+
+  static async findById(id: string) {
+    const sql = `SELECT * FROM providers WHERE id = ? LIMIT 1;`;
+    const result = await executeTurso(sql, [id]);
+    return result.rows[0] || null;
+  }
+
+  static async findByCategory(category: string) {
+    const sql = `SELECT * FROM providers WHERE category = ? ORDER BY priority ASC;`;
+    const result = await executeTurso(sql, [category]);
+    return result.rows || [];
+  }
+}
+
+// -----------------------------------------------------------------------------
+// 15. PASSKEY / BIOMETRIC REPOSITORY
+// -----------------------------------------------------------------------------
+export class PasskeyRepository {
+  static async create(passkey: {
+    id: string;
+    user_id: string;
+    credential_id: string;
+    public_key: string;
+    counter?: number;
+    device_name?: string;
+    transports?: string;
+  }) {
+    const now = new Date().toISOString();
+    const sql = `
+      INSERT INTO user_passkeys (
+        id, user_id, credential_id, public_key, counter, device_name, transports, created_at, last_used_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      RETURNING *;
+    `;
+    const args = [
+      passkey.id,
+      passkey.user_id,
+      passkey.credential_id,
+      passkey.public_key,
+      passkey.counter || 0,
+      passkey.device_name || "Biometric Authenticator",
+      passkey.transports || null,
+      now,
+      now,
+    ];
+    const result = await executeTurso(sql, args);
+    return result.rows[0];
+  }
+
+  static async findByCredentialId(credentialId: string) {
+    const sql = `SELECT * FROM user_passkeys WHERE credential_id = ? LIMIT 1;`;
+    const result = await executeTurso(sql, [credentialId]);
+    return result.rows[0] || null;
+  }
+
+  static async listByUserId(userId: string) {
+    const sql = `SELECT * FROM user_passkeys WHERE user_id = ? ORDER BY created_at DESC;`;
+    const result = await executeTurso(sql, [userId]);
+    return result.rows || [];
+  }
+
+  static async updateCounter(credentialId: string, newCounter: number) {
+    const now = new Date().toISOString();
+    const sql = `UPDATE user_passkeys SET counter = ?, last_used_at = ? WHERE credential_id = ?;`;
+    const result = await executeTurso(sql, [newCounter, now, credentialId]);
+    return (result.rowsAffected || 0) > 0;
+  }
+
+  static async deleteById(id: string, userId: string) {
+    const sql = `DELETE FROM user_passkeys WHERE id = ? AND user_id = ?;`;
+    const result = await executeTurso(sql, [id, userId]);
+    return (result.rowsAffected || 0) > 0;
+  }
+}

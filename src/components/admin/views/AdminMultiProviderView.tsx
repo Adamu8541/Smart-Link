@@ -265,7 +265,7 @@ export const AdminMultiProviderView: React.FC = () => {
               id="btn-ping-all-portals"
               onClick={handlePingAllPortals}
               disabled={loading || pingingId !== null}
-              className="inline-flex items-center space-x-2 px-3.5 py-2 text-xs font-semibold rounded-lg bg-[#E5E7EB] dark:bg-[#111827] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563] text-[#4B5563] dark:text-[#E5E7EB] border border-[#E5E7EB] dark:border-[#4B5563] transition"
+              className=" inline-flex items-center space-x-2 px-3.5 py-2 text-xs font-semibold rounded-lg dark: dark: dark: border border-[#E5E7EB] dark:border-[#4B5563] transition"
             >
               <Activity className="w-4 h-4 text-[#0F2D5C] animate-pulse" />
               <span>Probe All Portals</span>
@@ -277,7 +277,7 @@ export const AdminMultiProviderView: React.FC = () => {
               disabled={isProcessingSweep}
               className="inline-flex items-center space-x-2 px-3.5 py-2 text-xs font-semibold rounded-lg bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white shadow-sm transition disabled:opacity-50"
             >
-              <RotateCcw className={`w-4 h-4 ${isProcessingSweep ? "animate-spin" : ""}`} />
+              <RotateCcw className={`w-4 h-4${isProcessingSweep ? "animate-spin" : ""}`} />
               <span>{isProcessingSweep ? "Sweeping Queue..." : "Run Reconciliation Sweep"}</span>
             </button>
 
@@ -295,7 +295,7 @@ export const AdminMultiProviderView: React.FC = () => {
         {/* Global Feedback Banner */}
         {statusMessage && (
           <div
-            className={`mt-4 p-3 rounded-lg text-sm flex items-center space-x-2 border ${
+            className={`mt-4 p-3 rounded-lg text-sm flex items-center space-x-2 border${
               statusMessage.type === "success"
                 ? "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-200 border-emerald-200 dark:border-emerald-800"
                 : "bg-red-50 dark:bg-red-950/60 text-red-800 dark:text-red-200 border-red-200 dark:border-red-800"
@@ -361,7 +361,7 @@ export const AdminMultiProviderView: React.FC = () => {
         <div className="flex items-center space-x-2">
           <button
             onClick={() => setActiveTab("matrix")}
-            className={`px-4 py-2 text-sm font-semibold rounded-lg transition ${
+            className={`px-4 py-2 text-sm font-semibold rounded-lg transition${
               activeTab === "matrix"
                 ? "bg-[#111827] dark:bg-white text-white dark:text-[#111827] shadow-sm"
                 : "text-[#4B5563] dark:text-[#9CA3AF] hover:bg-[#E5E7EB] dark:hover:bg-[#111827]"
@@ -371,7 +371,7 @@ export const AdminMultiProviderView: React.FC = () => {
           </button>
           <button
             onClick={() => setActiveTab("rules")}
-            className={`px-4 py-2 text-sm font-semibold rounded-lg transition ${
+            className={`px-4 py-2 text-sm font-semibold rounded-lg transition${
               activeTab === "rules"
                 ? "bg-[#111827] dark:bg-white text-white dark:text-[#111827] shadow-sm"
                 : "text-[#4B5563] dark:text-[#9CA3AF] hover:bg-[#E5E7EB] dark:hover:bg-[#111827]"
@@ -381,7 +381,7 @@ export const AdminMultiProviderView: React.FC = () => {
           </button>
           <button
             onClick={() => setActiveTab("failovers")}
-            className={`px-4 py-2 text-sm font-semibold rounded-lg transition ${
+            className={`px-4 py-2 text-sm font-semibold rounded-lg transition${
               activeTab === "failovers"
                 ? "bg-[#111827] dark:bg-white text-white dark:text-[#111827] shadow-sm"
                 : "text-[#4B5563] dark:text-[#9CA3AF] hover:bg-[#E5E7EB] dark:hover:bg-[#111827]"
@@ -391,7 +391,7 @@ export const AdminMultiProviderView: React.FC = () => {
           </button>
           <button
             onClick={() => setActiveTab("background_queue")}
-            className={`px-4 py-2 text-sm font-semibold rounded-lg transition ${
+            className={`px-4 py-2 text-sm font-semibold rounded-lg transition${
               activeTab === "background_queue"
                 ? "bg-[#111827] dark:bg-white text-white dark:text-[#111827] shadow-sm"
                 : "text-[#4B5563] dark:text-[#9CA3AF] hover:bg-[#E5E7EB] dark:hover:bg-[#111827]"
@@ -401,7 +401,7 @@ export const AdminMultiProviderView: React.FC = () => {
           </button>
         </div>
 
-        <div className="relative w-64">
+        <div className=" relative w-64">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
           <input
             type="text"
@@ -502,9 +502,9 @@ export const AdminMultiProviderView: React.FC = () => {
                   <button
                     onClick={() => handlePingPortal(metric.providerId)}
                     disabled={isPinging}
-                    className="inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#F5F7FA] hover:bg-[#E5E7EB] dark:bg-[#0F2D5C]/40 dark:hover:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] border border-slate-200 dark:border-slate-700 transition"
+                    className=" inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg dark: dark: dark: border border-slate-200 dark:border-slate-700 transition"
                   >
-                    <RefreshCw className={`w-3.5 h-3.5 ${isPinging ? "animate-spin text-[#0F2D5C]" : ""}`} />
+                    <RefreshCw className={`w-3.5 h-3.5${isPinging ? "animate-spin text-[#0F2D5C]" : ""}`} />
                     <span>{isPinging ? "Testing..." : "Ping Provider"}</span>
                   </button>
                 </div>
@@ -558,22 +558,34 @@ export const AdminMultiProviderView: React.FC = () => {
                     </td>
 
                     <td className="py-3.5 px-4">
-                      <div className="flex items-center space-x-1.5 text-[#0F2D5C] dark:text-[#9CA3AF] font-semibold">
-                        <CheckCircle2 className="w-4 h-4 shrink-0" />
-                        <span>{rule.primaryProviderName}</span>
-                      </div>
+                      {rule.primaryProviderId && rule.primaryProviderName && rule.primaryProviderName !== "None (Unassigned)" ? (
+                        <div className="flex items-center space-x-1.5 text-[#0F2D5C] dark:text-[#9CA3AF] font-semibold">
+                          <CheckCircle2 className="w-4 h-4 shrink-0" />
+                          <span>{rule.primaryProviderName}</span>
+                        </div>
+                      ) : (
+                        <span className="text-slate-400 dark:text-slate-500 italic text-xs">
+                          None (Unassigned)
+                        </span>
+                      )}
                     </td>
 
                     <td className="py-3.5 px-4">
-                      <div className="flex items-center space-x-1.5 text-[#4B5563] dark:text-[#9CA3AF] font-medium">
-                        <ArrowRightLeft className="w-3.5 h-3.5 text-[#0F2D5C] shrink-0" />
-                        <span>{rule.secondaryProviderName || "None"}</span>
-                      </div>
+                      {rule.secondaryProviderId && rule.secondaryProviderName && rule.secondaryProviderName !== "None" ? (
+                        <div className="flex items-center space-x-1.5 text-[#4B5563] dark:text-[#9CA3AF] font-medium">
+                          <ArrowRightLeft className="w-3.5 h-3.5 text-[#0F2D5C] shrink-0" />
+                          <span>{rule.secondaryProviderName}</span>
+                        </div>
+                      ) : (
+                        <span className="text-slate-400 dark:text-slate-500 italic text-xs">
+                          None
+                        </span>
+                      )}
                     </td>
 
                     <td className="py-3.5 px-4">
-                      <span className="text-[#6B7280] dark:text-[#9CA3AF] font-normal">
-                        {rule.tertiaryProviderName || "NIN API Fallback"}
+                      <span className="text-[#6B7280] dark:text-[#9CA3AF] font-normal text-xs">
+                        {rule.tertiaryProviderName || "None"}
                       </span>
                     </td>
 
@@ -601,7 +613,7 @@ export const AdminMultiProviderView: React.FC = () => {
                           setSelectedRule(rule);
                           setIsEditingRule(true);
                         }}
-                        className="inline-flex items-center space-x-1 px-2.5 py-1 text-xs font-semibold rounded bg-[#E5E7EB] hover:bg-[#E5E7EB] dark:bg-[#111827] dark:hover:bg-[#4B5563] text-[#4B5563] dark:text-[#E5E7EB] transition"
+                        className=" inline-flex items-center space-x-1 px-2.5 py-1 text-xs font-semibold rounded dark: dark: dark: transition"
                       >
                         <Settings2 className="w-3.5 h-3.5" />
                         <span>Configure</span>
@@ -713,7 +725,7 @@ export const AdminMultiProviderView: React.FC = () => {
               disabled={isProcessingSweep}
               className="inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white shadow-sm transition disabled:opacity-50"
             >
-              <RotateCcw className={`w-3.5 h-3.5 ${isProcessingSweep ? "animate-spin" : ""}`} />
+              <RotateCcw className={`w-3.5 h-3.5${isProcessingSweep ? "animate-spin" : ""}`} />
               <span>{isProcessingSweep ? "Processing..." : "Sweep Queue Now"}</span>
             </button>
           </div>
@@ -810,7 +822,7 @@ export const AdminMultiProviderView: React.FC = () => {
               </h3>
               <button
                 onClick={() => setIsEditingRule(false)}
-                className="text-[#9CA3AF] hover:text-[#4B5563] dark:hover:text-[#E5E7EB]"
+                className=" dark:"
               >
                 ✕
               </button>
@@ -847,16 +859,29 @@ export const AdminMultiProviderView: React.FC = () => {
                     Primary Provider
                   </label>
                   <select
-                    value={selectedRule.primaryProviderId}
+                    value={selectedRule.primaryProviderId || ""}
                     onChange={(e) => {
                       const pId = e.target.value;
-                      const pName = pId === "aspfiy" ? "Aspfiy Payment Portal" : pId === "verifyng" ? "VerifyNG Portal" : pId === "identro" ? "Identro Portal" : "LumiID Portal";
+                      const pName =
+                        pId === "prembley"
+                          ? "Prembley Portal (Identitypass)"
+                          : pId === "identro"
+                          ? "Identro Portal"
+                          : pId === "aspfiy"
+                          ? "Aspfiy Payment Portal"
+                          : pId === "verifyng"
+                          ? "VerifyNG Portal"
+                          : pId === "lumiid"
+                          ? "LumiID Portal"
+                          : "None (Unassigned)";
                       setSelectedRule({ ...selectedRule, primaryProviderId: pId, primaryProviderName: pName });
                     }}
                     className="w-full p-2 rounded-lg border border-[#E5E7EB] dark:border-[#4B5563] bg-white dark:bg-[#111827] text-[#111827] dark:text-white"
                   >
-                    <option value="lumiid">LumiID Portal</option>
+                    <option value="">None (No Provider Assigned)</option>
+                    <option value="prembley">Prembley Portal (Identitypass)</option>
                     <option value="identro">Identro Portal</option>
+                    <option value="lumiid">LumiID Portal</option>
                     <option value="verifyng">VerifyNG Portal</option>
                     <option value="aspfiy">Aspfiy Payment Portal</option>
                   </select>
@@ -870,13 +895,26 @@ export const AdminMultiProviderView: React.FC = () => {
                     value={selectedRule.secondaryProviderId || ""}
                     onChange={(e) => {
                       const pId = e.target.value;
-                      const pName = pId === "aspfiy" ? "Aspfiy Payment Portal" : pId === "verifyng" ? "VerifyNG Portal" : pId === "identro" ? "Identro Portal" : "LumiID Portal";
+                      const pName =
+                        pId === "prembley"
+                          ? "Prembley Portal (Identitypass)"
+                          : pId === "identro"
+                          ? "Identro Portal"
+                          : pId === "aspfiy"
+                          ? "Aspfiy Payment Portal"
+                          : pId === "verifyng"
+                          ? "VerifyNG Portal"
+                          : pId === "lumiid"
+                          ? "LumiID Portal"
+                          : "";
                       setSelectedRule({ ...selectedRule, secondaryProviderId: pId, secondaryProviderName: pName });
                     }}
                     className="w-full p-2 rounded-lg border border-[#E5E7EB] dark:border-[#4B5563] bg-white dark:bg-[#111827] text-[#111827] dark:text-white"
                   >
-                    <option value="lumiid">LumiID Portal</option>
+                    <option value="">None (No Failover)</option>
+                    <option value="prembley">Prembley Portal (Identitypass)</option>
                     <option value="identro">Identro Portal</option>
+                    <option value="lumiid">LumiID Portal</option>
                     <option value="verifyng">VerifyNG Portal</option>
                     <option value="aspfiy">Aspfiy Payment Portal</option>
                   </select>
@@ -926,7 +964,7 @@ export const AdminMultiProviderView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsEditingRule(false)}
-                  className="px-4 py-2 rounded-lg bg-[#E5E7EB] dark:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB] hover:bg-[#E5E7EB] transition font-semibold"
+                  className=" px-4 py-2 rounded-lg dark: dark: transition font-semibold"
                 >
                   Cancel
                 </button>
@@ -952,7 +990,7 @@ export const AdminMultiProviderView: React.FC = () => {
               </h3>
               <button
                 onClick={() => setIsQueueModalOpen(false)}
-                className="text-[#9CA3AF] hover:text-[#4B5563] dark:hover:text-[#E5E7EB]"
+                className=" dark:"
               >
                 ✕
               </button>
@@ -1022,7 +1060,7 @@ export const AdminMultiProviderView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsQueueModalOpen(false)}
-                  className="px-4 py-2 rounded-lg bg-[#E5E7EB] dark:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB] hover:bg-[#E5E7EB] transition font-semibold"
+                  className=" px-4 py-2 rounded-lg dark: dark: transition font-semibold"
                 >
                   Cancel
                 </button>

@@ -200,9 +200,16 @@ export class LumiIDAdapter implements ProviderAdapter {
       dateOfBirth: d.date_of_birth || d.dateOfBirth || d.dob || d.birth_date || "",
       phoneNumber: normalizeNigerianPhone(d.phone || d.phone_number || d.phoneNumber || d.telephone || ""),
       email: d.email || d.email_address || "",
-      address: d.address || d.residential_address || d.residence_address || d.registered_address || "",
-      stateOfOrigin: d.state_of_origin || d.stateOfOrigin || d.state || "",
-      lga: d.lga_of_origin || d.lgaOfOrigin || d.lga || "",
+      address: d.address || d.residential_address || d.residence_address || d.registered_address || d.residenceAddress || d.residentialAddress || d.street || "",
+      addressLine1: d.addressLine1 || d.street || d.residence_address || d.residential_address || d.address || "",
+      state: d.state || d.residence_state || d.residenceState || d.state_of_residence || d.stateOfResidence || d.state_of_origin || d.stateOfOrigin || "",
+      stateOfOrigin: d.state_of_origin || d.stateOfOrigin || d.origin_state || d.originState || d.state || "",
+      stateOfResidence: d.residence_state || d.residenceState || d.state_of_residence || d.stateOfResidence || d.state || "",
+      residenceState: d.residence_state || d.residenceState || d.state_of_residence || d.stateOfResidence || d.state || "",
+      lga: d.lga || d.residence_lga || d.residenceLga || d.lga_of_residence || d.lgaOfResidence || d.lga_of_origin || d.lgaOfOrigin || d.town || d.city || "",
+      lgaOfOrigin: d.lga_of_origin || d.lgaOfOrigin || d.origin_lga || d.originLga || d.lga || "",
+      lgaOfResidence: d.residence_lga || d.residenceLga || d.lga_of_residence || d.lgaOfResidence || d.lga || "",
+      residenceLga: d.residence_lga || d.residenceLga || d.lga_of_residence || d.lgaOfResidence || d.lga || "",
       photoUrl,
       rawPhoto: photoUrl,
 
@@ -248,6 +255,14 @@ export class LumiIDAdapter implements ProviderAdapter {
    */
   private resolveEndpoints(serviceType: string): { primary: string; fallbacks: string[]; payloadKey: string } {
     const sType = serviceType.toUpperCase().replace(/[^A-Z0-9_]/g, "_");
+
+    if (sType.includes("PHONE") || sType.includes("TELCO")) {
+      return {
+        primary: "/ng/phone",
+        fallbacks: ["/phone/verify", "/phone/lookup", "/ng/phone-lookup"],
+        payloadKey: "phone",
+      };
+    }
 
     if (sType.includes("NIN")) {
       return {
@@ -296,14 +311,6 @@ export class LumiIDAdapter implements ProviderAdapter {
         primary: "/ng/tin",
         fallbacks: ["/tin/verify", "/ng/tax", "/tax/verify"],
         payloadKey: "tin",
-      };
-    }
-
-    if (sType.includes("PHONE") || sType.includes("TELCO")) {
-      return {
-        primary: "/ng/phone",
-        fallbacks: ["/phone/verify", "/phone/lookup", "/ng/phone-lookup"],
-        payloadKey: "phone",
       };
     }
 

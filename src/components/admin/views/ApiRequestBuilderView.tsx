@@ -368,14 +368,14 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border ${
+            className={`fixed top-6 right-6 z-50 px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 border font-semibold text-white ${
               toastMessage.type === "success"
-                ? "bg-emerald-950/90 text-emerald-200 border-emerald-700"
-                : "bg-red-950/90 text-red-200 border-red-700"
+                ? "bg-emerald-700 text-white border-emerald-500"
+                : "bg-red-700 text-white border-red-500"
             }`}
           >
-            {toastMessage.type === "success" ? <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" /> : <AlertTriangle className="h-5 w-5 text-red-400 shrink-0" />}
-            <span className="text-sm font-medium">{toastMessage.text}</span>
+            {toastMessage.type === "success" ? <CheckCircle2 className="h-5 w-5 text-emerald-200 shrink-0" /> : <AlertTriangle className="h-5 w-5 text-red-200 shrink-0" />}
+            <span className="text-sm font-semibold">{toastMessage.text}</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -751,7 +751,7 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
                     type="text"
                     value={activeRequest.authorizationHeader || ""}
                     onChange={(e) => setActiveRequest({ ...activeRequest, authorizationHeader: e.target.value })}
-                    placeholder="e.g. Bearer REDACTED or Basic dXNlcjpwYXNz"
+                    placeholder="e.g. Bearer YOUR_API_KEY_HERE or Basic dXNlcjpwYXNz"
                     className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-white font-mono focus:outline-none focus:border-[#0F2D5C]"
                   />
                 </div>

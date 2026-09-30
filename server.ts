@@ -7,6 +7,7 @@ import path from "path";
 import fs from "fs";
 import helmet from "helmet";
 import compression from "compression";
+import rateLimit from "express-rate-limit";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
 
@@ -58,18 +59,28 @@ export {
 dotenv.config();
 
 const app = express();
-app.use(compression());
+app.set("trust proxy", 1);
+app.disable("x-powered-by");
+app.use(compression() as any);
 const PORT = 3000;
 
-// Security Headers
+// Security Headers: Hardened configuration while maintaining iFrame compatibility
 app.use(helmet({
-  frameguard: false,
-  contentSecurityPolicy: false,
+  frameguard: false, // Required for AI Studio preview iframe embedding
+  contentSecurityPolicy: false, // Allows Vite development HMR and cross-origin public CDNs
   crossOriginOpenerPolicy: false,
   crossOriginResourcePolicy: false,
+  xContentTypeOptions: true,
+  dnsPrefetchControl: { allow: false },
+  referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+  hsts: process.env.NODE_ENV === "production" ? {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true,
+  } : false,
 }));
 
-// CORS setup for custom domains smartlinkng.com.ng and Render subdomains
+// CORS setup: Strict validation for trusted domains, preview environments, and local dev
 app.use((req, res, next) => {
   const allowedOrigins = [
     "https://smartlinkng.com.ng",
@@ -79,19 +90,98 @@ app.use((req, res, next) => {
   ];
   const origin = req.headers.origin;
   if (origin) {
-    if (allowedOrigins.includes(origin) || origin.includes("onrender.com") || process.env.NODE_ENV !== "production") {
+    const isAllowed =
+      allowedOrigins.includes(origin) ||
+      origin.endsWith(".onrender.com") ||
+      origin.endsWith(".run.app") ||
+      origin.includes("localhost") ||
+      origin.includes("127.0.0.1") ||
+      process.env.NODE_ENV !== "production";
+
+    if (isAllowed) {
       res.setHeader("Access-Control-Allow-Origin", origin);
-    } else {
-      res.setHeader("Access-Control-Allow-Origin", origin);
+      res.setHeader("Vary", "Origin");
     }
   }
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, x-admin-token");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, x-admin-token, x-internal-secret");
   if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
+    return res.sendStatus(204);
   }
   next();
 });
+
+// Tiered Rate Limiters for DDoS, Brute-Force, and Abuse Protection
+const generalApiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 500, // 500 requests per 15 minutes per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  validate: { trustProxy: false },
+  message: {
+    success: false,
+    error: "Too many requests. Please slow down and try again shortly.",
+    errorCode: "RATE_LIMIT_EXCEEDED"
+  }
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // 20 attempts per 15 minutes
+  standardHeaders: true,
+  legacyHeaders: false,
+  validate: { trustProxy: false },
+  message: {
+    success: false,
+    error: "Too many authentication attempts. Please try again after 15 minutes.",
+    errorCode: "AUTH_RATE_LIMIT_EXCEEDED"
+  }
+});
+
+const aiLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 minutes
+  max: 30, // 30 queries per 10 minutes
+  standardHeaders: true,
+  legacyHeaders: false,
+  validate: { trustProxy: false },
+  message: {
+    success: false,
+    error: "AI service rate limit reached. Please wait a few minutes before sending more messages.",
+    errorCode: "AI_RATE_LIMIT_EXCEEDED"
+  }
+});
+
+const transactionLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 60, // 60 transactions/verifications per minute
+  standardHeaders: true,
+  legacyHeaders: false,
+  validate: { trustProxy: false },
+  message: {
+    success: false,
+    error: "Transaction rate limit reached. Please wait a moment before trying again.",
+    errorCode: "TX_RATE_LIMIT_EXCEEDED"
+  }
+});
+
+// Mount Rate Limiters
+app.use("/api", generalApiLimiter);
+app.use([
+  "/api/auth/login",
+  "/api/auth/register",
+  "/api/auth/otp",
+  "/api/auth/forgot-password",
+  "/api/auth/reset-password",
+  "/api/admin/auth/login"
+], authLimiter);
+app.use("/api/ai", aiLimiter);
+app.use([
+  "/api/bills/pay",
+  "/api/services/vtu",
+  "/api/services/bill",
+  "/api/transaction/execute",
+  "/api/verify"
+], transactionLimiter);
 
 // JSON and URL-encoded body parser with generous limit for document attachments
 app.use(

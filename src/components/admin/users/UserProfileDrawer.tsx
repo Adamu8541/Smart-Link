@@ -131,7 +131,7 @@ export function UserProfileDrawer({
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-xl bg-[#111827] text-[#9CA3AF] hover:text-white cursor-pointer"
+              className=" p-2 rounded-xl cursor-pointer"
             >
               <X className="h-5 w-5" />
             </button>
@@ -144,21 +144,21 @@ export function UserProfileDrawer({
                 <button
                   type="button"
                   onClick={() => onOpenEdit(user)}
-                  className="px-3 py-1.5 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer"
+                  className=" px-3 py-1.5 text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer"
                 >
                   Edit Profile
                 </button>
                 <button
                   type="button"
                   onClick={() => onOpenWallet(user)}
-                  className="px-3 py-1.5 bg-[#0F2D5C] border border-[#0F2D5C] text-[#9CA3AF] hover:bg-[#0F2D5C] text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer"
+                  className=" px-3 py-1.5 border border-[#0F2D5C] text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer"
                 >
                   <Wallet className="h-3.5 w-3.5" /> Adjust Balance
                 </button>
                 <button
                   type="button"
                   onClick={() => onOpenNotify(user)}
-                  className="px-3 py-1.5 bg-[#0F2D5C] border border-[#0F2D5C] text-[#9CA3AF] hover:bg-[#0F2D5C] text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer"
+                  className=" px-3 py-1.5 border border-[#0F2D5C] text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer"
                 >
                   <Bell className="h-3.5 w-3.5" /> Direct Alert
                 </button>
@@ -169,7 +169,7 @@ export function UserProfileDrawer({
                   <button
                     type="button"
                     onClick={() => onOpenStatus(user, "SUSPENDED")}
-                    className="px-3 py-1.5 bg-[#0F2D5C] border border-[#0F2D5C] text-[#9CA3AF] hover:bg-[#0F2D5C] text-xs font-bold rounded-xl cursor-pointer"
+                    className=" px-3 py-1.5 border border-[#0F2D5C] text-xs font-bold rounded-xl cursor-pointer"
                   >
                     Suspend User
                   </button>
@@ -177,7 +177,7 @@ export function UserProfileDrawer({
                   <button
                     type="button"
                     onClick={() => onOpenStatus(user, "ACTIVE")}
-                    className="px-3 py-1.5 bg-[#0F2D5C] border border-[#0F2D5C] text-[#9CA3AF] hover:bg-[#0F2D5C] text-xs font-bold rounded-xl cursor-pointer"
+                    className=" px-3 py-1.5 border border-[#0F2D5C] text-xs font-bold rounded-xl cursor-pointer"
                   >
                     Activate User
                   </button>
@@ -200,7 +200,7 @@ export function UserProfileDrawer({
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`py-3 border-b-2 cursor-pointer transition-colors whitespace-nowrap ${
+                className={`py-3 border-b-2 cursor-pointer transition-colors whitespace-nowrap${
                   activeTab === tab.id
                     ? "border-[#0F2D5C] text-[#9CA3AF]"
                     : "border-transparent text-[#9CA3AF] hover:text-[#E5E7EB]"
@@ -212,7 +212,7 @@ export function UserProfileDrawer({
           </div>
 
           {/* Drawer Body Content */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-slate-800">
+          <div className=" flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-slate-800">
             {loading && (
               <div className="py-20 flex flex-col items-center justify-center space-y-3 text-[#9CA3AF]">
                 <RefreshCw className="h-8 w-8 animate-spin text-[#0F2D5C]" />
@@ -312,7 +312,7 @@ export function UserProfileDrawer({
                         <button
                           type="button"
                           onClick={() => onOpenWallet(user)}
-                          className="px-3 py-1 bg-[#0F2D5C] border border-[#0F2D5C] text-[#9CA3AF] font-bold rounded-lg cursor-pointer text-[11px]"
+                          className=" px-3 py-1 border border-[#0F2D5C] font-bold rounded-lg cursor-pointer text-[11px]"
                         >
                           + Ledger Credit / Debit
                         </button>

@@ -319,6 +319,15 @@ app.post("/api/transaction/execute", async (req, res) => {
   const totalCost = derivedAmount + derivedCharge;
   const balanceBefore = user.walletBalance || 0;
 
+  // Strict Pre-Execution Solvency Check: Never call external provider if wallet cannot afford transaction
+  if (serviceUpper !== "WALLET_FUNDING" && balanceBefore < totalCost) {
+    return res.status(400).json({
+      success: false,
+      error: `Insufficient wallet balance. Available: ₦${balanceBefore.toLocaleString()}, Required: ₦${totalCost.toLocaleString()}`,
+      errorCode: "INSUFFICIENT_FUNDS"
+    });
+  }
+
   // 3. Provider Execution & Verification (Only verified provider result may mark transaction successful)
   let txnStatus: "SUCCESSFUL" | "FAILED" = "FAILED";
   let failureReason: string | undefined = undefined;

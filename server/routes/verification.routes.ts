@@ -27,6 +27,7 @@ import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/se
 import { sendPlatformEmail } from "../services/email.service";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
 import { LumiIDAdapter } from "../../src/services/providers/lumiidAdapter";
+import { PrembleyAdapter } from "../../src/services/providers/prembleyAdapter";
 import { MultiProviderRoutingEngine } from "../../src/services/multiProviderRoutingEngine";
 import { syncFromStorage, syncToStorage } from "../../src/services/settingsStore";
 import * as usersStore from "../../src/services/usersStore";
@@ -145,49 +146,65 @@ app.post("/api/verify/identity", async (req, res) => {
   const reference = `SML-VER-${type}-${Math.floor(100000 + Math.random() * 900000)}`;
   const txType = type === "NIN" ? "NIN_VERIFICATION" : "BVN_VERIFICATION";
 
-  // 1. Call real identity verification provider before debiting
-  const providerResult = await ProviderExecutor.executeProviderCall(db, {
-    category: "IDENTITY_API",
-    providerName: req.body.provider || undefined,
-    customerId: idNumber,
+  // Pre-execution solvency check: Verify wallet balance before consuming 3rd party provider credits
+  const userRecord = await usersStore.getUserById(effectiveUserId);
+  if (!userRecord) return res.status(404).json({ error: "User account not found." });
+  if (userRecord.status === "SUSPENDED") return res.status(403).json({ error: "Account is suspended." });
+  const userBal = Number(userRecord.walletBalance) || 0;
+  if (userBal < verificationFee) {
+    return res.status(400).json({
+      error: `Insufficient wallet balance. Fee: ₦${verificationFee.toLocaleString()}, Available: ₦${userBal.toLocaleString()}`,
+      errorCode: "INSUFFICIENT_FUNDS"
+    });
+  }
+
+  // 1. Call real identity verification provider based on the service rendered
+  const portalResult = await MultiProviderRoutingEngine.executeWithFailover(db, {
+    service: type,
+    targetId: idNumber,
     userId: effectiveUserId,
     amount: verificationFee,
     smartlinkReference: reference,
-    extraData: { idNumber, fullName, type, faceImage },
+    extraData: { idNumber, fullName, type, faceImage, consent: true },
+    preferredProviderId: req.body.provider || req.body.providerId || req.body.preferredProvider || undefined,
   });
 
-  if (!providerResult.success) {
-    const isNoProvider = providerResult.error?.includes("No active provider configured");
+  if (!portalResult.success) {
+    const isNoProvider = portalResult.error?.includes("No active provider configured") || portalResult.error?.includes("not configured");
     return res.status(isNoProvider ? 400 : 422).json({
       error: isNoProvider
         ? "Identity verification provider not configured."
-        : (providerResult.error || "Verification provider could not confirm this record."),
+        : (portalResult.error || "Verification provider could not confirm this record."),
       errorCode: isNoProvider ? "PROVIDER_NOT_CONFIGURED" : "PROVIDER_FAILED",
-      details: providerResult.error,
+      details: portalResult.error,
+      wasFailedOver: portalResult.wasFailedOver,
+      failoverChain: portalResult.failoverChain,
     });
   }
+
+  const resolvedProviderName = portalResult.providerName || "Identity Verification Portal";
 
   // 2. Debit wallet only after provider verification succeeds
   let debitRes;
   try {
     debitRes = await ServerWalletEngine.debitWallet(db, {
-      userId,
+      userId: effectiveUserId,
       amount: verificationFee,
       serviceName: `${type} Identity Verification`,
-      provider: providerResult.providerName || "Identity Verification Portal",
+      provider: resolvedProviderName,
       description: `KYC Identity Verification: ${type} Lookup`,
       reference,
       recipientDetails: `${type}: ${idNumber}`,
       type: txType,
-      providerReference: providerResult.providerReference || providerResult.transactionId,
-      rawResponse: providerResult.rawResponse,
+      providerReference: portalResult.providerReference || portalResult.transactionId,
+      rawResponse: portalResult.data,
     });
   } catch (err: any) {
     return res.status(400).json({ error: err.message || "Identity verification payment failed" });
   }
 
   // 3. Map verified data directly from provider's real response
-  const rawData = providerResult.rawResponse?.data || providerResult.rawResponse || {};
+  const rawData = portalResult.data || {};
   const verificationData = {
     idNumber: rawData.idNumber || rawData.nin || rawData.bvn || idNumber,
     fullName: rawData.fullName || rawData.name || [rawData.firstName, rawData.lastName].filter(Boolean).join(" ") || fullName || "",
@@ -197,8 +214,8 @@ app.post("/api/verify/identity", async (req, res) => {
     localGov: rawData.localGov || rawData.lga || "",
     photoUrl: normalizePhotoUrl(rawData.photoUrl || rawData.photo || rawData.image || faceImage || ""),
     status: rawData.status || "VERIFIED_ACTIVE",
-    verificationLog: rawData.verificationLog || "Identity verified via active KYC Portal.",
-    rawResponse: providerResult.rawResponse,
+    verificationLog: rawData.verificationLog || `Identity verified via active KYC Portal (${resolvedProviderName}).`,
+    rawResponse: portalResult.data,
   };
 
   writeDB(db);
@@ -207,7 +224,7 @@ app.post("/api/verify/identity", async (req, res) => {
     verification: verificationData,
     balance: debitRes.wallet.currentBalance,
     reference,
-    providerReference: providerResult.providerReference,
+    providerReference: portalResult.providerReference,
   });
 });
 
@@ -542,6 +559,23 @@ app.post("/api/verify/engine", async (req, res) => {
     const reference = `SML-VER-${Math.floor(100000 + Math.random() * 900000)}`;
     const receiptNumber = `REC-${reference}`;
 
+    // Pre-execution solvency check: Verify wallet balance before consuming provider API quota
+    const userRecord = await usersStore.getUserById(effectiveUserId);
+    if (!userRecord) return res.status(404).json({ error: "User account not found.", errorCode: "USER_NOT_FOUND" });
+    if (userRecord.status === "SUSPENDED") return res.status(403).json({ error: "Account is suspended.", errorCode: "ACCOUNT_SUSPENDED" });
+    const userBal = Number(userRecord.walletBalance) || 0;
+    if (userBal < serviceFee) {
+      return res.status(400).json({
+        error: `Insufficient wallet balance. Fee: ₦${serviceFee.toLocaleString()}, Available: ₦${userBal.toLocaleString()}`,
+        errorCode: "INSUFFICIENT_FUNDS",
+        friendlyMessage: "Insufficient Wallet Balance"
+      });
+    }
+
+    const isDemographics = sType.includes("DEMOGRAPHY") || sType.includes("DEMOGRAPHICS") || extraFields.searchMethod === "BY_DEMOGRAPHICS" || extraFields.searchMethod === "BY_BVN_DEMOGRAPHICS" || (extraFields.firstName && extraFields.dateOfBirth);
+    const isNinPhone = sType === "NIN_PHONE" || sType === "PHONE_NIN" || (sType === "PHONE" && extraFields.searchMethod === "BY_PHONE_NUMBER") || extraFields.searchMethod === "BY_PHONE_NUMBER";
+    const isBvnPhone = sType === "BVN_PHONE" || (sType === "BVN" && (extraFields.searchMethod === "BY_PHONE" || extraFields.searchMethod === "BY_PHONE_NUMBER" || (targetId && String(targetId).startsWith("0"))));
+
     // Execute verification via MultiProviderRoutingEngine with real connected providers
     const portalResult = await MultiProviderRoutingEngine.executeWithFailover(db, {
       service: sType,
@@ -554,7 +588,22 @@ app.post("/api/verify/engine", async (req, res) => {
         ...extraFields,
         service: sType,
         targetId,
-        ...(sType === "BVN" ? {
+        firstName: extraFields.firstName,
+        lastName: extraFields.lastName,
+        surname: extraFields.lastName || extraFields.surname,
+        gender: extraFields.gender,
+        dateOfBirth: extraFields.dateOfBirth || extraFields.dob,
+        dob: extraFields.dateOfBirth || extraFields.dob,
+        phoneNumber: extraFields.phoneNumber || targetId,
+        phone: extraFields.phoneNumber || targetId,
+        ...(sType === "NIN" && !isDemographics && !isNinPhone ? {
+          nin: targetId,
+          id_number: targetId,
+          idNumber: targetId,
+          national_identity_number: targetId,
+          search_value: targetId,
+        } : {}),
+        ...(sType === "BVN" && !isBvnPhone && !isDemographics ? {
           bvn: targetId,
           id_number: targetId,
           idNumber: targetId,
@@ -562,23 +611,51 @@ app.post("/api/verify/engine", async (req, res) => {
           bvn_number: targetId,
           search_value: targetId,
         } : {}),
+        ...(sType === "TIN" || sType === "TAX" ? {
+          tinNumber: targetId,
+          registrationNumber: targetId,
+          rcNumber: extraFields.rcNumber || targetId,
+          tin: targetId,
+        } : {}),
         consent: extraFields.consent === true || extraFields.consent === "true" || req.body.consent === true,
       },
-      preferredProviderId: req.body.providerId || req.body.preferredProvider,
+      preferredProviderId: req.body.providerId || req.body.preferredProvider || req.body.provider || undefined,
     });
 
     if (!portalResult.success) {
-      const isConfigMissing = (portalResult.error || "").toLowerCase().includes("not configured") ||
-        (portalResult.error || "").toLowerCase().includes("credentials need verification") ||
-        (portalResult.error || "").toLowerCase().includes("api key") ||
-        (portalResult.error || "").toLowerCase().includes("secret key");
+      const rawError = portalResult.error || "";
+      const isGatewayLowBalance =
+        rawError.toLowerCase().includes("insufficient wallet balance") ||
+        rawError.toLowerCase().includes("merchant account low balance") ||
+        rawError.toLowerCase().includes("gateway merchant") ||
+        rawError.toLowerCase().includes("gateway low balance") ||
+        rawError.toLowerCase().includes("prembley gateway");
+
+      const isConfigMissing =
+        rawError.toLowerCase().includes("not configured") ||
+        rawError.toLowerCase().includes("credentials need verification") ||
+        rawError.toLowerCase().includes("api key") ||
+        rawError.toLowerCase().includes("secret key");
+
       return res.status(isConfigMissing ? 400 : 422).json({
-        error: portalResult.error || "Verification portals failed to confirm this identity record.",
-        errorCode: isConfigMissing ? "PORTAL_CONFIG_REQUIRED" : "PORTAL_VERIFICATION_FAILED",
-        friendlyMessage: isConfigMissing ? "Identity Portal Not Configured" : `${sType} Verification Failed`,
-        details: isConfigMissing
-          ? "No active Identity API credentials configured. Please navigate to Admin Dashboard > API Providers to set your LumiID, Identro, or VerifyNG API credentials."
-          : portalResult.error,
+        error: isGatewayLowBalance
+          ? "Prembley Gateway Merchant Low Balance: The upstream Prembley provider API account has insufficient merchant credit (₦0.00). Your SmartLink user wallet is unaffected and was not charged. Please top up your Prembley merchant account on prembly.com or switch provider in Admin Dashboard."
+          : portalResult.error || "Verification portals failed to confirm this identity record.",
+        errorCode: isGatewayLowBalance
+          ? "PROVIDER_MERCHANT_LOW_BALANCE"
+          : isConfigMissing
+            ? "PORTAL_CONFIG_REQUIRED"
+            : "PORTAL_VERIFICATION_FAILED",
+        friendlyMessage: isGatewayLowBalance
+          ? "Prembley Gateway Low Balance"
+          : isConfigMissing
+            ? "Identity Portal Not Configured"
+            : `${sType} Verification Failed`,
+        details: isGatewayLowBalance
+          ? "The upstream Prembley provider API account has insufficient funds (₦0.00) to fulfill this verification request. Your personal SmartLink wallet was NOT debited. Please top up your Prembley merchant account at prembly.com or configure another provider in the Admin Multi-Provider Matrix."
+          : isConfigMissing
+            ? "No active provider is configured or selected for this service. Please navigate to Admin Dashboard > Multi-Provider Matrix to configure a provider, or select a provider."
+            : portalResult.error,
         wasFailedOver: portalResult.wasFailedOver,
         failoverChain: portalResult.failoverChain,
       });
@@ -803,7 +880,7 @@ app.post("/api/services/nin-verify", async (req, res) => {
   const reference = `SML-VER-NIN-${Math.floor(100000 + Math.random() * 900000)}`;
   const receiptNumber = `REC-${reference}`;
 
-  // Execute verification via MultiProviderRoutingEngine with real connected providers (LumiID, VerifyNG, Identro)
+  // Execute verification via MultiProviderRoutingEngine with real connected providers (LumiID, Identro)
   const portalResult = await MultiProviderRoutingEngine.executeWithFailover(db, {
     service: "NIN",
     targetId: cleanNin,
@@ -1019,7 +1096,7 @@ app.post("/api/services/bvn-verify", async (req, res) => {
   const reference = `SML-VER-BVN-${Math.floor(100000 + Math.random() * 900000)}`;
   const receiptNumber = `REC-${reference}`;
 
-  // Execute verification via MultiProviderRoutingEngine with real connected providers (LumiID, VerifyNG, Identro)
+  // Execute verification via MultiProviderRoutingEngine with real connected providers (LumiID, Identro)
   const portalResult = await MultiProviderRoutingEngine.executeWithFailover(db, {
     service: "BVN",
     targetId: cleanBvn,
@@ -1040,7 +1117,7 @@ app.post("/api/services/bvn-verify", async (req, res) => {
       verificationType: "BVN",
       consent: Boolean(consent),
     },
-    preferredProviderId: req.body.providerId || req.body.provider || req.body.preferredProvider,
+    preferredProviderId: req.body.providerId || req.body.provider || req.body.preferredProvider || undefined,
   });
 
   if (!portalResult.success) {
@@ -1219,10 +1296,13 @@ app.post("/api/services/cac-verify", async (req, res) => {
   const cleanRegNo = (registrationNumber || "").replace(/\s+/g, " ").trim();
   const cleanBizName = (businessName || "").trim();
 
-  if (verificationType === "BUSINESS_NAME") {
-    if (!cleanBizName || cleanBizName.length < 3) {
+  const isNameSearch = verificationType === "BUSINESS_NAME" || verificationType === "CAC_NAME_SEARCH" || verificationType === "CAC_COMPANY_SEARCH";
+
+  if (isNameSearch) {
+    const targetSearch = cleanBizName || cleanRegNo;
+    if (!targetSearch || targetSearch.length < 3) {
       return res.status(400).json({
-        error: "Business Name must be at least 3 characters.",
+        error: "Business or Company Name must be at least 3 characters.",
         errorCode: "INVALID_INPUT",
         friendlyMessage: "Invalid Business Name",
       });
@@ -1230,7 +1310,7 @@ app.post("/api/services/cac-verify", async (req, res) => {
   } else {
     if (!cleanRegNo || cleanRegNo.length < 3) {
       return res.status(400).json({
-        error: "CAC Registration Number must be at least 3 characters.",
+        error: "CAC Registration Number must be at least 3 characters (e.g. RC1234567, BN2345678).",
         errorCode: "INVALID_INPUT",
         friendlyMessage: "Invalid Registration Number",
       });
@@ -1247,38 +1327,63 @@ app.post("/api/services/cac-verify", async (req, res) => {
 
   const fee = 1000;
   const reference = `SML-VER-CAC-${Math.floor(100000 + Math.random() * 900000)}`;
-  const targetId = verificationType === "BUSINESS_NAME" ? cleanBizName : cleanRegNo;
+  const targetId = isNameSearch ? (cleanBizName || cleanRegNo) : cleanRegNo;
 
-  // 1. Call real identity verification provider before debiting
-  const providerResult = await ProviderExecutor.executeProviderCall(db, {
-    category: "IDENTITY_API",
-    providerName: req.body.provider || undefined,
-    customerId: targetId,
-    userId,
-    amount: fee,
-    smartlinkReference: reference,
-    extraData: { registrationNumber: cleanRegNo, businessName: cleanBizName, verificationType, referenceNote, verificationPurpose },
-  });
-
-  if (!providerResult.success) {
-    const isNoProvider = providerResult.error?.includes("No active provider configured");
-    return res.status(isNoProvider ? 400 : 422).json({
-      error: isNoProvider
-        ? "Identity verification provider not configured."
-        : (providerResult.error || "Verification provider could not confirm this record."),
-      errorCode: isNoProvider ? "PROVIDER_NOT_CONFIGURED" : "PROVIDER_FAILED",
-      friendlyMessage: isNoProvider ? "Identity Provider Not Configured" : "CAC Verification Failed",
-      details: providerResult.error,
+  // Pre-execution solvency check: Verify wallet balance before consuming provider API quota
+  const userRecord = await usersStore.getUserById(effectiveUserId);
+  if (!userRecord) return res.status(404).json({ error: "User account not found.", errorCode: "USER_NOT_FOUND" });
+  if (userRecord.status === "SUSPENDED") return res.status(403).json({ error: "Account is suspended.", errorCode: "ACCOUNT_SUSPENDED" });
+  const userBal = Number(userRecord.walletBalance) || 0;
+  if (userBal < fee) {
+    return res.status(400).json({
+      error: `Insufficient wallet balance. Fee: ₦${fee.toLocaleString()}, Available: ₦${userBal.toLocaleString()}`,
+      errorCode: "INSUFFICIENT_FUNDS",
+      friendlyMessage: "Insufficient Wallet Balance"
     });
   }
 
-  const resolvedProviderName = providerResult.providerName || "CAC Enterprise Portal";
+  // 1. Call real CAC identity verification provider using MultiProviderRoutingEngine (Prioritizing Identro)
+  const portalResult = await MultiProviderRoutingEngine.executeWithFailover(db, {
+    service: "CAC",
+    targetId,
+    userId: effectiveUserId,
+    userEmail: req.body.email || "",
+    amount: fee,
+    smartlinkReference: reference,
+    extraData: {
+      registrationNumber: cleanRegNo,
+      businessName: cleanBizName || cleanRegNo,
+      companyName: cleanBizName || cleanRegNo,
+      verificationType,
+      referenceNote,
+      verificationPurpose,
+      consent: Boolean(consent),
+      rcNumber: cleanRegNo,
+    },
+    preferredProviderId: req.body.providerId || req.body.provider || req.body.preferredProvider || undefined,
+  });
+
+  if (!portalResult.success) {
+    const isNoProvider = portalResult.error?.includes("No active provider configured") || portalResult.error?.includes("not configured");
+    return res.status(isNoProvider ? 400 : 422).json({
+      error: isNoProvider
+        ? "Identity verification provider not configured."
+        : (portalResult.error || "Verification provider could not confirm this record."),
+      errorCode: isNoProvider ? "PROVIDER_NOT_CONFIGURED" : "PROVIDER_FAILED",
+      friendlyMessage: isNoProvider ? "Identity Provider Not Configured" : "CAC Verification Failed",
+      details: portalResult.error,
+      wasFailedOver: portalResult.wasFailedOver,
+      failoverChain: portalResult.failoverChain,
+    });
+  }
+
+  const resolvedProviderName = portalResult.providerName || "CAC Enterprise Portal";
 
   // 2. Debit wallet only after provider verification succeeds
   let debitRes;
   try {
     debitRes = await ServerWalletEngine.debitWallet(db, {
-      userId,
+      userId: effectiveUserId,
       amount: fee,
       serviceName: "CAC Business Verification (CAC National)",
       provider: resolvedProviderName,
@@ -1287,8 +1392,8 @@ app.post("/api/services/cac-verify", async (req, res) => {
       fee: 0,
       recipientDetails: `CAC Query: ${verificationType === "BUSINESS_NAME" ? cleanBizName : cleanRegNo}`,
       type: "CAC_VERIFICATION",
-      providerReference: providerResult.providerReference || providerResult.transactionId,
-      rawResponse: providerResult.rawResponse,
+      providerReference: portalResult.providerReference || portalResult.transactionId,
+      rawResponse: portalResult.data,
     });
   } catch (err: any) {
     return res.status(400).json({
@@ -1303,7 +1408,7 @@ app.post("/api/services/cac-verify", async (req, res) => {
     : targetId;
 
   // 3. Extract real verified data from provider's response
-  const rawData = providerResult.rawResponse?.data || providerResult.rawResponse || {};
+  const rawData = portalResult.data || {};
   const verifiedData: any = {
     ...rawData,
     companyName: rawData.companyName || rawData.name || rawData.businessName || cleanBizName || "",
@@ -1330,15 +1435,15 @@ app.post("/api/services/cac-verify", async (req, res) => {
     verificationPurpose,
     referenceNote,
     verificationsPassed: rawData.verificationsPassed || ["CAC Corporate Register Match"],
-    rawResponse: providerResult.rawResponse,
+    rawResponse: portalResult.data,
   };
 
   const receiptNumber = `REC-${reference}`;
-  const responseTime = providerResult.responseTimeMs || Math.max(180, Date.now() - startTime);
+  const responseTime = portalResult.responseTimeMs || Math.max(180, Date.now() - startTime);
 
   const historyItem = {
     id: `ver_${Math.random().toString(36).substring(2, 9)}`,
-    userId,
+    userId: effectiveUserId,
     userEmail: debitRes.wallet.userEmail || "",
     service: "CAC",
     serviceTitle: "CAC Business Verification",
@@ -1363,8 +1468,8 @@ app.post("/api/services/cac-verify", async (req, res) => {
     receiptId: receiptNumber,
     reference,
     smartlinkReference: reference,
-    providerReference: providerResult.providerReference || `CAC-GW-${Math.floor(100000 + Math.random() * 900000)}`,
-    userId,
+    providerReference: portalResult.providerReference || `CAC-GW-${Math.floor(100000 + Math.random() * 900000)}`,
+    userId: effectiveUserId,
     service: "CAC",
     serviceTitle: "CAC Business Verification",
     amountPaid: fee,
@@ -1430,6 +1535,7 @@ app.post("/api/services/tin-verify", async (req, res) => {
     tinNumber = "",
     businessName = "",
     rcNumber = "",
+    phoneNumber = "",
     consent,
     referenceNote = "",
     verificationPurpose = "Tax Compliance & Filing Audit",
@@ -1446,6 +1552,7 @@ app.post("/api/services/tin-verify", async (req, res) => {
   const cleanTin = (tinNumber || "").replace(/\s+/g, "").trim();
   const cleanBizName = (businessName || "").trim();
   const cleanRc = (rcNumber || "").replace(/\s+/g, "").trim();
+  const cleanPhone = (phoneNumber || "").replace(/\s+/g, "").trim();
 
   if (verificationType === "VERIFY_BY_TIN") {
     if (!cleanTin || cleanTin.length < 5) {
@@ -1471,6 +1578,14 @@ app.post("/api/services/tin-verify", async (req, res) => {
         friendlyMessage: "Invalid RC Number",
       });
     }
+  } else if (verificationType === "VERIFY_BY_PHONE") {
+    if (!cleanPhone || cleanPhone.length < 10) {
+      return res.status(400).json({
+        error: "Valid Nigerian Phone Number is required for TIN retrieval.",
+        errorCode: "INVALID_INPUT",
+        friendlyMessage: "Invalid Phone Number",
+      });
+    }
   }
 
   if (!consent) {
@@ -1487,40 +1602,70 @@ app.post("/api/services/tin-verify", async (req, res) => {
   const targetId =
     verificationType === "VERIFY_BY_TIN"
       ? cleanTin
+      : verificationType === "VERIFY_BY_RC_NUMBER"
+      ? cleanRc
       : verificationType === "VERIFY_BY_BUSINESS_NAME"
       ? cleanBizName
-      : cleanRc;
+      : cleanPhone;
 
-  // 1. Call real identity verification provider before debiting
-  const providerResult = await ProviderExecutor.executeProviderCall(db, {
-    category: "IDENTITY_API",
-    providerName: req.body.provider || undefined,
-    customerId: targetId,
-    userId,
-    amount: fee,
-    smartlinkReference: reference,
-    extraData: { tinNumber: cleanTin, businessName: cleanBizName, rcNumber: cleanRc, verificationType, referenceNote, verificationPurpose },
-  });
-
-  if (!providerResult.success) {
-    const isNoProvider = providerResult.error?.includes("No active provider configured");
-    return res.status(isNoProvider ? 400 : 422).json({
-      error: isNoProvider
-        ? "Identity verification provider not configured."
-        : (providerResult.error || "Verification provider could not confirm this record."),
-      errorCode: isNoProvider ? "PROVIDER_NOT_CONFIGURED" : "PROVIDER_FAILED",
-      friendlyMessage: isNoProvider ? "Identity Provider Not Configured" : "TIN Verification Failed",
-      details: providerResult.error,
+  // Pre-execution solvency check: Verify wallet balance before consuming provider API quota
+  const userRecord = await usersStore.getUserById(effectiveUserId);
+  if (!userRecord) return res.status(404).json({ error: "User account not found.", errorCode: "USER_NOT_FOUND" });
+  if (userRecord.status === "SUSPENDED") return res.status(403).json({ error: "Account is suspended.", errorCode: "ACCOUNT_SUSPENDED" });
+  const userBal = Number(userRecord.walletBalance) || 0;
+  if (userBal < fee) {
+    return res.status(400).json({
+      error: `Insufficient wallet balance. Fee: ₦${fee.toLocaleString()}, Available: ₦${userBal.toLocaleString()}`,
+      errorCode: "INSUFFICIENT_FUNDS",
+      friendlyMessage: "Insufficient Wallet Balance"
     });
   }
 
-  const resolvedProviderName = providerResult.providerName || "Joint Tax Board (JTB) Portal";
+  // 1. Call real TIN identity verification provider via MultiProviderRoutingEngine
+  const portalResult = await MultiProviderRoutingEngine.executeWithFailover(db, {
+    service: "TIN",
+    targetId,
+    userId: effectiveUserId,
+    userEmail: req.body.email || "",
+    amount: fee,
+    smartlinkReference: reference,
+    extraData: {
+      tinNumber: cleanTin,
+      businessName: cleanBizName,
+      rcNumber: cleanRc,
+      phoneNumber: cleanPhone,
+      phone: cleanPhone,
+      registrationNumber: cleanTin || cleanRc || cleanBizName || targetId,
+      verificationType,
+      serviceType: verificationType === "VERIFY_BY_PHONE" ? "TIN_RETRIEVAL" : "TIN_VALIDATION",
+      referenceNote,
+      verificationPurpose,
+      consent: Boolean(consent),
+    },
+    preferredProviderId: req.body.providerId || req.body.provider || req.body.preferredProvider || undefined,
+  });
+
+  if (!portalResult.success) {
+    const isNoProvider = portalResult.error?.includes("No active provider configured") || portalResult.error?.includes("not configured");
+    return res.status(isNoProvider ? 400 : 422).json({
+      error: isNoProvider
+        ? "Identity verification provider not configured."
+        : (portalResult.error || "Verification provider could not confirm this record."),
+      errorCode: isNoProvider ? "PROVIDER_NOT_CONFIGURED" : "PROVIDER_FAILED",
+      friendlyMessage: isNoProvider ? "Identity Provider Not Configured" : "TIN Verification Failed",
+      details: portalResult.error,
+      wasFailedOver: portalResult.wasFailedOver,
+      failoverChain: portalResult.failoverChain,
+    });
+  }
+
+  const resolvedProviderName = portalResult.providerName || "Joint Tax Board (JTB) Portal";
 
   // 2. Debit wallet only after provider verification succeeds
   let debitRes;
   try {
     debitRes = await ServerWalletEngine.debitWallet(db, {
-      userId,
+      userId: effectiveUserId,
       amount: fee,
       serviceName: "TIN Tax Verification (JTB / FIRS)",
       provider: resolvedProviderName,
@@ -1529,8 +1674,8 @@ app.post("/api/services/tin-verify", async (req, res) => {
       fee: 0,
       recipientDetails: `TIN Query: ${targetId}`,
       type: "TIN_VERIFICATION",
-      providerReference: providerResult.providerReference || providerResult.transactionId,
-      rawResponse: providerResult.rawResponse,
+      providerReference: portalResult.providerReference || portalResult.transactionId,
+      rawResponse: portalResult.data,
     });
   } catch (err: any) {
     return res.status(400).json({
@@ -1546,7 +1691,7 @@ app.post("/api/services/tin-verify", async (req, res) => {
       : targetId;
 
   // 3. Extract real verified data from provider's response
-  const rawData = providerResult.rawResponse?.data || providerResult.rawResponse || {};
+  const rawData = portalResult.data || {};
   const verifiedData: any = {
     ...rawData,
     tin: rawData.tin || rawData.tinNumber || (verificationType === "VERIFY_BY_TIN" ? cleanTin : ""),
@@ -1568,11 +1713,11 @@ app.post("/api/services/tin-verify", async (req, res) => {
       "JTB Central Taxpayer Record Match",
       "FIRS Compliance Status Active",
     ],
-    rawResponse: providerResult.rawResponse,
+    rawResponse: portalResult.data,
   };
 
   const receiptNumber = `REC-${reference}`;
-  const responseTime = providerResult.responseTimeMs || Math.max(180, Date.now() - startTime);
+  const responseTime = portalResult.responseTimeMs || Math.max(180, Date.now() - startTime);
 
   const historyItem = {
     id: `ver_${Math.random().toString(36).substring(2, 9)}`,
@@ -1601,7 +1746,7 @@ app.post("/api/services/tin-verify", async (req, res) => {
     receiptId: receiptNumber,
     reference,
     smartlinkReference: reference,
-    providerReference: providerResult.providerReference || `JTB-GW-${Math.floor(100000 + Math.random() * 900000)}`,
+    providerReference: portalResult.providerReference || `JTB-GW-${Math.floor(100000 + Math.random() * 900000)}`,
     userId,
     service: "TIN",
     serviceTitle: "TIN Tax Verification",
@@ -1735,36 +1880,60 @@ app.post("/api/services/bank-account-verify", async (req, res) => {
   const reference = `SML-VER-ACC-${Math.floor(100000 + Math.random() * 900000)}`;
   const displayTarget = `${bankName} (${bankCode}) - ${cleanAccount.substring(0, 3)}****${cleanAccount.substring(7)}`;
 
-  // 1. Call real identity verification provider before debiting
-  const providerResult = await ProviderExecutor.executeProviderCall(db, {
-    category: "IDENTITY_API",
-    providerName: req.body.provider || undefined,
-    customerId: cleanAccount,
-    userId,
-    amount: fee,
-    smartlinkReference: reference,
-    extraData: { accountNumber: cleanAccount, bankCode, bankName, referenceNote, verificationPurpose, verificationType: "BANK_ACCOUNT" },
-  });
-
-  if (!providerResult.success) {
-    const isNoProvider = providerResult.error?.includes("No active provider configured");
-    return res.status(isNoProvider ? 400 : 422).json({
-      error: isNoProvider
-        ? "Identity verification provider not configured."
-        : (providerResult.error || "Verification provider could not confirm this record."),
-      errorCode: isNoProvider ? "PROVIDER_NOT_CONFIGURED" : "PROVIDER_FAILED",
-      friendlyMessage: isNoProvider ? "Identity Provider Not Configured" : "Account Verification Failed",
-      details: providerResult.error,
+  // Pre-execution solvency check: Verify wallet balance before consuming provider API quota
+  const userRecord = await usersStore.getUserById(effectiveUserId);
+  if (!userRecord) return res.status(404).json({ error: "User account not found.", errorCode: "USER_NOT_FOUND" });
+  if (userRecord.status === "SUSPENDED") return res.status(403).json({ error: "Account is suspended.", errorCode: "ACCOUNT_SUSPENDED" });
+  const userBal = Number(userRecord.walletBalance) || 0;
+  if (userBal < fee) {
+    return res.status(400).json({
+      error: `Insufficient wallet balance. Fee: ₦${fee.toLocaleString()}, Available: ₦${userBal.toLocaleString()}`,
+      errorCode: "INSUFFICIENT_FUNDS",
+      friendlyMessage: "Insufficient Wallet Balance"
     });
   }
 
-  const resolvedProviderName = providerResult.providerName || "NIBSS Instant Payment (NIP) Portal";
+  // 1. Call real bank account identity verification provider via MultiProviderRoutingEngine
+  const portalResult = await MultiProviderRoutingEngine.executeWithFailover(db, {
+    service: "BANK_ACCOUNT",
+    targetId: cleanAccount,
+    userId: effectiveUserId,
+    userEmail: req.body.email || "",
+    amount: fee,
+    smartlinkReference: reference,
+    extraData: {
+      accountNumber: cleanAccount,
+      bankCode,
+      bankName,
+      referenceNote,
+      verificationPurpose,
+      consent: Boolean(consent),
+      verificationType: "BANK_ACCOUNT",
+    },
+    preferredProviderId: req.body.providerId || req.body.provider || req.body.preferredProvider,
+  });
+
+  if (!portalResult.success) {
+    const isNoProvider = portalResult.error?.includes("No active provider configured") || portalResult.error?.includes("not configured");
+    return res.status(isNoProvider ? 400 : 422).json({
+      error: isNoProvider
+        ? "Identity verification provider not configured."
+        : (portalResult.error || "Verification provider could not confirm this record."),
+      errorCode: isNoProvider ? "PROVIDER_NOT_CONFIGURED" : "PROVIDER_FAILED",
+      friendlyMessage: isNoProvider ? "Identity Provider Not Configured" : "Account Verification Failed",
+      details: portalResult.error,
+      wasFailedOver: portalResult.wasFailedOver,
+      failoverChain: portalResult.failoverChain,
+    });
+  }
+
+  const resolvedProviderName = portalResult.providerName || "NIBSS Instant Payment (NIP) Portal";
 
   // 2. Debit wallet only after provider verification succeeds
   let debitRes;
   try {
     debitRes = await ServerWalletEngine.debitWallet(db, {
-      userId,
+      userId: effectiveUserId,
       amount: fee,
       serviceName: "Bank Account Verification (NIBSS)",
       provider: resolvedProviderName,
@@ -1773,8 +1942,8 @@ app.post("/api/services/bank-account-verify", async (req, res) => {
       fee: 0,
       recipientDetails: `NIBSS Query: ${bankName} - ${cleanAccount}`,
       type: "BANK_ACCOUNT_VERIFICATION",
-      providerReference: providerResult.providerReference || providerResult.transactionId,
-      rawResponse: providerResult.rawResponse,
+      providerReference: portalResult.providerReference || portalResult.transactionId,
+      rawResponse: portalResult.data,
     });
   } catch (err: any) {
     return res.status(400).json({
@@ -1787,7 +1956,7 @@ app.post("/api/services/bank-account-verify", async (req, res) => {
   const maskedAccount = `${cleanAccount.substring(0, 3)}****${cleanAccount.substring(7)}`;
 
   // 3. Extract real verified data from provider's response
-  const rawData = providerResult.rawResponse?.data || providerResult.rawResponse || {};
+  const rawData = portalResult.data || {};
   const verifiedData: any = {
     ...rawData,
     fullName: rawData.fullName || rawData.accountName || rawData.name || [rawData.firstName, rawData.lastName].filter(Boolean).join(" ") || "",
@@ -1807,11 +1976,11 @@ app.post("/api/services/bank-account-verify", async (req, res) => {
       "NIBSS Central Switch Match",
       "Account Active & Debit Operational",
     ],
-    rawResponse: providerResult.rawResponse,
+    rawResponse: portalResult.data,
   };
 
   const receiptNumber = `REC-${reference}`;
-  const responseTime = providerResult.responseTimeMs || Math.max(180, Date.now() - startTime);
+  const responseTime = portalResult.responseTimeMs || Math.max(180, Date.now() - startTime);
 
   const historyItem = {
     id: `ver_${Math.random().toString(36).substring(2, 9)}`,
@@ -1840,7 +2009,7 @@ app.post("/api/services/bank-account-verify", async (req, res) => {
     receiptId: receiptNumber,
     reference,
     smartlinkReference: reference,
-    providerReference: providerResult.providerReference || `NIBSS-NE-${Math.floor(100000 + Math.random() * 900000)}`,
+    providerReference: portalResult.providerReference || `NIBSS-NE-${Math.floor(100000 + Math.random() * 900000)}`,
     userId,
     service: "BANK_ACCOUNT",
     serviceTitle: "Bank Account Verification",
@@ -1941,6 +2110,16 @@ app.post("/api/slips", async (req, res) => {
   if (!slipData || !slipData.slipId || !slipData.userId) {
     return res.status(400).json({ error: "Invalid slip data provided" });
   }
+
+  const authCheck = await verifyUserOrAdminSession(req, slipData.userId, db);
+  if (!authCheck.authorized) {
+    return res.status(authCheck.reason?.includes("Authentication required") ? 401 : 403).json({
+      error: authCheck.reason || "Forbidden"
+    });
+  }
+
+  const effectiveUserId = authCheck.isAdmin ? slipData.userId : authCheck.authenticatedUid!;
+  slipData.userId = effectiveUserId;
 
   if (!db.slips) db.slips = [];
   // slip_validations removed for direct signed QR approach
@@ -2210,24 +2389,68 @@ app.post("/api/slips/generate-overlay-pdf", async (req, res) => {
   }
 });
 
-// Proxy endpoint for remote photos to prevent CORS issues in client-side canvas
+// Proxy endpoint for remote photos with strict SSRF defense
 app.get("/api/slips/proxy-image", async (req, res) => {
   try {
     const rawUrl = String(req.query.url || "").trim();
     if (!rawUrl || (!rawUrl.startsWith("http://") && !rawUrl.startsWith("https://"))) {
       return res.status(400).send("Invalid image URL");
     }
+
+    let parsed: URL;
+    try {
+      parsed = new URL(rawUrl);
+    } catch {
+      return res.status(400).send("Malformed URL");
+    }
+
+    const host = parsed.hostname.toLowerCase();
+
+    // Prevent Server-Side Request Forgery (SSRF) against internal / cloud metadata networks
+    const isForbiddenHost =
+      host === "localhost" ||
+      host === "127.0.0.1" ||
+      host === "0.0.0.0" ||
+      host === "::1" ||
+      host.endsWith(".local") ||
+      host.endsWith(".internal") ||
+      host === "metadata.google.internal" ||
+      host.startsWith("169.254.") || // Cloud metadata link-local
+      host.startsWith("10.") || // RFC 1918 Class A
+      host.startsWith("192.168.") || // RFC 1918 Class C
+      /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(host) || // RFC 1918 Class B
+      host.startsWith("fc00:") ||
+      host.startsWith("fe80:");
+
+    if (isForbiddenHost) {
+      return res.status(403).send("Access to internal, private, or metadata networks is prohibited.");
+    }
+
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
-    const fetchRes = await fetch(rawUrl, { signal: controller.signal });
+    const timeout = setTimeout(() => controller.abort(), 6000);
+    const fetchRes = await fetch(rawUrl, {
+      signal: controller.signal,
+      headers: { "User-Agent": "SmartLink-ImageProxy/1.0" }
+    });
     clearTimeout(timeout);
+
     if (!fetchRes.ok) {
       return res.status(fetchRes.status).send("Failed to fetch remote image");
     }
-    const contentType = fetchRes.headers.get("content-type") || "image/jpeg";
+
+    const contentType = (fetchRes.headers.get("content-type") || "").toLowerCase();
+    if (!contentType.startsWith("image/")) {
+      return res.status(400).send("Target resource is not a valid image format.");
+    }
+
     const arrayBuffer = await fetchRes.arrayBuffer();
+    if (arrayBuffer.byteLength > 5 * 1024 * 1024) { // 5MB limit
+      return res.status(400).send("Image exceeds maximum permitted size (5MB).");
+    }
+
     res.setHeader("Content-Type", contentType);
     res.setHeader("Cache-Control", "public, max-age=86400");
+    res.setHeader("X-Content-Type-Options", "nosniff");
     return res.send(Buffer.from(arrayBuffer));
   } catch (err: any) {
     return res.status(500).send(err.message || "Proxy error");
@@ -2704,6 +2927,9 @@ app.post("/api/verification/send-email-slip", async (req, res) => {
         }
         if (!fs.existsSync(templatePath)) {
           templatePath = path.resolve(process.cwd(), "public", templateName);
+        }
+        if (!fs.existsSync(templatePath)) {
+          templatePath = path.resolve(process.cwd(), "public", "templates", templateName);
         }
 
         const isIdentitySlip =

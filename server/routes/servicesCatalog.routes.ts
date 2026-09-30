@@ -4,7 +4,7 @@ import fs from "fs";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 import { readDB, writeDB, initializeDB, DB_DIR, DB_FILE, UPLOADS_DIR, SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD, hashPassword, safeCompareHash, generateSalt, isMaskedValue } from "../db";
-import { requireAdmin, optionalAdmin, verifyUserOrAdminSession } from "../middleware/auth";
+import { requireAdmin, verifyUserOrAdminSession } from "../middleware/auth";
 import { isMaintenanceModeActive, getMaintenanceDetails, getValueByJsonPath, seedModule7SettingsIfEmpty, sanitizePublicSettings } from "../middleware/maintenance";
 import { getAI } from "../services/ai";
 import { sendPlatformEmail } from "../services/email.service";
@@ -93,7 +93,7 @@ app.post("/api/admin/prices", requireAdmin, async (req, res) => {
 // --- SERVICES & PRICING CATALOG MANAGEMENT ENDPOINTS ---
 
 // 1. GET /api/admin/services - List Services Catalog
-app.get("/api/admin/services", optionalAdmin, async (req, res) => {
+app.get("/api/admin/services", requireAdmin, async (req, res) => {
   const db = readDB();
   await syncFromStorage(db);
   seedDefaultServicesCatalogIfEmpty(db);

@@ -801,27 +801,23 @@ export default function Dashboards({
   // Local card list for the identity verification sections with dynamic pricing overlay
   const identityServices = [
     { id: "id_nin_ver", name: "NIN Verification", price: getDynamicServicePrice("id_nin_ver", 500) },
-    { id: "id_nin_val", name: "NIN Validation", price: getDynamicServicePrice("id_nin_val", 500) },
-    { id: "id_slip_gen", name: "Slip Generation", price: getDynamicServicePrice("id_slip_gen", 1000) },
-    { id: "id_vnin_slip", name: "VNIN Slip", price: getDynamicServicePrice("id_vnin_slip", 1000) },
-    { id: "id_nin_pers", name: "NIN Personalization", price: getDynamicServicePrice("id_nin_pers", 2000) },
-    { id: "id_nin_mod", name: "NIN Modification", price: getDynamicServicePrice("id_nin_mod", 15000) },
-    { id: "id_ipe_clearance", name: "IPE Clearance", price: getDynamicServicePrice("id_ipe_clearance", 5000) }
+    { id: "id_nin_phone", name: "NIN Verification with Phone Number", price: getDynamicServicePrice("id_nin_phone", 500) },
+    { id: "id_slip_gen", name: "NIN ID CARD, NIN SLIP GENERATION", price: getDynamicServicePrice("id_slip_gen", 1000) },
+    { id: "id_nin_demography", name: "NIN Verification with Name & DOB", price: getDynamicServicePrice("id_nin_demography", 600) }
   ];
 
   const bankingBvnServices = [
     { id: "id_bvn_ver", name: "BVN Verification", price: getDynamicServicePrice("id_bvn_ver", 250) },
-    { id: "id_vnin_to_nibss", name: "VNIN to NIBSS", price: getDynamicServicePrice("id_vnin_to_nibss", 1500) },
-    { id: "id_bvn_user", name: "BVN User", price: getDynamicServicePrice("id_bvn_user", 500) },
-    { id: "id_bvn_modification", name: "BVN Modification", price: getDynamicServicePrice("id_bvn_modification", 8000) },
-    { id: "id_premium_slip", name: "Premium Slip", price: getDynamicServicePrice("id_premium_slip", 1200) },
-    { id: "id_bvn_retrieval", name: "BVN Retrieval", price: getDynamicServicePrice("id_bvn_retrieval", 2500) }
+    { id: "id_bvn_demography", name: "BVN Verification with Name & DOB", price: getDynamicServicePrice("id_bvn_demography", 500) },
+    { id: "id_premium_slip", name: "BVN SLIP, BVN ID CARD GENERATION", price: getDynamicServicePrice("id_premium_slip", 1200) },
+    { id: "id_bvn_phone", name: "BVN Verification with Phone Number", price: getDynamicServicePrice("id_bvn_phone", 500) }
   ];
 
   const corporateFilingsServices = [
+    { id: "id_cac_verification", name: "CAC Verification", price: getDynamicServicePrice("id_cac_verification", 500) },
     { id: "id_cac_registration", name: "CAC Registration", price: getDynamicServicePrice("id_cac_registration", 28000) },
     { id: "cac_scuml", name: "SCUML Services", price: getDynamicServicePrice("cac_scuml", 0) },
-    { id: "id_tax_id_search", name: "Tax Identity", price: getDynamicServicePrice("id_tax_id_search", 1500) }
+    { id: "id_tax_id_search", name: "Tax Identity Verification", price: getDynamicServicePrice("id_tax_id_search", 500) }
   ];
 
   const educationServices = [
@@ -1184,44 +1180,7 @@ export default function Dashboards({
                 </div>
               </div>
 
-              {/* Category 4: EDUCATION */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-left">
-                  <div className="w-1.5 h-4 bg-[#1E56A0] rounded-xs"></div>
-                  <h2 className="text-xs sm:text-sm font-bold tracking-wider text-[#1E293B] uppercase font-sans">
-                    EDUCATION
-                  </h2>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-                  {educationServices.map((srv) => (
-                    <div
-                      key={srv.id}
-                      onClick={() => handleServiceCardClick(srv.id)}
-                      className="bg-white rounded-2xl border border-slate-100/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-slate-300 hover:shadow-md transition-all duration-200 p-5 sm:p-6 flex flex-col items-center justify-center min-h-[145px] sm:min-h-[160px] cursor-pointer group relative"
-                    >
-                      <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-[#F4F6F8] flex items-center justify-center p-2.5 transition-transform duration-200 group-hover:scale-105 shrink-0">
-                        {srv.id === "edu_jamb" ? (
-                          <JambOfficialCardLogo className="w-full h-full object-contain" />
-                        ) : srv.id === "edu_waec" ? (
-                          <WaecOfficialCardLogo className="w-full h-full object-contain" />
-                        ) : srv.id === "edu_neco" ? (
-                          <NecoOfficialCardLogo className="w-full h-full object-contain" />
-                        ) : srv.id === "edu_nabteb" ? (
-                          <NabtebOfficialCardLogo className="w-full h-full object-contain" />
-                        ) : (
-                          <ExamPinsOfficialCardLogo className="w-full h-full object-contain" />
-                        )}
-                      </div>
-                      <h3 className="font-bold text-[#1E293B] text-xs sm:text-sm tracking-tight text-center mt-3 leading-snug">
-                        {srv.name}
-                      </h3>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Category 5: UTILITIES & BILLS */}
+              {/* Category 4: UTILITIES & BILLS */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-left">
                   <div className="w-1.5 h-4 bg-[#1E56A0] rounded-xs"></div>
@@ -1250,6 +1209,43 @@ export default function Dashboards({
                           <CbnOfficialCardLogo className="w-full h-full object-contain" />
                         ) : (
                           <AirtimeOfficialCardLogo className="w-full h-full object-contain" />
+                        )}
+                      </div>
+                      <h3 className="font-bold text-[#1E293B] text-xs sm:text-sm tracking-tight text-center mt-3 leading-snug">
+                        {srv.name}
+                      </h3>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Category 5: EDUCATION */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-left">
+                  <div className="w-1.5 h-4 bg-[#1E56A0] rounded-xs"></div>
+                  <h2 className="text-xs sm:text-sm font-bold tracking-wider text-[#1E293B] uppercase font-sans">
+                    EDUCATION
+                  </h2>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+                  {educationServices.map((srv) => (
+                    <div
+                      key={srv.id}
+                      onClick={() => handleServiceCardClick(srv.id)}
+                      className="bg-white rounded-2xl border border-slate-100/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-slate-300 hover:shadow-md transition-all duration-200 p-5 sm:p-6 flex flex-col items-center justify-center min-h-[145px] sm:min-h-[160px] cursor-pointer group relative"
+                    >
+                      <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-[#F4F6F8] flex items-center justify-center p-2.5 transition-transform duration-200 group-hover:scale-105 shrink-0">
+                        {srv.id === "edu_jamb" ? (
+                          <JambOfficialCardLogo className="w-full h-full object-contain" />
+                        ) : srv.id === "edu_waec" ? (
+                          <WaecOfficialCardLogo className="w-full h-full object-contain" />
+                        ) : srv.id === "edu_neco" ? (
+                          <NecoOfficialCardLogo className="w-full h-full object-contain" />
+                        ) : srv.id === "edu_nabteb" ? (
+                          <NabtebOfficialCardLogo className="w-full h-full object-contain" />
+                        ) : (
+                          <ExamPinsOfficialCardLogo className="w-full h-full object-contain" />
                         )}
                       </div>
                       <h3 className="font-bold text-[#1E293B] text-xs sm:text-sm tracking-tight text-center mt-3 leading-snug">

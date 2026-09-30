@@ -91,22 +91,22 @@ export function AdminSystemView({ session, onNavigate }: AdminSystemViewProps) {
   }, []);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-slate-100">
       {/* Top Header Card */}
-      <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6 md:p-8 shadow-[0_4px_12px_rgba(15,23,42,0.06)] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-[#F5F7FA] border border-[#E5E7EB] rounded-2xl text-[#0F2D5C]">
+          <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-2xl text-blue-400">
             <Server className="h-7 w-7" />
           </div>
           <div>
-            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-[#F5F7FA] text-[#0F2D5C] text-xs font-semibold mb-1">
+            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-slate-800 text-blue-400 text-xs font-semibold mb-1 border border-slate-700">
               <ShieldCheck className="h-3.5 w-3.5" />
               <span>Core Infrastructure & Diagnostics</span>
             </div>
-            <h1 className="text-2xl font-bold text-[#111827] tracking-tight">
+            <h1 className="text-2xl font-bold text-white tracking-tight">
               System Health & Diagnostics Center
             </h1>
-            <p className="text-xs md:text-sm text-[#4B5563] mt-0.5">
+            <p className="text-xs md:text-sm text-slate-400 mt-0.5">
               Live server performance metrics, Cloud database connection health, memory allocations, and audit stream.
             </p>
           </div>
@@ -116,9 +116,9 @@ export function AdminSystemView({ session, onNavigate }: AdminSystemViewProps) {
           <button
             type="button"
             onClick={fetchSystemData}
-            className="p-2.5 rounded-xl border border-[#E5E7EB] bg-white text-[#4B5563] hover:bg-[#F5F7FA] transition-colors cursor-pointer text-xs flex items-center gap-1.5 font-semibold"
+            className="p-2.5 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors cursor-pointer text-xs flex items-center gap-1.5 font-semibold"
           >
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-blue-400" : ""}`} />
             <span>Poll Telemetry</span>
           </button>
         </div>
@@ -126,84 +126,84 @@ export function AdminSystemView({ session, onNavigate }: AdminSystemViewProps) {
 
       {/* Real-time Health Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-[0_4px_12px_rgba(15,23,42,0.06)] space-y-1">
-          <div className="flex items-center justify-between text-[#4B5563]">
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-1">
+          <div className="flex items-center justify-between text-slate-400">
             <span className="text-xs font-semibold">Node.js Server Status</span>
-            <Activity className="h-4 w-4 text-[#0F2D5C] animate-pulse" />
+            <Activity className="h-4 w-4 text-emerald-400 animate-pulse" />
           </div>
-          <p className="text-2xl font-bold text-[#0F2D5C]">
+          <p className="text-2xl font-bold text-emerald-400">
             {health?.status || "HEALTHY"}
           </p>
-          <span className="text-[11px] text-[#4B5563]">
-            Uptime: <strong className="text-[#111827] font-mono">{health?.uptime || "Active"}</strong>
+          <span className="text-[11px] text-slate-400">
+            Uptime: <strong className="text-white font-mono">{health?.uptime || "Active"}</strong>
           </span>
         </div>
 
-        <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-[0_4px_12px_rgba(15,23,42,0.06)] space-y-1">
-          <div className="flex items-center justify-between text-[#4B5563]">
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-1">
+          <div className="flex items-center justify-between text-slate-400">
             <span className="text-xs font-semibold">Cloud Database</span>
-            <Database className="h-4 w-4 text-[#0F2D5C]" />
+            <Database className="h-4 w-4 text-blue-400" />
           </div>
-          <p className="text-2xl font-bold text-[#0F2D5C]">
+          <p className="text-2xl font-bold text-blue-400">
             {health?.storageStatus || "CONNECTED"}
           </p>
-          <span className="text-[11px] text-[#0F2D5C] font-medium">Single source of truth</span>
+          <span className="text-[11px] text-emerald-400 font-medium">Single source of truth</span>
         </div>
 
-        <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-[0_4px_12px_rgba(15,23,42,0.06)] space-y-1">
-          <div className="flex items-center justify-between text-[#4B5563]">
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-1">
+          <div className="flex items-center justify-between text-slate-400">
             <span className="text-xs font-semibold">Heap Memory Usage</span>
-            <Cpu className="h-4 w-4 text-[#0F2D5C]" />
+            <Cpu className="h-4 w-4 text-purple-400" />
           </div>
-          <p className="text-2xl font-bold text-[#111827]">
+          <p className="text-2xl font-bold text-white">
             {health ? `${health.memory.heapUsedMb} MB` : "32 MB"}
           </p>
-          <span className="text-[11px] text-[#4B5563]">
+          <span className="text-[11px] text-slate-400">
             Total Allocated: {health ? `${health.memory.heapTotalMb} MB` : "64 MB"}
           </span>
         </div>
 
-        <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-[0_4px_12px_rgba(15,23,42,0.06)] space-y-1">
-          <div className="flex items-center justify-between text-[#4B5563]">
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-1">
+          <div className="flex items-center justify-between text-slate-400">
             <span className="text-xs font-semibold">Portal Ping Latency</span>
-            <Zap className="h-4 w-4 text-[#0F2D5C]" />
+            <Zap className="h-4 w-4 text-amber-400" />
           </div>
-          <p className="text-2xl font-bold text-[#111827]">
+          <p className="text-2xl font-bold text-white">
             {health?.apiPortalLatencyMs || 85} ms
           </p>
-          <span className="text-[11px] text-[#0F2D5C] font-medium">Sub-100ms ultra low latency</span>
+          <span className="text-[11px] text-emerald-400 font-medium">Sub-100ms ultra low latency</span>
         </div>
       </div>
 
       {/* Database Document Breakdown */}
-      <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-[0_4px_12px_rgba(15,23,42,0.06)] space-y-4">
-        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#0F2D5C]">
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-blue-400">
           <Layers className="h-4 w-4" />
           <span>Live Cloud Database Collection Records</span>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="p-4 bg-[#F5F7FA] rounded-xl border border-[#E5E7EB]">
-            <span className="text-xs text-[#4B5563]">Users Collection</span>
-            <p className="text-xl font-bold text-[#111827] mt-1">
+          <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800">
+            <span className="text-xs text-slate-400">Users Collection</span>
+            <p className="text-xl font-bold text-white mt-1">
               {health?.databaseRecords.usersCount.toLocaleString() || 0}
             </p>
           </div>
-          <div className="p-4 bg-[#F5F7FA] rounded-xl border border-[#E5E7EB]">
-            <span className="text-xs text-[#4B5563]">Transactions Collection</span>
-            <p className="text-xl font-bold text-[#111827] mt-1">
+          <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800">
+            <span className="text-xs text-slate-400">Transactions Collection</span>
+            <p className="text-xl font-bold text-white mt-1">
               {health?.databaseRecords.transactionsCount.toLocaleString() || 0}
             </p>
           </div>
-          <div className="p-4 bg-[#F5F7FA] rounded-xl border border-[#E5E7EB]">
-            <span className="text-xs text-[#4B5563]">API Portals Configured</span>
-            <p className="text-xl font-bold text-[#111827] mt-1">
+          <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800">
+            <span className="text-xs text-slate-400">API Portals Configured</span>
+            <p className="text-xl font-bold text-white mt-1">
               {health?.databaseRecords.providersCount.toLocaleString() || 0}
             </p>
           </div>
-          <div className="p-4 bg-[#F5F7FA] rounded-xl border border-[#E5E7EB]">
-            <span className="text-xs text-[#4B5563]">Audit & Security Logs</span>
-            <p className="text-xl font-bold text-[#111827] mt-1">
+          <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800">
+            <span className="text-xs text-slate-400">Audit & Security Logs</span>
+            <p className="text-xl font-bold text-white mt-1">
               {health?.databaseRecords.auditLogsCount.toLocaleString() || 0}
             </p>
           </div>
@@ -211,42 +211,42 @@ export function AdminSystemView({ session, onNavigate }: AdminSystemViewProps) {
       </div>
 
       {/* Live Audit Log Stream */}
-      <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-[0_4px_12px_rgba(15,23,42,0.06)] overflow-hidden">
-        <div className="p-5 border-b border-[#E5E7EB] bg-[#F5F7FA] flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#0F2D5C]">
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl shadow-xl overflow-hidden">
+        <div className="p-5 border-b border-slate-800 bg-slate-950 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-blue-400">
             <Terminal className="h-4 w-4" />
             <span>Real-time System Audit & Execution Log Stream</span>
           </div>
-          <span className="text-xs text-[#6B7280]">Latest 100 entries</span>
+          <span className="text-xs text-slate-400 font-mono">Latest 100 entries</span>
         </div>
 
-        <div className="divide-y divide-[#E5E7EB] max-h-96 overflow-y-auto">
+        <div className="divide-y divide-slate-800/60 max-h-96 overflow-y-auto">
           {loading && logs.length === 0 ? (
-            <div className="py-8 text-center text-xs text-[#4B5563]">
-              <RefreshCw className="h-5 w-5 animate-spin mx-auto text-[#0F2D5C] mb-1" />
+            <div className="py-8 text-center text-xs text-slate-400">
+              <RefreshCw className="h-5 w-5 animate-spin mx-auto text-blue-400 mb-1" />
               <span>Fetching audit events from Cloud Database...</span>
             </div>
           ) : logs.length === 0 ? (
-            <div className="py-8 text-center text-xs text-[#4B5563]">
+            <div className="py-8 text-center text-xs text-slate-500">
               No audit logs recorded yet.
             </div>
           ) : (
             logs.map((log, index) => (
-              <div key={log.id ? `syslog-${log.id}-${index}` : `syslog-${index}`} className="p-4 hover:bg-[#F9FAFB] transition-colors text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div key={log.id ? `syslog-${log.id}-${index}` : `syslog-${index}`} className="p-4 hover:bg-slate-800/40 transition-colors text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded-full bg-[#F5F7FA] text-[#0F2D5C] border border-[#E5E7EB] font-mono text-[10px] font-bold">
+                    <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono text-[10px] font-bold">
                       {log.action}
                     </span>
-                    <span className="text-[#111827] font-medium">{log.details}</span>
+                    <span className="text-white font-medium">{log.details}</span>
                   </div>
                   {log.performedBy && (
-                    <span className="text-[11px] text-[#6B7280]">
-                      Actor: <strong className="text-[#4B5563]">{log.performedBy}</strong>
+                    <span className="text-[11px] text-slate-400">
+                      Actor: <strong className="text-slate-300">{log.performedBy}</strong>
                     </span>
                   )}
                 </div>
-                <span className="text-[11px] text-[#6B7280] font-mono whitespace-nowrap">
+                <span className="text-[11px] text-slate-400 font-mono whitespace-nowrap">
                   {new Date(log.timestamp).toLocaleTimeString("en-NG", {
                     hour: "2-digit",
                     minute: "2-digit",

@@ -160,17 +160,12 @@ export async function validateSupabaseUserToken(token: string): Promise<{ uid: s
           }
         }
       } catch (networkErr) {
-        // Fallback to validated payload
+        console.warn("[SupabaseAdmin] Network verification failed:", networkErr);
       }
     }
 
-    if (payload.sub) {
-      return {
-        uid: payload.sub,
-        email: (payload.email || "").toLowerCase().trim(),
-        user: payload,
-      };
-    }
+    // Reject unverified token
+    return null;
   } catch {
     return null;
   }

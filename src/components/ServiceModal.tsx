@@ -14,6 +14,8 @@ import { NinVerificationView } from "./verification/NinVerificationView";
 import { NinDemographyView } from "./verification/NinDemographyView";
 import { NinPhoneVerificationView } from "./verification/NinPhoneVerificationView";
 import { BvnVerificationView } from "./verification/BvnVerificationView";
+import { BvnDemographyView } from "./verification/BvnDemographyView";
+import { BvnPhoneVerificationView } from "./verification/BvnPhoneVerificationView";
 import { CacVerificationView } from "./verification/CacVerificationView";
 import { TinVerificationView } from "./verification/TinVerificationView";
 import { BankAccountVerificationView } from "./verification/BankAccountVerificationView";
@@ -25,6 +27,7 @@ import { normalizePhotoUrl } from "../services/slipOptionsConfig";
 import { formatNaira, formatSafeDateTime } from "../utils/formatUtils";
 import { ManualServiceFormView } from "./common/ManualServiceFormView";
 import { getManualServiceConfig, isManualService } from "../data/manualServicesConfig";
+import { getAuthHeaders } from "../services/providerService";
 
 interface ServiceModalProps {
   service: ServiceItem | null;
@@ -61,7 +64,7 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
           width: 200,
           margin: 2,
           color: {
-            dark: "#0F2D5C",
+            dark:"#0F2D5C",
             light: "#0F2D5C",
           },
         },
@@ -193,10 +196,33 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
   };
 
   if (isVerificationService && currentUser) {
+    // 1. BVN Phone Verification
+    if (
+      service.id === "id_bvn_phone" ||
+      (service.id.includes("bvn") && service.id.includes("phone")) ||
+      (service.name.toLowerCase().includes("bvn") && service.name.toLowerCase().includes("phone"))
+    ) {
+      return (
+        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
+          <div className="w-full max-w-xl mb-8">
+            <BvnPhoneVerificationView
+              userId={currentUser.uid}
+              userEmail={currentUser.email}
+              serviceTitle={service.name}
+              onBackToDashboard={onClose}
+              onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
+            />
+          </div>
+        </div>
+      );
+    }
+
+    // 2. NIN Phone Verification
     if (
       service.id === "id_nin_phone" ||
       service.id.includes("nin_phone") ||
-      service.name.toLowerCase().includes("nin with phone")
+      service.name.toLowerCase().includes("nin with phone") ||
+      (service.name.toLowerCase().includes("nin") && service.name.toLowerCase().includes("phone"))
     ) {
       return (
         <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
@@ -212,7 +238,30 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
         </div>
       );
     }
-    if (service.id.includes("demography") || service.name.toLowerCase().includes("demography")) {
+
+    // 3. BVN Demographic Verification (Name & DOB)
+    if (
+      service.id === "id_bvn_demography" ||
+      (service.id.includes("bvn") && (service.id.includes("demography") || service.name.toLowerCase().includes("demography") || service.name.toLowerCase().includes("dob") || service.name.toLowerCase().includes("name & dob"))) ||
+      (service.name.toLowerCase().includes("bvn") && (service.name.toLowerCase().includes("demography") || service.name.toLowerCase().includes("name & dob") || service.name.toLowerCase().includes("dob")))
+    ) {
+      return (
+        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
+          <div className="w-full max-w-xl mb-8">
+            <BvnDemographyView
+              userId={currentUser.uid}
+              userEmail={currentUser.email}
+              serviceTitle={service.name}
+              onBackToDashboard={onClose}
+              onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
+            />
+          </div>
+        </div>
+      );
+    }
+
+    // 4. NIN Demographic Verification
+    if (service.id.includes("demography") || service.name.toLowerCase().includes("demography") || service.name.toLowerCase().includes("name & dob")) {
       return (
         <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
           <div className="w-full max-w-xl mb-8">
@@ -226,6 +275,29 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
         </div>
       );
     }
+
+    // 5. BVN Slip & ID Card Generation or other BVN services
+    if (
+      service.id === "id_premium_slip" ||
+      service.id === "id_bvn_ver" ||
+      service.id.includes("bvn") ||
+      service.name.toLowerCase().includes("bvn")
+    ) {
+      return (
+        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
+          <div className="w-full max-w-xl mb-8">
+            <BvnVerificationView
+              userId={currentUser.uid}
+              userEmail={currentUser.email}
+              serviceTitle={service.name}
+              onBackToDashboard={onClose}
+              onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
+            />
+          </div>
+        </div>
+      );
+    }
+
     const vType = getVerificationType(service.id);
     if (vType === "NIN") {
       return (
@@ -260,7 +332,7 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
     if (vType === "CAC") {
       return (
         <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
-          <div className="w-full max-w-3xl mb-8">
+          <div className="w-full max-w-xl mb-8">
             <CacVerificationView
               userId={currentUser.uid}
               onBackToDashboard={onClose}
@@ -316,7 +388,7 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
 
   const calculateTotalCost = () => {
     if (!service.price) return 0;
-    if (service.id === "edu_waec" || service.id === "edu_neco") {
+    if (service.id.startsWith("edu_") || service.category === "EDUCATION") {
       const qty = parseInt(formData["quantity"]) || 1;
       return service.price * qty;
     }
@@ -375,11 +447,14 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
         };
       } else if (service.category === "EDUCATION") {
         endpoint = "/api/services/education";
+        const examCode = service.id === "edu_waec" ? "WAEC" : service.id === "edu_neco" ? "NECO" : service.id === "edu_nabteb" ? "NABTEB" : "JAMB";
         payload = {
           ...payload,
-          cardType: service.id === "edu_waec" ? "WAEC" : service.id === "edu_neco" ? "NECO" : "JAMB",
+          cardType: examCode,
           quantity: parseInt(formData["quantity"]) || 1,
           amount: service.price,
+          profileCode: formData["profileCode"] || formData["examNumber"] || formData["phoneNumber"],
+          phoneNumber: formData["phoneNumber"] || currentUser?.phoneNumber,
         };
       } else if (service.category === "VTU") {
         endpoint = "/api/services/vtu";
@@ -397,9 +472,13 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
         payload = { ...payload, provider: "ICT Design Hub", phoneNumber: "Consultation", amount: totalCost };
       }
 
+      const authHeaders = await getAuthHeaders(currentUser.uid);
       const res = await fetch(endpoint, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...authHeaders,
+        },
         body: JSON.stringify(payload),
       });
 
@@ -431,7 +510,7 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
             <h3 className="text-sm font-mono text-[#9CA3AF] uppercase tracking-wider font-semibold">Smart Link Digital Node</h3>
             <h2 className="text-lg font-extrabold">{service.name}</h2>
           </div>
-          <button onClick={onClose} className="p-1 rounded-full hover:bg-[#111827] transition-colors">
+          <button onClick={onClose} className="bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white p-1 rounded-full transition-colors">
             <X className="h-5 w-5 text-[#9CA3AF]" />
           </button>
         </div>
@@ -495,8 +574,7 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
                   {successResult.pins.map((pin: string, idx: number) => (
                     <div key={idx} className="flex justify-between items-center bg-white p-2 rounded border border-[#E5E7EB] shadow-2xs">
                       <span>{pin}</span>
-                      <button onClick={() => copyToClipboard(pin)} className="text-[#0F2D5C] hover:text-[#0F2D5C]">
-                        <Copy className="h-3.5 w-3.5" />
+                      <button onClick={() => copyToClipboard(pin)} > <Copy className="bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white h-3.5 w-3.5" />
                       </button>
                     </div>
                   ))}
@@ -574,14 +652,14 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
                   onClick={() => {
                     window.print();
                   }}
-                  className="px-4 py-2 bg-[#E5E7EB] hover:bg-[#E5E7EB] text-[#111827] rounded font-bold text-xs flex items-center gap-1.5"
+                  className="bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white px-4 py-2 rounded font-bold text-xs flex items-center gap-1.5"
                 >
                   <Printer className="h-4 w-4" />
                   Print Receipt
                 </button>
                 <button
                   onClick={onClose}
-                  className="px-4 py-2 bg-[#111827] hover:bg-[#111827] text-white rounded font-bold text-xs"
+                  className="bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white px-4 py-2 rounded font-bold text-xs"
                 >
                   Close Panel
                 </button>
@@ -677,7 +755,7 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
                   </span>
                 </div>
 
-                {(service.id === "edu_waec" || service.id === "edu_neco") && (
+                {(service.id.startsWith("edu_") || service.category === "EDUCATION") && (
                   <div className="flex justify-between items-center text-xs border-t pt-1">
                     <span className="text-[#6B7280] font-mono">Quantity Requested</span>
                     <span className="font-semibold text-[#111827]">x{formData["quantity"] || 1}</span>
@@ -704,7 +782,7 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 border border-[#E5E7EB] text-[#4B5563] rounded text-xs font-semibold hover:bg-[#F5F7FA] transition-colors"
+                  className="bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white px-4 py-2 border border-[#E5E7EB] rounded text-xs font-semibold transition-colors"
                 >
                   Cancel
                 </button>

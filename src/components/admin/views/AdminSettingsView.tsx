@@ -487,7 +487,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
             <button
               type="button"
               onClick={handleExportJson}
-              className="py-2.5 px-4 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition border border-[#4B5563]"
+              className=" py-2.5 px-4 text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition border border-[#4B5563]"
             >
               <Download className="h-3.5 w-3.5" /> Export Config
             </button>
@@ -495,7 +495,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
               <button
                 type="button"
                 onClick={() => setShowImportModal(true)}
-                className="py-2.5 px-4 bg-[#0F2D5C]/60 hover:bg-[#0F2D5C]/80 text-[#9CA3AF] border border-[#0F2D5C]/60 text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition"
+                className=" py-2.5 px-4 border border-[#0F2D5C]/60 text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition"
               >
                 <Upload className="h-3.5 w-3.5" /> Import Config
               </button>
@@ -503,7 +503,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
             <button
               type="button"
               onClick={() => onNavigate("/admin/dashboard")}
-              className="py-2.5 px-4 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition border border-[#4B5563]"
+              className=" py-2.5 px-4 text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition border border-[#4B5563]"
             >
               <ArrowLeft className="h-3.5 w-3.5" /> Dashboard
             </button>
@@ -522,7 +522,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
 
         {message && (
           <div
-            className={`p-4 rounded-2xl border flex items-center justify-between text-xs font-medium ${
+            className={`p-4 rounded-2xl border flex items-center justify-between text-xs font-medium${
               message.type === "success"
                 ? "bg-emerald-950/40 border-emerald-800/80 text-emerald-200"
                 : "bg-red-950/40 border-red-800/80 text-red-200"
@@ -539,7 +539,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
             <button
               type="button"
               onClick={() => setMessage(null)}
-              className="text-[#9CA3AF] hover:text-white text-xs cursor-pointer font-bold ml-4"
+              className=" text-xs cursor-pointer font-bold ml-4"
             >
               Dismiss
             </button>
@@ -576,7 +576,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`py-2.5 px-3.5 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+                className={`py-2.5 px-3.5 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap cursor-pointer${
                   isActive
                     ? "bg-[#0F2D5C] text-white shadow-md shadow-none"
                     : "bg-[#111827]/60 hover:bg-[#111827] text-[#9CA3AF] hover:text-[#E5E7EB] border border-[#111827]/80"
@@ -591,7 +591,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
       </div>
 
       {/* Main Tab Panels Container */}
-      <div className="bg-[#111827] border border-[#111827] rounded-3xl p-6 md:p-8">
+      <div className=" border border-[#111827] rounded-3xl p-6 md:p-8">
         {/* 1. GENERAL SETTINGS */}
         {activeTab === "general" && (
           <form
@@ -1326,7 +1326,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                       })
                     }
                     disabled={!canEdit}
-                    className={`py-1 px-3 rounded-full text-[10px] font-bold cursor-pointer transition ${
+                    className={`py-1 px-3 rounded-full text-[10px] font-bold cursor-pointer transition${
                       systemSettings.navigation?.headerAnnouncementEnabled
                         ? "bg-[#0F2D5C] text-white"
                         : "bg-[#111827] text-[#9CA3AF]"
@@ -1336,7 +1336,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className=" grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">Announcement Message</label>
                     <input
@@ -1868,7 +1868,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-white">{svc.label}</span>
                       <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full${
                           svcData.enabled
                             ? svcData.maintenance
                               ? "bg-[#0F2D5C] border border-[#0F2D5C] text-[#9CA3AF]"
@@ -2309,7 +2309,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                 <button
                   type="button"
                   onClick={() => setShowTestEmailModal(true)}
-                  className="py-2 px-4 bg-[#111827] hover:bg-[#4B5563] text-[#9CA3AF] border border-[#0F2D5C]/80 text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition"
+                  className=" py-2 px-4 border border-[#0F2D5C]/80 text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition"
                 >
                   <Send className="h-3.5 w-3.5" /> Test Email Dispatch
                 </button>
@@ -2462,7 +2462,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
 
             {manualRoutesMessage && (
               <div
-                className={`p-4 rounded-2xl border flex items-center gap-2.5 text-xs font-medium ${
+                className={`p-4 rounded-2xl border flex items-center gap-2.5 text-xs font-medium${
                   manualRoutesMessage.type === "success"
                     ? "bg-emerald-950/40 border-emerald-800/80 text-emerald-200"
                     : "bg-red-950/40 border-red-800/80 text-red-200"
@@ -2507,7 +2507,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                 <button
                   type="button"
                   onClick={() => setManualDefaultEmail(DEFAULT_MANUAL_ADMIN_EMAIL)}
-                  className="text-[11px] text-blue-400 hover:text-blue-300 underline font-medium self-start sm:self-auto cursor-pointer"
+                  className=" text-[11px] underline font-medium self-start sm:self-auto cursor-pointer"
                 >
                   Reset to {DEFAULT_MANUAL_ADMIN_EMAIL}
                 </button>
@@ -2582,7 +2582,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                                 delete copy[svc.id];
                                 setManualServiceRoutes(copy);
                               }}
-                              className="text-[10px] text-rose-400 hover:text-rose-300 underline cursor-pointer"
+                              className=" text-[10px] underline cursor-pointer"
                             >
                               Clear Override
                             </button>
@@ -2661,7 +2661,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                 <button
                   type="button"
                   onClick={() => setShowTestSmsModal(true)}
-                  className="py-2 px-4 bg-[#111827] hover:bg-[#4B5563] text-[#9CA3AF] border border-[#0F2D5C]/80 text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition"
+                  className=" py-2 px-4 border border-[#0F2D5C]/80 text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition"
                 >
                   <Send className="h-3.5 w-3.5" /> Test SMS Dispatch
                 </button>
@@ -2834,7 +2834,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
               {/* Master Toggles Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* 1. Global Platform Maintenance */}
-                <div className={`p-5 rounded-2xl border transition-all ${maintenanceSettings.maintenanceMode ? "bg-rose-950/40 border-rose-500/60" : "bg-[#111827] border-[#111827]"}`}>
+                <div className={`p-5 rounded-2xl border transition-all${maintenanceSettings.maintenanceMode ? "bg-rose-950/40 border-rose-500/60" : "bg-[#111827] border-[#111827]"}`}>
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <div className="p-2 rounded-xl bg-rose-500/20 text-rose-400">
@@ -3296,7 +3296,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                     type="button"
                     disabled={session.role !== "SUPER_ADMIN" || clearingRecords}
                     onClick={handleClearLocalRecords}
-                    className="py-2.5 px-5 bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition"
+                    className=" py-2.5 px-5 disabled:opacity-50 text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition"
                   >
                     {clearingRecords ? (
                       <>
@@ -3409,7 +3409,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                   setShowTestEmailModal(false);
                   setTestEmailStatus(null);
                 }}
-                className="text-[#9CA3AF] hover:text-white cursor-pointer"
+                className=" cursor-pointer"
               >
                 ✕
               </button>
@@ -3438,7 +3438,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                   setShowTestEmailModal(false);
                   setTestEmailStatus(null);
                 }}
-                className="py-2 px-4 bg-[#111827] text-[#E5E7EB] text-xs font-bold rounded-xl cursor-pointer"
+                className=" py-2 px-4 text-xs font-bold rounded-xl cursor-pointer"
               >
                 Close
               </button>
@@ -3468,7 +3468,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                   setShowTestSmsModal(false);
                   setTestSmsStatus(null);
                 }}
-                className="text-[#9CA3AF] hover:text-white cursor-pointer"
+                className=" cursor-pointer"
               >
                 ✕
               </button>
@@ -3497,7 +3497,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                   setShowTestSmsModal(false);
                   setTestSmsStatus(null);
                 }}
-                className="py-2 px-4 bg-[#111827] text-[#E5E7EB] text-xs font-bold rounded-xl cursor-pointer"
+                className=" py-2 px-4 text-xs font-bold rounded-xl cursor-pointer"
               >
                 Close
               </button>
@@ -3524,7 +3524,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
               <button
                 type="button"
                 onClick={() => setShowImportModal(false)}
-                className="text-[#9CA3AF] hover:text-white cursor-pointer"
+                className=" cursor-pointer"
               >
                 ✕
               </button>
@@ -3568,7 +3568,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
               <button
                 type="button"
                 onClick={() => setShowImportModal(false)}
-                className="py-2 px-4 bg-[#111827] text-[#E5E7EB] text-xs font-bold rounded-xl cursor-pointer"
+                className=" py-2 px-4 text-xs font-bold rounded-xl cursor-pointer"
               >
                 Cancel
               </button>
@@ -3596,7 +3596,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
               <button
                 type="button"
                 onClick={() => setShowTestPanelModal(false)}
-                className="text-[#9CA3AF] hover:text-white cursor-pointer text-sm"
+                className=" cursor-pointer text-sm"
               >
                 ✕
               </button>
@@ -3643,7 +3643,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
               <button
                 type="button"
                 onClick={() => setShowTestPanelModal(false)}
-                className="py-2 px-5 bg-[#111827] text-[#E5E7EB] text-xs font-bold rounded-xl cursor-pointer hover:bg-[#4B5563]"
+                className=" py-2 px-5 text-xs font-bold rounded-xl cursor-pointer"
               >
                 Close Test Window
               </button>

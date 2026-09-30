@@ -23,7 +23,7 @@ import {
 import { WalletService } from "../../services/walletService";
 import { VerificationLoader } from "./VerificationLoader";
 import { VerificationError } from "./VerificationError";
-import { VerificationSuccess } from "./VerificationSuccess";
+import { SlipPrintEngine } from "../../services/slipPrintEngine";
 import { SlipPrintModal } from "./slips/SlipPrintModal";
 import { SlipLivePreviewCard } from "./slips/SlipLivePreviewCard";
 import { useSiteConfig } from "../../context/SiteConfigContext";
@@ -55,15 +55,21 @@ export const NinPhoneVerificationView: React.FC<NinPhoneVerificationViewProps> =
   const [phoneNumber, setPhoneNumber] = useState("");
   const [hasConsent, setHasConsent] = useState(false);
   const [inputError, setInputError] = useState<string | null>(null);
+  const [selectedProvider, setSelectedProvider] = useState<string>("");
 
   // Fee & Balance
   const [userBalance, setUserBalance] = useState<number>(0);
 
   // Execution View Modes
-  const [stepMode, setStepMode] = useState<"INPUT" | "LOADING" | "SUCCESS" | "ERROR">("INPUT");
+  const [stepMode, setStepMode] = useState<"INPUT" | "LOADING" | "ERROR">("INPUT");
   const [currentStep, setCurrentStep] = useState<VerificationProgressStep>(VERIFICATION_PROGRESS_STEPS[0]);
   const [result, setResult] = useState<StandardizedVerificationResult | null>(null);
   const [errorState, setErrorState] = useState<VerificationErrorState | null>(null);
+
+  // Cached PDF Slip for instant download & email dispatch right from loader
+  const [cachedPdfBytes, setCachedPdfBytes] = useState<Uint8Array | null>(null);
+  const [cachedBlob, setCachedBlob] = useState<Blob | null>(null);
+  const [cachedFilename, setCachedFilename] = useState<string>("Official_NIN_Phone_Slip.pdf");
 
   // Slip Modal
   const [showSlipModal, setShowSlipModal] = useState(false);
@@ -134,22 +140,34 @@ export const NinPhoneVerificationView: React.FC<NinPhoneVerificationViewProps> =
     setStepMode("LOADING");
     setCurrentStep(VERIFICATION_PROGRESS_STEPS[0]);
 
-    try {
-      setTimeout(() => setCurrentStep(VERIFICATION_PROGRESS_STEPS[1]), 800);
-      setTimeout(() => setCurrentStep(VERIFICATION_PROGRESS_STEPS[2]), 1600);
+    // Continuous progress step timers while awaiting provider response
+    const timer1 = setTimeout(() => setCurrentStep(VERIFICATION_PROGRESS_STEPS[1]), 500);
+    const timer2 = setTimeout(() => setCurrentStep(VERIFICATION_PROGRESS_STEPS[2]), 1100);
+    const timer3 = setTimeout(() => setCurrentStep(VERIFICATION_PROGRESS_STEPS[3]), 2000);
 
+    try {
       const res = await VerificationEngineService.executeVerification({
         userId,
-        serviceType: "PHONE",
+        serviceType: "NIN_PHONE",
         primaryInput: phoneNumber,
         customFee: selectedSlip.price,
         slipType: selectedSlip.formatId,
         additionalFields: {
+          phoneNumber,
+          phone: phoneNumber,
           searchMethod: "BY_PHONE_NUMBER",
           slipType: selectedSlip.id,
           consent: true,
+          ...(selectedProvider ? {
+            preferredProvider: selectedProvider,
+            providerId: selectedProvider,
+          } : {}),
         },
       });
+
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
 
       if (res.success && res.result) {
         const enrichedResult: StandardizedVerificationResult = {
@@ -158,8 +176,35 @@ export const NinPhoneVerificationView: React.FC<NinPhoneVerificationViewProps> =
           formatId: selectedSlip?.formatId || "NIN_REGULAR",
           selectedSlip: selectedSlip,
         };
+
+        // 1. Advance to 90%: Applying authentic security overlay
+        setCurrentStep({
+          id: 5,
+          label: "Applying Official Security Overlay & Preparing Slip...",
+          progress: 90,
+        });
+
+        // 2. Perform the overlay and auto-download right during the loader!
+        try {
+          const exportResult = await SlipPrintEngine.autoExportIdentitySlip(enrichedResult);
+          if (exportResult.success && exportResult.pdfBytes) {
+            setCachedPdfBytes(exportResult.pdfBytes);
+            setCachedBlob(exportResult.blob || new Blob([exportResult.pdfBytes], { type: "application/pdf" }));
+            setCachedFilename(exportResult.filename);
+          }
+        } catch (overlayErr) {
+          console.error("Auto-overlay error during loading:", overlayErr);
+        }
+
+        // 3. Advance to 100%: Completed!
+        setCurrentStep({
+          id: 6,
+          label: "Verification Complete & Official Slip Auto-Downloaded",
+          progress: 100,
+        });
         setResult(enrichedResult);
-        setStepMode("SUCCESS");
+
+        // Keep in LOADING mode so VerificationLoader displays the 100% complete state with buttons!
         if (onBalanceUpdate) onBalanceUpdate();
         refreshBalance();
       } else {
@@ -175,6 +220,9 @@ export const NinPhoneVerificationView: React.FC<NinPhoneVerificationViewProps> =
         setStepMode("ERROR");
       }
     } catch (err: any) {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
       setErrorState({
         code: "SYSTEM_ERROR",
         title: "System Error",
@@ -190,8 +238,11 @@ export const NinPhoneVerificationView: React.FC<NinPhoneVerificationViewProps> =
     setHasConsent(false);
     setInputError(null);
     setResult(null);
+    setCachedBlob(null);
+    setCachedPdfBytes(null);
     setErrorState(null);
     setSelectedSlip(null);
+    setCurrentStep(VERIFICATION_PROGRESS_STEPS[0]);
     setStepMode("INPUT");
     refreshBalance();
   };
@@ -405,6 +456,7 @@ export const NinPhoneVerificationView: React.FC<NinPhoneVerificationViewProps> =
               </div>
             </div>
 
+            {/* SECTION 3: GATEWAY PROVIDER (OPTIONAL) */}
             {/* SECTION 3: CONSENT */}
             <div className="space-y-3 pt-3 border-t border-slate-100">
               <div className="flex items-center gap-2">
@@ -452,7 +504,7 @@ export const NinPhoneVerificationView: React.FC<NinPhoneVerificationViewProps> =
                 type="button"
                 onClick={handleVerify}
                 disabled={!isFormValid}
-                className="w-full bg-[#0F2D5C] hover:bg-[#1E3A8A] active:bg-[#0B2144] disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white py-3.5 sm:py-4 px-5 rounded-2xl font-bold text-sm sm:text-base flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer"
+                className="w-full bg-[#0F2D5C] hover:bg-[#1E3A8A] active:bg-[#0B2144] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#0F2D5C] text-white py-3.5 px-5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer"
               >
                 <Search className="w-4 h-4" />
                 <span>Verify Phone Number Now</span>
@@ -469,22 +521,18 @@ export const NinPhoneVerificationView: React.FC<NinPhoneVerificationViewProps> =
           </div>
         )}
 
-        {/* Execution Loader State */}
+        {/* Verification Loader State (0% -> 55% -> 90% -> 100% with inline action buttons) */}
         {stepMode === "LOADING" && (
           <VerificationLoader
             currentStep={currentStep}
             serviceTitle="NIN With Phone Number"
             providerName="NIMC Telco Portal"
-          />
-        )}
-
-        {/* Success Result View */}
-        {stepMode === "SUCCESS" && result && (
-          <VerificationSuccess
             result={result}
             userId={userId}
             userEmail={userEmail}
-            onRepeatVerification={handleVerify}
+            cachedBlob={cachedBlob}
+            cachedPdfBytes={cachedPdfBytes}
+            cachedFilename={cachedFilename}
             onNewVerification={handleResetForm}
           />
         )}

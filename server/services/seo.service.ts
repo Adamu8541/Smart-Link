@@ -719,6 +719,11 @@ Allow: /
 Allow: /llms.txt
 Allow: /llms-full.txt
 
+User-agent: OAI-SearchBot
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+
 User-agent: ChatGPT-User
 Allow: /
 Allow: /llms.txt
@@ -730,6 +735,11 @@ Allow: /llms.txt
 Allow: /llms-full.txt
 
 User-agent: anthropic-ai
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+
+User-agent: Meta-ExternalAgent
 Allow: /
 Allow: /llms.txt
 Allow: /llms-full.txt

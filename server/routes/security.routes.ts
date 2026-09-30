@@ -5,7 +5,7 @@
 
 import express from "express";
 import { readDB, writeDB, SUPER_ADMIN_EMAIL } from "../db";
-import { requireAdmin, optionalAdmin } from "../middleware/auth";
+import { requireAdmin } from "../middleware/auth";
 import * as securityStore from "../../src/services/securityStore";
 import * as usersStore from "../../src/services/usersStore";
 import { executeTurso } from "../turso/client";
@@ -76,7 +76,7 @@ async function ensureSecurityDefaults(db: any) {
 }
 
 // 1. GET /api/admin/security/dashboard - Aggregate security metrics
-app.get("/api/admin/security/dashboard", optionalAdmin, async (req, res) => {
+app.get("/api/admin/security/dashboard", requireAdmin, async (req, res) => {
   try {
     const db = readDB();
     await ensureSecurityDefaults(db);
@@ -111,7 +111,7 @@ app.get("/api/admin/security/dashboard", optionalAdmin, async (req, res) => {
 });
 
 // 2. GET /api/admin/security/login-history - Comprehensive Login Audit Trail
-app.get("/api/admin/security/login-history", optionalAdmin, async (req, res) => {
+app.get("/api/admin/security/login-history", requireAdmin, async (req, res) => {
   try {
     const db = readDB();
     await syncFromStorage(db);
@@ -191,7 +191,7 @@ app.get("/api/admin/security/login-history", optionalAdmin, async (req, res) => 
 });
 
 // 3. GET /api/admin/security/active-sessions
-app.get("/api/admin/security/active-sessions", optionalAdmin, async (req, res) => {
+app.get("/api/admin/security/active-sessions", requireAdmin, async (req, res) => {
   try {
     const db = readDB();
     await ensureSecurityDefaults(db);
@@ -206,7 +206,7 @@ app.get("/api/admin/security/active-sessions", optionalAdmin, async (req, res) =
 });
 
 // 4. GET /api/admin/security/account-locks
-app.get("/api/admin/security/account-locks", optionalAdmin, async (req, res) => {
+app.get("/api/admin/security/account-locks", requireAdmin, async (req, res) => {
   try {
     const db = readDB();
     await ensureSecurityDefaults(db);
@@ -221,7 +221,7 @@ app.get("/api/admin/security/account-locks", optionalAdmin, async (req, res) => 
 });
 
 // 5. GET /api/admin/security/blocked-devices
-app.get("/api/admin/security/blocked-devices", optionalAdmin, async (req, res) => {
+app.get("/api/admin/security/blocked-devices", requireAdmin, async (req, res) => {
   try {
     const db = readDB();
     await ensureSecurityDefaults(db);
@@ -236,7 +236,7 @@ app.get("/api/admin/security/blocked-devices", optionalAdmin, async (req, res) =
 });
 
 // 6. GET /api/admin/security/blocked-ips
-app.get("/api/admin/security/blocked-ips", optionalAdmin, async (req, res) => {
+app.get("/api/admin/security/blocked-ips", requireAdmin, async (req, res) => {
   try {
     const db = readDB();
     await ensureSecurityDefaults(db);
@@ -251,7 +251,7 @@ app.get("/api/admin/security/blocked-ips", optionalAdmin, async (req, res) => {
 });
 
 // 7. GET /api/admin/security/suspicious-activity
-app.get("/api/admin/security/suspicious-activity", optionalAdmin, async (req, res) => {
+app.get("/api/admin/security/suspicious-activity", requireAdmin, async (req, res) => {
   try {
     const db = readDB();
     await ensureSecurityDefaults(db);
@@ -266,7 +266,7 @@ app.get("/api/admin/security/suspicious-activity", optionalAdmin, async (req, re
 });
 
 // 8. GET /api/admin/security/alerts
-app.get("/api/admin/security/alerts", optionalAdmin, async (req, res) => {
+app.get("/api/admin/security/alerts", requireAdmin, async (req, res) => {
   try {
     const db = readDB();
     await ensureSecurityDefaults(db);
@@ -281,7 +281,7 @@ app.get("/api/admin/security/alerts", optionalAdmin, async (req, res) => {
 });
 
 // 9. GET /api/admin/security/audit-logs
-app.get("/api/admin/security/audit-logs", optionalAdmin, async (req, res) => {
+app.get("/api/admin/security/audit-logs", requireAdmin, async (req, res) => {
   try {
     const db = readDB();
     await syncFromStorage(db);
@@ -459,7 +459,7 @@ app.post("/api/admin/security/alerts/action", requireAdmin, async (req, res) => 
 });
 
 // 18. GET & POST /api/admin/module10/self-test - Security & Audits Diagnostic Test Suite
-app.all("/api/admin/module10/self-test", optionalAdmin, async (req, res) => {
+app.all("/api/admin/module10/self-test", requireAdmin, async (req, res) => {
   try {
     const tests = [
       { name: "Turso / Database Security Schema Integrity", status: "PASSED", latencyMs: 12 },

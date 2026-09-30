@@ -13,6 +13,7 @@ import {
   CustomerValidationRequest,
   CustomerValidationResponse,
 } from "../types/bills";
+import { getAuthHeaders } from "./providerService";
 
 export class BillPaymentEngine {
   /**
@@ -84,9 +85,13 @@ export class BillPaymentEngine {
    */
   public static async validateCustomer(req: CustomerValidationRequest): Promise<CustomerValidationResponse> {
     try {
+      const authHeaders = await getAuthHeaders();
       const res = await fetch("/api/bills/validate-customer", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...authHeaders,
+        },
         body: JSON.stringify(req),
       });
       const data = await res.json();
@@ -110,9 +115,13 @@ export class BillPaymentEngine {
    */
   public static async executePayment(req: BillPaymentRequest): Promise<BillPaymentResponse> {
     try {
+      const authHeaders = await getAuthHeaders(req.userId);
       const res = await fetch("/api/bills/pay", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...authHeaders,
+        },
         body: JSON.stringify(req),
       });
       const data = await res.json();

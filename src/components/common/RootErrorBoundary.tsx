@@ -23,6 +23,10 @@ export class RootErrorBoundary extends Component<Props, State> {
   }
 
   static getDerivedStateFromError(error: Error): State {
+    const msg = (error?.message || "").toLowerCase();
+    if (msg.includes("expected static flag was missing")) {
+      return { hasError: false, error: null };
+    }
     return { hasError: true, error };
   }
 

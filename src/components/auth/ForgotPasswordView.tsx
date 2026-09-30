@@ -6,6 +6,7 @@ import { SmartLinkLogoMark } from "../ui/SmartLinkLogoMark";
 import { getFriendlyErrorMessage } from "../../utils/authErrorHandler";
 import { soundFx } from "../../utils/audioEffects";
 import { AuthFormSkeleton } from "../ui/AuthSkeleton";
+import { LoginLoaderModal } from "./LoginLoaderModal";
 
 interface ForgotPasswordViewProps {
   onNavigateToLogin: () => void;
@@ -14,7 +15,7 @@ interface ForgotPasswordViewProps {
   initialEmail?: string;
 }
 
-export const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({
+export const ForgotPasswordView: React.FC<ForgotPasswordViewProps>= ({
   onNavigateToLogin,
   onNavigateHome,
   onNavigateToRegister,
@@ -129,6 +130,19 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({
 
   return (
     <div className="min-h-screen bg-[#F5F7FA] text-[#111827] flex flex-col justify-center items-center p-4 sm:p-6 relative overflow-hidden font-sans">
+      {/* Verification-Style Password Reset Loader Modal */}
+      <LoginLoaderModal
+        isOpen={loading}
+        title="Password Reset Request"
+        providerName="SmartLink Security Authority"
+        customSteps={[
+          { progress: 25, label: "Verifying account email..." },
+          { progress: 55, label: "Generating secure recovery token..." },
+          { progress: 85, label: "Dispatching password reset instructions..." },
+          { progress: 100, label: "Reset instructions dispatched!" },
+        ]}
+      />
+
       {/* Background Subtle Soft Gradients */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#E5E7EB]/80 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-10 right-10 w-[350px] h-[350px] bg-[#E5E7EB]/60 rounded-full blur-[100px] pointer-events-none" />
@@ -138,13 +152,13 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({
         <button
           type="button"
           onClick={onNavigateHome}
-          className="flex items-center gap-2 text-xs font-semibold text-[#4B5563] hover:text-[#111827] transition-colors cursor-pointer bg-white hover:bg-[#E5E7EB] px-3.5 py-2 rounded-xl border border-[#E5E7EB] shadow-sm"
+          className="flex items-center gap-2 text-xs font-semibold text-slate-600 hover:text-[#0F2D5C] transition-colors cursor-pointer px-3.5 py-2 rounded-xl border border-slate-200 bg-white shadow-2xs"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back to Home</span>
         </button>
         
-        <span className="text-[11px] font-bold tracking-wider text-[#0F2D5C] uppercase bg-[#F5F7FA] border border-[#E5E7EB] px-2.5 py-1 rounded-full flex items-center gap-1.5">
+        <span className="text-[11px] font-bold tracking-wider text-[#0F2D5C] uppercase bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-full flex items-center gap-1.5">
           <KeyRound className="w-3 h-3 text-[#0F2D5C]" />
           Account Recovery
         </span>
@@ -155,15 +169,15 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="w-full max-w-md bg-white border border-[#E5E7EB]/90 rounded-2xl p-6 sm:p-8 shadow-xl shadow-none relative z-10 space-y-6"
+        className="w-full max-w-md bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xl relative z-10 space-y-6 text-left"
       >
         {/* Brand Header */}
         <div className="text-center space-y-2">
           <div>
-            <h1 className="text-xl font-bold text-[#111827] tracking-tight flex items-center justify-center gap-2">
+            <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center justify-center gap-2">
               Forgot Password?
             </h1>
-            <p className="text-xs text-[#4B5563] mt-1 leading-relaxed">
+            <p className="text-xs text-slate-500 mt-1 leading-relaxed">
               Enter your registered email address and we'll send you secure instructions to reset your Smart Link password.
             </p>
           </div>
@@ -176,19 +190,19 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({
               initial={{ opacity: 0, y: -6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}
-              className="p-3.5 rounded-xl bg-[#F5F7FA] border border-[#E5E7EB] text-[#0F2D5C] text-xs flex items-start gap-2.5 shadow-sm"
+              className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs flex items-start gap-2.5 shadow-xs"
               role="alert"
             >
-              <AlertCircle className="w-4 h-4 text-[#0F2D5C] shrink-0 mt-0.5" />
+              <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
               <div className="leading-relaxed flex-1 font-medium">
                 <div>{error}</div>
                 {error.includes("register instead") && (
-                  <div className="mt-2 pt-2 border-t border-[#E5E7EB]/80 flex items-center justify-between">
-                    <span className="text-[11px] text-[#0F2D5C] font-normal">Need an account?</span>
+                  <div className="mt-2 pt-2 border-t border-red-200 flex items-center justify-between">
+                    <span className="text-[11px] text-red-700 font-normal">Need an account?</span>
                     <button
                       type="button"
                       onClick={onNavigateToRegister || onNavigateToLogin}
-                      className="text-xs font-bold text-[#0F2D5C] hover:text-[#0F2D5C] underline flex items-center gap-1 cursor-pointer bg-transparent border-none p-0 focus:outline-none"
+                      className="text-xs font-bold text-[#0F2D5C] underline flex items-center gap-1 cursor-pointer border-none p-0 focus:outline-none"
                     >
                       <UserPlus className="w-3.5 h-3.5" />
                       Register now
@@ -207,19 +221,19 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({
             animate={{ opacity: 1, scale: 1 }}
             className="space-y-5 text-center py-2"
           >
-            <div className="w-14 h-14 bg-[#F5F7FA] border border-[#E5E7EB] text-[#0F2D5C] rounded-full flex items-center justify-center mx-auto shadow-sm">
+            <div className="w-14 h-14 bg-blue-50 border border-blue-200 text-[#0F2D5C] rounded-full flex items-center justify-center mx-auto shadow-xs">
               <CheckCircle2 className="w-8 h-8 animate-bounce" />
             </div>
 
             <div className="space-y-2">
-              <h3 className="text-base font-bold text-[#111827]">Reset Link Sent!</h3>
-              <p className="text-xs text-[#4B5563] leading-relaxed max-w-sm mx-auto">
+              <h3 className="text-base font-bold text-slate-900">Reset Link Sent!</h3>
+              <p className="text-xs text-slate-600 leading-relaxed max-w-sm mx-auto">
                 {successMessage}
               </p>
             </div>
 
-            <div className="p-3.5 bg-[#F5F7FA] border border-[#E5E7EB] rounded-xl text-left text-[11px] text-[#4B5563] space-y-1">
-              <p className="font-semibold text-[#111827] flex items-center gap-1.5">
+            <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-left text-[11px] text-slate-600 space-y-1">
+              <p className="font-semibold text-slate-800 flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-[#0F2D5C]" />
                 Didn't receive the email?
               </p>
@@ -230,7 +244,7 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({
               <button
                 type="button"
                 onClick={() => setEmailSent(false)}
-                className="w-full py-2.5 px-4 bg-[#E5E7EB] hover:bg-[#E5E7EB] text-[#111827] font-semibold text-xs rounded-xl transition-colors cursor-pointer"
+                className="w-full py-2.5 px-4 font-semibold text-xs rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
               >
                 Try Another Email
               </button>
@@ -238,7 +252,7 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({
               <button
                 type="button"
                 onClick={onNavigateToLogin}
-                className="w-full py-3 px-4 bg-[#111827] hover:bg-[#111827] active:scale-98 text-white font-semibold text-xs rounded-xl transition-all shadow-md shadow-none cursor-pointer"
+                className="w-full py-3 px-4 active:scale-98 font-bold text-xs rounded-xl bg-[#0F2D5C] hover:bg-[#17407E] text-white transition-all shadow-md cursor-pointer"
               >
                 Back to Sign In
               </button>
@@ -250,7 +264,7 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({
           /* Reset Request Form */
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-1.5">
-              <label htmlFor="recovery-email" className="text-xs font-semibold text-[#4B5563] flex items-center gap-1.5">
+              <label htmlFor="recovery-email" className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
                 <Mail className="w-3.5 h-3.5 text-[#0F2D5C]" />
                 Email Address
               </label>
@@ -262,7 +276,7 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com"
-                  className="w-full bg-[#F5F7FA] border border-[#E5E7EB] focus:bg-white focus:border-[#111827] focus:ring-1 focus:ring-[#111827] text-[#111827] rounded-xl px-3.5 py-2.5 text-xs placeholder-slate-400 transition-colors outline-none"
+                  className="w-full bg-white border border-slate-300 focus:border-[#0F2D5C] focus:ring-2 focus:ring-[#0F2D5C]/15 text-slate-900 rounded-xl px-3.5 py-2.5 text-sm placeholder-slate-400 transition-colors outline-none"
                 />
               </div>
             </div>
@@ -270,18 +284,18 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps> = ({
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 bg-[#111827] hover:bg-[#111827] active:scale-98 text-white font-semibold text-xs rounded-xl transition-all shadow-md shadow-none flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full py-3 px-4 active:scale-98 font-bold text-xs rounded-xl bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <span>Send Reset Instructions</span>
             </button>
 
-            <div className="pt-2 text-center">
-              <p className="text-xs text-[#4B5563]">
+            <div className="pt-2 text-center border-t border-slate-100">
+              <p className="text-xs text-slate-600">
                 Remembered your password?{" "}
                 <button
                   type="button"
                   onClick={onNavigateToLogin}
-                  className="text-[#0F2D5C] hover:text-[#0F2D5C] font-bold hover:underline cursor-pointer bg-transparent border-none p-0 focus:outline-none"
+                  className="font-bold text-[#0F2D5C] hover:text-[#17407E] hover:underline cursor-pointer border-none p-0 focus:outline-none"
                 >
                   Sign In
                 </button>

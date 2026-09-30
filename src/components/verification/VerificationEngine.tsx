@@ -17,7 +17,7 @@ import { ConfirmationDialog } from "../wallet/ConfirmationDialog";
 import { formatNaira } from "../../utils/formatUtils";
 import { VerificationLoader } from "./VerificationLoader";
 import { VerificationError } from "./VerificationError";
-import { VerificationSuccess } from "./VerificationSuccess";
+import { SlipPrintEngine } from "../../services/slipPrintEngine";
 import { VerificationService } from "./VerificationService";
 
 export type VerificationEngineViewMode =
@@ -66,6 +66,11 @@ export const VerificationEngine: React.FC<VerificationEngineProps> = ({
   );
   const [result, setResult] = useState<StandardizedVerificationResult | null>(null);
   const [errorState, setErrorState] = useState<VerificationErrorState | null>(null);
+
+  // Cached PDF Slip for instant download & email dispatch right from loader
+  const [cachedPdfBytes, setCachedPdfBytes] = useState<Uint8Array | null>(null);
+  const [cachedBlob, setCachedBlob] = useState<Blob | null>(null);
+  const [cachedFilename, setCachedFilename] = useState<string>("Official_ID_Slip.pdf");
 
   // Fetch initial wallet balance
   useEffect(() => {
@@ -131,8 +136,34 @@ export const VerificationEngine: React.FC<VerificationEngineProps> = ({
     });
 
     if (res.success && res.result) {
+      // 1. Advance to 90%: Applying authentic security overlay
+      setCurrentStep({
+        id: 5,
+        label: "Applying Official Security Overlay & Preparing Slip...",
+        progress: 90,
+      });
+
+      // 2. Perform the overlay and auto-download right during the loader!
+      try {
+        const exportResult = await SlipPrintEngine.autoExportIdentitySlip(res.result);
+        if (exportResult.success && exportResult.pdfBytes) {
+          setCachedPdfBytes(exportResult.pdfBytes);
+          setCachedBlob(exportResult.blob || new Blob([exportResult.pdfBytes], { type: "application/pdf" }));
+          setCachedFilename(exportResult.filename);
+        }
+      } catch (overlayErr) {
+        console.error("Auto-overlay error during loading:", overlayErr);
+      }
+
+      // 3. Advance to 100%: Completed!
+      setCurrentStep({
+        id: 6,
+        label: "Verification Complete & Official Slip Auto-Downloaded",
+        progress: 100,
+      });
       setResult(res.result);
-      setViewMode("SUCCESS");
+
+      // Keep in LOADING mode so VerificationLoader displays the 100% complete state with buttons!
       onSuccess?.(res.result);
       onBalanceUpdate?.();
     } else if (res.errorState) {
@@ -146,7 +177,10 @@ export const VerificationEngine: React.FC<VerificationEngineProps> = ({
     setAdditionalFields({});
     setInputError(null);
     setResult(null);
+    setCachedBlob(null);
+    setCachedPdfBytes(null);
     setErrorState(null);
+    setCurrentStep(VERIFICATION_PROGRESS_STEPS[0]);
     if (initialServiceType) {
       setViewMode("FORM_INPUT");
     } else {
@@ -383,22 +417,17 @@ export const VerificationEngine: React.FC<VerificationEngineProps> = ({
           />
         )}
 
-        {/* VIEW 4: Multi-Step Progress Loader */}
+        {/* VIEW 4: Multi-Step Progress Loader (0% -> 55% -> 90% -> 100% with inline action buttons) */}
         {viewMode === "LOADING" && selectedService && (
           <VerificationLoader
             currentStep={currentStep}
             serviceTitle={selectedService.title}
             providerName={selectedService.providerName}
-          />
-        )}
-
-        {/* VIEW 5: Verification Result / Success */}
-        {viewMode === "SUCCESS" && result && (
-          <VerificationSuccess
             result={result}
-            onRepeatVerification={() => {
-              setViewMode("CONFIRMATION");
-            }}
+            userId={userId}
+            cachedBlob={cachedBlob}
+            cachedPdfBytes={cachedPdfBytes}
+            cachedFilename={cachedFilename}
             onNewVerification={handleReset}
           />
         )}

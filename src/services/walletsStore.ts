@@ -1,7 +1,5 @@
 import { usersStore } from "./usersStore";
-import { readDB, writeDB } from "../../server/db";
 import { executeTurso } from "../../server/turso/client";
-import { WalletRepository } from "../../server/turso/repositories";
 
 export interface WalletDbRecord {
   userId: string;
@@ -50,23 +48,11 @@ function sanitizeWalletRecord(docId: string, data: any): WalletDbRecord {
  * Get all wallets from Turso database (single source of truth).
  */
 export async function getAllWallets(): Promise<WalletDbRecord[]> {
-  try {
-    const res = await executeTurso("SELECT * FROM wallets ORDER BY updated_at DESC;");
-    if (res.rows && res.rows.length > 0) {
-      return res.rows.map((row: any) => sanitizeWalletRecord(row.user_id || row.userId || row.id, row));
-    }
-  } catch (tursoErr) {
-    console.warn("[walletsStore] Turso getAllWallets error:", tursoErr);
+  const res = await executeTurso("SELECT * FROM wallets ORDER BY updated_at DESC;");
+  if (res.rows && res.rows.length > 0) {
+    return res.rows.map((row: any) => sanitizeWalletRecord(row.user_id || row.userId || row.id, row));
   }
-
-  try {
-    const localDb = readDB();
-    return Array.isArray(localDb?.wallets)
-      ? localDb.wallets.map((w: any) => sanitizeWalletRecord(w.userId || w.id, w))
-      : [];
-  } catch (dbErr) {
-    return [];
-  }
+  return [];
 }
 
 /**
@@ -74,26 +60,10 @@ export async function getAllWallets(): Promise<WalletDbRecord[]> {
  */
 export async function getWalletByUserId(userId: string): Promise<WalletDbRecord | null> {
   if (!userId) return null;
-
-  try {
-    const res = await executeTurso("SELECT * FROM wallets WHERE user_id = ? OR wallet_id = ? OR id = ? LIMIT 1;", [userId, userId, userId]);
-    if (res.rows && res.rows.length > 0) {
-      return sanitizeWalletRecord(userId, res.rows[0]);
-    }
-  } catch (tursoErr) {
-    console.warn(`[walletsStore] Turso getWalletByUserId (${userId}) error:`, tursoErr);
+  const res = await executeTurso("SELECT * FROM wallets WHERE user_id = ? OR wallet_id = ? OR id = ? LIMIT 1;", [userId, userId, userId]);
+  if (res.rows && res.rows.length > 0) {
+    return sanitizeWalletRecord(userId, res.rows[0]);
   }
-
-  try {
-    const localDb = readDB();
-    const found = (localDb?.wallets || []).find(
-      (w: any) => w.userId === userId || w.walletId === userId || w.id === userId
-    );
-    if (found) {
-      return sanitizeWalletRecord(userId, found);
-    }
-  } catch (dbErr) {}
-
   return null;
 }
 
@@ -110,49 +80,30 @@ export async function createWallet(wallet: WalletDbRecord): Promise<WalletDbReco
     lastUpdated: wallet.lastUpdated || now,
   });
 
-  // Direct persistence to Turso
-  try {
-    await executeTurso(
-      `INSERT INTO wallets (id, user_id, wallet_id, balance, held_balance, total_credits, total_debits, status, currency, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-       ON CONFLICT(user_id) DO UPDATE SET
-         balance = excluded.balance,
-         held_balance = excluded.held_balance,
-         total_credits = excluded.total_credits,
-         total_debits = excluded.total_debits,
-         status = excluded.status,
-         updated_at = excluded.updated_at;`,
-      [
-        cleanWallet.walletId || `wal_${docId}`,
-        docId,
-        cleanWallet.walletId || `wal_${docId}`,
-        cleanWallet.balance,
-        cleanWallet.heldBalance,
-        cleanWallet.totalCredits,
-        cleanWallet.totalDebits,
-        cleanWallet.status,
-        cleanWallet.currency || "NGN",
-        cleanWallet.createdAt,
-        cleanWallet.updatedAt,
-      ]
-    );
-  } catch (tursoErr) {
-    console.warn("[walletsStore] Turso createWallet error:", tursoErr);
-  }
-
-  try {
-    const localDb = readDB();
-    if (!Array.isArray(localDb.wallets)) {
-      localDb.wallets = [];
-    }
-    const idx = localDb.wallets.findIndex((w: any) => w.userId === docId || w.walletId === cleanWallet.walletId);
-    if (idx >= 0) {
-      localDb.wallets[idx] = { ...localDb.wallets[idx], ...cleanWallet };
-    } else {
-      localDb.wallets.push(cleanWallet);
-    }
-    writeDB(localDb);
-  } catch (dbErr) {}
+  await executeTurso(
+    `INSERT INTO wallets (id, user_id, wallet_id, balance, held_balance, total_credits, total_debits, status, currency, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT(user_id) DO UPDATE SET
+       balance = excluded.balance,
+       held_balance = excluded.held_balance,
+       total_credits = excluded.total_credits,
+       total_debits = excluded.total_debits,
+       status = excluded.status,
+       updated_at = excluded.updated_at;`,
+    [
+      cleanWallet.walletId || `wal_${docId}`,
+      docId,
+      cleanWallet.walletId || `wal_${docId}`,
+      cleanWallet.balance,
+      cleanWallet.heldBalance,
+      cleanWallet.totalCredits,
+      cleanWallet.totalDebits,
+      cleanWallet.status,
+      cleanWallet.currency || "NGN",
+      cleanWallet.createdAt,
+      cleanWallet.updatedAt,
+    ]
+  );
 
   return cleanWallet;
 }
@@ -184,51 +135,33 @@ export async function updateWallet(
   });
 
   // 2. Persist directly to Turso
-  try {
-    await executeTurso(
-      `INSERT INTO wallets (id, user_id, wallet_id, balance, held_balance, total_credits, total_debits, status, currency, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-       ON CONFLICT(user_id) DO UPDATE SET
-         balance = excluded.balance,
-         held_balance = excluded.held_balance,
-         total_credits = excluded.total_credits,
-         total_debits = excluded.total_debits,
-         status = excluded.status,
-         updated_at = excluded.updated_at;`,
-      [
-        merged.walletId || `wal_${userId}`,
-        userId,
-        merged.walletId || `wal_${userId}`,
-        merged.balance,
-        merged.heldBalance,
-        merged.totalCredits,
-        merged.totalDebits,
-        merged.status,
-        merged.currency || "NGN",
-        merged.createdAt,
-        merged.updatedAt,
-      ]
-    );
-  } catch (tursoErr) {
-    console.warn("[walletsStore] Turso updateWallet error:", tursoErr);
-  }
+  await executeTurso(
+    `INSERT INTO wallets (id, user_id, wallet_id, balance, held_balance, total_credits, total_debits, status, currency, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT(user_id) DO UPDATE SET
+       balance = excluded.balance,
+       held_balance = excluded.held_balance,
+       total_credits = excluded.total_credits,
+       total_debits = excluded.total_debits,
+       status = excluded.status,
+       updated_at = excluded.updated_at;`,
+    [
+      merged.walletId || `wal_${userId}`,
+      userId,
+      merged.walletId || `wal_${userId}`,
+      merged.balance,
+      merged.heldBalance,
+      merged.totalCredits,
+      merged.totalDebits,
+      merged.status,
+      merged.currency || "NGN",
+      merged.createdAt,
+      merged.updatedAt,
+    ]
+  );
 
-  // Also sync user wallet balance
+  // Also sync user wallet balance in Turso
   await usersStore.updateUser(userId, { walletBalance: merged.balance }).catch(() => {});
-
-  try {
-    const localDb = readDB();
-    const existingIdx = (localDb?.wallets || []).findIndex(
-      (w: any) => w.userId === userId || w.walletId === userId || w.id === userId
-    );
-    if (existingIdx >= 0) {
-      localDb.wallets[existingIdx] = merged;
-    } else {
-      if (!Array.isArray(localDb.wallets)) localDb.wallets = [];
-      localDb.wallets.push(merged);
-    }
-    writeDB(localDb);
-  } catch (fallbackErr) {}
 
   return merged;
 }
@@ -255,50 +188,32 @@ export async function updateWalletAtomic(
   });
 
   // Direct ACID write to Turso
-  try {
-    await executeTurso(
-      `INSERT INTO wallets (id, user_id, wallet_id, balance, held_balance, total_credits, total_debits, status, currency, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-       ON CONFLICT(user_id) DO UPDATE SET
-         balance = excluded.balance,
-         held_balance = excluded.held_balance,
-         total_credits = excluded.total_credits,
-         total_debits = excluded.total_debits,
-         status = excluded.status,
-         updated_at = excluded.updated_at;`,
-      [
-        merged.walletId || `wal_${userId}`,
-        userId,
-        merged.walletId || `wal_${userId}`,
-        merged.balance,
-        merged.heldBalance,
-        merged.totalCredits,
-        merged.totalDebits,
-        merged.status,
-        merged.currency || "NGN",
-        merged.createdAt,
-        merged.updatedAt,
-      ]
-    );
-  } catch (tursoErr) {
-    console.warn("[walletsStore] Turso updateWalletAtomic error:", tursoErr);
-  }
+  await executeTurso(
+    `INSERT INTO wallets (id, user_id, wallet_id, balance, held_balance, total_credits, total_debits, status, currency, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT(user_id) DO UPDATE SET
+       balance = excluded.balance,
+       held_balance = excluded.held_balance,
+       total_credits = excluded.total_credits,
+       total_debits = excluded.total_debits,
+       status = excluded.status,
+       updated_at = excluded.updated_at;`,
+    [
+      merged.walletId || `wal_${userId}`,
+      userId,
+      merged.walletId || `wal_${userId}`,
+      merged.balance,
+      merged.heldBalance,
+      merged.totalCredits,
+      merged.totalDebits,
+      merged.status,
+      merged.currency || "NGN",
+      merged.createdAt,
+      merged.updatedAt,
+    ]
+  );
 
   await usersStore.updateUser(userId, { walletBalance: merged.balance }).catch(() => {});
-
-  try {
-    const localDb = readDB();
-    const existingIdx = (localDb?.wallets || []).findIndex(
-      (w: any) => w.userId === userId || w.walletId === userId || w.id === userId
-    );
-    if (existingIdx >= 0) {
-      localDb.wallets[existingIdx] = merged;
-    } else {
-      if (!Array.isArray(localDb.wallets)) localDb.wallets = [];
-      localDb.wallets.push(merged);
-    }
-    writeDB(localDb);
-  } catch (fallbackErr) {}
 
   return merged;
 }
@@ -307,18 +222,7 @@ export async function updateWalletAtomic(
  * Delete all wallets from Turso database (for admin reset).
  */
 export async function deleteAllWallets(): Promise<boolean> {
-  try {
-    await executeTurso("DELETE FROM wallets;");
-  } catch (tursoErr) {
-    console.warn("[walletsStore] Turso deleteAllWallets error:", tursoErr);
-  }
-
-  try {
-    const localDb = readDB();
-    localDb.wallets = [];
-    writeDB(localDb);
-  } catch (dbErr) {}
-
+  await executeTurso("DELETE FROM wallets;");
   return true;
 }
 

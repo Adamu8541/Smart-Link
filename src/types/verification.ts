@@ -24,7 +24,10 @@ export type VerificationErrorCode =
   | "AUTH_ERROR"
   | "WALLET_ERROR"
   | "SERVER_ERROR"
-  | "UNKNOWN_ERROR";
+  | "SERVER_WARMING_UP"
+  | "PORTAL_CONFIG_REQUIRED"
+  | "UNKNOWN_ERROR"
+  | string;
 
 export interface VerificationServiceConfig {
   id: VerificationType;
@@ -58,11 +61,17 @@ export interface VerificationResponseData {
   gender?: string;
   dateOfBirth?: string;
   phoneNumber?: string;
+  phone?: string;
   email?: string;
   address?: string;
+  addressLine1?: string;
+  addressLine2?: string;
   stateOfOrigin?: string;
+  state?: string;
   lga?: string;
   photoUrl?: string;
+  photo?: string;
+  image?: string;
 
   // Identity specific
   nin?: string;
@@ -75,6 +84,8 @@ export interface VerificationResponseData {
   companyStatus?: string;
   companyType?: string;
   tin?: string;
+  taxpayerName?: string;
+  taxStatus?: string;
   taxOffice?: string;
 
   // Licensing & Credentials
@@ -96,6 +107,7 @@ export interface VerificationResponseData {
 export interface StandardizedVerificationResult {
   status: VerificationStatus;
   reference: string;
+  transactionId?: string;
   message: string;
   data: VerificationResponseData | null;
   timestamp: string;
@@ -129,6 +141,7 @@ export interface VerificationHistoryItem {
   fee: number;
   responseTime: number;
   createdAt: string;
+  timestamp?: string;
   signedQrContent?: string;
   data?: VerificationResponseData;
 }
@@ -141,9 +154,11 @@ export interface VerificationProgressStep {
 
 export interface VerificationErrorState {
   code: VerificationErrorCode;
+  title?: string;
   message: string;
-  friendlyMessage: string;
+  friendlyMessage?: string;
   details?: string;
+  retryable?: boolean;
 }
 
 export type SlipFormatType =
@@ -157,6 +172,8 @@ export type SlipFormatType =
   | "BVN_PREMIUM_CARD" // Premium BVN Identity Card
   | "BVN_BASIC_LOOKUP" // Basic BVN Text Lookup
   | "BVN_THERMAL" // POS Terminal BVN Receipt
+  | "BVN_SLIP_1"
+  | "BVN_CARD"
   | "CAC_CERTIFICATE" // Official CAC Certificate & Status Slip
   | "PHONE_KYC_DOSSIER"; // Phone Telco Dossier & Linked NIN Slip
 
@@ -185,6 +202,7 @@ export interface GeneratedSlipRecord {
     stateOfOrigin?: string;
     lga?: string;
     phoneNumber?: string;
+    phone?: string;
     email?: string;
     photoUrl?: string;
     trackingId?: string;

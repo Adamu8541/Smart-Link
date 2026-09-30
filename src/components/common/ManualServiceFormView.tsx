@@ -35,7 +35,6 @@ import {
   ManualServiceConfig,
   ManualFieldDefinition,
   MANUAL_SERVICES_CATALOG,
-  TAX_IDENTITY_SERVICES_LIST,
   CAC_SERVICES_LIST,
 } from "../../data/manualServicesConfig";
 import { UserProfile } from "../../types";
@@ -304,22 +303,13 @@ export function ManualServiceFormView({
     };
   }, [isNgo, isTrustee, isAnnualReturns, isScuml, activeServiceConfig]);
 
-  const isTaxIdentityGroup =
-    activeServiceConfig.id.startsWith("tax_id_") ||
-    activeServiceConfig.id === "id_tax_id_search" ||
-    activeServiceConfig.id === "tax_identity" ||
-    activeServiceConfig.id === "id_tin_registration" ||
-    serviceConfig.id.startsWith("tax_id_") ||
-    serviceConfig.id === "id_tax_id_search" ||
-    serviceConfig.id === "tax_identity";
-
   const isCacGroup =
     activeServiceConfig.id.startsWith("cac_") ||
     activeServiceConfig.id === "id_cac_registration" ||
     serviceConfig.id.startsWith("cac_") ||
     serviceConfig.id === "id_cac_registration";
 
-  const isTaxOrCac = isTaxIdentityGroup || isCacGroup;
+  const isTaxOrCac = isCacGroup;
 
   const handleSwitchSubService = (targetId: string) => {
     const targetConfig = MANUAL_SERVICES_CATALOG.find((s) => s.id === targetId);
@@ -335,15 +325,12 @@ export function ManualServiceFormView({
     setError(null);
     setIsSuccess(false);
 
-    // 3. For CAC and Tax Identity, completely remove auto-fill; start with clean empty form
-    const isTargetTaxOrCac =
-      targetConfig.id.startsWith("tax_id_") ||
+    // 3. For CAC, completely remove auto-fill; start with clean empty form
+    const isTargetCac =
       targetConfig.id.startsWith("cac_") ||
-      targetConfig.id === "id_tax_id_search" ||
-      targetConfig.id === "id_cac_registration" ||
-      targetConfig.id === "tax_identity";
+      targetConfig.id === "id_cac_registration";
 
-    if (isTargetTaxOrCac) {
+    if (isTargetCac) {
       setFormData({});
       setFilesData({});
       return;
@@ -597,70 +584,6 @@ export function ManualServiceFormView({
           <X className="w-5 h-5" />
         </button>
       </div>
-
-      {/* Sub-Service Selection for Tax Identity */}
-      {isTaxIdentityGroup && (
-        <div className="bg-[#F8FAFC] dark:bg-[#111827] border-b border-[#E5E7EB] dark:border-[#374151] p-4 sm:p-5 space-y-2.5">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#0F2D5C] dark:text-[#60A5FA] flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5" />
-              Tax Identity Services
-            </span>
-            <span className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF] font-medium hidden sm:inline">
-              Select 1 of 4 official tax desks
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-            {TAX_IDENTITY_SERVICES_LIST.map((srv) => {
-              const isSelected = activeServiceConfig.id === srv.id;
-              return (
-                <button
-                  key={srv.id}
-                  type="button"
-                  onClick={() => handleSwitchSubService(srv.id)}
-                  className={`flex flex-col text-left p-3 rounded-xl border transition-all cursor-pointer relative ${
-                    isSelected
-                      ? "bg-[#0F2D5C] text-white border-[#0F2D5C] shadow-md ring-2 ring-[#0F2D5C]/20 dark:ring-blue-500/40"
-                      : "bg-white dark:bg-[#1F2937] text-[#111827] dark:text-white border-[#E5E7EB] dark:border-[#374151] hover:border-[#0F2D5C]/40 hover:bg-slate-50 dark:hover:bg-slate-800"
-                  }`}
-                >
-                  <div className="flex items-center justify-between w-full mb-1">
-                    <span
-                      className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black ${
-                        isSelected
-                          ? "bg-white text-[#0F2D5C]"
-                          : "bg-[#F1F5F9] dark:bg-[#374151] text-[#6B7280] dark:text-[#9CA3AF]"
-                      }`}
-                    >
-                      {srv.stepNum}
-                    </span>
-                    <span
-                      className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                        isSelected
-                          ? "bg-white/20 text-white"
-                          : "bg-blue-50 dark:bg-blue-900/40 text-[#0F2D5C] dark:text-blue-300"
-                      }`}
-                    >
-                      {srv.badge}
-                    </span>
-                  </div>
-                  <span className="font-bold text-xs leading-snug mb-1">
-                    {srv.title}
-                  </span>
-                  <span
-                    className={`text-[10.5px] leading-tight line-clamp-2 ${
-                      isSelected ? "text-blue-100" : "text-[#6B7280] dark:text-[#9CA3AF]"
-                    }`}
-                  >
-                    {srv.description}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       {/* Sub-Service Selection for CAC */}
       {isCacGroup && (

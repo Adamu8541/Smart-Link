@@ -28,7 +28,9 @@ export interface UserProfile {
   uid: string;
   email: string;
   fullName: string;
+  name?: string;
   phoneNumber?: string;
+  phone?: string;
   role: UserRole;
   walletBalance: number;
   referralCode?: string;

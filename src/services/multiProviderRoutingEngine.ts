@@ -16,8 +16,8 @@ import {
 import { getAdapterForProvider, getAdapterById } from "./providerConnector";
 import { AspfiyAdapter } from "./providers/aspfiyAdapter";
 import { LumiIDAdapter } from "./providers/lumiidAdapter";
-import { VerifyNGAdapter } from "./providers/verifyNgAdapter";
 import { IdentroAdapter } from "./providers/identroAdapter";
+import { PrembleyAdapter } from "./providers/prembleyAdapter";
 
 export interface MultiPortalExecutionParams {
   service: string; // NIN, BVN, PHONE, CAC, TIN, etc.
@@ -48,7 +48,8 @@ export interface MultiPortalExecutionResult {
 
 export class MultiProviderRoutingEngine {
   /**
-   * Default service routing rules matching LumiID, NIN/BVN Portal, and VerifyNG ecosystem
+   * Default service routing rules matching LumiID, NIN/BVN Portal, and VerifyNG ecosystem.
+   * No service has a default provider assigned; each executes the admin-configured or user-selected provider.
    */
   public static getDefaultRoutingRules(): ProviderRoutingRule[] {
     const now = new Date().toISOString();
@@ -58,14 +59,35 @@ export class MultiProviderRoutingEngine {
         service: "NIN",
         serviceName: "NIN Identity Verification",
         strategy: "PRIORITY_ORDER",
-        primaryProviderId: "lumiid",
-        primaryProviderName: "LumiID Portal",
-        secondaryProviderId: "identro",
-        secondaryProviderName: "Identro Portal",
-        tertiaryProviderId: "verifyng",
-        tertiaryProviderName: "VerifyNG Portal",
-        fallbackProviderId: "verifyng",
-        fallbackProviderName: "VerifyNG Portal",
+        primaryProviderId: "",
+        primaryProviderName: "None (Unassigned)",
+        secondaryProviderId: "",
+        secondaryProviderName: "",
+        tertiaryProviderId: "",
+        tertiaryProviderName: "",
+        fallbackProviderId: "",
+        fallbackProviderName: "",
+        timeoutMs: 20000,
+        maxRetries: 2,
+        autoFailover: true,
+        circuitBreakerThreshold: 3,
+        circuitBreakerResetMs: 60000,
+        enabled: true,
+        updatedAt: now,
+      },
+      {
+        id: "rule_nin_demography",
+        service: "NIN_DEMOGRAPHY",
+        serviceName: "NIN Demographic Verification (Name & DOB)",
+        strategy: "PRIORITY_ORDER",
+        primaryProviderId: "",
+        primaryProviderName: "None (Unassigned)",
+        secondaryProviderId: "",
+        secondaryProviderName: "",
+        tertiaryProviderId: "",
+        tertiaryProviderName: "",
+        fallbackProviderId: "",
+        fallbackProviderName: "",
         timeoutMs: 20000,
         maxRetries: 2,
         autoFailover: true,
@@ -79,14 +101,77 @@ export class MultiProviderRoutingEngine {
         service: "BVN",
         serviceName: "BVN Banking Verification",
         strategy: "PRIORITY_ORDER",
-        primaryProviderId: "lumiid",
-        primaryProviderName: "LumiID Portal",
-        secondaryProviderId: "identro",
-        secondaryProviderName: "Identro Portal",
-        tertiaryProviderId: "verifyng",
-        tertiaryProviderName: "VerifyNG Portal",
-        fallbackProviderId: "verifyng",
-        fallbackProviderName: "VerifyNG Portal",
+        primaryProviderId: "",
+        primaryProviderName: "None (Unassigned)",
+        secondaryProviderId: "",
+        secondaryProviderName: "",
+        tertiaryProviderId: "",
+        tertiaryProviderName: "",
+        fallbackProviderId: "",
+        fallbackProviderName: "",
+        timeoutMs: 20000,
+        maxRetries: 2,
+        autoFailover: true,
+        circuitBreakerThreshold: 3,
+        circuitBreakerResetMs: 60000,
+        enabled: true,
+        updatedAt: now,
+      },
+      {
+        id: "rule_nin_phone",
+        service: "NIN_PHONE",
+        serviceName: "NIN Lookup via Phone Number",
+        strategy: "PRIORITY_ORDER",
+        primaryProviderId: "",
+        primaryProviderName: "None (Unassigned)",
+        secondaryProviderId: "",
+        secondaryProviderName: "",
+        tertiaryProviderId: "",
+        tertiaryProviderName: "",
+        fallbackProviderId: "",
+        fallbackProviderName: "",
+        timeoutMs: 20000,
+        maxRetries: 2,
+        autoFailover: true,
+        circuitBreakerThreshold: 3,
+        circuitBreakerResetMs: 60000,
+        enabled: true,
+        updatedAt: now,
+      },
+      {
+        id: "rule_bvn_demography",
+        service: "BVN_DEMOGRAPHY",
+        serviceName: "BVN Verification with Name & DOB",
+        strategy: "PRIORITY_ORDER",
+        primaryProviderId: "",
+        primaryProviderName: "None (Unassigned)",
+        secondaryProviderId: "",
+        secondaryProviderName: "",
+        tertiaryProviderId: "",
+        tertiaryProviderName: "",
+        fallbackProviderId: "",
+        fallbackProviderName: "",
+        timeoutMs: 20000,
+        maxRetries: 2,
+        autoFailover: true,
+        circuitBreakerThreshold: 3,
+        circuitBreakerResetMs: 60000,
+        enabled: true,
+        updatedAt: now,
+      },
+      {
+        id: "rule_bvn_phone",
+        service: "BVN_PHONE",
+        serviceName: "BVN Verification with Phone Number",
+        strategy: "PRIORITY_ORDER",
+        primaryProviderId: "",
+        primaryProviderName: "None (Unassigned)",
+        secondaryProviderId: "",
+        secondaryProviderName: "",
+        tertiaryProviderId: "",
+        tertiaryProviderName: "",
+        fallbackProviderId: "",
+        fallbackProviderName: "",
         timeoutMs: 20000,
         maxRetries: 2,
         autoFailover: true,
@@ -100,10 +185,14 @@ export class MultiProviderRoutingEngine {
         service: "PHONE",
         serviceName: "Phone Number Identity Lookup",
         strategy: "PRIORITY_ORDER",
-        primaryProviderId: "lumiid",
-        primaryProviderName: "LumiID Portal",
-        secondaryProviderId: "verifyng",
-        secondaryProviderName: "VerifyNG Portal",
+        primaryProviderId: "",
+        primaryProviderName: "None (Unassigned)",
+        secondaryProviderId: "",
+        secondaryProviderName: "",
+        tertiaryProviderId: "",
+        tertiaryProviderName: "",
+        fallbackProviderId: "",
+        fallbackProviderName: "",
         timeoutMs: 20000,
         maxRetries: 2,
         autoFailover: true,
@@ -117,10 +206,14 @@ export class MultiProviderRoutingEngine {
         service: "CAC",
         serviceName: "CAC Corporate Registration Verification",
         strategy: "PRIORITY_ORDER",
-        primaryProviderId: "lumiid",
-        primaryProviderName: "LumiID Portal",
-        secondaryProviderId: "verifyng",
-        secondaryProviderName: "VerifyNG Portal",
+        primaryProviderId: "",
+        primaryProviderName: "None (Unassigned)",
+        secondaryProviderId: "",
+        secondaryProviderName: "",
+        tertiaryProviderId: "",
+        tertiaryProviderName: "",
+        fallbackProviderId: "",
+        fallbackProviderName: "",
         timeoutMs: 20000,
         maxRetries: 2,
         autoFailover: true,
@@ -134,10 +227,14 @@ export class MultiProviderRoutingEngine {
         service: "TIN",
         serviceName: "TIN Tax Identification Lookup",
         strategy: "PRIORITY_ORDER",
-        primaryProviderId: "lumiid",
-        primaryProviderName: "LumiID Portal",
-        secondaryProviderId: "verifyng",
-        secondaryProviderName: "VerifyNG Portal",
+        primaryProviderId: "",
+        primaryProviderName: "None (Unassigned)",
+        secondaryProviderId: "",
+        secondaryProviderName: "",
+        tertiaryProviderId: "",
+        tertiaryProviderName: "",
+        fallbackProviderId: "",
+        fallbackProviderName: "",
         timeoutMs: 20000,
         maxRetries: 2,
         autoFailover: true,
@@ -151,10 +248,14 @@ export class MultiProviderRoutingEngine {
         service: "DRIVER_LICENSE",
         serviceName: "Driver License Validation",
         strategy: "PRIORITY_ORDER",
-        primaryProviderId: "lumiid",
-        primaryProviderName: "LumiID Portal",
-        secondaryProviderId: "verifyng",
-        secondaryProviderName: "VerifyNG Portal",
+        primaryProviderId: "",
+        primaryProviderName: "None (Unassigned)",
+        secondaryProviderId: "",
+        secondaryProviderName: "",
+        tertiaryProviderId: "",
+        tertiaryProviderName: "",
+        fallbackProviderId: "",
+        fallbackProviderName: "",
         timeoutMs: 20000,
         maxRetries: 2,
         autoFailover: true,
@@ -168,10 +269,14 @@ export class MultiProviderRoutingEngine {
         service: "PASSPORT",
         serviceName: "International Passport Verification",
         strategy: "PRIORITY_ORDER",
-        primaryProviderId: "lumiid",
-        primaryProviderName: "LumiID Portal",
-        secondaryProviderId: "verifyng",
-        secondaryProviderName: "VerifyNG Portal",
+        primaryProviderId: "",
+        primaryProviderName: "None (Unassigned)",
+        secondaryProviderId: "",
+        secondaryProviderName: "",
+        tertiaryProviderId: "",
+        tertiaryProviderName: "",
+        fallbackProviderId: "",
+        fallbackProviderName: "",
         timeoutMs: 20000,
         maxRetries: 2,
         autoFailover: true,
@@ -185,10 +290,14 @@ export class MultiProviderRoutingEngine {
         service: "VOTER_CARD",
         serviceName: "Voter Card (VIN) Verification",
         strategy: "PRIORITY_ORDER",
-        primaryProviderId: "lumiid",
-        primaryProviderName: "LumiID Portal",
-        secondaryProviderId: "verifyng",
-        secondaryProviderName: "VerifyNG Portal",
+        primaryProviderId: "",
+        primaryProviderName: "None (Unassigned)",
+        secondaryProviderId: "",
+        secondaryProviderName: "",
+        tertiaryProviderId: "",
+        tertiaryProviderName: "",
+        fallbackProviderId: "",
+        fallbackProviderName: "",
         timeoutMs: 20000,
         maxRetries: 2,
         autoFailover: true,
@@ -202,10 +311,14 @@ export class MultiProviderRoutingEngine {
         service: "EMAIL",
         serviceName: "Email Security & Fraud Verification",
         strategy: "PRIORITY_ORDER",
-        primaryProviderId: "lumiid",
-        primaryProviderName: "LumiID Portal",
-        secondaryProviderId: "verifyng",
-        secondaryProviderName: "VerifyNG Portal",
+        primaryProviderId: "",
+        primaryProviderName: "None (Unassigned)",
+        secondaryProviderId: "",
+        secondaryProviderName: "",
+        tertiaryProviderId: "",
+        tertiaryProviderName: "",
+        fallbackProviderId: "",
+        fallbackProviderName: "",
         timeoutMs: 15000,
         maxRetries: 2,
         autoFailover: true,
@@ -215,6 +328,31 @@ export class MultiProviderRoutingEngine {
         updatedAt: now,
       },
     ];
+  }
+
+  /**
+   * Resolves a human-friendly provider name for any provider ID
+   */
+  public static resolveProviderDisplayName(providerId?: string, db?: any): string {
+    if (!providerId || String(providerId).trim() === "" || String(providerId).toLowerCase() === "none") {
+      return "None (Unassigned)";
+    }
+    const clean = String(providerId).toLowerCase().trim().replace(/^prov_/, "");
+    if (db && Array.isArray(db.api_providers)) {
+      const match = db.api_providers.find((p: any) => {
+        const pid = String(p.id || "").toLowerCase().trim();
+        const pname = String(p.name || "").toLowerCase().trim();
+        return pid === String(providerId).toLowerCase().trim() || pid === `prov_${clean}` || pid === clean || pname.includes(clean);
+      });
+      if (match?.name) return match.name;
+    }
+    if (clean === "identro") return "Identro Portal";
+    if (clean === "lumiid") return "LumiID Portal";
+    if (clean === "prembley" || clean === "prembly" || clean === "prov_prembly" || clean === "identitypass") return "Prembley Portal (Identitypass)";
+    if (clean === "aspfiy") return "Aspfiy Payment Portal";
+    if (clean === "verifyng" || clean === "verify-ng") return "VerifyNG Portal";
+    if (clean === "clubkonnect") return "Clubkonnect Portal";
+    return `${clean.toUpperCase()} Portal`;
   }
 
   /**
@@ -236,19 +374,21 @@ export class MultiProviderRoutingEngine {
     const matched = rules.find((r) => r.service.toUpperCase() === sType);
     if (matched) return matched;
 
-    // Fallback default rule
+    // Fallback default rule with no default provider
     return {
       id: `rule_${sType.toLowerCase()}`,
       service: sType,
       serviceName: `${sType} Verification`,
       strategy: "PRIORITY_ORDER",
-      primaryProviderId: "aspfiy",
-      primaryProviderName: "Aspfiy Portal",
-      secondaryProviderId: "verifyng",
-      secondaryProviderName: "VerifyNG Portal",
-      tertiaryProviderId: "lumiid",
-      tertiaryProviderName: "LumiID Portal",
-      timeoutMs: 6000,
+      primaryProviderId: "",
+      primaryProviderName: "None (Unassigned)",
+      secondaryProviderId: "",
+      secondaryProviderName: "",
+      tertiaryProviderId: "",
+      tertiaryProviderName: "",
+      fallbackProviderId: "",
+      fallbackProviderName: "",
+      timeoutMs: 20000,
       maxRetries: 2,
       autoFailover: true,
       circuitBreakerThreshold: 3,
@@ -301,24 +441,6 @@ export class MultiProviderRoutingEngine {
           lastPingLatencyMs: 145,
         },
         {
-          providerId: "verifyng",
-          providerName: "VerifyNG Portal (kyc.edirect.ng)",
-          category: "IDENTITY_API",
-          baseUrl: "https://kyc.edirect.ng",
-          status: "ONLINE",
-          uptimePercentage: 99.70,
-          avgLatencyMs: 180,
-          totalQueries: 11200,
-          successfulQueries: 11150,
-          failedQueries: 50,
-          failoverTriggeredCount: 3,
-          consecutiveFailures: 0,
-          circuitBreakerTripped: false,
-          lastPingAt: new Date().toISOString(),
-          lastPingStatus: "SUCCESS",
-          lastPingLatencyMs: 175,
-        },
-        {
           providerId: "identro",
           providerName: "Identro Portal (identro.ng)",
           category: "IDENTITY_API",
@@ -335,6 +457,24 @@ export class MultiProviderRoutingEngine {
           lastPingAt: new Date().toISOString(),
           lastPingStatus: "SUCCESS",
           lastPingLatencyMs: 165,
+        },
+        {
+          providerId: "prembley",
+          providerName: "Prembley Portal (Identitypass)",
+          category: "IDENTITY_API",
+          baseUrl: "https://api.prembly.com",
+          status: "ONLINE",
+          uptimePercentage: 99.92,
+          avgLatencyMs: 155,
+          totalQueries: 11200,
+          successfulQueries: 11185,
+          failedQueries: 15,
+          failoverTriggeredCount: 1,
+          consecutiveFailures: 0,
+          circuitBreakerTripped: false,
+          lastPingAt: new Date().toISOString(),
+          lastPingStatus: "SUCCESS",
+          lastPingLatencyMs: 150,
         },
         {
           providerId: "clubkonnect",
@@ -406,12 +546,6 @@ export class MultiProviderRoutingEngine {
         providerRow.secretKey = envKey || providerRow.secretKey;
       }
       providerRow.apiKey = providerRow.secretKey;
-    } else if (normalizedKey.includes("verifyng") || normalizedKey.includes("edirect")) {
-      if (!providerRow.baseUrl || providerRow.baseUrl.includes("verifyn.ng")) {
-        providerRow.baseUrl = "https://kyc.edirect.ng";
-      }
-      providerRow.apiKey = providerRow.apiKey || process.env.VERIFYNG_CLIENT_KEY || process.env.VERIFYNG_API_KEY;
-      providerRow.secretKey = providerRow.secretKey || process.env.VERIFYNG_API_SECRET || process.env.VERIFYNG_API_KEY || process.env.VERIFYNG_SECRET_KEY;
     } else if (normalizedKey.includes("identro")) {
       providerRow.baseUrl = providerRow.baseUrl || "https://api.identro.ng";
       const envKey = process.env.IDENTRO_API_KEY || process.env.IDENTRO_SECRET_KEY;
@@ -419,6 +553,17 @@ export class MultiProviderRoutingEngine {
         providerRow.secretKey = envKey || providerRow.secretKey;
       }
       providerRow.apiKey = providerRow.secretKey;
+    } else if (normalizedKey.includes("prembley") || normalizedKey.includes("prembly") || normalizedKey.includes("identitypass")) {
+      providerRow.baseUrl = providerRow.baseUrl || "https://api.prembly.com";
+      const envPub = process.env.PREMBLEY_PUBLIC_KEY || process.env.PREMBLEY_API_KEY || process.env.IDENTITYPASS_PUBLIC_KEY || process.env.IDENTITYPASS_API_KEY;
+      const envSec = process.env.PREMBLEY_SECRET_KEY || process.env.IDENTITYPASS_SECRET_KEY;
+      if (!providerRow.secretKey || providerRow.secretKey.includes("•")) {
+        providerRow.secretKey = envSec || providerRow.secretKey;
+      }
+      if (!providerRow.publicKey || providerRow.publicKey.includes("•")) {
+        providerRow.publicKey = envPub || providerRow.publicKey;
+      }
+      providerRow.apiKey = providerRow.publicKey || providerRow.secretKey;
     } else if (normalizedKey.includes("clubkonnect")) {
       providerRow.baseUrl = providerRow.baseUrl || "https://www.clubkonnect.com/API";
       providerRow.secretKey = providerRow.secretKey || process.env.CLUBKONNECT_API_KEY;
@@ -494,42 +639,75 @@ export class MultiProviderRoutingEngine {
     const sType = params.service.toUpperCase().trim();
     const rule = this.getRuleForService(db, sType);
 
-    // Build the ordered provider chain based on strategy and rule configuration
+    // Build the ordered provider chain based on selected provider and configured routing rules
     const providerChain: { id: string; name: string }[] = [];
 
-    // If preferred provider requested, prioritize it
-    if (params.preferredProviderId) {
+    // 1. If preferred/selected provider requested by caller, prioritize it
+    if (params.preferredProviderId && String(params.preferredProviderId).trim() !== "" && String(params.preferredProviderId).toLowerCase() !== "none") {
+      const prefId = String(params.preferredProviderId).toLowerCase().trim();
       providerChain.push({
         id: params.preferredProviderId,
-        name: params.preferredProviderId === "aspfiy" ? "Aspfiy Payment Portal" : params.preferredProviderId === "verifyng" ? "VerifyNG Portal" : params.preferredProviderId === "identro" ? "Identro Portal" : "LumiID Portal",
+        name: this.resolveProviderDisplayName(prefId, db),
       });
     }
 
-    if (rule.primaryProviderId && !providerChain.some((p) => p.id === rule.primaryProviderId)) {
-      providerChain.push({ id: rule.primaryProviderId, name: rule.primaryProviderName });
-    }
-    if (rule.secondaryProviderId && !providerChain.some((p) => p.id === rule.secondaryProviderId)) {
-      providerChain.push({ id: rule.secondaryProviderId, name: rule.secondaryProviderName || "Secondary Portal" });
-    }
-    if (rule.tertiaryProviderId && !providerChain.some((p) => p.id === rule.tertiaryProviderId)) {
-      providerChain.push({ id: rule.tertiaryProviderId, name: rule.tertiaryProviderName || "Tertiary Portal" });
-    }
-    if (rule.fallbackProviderId && !providerChain.some((p) => p.id === rule.fallbackProviderId)) {
-      providerChain.push({ id: rule.fallbackProviderId, name: rule.fallbackProviderName || "Direct Switch Fallback" });
-    }
-
-    // Always ensure all known active identity providers are in the failover chain
-    const defaultIdentityFallbacks = [
-      { id: "lumiid", name: "LumiID Portal" },
-      { id: "verifyng", name: "VerifyNG Portal" },
-      { id: "identro", name: "Identro Portal" },
-      { id: "aspfiy", name: "Aspfiy Portal" },
-    ];
-
-    for (const fb of defaultIdentityFallbacks) {
-      if (!providerChain.some((p) => p.id === fb.id)) {
-        providerChain.push(fb);
+    // 2. Add configured primary provider from service routing rules (if configured)
+    if (rule.primaryProviderId && String(rule.primaryProviderId).trim() !== "" && String(rule.primaryProviderId).toLowerCase() !== "none") {
+      const rulePrimaryClean = String(rule.primaryProviderId).toLowerCase().trim();
+      if (!providerChain.some((p) => p.id.toLowerCase().trim() === rulePrimaryClean)) {
+        providerChain.push({
+          id: rule.primaryProviderId,
+          name: rule.primaryProviderName && rule.primaryProviderName !== "None (Unassigned)"
+            ? rule.primaryProviderName
+            : this.resolveProviderDisplayName(rule.primaryProviderId, db),
+        });
       }
+    }
+
+    // 3. Add explicit configured failover providers if autoFailover is enabled
+    if (rule.autoFailover) {
+      if (rule.secondaryProviderId && String(rule.secondaryProviderId).trim() !== "" && String(rule.secondaryProviderId).toLowerCase() !== "none") {
+        const secClean = String(rule.secondaryProviderId).toLowerCase().trim();
+        if (!providerChain.some((p) => p.id.toLowerCase().trim() === secClean)) {
+          providerChain.push({
+            id: rule.secondaryProviderId,
+            name: rule.secondaryProviderName || this.resolveProviderDisplayName(rule.secondaryProviderId, db),
+          });
+        }
+      }
+      if (rule.tertiaryProviderId && String(rule.tertiaryProviderId).trim() !== "" && String(rule.tertiaryProviderId).toLowerCase() !== "none") {
+        const tertClean = String(rule.tertiaryProviderId).toLowerCase().trim();
+        if (!providerChain.some((p) => p.id.toLowerCase().trim() === tertClean)) {
+          providerChain.push({
+            id: rule.tertiaryProviderId,
+            name: rule.tertiaryProviderName || this.resolveProviderDisplayName(rule.tertiaryProviderId, db),
+          });
+        }
+      }
+      if (rule.fallbackProviderId && String(rule.fallbackProviderId).trim() !== "" && String(rule.fallbackProviderId).toLowerCase() !== "none") {
+        const fbClean = String(rule.fallbackProviderId).toLowerCase().trim();
+        if (!providerChain.some((p) => p.id.toLowerCase().trim() === fbClean)) {
+          providerChain.push({
+            id: rule.fallbackProviderId,
+            name: rule.fallbackProviderName || this.resolveProviderDisplayName(rule.fallbackProviderId, db),
+          });
+        }
+      }
+    }
+
+    // If no provider is selected or configured for this service, fail gracefully without executing unselected defaults
+    if (providerChain.length === 0) {
+      return {
+        success: false,
+        service: sType,
+        targetId: params.targetId,
+        providerUsed: "None",
+        providerName: "None (Unassigned)",
+        error: `No provider is configured or selected for service "${rule.serviceName || sType}". Please configure a provider in Admin > Portal Routing Matrix or select a provider.`,
+        responseTimeMs: 0,
+        wasFailedOver: false,
+        routingStrategyUsed: rule.strategy || "PRIORITY_ORDER",
+      };
     }
 
     const attemptedChain: string[] = [];
@@ -553,9 +731,18 @@ export class MultiProviderRoutingEngine {
         continue;
       }
 
-      const existingConfig = (db.api_providers || []).find((p: any) =>
-        p.id?.toLowerCase() === currentProvider.id.toLowerCase() || p.name?.toLowerCase().includes(currentProvider.id.toLowerCase())
-      ) || {
+      const existingConfig = (db.api_providers || []).find((p: any) => {
+        const pid = String(p.id || "").toLowerCase().trim();
+        const pname = String(p.name || "").toLowerCase().trim();
+        const target = currentProvider.id.toLowerCase().trim();
+        const cleanTarget = target.replace(/^prov_/, "");
+        return (
+          pid === target ||
+          pid === `prov_${cleanTarget}` ||
+          pid.replace(/^prov_/, "") === cleanTarget ||
+          pname.includes(cleanTarget)
+        );
+      }) || {
         id: currentProvider.id,
         name: currentProvider.name,
         environment: "SANDBOX",
@@ -592,6 +779,15 @@ export class MultiProviderRoutingEngine {
         }
         pConfig.apiKey = pConfig.secretKey;
         pConfig.baseUrl = pConfig.baseUrl || "https://api.identro.ng";
+      } else if (keyId.includes("prembley") || keyId.includes("prembly") || keyId.includes("identitypass")) {
+        if (isMaskedOrEmpty(pConfig.secretKey)) {
+          pConfig.secretKey = process.env.PREMBLEY_SECRET_KEY || process.env.IDENTITYPASS_SECRET_KEY || pConfig.secretKey;
+        }
+        if (isMaskedOrEmpty(pConfig.publicKey)) {
+          pConfig.publicKey = process.env.PREMBLEY_PUBLIC_KEY || process.env.PREMBLEY_API_KEY || process.env.IDENTITYPASS_PUBLIC_KEY || process.env.IDENTITYPASS_API_KEY || pConfig.publicKey;
+        }
+        pConfig.apiKey = pConfig.publicKey || pConfig.secretKey;
+        pConfig.baseUrl = pConfig.baseUrl || "https://api.prembly.com";
       } else if (keyId.includes("clubkonnect") || keyId.includes("club konnect")) {
         if (isMaskedOrEmpty(pConfig.secretKey)) {
           pConfig.secretKey = process.env.CLUBKONNECT_API_KEY || pConfig.secretKey;
@@ -682,12 +878,24 @@ export class MultiProviderRoutingEngine {
     }
 
     // If all external providers were unreachable or failed, return strict failure - ZERO TOLERANCE for fabricated/dummy data
+    const resolvedError =
+      (primaryRealError && (
+        primaryRealError.toLowerCase().includes("balance") ||
+        primaryRealError.toLowerCase().includes("insufficient") ||
+        primaryRealError.toLowerCase().includes("quota") ||
+        primaryRealError.toLowerCase().includes("credit") ||
+        primaryRealError.toLowerCase().includes("not found in identity database") ||
+        primaryRealError.toLowerCase().includes("consent") ||
+        primaryRealError.toLowerCase().includes("bvn") ||
+        primaryRealError.toLowerCase().includes("nin")
+      )) ? primaryRealError : (lastError || primaryRealError || "All configured identity verification providers failed to confirm this record.");
+
     return {
       success: false,
       providerName: attemptedChain[0] || attemptedChain[attemptedChain.length - 1] || "Verification Portal",
       providerCode: "PORTAL_FAILED",
       providerReference: `FAILED-${Date.now()}`,
-      error: lastError || primaryRealError || "All configured identity verification providers failed to confirm this record.",
+      error: resolvedError,
       responseTimeMs: 320,
       statusCode: 502,
       wasFailedOver,
@@ -730,11 +938,11 @@ export class MultiProviderRoutingEngine {
       if (key.includes("lumiid")) {
         const adapter = new LumiIDAdapter();
         return await adapter.verifyIdentity(serviceType, targetId, augmentedExtra, config);
-      } else if (key.includes("verifyng") || key.includes("verify-ng") || key.includes("edirect")) {
-        const adapter = new VerifyNGAdapter();
-        return await adapter.verifyIdentity(serviceType, targetId, augmentedExtra, config);
       } else if (key.includes("identro")) {
         const adapter = new IdentroAdapter();
+        return await adapter.verifyIdentity(serviceType, targetId, augmentedExtra, config);
+      } else if (key.includes("prembley") || key.includes("prembly") || key.includes("identitypass")) {
+        const adapter = new PrembleyAdapter();
         return await adapter.verifyIdentity(serviceType, targetId, augmentedExtra, config);
       }
 

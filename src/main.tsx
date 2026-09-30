@@ -30,7 +30,9 @@ if (typeof window !== 'undefined') {
       lower.includes('database is closing/hidden') ||
       lower.includes('database connection is closing') ||
       lower.includes('transaction was aborted') ||
-      lower.includes('the database is closed')
+      lower.includes('the database is closed') ||
+      lower.includes('expected static flag was missing') ||
+      lower.includes('rendered fewer hooks than expected')
     ) && !lower.includes('smartlink-critical');
   };
 

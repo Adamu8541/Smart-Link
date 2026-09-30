@@ -1,5 +1,5 @@
 /**
- * Identro Identity & Business Verification Portal Adapter (identro.ng)
+ * Identro Identity, KYB, Risk & Utility Services Portal Adapter (identro.ng)
  * Official Documentation: https://identro.ng | https://api.identro.ng/merchant-api
  * Base URL: https://api.identro.ng (prefix: /merchant-api)
  * Authentication:
@@ -9,14 +9,33 @@
  *   - Accept: application/json
  *
  * Supported Services:
- *   1. NIN (National Identification Number) — /merchant-api/nin, /merchant-api/v1/nin, /merchant-api/identity/nin
- *   2. BVN (Bank Verification Number) — /merchant-api/bvn, /merchant-api/v1/bvn, /merchant-api/identity/bvn
- *   3. CAC / KYB (Corporate Affairs Commission) — /merchant-api/cac, /merchant-api/business/cac, /merchant-api/v1/cac
- *   4. Phone Identity Lookup — /merchant-api/phone, /merchant-api/identity/phone
- *   5. TIN (Tax Identification Number) — /merchant-api/tin, /merchant-api/identity/tin
- *   6. Driver's License — /merchant-api/drivers-license, /merchant-api/dl
- *   7. Voter's Card (VIN) — /merchant-api/voters-card, /merchant-api/vin
- *   8. Wallet Balance — /merchant-api/wallet, /merchant-api/balance
+ *   1. Identity & National Verification:
+ *      - NIN (NIN, VNIN, NIN Phone, NIN Demography / Name & DOB, NIN Slip Generation)
+ *      - BVN (BVN Verification, BVN Demography / Name & DOB, BVN Phone, BVN Slip/Card)
+ *      - Driver's License (FRSC)
+ *      - Voter's Card (INEC VIN)
+ *      - Face Match & Liveness Biometrics
+ *      - Address & Meter Location Verification
+ *   2. Corporate & Business Verification (KYB):
+ *      - CAC Company Search, RC/BN Status & Director/Shareholder Lookups
+ *      - SCUML Certificate Verification
+ *      - Tax Identification Number (TIN) Verification
+ *   3. AML, PEP & Fraud Screening:
+ *      - PEP (Politically Exposed Persons) Checks
+ *      - International & Local Sanctions / Watchlist Screening
+ *      - Adverse Media & Risk Intelligence
+ *   4. Credit & Lending Intelligence:
+ *      - Credit Bureau History & Score Lookups
+ *      - Loan Decisioning & Underwriting Support
+ *   5. Banking & Account Resolution:
+ *      - NUBAN Bank Account Name Resolution
+ *   6. Digital Utilities & VTU Payments:
+ *      - Airtime Top-Up (MTN, Airtel, Glo, 9mobile)
+ *      - Data Bundles Purchase
+ *      - Electricity Meter Validation & Token Generation
+ *      - Cable TV Subscriptions (DStv, GOtv, StarTimes)
+ *   7. Wallet & Merchant Balance:
+ *      - Wallet Balance & Credit Ledger (/merchant-api/wallet, /merchant-api/balance)
  */
 
 import crypto from "crypto";
@@ -34,9 +53,67 @@ export interface IdentroVerificationResult {
   rawResponse?: any;
 }
 
+export interface IdentroUtilityResult {
+  success: boolean;
+  reference: string;
+  token?: string;
+  units?: string | number;
+  amount?: number;
+  balance?: number;
+  data?: any;
+  error?: string;
+  responseTimeMs: number;
+}
+
 export class IdentroAdapter implements ProviderAdapter {
   id = "identro";
   name = "Identro Portal (identro.ng)";
+
+  /**
+   * List of all verified services supported by Identro
+   */
+  public static readonly SUPPORTED_SERVICES = [
+    // 1. Identity Verification (NIN & BVN)
+    { id: "NIN", name: "NIN Standard Verification", category: "IDENTITY" },
+    { id: "VNIN", name: "Virtual NIN (VNIN) Resolution", category: "IDENTITY" },
+    { id: "NIN_PHONE", name: "NIN Lookup via Phone Number", category: "IDENTITY" },
+    { id: "NIN_DEMOGRAPHY", name: "NIN Verification with Name & DOB", category: "IDENTITY" },
+    { id: "NIN_SLIP", name: "NIN Slip / Card Data Generation", category: "IDENTITY" },
+    { id: "BVN", name: "BVN Standard Verification", category: "IDENTITY" },
+    { id: "BVN_DEMOGRAPHY", name: "BVN Verification with Name & DOB", category: "IDENTITY" },
+    { id: "BVN_PHONE", name: "BVN Verification with Phone Number", category: "IDENTITY" },
+    { id: "BVN_SLIP", name: "BVN Slip & Card Generation", category: "IDENTITY" },
+    { id: "DRIVERS_LICENSE", name: "FRSC Driver's License Verification", category: "IDENTITY" },
+    { id: "VOTERS_CARD", name: "INEC Voter's Card (VIN) Verification", category: "IDENTITY" },
+    { id: "FACE_VERIFY", name: "Biometric Face Match & Liveness", category: "IDENTITY" },
+    { id: "ADDRESS", name: "Physical & Meter Address Verification", category: "IDENTITY" },
+
+    // 2. Corporate & Business Verification (KYB)
+    { id: "CAC", name: "CAC Company & Business Name Search", category: "KYB" },
+    { id: "SCUML", name: "SCUML Certificate Verification", category: "KYB" },
+    { id: "TIN", name: "Tax Identification Number (TIN) Verification", category: "KYB" },
+
+    // 3. AML, PEP & Risk Screening
+    { id: "AML", name: "Anti-Money Laundering (AML) Screening", category: "COMPLIANCE" },
+    { id: "PEP", name: "Politically Exposed Persons (PEP) Lookup", category: "COMPLIANCE" },
+    { id: "SANCTIONS", name: "International & Local Sanctions Screening", category: "COMPLIANCE" },
+
+    // 4. Credit & Lending Intelligence
+    { id: "CREDIT_CHECK", name: "Credit Bureau Score & Report Lookup", category: "CREDIT" },
+    { id: "LOAN_DECISION", name: "Automated Loan Underwriting Support", category: "CREDIT" },
+
+    // 5. Banking & Account Resolution
+    { id: "BANK_ACCOUNT", name: "NUBAN Bank Account Name Verification", category: "BANKING" },
+
+    // 6. Digital Utilities & VTU
+    { id: "AIRTIME", name: "Automated Airtime Top-Up", category: "VTU" },
+    { id: "DATA", name: "Mobile Data Bundle Purchase", category: "VTU" },
+    { id: "ELECTRICITY", name: "Electricity Meter Verification & Token Purchase", category: "VTU" },
+    { id: "CABLE_TV", name: "Cable TV Subscription (DStv, GOtv, StarTimes)", category: "VTU" },
+
+    // 7. Merchant Account
+    { id: "WALLET", name: "Merchant Balance & Wallet Check", category: "ACCOUNT" },
+  ];
 
   /**
    * Resolve Base URL for Identro API (default: https://api.identro.ng)
@@ -105,6 +182,7 @@ export class IdentroAdapter implements ProviderAdapter {
 
     if (cleanKey) {
       headers["x-api-key"] = cleanKey;
+      headers["Authorization"] = `Bearer ${cleanKey}`;
     }
 
     return headers;
@@ -167,6 +245,8 @@ export class IdentroAdapter implements ProviderAdapter {
       d.name ||
       d.company_name ||
       d.companyName ||
+      d.account_name ||
+      d.accountName ||
       "";
 
     const photoUrl = this.formatPhotoUrl(
@@ -189,14 +269,18 @@ export class IdentroAdapter implements ProviderAdapter {
       phoneNumber: normalizeNigerianPhone(
         d.telephoneno || d.phone_number || d.phoneNumber || d.phone || d.mobile || ""
       ),
-      email: d.email || d.email_address || "",
+      email: d.email || d.email_address || d.company_email || "",
       address:
+        d.head_office ||
+        d.head_office_address ||
         d.residence_address ||
         d.address ||
         d.residenceAddress ||
         d.residential_address ||
         d.street_address ||
         "",
+      addressLine1: d.addressLine1 || d.street || d.residence_address || d.residential_address || d.address || "",
+      state: d.residence_state || d.stateOfResidence || d.resident_state || d.state_of_origin || d.stateOfOrigin || d.state || "",
       stateOfOrigin:
         d.state_of_origin ||
         d.stateOfOrigin ||
@@ -205,35 +289,80 @@ export class IdentroAdapter implements ProviderAdapter {
         "",
       lga:
         d.lga ||
+        d.residence_lga ||
+        d.lgaOfResidence ||
         d.lgaOfOrigin ||
         d.origin_lga ||
         d.local_government ||
-        d.residence_lga ||
         "",
       stateOfResidence:
         d.residence_state ||
         d.stateOfResidence ||
         d.resident_state ||
         "",
+      residenceState:
+        d.residence_state ||
+        d.stateOfResidence ||
+        d.resident_state ||
+        "",
+      residenceLga:
+        d.residence_lga ||
+        d.lgaOfResidence ||
+        d.lga ||
+        "",
+      lgaOfResidence:
+        d.residence_lga ||
+        d.lgaOfResidence ||
+        d.lga ||
+        "",
       religion: d.religion || "",
       profession: d.profession || d.occupation || "",
       height: d.height || "",
       maritalStatus: d.maritalstatus || d.marital_status || d.maritalStatus || "",
       title: d.title || "",
-      nin: d.nin || d.nin_number || (serviceType === "NIN" ? d.id_number || d.idNumber : "") || "",
-      bvn: d.bvn || d.bvn_number || (serviceType === "BVN" ? d.id_number || d.idNumber : "") || "",
+      nin: d.nin || d.nin_number || d.national_identity_number || d.vnin || (serviceType?.includes("NIN") || serviceType?.includes("PHONE") ? d.id_number || d.idNumber : "") || "",
+      bvn: d.bvn || d.bvn_number || d.bank_verification_number || (serviceType?.includes("BVN") && (!String(d.id_number || d.idNumber || "").startsWith("0")) ? d.id_number || d.idNumber : "") || "",
       photoUrl,
       photo: photoUrl,
       signatureUrl: this.formatPhotoUrl(d.signature || d.signature_url || d.signatureUrl),
       trackingId: d.tracking_id || d.trackingId || d.trackingID || "",
       reference: d.reference || d.identro_reference || "",
-      // CAC fields
+      
+      // CAC & Corporate
       rcNumber: d.rc_number || d.rcNumber || d.registration_number || "",
       companyName: d.company_name || d.companyName || d.business_name || d.businessName || "",
       companyType: d.company_type || d.companyType || d.classification || "",
-      registrationDate: d.registration_date || d.registrationDate || d.incorporation_date || "",
+      classification: d.classification || d.company_type || d.companyType || "",
+      registrationDate: d.registration_date || d.registrationDate || d.incorporation_date || d.incorporationDate || "",
+      incorporationDate: d.incorporation_date || d.incorporationDate || d.registration_date || d.registrationDate || "",
+      companyStatus: d.company_status || d.companyStatus || d.status || "ACTIVE",
+      headOffice: d.head_office || d.head_office_address || d.address || "",
       branchAddress: d.branch_address || d.branchAddress || d.head_office_address || "",
       city: d.city || "",
+      tin: d.tin || d.tin_number || d.tinNumber || d.tax_identification_number || d.taxId || d.taxNumber || "",
+      taxOffice: d.tax_office || d.taxOffice || d.jtb_tax_office || d.firs_tax_office || "",
+      taxStatus: d.tax_status || d.status || "ACTIVE",
+      natureOfBusiness: d.nature_of_business || d.natureOfBusiness || d.activity || d.objectives || "",
+      shareCapital: d.share_capital || d.shareCapital || d.authorized_share_capital || "",
+      directors: Array.isArray(d.directors) ? d.directors : Array.isArray(d.affiliates) ? d.affiliates : Array.isArray(d.officers) ? d.officers : Array.isArray(d.proprietors) ? d.proprietors : [],
+      
+      // Bank Account details
+      accountNumber: d.account_number || d.accountNumber || "",
+      accountName: d.account_name || d.accountName || "",
+      bankName: d.bank_name || d.bankName || "",
+      bankCode: d.bank_code || d.bankCode || "",
+      
+      // Credit & Risk
+      creditScore: d.credit_score || d.creditScore || d.score || 0,
+      riskLevel: d.risk_level || d.riskLevel || d.status || "CLEARED",
+      pepStatus: d.pep_status || d.is_pep || false,
+      sanctioned: d.sanctioned || d.is_sanctioned || false,
+      
+      // Utility & Meter
+      meterNumber: d.meter_number || d.meterNumber || "",
+      meterToken: d.token || d.meter_token || "",
+      tokenUnits: d.units || d.token_units || "",
+      
       // Extra raw container for full PDF generator access
       rawFields: d,
     };
@@ -379,9 +508,38 @@ export class IdentroAdapter implements ProviderAdapter {
     let payload: Record<string, any> = {};
 
     switch (sType) {
-      case "NIN":
-      case "VNIN":
-      case "NIN_PHONE": {
+      case "NIN": {
+        if (extraData.searchMethod === "BY_DEMOGRAPHICS" || extraData.firstName || extraData.dateOfBirth) {
+          candidatePaths = [
+            "/api/v1/merchant-api/nin/demographics",
+            "/merchant-api/nin/demographics",
+            "/api/v1/merchant-api/nin/demography",
+            "/merchant-api/nin/demography",
+            "/api/v1/merchant-api/nin/search",
+            "/merchant-api/nin/search",
+            "/api/v1/merchant-api/nin/verify",
+            "/merchant-api/nin/verify",
+          ];
+          const fName = extraData.firstName || (extraData.fullName ? extraData.fullName.split(" ")[0] : undefined);
+          const lName = extraData.lastName || (extraData.fullName ? extraData.fullName.split(" ").slice(-1)[0] : undefined);
+          const birthDate = extraData.dateOfBirth || extraData.dob || undefined;
+          payload = {
+            firstName: fName,
+            firstname: fName,
+            lastName: lName,
+            lastname: lName,
+            surname: lName,
+            gender: extraData.gender ? String(extraData.gender).toLowerCase() : undefined,
+            dateOfBirth: birthDate,
+            dob: birthDate,
+            date_of_birth: birthDate,
+            consentCaptured: true,
+          };
+          if (cleanId && /^\d{11}$/.test(cleanId)) {
+            payload.nin = cleanId;
+          }
+          break;
+        }
         candidatePaths = [
           "/api/v1/merchant-api/nin/verify",
           "/merchant-api/nin/verify",
@@ -389,13 +547,113 @@ export class IdentroAdapter implements ProviderAdapter {
         payload = {
           nin: cleanId,
           consentCaptured: true,
-          consentReference: consentRef,
         };
+        break;
+      }
+      case "NIN_DEMOGRAPHY":
+      case "NIN_DEMOGRAPHICS":
+      case "NIN_DOB": {
+        candidatePaths = [
+          "/api/v1/merchant-api/nin/demographics",
+          "/merchant-api/nin/demographics",
+          "/api/v1/merchant-api/nin/demography",
+          "/merchant-api/nin/demography",
+          "/api/v1/merchant-api/nin/search",
+          "/merchant-api/nin/search",
+          "/api/v1/merchant-api/nin/verify",
+          "/merchant-api/nin/verify",
+        ];
+        const fName = extraData.firstName || (extraData.fullName ? extraData.fullName.split(" ")[0] : undefined);
+        const lName = extraData.lastName || (extraData.fullName ? extraData.fullName.split(" ").slice(-1)[0] : undefined);
+        const birthDate = extraData.dateOfBirth || extraData.dob || undefined;
+        payload = {
+          firstName: fName,
+          firstname: fName,
+          lastName: lName,
+          lastname: lName,
+          surname: lName,
+          gender: extraData.gender ? String(extraData.gender).toLowerCase() : undefined,
+          dateOfBirth: birthDate,
+          dob: birthDate,
+          date_of_birth: birthDate,
+          consentCaptured: true,
+        };
+        if (cleanId && /^\d{11}$/.test(cleanId)) {
+          payload.nin = cleanId;
+        }
         break;
       }
       case "BVN":
       case "BVN_BASIC":
-      case "BVN_ADVANCE": {
+      case "BVN_ADVANCE":
+      case "BVN_SLIP": {
+        const isDemographicSearch =
+          extraData.searchMethod === "BY_BVN_DEMOGRAPHICS" ||
+          extraData.searchMethod === "BY_DEMOGRAPHICS" ||
+          (!/^\d{11}$/.test(cleanId) && (extraData.firstName || extraData.dateOfBirth));
+        if (isDemographicSearch) {
+          candidatePaths = [
+            "/api/v1/merchant-api/bvn/demographics",
+            "/merchant-api/bvn/demographics",
+            "/api/v1/merchant-api/bvn/demography",
+            "/merchant-api/bvn/demography",
+            "/api/v1/merchant-api/bvn/search",
+            "/merchant-api/bvn/search",
+            "/api/v1/merchant-api/bvn/verify",
+            "/merchant-api/bvn/verify",
+          ];
+          const fName = extraData.firstName || (extraData.fullName ? extraData.fullName.split(" ")[0] : undefined);
+          const lName = extraData.lastName || (extraData.fullName ? extraData.fullName.split(" ").slice(-1)[0] : undefined);
+          const birthDate = extraData.dateOfBirth || extraData.dob || undefined;
+          payload = {
+            firstName: fName,
+            firstname: fName,
+            lastName: lName,
+            lastname: lName,
+            surname: lName,
+            fullName: extraData.fullName || (fName && lName ? `${fName} ${lName}` : undefined),
+            gender: extraData.gender ? String(extraData.gender).toLowerCase() : undefined,
+            dateOfBirth: birthDate,
+            dob: birthDate,
+            date_of_birth: birthDate,
+            consentCaptured: true,
+          };
+          if (cleanId && /^\d{11}$/.test(cleanId)) {
+            payload.bvn = cleanId;
+          } else if (extraData.bvn && /^\d{11}$/.test(extraData.bvn)) {
+            payload.bvn = extraData.bvn;
+          }
+          break;
+        }
+
+        const isPhoneSearch = extraData.searchMethod === "BY_PHONE" || extraData.searchMethod === "BY_PHONE_NUMBER" || (cleanId && cleanId.startsWith("0"));
+        if (isPhoneSearch) {
+          const phone = normalizeNigerianPhone(cleanId || extraData.phoneNumber || extraData.phone || "");
+          candidatePaths = [
+            "/api/v1/merchant-api/bvn/phone",
+            "/merchant-api/bvn/phone",
+            "/api/v1/merchant-api/phone/bvn",
+            "/merchant-api/phone/bvn",
+            "/api/v1/merchant-api/phone/lookup",
+            "/merchant-api/phone/lookup",
+            "/api/v1/merchant-api/bvn/search",
+            "/merchant-api/bvn/search",
+            "/api/v1/merchant-api/bvn/verify",
+            "/merchant-api/bvn/verify",
+          ];
+          payload = {
+            phoneNumber: phone,
+            phone: phone,
+            mobile: phone,
+            telephoneNo: phone,
+            idNumber: phone,
+            consentCaptured: true,
+          };
+          if (extraData.bvn && !extraData.bvn.startsWith("0")) {
+            payload.bvn = extraData.bvn;
+          }
+          break;
+        }
         candidatePaths = [
           "/api/v1/merchant-api/bvn/verify",
           "/merchant-api/bvn/verify",
@@ -403,73 +661,356 @@ export class IdentroAdapter implements ProviderAdapter {
         payload = {
           bvn: cleanId,
           consentCaptured: true,
-          consentReference: consentRef,
+        };
+        break;
+      }
+      case "BVN_DEMOGRAPHY":
+      case "BVN_DEMOGRAPHICS":
+      case "BVN_DOB": {
+        const bvnVal = (cleanId && /^\d{11}$/.test(cleanId)) ? cleanId : (extraData.bvn && /^\d{11}$/.test(extraData.bvn)) ? extraData.bvn : "";
+        if (!bvnVal) {
+          return {
+            success: false,
+            providerReference: reference,
+            error: "Identro Portal requires an 11-digit BVN to cross-reference demographic records. Demographics-only lookup without BVN is not supported by the upstream gateway.",
+            statusCode: 400,
+            responseTimeMs: Date.now() - startTime,
+          };
+        }
+        candidatePaths = [
+          "/api/v1/merchant-api/bvn/verify",
+          "/merchant-api/bvn/verify",
+        ];
+        payload = {
+          bvn: bvnVal,
+          consentCaptured: true,
+        };
+        break;
+      }
+      case "BVN_PHONE": {
+        const phone = normalizeNigerianPhone(cleanId || extraData.phoneNumber || extraData.phone || "");
+        const bvnVal = (cleanId && !cleanId.startsWith("0") && /^\d{11}$/.test(cleanId)) ? cleanId : (extraData.bvn && /^\d{11}$/.test(extraData.bvn)) ? extraData.bvn : "";
+        if (!bvnVal) {
+          return {
+            success: false,
+            providerReference: reference,
+            error: "Identro Portal requires an 11-digit BVN to cross-reference records. Direct reverse lookup by phone number alone is not supported by the upstream gateway.",
+            statusCode: 400,
+            responseTimeMs: Date.now() - startTime,
+          };
+        }
+        candidatePaths = [
+          "/api/v1/merchant-api/bvn/verify",
+          "/merchant-api/bvn/verify",
+        ];
+        payload = {
+          bvn: bvnVal,
+          consentCaptured: true,
         };
         break;
       }
       case "CAC":
-      case "KYB": {
+      case "KYB":
+      case "CAC_VERIFY":
+      case "CAC_VERIFICATION":
+      case "CAC_BASIC":
+      case "CAC_ADVANCE":
+      case "CAC_ADVANCED":
+      case "CAC_BUSINESS_NAME":
+      case "CAC_TRUSTEES":
+      case "CAC_INCORPORATED_TRUSTEES":
+      case "CAC_NAME_SEARCH":
+      case "CAC_COMPANY_SEARCH":
+      case "CAC_TIN":
+      case "CAC_REGISTRATION": {
+        const vType = String(extraData.verificationType || extraData.serviceType || sType).toUpperCase();
+        const regUpper = String(cleanId || extraData.registrationNumber || extraData.rcNumber || "").toUpperCase().replace(/\s+/g, "");
+
+        let companyType = "RC";
+        let formattedReg = regUpper;
+
+        if (regUpper.startsWith("BN") || vType.includes("BUSINESS_NAME") || vType === "BN") {
+          companyType = "BN";
+          if (!regUpper.startsWith("BN") && regUpper) formattedReg = `BN${regUpper}`;
+        } else if (regUpper.startsWith("IT") || vType.includes("TRUSTEE") || vType.includes("NGO") || vType === "IT") {
+          companyType = "IT";
+          if (!regUpper.startsWith("IT") && regUpper) formattedReg = `IT${regUpper}`;
+        } else {
+          companyType = "RC";
+          if (!regUpper.startsWith("RC") && !regUpper.startsWith("BN") && !regUpper.startsWith("IT") && !regUpper.startsWith("LLP") && regUpper) {
+            formattedReg = `RC${regUpper}`;
+          }
+        }
+
+        if (vType === "CAC_ADVANCE" || vType === "CAC_ADVANCED" || vType.includes("ADVANCE")) {
+          candidatePaths = [
+            "/api/v1/merchant-api/cac/advance",
+            "/merchant-api/cac/advance",
+            "/api/v1/merchant-api/cac/verify",
+            "/merchant-api/cac/verify",
+          ];
+          payload = {
+            serviceType: "CAC_ADVANCED_VERIFICATION",
+            registrationNumber: formattedReg,
+            companyType,
+            consentCaptured: true,
+          };
+        } else if (vType === "CAC_BUSINESS_NAME" || vType === "BUSINESS_NAME") {
+          candidatePaths = [
+            "/api/v1/merchant-api/cac/business-name",
+            "/merchant-api/cac/business-name",
+            "/api/v1/merchant-api/cac/verify",
+            "/merchant-api/cac/verify",
+          ];
+          payload = {
+            serviceType: "CAC_BUSINESS_NAME_VERIFICATION",
+            registrationNumber: formattedReg,
+            companyType: "BN",
+            consentCaptured: true,
+          };
+        } else if (vType === "CAC_TRUSTEES" || vType === "CAC_INCORPORATED_TRUSTEES" || vType.includes("TRUSTEE")) {
+          candidatePaths = [
+            "/api/v1/merchant-api/cac/trustees",
+            "/merchant-api/cac/trustees",
+            "/api/v1/merchant-api/cac/verify",
+            "/merchant-api/cac/verify",
+          ];
+          payload = {
+            serviceType: "CAC_TRUSTEES_VERIFICATION",
+            registrationNumber: formattedReg,
+            companyType: "IT",
+            consentCaptured: true,
+          };
+        } else if (vType === "CAC_NAME_SEARCH" || vType === "CAC_COMPANY_SEARCH" || vType.includes("NAME_SEARCH") || vType.includes("SEARCH")) {
+          candidatePaths = [
+            "/api/v1/merchant-api/cac/search",
+            "/merchant-api/cac/search",
+            "/api/v1/merchant-api/cac/name-search",
+            "/merchant-api/cac/name-search",
+            "/api/v1/merchant-api/cac/verify",
+            "/merchant-api/cac/verify",
+          ];
+          payload = {
+            serviceType: "CAC_NAME_SEARCH",
+            companyName: cleanId || extraData.companyName || extraData.businessName || formattedReg,
+            name: cleanId || extraData.companyName || extraData.businessName || formattedReg,
+            consentCaptured: true,
+          };
+        } else if (vType === "CAC_TIN" || vType.includes("TIN")) {
+          candidatePaths = [
+            "/api/v1/merchant-api/cac/tin",
+            "/merchant-api/cac/tin",
+            "/api/v1/merchant-api/tin/verify",
+            "/merchant-api/tin/verify",
+          ];
+          payload = {
+            serviceType: "CAC_TIN_VERIFICATION",
+            registrationNumber: formattedReg,
+            companyType,
+            consentCaptured: true,
+          };
+        } else {
+          // Default CAC_BASIC / CAC_BASIC_VERIFICATION
+          candidatePaths = [
+            "/api/v1/merchant-api/cac/verify",
+            "/merchant-api/cac/verify",
+          ];
+          payload = {
+            serviceType: "CAC_BASIC_VERIFICATION",
+            registrationNumber: formattedReg,
+            companyType,
+            consentCaptured: true,
+          };
+        }
+        break;
+      }
+      case "SCUML": {
         candidatePaths = [
-          "/api/v1/merchant-api/cac/verify",
-          "/merchant-api/cac/verify",
+          "/api/v1/merchant-api/scuml/verify",
+          "/merchant-api/scuml/verify",
         ];
         payload = {
-          rcNumber: cleanId,
-          serviceType: extraData.serviceType || "CAC_BASIC_VERIFICATION",
+          scumlNumber: cleanId,
+          rcNumber: extraData.rcNumber || "",
           consentCaptured: true,
-          consentReference: consentRef,
         };
         break;
       }
+      case "NIN_PHONE":
+      case "PHONE_NIN":
       case "PHONE": {
-        const phone = normalizeNigerianPhone(cleanId);
+        const phone = normalizeNigerianPhone(cleanId || extraData.phoneNumber || extraData.phone || "");
+        const ninVal = (extraData.nin && /^\d{11}$/.test(extraData.nin)) ? extraData.nin : (cleanId && !cleanId.startsWith("0") && /^\d{11}$/.test(cleanId)) ? cleanId : "";
+        if (!ninVal) {
+          return {
+            success: false,
+            providerReference: reference,
+            error: "Identro Portal requires an 11-digit NIN for identity verification. Direct reverse lookup by phone number alone is not supported by the upstream gateway.",
+            statusCode: 400,
+            responseTimeMs: Date.now() - startTime,
+          };
+        }
         candidatePaths = [
-          "/api/v1/merchant-api/phone/verify",
-          "/merchant-api/phone/verify",
+          "/api/v1/merchant-api/nin/verify",
+          "/merchant-api/nin/verify",
         ];
         payload = {
-          phoneNumber: phone,
+          nin: ninVal,
           consentCaptured: true,
-          consentReference: consentRef,
         };
         break;
       }
       case "TIN": {
         candidatePaths = [
           "/api/v1/merchant-api/tin/verify",
-          "/merchant-api/tin/verify",
         ];
-        payload = {
-          tin: cleanId,
-          serviceType: extraData.serviceType || "TIN_VALIDATION",
-          consentCaptured: true,
-          consentReference: consentRef,
-        };
+        const rawTarget = String(extraData.tinNumber || extraData.registrationNumber || extraData.rcNumber || cleanId || "").trim();
+        const vType = String(extraData.verificationType || extraData.serviceType || "TIN_VALIDATION_BY_TIN").toUpperCase();
+        const isRetrieval = vType.includes("RETRIEVAL") || vType.includes("PHONE") && !vType.includes("UPDATE") && !vType.includes("VALIDATION");
+        const isUpdate = vType.includes("UPDATE");
+
+        if (isRetrieval) {
+          payload = {
+            serviceType: "TIN_RETRIEVAL",
+            phoneNumber: normalizeNigerianPhone(extraData.phoneNumber || cleanId),
+            consentCaptured: true,
+          };
+        } else if (isUpdate) {
+          payload = {
+            serviceType: "TIN_UPDATE",
+            phoneNumber: normalizeNigerianPhone(extraData.phoneNumber || cleanId),
+            consentCaptured: true,
+          };
+        } else {
+          let formattedReg = rawTarget.toUpperCase().replace(/\s+/g, "");
+          const isExplicitTin = vType === "VERIFY_BY_TIN" || vType === "TIN_VALIDATION_BY_TIN";
+
+          if (!isExplicitTin) {
+            if (vType.includes("BN") && !formattedReg.startsWith("BN")) {
+              formattedReg = `BN${formattedReg}`;
+            } else if (vType.includes("IT") && !formattedReg.startsWith("IT")) {
+              formattedReg = `IT${formattedReg}`;
+            } else if (vType.includes("RC") && !formattedReg.startsWith("RC")) {
+              formattedReg = `RC${formattedReg}`;
+            } else if (!formattedReg.startsWith("RC") && !formattedReg.startsWith("BN") && !formattedReg.startsWith("IT") && !formattedReg.startsWith("LLP") && !formattedReg.includes("-") && formattedReg.length < 8) {
+              formattedReg = `RC${formattedReg}`;
+            }
+          }
+
+          payload = {
+            serviceType: "TIN_VALIDATION",
+            registrationNumber: formattedReg,
+            consentCaptured: true,
+          };
+
+          if (extraData.phoneNumber) {
+            payload.phoneNumber = normalizeNigerianPhone(extraData.phoneNumber);
+          }
+          if (extraData.dateOfBirth && /^\d{4}-\d{2}-\d{2}$/.test(extraData.dateOfBirth)) {
+            payload.dateOfBirth = extraData.dateOfBirth;
+          }
+          if (extraData.nin && /^\d{11}$/.test(extraData.nin)) {
+            payload.nin = extraData.nin;
+          }
+          if (extraData.bvn && /^\d{11}$/.test(extraData.bvn)) {
+            payload.bvn = extraData.bvn;
+          }
+        }
         break;
       }
       case "DRIVERS_LICENSE":
+      case "DRIVER_LICENSE":
       case "DL": {
         candidatePaths = [
           "/api/v1/merchant-api/drivers-license/verify",
-          "/merchant-api/drivers-license/verify",
         ];
         payload = {
           licenseNumber: cleanId,
+          dateOfBirth: extraData.dateOfBirth || extraData.dob || undefined,
           consentCaptured: true,
-          consentReference: consentRef,
         };
         break;
       }
       case "VOTERS_CARD":
+      case "VOTER_CARD":
       case "VIN": {
         candidatePaths = [
           "/api/v1/merchant-api/voters-card/verify",
-          "/merchant-api/voters-card/verify",
         ];
         payload = {
           vin: cleanId,
           consentCaptured: true,
-          consentReference: consentRef,
+        };
+        break;
+      }
+      case "FACE_VERIFY":
+      case "FACE":
+      case "LIVENESS": {
+        candidatePaths = [
+          "/api/v1/merchant-api/face/verify",
+          "/merchant-api/face/verify",
+        ];
+        payload = {
+          idNumber: cleanId,
+          idType: extraData.idType || "NIN",
+          image: extraData.image || extraData.photo || "",
+          consentCaptured: true,
+        };
+        break;
+      }
+      case "ADDRESS":
+      case "ADDRESS_VERIFICATION": {
+        candidatePaths = [
+          "/api/v1/merchant-api/address/verify",
+          "/merchant-api/address/verify",
+        ];
+        payload = {
+          meterNumber: cleanId,
+          address: extraData.address || "",
+          state: extraData.state || "",
+          consentCaptured: true,
+        };
+        break;
+      }
+      case "BANK_ACCOUNT":
+      case "ACCOUNT_LOOKUP": {
+        candidatePaths = [
+          "/api/v1/merchant-api/bank/account-lookup",
+          "/api/v1/merchant-api/bank/verify",
+        ];
+        payload = {
+          accountNumber: cleanId,
+          bankCode: extraData.bankCode || "058",
+          consentCaptured: true,
+        };
+        break;
+      }
+      case "AML":
+      case "PEP":
+      case "SANCTIONS": {
+        candidatePaths = [
+          "/api/v1/merchant-api/aml/screen",
+          "/merchant-api/aml/screen",
+        ];
+        payload = {
+          name: cleanId || extraData.fullName || "",
+          country: extraData.country || "NG",
+          dateOfBirth: extraData.dateOfBirth || extraData.dob || "",
+          consentCaptured: true,
+        };
+        break;
+      }
+      case "CREDIT":
+      case "CREDIT_CHECK":
+      case "LOAN_DECISION": {
+        candidatePaths = [
+          "/api/v1/merchant-api/credit/verify",
+          "/merchant-api/credit/score",
+        ];
+        payload = {
+          bvnOrNin: cleanId,
+          phoneNumber: extraData.phoneNumber || "",
+          consentCaptured: true,
         };
         break;
       }
@@ -482,7 +1023,6 @@ export class IdentroAdapter implements ProviderAdapter {
         payload = {
           idNumber: cleanId,
           consentCaptured: true,
-          consentReference: consentRef,
         };
       }
     }
@@ -513,23 +1053,49 @@ export class IdentroAdapter implements ProviderAdapter {
           continue;
         }
 
-        const isSuccess =
-          res.ok &&
+        const isApiSuccess =
+          (res.ok || res.status === 201 || res.status === 200) &&
           Boolean(json) &&
           (json.success === true ||
             json.status === true ||
             json.status === "success" ||
-            json.code === "SUCCESS") &&
-          Boolean(json.data && typeof json.data === "object");
+            json.code === "SUCCESS");
 
-        if (isSuccess) {
-          const rawData = json.data || json.result || json.payload || json;
+        if (isApiSuccess && json.data) {
+          const rawData = json.data || {};
+          const outcome = String(rawData.verificationOutcome || rawData.result?.verificationOutcome || "").toUpperCase();
+          const recordStatus = String(rawData.status || "").toUpperCase();
+
+          // Check if record was explicitly NOT found in national registry
+          if (outcome === "NOT_FOUND" || recordStatus === "NOT_FOUND") {
+            const subjectLabel = sType.includes("DEMOGRAPHY") || !/^\d+$/.test(cleanId) ? `demographics for "${cleanId}"` : `${sType} number "${cleanId}"`;
+            return {
+              success: false,
+              providerReference: json?.reference || reference,
+              error: `Record not found in identity database for ${subjectLabel}. Please verify the details and try again.`,
+              statusCode: 404,
+              responseTimeMs: Date.now() - startTime,
+            };
+          }
+
+          if (outcome === "INVALID_REQUEST" || (recordStatus === "FAILED" && !rawData.firstName && !rawData.fullName && !rawData.companyName && !rawData.name && !rawData.registrationNumber)) {
+            const subjectLabel = sType.includes("DEMOGRAPHY") || !/^\d+$/.test(cleanId) ? `demographics for "${cleanId}"` : `${sType} number "${cleanId}"`;
+            return {
+              success: false,
+              providerReference: json?.reference || reference,
+              error: `The ${subjectLabel} could not be confirmed by the national verification authority.`,
+              statusCode: 400,
+              responseTimeMs: Date.now() - startTime,
+            };
+          }
+
+          // Valid verified record retrieved
           const standardized = this.mapToStandardFields(rawData, sType);
 
           return {
             success: true,
-            providerReference: json?.reference || json?.provider_reference || reference,
-            transactionId: json?.transaction_id || json?.id || reference,
+            providerReference: json?.reference || rawData?.reference || reference,
+            transactionId: json?.transaction_id || rawData?.transaction_id || reference,
             data: standardized,
             rawResponse: json,
             statusCode: res.status,
@@ -540,8 +1106,8 @@ export class IdentroAdapter implements ProviderAdapter {
         const extractedMsg = this.extractErrorMessage(json, res.status);
         lastError = this.sanitizeError(extractedMsg);
 
-        // If explicitly unauthorized or validation error, stop trying other paths
-        if (res.status === 401 || res.status === 403 || res.status === 422 || res.status === 400) {
+        // If explicitly unauthorized or forbidden, stop trying other paths
+        if (res.status === 401 || res.status === 403) {
           break;
         }
       } catch (err: any) {
@@ -555,7 +1121,8 @@ export class IdentroAdapter implements ProviderAdapter {
 
     let cleanError = lastError || "Failed to complete verification via Identro Portal.";
     if (cleanError.includes("returned 404") || cleanError.includes("404")) {
-      cleanError = `Identity record not found for ${sType} number "${cleanId}". Please verify the number and try again.`;
+      const subjectLabel = sType.includes("DEMOGRAPHY") || !/^\d+$/.test(cleanId) ? `demographics for "${cleanId}"` : `${sType} number "${cleanId}"`;
+      cleanError = `Identity record not found for ${subjectLabel}. Please verify the details and try again.`;
     }
 
     return {
@@ -563,6 +1130,200 @@ export class IdentroAdapter implements ProviderAdapter {
       providerReference: reference,
       error: cleanError,
       statusCode: lastStatusCode,
+      responseTimeMs: Date.now() - startTime,
+    };
+  }
+
+  /**
+   * Airtime Purchase via Identro
+   */
+  public async purchaseAirtime(
+    req: { network: string; phoneNumber: string; amount: number; reference?: string },
+    config: PaymentProviderConfig
+  ) {
+    const res = await this.purchaseUtility(
+      "AIRTIME",
+      {
+        recipient: req.phoneNumber,
+        amount: req.amount,
+        networkOrProvider: req.network,
+      },
+      config
+    );
+    return {
+      success: res.success,
+      orderId: res.reference,
+      reference: res.reference,
+      message: res.success ? "Airtime purchase processed successfully" : (res.error || "Airtime purchase failed"),
+      error: res.error,
+      rawResponse: res.data || res,
+    };
+  }
+
+  /**
+   * Data Purchase via Identro
+   */
+  public async purchaseData(
+    req: { network: string; phoneNumber: string; planCode: string; reference?: string },
+    config: PaymentProviderConfig
+  ) {
+    const res = await this.purchaseUtility(
+      "DATA",
+      {
+        recipient: req.phoneNumber,
+        planCode: req.planCode,
+        networkOrProvider: req.network,
+      },
+      config
+    );
+    return {
+      success: res.success,
+      orderId: res.reference,
+      reference: res.reference,
+      message: res.success ? "Data purchase processed successfully" : (res.error || "Data purchase failed"),
+      error: res.error,
+      rawResponse: res.data || res,
+    };
+  }
+
+  /**
+   * Exam PINs Purchase via Identro
+   */
+  public async purchaseExamPin(
+    params: {
+      examType: "WAEC" | "NECO" | "NABTEB" | "JAMB" | string;
+      quantity?: number;
+      reference: string;
+    },
+    config: PaymentProviderConfig
+  ) {
+    const res = await this.purchaseUtility(
+      "EXAM_PIN" as any,
+      {
+        recipient: params.examType,
+        amount: (params.quantity || 1) * 3800,
+        networkOrProvider: params.examType,
+        planCode: String(params.quantity || 1),
+      },
+      config
+    );
+    return {
+      success: res.success,
+      orderId: res.reference,
+      reference: res.reference,
+      pins: (res as any).pins || [],
+      message: res.success ? `${params.examType} PINs generated successfully` : (res.error || `${params.examType} PIN purchase failed`),
+      error: res.error,
+      rawResponse: res.data || res,
+    };
+  }
+
+  /**
+   * Execute Digital Utility / VTU & Bill Payments via Identro
+   */
+  async purchaseUtility(
+    serviceType: "AIRTIME" | "DATA" | "ELECTRICITY" | "CABLE_TV",
+    requestData: {
+      recipient: string;
+      amount?: number;
+      networkOrProvider?: string;
+      planCode?: string;
+      meterType?: "PREPAID" | "POSTPAID";
+    },
+    config: PaymentProviderConfig
+  ): Promise<IdentroUtilityResult> {
+    const startTime = Date.now();
+    const base = this.baseUrl(config);
+    const ref = `IDN-UTL-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    const key = this.getResolvedKey(config);
+    if (!key) {
+      return {
+        success: false,
+        reference: ref,
+        error: "Identro API Key missing for Utility execution.",
+        responseTimeMs: 0,
+      };
+    }
+
+    let endpoint = "";
+    let payload: Record<string, any> = { reference: ref };
+
+    if (serviceType === "AIRTIME") {
+      endpoint = "/merchant-api/vtu/airtime";
+      payload = {
+        ...payload,
+        phone: normalizeNigerianPhone(requestData.recipient),
+        amount: requestData.amount,
+        network: requestData.networkOrProvider,
+      };
+    } else if (serviceType === "DATA") {
+      endpoint = "/merchant-api/vtu/data";
+      payload = {
+        ...payload,
+        phone: normalizeNigerianPhone(requestData.recipient),
+        planCode: requestData.planCode,
+        network: requestData.networkOrProvider,
+      };
+    } else if (serviceType === "ELECTRICITY") {
+      endpoint = "/merchant-api/bills/electricity";
+      payload = {
+        ...payload,
+        meterNumber: requestData.recipient,
+        disco: requestData.networkOrProvider,
+        amount: requestData.amount,
+        meterType: requestData.meterType || "PREPAID",
+      };
+    } else if (serviceType === "CABLE_TV") {
+      endpoint = "/merchant-api/bills/cable";
+      payload = {
+        ...payload,
+        smartcardNumber: requestData.recipient,
+        provider: requestData.networkOrProvider,
+        planCode: requestData.planCode,
+      };
+    }
+
+    const candidateUrls = this.resolveCandidateUrls(base, [
+      endpoint,
+      `/api/v1${endpoint}`,
+    ]);
+
+    for (const url of candidateUrls) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 20000);
+
+        const res = await fetch(url, {
+          method: "POST",
+          headers: this.headers(config),
+          body: JSON.stringify(payload),
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+
+        const json: any = await res.json().catch(() => null);
+        if (res.ok && (json?.status === true || json?.success === true)) {
+          const d = json.data || json;
+          return {
+            success: true,
+            reference: json.reference || ref,
+            token: d.token || d.pin || "",
+            units: d.units || d.token_units || "",
+            amount: requestData.amount,
+            data: d,
+            responseTimeMs: Date.now() - startTime,
+          };
+        }
+      } catch (err: any) {
+        // Continue to fallback candidate
+      }
+    }
+
+    return {
+      success: false,
+      reference: ref,
+      error: "Identro utility purchase transaction could not be completed.",
       responseTimeMs: Date.now() - startTime,
     };
   }
@@ -607,3 +1368,4 @@ export class IdentroAdapter implements ProviderAdapter {
     return { success: false, error: "Unable to query Identro balance endpoint." };
   }
 }
+

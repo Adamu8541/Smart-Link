@@ -193,10 +193,64 @@ export class VerificationValidator {
 
     switch (serviceType.toUpperCase()) {
       case "NIN":
-        primaryValidation = this.validateNIN(primaryInput);
+        if (
+          additionalFields?.searchMethod === "BY_DEMOGRAPHICS" ||
+          (additionalFields?.firstName && additionalFields?.dateOfBirth)
+        ) {
+          const cleanName = String(primaryInput || "").trim();
+          if (!cleanName || cleanName.length < 2) {
+            primaryValidation = { valid: false, error: "First and last name are required for demographic verification." };
+          } else {
+            primaryValidation = { valid: true, formattedValue: cleanName };
+          }
+        } else {
+          primaryValidation = this.validateNIN(primaryInput);
+        }
+        break;
+      case "NIN_DEMOGRAPHY":
+      case "NIN_DEMOGRAPHICS":
+        {
+          const cleanName = String(primaryInput || "").trim();
+          if (!cleanName || cleanName.length < 2) {
+            primaryValidation = { valid: false, error: "First and last name are required for demographic verification." };
+          } else {
+            primaryValidation = { valid: true, formattedValue: cleanName };
+          }
+        }
         break;
       case "BVN":
-        primaryValidation = this.validateBVN(primaryInput);
+        if (
+          additionalFields?.searchMethod === "BY_DEMOGRAPHICS" ||
+          (additionalFields?.fullName && additionalFields?.dateOfBirth)
+        ) {
+          const cleanName = String(primaryInput || "").trim();
+          if (!cleanName || cleanName.length < 2) {
+            primaryValidation = { valid: false, error: "Name is required for BVN demographic verification." };
+          } else {
+            primaryValidation = { valid: true, formattedValue: cleanName };
+          }
+        } else if (
+          additionalFields?.searchMethod === "BY_PHONE" ||
+          additionalFields?.searchMethod === "BY_PHONE_NUMBER" ||
+          (primaryInput && String(primaryInput).trim().startsWith("0"))
+        ) {
+          primaryValidation = this.validatePhone(primaryInput);
+        } else {
+          primaryValidation = this.validateBVN(primaryInput);
+        }
+        break;
+      case "BVN_PHONE":
+        primaryValidation = this.validatePhone(primaryInput);
+        break;
+      case "BVN_DEMOGRAPHY":
+        {
+          const cleanName = String(primaryInput || "").trim();
+          if (!cleanName || cleanName.length < 2) {
+            primaryValidation = { valid: false, error: "Name is required for BVN demographic verification." };
+          } else {
+            primaryValidation = { valid: true, formattedValue: cleanName };
+          }
+        }
         break;
       case "PHONE":
       case "NIN_PHONE":
@@ -238,19 +292,35 @@ export class VerificationValidator {
       fieldErrors["primaryInput"] = primaryValidation.error;
     }
 
-    // Validate additional required fields if any
-    Object.entries(additionalFields).forEach(([key, val]) => {
-      if (val === undefined || val === null || String(val).trim() === "") {
-        fieldErrors[key] = `${key.replace(/([A-Z])/g, " $1")} is required.`;
+    // Specific service-level required field validations
+    const sTypeUpper = String(serviceType || "").toUpperCase().trim();
+    if (sTypeUpper === "NIN_DEMOGRAPHY" || sTypeUpper === "NIN_DEMOGRAPHICS") {
+      const hasName = Boolean((additionalFields?.firstName && additionalFields?.lastName) || additionalFields?.fullName || (primaryInput && String(primaryInput).trim().length >= 2));
+      if (!hasName) {
+        fieldErrors["name"] = "First and last name are required for demographic verification.";
       }
-    });
+      if (!additionalFields?.gender) {
+        fieldErrors["gender"] = "Gender is required.";
+      }
+      if (!additionalFields?.dateOfBirth && !additionalFields?.dob) {
+        fieldErrors["dateOfBirth"] = "Date of birth is required.";
+      }
+    } else if (sTypeUpper === "BVN_DEMOGRAPHY" || sTypeUpper === "BVN_DEMOGRAPHICS") {
+      const hasName = Boolean((additionalFields?.firstName && additionalFields?.lastName) || additionalFields?.fullName || (primaryInput && String(primaryInput).trim().length >= 2));
+      if (!hasName) {
+        fieldErrors["name"] = "Name is required for BVN demographic verification.";
+      }
+      if (!additionalFields?.dateOfBirth && !additionalFields?.dob) {
+        fieldErrors["dateOfBirth"] = "Date of birth is required.";
+      }
+    }
 
     const hasErrors = Object.keys(fieldErrors).length > 0;
 
     if (hasErrors) {
       return {
         valid: false,
-        error: primaryValidation.error || "Please fill in all required fields accurately.",
+        error: primaryValidation.error || Object.values(fieldErrors)[0] || "Please fill in all required fields accurately.",
         fieldErrors,
       };
     }

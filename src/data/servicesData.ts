@@ -13,7 +13,7 @@ export const SMART_LINK_SERVICES: ServiceItem[] = [
   // 1. IDENTITY & KYC
   {
     id: "id_nin_demography",
-    name: "NIN Demography",
+    name: "NIN Verification with Name & DOB",
     category: "IDENTITY",
     description: "Verify identity records via official NIMC demographic details (First Name, Last Name, Gender & Date of Birth). Choose slip type.",
     price: 600,
@@ -39,7 +39,7 @@ export const SMART_LINK_SERVICES: ServiceItem[] = [
   },
   {
     id: "id_nin_phone",
-    name: "NIN With Phone Number",
+    name: "NIN Verification with Phone Number",
     category: "IDENTITY",
     description: "Verify NIN records using the candidate's registered 11-digit mobile phone number.",
     price: 500,
@@ -99,7 +99,7 @@ export const SMART_LINK_SERVICES: ServiceItem[] = [
   },
   {
     id: "id_slip_gen",
-    name: "Slip Generation",
+    name: "NIN ID CARD, NIN SLIP GENERATION",
     category: "IDENTITY",
     description: "Generate and download premium full-sized high-fidelity printable NIN verification slips.",
     price: 1000,
@@ -132,6 +132,19 @@ export const SMART_LINK_SERVICES: ServiceItem[] = [
     fields: [
       { name: "idNumber", label: "Bank Verification Number (BVN)", type: "text", placeholder: "e.g. 22233344455", required: true },
       { name: "fullName", label: "Authorized Full Name", type: "text", placeholder: "e.g. Abubakar Muhammad", required: true }
+    ]
+  },
+  {
+    id: "id_bvn_demography",
+    name: "BVN Verification with Name & DOB",
+    category: "IDENTITY",
+    description: "Confirm and validate Bank Verification Number (BVN) records via registered Name and Date of Birth.",
+    price: 500,
+    actionLabel: "Verify BVN Demographics",
+    fields: [
+      { name: "idNumber", label: "Bank Verification Number (BVN)", type: "text", placeholder: "e.g. 22233344455", required: true },
+      { name: "fullName", label: "Full Name (as registered on BVN)", type: "text", placeholder: "e.g. Abubakar Muhammad", required: true },
+      { name: "dateOfBirth", label: "Date of Birth", type: "date", placeholder: "YYYY-MM-DD", required: true }
     ]
   },
   {
@@ -200,7 +213,7 @@ export const SMART_LINK_SERVICES: ServiceItem[] = [
   },
   {
     id: "id_premium_slip",
-    name: "BVN Slip Print",
+    name: "BVN SLIP, BVN ID CARD GENERATION",
     category: "IDENTITY",
     description: "Generate and print verified BVN identity slips and cards.",
     price: 1000,
@@ -221,6 +234,42 @@ export const SMART_LINK_SERVICES: ServiceItem[] = [
       { name: "fullName", label: "Full Name (First, Middle, Surname)", type: "text", placeholder: "e.g. Abubakar Muhammad", required: true },
       { name: "phone", label: "Registered Phone Number", type: "text", placeholder: "e.g. 08031234567", required: true },
       { name: "dob", label: "Date of Birth", type: "text", placeholder: "DD/MM/YYYY or YYYY-MM-DD", required: true }
+    ]
+  },
+  {
+    id: "id_bvn_phone",
+    name: "BVN Verification with Phone Number",
+    category: "IDENTITY",
+    description: "Confirm and validate Bank Verification Number (BVN) records using the registered phone number.",
+    price: 500,
+    actionLabel: "Verify BVN with Phone",
+    fields: [
+      { name: "phoneNumber", label: "Registered Phone Number", type: "text", placeholder: "e.g. 08012345678", required: true }
+    ]
+  },
+  {
+    id: "id_cac_verification",
+    name: "CAC Verification",
+    category: "CAC",
+    description: "Official Corporate Affairs Commission (CAC) business and company verification. Retrieve active corporate status, RC/BN numbers, registration date, classification, head office address, and board of directors with automated PDF download.",
+    price: 500,
+    actionLabel: "Verify CAC Status",
+    fields: [
+      {
+        name: "verificationType",
+        label: "CAC Verification Type",
+        type: "select",
+        required: true,
+        options: [
+          "CAC Basic Verification (Company Status & RC/BN Lookup)",
+          "CAC Advanced Corporate (Full Profile, Directors & Share Capital)",
+          "CAC Business Name (BN Sole Proprietorship / Enterprise)",
+          "CAC Incorporated Trustees (NGOs, Foundations & Religious Bodies)",
+          "CAC Company Search (By Business Name)",
+          "CAC + Tax Identification Number (TIN)"
+        ]
+      },
+      { name: "rcNumber", label: "RC / BN / IT Number or Business Name", type: "text", placeholder: "e.g. RC 1234567 or SmartLink Tech Ltd", required: true }
     ]
   },
   {
@@ -263,14 +312,14 @@ export const SMART_LINK_SERVICES: ServiceItem[] = [
   },
   {
     id: "id_tax_id_search",
-    name: "Tax Identity",
+    name: "Tax Identity Verification (TIN)",
     category: "CAC",
-    description: "Official Federal Tax Identification Number (TIN) desk: Tax ID retrieval, Individual & Corporate Tax ID registration, and Tax Identity verification.",
-    price: 1500,
-    actionLabel: "Open Tax Identity Desk",
+    description: "Official Joint Tax Board (JTB) & FIRS Tax Identification Number (TIN) verification. Validate individual & corporate tax compliance, CAC registration links, and assigned tax offices.",
+    price: 500,
+    actionLabel: "Verify Tax Identity",
     fields: [
-      { name: "taxpayerName", label: "Full Legal or Registered Name", type: "text", placeholder: "e.g. Adamu Abubakar Muhammad or Company Name", required: true },
-      { name: "taxServiceType", label: "Tax Identity Service", type: "select", placeholder: "Select Tax Identity Service", options: ["Tax ID Number retrieval", "Get Individual Tax Identity Number", "Get Business/corporate ID Number", "Verify Tax Identity Number"], required: true }
+      { name: "verificationType", label: "TIN Verification Type", type: "select", placeholder: "Select Verification Type", options: ["Verify by TIN", "Verify by RC / BN Number", "Verify by Business Name", "TIN Retrieval by Phone Number"], required: true },
+      { name: "tinNumber", label: "Tax Identification Number (TIN)", type: "text", placeholder: "e.g. 23456789-0001 or 1234567890", required: true }
     ]
   },
 

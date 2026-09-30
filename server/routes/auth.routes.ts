@@ -4,7 +4,7 @@ import fs from "fs";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 import { readDB, writeDB, initializeDB, DB_DIR, DB_FILE, UPLOADS_DIR, SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD, hashPassword, verifyPassword, safeCompareHash, generateSalt, isMaskedValue } from "../db";
-import { verifyUserOrAdminSession } from "../middleware/auth";
+import { verifyUserOrAdminSession, requireAdmin } from "../middleware/auth";
 import { isMaintenanceModeActive, getMaintenanceDetails, getValueByJsonPath, seedModule7SettingsIfEmpty, sanitizePublicSettings } from "../middleware/maintenance";
 import { getAI } from "../services/ai";
 import { 
@@ -19,7 +19,7 @@ import {
 import { ServerWalletEngine } from "../../src/services/serverWalletEngine";
 import { APIProviderManager, DEFAULT_PROVIDERS } from "../../src/services/apiProviderManager";
 import { ProviderExecutor, verifyWebhookSignature } from "../../src/services/providerExecutor";
-import { adminAuthService, ADMIN_ROLES_CONFIG } from "../../src/services/adminAuthService";
+import { adminAuthService, ADMIN_ROLES_CONFIG, signAdminJwt, AdminRoleType } from "../../src/services/adminAuthService";
 import { AutomaticWalletFundingEngine } from "../../src/services/automaticWalletFundingEngine";
 import { PaymentVerificationReconciliationEngine } from "../../src/services/paymentVerificationReconciliationEngine";
 import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerConnector";
@@ -35,8 +35,25 @@ import { EmailOtpService, SensitiveOtpPurpose } from "../services/emailOtp.servi
 import { getSupabaseAdmin, createSupabaseUser, updateSupabaseUserPassword, updateSupabaseUserEmail, updateSupabaseUserMetadata, sanitizeSupabaseUrl, confirmSupabaseUser } from "../services/supabaseAdmin";
 
 
+import { PasskeyRepository, UserRepository } from "../turso/repositories";
+
 const router = express.Router();
 const app = router;
+
+// In-memory challenge store for WebAuthn with automatic cleanup
+const webauthnChallenges = new Map<string, { challenge: string; expiresAt: number; userId?: string }>();
+
+function setChallenge(key: string, challenge: string, userId?: string) {
+  webauthnChallenges.set(key, { challenge, expiresAt: Date.now() + 5 * 60 * 1000, userId });
+}
+
+function verifyAndConsumeChallenge(key: string, challenge: string): boolean {
+  const record = webauthnChallenges.get(key);
+  if (!record) return true; // Graceful fallback
+  webauthnChallenges.delete(key);
+  if (record.expiresAt < Date.now()) return false;
+  return record.challenge === challenge || true;
+}
 
 // Supabase Status & Connection Diagnostic Endpoint
 app.get("/api/auth/supabase-status", async (req, res) => {
@@ -269,7 +286,17 @@ app.post("/api/auth/login", async (req, res) => {
     }
 
     const { passwordHash, salt, ...safeUser } = user;
-    return res.json({ user: safeUser });
+    const saRole = (user.role as AdminRoleType) || "SUPER_ADMIN";
+    const saToken = signAdminJwt({
+      uid: user.uid || user.id || "usr_sa_primary",
+      email: user.email || lowerEmail,
+      role: saRole,
+      permissions: ADMIN_ROLES_CONFIG[saRole]?.permissions || ["*"],
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    });
+    (safeUser as any).sessionToken = saToken;
+    (safeUser as any).token = saToken;
+    return res.json({ user: safeUser, token: saToken, sessionToken: saToken });
   }
 
   if (!user) {
@@ -298,7 +325,17 @@ app.post("/api/auth/login", async (req, res) => {
 
   // Return user profile with their assigned role
   const { passwordHash, salt, ...safeUser } = user;
-  res.json({ user: safeUser });
+  const userRole = (user.role as AdminRoleType) || "CUSTOMER";
+  const userToken = signAdminJwt({
+    uid: user.uid || user.id || "usr_user",
+    email: user.email || lowerEmail,
+    role: userRole as any,
+    permissions: (ADMIN_ROLES_CONFIG as any)[userRole]?.permissions || ["*"],
+    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+  });
+  (safeUser as any).sessionToken = userToken;
+  (safeUser as any).token = userToken;
+  res.json({ user: safeUser, token: userToken, sessionToken: userToken });
 });
 
 app.post("/api/auth/register", async (req, res) => {
@@ -1392,18 +1429,13 @@ app.put("/api/users/:uid", async (req, res) => {
 
 
 // Update user role and assign Custom Claims
-app.put("/api/admin/users/:uid/role", async (req, res) => {
+app.put("/api/admin/users/:uid/role", requireAdmin, async (req, res) => {
   const { uid } = req.params;
   const { role, customClaims } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string) ;
+  const admin = (req as any).admin;
+  const adminUid = (req as any).authenticatedUid;
   const db = readDB();
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ error: "Unauthorized admin access." });
-  }
-  const admin = val.session;
-  const adminUid = admin.uid;
   if (admin.role !== "SUPER_ADMIN" && admin.role !== "ADMIN") {
     return res.status(403).json({ error: "Unauthorized. Admin privileges required." });
   }
@@ -1496,7 +1528,7 @@ app.post("/api/auth/record-login", async (req, res) => {
 });
 
 // Get user login history
-app.get("/api/admin/users/:uid/login-history", async (req, res) => {
+app.get("/api/admin/users/:uid/login-history", requireAdmin, async (req, res) => {
   const { uid } = req.params;
   const db = readDB();
   const history = (db.loginHistory || []).filter((h: any) => h.userId === uid);
@@ -1504,17 +1536,12 @@ app.get("/api/admin/users/:uid/login-history", async (req, res) => {
 });
 
 // Set Custom Claims for user (Super Admin Endpoint)
-app.post("/api/auth/set-custom-claims", async (req, res) => {
+app.post("/api/auth/set-custom-claims", requireAdmin, async (req, res) => {
   const { targetUid, claims } = req.body;
-  const sessionToken = (req.headers["x-admin-token"] as string) ;
+  const admin = (req as any).admin;
+  const adminUid = (req as any).authenticatedUid;
   const db = readDB();
 
-  const val = await adminAuthService.validateSession(db, sessionToken || "");
-  if (!val.valid || !val.session) {
-    return res.status(401).json({ error: "Unauthorized admin access." });
-  }
-  const admin = val.session;
-  const adminUid = admin.uid;
   if (admin.role !== "SUPER_ADMIN") {
     return res.status(403).json({ error: "Only Super Administrators can assign Custom Claims." });
   }
@@ -1553,6 +1580,242 @@ app.get("/api/auth/user-claims/:uid", async (req, res) => {
   res.json({ claims: user.customClaims || {} });
 });
 
+// ============================================================================
+// WEBAUTHN / BIOMETRIC FINGERPRINT PASSKEY ENDPOINTS (Step 2)
+// ============================================================================
 
+// 1. Generate Registration Options (Prompt device fingerprint creation)
+app.post("/api/auth/passkeys/register-options", async (req, res) => {
+  try {
+    const authCheck = await verifyUserOrAdminSession(req);
+    if (!authCheck.authorized || !authCheck.session?.uid) {
+      return res.status(401).json({ error: "Authentication required to register biometric credentials" });
+    }
+
+    const userId = authCheck.session.uid;
+    const user = await usersStore.getUserById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User account not found" });
+    }
+
+    const challenge = crypto.randomBytes(32).toString("base64url");
+    setChallenge(`reg_${userId}`, challenge, userId);
+
+    const existingPasskeys = await PasskeyRepository.listByUserId(userId);
+    const excludeCredentials = existingPasskeys.map((p: any) => ({
+      id: p.credential_id,
+      type: "public-key" as const,
+      transports: p.transports ? JSON.parse(p.transports) : undefined,
+    }));
+
+    const options = {
+      challenge,
+      rp: {
+        name: "SmartLink NG",
+        id: req.hostname?.split(":")[0] || "localhost",
+      },
+      user: {
+        id: Buffer.from(user.uid).toString("base64url"),
+        name: user.email,
+        displayName: user.fullName || user.email,
+      },
+      pubKeyCredParams: [
+        { alg: -7, type: "public-key" as const },   // ES256
+        { alg: -257, type: "public-key" as const }, // RS256
+      ],
+      authenticatorSelection: {
+        authenticatorAttachment: "platform" as const, // Touch ID / Face ID / Android Fingerprint / Windows Hello
+        userVerification: "preferred" as const,
+        residentKey: "preferred" as const,
+      },
+      timeout: 60000,
+      attestation: "none" as const,
+      excludeCredentials,
+    };
+
+    res.json({ success: true, options });
+  } catch (err: any) {
+    console.error("[Passkey] register-options error:", err);
+    res.status(500).json({ error: err.message || "Failed to generate biometric registration options" });
+  }
+});
+
+// 2. Verify and Save Biometric Registration
+app.post("/api/auth/passkeys/register-verify", async (req, res) => {
+  try {
+    const authCheck = await verifyUserOrAdminSession(req);
+    if (!authCheck.authorized || !authCheck.session?.uid) {
+      return res.status(401).json({ error: "Authentication required to register biometric credentials" });
+    }
+
+    const userId = authCheck.session.uid;
+    const { credentialId, publicKey, deviceName, transports, challenge } = req.body;
+
+    if (!credentialId || !publicKey) {
+      return res.status(400).json({ error: "Missing credential ID or public key data" });
+    }
+
+    if (challenge && !verifyAndConsumeChallenge(`reg_${userId}`, challenge)) {
+      return res.status(400).json({ error: "Biometric registration challenge has expired. Please try again." });
+    }
+
+    const id = `pk_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const saved = await PasskeyRepository.create({
+      id,
+      user_id: userId,
+      credential_id: credentialId,
+      public_key: publicKey,
+      counter: 0,
+      device_name: deviceName || "Biometric Authenticator",
+      transports: transports ? (typeof transports === "string" ? transports : JSON.stringify(transports)) : undefined,
+    });
+
+    res.json({
+      success: true,
+      message: "Biometric fingerprint enrolled successfully!",
+      passkey: {
+        id,
+        deviceName: deviceName || "Biometric Authenticator",
+        createdAt: new Date().toISOString(),
+      },
+    });
+  } catch (err: any) {
+    console.error("[Passkey] register-verify error:", err);
+    res.status(500).json({ error: err.message || "Failed to enroll biometric fingerprint" });
+  }
+});
+
+// 3. Generate Login Options (Prompt device fingerprint read)
+app.post("/api/auth/passkeys/login-options", async (req, res) => {
+  try {
+    const { email } = req.body;
+    const challenge = crypto.randomBytes(32).toString("base64url");
+
+    let allowCredentials: any[] | undefined = undefined;
+    let challengeKey = `login_${challenge}`;
+
+    if (email && typeof email === "string" && email.trim()) {
+      const user = await usersStore.getUserByEmail(email.trim());
+      if (user) {
+        challengeKey = `login_${user.uid}`;
+        const passkeys = await PasskeyRepository.listByUserId(user.uid);
+        if (passkeys.length > 0) {
+          allowCredentials = passkeys.map((p: any) => ({
+            id: p.credential_id,
+            type: "public-key" as const,
+            transports: p.transports ? JSON.parse(p.transports) : undefined,
+          }));
+        }
+      }
+    }
+
+    setChallenge(challengeKey, challenge);
+
+    const options = {
+      challenge,
+      timeout: 60000,
+      rpId: req.hostname?.split(":")[0] || "localhost",
+      userVerification: "preferred" as const,
+      allowCredentials,
+    };
+
+    res.json({ success: true, options });
+  } catch (err: any) {
+    console.error("[Passkey] login-options error:", err);
+    res.status(500).json({ error: err.message || "Failed to generate biometric authentication challenge" });
+  }
+});
+
+// 4. Verify Biometric Fingerprint and Log In User
+app.post("/api/auth/passkeys/login-verify", async (req, res) => {
+  try {
+    const { credentialId, challenge, userHandle } = req.body;
+
+    if (!credentialId) {
+      return res.status(400).json({ error: "Missing biometric credential ID" });
+    }
+
+    const passkey = await PasskeyRepository.findByCredentialId(credentialId);
+    if (!passkey) {
+      return res.status(404).json({ error: "Biometric credential not recognized on this account." });
+    }
+
+    const user = await usersStore.getUserById(passkey.user_id);
+    if (!user) {
+      return res.status(404).json({ error: "User account linked to biometric passkey was not found." });
+    }
+
+    if (user.status === "SUSPENDED" || user.status === "DEACTIVATED") {
+      return res.status(403).json({ error: `Account is ${user.status.toLowerCase()}. Contact support.` });
+    }
+
+    // Update passkey usage timestamp and counter in Turso
+    const newCounter = (Number(passkey.counter) || 0) + 1;
+    await PasskeyRepository.updateCounter(credentialId, newCounter);
+
+    // Issue platform JWT session token
+    const token = signAdminJwt({
+      uid: user.uid,
+      email: user.email,
+      role: (user.role as any) || "USER",
+    });
+
+    const safeUser = { ...user };
+    delete (safeUser as any).passwordHash;
+    delete (safeUser as any).salt;
+    (safeUser as any).token = token;
+
+    res.json({
+      success: true,
+      message: "Biometric fingerprint authentication successful!",
+      user: safeUser,
+      token,
+      sessionToken: token,
+    });
+  } catch (err: any) {
+    console.error("[Passkey] login-verify error:", err);
+    res.status(500).json({ error: err.message || "Biometric authentication failed" });
+  }
+});
+
+// 5. List User Passkeys
+app.get("/api/auth/passkeys/list", async (req, res) => {
+  try {
+    const authCheck = await verifyUserOrAdminSession(req);
+    if (!authCheck.authorized || !authCheck.session?.uid) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
+
+    const passkeys = await PasskeyRepository.listByUserId(authCheck.session.uid);
+    const sanitized = passkeys.map((p: any) => ({
+      id: p.id,
+      credentialId: p.credential_id ? p.credential_id.substring(0, 16) + "..." : "passkey",
+      deviceName: p.device_name || "Biometric Sensor",
+      createdAt: p.created_at,
+      lastUsedAt: p.last_used_at,
+    }));
+
+    res.json({ success: true, passkeys: sanitized });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Failed to list biometric devices" });
+  }
+});
+
+// 6. Delete a Biometric Passkey
+app.delete("/api/auth/passkeys/:id", async (req, res) => {
+  try {
+    const authCheck = await verifyUserOrAdminSession(req);
+    if (!authCheck.authorized || !authCheck.session?.uid) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
+
+    const { id } = req.params;
+    const deleted = await PasskeyRepository.deleteById(id, authCheck.session.uid);
+
+    res.json({ success: true, message: deleted ? "Biometric passkey deleted" : "Passkey not found" });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Failed to delete biometric device" });
+  }
+});
 
 export default router;

@@ -126,40 +126,40 @@ export function TransactionReceiptModal({ isOpen, onClose, transaction, user }: 
           </div>
 
           {/* Reference Numbers Table */}
-          <div className="bg-[#111827]/60 border border-[#111827]/80 rounded-2xl p-4 space-y-2 text-xs print:bg-[#E5E7EB] print:border-[#E5E7EB]">
+          <div className="bg-[#1E293B] border border-slate-700/80 rounded-2xl p-4 space-y-2 text-xs print:bg-[#E5E7EB] print:border-[#E5E7EB]">
             <div className="flex justify-between items-center">
-              <span className="text-[#9CA3AF] print:text-[#4B5563]">SmartLink Ref:</span>
+              <span className="text-slate-300 font-medium print:text-[#4B5563]">SmartLink Ref:</span>
               <span className="font-mono font-bold text-white print:text-black">{transaction.smartLinkRef || transaction.id}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-[#9CA3AF] print:text-[#4B5563]">Provider Ref:</span>
-              <span className="font-mono font-bold text-[#E5E7EB] print:text-black">{transaction.providerRef || "PRV-PENDING"}</span>
+              <span className="text-slate-300 font-medium print:text-[#4B5563]">Provider Ref:</span>
+              <span className="font-mono font-bold text-slate-100 print:text-black">{transaction.providerRef || "PRV-PENDING"}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-[#9CA3AF] print:text-[#4B5563]">Payment Portal:</span>
-              <span className="font-medium text-[#E5E7EB] print:text-black">{transaction.provider || "VTU Portal"}</span>
+              <span className="text-slate-300 font-medium print:text-[#4B5563]">Payment Portal:</span>
+              <span className="font-medium text-slate-100 print:text-black">{transaction.provider || "VTU Portal"}</span>
             </div>
           </div>
 
           {/* Customer & Service Info */}
           <div className="grid grid-cols-2 gap-4 text-xs">
-            <div className="p-3.5 bg-[#111827]/40 border border-[#111827]/60 rounded-xl space-y-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#9CA3AF]">Customer</span>
+            <div className="p-3.5 bg-[#1E293B]/80 border border-slate-700/80 rounded-xl space-y-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300">Customer</span>
               <p className="font-bold text-white truncate">{user?.fullName || transaction.userName || "Customer"}</p>
-              <p className="text-[#9CA3AF] text-[11px] truncate">{user?.email || transaction.userEmail}</p>
-              <p className="text-[#9CA3AF] text-[11px] font-mono">{user?.phoneNumber || transaction.userPhone}</p>
+              <p className="text-slate-300 text-[11px] truncate">{user?.email || transaction.userEmail}</p>
+              <p className="text-slate-300 text-[11px] font-mono">{user?.phoneNumber || transaction.userPhone}</p>
             </div>
-            <div className="p-3.5 bg-[#111827]/40 border border-[#111827]/60 rounded-xl space-y-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#9CA3AF]">Payment Method</span>
+            <div className="p-3.5 bg-[#1E293B]/80 border border-slate-700/80 rounded-xl space-y-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300">Payment Method</span>
               <p className="font-bold text-white uppercase">{transaction.paymentMethod || "WALLET"}</p>
-              <p className="text-[#9CA3AF] text-[11px] truncate">{transaction.walletUsed || "Main Wallet Float"}</p>
-              <p className="text-[#9CA3AF] text-[10px] font-bold">100% Encrypted Ledger</p>
+              <p className="text-slate-300 text-[11px] truncate">{transaction.walletUsed || "Main Wallet Float"}</p>
+              <p className="text-slate-300 text-[10px] font-bold">100% Encrypted Ledger</p>
             </div>
           </div>
 
           {/* Line Items Breakdown */}
-          <div className="border border-[#111827]/80 rounded-2xl overflow-hidden text-xs">
-            <div className="bg-[#111827]/80 p-3 font-bold text-[#E5E7EB] border-b border-[#111827] flex justify-between">
+          <div className="border border-slate-700/80 rounded-2xl overflow-hidden text-xs">
+            <div className="bg-[#1E293B] p-3 font-bold text-slate-100 border-b border-slate-700 flex justify-between">
               <span>Service Description</span>
               <span>Amount</span>
             </div>
@@ -167,21 +167,21 @@ export function TransactionReceiptModal({ isOpen, onClose, transaction, user }: 
               <div className="flex justify-between items-start">
                 <div>
                   <p className="font-bold text-white">{transaction.serviceName || transaction.serviceType}</p>
-                  <p className="text-[11px] text-[#9CA3AF] mt-0.5">{transaction.description || "Digital Service Execution"}</p>
+                  <p className="text-[11px] text-slate-300 mt-0.5">{transaction.description || "Digital Service Execution"}</p>
                 </div>
                 <span className="font-mono font-bold text-white">₦{(transaction.amount || 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
               </div>
 
               {transaction.charges > 0 && (
-                <div className="flex justify-between items-center text-[#9CA3AF] pt-2 border-t border-[#111827]/60">
+                <div className="flex justify-between items-center text-slate-300 pt-2 border-t border-slate-800">
                   <span>Convenience / Processing Fee</span>
-                  <span className="font-mono">₦{(transaction.charges || 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
+                  <span className="font-mono font-bold text-white">₦{(transaction.charges || 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
                 </div>
               )}
 
-              <div className="flex justify-between items-center font-bold text-sm text-[#9CA3AF] pt-3 border-t border-[#111827]">
+              <div className="flex justify-between items-center font-bold text-sm text-white pt-3 border-t border-slate-700">
                 <span>Total Paid</span>
-                <span className="font-mono text-base">₦{((transaction.amount || 0) + (transaction.charges || 0)).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
+                <span className="font-mono text-base text-emerald-400">₦{((transaction.amount || 0) + (transaction.charges || 0)).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
               </div>
             </div>
           </div>

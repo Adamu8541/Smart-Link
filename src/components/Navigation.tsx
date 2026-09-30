@@ -148,26 +148,19 @@ export default function Navigation({
     {
       title: "IDENTITY VERIFICATION",
       items: [
-        { id: "SRV_nin_demo", label: "NIN Demography", icon: Users, viewId: "DASHBOARD", serviceId: "id_nin_demography" },
         { id: "SRV_nin_ver", label: "NIN Verification", icon: Fingerprint, viewId: "DASHBOARD", serviceId: "id_nin_ver" },
-        { id: "SRV_nin_phone", label: "NIN With Phone Number", icon: Phone, viewId: "DASHBOARD", serviceId: "id_nin_phone" },
-        { id: "SRV_nin_val", label: "NIN Validation", icon: CheckSquare, viewId: "DASHBOARD", serviceId: "id_nin_val" },
-        { id: "SRV_vnin_slip", label: "VNIN Slip", icon: FileText, viewId: "DASHBOARD", serviceId: "id_vnin_slip" },
-        { id: "SRV_nin_pers", label: "NIN Personalization", icon: User, viewId: "DASHBOARD", serviceId: "id_nin_pers" },
-        { id: "SRV_nin_mod", label: "NIN Modification", icon: Edit3, viewId: "DASHBOARD", serviceId: "id_nin_mod" },
-        { id: "SRV_slip_gen", label: "Slip Generation", icon: Printer, viewId: "DASHBOARD", serviceId: "id_slip_gen" },
-        { id: "SRV_ipe_clear", label: "IPE Clearance", icon: CheckCircle2, viewId: "DASHBOARD", serviceId: "id_ipe_clearance" },
+        { id: "SRV_nin_phone", label: "NIN with Phone Number", icon: Phone, viewId: "DASHBOARD", serviceId: "id_nin_phone" },
+        { id: "SRV_slip_gen", label: "NIN Card & Slip Generation", icon: Printer, viewId: "DASHBOARD", serviceId: "id_slip_gen" },
+        { id: "SRV_nin_demo", label: "NIN with Name & DOB", icon: Users, viewId: "DASHBOARD", serviceId: "id_nin_demography" },
       ]
     },
     {
       title: "BANKING & BVN",
       items: [
         { id: "SRV_bvn_ver", label: "BVN Verification", icon: ShieldCheck, viewId: "DASHBOARD", serviceId: "id_bvn_ver" },
-        { id: "SRV_vnin_nibss", label: "VNIN to NIBSS", icon: RefreshCw, viewId: "DASHBOARD", serviceId: "id_vnin_to_nibss" },
-        { id: "SRV_bvn_user", label: "BVN User", icon: User, viewId: "DASHBOARD", serviceId: "id_bvn_user" },
-        { id: "SRV_bvn_mod", label: "BVN Modification", icon: Edit3, viewId: "DASHBOARD", serviceId: "id_bvn_modification" },
-        { id: "SRV_premium_slip", label: "BVN Slip Print", icon: Lock, viewId: "DASHBOARD", serviceId: "id_premium_slip" },
-        { id: "SRV_bvn_retrieval", label: "BVN Retrieval", icon: Search, viewId: "DASHBOARD", serviceId: "id_bvn_retrieval" },
+        { id: "SRV_bvn_demo", label: "BVN with Name & DOB", icon: User, viewId: "DASHBOARD", serviceId: "id_bvn_demography" },
+        { id: "SRV_premium_slip", label: "BVN Card & Slip Generation", icon: Lock, viewId: "DASHBOARD", serviceId: "id_premium_slip" },
+        { id: "SRV_bvn_phone", label: "BVN with Phone Number", icon: Phone, viewId: "DASHBOARD", serviceId: "id_bvn_phone" },
       ]
     },
     {
@@ -175,7 +168,7 @@ export default function Navigation({
       items: [
         { id: "SRV_cac_registration", label: "CAC Registration", icon: Building2, viewId: "DASHBOARD", serviceId: "id_cac_registration" },
         { id: "SRV_cac_scuml", label: "SCUML Services", icon: ShieldCheck, viewId: "DASHBOARD", serviceId: "cac_scuml" },
-        { id: "SRV_tax_id_services", label: "Tax Identity", icon: FileText, viewId: "DASHBOARD", serviceId: "id_tax_id_search" },
+        { id: "SRV_tax_id_services", label: "Tax Identity (TIN)", icon: FileText, viewId: "DASHBOARD", serviceId: "id_tax_id_search" },
       ]
     },
     {
@@ -198,7 +191,7 @@ export default function Navigation({
     {
       title: "ADMIN & GOVERNANCE",
       items: [
-        { id: "ADMIN_PORTAL", label: "Admin Login (Secured)", icon: ShieldCheck, viewId: "ADMIN_LOGIN" },
+        { id: "ADMIN_PORTAL", label: "Admin Portal (Secured)", icon: ShieldCheck, viewId: "ADMIN_LOGIN" },
       ]
     }
   ];
@@ -380,14 +373,15 @@ export default function Navigation({
                           <button
                             key={item.id}
                             onClick={() => handleItemClick(item)}
-                            className={`flex items-center gap-3 px-3 py-2.5 min-h-[44px] rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                            title={item.label}
+                            className={`flex items-center gap-2.5 px-3 py-2 min-h-[40px] rounded-lg text-xs font-semibold whitespace-nowrap overflow-hidden transition-all cursor-pointer ${
                               active
                                 ? "bg-[#0F2D5C]/15 text-white border-l-2 border-[#0F2D5C] pl-2.5"
                                 : "text-[#9CA3AF] hover:bg-[#111827] hover:text-[#FFFFFF]"
                             }`}
                           >
-                            <Icon className={`h-4 w-4 ${active ? "text-white" : realColor}`} />
-                            {item.label}
+                            <Icon className={`h-4 w-4 shrink-0 ${active ? "text-white" : realColor}`} />
+                            <span className="truncate whitespace-nowrap text-left flex-1">{item.label}</span>
                           </button>
                         );
                       })}
@@ -431,8 +425,8 @@ export default function Navigation({
       )}
 
       {/* --- DESKTOP SIDEBAR --- */}
-      <aside className="hidden lg:flex flex-col justify-between w-64 h-screen bg-[#0F2D5C] text-white border-r border-[#17407E]/40 p-5 sticky top-0 shrink-0">
-        <div className="space-y-5 flex flex-col h-full overflow-hidden">
+      <aside className="hidden lg:flex flex-col justify-between w-72 h-screen bg-[#0F2D5C] text-white border-r border-[#17407E]/40 p-4 sticky top-0 shrink-0">
+        <div className="space-y-4 flex flex-col h-full overflow-hidden">
           {/* Logo Brand matching the Image precisely */}
           <div className="flex items-center justify-center px-1 py-2 select-none bg-white rounded-xl shadow-sm border border-[#17407E]/30">
             <img
@@ -484,9 +478,9 @@ export default function Navigation({
           )}
 
           {/* Categorized Desktop Navigation Links */}
-          <nav className="flex-1 overflow-y-auto pr-1 flex flex-col gap-4 text-left scrollbar-thin max-h-[calc(100vh-280px)]">
+          <nav className="flex-1 overflow-y-auto pr-1 flex flex-col gap-3.5 text-left scrollbar-thin max-h-[calc(100vh-280px)]">
             {menuGroups.map((group) => (
-              <div key={group.title} className="space-y-1.5">
+              <div key={group.title} className="space-y-1">
                 <div className="px-3 text-[9px] font-bold text-[#9CA3AF]/70 font-sans tracking-wider uppercase">
                   {group.title}
                 </div>
@@ -510,14 +504,15 @@ export default function Navigation({
                         key={item.id}
                         onClick={() => handleItemClick(item)}
                         id={`btn-nav-desktop-${item.id}`}
-                        className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all relative group ${
+                        title={item.label}
+                        className={`flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap overflow-hidden transition-all relative group cursor-pointer ${
                           active
                             ? "bg-[#17407E] text-white border-l-4 border-[#E5E7EB] shadow-xs"
-                            : "text-[#9CA3AF]/80 hover:bg-white/10 hover:text-white"
+                            : "text-[#9CA3AF]/90 hover:bg-white/10 hover:text-white"
                         }`}
                       >
-                        <Icon className={`h-4.5 w-4.5 transition-colors ${active ? "text-white" : realColor}`} />
-                        {item.label}
+                        <Icon className={`h-4 w-4 shrink-0 transition-colors ${active ? "text-white" : realColor}`} />
+                        <span className="truncate whitespace-nowrap text-left flex-1">{item.label}</span>
                       </button>
                     );
                   })}

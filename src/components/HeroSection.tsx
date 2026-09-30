@@ -490,11 +490,11 @@ export default function HeroSection({ onGetStarted }: HeroSectionProps) {
                 </div>
 
                 {submitStatus && (
-                  <div className={`sm:col-span-2 p-3.5 rounded-xl text-xs font-medium border ${
+                  <div className={`bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white sm:col-span-2 p-3.5 rounded-xl text-xs font-medium border${
                     submitStatus === "success" 
                       ? "bg-[#F5F7FA] text-[#0F2D5C] border-[#E5E7EB]" 
                       : "bg-[#F5F7FA] text-[#4B5563] border-[#E5E7EB]"
-                  }`}>
+                  }bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white`}>
                     {statusMessage}
                   </div>
                 )}

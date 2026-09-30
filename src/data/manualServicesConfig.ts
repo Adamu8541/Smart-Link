@@ -153,156 +153,6 @@ export const MANUAL_SERVICES_CATALOG: ManualServiceConfig[] = [
     fields: []
   },
 
-  // 6. TAX IDENTITY 1: TAX ID NUMBER RETRIEVAL
-  {
-    id: "tax_id_retrieval",
-    name: "Tax ID Number Retrieval",
-    category: "BUSINESS",
-    description: "Search, verify, and retrieve lost, misplaced, or forgotten federal Joint Tax Board (JTB) / FIRS Tax Identification Numbers (TIN) for individuals or registered corporate entities.",
-    price: 1500,
-    actionLabel: "Submit Tax ID Retrieval",
-    processingTime: "1 - 4 Hours",
-    instructions: [
-      "Select whether you are retrieving an Individual Tax ID (Personal TIN) or Corporate / Business Tax ID.",
-      "Ensure the name, phone number, and identification number correspond to your original tax or NIN record.",
-      "Upload a clear image of your valid ID (NIN Slip, Voter's Card, Driver's License) or CAC document.",
-      "Once retrieved, official Tax ID details and verification slip will be delivered to your registered email."
-    ],
-    fields: [
-      { name: "taxpayerType", label: "Taxpayer Category", type: "select", options: ["Individual Taxpayer (Personal TIN)", "Business Name / Enterprise", "Limited Liability Company (LTD)", "Incorporated Trustee / NGO"], required: true },
-      { name: "registeredName", label: "Registered Full Name (or Business / Company Name)", type: "text", required: true },
-      { name: "ninOrRcNumber", label: "National ID (NIN) or CAC RC/BN Number", type: "text", required: true },
-      { name: "registeredPhone", label: "Registered Phone Number", type: "tel", required: true },
-      { name: "deliveryEmail", label: "Email for Tax ID Delivery", type: "email", required: true },
-      { name: "dateOfBirthOrIncorporation", label: "Date of Birth (or CAC Incorporation Date)", type: "date", required: true },
-      { name: "stateOfTaxResidence", label: "State of Tax Jurisdiction / Office", type: "text", required: true },
-      { name: "additionalClues", label: "Previous Tax Office or Reference Details (Optional)", type: "textarea", required: false },
-      // Files
-      { name: "validIdCard", label: "Upload Valid Government ID or CAC Document", type: "file", accept: "image/*,application/pdf", required: true, helpText: "NIN Slip, Driver's License, Voter's Card, or CAC Certificate" },
-      { name: "supportingDoc", label: "Supporting Document / Previous Tax Slip (Optional)", type: "file", accept: "image/*,application/pdf", required: false, helpText: "Old tax clearance, assessment note, or utility bill" }
-    ]
-  },
-
-  // 7. TAX IDENTITY 2: GET INDIVIDUAL TAX IDENTITY NUMBER
-  {
-    id: "tax_id_individual",
-    name: "Get Individual Tax Identity Number",
-    category: "BUSINESS",
-    description: "Enroll and generate a brand-new Joint Tax Board (JTB) National Tax Identification Number (TIN) for individuals, employees, traders, and freelancers.",
-    price: 3500,
-    actionLabel: "Submit Individual Tax ID Application",
-    processingTime: "12 - 24 Hours",
-    instructions: [
-      "Applicant name, date of birth, and phone number must match your National Identity Management Commission (NIMC) NIN records.",
-      "Joint Tax Board validates the applicant's NIN profile prior to assigning the national Tax ID.",
-      "Upload a high-resolution scan of your NIN slip and a clear passport photograph.",
-      "The generated Tax ID is officially recognized nationwide for banking, vehicle licensing, land registration, and immigration."
-    ],
-    fields: [
-      { name: "fullName", label: "Applicant's Full Legal Name (as on NIN)", type: "text", required: true },
-      { name: "ninNumber", label: "National Identification Number (NIN)", type: "text", required: true },
-      { name: "phoneNumber", label: "Active Phone Number Linked to NIN", type: "tel", required: true },
-      { name: "emailAddress", label: "Email Address for Tax ID Certificate", type: "email", required: true },
-      { name: "dateOfBirth", label: "Date of Birth", type: "date", required: true },
-      { name: "gender", label: "Gender", type: "select", options: ["Male", "Female"], required: true },
-      { name: "maritalStatus", label: "Marital Status", type: "select", options: ["Single", "Married", "Divorced", "Widowed"], required: true },
-      { name: "occupation", label: "Occupation / Employment Status", type: "text", required: true },
-      { name: "stateOfResidence", label: "State of Residence", type: "text", required: true },
-      { name: "lgaOfResidence", label: "LGA of Residence", type: "text", required: true },
-      { name: "residentialAddress", label: "Full Home Residential Address", type: "textarea", required: true },
-      // Files
-      { name: "ninSlipPhoto", label: "National Identity Number (NIN) Slip Scan", type: "file", accept: "image/*,application/pdf", required: true, helpText: "Clear image of NIN Slip or National e-ID Card" },
-      { name: "passportPhotograph", label: "Recent White-Background Passport Photo", type: "file", accept: "image/*", required: true, helpText: "Clear passport photograph of applicant" },
-      { name: "utilityBillProof", label: "Proof of Address (Utility Bill / Receipt) - Optional", type: "file", accept: "image/*,application/pdf", required: false, helpText: "Electricity bill or waste receipt" }
-    ]
-  },
-
-  // 8. TAX IDENTITY 3: GET BUSINESS/CORPORATE ID NUMBER
-  {
-    id: "tax_id_corporate",
-    name: "Get Business/Corporate ID Number",
-    category: "BUSINESS",
-    description: "Generate official Federal Inland Revenue Service (FIRS) / JTB Corporate Tax Identification Number (TIN) for registered businesses, limited companies, and organizations.",
-    price: 6500,
-    actionLabel: "Submit Corporate Tax ID Application",
-    processingTime: "24 - 48 Hours",
-    instructions: [
-      "Entity must have completed registration with the Corporate Affairs Commission (CAC).",
-      "Provide your Business Name (BN) number or Limited Liability Company (RC) number.",
-      "Upload clear copies of your CAC Certificate and Status Report (Form CAC 1.1 / MEMART).",
-      "Your official FIRS Tax ID Certificate will be dispatched directly to your corporate email and dashboard."
-    ],
-    fields: [
-      { name: "companyName", label: "Registered Business or Company Name (as on CAC)", type: "text", required: true },
-      { name: "entityType", label: "CAC Registration Type", type: "select", options: ["Business Name (Sole Proprietorship / Partnership)", "Private Limited Company (LTD)", "Public Limited Company (PLC)", "Incorporated Trustee / NGO / Foundation"], required: true },
-      { name: "rcOrBnNumber", label: "CAC Registration Number (RC / BN Number)", type: "text", required: true },
-      { name: "incorporationDate", label: "Date of CAC Registration / Incorporation", type: "date", required: true },
-      { name: "businessSector", label: "Principal Nature of Business / Industry", type: "text", required: true },
-      { name: "headOfficeAddress", label: "Registered Head Office Physical Address", type: "textarea", required: true },
-      { name: "corporateEmail", label: "Official Corporate Email Address", type: "email", required: true },
-      { name: "corporatePhone", label: "Official Corporate Contact Phone", type: "tel", required: true },
-      { name: "managingDirectorName", label: "First Director / Managing Proprietor Legal Name", type: "text", required: true },
-      { name: "directorNin", label: "Director / Proprietor 11-Digit NIN", type: "text", required: true },
-      { name: "directorPhone", label: "Director Phone Number", type: "tel", required: true },
-      { name: "annualTurnoverRange", label: "Estimated Annual Turnover Range", type: "select", options: ["Below ₦5,000,000", "₦5,000,000 - ₦25,000,000", "₦25,000,000 - ₦100,000,000", "Above ₦100,000,000"], required: true },
-      // Files
-      { name: "cacCertificate", label: "CAC Certificate of Incorporation / Registration", type: "file", accept: "image/*,application/pdf", required: true, helpText: "Clear scan of CAC Certificate" },
-      { name: "cacStatusReport", label: "CAC Status Report (Form CAC 1.1 / BN 01 / MEMART)", type: "file", accept: "image/*,application/pdf", required: true, helpText: "Document showing ownership and directors" },
-      { name: "directorIdCard", label: "Managing Director / Proprietor Valid Government ID", type: "file", accept: "image/*,application/pdf", required: true, helpText: "NIN Slip, Passport, or Driver's License" },
-      { name: "directorSignature", label: "Authorized Signature Sample on Clean Paper", type: "file", accept: "image/*", required: true, helpText: "Sign on white paper and snap/upload" }
-    ]
-  },
-
-  // 9. TAX IDENTITY 4: VERIFY TAX IDENTITY NUMBER
-  {
-    id: "tax_id_verification",
-    name: "Verify Tax Identity Number",
-    category: "BUSINESS",
-    description: "Official verification, validation, and status audit of existing Tax Identification Numbers (TIN) on the Joint Tax Board (JTB) and Federal Inland Revenue (FIRS) registry.",
-    price: 1000,
-    actionLabel: "Submit Tax ID Verification",
-    processingTime: "1 - 2 Hours",
-    instructions: [
-      "Enter the Tax Identification Number (TIN) to be verified against the official JTB / FIRS database.",
-      "Specify the registered name and the purpose of verification (e.g. bank account compliance, contract tender).",
-      "Upload an image of the existing TIN document or slip if available for cross-matching.",
-      "An official Tax ID Verification Report Slip indicating active status, taxpayer category, and assigned tax office will be generated and emailed."
-    ],
-    fields: [
-      { name: "tinNumber", label: "Tax Identification Number (TIN) to Verify", type: "text", required: true },
-      { name: "taxpayerName", label: "Registered Taxpayer Name (Individual or Entity)", type: "text", required: true },
-      { name: "taxpayerType", label: "Taxpayer Type", type: "select", options: ["Individual Taxpayer", "Registered Business Name (BN)", "Limited Liability Company (LTD)", "Incorporated Trustee / NGO", "Federal / State Parastatal"], required: true },
-      { name: "verificationPurpose", label: "Purpose of Verification", type: "select", options: ["Corporate Bank Account Opening / Update", "Contract Bidding / Tender Submission", "Embassy Visa Requirement", "CAC Annual Returns Compliance", "Internal Due Diligence Audit"], required: true },
-      { name: "requesterPhone", label: "Requester Phone Number", type: "tel", required: true },
-      { name: "deliveryEmail", label: "Email for Official Verification Slip Delivery", type: "email", required: true },
-      { name: "assignedTaxOffice", label: "Assigned Tax Office / State (If known)", type: "text", required: false },
-      // Files
-      { name: "tinSlipOrNotice", label: "Upload Existing TIN Slip / FIRS Letter / Notice (If available)", type: "file", accept: "image/*,application/pdf", required: false, helpText: "Upload existing document or snapshot for expedited cross-check" },
-      { name: "requesterId", label: "Requester Valid ID or CAC Document", type: "file", accept: "image/*,application/pdf", required: true, helpText: "NIN Slip, Voter's Card, or CAC document proving authorization" }
-    ]
-  },
-
-  // Backward compatibility alias for legacy id_tin_registration
-  {
-    id: "id_tin_registration",
-    name: "New Tax Identification Number (TIN) Registration",
-    category: "BUSINESS",
-    description: "Direct generation and validation of new federal Joint Tax Board (JTB) & FIRS Tax Identification Numbers (TIN) for individuals and non-incorporated businesses.",
-    price: 3500,
-    actionLabel: "Submit TIN Registration",
-    processingTime: "12 - 24 Hours",
-    fields: [
-      { name: "fullName", label: "Applicant's Full Legal Name (as on NIN)", type: "text", required: true },
-      { name: "ninNumber", label: "National Identification Number (NIN)", type: "text", required: true },
-      { name: "phoneNumber", label: "Phone Number Linked to NIN", type: "tel", required: true },
-      { name: "emailAddress", label: "Email Address for TIN Delivery", type: "email", required: true },
-      { name: "dateOfBirth", label: "Date of Birth", type: "date", required: true },
-      { name: "stateOfResidence", label: "State of Residence", type: "text", required: true },
-      { name: "occupation", label: "Occupation / Line of Business", type: "text", required: true },
-      { name: "ninSlipPhoto", label: "NIN Slip / Card Photo", type: "file", accept: "image/*,application/pdf", required: true }
-    ]
-  },
-
   // 7. NIN MODIFICATION (NAME, DOB, PHONE, ADDRESS)
   {
     id: "id_nin_mod",
@@ -416,48 +266,6 @@ export interface SubServiceOption {
 }
 
 /**
- * Official Tax Identity sub-services list
- * 1. Tax ID Number retrieval
- * 2. Get Individual Tax Identity Number
- * 3. Get Business/corporate ID Number
- * 4. Verify Tax Identity Number
- */
-export const TAX_IDENTITY_SERVICES_LIST: SubServiceOption[] = [
-  {
-    id: "tax_id_retrieval",
-    stepNum: "1",
-    title: "Tax ID Number retrieval",
-    shortTitle: "1. Tax ID Retrieval",
-    badge: "₦1,500",
-    description: "Search, verify and retrieve lost or existing personal or corporate TIN profile",
-  },
-  {
-    id: "tax_id_individual",
-    stepNum: "2",
-    title: "Get Individual Tax Identity Number",
-    shortTitle: "2. Individual Tax ID",
-    badge: "₦3,500",
-    description: "Official JTB / FIRS enrollment for personal national Tax Identification Number",
-  },
-  {
-    id: "tax_id_corporate",
-    stepNum: "3",
-    title: "Get Business/corporate ID Number",
-    shortTitle: "3. Business / Corporate ID",
-    badge: "₦6,500",
-    description: "Official FIRS Corporate Tax Identification Number for registered CAC entities",
-  },
-  {
-    id: "tax_id_verification",
-    stepNum: "4",
-    title: "Verify Tax Identity Number",
-    shortTitle: "4. Verify Tax Identity",
-    badge: "₦1,000",
-    description: "Official validation & status audit of existing Tax ID on JTB / FIRS registry",
-  },
-];
-
-/**
  * Official CAC Registration sub-services list
  */
 export const CAC_SERVICES_LIST: SubServiceOption[] = [
@@ -515,19 +323,15 @@ export function isManualService(serviceId: string): boolean {
   if (!serviceId) return false;
   const lower = serviceId.toLowerCase();
 
-  // Tax Identity services are strictly manual email submissions
-  if (
-    serviceId === "id_tax_id_search" ||
-    serviceId === "tax_identity" ||
-    serviceId === "SRV_tax_id_services" ||
-    lower.startsWith("tax_id_") ||
-    lower === "id_tin_registration"
-  ) {
-    return true;
-  }
-
   // Specific exclusions (automated lookups)
-  if (lower.includes("status") || lower.includes("cac_verify")) {
+  if (
+    lower.includes("status") ||
+    lower.includes("cac_verify") ||
+    lower.includes("tax") ||
+    lower.includes("tin") ||
+    lower.startsWith("id_tax_") ||
+    lower === "id_tax_id_search"
+  ) {
     return false;
   }
 
@@ -549,44 +353,15 @@ export function getManualServiceConfig(serviceId: string): ManualServiceConfig |
   if (!serviceId) return undefined;
   const lower = serviceId.toLowerCase();
 
-  // Tax Identity Desk parent click - defaults to Tax ID Number retrieval (with tab selection for all 4)
+  // Exclude automated TIN and tax verification from manual configs
   if (
     serviceId === "id_tax_id_search" ||
     serviceId === "tax_identity" ||
     serviceId === "SRV_tax_id_services" ||
-    lower === "tax_id_services"
+    lower.includes("tax") ||
+    lower.includes("tin")
   ) {
-    return MANUAL_SERVICES_CATALOG.find((s) => s.id === "tax_id_retrieval");
-  }
-
-  // Tax Identity sub-services
-  if (serviceId === "tax_id_retrieval" || lower.includes("retrieval")) {
-    return MANUAL_SERVICES_CATALOG.find((s) => s.id === "tax_id_retrieval");
-  }
-
-  if (
-    serviceId === "tax_id_individual" ||
-    serviceId === "id_tin_registration" ||
-    lower.includes("individual_tax") ||
-    lower.includes("tin_reg")
-  ) {
-    return MANUAL_SERVICES_CATALOG.find((s) => s.id === "tax_id_individual");
-  }
-
-  if (
-    serviceId === "tax_id_corporate" ||
-    lower.includes("corporate_tax") ||
-    lower.includes("business_tax") ||
-    lower.includes("corporate_id")
-  ) {
-    return MANUAL_SERVICES_CATALOG.find((s) => s.id === "tax_id_corporate");
-  }
-
-  if (
-    serviceId === "tax_id_verification" ||
-    (lower.includes("tax") && lower.includes("verif"))
-  ) {
-    return MANUAL_SERVICES_CATALOG.find((s) => s.id === "tax_id_verification");
+    return undefined;
   }
 
   // CAC parent click

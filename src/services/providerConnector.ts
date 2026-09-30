@@ -9,16 +9,18 @@
 
 import { AspfiyAdapter, ProviderAdapter, PaymentProviderConfig } from "./providers/aspfiyAdapter";
 import { LumiIDAdapter } from "./providers/lumiidAdapter";
-import { VerifyNGAdapter } from "./providers/verifyNgAdapter";
 import { ClubkonnectAdapter } from "./providers/clubkonnectAdapter";
 import { IdentroAdapter } from "./providers/identroAdapter";
+import { PrembleyAdapter } from "./providers/prembleyAdapter";
 
 const registeredAdapters: Record<string, ProviderAdapter> = {
   aspfiy: new AspfiyAdapter(),
   lumiid: new LumiIDAdapter(),
-  verifyng: new VerifyNGAdapter(),
   clubkonnect: new ClubkonnectAdapter(),
   identro: new IdentroAdapter(),
+  prembley: new PrembleyAdapter(),
+  prembly: new PrembleyAdapter(),
+  identitypass: new PrembleyAdapter(),
 };
 
 /**
@@ -40,20 +42,48 @@ export function getAdapterForProvider(provider: { name?: string; id?: string }):
  * ASPFIY or any other provider must be explicitly Enabled/Active and not in Draft status.
  */
 export function getActiveProviderAndAdapter(
-  db: any
+  db: any,
+  preferredCategoryOrService?: string
 ): { provider: PaymentProviderConfig; adapter: ProviderAdapter } | null {
   const providers = (Array.isArray(db.api_providers) && db.api_providers.length > 0)
     ? db.api_providers
     : (Array.isArray(db.apiProviders) ? db.apiProviders : []);
 
-  const active = providers.find(
+  const enabled = providers.filter(
     (p: any) =>
       (p.status === "Active" || p.status === "ENABLED" || p.isActive === true || p.enabled === true) &&
       p.status !== "Draft" &&
       p.status !== "Inactive" &&
       p.status !== "DISABLED"
   );
-  if (!active) return null;
+  if (enabled.length === 0) return null;
+
+  let active = enabled[0];
+  if (preferredCategoryOrService) {
+    const target = preferredCategoryOrService.toUpperCase().trim();
+    const rules = Array.isArray(db.provider_routing_rules) ? db.provider_routing_rules : [];
+    const matchedRule = rules.find((r: any) => r.service?.toUpperCase().trim() === target && r.enabled !== false);
+    if (matchedRule?.primaryProviderId) {
+      const ruleId = matchedRule.primaryProviderId.toLowerCase().trim();
+      const byRule = enabled.find((p: any) => {
+        const pid = (p.id || "").toLowerCase().trim();
+        const pname = (p.name || "").toLowerCase().trim();
+        return (
+          pid === ruleId ||
+          pid === `prov_${ruleId}` ||
+          pid.replace(/^prov_/, "") === ruleId.replace(/^prov_/, "") ||
+          pname.includes(ruleId.replace(/^prov_/, ""))
+        );
+      });
+      if (byRule) active = byRule;
+    } else {
+      const byCat = enabled.find((p: any) => {
+        const cat = (p.category || p.providerType || "").toUpperCase();
+        return cat === target;
+      });
+      if (byCat) active = byCat;
+    }
+  }
 
   // Ensure active providers use official base URLs, built-in App IDs, and server environment API keys
   let resolvedSecret = active.secretKey;
@@ -70,12 +100,6 @@ export function getActiveProviderAndAdapter(
     }
     resolvedBaseUrl = resolvedBaseUrl || "https://api.lumiid.com";
     resolvedAppId = resolvedAppId || "smartlink_identity_app";
-  } else if (activeNameLower.includes("verifyng")) {
-    if (process.env.VERIFYNG_API_KEY || process.env.VERIFYNG_SECRET_KEY || process.env.VERIFYNG_API_SECRET) {
-      resolvedSecret = String(process.env.VERIFYNG_API_KEY || process.env.VERIFYNG_SECRET_KEY || process.env.VERIFYNG_API_SECRET).trim();
-    }
-    resolvedBaseUrl = (resolvedBaseUrl && !resolvedBaseUrl.includes("verifyn.ng")) ? resolvedBaseUrl : "https://kyc.edirect.ng";
-    resolvedAppId = resolvedAppId || "smartlink_kyc_app";
   } else if (activeNameLower.includes("identro")) {
     if (process.env.IDENTRO_API_KEY || process.env.IDENTRO_SECRET_KEY) {
       resolvedSecret = String(process.env.IDENTRO_API_KEY || process.env.IDENTRO_SECRET_KEY).trim();
@@ -88,6 +112,13 @@ export function getActiveProviderAndAdapter(
     }
     resolvedBaseUrl = resolvedBaseUrl || "https://www.clubkonnect.com/API";
     resolvedAppId = resolvedAppId || "smartlink_vtu";
+  } else if (activeNameLower.includes("prembley") || activeNameLower.includes("prembly") || activeNameLower.includes("identitypass")) {
+    const pub = process.env.PREMBLEY_PUBLIC_KEY || process.env.PREMBLEY_API_KEY || process.env.IDENTITYPASS_PUBLIC_KEY || process.env.IDENTITYPASS_API_KEY;
+    const sec = process.env.PREMBLEY_SECRET_KEY || process.env.IDENTITYPASS_SECRET_KEY;
+    if (sec || pub) {
+      resolvedSecret = String(sec || pub).trim();
+    }
+    resolvedBaseUrl = resolvedBaseUrl || "https://api.prembly.com";
   }
 
   const resolvedProvider: PaymentProviderConfig = {
@@ -112,4 +143,4 @@ export function getAdapterById(providerIdOrName?: string): ProviderAdapter | nul
   return getAdapterForProvider({ name: providerIdOrName, id: providerIdOrName }) || registeredAdapters["aspfiy"] || null;
 }
 
-export { type ProviderAdapter, type PaymentProviderConfig, AspfiyAdapter };
+export { type ProviderAdapter, type PaymentProviderConfig, AspfiyAdapter, PrembleyAdapter };

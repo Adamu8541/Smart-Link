@@ -11,7 +11,7 @@ interface AuthActionHandlerProps {
   onNavigateToDashboard?: () => void;
 }
 
-export const AuthActionHandler: React.FC<AuthActionHandlerProps> = ({
+export const AuthActionHandler: React.FC<AuthActionHandlerProps>= ({
   onNavigateToLogin,
   onNavigateHome,
   onNavigateToDashboard,
@@ -125,14 +125,14 @@ export const AuthActionHandler: React.FC<AuthActionHandlerProps> = ({
             <button
               type="button"
               onClick={onNavigateToLogin}
-              className="w-full py-3 px-4 bg-[#111827] hover:bg-[#111827] active:scale-98 text-white font-semibold text-xs rounded-xl transition-all shadow-md shadow-none cursor-pointer"
+              className=" w-full py-3 px-4 active:scale-98 font-semibold text-xs rounded-xl transition-all shadow-md shadow-none cursor-pointer"
             >
               Sign In to Your Account
             </button>
             <button
               type="button"
               onClick={onNavigateHome}
-              className="w-full py-2.5 px-4 bg-[#E5E7EB] hover:bg-[#E5E7EB] text-[#4B5563] font-semibold text-xs rounded-xl transition-colors cursor-pointer"
+              className=" w-full py-2.5 px-4 font-semibold text-xs rounded-xl transition-colors cursor-pointer"
             >
               Return Home
             </button>

@@ -15,7 +15,7 @@ interface BaseGuardProps {
   fallback?: React.ReactNode;
 }
 
-export const RequireAuth: React.FC<BaseGuardProps> = ({ currentUser, children, fallback }) => {
+export const RequireAuth: React.FC<BaseGuardProps>= ({ currentUser, children, fallback }) => {
   if (!currentUser) {
     return (
       fallback || (
@@ -32,7 +32,7 @@ export const RequireAuth: React.FC<BaseGuardProps> = ({ currentUser, children, f
   return <>{children}</>;
 };
 
-export const RequireVerifiedEmail: React.FC<BaseGuardProps & { onResendEmail?: () => void }> = ({
+export const RequireVerifiedEmail: React.FC<BaseGuardProps & { onResendEmail?: () => void }>= ({
   currentUser,
   children,
 }) => {
@@ -40,7 +40,7 @@ export const RequireVerifiedEmail: React.FC<BaseGuardProps & { onResendEmail?: (
   return <>{children}</>;
 };
 
-export const RequireAdmin: React.FC<BaseGuardProps> = ({ currentUser, claims, children, fallback }) => {
+export const RequireAdmin: React.FC<BaseGuardProps>= ({ currentUser, claims, children, fallback }) => {
   const perms = AuthGuardService.evaluatePermissions(currentUser?.role, claims);
   if (!perms.canAccessAdmin) {
     return (
@@ -58,7 +58,7 @@ export const RequireAdmin: React.FC<BaseGuardProps> = ({ currentUser, claims, ch
   return <>{children}</>;
 };
 
-export const RequireSuperAdmin: React.FC<BaseGuardProps> = ({ currentUser, claims, children, fallback }) => {
+export const RequireSuperAdmin: React.FC<BaseGuardProps>= ({ currentUser, claims, children, fallback }) => {
   const perms = AuthGuardService.evaluatePermissions(currentUser?.role, claims);
   if (!perms.canAccessSuperAdmin) {
     return (
@@ -76,7 +76,7 @@ export const RequireSuperAdmin: React.FC<BaseGuardProps> = ({ currentUser, claim
   return <>{children}</>;
 };
 
-export const RequireFinance: React.FC<BaseGuardProps> = ({ currentUser, claims, children, fallback }) => {
+export const RequireFinance: React.FC<BaseGuardProps>= ({ currentUser, claims, children, fallback }) => {
   const perms = AuthGuardService.evaluatePermissions(currentUser?.role, claims);
   if (!perms.canAccessFinance) {
     return (
@@ -91,7 +91,7 @@ export const RequireFinance: React.FC<BaseGuardProps> = ({ currentUser, claims, 
   return <>{children}</>;
 };
 
-export const RequireSupport: React.FC<BaseGuardProps> = ({ currentUser, claims, children, fallback }) => {
+export const RequireSupport: React.FC<BaseGuardProps>= ({ currentUser, claims, children, fallback }) => {
   const perms = AuthGuardService.evaluatePermissions(currentUser?.role, claims);
   if (!perms.canAccessSupport) {
     return (

@@ -10,6 +10,8 @@ export * from "./NinVerificationView";
 export * from "./NinDemographyView";
 export * from "./NinPhoneVerificationView";
 export * from "./BvnVerificationView";
+export * from "./BvnDemographyView";
+export * from "./BvnPhoneVerificationView";
 export * from "./CacVerificationView";
 export * from "./TinVerificationView";
 export * from "./BankAccountVerificationView";

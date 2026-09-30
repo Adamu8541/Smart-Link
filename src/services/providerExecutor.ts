@@ -297,9 +297,9 @@ function interpolateTemplate(template: string, vars: Record<string, any>): strin
 
 export class ProviderExecutor {
   /**
-   * Find the active default provider for a given service category.
+   * Find the active default provider for a given service category and optional service type.
    */
-  static getActiveProviderForCategory(db: any, category: string, providerCode?: string, providerName?: string): any | null {
+  static getActiveProviderForCategory(db: any, category: string, providerCode?: string, providerName?: string, serviceType?: string): any | null {
     if (!db) return null;
     const providersList = db.api_providers || db.apiProviders || [];
     if (!Array.isArray(providersList) || providersList.length === 0) return null;
@@ -328,7 +328,32 @@ export class ProviderExecutor {
       if (directMatch) return directMatch;
     }
 
-    // 2. Filter enabled providers by category match
+    // 2. If serviceType is supplied for identity verification, resolve provider designated in routing rules
+    if (serviceType && (catUpper === "IDENTITY_API" || catUpper === "VERIFICATION")) {
+      const sTypeUpper = String(serviceType).toUpperCase().trim();
+      const rules = Array.isArray(db.provider_routing_rules) ? db.provider_routing_rules : [];
+      const matchedRule = rules.find((r: any) =>
+        r &&
+        r.enabled !== false &&
+        String(r.service || "").toUpperCase().trim() === sTypeUpper
+      );
+      if (matchedRule?.primaryProviderId) {
+        const ruleId = String(matchedRule.primaryProviderId).toLowerCase().trim();
+        const ruleProv = enabled.find((p: any) => {
+          const pid = String(p.id || "").toLowerCase().trim();
+          const pname = String(p.name || "").toLowerCase().trim();
+          return (
+            pid === ruleId ||
+            pid === `prov_${ruleId}` ||
+            pid.replace(/^prov_/, "") === ruleId.replace(/^prov_/, "") ||
+            pname.includes(ruleId.replace(/^prov_/, ""))
+          );
+        });
+        if (ruleProv) return ruleProv;
+      }
+    }
+
+    // 3. Filter enabled providers by category match
     let categoryMatches = enabled.filter((p: any) => {
       const pCat = (p.category || p.providerType || "").toUpperCase().trim();
       const nameLower = (p.name || "").toLowerCase();
@@ -355,11 +380,11 @@ export class ProviderExecutor {
 
     const candidates = categoryMatches;
 
-    // 3. Prefer default provider
+    // 4. Prefer default provider
     const defaultProvider = candidates.find((p: any) => p.isDefault === true);
     if (defaultProvider) return defaultProvider;
 
-    // 4. Otherwise pick highest priority (lowest priority number)
+    // 5. Otherwise pick highest priority (lowest priority number)
     return candidates.sort((a: any, b: any) => (Number(a.priority) || 1) - (Number(b.priority) || 1))[0];
   }
 
@@ -368,9 +393,10 @@ export class ProviderExecutor {
    */
   static async executeProviderCall(db: any, params: ProviderExecutionParams): Promise<ProviderExecutionResult> {
     const startTime = Date.now();
+    const serviceType = params.extraData?.service || params.extraData?.type || params.extraData?.verificationType || params.extraData?.serviceType || (params as any).service || "";
 
-    // 1. Find active provider for category
-    const provider = this.getActiveProviderForCategory(db, params.category, params.providerCode, params.providerName);
+    // 1. Find active provider for category and specific service rendered
+    const provider = this.getActiveProviderForCategory(db, params.category, params.providerCode, params.providerName, serviceType);
     if (!provider) {
       return {
         success: false,
@@ -727,6 +753,18 @@ export class ProviderExecutor {
       }
     }
 
+    // Sanitize Headers (strip non-ASCII and invisible unicode formatting)
+    const sanitizedHeaders: Record<string, string> = {};
+    for (const [k, v] of Object.entries(headers)) {
+      if (k && v !== undefined && v !== null) {
+        const cleanKey = String(k).replace(/[^\x20-\x7E]/g, "").trim();
+        const cleanVal = String(v).replace(/[^\x20-\x7E]/g, "").trim();
+        if (cleanKey) {
+          sanitizedHeaders[cleanKey] = cleanVal;
+        }
+      }
+    }
+
     // Execute Request with Timeout
     const timeoutMs = Math.min(Math.max(Number(requestTemplate?.timeout || provider.timeout) || 10000, 1000), 30000);
     const controller = new AbortController();
@@ -739,7 +777,7 @@ export class ProviderExecutor {
     try {
       fetchRes = await fetch(finalUrl, {
         method: httpMethod,
-        headers,
+        headers: sanitizedHeaders,
         body: bodyData,
         signal: controller.signal,
       });

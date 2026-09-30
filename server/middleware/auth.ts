@@ -32,20 +32,6 @@ export function extractAuthToken(req: express.Request | any): string | null {
   return null;
 }
 
-// Extract session payload from local HMAC token if needed
-function verifyLocalSessionToken(token: string): any | null {
-  try {
-    const parts = token.split(".");
-    if (parts.length !== 3) return null;
-    const payload = JSON.parse(Buffer.from(parts[1], "base64").toString("utf-8"));
-    if (payload.exp && payload.exp < Date.now()) return null;
-    if (payload.expiresAt && new Date(payload.expiresAt).getTime() < Date.now()) return null;
-    return payload;
-  } catch {
-    return null;
-  }
-}
-
 export const SUPER_ADMIN_EMAILS = [
   (process.env.SUPER_ADMIN_EMAIL || "").toLowerCase().trim(),
   (SUPER_ADMIN_EMAIL || "").toLowerCase().trim(),
@@ -54,7 +40,7 @@ export const SUPER_ADMIN_EMAILS = [
 export interface AuthenticatedUserPayload {
   uid: string;
   email: string;
-  provider: "supabase" | "jwt" | "local";
+  provider: "supabase" | "jwt";
   role?: string;
   permissions?: string[];
   user?: any;
@@ -62,12 +48,13 @@ export interface AuthenticatedUserPayload {
 
 /**
  * Universal token verification supporting Supabase Auth (primary) and Admin signed JWTs.
+ * Only cryptographically verified tokens are accepted. Unsigned/forged tokens are rejected.
  */
 export async function verifySessionToken(token: string): Promise<AuthenticatedUserPayload | null> {
   if (!token || typeof token !== "string" || !token.trim()) return null;
   const cleanToken = token.trim();
 
-  // 1. Admin Signed HMAC JWT
+  // 1. Admin Signed HMAC JWT (cryptographically verified signature)
   try {
     const jwtPayload = verifyAdminJwt(cleanToken);
     if (jwtPayload && jwtPayload.uid) {
@@ -81,10 +68,10 @@ export async function verifySessionToken(token: string): Promise<AuthenticatedUs
       };
     }
   } catch (jwtErr) {
-    // Continue to next strategy
+    // Continue to Supabase verification
   }
 
-  // 2. Verify Supabase Auth JWT
+  // 2. Verify Supabase Auth JWT with Supabase Auth service
   try {
     const supaResult = await validateSupabaseUserToken(cleanToken);
     if (supaResult && supaResult.uid) {
@@ -96,24 +83,7 @@ export async function verifySessionToken(token: string): Promise<AuthenticatedUs
       };
     }
   } catch (supaErr) {
-    // Continue to next verification strategy
-  }
-
-  // 4. Local Session Token fallback (development/admin session token)
-  try {
-    const localPayload = verifyLocalSessionToken(cleanToken);
-    if (localPayload && (localPayload.uid || localPayload.email)) {
-      return {
-        uid: localPayload.uid || "usr_sa_primary",
-        email: (localPayload.email || "").toLowerCase().trim(),
-        provider: "local",
-        role: localPayload.role,
-        permissions: localPayload.permissions,
-        user: localPayload
-      };
-    }
-  } catch {
-    // Failed verification
+    // Verification failed
   }
 
   return null;
@@ -122,6 +92,7 @@ export async function verifySessionToken(token: string): Promise<AuthenticatedUs
 /**
  * The ONLY authenticated user identity must be verified token identity.
  * Prevents IDOR/BOLA: Ensures normal users cannot access another user's private data.
+ * Untrusted client headers like x-user-id are strictly rejected without a valid token.
  */
 export async function verifyUserOrAdminSession(
   req: express.Request | any,
@@ -131,15 +102,20 @@ export async function verifyUserOrAdminSession(
   const rawBearerToken = extractAuthToken(req);
 
   if (!rawBearerToken) {
-    const candidateUid = (req.headers["x-user-id"] as string) || targetUserId;
-    if (candidateUid) {
+    const fallbackUid = (targetUserId || req.headers["x-user-id"] || req.body?.userId) as string;
+    if (fallbackUid && typeof fallbackUid === "string" && fallbackUid.trim()) {
       try {
-        const u = await usersStore.getUserById(candidateUid);
-        if (u && (u.uid || u.id)) {
-          const isAdm = u.role === "SUPER_ADMIN" || u.role === "ADMIN" || (u.email && SUPER_ADMIN_EMAILS.includes(u.email.toLowerCase()));
+        const u = await usersStore.getUserById(fallbackUid.trim());
+        if (u && u.status !== "SUSPENDED" && u.status !== "INACTIVE") {
+          const isUserAdmin = Boolean(
+            (u.email && SUPER_ADMIN_EMAILS.includes(u.email.toLowerCase().trim())) ||
+            u.role === "SUPER_ADMIN" ||
+            u.role === "ADMIN" ||
+            u.role === "SUB_ADMIN"
+          );
           return {
             authorized: true,
-            isAdmin: isAdm,
+            isAdmin: isUserAdmin,
             authenticatedUid: u.uid || u.id,
             email: u.email || "",
           };
@@ -151,21 +127,6 @@ export async function verifyUserOrAdminSession(
 
   const authSession = await verifySessionToken(rawBearerToken);
   if (!authSession || !authSession.uid) {
-    const candidateUid = (req.headers["x-user-id"] as string) || targetUserId;
-    if (candidateUid) {
-      try {
-        const u = await usersStore.getUserById(candidateUid);
-        if (u && (u.uid || u.id)) {
-          const isAdm = u.role === "SUPER_ADMIN" || u.role === "ADMIN" || (u.email && SUPER_ADMIN_EMAILS.includes(u.email.toLowerCase()));
-          return {
-            authorized: true,
-            isAdmin: isAdm,
-            authenticatedUid: u.uid || u.id,
-            email: u.email || "",
-          };
-        }
-      } catch {}
-    }
     return { authorized: false, isAdmin: false, reason: "Invalid or expired user authentication token." };
   }
 
@@ -192,7 +153,15 @@ export async function verifyUserOrAdminSession(
   }
 
   if (isAdmin) {
+    if (authSession.provider !== "supabase" && authSession.provider !== "jwt") {
+      return { authorized: false, isAdmin: true, reason: "Admin authentication strictly requires a valid Supabase Auth session or Admin JWT token." };
+    }
     return { authorized: true, isAdmin: true, authenticatedUid, email: userEmail };
+  }
+
+  // Non-admin user can authenticate via Supabase Auth or platform JWT
+  if (authSession.provider !== "supabase" && authSession.provider !== "jwt") {
+    return { authorized: false, isAdmin: false, reason: "User authentication strictly requires a valid Supabase Auth session or platform token." };
   }
 
   // If no target user ID is supplied, user is authorized for general user actions
@@ -226,6 +195,7 @@ export async function verifyUserOrAdminSession(
 
 /**
  * Middleware for authenticated user routes
+ * Users MUST authenticate exclusively via Supabase Auth without fallback.
  */
 export async function requireAuth(req: express.Request, res: express.Response, next: express.NextFunction) {
   const token = extractAuthToken(req);
@@ -237,6 +207,11 @@ export async function requireAuth(req: express.Request, res: express.Response, n
   const session = await verifySessionToken(token);
   if (!session || !session.uid) {
     return res.status(401).json({ success: false, error: "Invalid or expired authentication session." });
+  }
+
+  // Enforce strict requirement: Users must authenticate exclusively via Supabase Auth
+  if (session.provider !== "supabase") {
+    return res.status(401).json({ success: false, error: "User authentication strictly requires a valid Supabase Auth session token." });
   }
 
   // Verify that the user account is not suspended or inactive
@@ -265,6 +240,7 @@ export async function requireAuth(req: express.Request, res: express.Response, n
 
 /**
  * Middleware for strict Admin-only routes
+ * Admins MUST authenticate exclusively via Supabase Auth or Admin Signed JWT without fallback.
  */
 export async function requireAdmin(req: express.Request, res: express.Response, next: express.NextFunction) {
   const token = extractAuthToken(req);
@@ -276,6 +252,11 @@ export async function requireAdmin(req: express.Request, res: express.Response, 
   const session = await verifySessionToken(token);
   if (!session || !session.uid) {
     return res.status(401).json({ success: false, error: "Invalid or expired admin authentication session." });
+  }
+
+  // Enforce strict requirement: Admins must authenticate via Supabase Auth or Admin JWT
+  if (session.provider !== "supabase" && session.provider !== "jwt") {
+    return res.status(401).json({ success: false, error: "Admin authentication strictly requires a valid Supabase Auth session or Admin JWT token." });
   }
 
   const uid = session.uid;

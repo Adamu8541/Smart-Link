@@ -169,14 +169,14 @@ export default function AdminGuard({
   // 2. Unauthenticated -> Redirect to Login
   if (!sessionValid || !adminSession) {
     return (
-      <div id="admin-guard-unauth" className="min-h-screen bg-[#F5F7FA] flex items-center justify-center p-6 text-center">
-        <div className="max-w-md bg-white border border-slate-200 rounded-3xl p-8 space-y-5 shadow-xl">
-          <div className="mx-auto w-12 h-12 rounded-full bg-[#0F2D5C]/10 border border-[#0F2D5C]/20 text-[#0F2D5C] flex items-center justify-center">
+      <div id="admin-guard-unauth" className="min-h-screen bg-slate-950 flex items-center justify-center p-6 text-center text-slate-100">
+        <div className="max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-8 space-y-5 shadow-2xl">
+          <div className="mx-auto w-12 h-12 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center">
             <Lock className="h-5 w-5" />
           </div>
           <div className="space-y-2">
-            <h2 className="text-lg font-bold text-[#111827]">Unauthorized Administrator Access</h2>
-            <p className="text-xs text-[#4B5563] leading-relaxed">
+            <h2 className="text-lg font-bold text-white">Unauthorized Administrator Access</h2>
+            <p className="text-xs text-slate-400 leading-relaxed">
               You must authenticate with valid administrator credentials to access protected SmartLink Admin pages.
             </p>
           </div>
@@ -184,7 +184,7 @@ export default function AdminGuard({
             id="guard-to-login-btn"
             type="button"
             onClick={() => onNavigate("/admin/login")}
-            className="w-full py-3 px-4 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-semibold rounded-xl text-xs transition-colors cursor-pointer"
+            className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl text-xs transition-colors cursor-pointer shadow-lg"
           >
             Proceed to Admin Login
           </button>
@@ -235,9 +235,9 @@ export default function AdminGuard({
               id="guard-switch-account-btn"
               type="button"
               onClick={onLogout}
-              className="py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+              className="py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className="h-4 w-4 text-slate-400" />
               Switch Account
             </button>
           </div>
@@ -286,7 +286,7 @@ export default function AdminGuard({
               type="button"
               onClick={handleExtendSession}
               title="Extend Session"
-              className="ml-1 text-slate-400 hover:text-white cursor-pointer"
+              className="ml-1 p-0.5 hover:text-white text-slate-400 cursor-pointer"
             >
               <RefreshCw className="h-3 w-3" />
             </button>
@@ -296,9 +296,9 @@ export default function AdminGuard({
             id="guard-logout-btn"
             type="button"
             onClick={onLogout}
-            className="py-1 px-3 bg-red-950/40 hover:bg-red-900/60 border border-red-800/60 text-red-300 font-semibold rounded-lg text-[11px] transition-colors flex items-center gap-1.5 cursor-pointer"
+            className="py-1 px-3 bg-red-950/50 hover:bg-red-900/80 text-red-200 border border-red-800/60 font-semibold rounded-lg text-[11px] transition-colors flex items-center gap-1.5 cursor-pointer"
           >
-            <LogOut className="h-3.5 w-3.5" />
+            <LogOut className="h-3.5 w-3.5 text-red-400" />
             <span>Logout</span>
           </button>
         </div>
