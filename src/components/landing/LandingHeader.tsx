@@ -66,18 +66,18 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
             type="button"
             onClick={() => handleNavClick("hero-section")}
             className="flex items-center cursor-pointer group bg-transparent border-none p-0 text-left w-[224px] sm:w-[280px] h-14 sm:h-16 lg:h-18 shrink-0"
-            aria-label="SmartLink NG Home"
+            aria-label="Smart Link NG Home"
           >
             <img
               src={activeLogo}
-              alt={`${siteName || "SmartLink Nigeria"} - Official Identity Verification & Fintech Portal`}
+              alt={`${siteName || "Smart Link NG"} - Official Identity Verification & Fintech Portal`}
               width={224}
               height={56}
               loading="eager"
               fetchPriority="high"
               decoding="async"
-              style={{ aspectRatio: "224 / 56" }}
-              className="h-14 sm:h-16 lg:h-18 w-auto max-w-[224px] sm:max-w-[280px] object-contain group-hover:scale-102 transition-transform duration-200"
+              style={{ aspectRatio: "224 / 56", width: "224px", height: "56px" }}
+              className="h-14 w-[224px] sm:h-16 sm:w-[256px] lg:h-18 lg:w-[280px] object-contain shrink-0"
               referrerPolicy="no-referrer"
               onError={handleLogoError}
             />

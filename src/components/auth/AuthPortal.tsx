@@ -257,6 +257,14 @@ export const AuthPortal: React.FC<AuthPortalProps>= ({
           );
         }
 
+        const sessionToken = supaLogin.session?.access_token || (loginUser as any).token || "";
+        if (sessionToken) {
+          (loginUser as any).token = sessionToken;
+          (loginUser as any).sessionToken = sessionToken;
+          localStorage.setItem("smartlink_token", sessionToken);
+          localStorage.setItem("token", sessionToken);
+        }
+
         localStorage.setItem("smart_link_user", JSON.stringify(loginUser));
         soundFx.playSuccessSound();
         setAuthSuccessState("login");
@@ -291,6 +299,14 @@ export const AuthPortal: React.FC<AuthPortalProps>= ({
         throw new Error(
           "Your account has been strictly blocked or suspended by security administration. Access to the dashboard is denied."
         );
+      }
+
+      const fallbackToken = res.data?.token || res.data?.sessionToken || (loginUser as any).token || "";
+      if (fallbackToken) {
+        (loginUser as any).token = fallbackToken;
+        (loginUser as any).sessionToken = fallbackToken;
+        localStorage.setItem("smartlink_token", fallbackToken);
+        localStorage.setItem("token", fallbackToken);
       }
 
       localStorage.setItem("smart_link_user", JSON.stringify(loginUser));

@@ -94,7 +94,7 @@ interface SiteConfigContextType {
 
 const DEFAULT_CONFIG: SiteConfig = {
   branding: {
-    siteName: "Smart Link Nigeria",
+    siteName: "Smart Link NG",
     tagline: "Enterprise Identity & Corporate Compliance Platform",
     logoUrl: "",
     faviconUrl: "/favicon.webp",
@@ -105,7 +105,7 @@ const DEFAULT_CONFIG: SiteConfig = {
     showHeaderAnnouncement: true,
   },
   general: {
-    platformName: "SmartLink Enterprise",
+    platformName: "Smart Link NG",
     companyName: "Smart Link Computer Business Solutions Ltd",
     companyAddress: "Federal Capital Territory, Nigeria",
     supportEmail: "support@smartlinkng.com.ng",
@@ -376,7 +376,11 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
     : defaultLogoImg;
 
   const primaryColor = config.branding?.primaryColor || "#0F2D5C";
-  const siteName = config.general?.platformName || config.branding?.siteName || "Smart Link Nigeria";
+  const rawSiteName = config.branding?.siteName || config.general?.platformName || "Smart Link NG";
+  const siteName =
+    rawSiteName.toLowerCase().includes("nigeria") || rawSiteName.toLowerCase().includes("enterprise")
+      ? "Smart Link NG"
+      : rawSiteName;
   const maintenanceActive = Boolean(config.maintenance?.maintenanceMode);
 
   const getServiceItem = useCallback(

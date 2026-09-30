@@ -272,7 +272,7 @@ export default function Navigation({
 
         <div className="flex-1 text-center truncate px-2">
           <span className="font-sans text-xs sm:text-sm font-bold tracking-tight text-white">
-            {siteName}
+            Smart Link NG
           </span>
         </div>
 
@@ -284,6 +284,7 @@ export default function Navigation({
             height={48}
             loading="eager"
             decoding="async"
+            style={{ aspectRatio: "150 / 48" }}
             className="h-10 sm:h-12 w-auto max-w-[150px] object-contain rounded-lg bg-white p-1 shadow-sm border border-[#E5E7EB]"
             referrerPolicy="no-referrer"
             onError={handleLogoError}

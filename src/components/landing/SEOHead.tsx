@@ -49,7 +49,6 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
 
     // Standard Meta Tags
     setMetaTag("name", "description", description);
-    setMetaTag("name", "viewport", "width=device-width, initial-scale=1.0");
     setMetaTag("name", "author", "Smart Link NG Technology");
     setMetaTag("name", "keywords", "Smart Link NG, SmartLink Nigeria, NIN Verification, BVN Verification, CAC Registration, SCUML Certificate, Airtime VTU, SME Data Bundles, Electricity Bills Nigeria, Identity Verification API, WAEC Result Checker, NECO Token, Fintech Nigeria");
     setMetaTag("http-equiv", "content-language", "en-NG");

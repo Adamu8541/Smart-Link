@@ -74,6 +74,21 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Zero Cumulative Layout Shift (CLS) stabilization */
+#site-header {
+  min-height: 80px;
+  contain-intrinsic-size: 80px;
+}
+@media (min-width: 640px) {
+  #site-header {
+    min-height: 96px;
+    contain-intrinsic-size: 96px;
+  }
+}
+#header-logo-container img {
+  aspect-ratio: 224 / 56;
+}
+
 body {
   background-color: #F5F7FA;
   color: #1F2937;

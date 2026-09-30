@@ -4,6 +4,8 @@
  * registration & verification directly using standard WebAuthn API.
  */
 
+import { SupabaseAuthService } from "./supabaseAuth";
+
 // Helper: Base64URL string to Uint8Array
 function base64UrlToBuffer(base64Url: string): Uint8Array {
   const padding = "=".repeat((4 - (base64Url.length % 4)) % 4);
@@ -64,6 +66,52 @@ export class BiometricAuthService {
   }
 
   /**
+   * Helper to retrieve active user authentication token across Supabase & Local storage
+   */
+  public static async getStoredAuthToken(explicitToken?: string): Promise<string> {
+    if (explicitToken && typeof explicitToken === "string" && explicitToken.trim()) {
+      return explicitToken.trim();
+    }
+    // 1. Direct tokens
+    const directToken =
+      localStorage.getItem("smartlink_token") ||
+      localStorage.getItem("token") ||
+      localStorage.getItem("sessionToken");
+    if (directToken) return directToken;
+
+    // 2. User profile storage
+    try {
+      const rawUser = localStorage.getItem("smart_link_user") || localStorage.getItem("smartlink_user");
+      if (rawUser) {
+        const u = JSON.parse(rawUser);
+        if (u.token) return u.token;
+        if (u.sessionToken) return u.sessionToken;
+        if (u.access_token) return u.access_token;
+      }
+    } catch {}
+
+    // 3. Supabase active session
+    try {
+      const supaSess = await SupabaseAuthService.getSession();
+      if (supaSess?.access_token) {
+        localStorage.setItem("smartlink_token", supaSess.access_token);
+        return supaSess.access_token;
+      }
+    } catch {}
+
+    // 4. Admin session
+    try {
+      const rawAdmin = localStorage.getItem("admin_session") || localStorage.getItem("smart_link_admin_session");
+      if (rawAdmin) {
+        const a = JSON.parse(rawAdmin);
+        if (a.token) return a.token;
+      }
+    } catch {}
+
+    return "";
+  }
+
+  /**
    * Register and enroll the current device's fingerprint or biometric authenticator
    */
   public static async enrollBiometrics(options?: {
@@ -76,12 +124,13 @@ export class BiometricAuthService {
     }
 
     // 1. Get auth headers
-    const storedToken = options?.token || localStorage.getItem("smartlink_token") || localStorage.getItem("token") || "";
+    const storedToken = await this.getStoredAuthToken(options?.token);
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
     if (storedToken) {
       headers["Authorization"] = `Bearer ${storedToken}`;
+      headers["x-session-token"] = storedToken;
     }
 
     // 2. Request creation options from backend
@@ -278,10 +327,11 @@ export class BiometricAuthService {
    */
   public static async listRegisteredPasskeys(token?: string): Promise<BiometricDevice[]> {
     try {
-      const storedToken = token || localStorage.getItem("smartlink_token") || localStorage.getItem("token") || "";
+      const storedToken = await this.getStoredAuthToken(token);
       const headers: Record<string, string> = {};
       if (storedToken) {
         headers["Authorization"] = `Bearer ${storedToken}`;
+        headers["x-session-token"] = storedToken;
       }
 
       const res = await fetch("/api/auth/passkeys/list", { headers });
@@ -298,10 +348,11 @@ export class BiometricAuthService {
    */
   public static async deletePasskey(id: string, token?: string): Promise<boolean> {
     try {
-      const storedToken = token || localStorage.getItem("smartlink_token") || localStorage.getItem("token") || "";
+      const storedToken = await this.getStoredAuthToken(token);
       const headers: Record<string, string> = {};
       if (storedToken) {
         headers["Authorization"] = `Bearer ${storedToken}`;
+        headers["x-session-token"] = storedToken;
       }
 
       const res = await fetch(`/api/auth/passkeys/${encodeURIComponent(id)}`, {

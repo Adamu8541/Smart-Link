@@ -91,11 +91,6 @@ export const BiometricEnrollPromptModal: React.FC<BiometricEnrollPromptModalProp
 
         {/* Modal Copy */}
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 text-[11px] font-extrabold uppercase tracking-wider border border-emerald-200 dark:border-emerald-800">
-            <Sparkles className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
-            <span>Fintech Fast Passkey</span>
-          </div>
-
           <h3
             id="biometric-modal-title"
             className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-tight"
@@ -116,10 +111,6 @@ export const BiometricEnrollPromptModal: React.FC<BiometricEnrollPromptModalProp
             <div className="flex items-center gap-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
               <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
               <span>Instant 1-Touch Access on this device</span>
-            </div>
-            <div className="flex items-center gap-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
-              <ShieldCheck className="h-4 w-4 text-[#0F2D5C] dark:text-sky-400 shrink-0" />
-              <span>FIDO2 Encrypted & Bank-Grade Security</span>
             </div>
             <div className="flex items-center gap-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
               <Lock className="h-4 w-4 text-amber-600 shrink-0" />
@@ -145,18 +136,23 @@ export const BiometricEnrollPromptModal: React.FC<BiometricEnrollPromptModalProp
                 type="button"
                 onClick={handleActivateBiometrics}
                 disabled={isLoading}
-                className="w-full py-4 bg-gradient-to-r from-[#0F2D5C] via-[#17407E] to-[#0F2D5C] hover:opacity-95 active:scale-[0.99] text-white font-extrabold rounded-2xl text-sm tracking-wider uppercase transition-all shadow-lg hover:shadow-xl cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60"
+                style={{ backgroundColor: "#0F2D5C", color: "#FFFFFF" }}
+                className="w-full min-h-[64px] py-5 px-6 !bg-[#0F2D5C] hover:!bg-[#17407E] active:!bg-[#0A1E3F] !text-white font-black rounded-2xl text-base sm:text-lg tracking-wider uppercase transition-all duration-200 shadow-2xl hover:shadow-3xl ring-4 ring-emerald-400/50 cursor-pointer flex items-center justify-center gap-3.5 disabled:opacity-60 disabled:cursor-not-allowed border-2 border-emerald-400"
               >
                 {isLoading ? (
                   <>
-                    <SmartLinkLogoMark size="xs" color="#FFFFFF" animating={true} />
-                    <span>TOUCH SENSOR NOW...</span>
+                    <SmartLinkLogoMark size="sm" color="#FFFFFF" animating={true} />
+                    <span className="!text-white font-black tracking-wider text-base sm:text-lg" style={{ color: "#FFFFFF" }}>
+                      TOUCH SENSOR NOW...
+                    </span>
                   </>
                 ) : (
                   <>
-                    <Fingerprint className="h-5 w-5 text-emerald-300" />
-                    <span>ACTIVATE FINGERPRINT NOW</span>
-                    <ArrowRight className="h-4 w-4 ml-1" />
+                    <Fingerprint className="h-8 w-8 text-emerald-300 shrink-0 stroke-[2.5]" />
+                    <span className="!text-white font-black tracking-wider text-base sm:text-lg drop-shadow-md" style={{ color: "#FFFFFF" }}>
+                      ACTIVATE FINGERPRINT NOW
+                    </span>
+                    <ArrowRight className="h-6 w-6 text-emerald-300 ml-1 shrink-0 stroke-[2.5]" />
                   </>
                 )}
               </button>

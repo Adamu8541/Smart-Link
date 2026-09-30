@@ -59,7 +59,7 @@ export function getValueByJsonPath(obj: any, path: string): any {
 export function seedModule7SettingsIfEmpty(db: any) {
   if (!db.branding_settings) {
     db.branding_settings = {
-      appName: "SmartLink Digital",
+      appName: "Smart Link NG",
       tagline: "Enterprise Digital & Identity Services Platform",
       logoUrl: "",
       faviconUrl: "/favicon.webp",
@@ -133,11 +133,11 @@ export function sanitizePublicSettings(db: any, maintenanceDetails?: any) {
   const maintenance = maintenanceDetails || getMaintenanceDetails(db);
   const sysGeneral = db.system_settings?.general || {};
   const rawLogo = branding.logoUrl || branding.lightLogoUrl || "";
-  const resolvedLogoUrl = rawLogo || "/logo.png";
+  const resolvedLogoUrl = rawLogo || "/logo.webp";
   const rawSys = db.system_settings || db.systemSettings || {};
   const safeSystemSettings = {
     general: {
-      platformName: sysGeneral.platformName || "SmartLink Digital",
+      platformName: sysGeneral.platformName || "Smart Link NG",
       currency: sysGeneral.currency || "NGN",
       currencySymbol: sysGeneral.currencySymbol || "₦",
       supportEmail: sysGeneral.supportEmail || "support@smartlinkdigital.ng",
@@ -161,7 +161,7 @@ export function sanitizePublicSettings(db: any, maintenanceDetails?: any) {
     servicesCatalog: db.servicesCatalog || [],
     systemSettings: safeSystemSettings,
     settings: {
-      appName: branding.appName || sysGeneral.platformName || "SmartLink Digital",
+      appName: branding.appName || sysGeneral.platformName || "Smart Link NG",
       tagline: branding.tagline || "Enterprise Digital & Identity Services Platform",
       logoUrl: resolvedLogoUrl,
       faviconUrl: branding.faviconUrl || "/favicon.webp",

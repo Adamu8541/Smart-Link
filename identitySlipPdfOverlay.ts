@@ -211,7 +211,7 @@ export const REGULAR_SLIP_CONFIG = {
     bold: false,
   },
   dateOfBirth: {
-    x: 82.0, // Exactly 1 space after "Date of birth:" label (y=644.44)
+    x: 98.0, // Shifted to right so overlayed date of birth starts cleanly after "Date of birth:" label (y=644.44)
     y: 644.44,
     size: 11.34,
     color: rgb(0, 0, 0),

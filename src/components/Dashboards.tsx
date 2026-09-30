@@ -891,13 +891,13 @@ export default function Dashboards({
 
         <>
             {/* Balance Card Section matching the fintech specification */}
-            <div className="bg-[#0F2D5C] rounded-[16px] p-6 md:p-8 text-white relative overflow-hidden shadow-[0_4px_12px_rgba(15,23,42,0.08)] border border-[#0F2D5C] text-left">
-              <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative z-10">
-                <div className="space-y-2">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex items-center gap-2 text-[#E5E7EB] font-mono text-[10px] font-bold tracking-wider uppercase">
-                      <Wallet className="h-4 w-4" />
+            <div className="bg-[#0F2D5C] rounded-2xl p-4 sm:p-5 md:p-6 text-white relative overflow-hidden shadow-sm border border-[#0F2D5C] text-left">
+              <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full blur-2xl pointer-events-none"></div>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
+                <div className="space-y-1.5">
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <div className="flex items-center gap-1.5 text-[#E5E7EB] font-mono text-[10px] font-bold tracking-wider uppercase">
+                      <Wallet className="h-3.5 w-3.5" />
                       Available Balance
                     </div>
                     <button
@@ -905,11 +905,11 @@ export default function Dashboards({
                       disabled={isRefreshing}
                       title="Refresh balance"
                       id="btn-refresh-balance-authoritative"
-                      className={`flex items-center gap-1.5 px-2.5 py-1 text-[9px] font-mono font-bold tracking-wider rounded-md border border-white/15 hover:border-white/30 text-[#E5E7EB] hover:text-white transition-all bg-white/5 active:scale-95 disabled:opacity-50 cursor-pointer ${
+                      className={`flex items-center gap-1 px-2 py-0.5 text-[9px] font-mono font-bold tracking-wider rounded-md border border-white/15 hover:border-white/30 text-[#E5E7EB] hover:text-white transition-all bg-white/5 active:scale-95 disabled:opacity-50 cursor-pointer ${
                         isRefreshing ? "cursor-not-allowed" : ""
                       }`}
                     >
-                      <RefreshCw className={`h-3 w-3 ${isRefreshing ? "animate-spin text-white" : ""}`} />
+                      <RefreshCw className={`h-2.5 w-2.5 ${isRefreshing ? "animate-spin text-white" : ""}`} />
                       {isRefreshing ? "REFRESHING..." : refreshSuccess ? "SYNCED" : "REFRESH"}
                     </button>
                   </div>
@@ -920,27 +920,27 @@ export default function Dashboards({
                     </div>
                   )}
 
-                  <div className="text-3xl md:text-4xl font-extrabold tracking-tight font-mono text-white flex items-baseline">
+                  <div className="text-2xl sm:text-3xl font-extrabold tracking-tight font-mono text-white flex items-baseline">
                     {formatNaira(currentUser.walletBalance, true)}
                   </div>
-                  <div className="pt-2">
+                  <div className="pt-1">
                     <button
                       onClick={handleOpenFundWallet}
-                      className="px-4 py-2 bg-white hover:bg-[#F5F7FA] text-[#0F2D5C] font-black rounded-xl text-xs transition-all shadow-md cursor-pointer flex items-center gap-2"
+                      className="px-3.5 py-1.5 bg-white hover:bg-[#F5F7FA] text-[#0F2D5C] font-black rounded-lg text-xs transition-all shadow-xs cursor-pointer flex items-center gap-1.5 active:scale-95"
                     >
-                      <Plus className="h-4 w-4 stroke-[3]" />
+                      <Plus className="h-3.5 w-3.5 stroke-[3]" />
                       Fund Wallet
                     </button>
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-3 shrink-0">
+                <div className="flex flex-wrap gap-2.5 shrink-0">
                   <button
                     onClick={() => {
                       sessionStorage.setItem("dashboard_tab", "ACTIVITY_FEED");
                       setActiveTab("ACTIVITY_FEED");
                       window.dispatchEvent(new Event("dashboard_tab_changed"));
                     }}
-                    className="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-xs border border-white/20 transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
+                    className="px-3.5 py-1.5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-lg text-xs border border-white/20 transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
                   >
                     <Clock className="h-3.5 w-3.5" />
                     History
@@ -1091,28 +1091,28 @@ export default function Dashboards({
             )}
 
             {/* --- PRIMARY SERVICES GRID SECTION (MATCHING THE SCREENSHOT EXACTLY) --- */}
-            <div className="space-y-8 pb-12">
+            <div className="space-y-6 pb-12">
               
               {/* Category 1: IDENTITY VERIFICATION */}
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 <div className="flex items-center gap-2 text-left">
-                  <div className="w-1.5 h-4 bg-[#1E56A0] rounded-xs"></div>
-                  <h2 className="text-xs sm:text-sm font-bold tracking-wider text-[#1E293B] uppercase font-sans">
+                  <div className="w-1.5 h-3.5 bg-[#1E56A0] rounded-xs"></div>
+                  <h2 className="text-xs font-bold tracking-wider text-[#1E293B] uppercase font-sans">
                     IDENTITY VERIFICATION
                   </h2>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
                   {identityServices.map((srv) => (
                     <div
                       key={srv.id}
                       onClick={() => handleServiceCardClick(srv.id)}
-                      className="bg-white rounded-2xl border border-slate-100/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-slate-300 hover:shadow-md transition-all duration-200 p-5 sm:p-6 flex flex-col items-center justify-center min-h-[145px] sm:min-h-[160px] cursor-pointer group relative"
+                      className="bg-white rounded-xl border border-slate-100/90 shadow-[0_1px_4px_rgba(0,0,0,0.03)] hover:border-slate-300 hover:shadow-md transition-all duration-200 p-3 sm:p-3.5 flex flex-col items-center justify-center min-h-[105px] sm:min-h-[115px] cursor-pointer group relative"
                     >
-                      <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-[#F4F6F8] flex items-center justify-center p-2.5 transition-transform duration-200 group-hover:scale-105 shrink-0">
+                      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#F4F6F8] flex items-center justify-center p-2 transition-transform duration-200 group-hover:scale-105 shrink-0">
                         <NimcOfficialCardLogo className="w-full h-full object-contain" />
                       </div>
-                      <h3 className="font-bold text-[#1E293B] text-xs sm:text-sm tracking-tight text-center mt-3 leading-snug">
+                      <h3 className="font-bold text-[#1E293B] text-[11px] sm:text-xs tracking-tight text-center mt-2 leading-snug line-clamp-2">
                         {srv.name}
                       </h3>
                     </div>
@@ -1121,25 +1121,25 @@ export default function Dashboards({
               </div>
 
               {/* Category 2: BANKING & BVN */}
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 <div className="flex items-center gap-2 text-left">
-                  <div className="w-1.5 h-4 bg-[#1E56A0] rounded-xs"></div>
-                  <h2 className="text-xs sm:text-sm font-bold tracking-wider text-[#1E293B] uppercase font-sans">
+                  <div className="w-1.5 h-3.5 bg-[#1E56A0] rounded-xs"></div>
+                  <h2 className="text-xs font-bold tracking-wider text-[#1E293B] uppercase font-sans">
                     BANKING & BVN
                   </h2>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
                   {bankingBvnServices.map((srv) => (
                     <div
                       key={srv.id}
                       onClick={() => handleServiceCardClick(srv.id)}
-                      className="bg-white rounded-2xl border border-slate-100/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-slate-300 hover:shadow-md transition-all duration-200 p-5 sm:p-6 flex flex-col items-center justify-center min-h-[145px] sm:min-h-[160px] cursor-pointer group relative"
+                      className="bg-white rounded-xl border border-slate-100/90 shadow-[0_1px_4px_rgba(0,0,0,0.03)] hover:border-slate-300 hover:shadow-md transition-all duration-200 p-3 sm:p-3.5 flex flex-col items-center justify-center min-h-[105px] sm:min-h-[115px] cursor-pointer group relative"
                     >
-                      <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-[#F4F6F8] flex items-center justify-center p-2.5 transition-transform duration-200 group-hover:scale-105 shrink-0">
+                      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#F4F6F8] flex items-center justify-center p-2 transition-transform duration-200 group-hover:scale-105 shrink-0">
                         <NibssOfficialCardLogo className="w-full h-full object-contain" />
                       </div>
-                      <h3 className="font-bold text-[#1E293B] text-xs sm:text-sm tracking-tight text-center mt-3 leading-snug">
+                      <h3 className="font-bold text-[#1E293B] text-[11px] sm:text-xs tracking-tight text-center mt-2 leading-snug line-clamp-2">
                         {srv.name}
                       </h3>
                     </div>
@@ -1148,22 +1148,22 @@ export default function Dashboards({
               </div>
 
               {/* Category 3: CORPORATE FILINGS */}
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 <div className="flex items-center gap-2 text-left">
-                  <div className="w-1.5 h-4 bg-[#1E56A0] rounded-xs"></div>
-                  <h2 className="text-xs sm:text-sm font-bold tracking-wider text-[#1E293B] uppercase font-sans">
+                  <div className="w-1.5 h-3.5 bg-[#1E56A0] rounded-xs"></div>
+                  <h2 className="text-xs font-bold tracking-wider text-[#1E293B] uppercase font-sans">
                     CORPORATE FILINGS
                   </h2>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
                   {corporateFilingsServices.map((srv) => (
                     <div
                       key={srv.id}
                       onClick={() => handleServiceCardClick(srv.id)}
-                      className="bg-white rounded-2xl border border-slate-100/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-slate-300 hover:shadow-md transition-all duration-200 p-5 sm:p-6 flex flex-col items-center justify-center min-h-[145px] sm:min-h-[160px] cursor-pointer group relative"
+                      className="bg-white rounded-xl border border-slate-100/90 shadow-[0_1px_4px_rgba(0,0,0,0.03)] hover:border-slate-300 hover:shadow-md transition-all duration-200 p-3 sm:p-3.5 flex flex-col items-center justify-center min-h-[105px] sm:min-h-[115px] cursor-pointer group relative"
                     >
-                      <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-[#F4F6F8] flex items-center justify-center p-2.5 transition-transform duration-200 group-hover:scale-105 shrink-0">
+                      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#F4F6F8] flex items-center justify-center p-2 transition-transform duration-200 group-hover:scale-105 shrink-0">
                         {srv.id === "cac_scuml" ? (
                           <ScumlOfficialCardLogo className="w-full h-full object-contain" />
                         ) : srv.id.includes("cac") ? (
@@ -1172,7 +1172,7 @@ export default function Dashboards({
                           <NrsOfficialCardLogo className="w-full h-full object-contain" />
                         )}
                       </div>
-                      <h3 className="font-bold text-[#1E293B] text-xs sm:text-sm tracking-tight text-center mt-3 leading-snug">
+                      <h3 className="font-bold text-[#1E293B] text-[11px] sm:text-xs tracking-tight text-center mt-2 leading-snug line-clamp-2">
                         {srv.name}
                       </h3>
                     </div>
@@ -1181,22 +1181,22 @@ export default function Dashboards({
               </div>
 
               {/* Category 4: UTILITIES & BILLS */}
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 <div className="flex items-center gap-2 text-left">
-                  <div className="w-1.5 h-4 bg-[#1E56A0] rounded-xs"></div>
-                  <h2 className="text-xs sm:text-sm font-bold tracking-wider text-[#1E293B] uppercase font-sans">
+                  <div className="w-1.5 h-3.5 bg-[#1E56A0] rounded-xs"></div>
+                  <h2 className="text-xs font-bold tracking-wider text-[#1E293B] uppercase font-sans">
                     UTILITIES & BILLS
                   </h2>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
                   {utilitiesBillsServices.map((srv) => (
                     <div
                       key={srv.id}
                       onClick={() => handleServiceCardClick(srv.id)}
-                      className="bg-white rounded-2xl border border-slate-100/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-slate-300 hover:shadow-md transition-all duration-200 p-5 sm:p-6 flex flex-col items-center justify-center min-h-[145px] sm:min-h-[160px] cursor-pointer group relative"
+                      className="bg-white rounded-xl border border-slate-100/90 shadow-[0_1px_4px_rgba(0,0,0,0.03)] hover:border-slate-300 hover:shadow-md transition-all duration-200 p-3 sm:p-3.5 flex flex-col items-center justify-center min-h-[105px] sm:min-h-[115px] cursor-pointer group relative"
                     >
-                      <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-[#F4F6F8] flex items-center justify-center p-2.5 transition-transform duration-200 group-hover:scale-105 shrink-0">
+                      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#F4F6F8] flex items-center justify-center p-2 transition-transform duration-200 group-hover:scale-105 shrink-0">
                         {srv.id === "vtu_airtime" ? (
                           <AirtimeOfficialCardLogo className="w-full h-full object-contain" />
                         ) : srv.id === "vtu_data" ? (
@@ -1211,7 +1211,7 @@ export default function Dashboards({
                           <AirtimeOfficialCardLogo className="w-full h-full object-contain" />
                         )}
                       </div>
-                      <h3 className="font-bold text-[#1E293B] text-xs sm:text-sm tracking-tight text-center mt-3 leading-snug">
+                      <h3 className="font-bold text-[#1E293B] text-[11px] sm:text-xs tracking-tight text-center mt-2 leading-snug line-clamp-2">
                         {srv.name}
                       </h3>
                     </div>
@@ -1220,22 +1220,22 @@ export default function Dashboards({
               </div>
 
               {/* Category 5: EDUCATION */}
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 <div className="flex items-center gap-2 text-left">
-                  <div className="w-1.5 h-4 bg-[#1E56A0] rounded-xs"></div>
-                  <h2 className="text-xs sm:text-sm font-bold tracking-wider text-[#1E293B] uppercase font-sans">
+                  <div className="w-1.5 h-3.5 bg-[#1E56A0] rounded-xs"></div>
+                  <h2 className="text-xs font-bold tracking-wider text-[#1E293B] uppercase font-sans">
                     EDUCATION
                   </h2>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
                   {educationServices.map((srv) => (
                     <div
                       key={srv.id}
                       onClick={() => handleServiceCardClick(srv.id)}
-                      className="bg-white rounded-2xl border border-slate-100/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-slate-300 hover:shadow-md transition-all duration-200 p-5 sm:p-6 flex flex-col items-center justify-center min-h-[145px] sm:min-h-[160px] cursor-pointer group relative"
+                      className="bg-white rounded-xl border border-slate-100/90 shadow-[0_1px_4px_rgba(0,0,0,0.03)] hover:border-slate-300 hover:shadow-md transition-all duration-200 p-3 sm:p-3.5 flex flex-col items-center justify-center min-h-[105px] sm:min-h-[115px] cursor-pointer group relative"
                     >
-                      <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-[#F4F6F8] flex items-center justify-center p-2.5 transition-transform duration-200 group-hover:scale-105 shrink-0">
+                      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#F4F6F8] flex items-center justify-center p-2 transition-transform duration-200 group-hover:scale-105 shrink-0">
                         {srv.id === "edu_jamb" ? (
                           <JambOfficialCardLogo className="w-full h-full object-contain" />
                         ) : srv.id === "edu_waec" ? (
@@ -1248,7 +1248,7 @@ export default function Dashboards({
                           <ExamPinsOfficialCardLogo className="w-full h-full object-contain" />
                         )}
                       </div>
-                      <h3 className="font-bold text-[#1E293B] text-xs sm:text-sm tracking-tight text-center mt-3 leading-snug">
+                      <h3 className="font-bold text-[#1E293B] text-[11px] sm:text-xs tracking-tight text-center mt-2 leading-snug line-clamp-2">
                         {srv.name}
                       </h3>
                     </div>

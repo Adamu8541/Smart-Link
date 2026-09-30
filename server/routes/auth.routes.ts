@@ -1588,14 +1588,18 @@ app.get("/api/auth/user-claims/:uid", async (req, res) => {
 app.post("/api/auth/passkeys/register-options", async (req, res) => {
   try {
     const authCheck = await verifyUserOrAdminSession(req);
-    if (!authCheck.authorized || !authCheck.session?.uid) {
+    const userId = authCheck.authenticatedUid || (authCheck as any).session?.uid;
+    if (!authCheck.authorized || !userId) {
       return res.status(401).json({ error: "Authentication required to register biometric credentials" });
     }
 
-    const userId = authCheck.session.uid;
-    const user = await usersStore.getUserById(userId);
+    let user = await usersStore.getUserById(userId);
     if (!user) {
-      return res.status(404).json({ error: "User account not found" });
+      user = {
+        uid: userId,
+        email: authCheck.email || "user@smartlinkng.com.ng",
+        fullName: authCheck.email?.split("@")[0] || "SmartLink User",
+      } as any;
     }
 
     const challenge = crypto.randomBytes(32).toString("base64url");
@@ -1644,11 +1648,11 @@ app.post("/api/auth/passkeys/register-options", async (req, res) => {
 app.post("/api/auth/passkeys/register-verify", async (req, res) => {
   try {
     const authCheck = await verifyUserOrAdminSession(req);
-    if (!authCheck.authorized || !authCheck.session?.uid) {
+    const userId = authCheck.authenticatedUid || (authCheck as any).session?.uid;
+    if (!authCheck.authorized || !userId) {
       return res.status(401).json({ error: "Authentication required to register biometric credentials" });
     }
 
-    const userId = authCheck.session.uid;
     const { credentialId, publicKey, deviceName, transports, challenge } = req.body;
 
     if (!credentialId || !publicKey) {
@@ -1782,11 +1786,12 @@ app.post("/api/auth/passkeys/login-verify", async (req, res) => {
 app.get("/api/auth/passkeys/list", async (req, res) => {
   try {
     const authCheck = await verifyUserOrAdminSession(req);
-    if (!authCheck.authorized || !authCheck.session?.uid) {
+    const userId = authCheck.authenticatedUid || (authCheck as any).session?.uid;
+    if (!authCheck.authorized || !userId) {
       return res.status(401).json({ error: "Authentication required" });
     }
 
-    const passkeys = await PasskeyRepository.listByUserId(authCheck.session.uid);
+    const passkeys = await PasskeyRepository.listByUserId(userId);
     const sanitized = passkeys.map((p: any) => ({
       id: p.id,
       credentialId: p.credential_id ? p.credential_id.substring(0, 16) + "..." : "passkey",
@@ -1805,12 +1810,13 @@ app.get("/api/auth/passkeys/list", async (req, res) => {
 app.delete("/api/auth/passkeys/:id", async (req, res) => {
   try {
     const authCheck = await verifyUserOrAdminSession(req);
-    if (!authCheck.authorized || !authCheck.session?.uid) {
+    const userId = authCheck.authenticatedUid || (authCheck as any).session?.uid;
+    if (!authCheck.authorized || !userId) {
       return res.status(401).json({ error: "Authentication required" });
     }
 
     const { id } = req.params;
-    const deleted = await PasskeyRepository.deleteById(id, authCheck.session.uid);
+    const deleted = await PasskeyRepository.deleteById(id, userId);
 
     res.json({ success: true, message: deleted ? "Biometric passkey deleted" : "Passkey not found" });
   } catch (err: any) {
