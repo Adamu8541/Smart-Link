@@ -46,6 +46,10 @@ Allow: /llms.txt
 Allow: /llms-full.txt
 Allow: /.well-known/ai-plugin.json
 Allow: /.well-known/agent.json
+Allow: /.well-known/ai-catalog.json
+Allow: /ai-catalog.json
+Allow: /.well-known/ard.json
+Allow: /ard.json
 Allow: /og-image.png
 Allow: /logo.webp
 Allow: /favicon.webp

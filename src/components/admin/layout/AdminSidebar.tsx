@@ -147,7 +147,7 @@ export default function AdminSidebar({
                 <span className="font-extrabold text-sm text-white tracking-tight">SmartLink</span>
                 <span className="px-1.5 py-0.5 rounded bg-white/20 text-white font-mono text-[9px] font-bold">ADMIN</span>
               </div>
-              <p className="text-[10px] text-slate-300 truncate">Enterprise Control</p>
+              <p className="text-[10px] text-blue-200 truncate">Enterprise Control</p>
             </div>
           )}
         </div>
@@ -189,7 +189,7 @@ export default function AdminSidebar({
         {ADMIN_NAV_GROUPS.map((group) => (
           <div key={group.title} className="space-y-1">
             {(!collapsed || isMobileDrawer) && (
-              <p className="px-3 text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 font-mono">
+              <p className="px-3 text-[9px] font-bold text-blue-200 uppercase tracking-wider mb-1.5 font-mono">
                 {group.title}
               </p>
             )}
@@ -209,16 +209,16 @@ export default function AdminSidebar({
                     title={item.label + (!hasAccess ? " (Restricted)" : "")}
                     className={`w-full py-2 px-3 rounded-xl flex items-center justify-between text-xs font-semibold whitespace-nowrap overflow-hidden transition-all group ${
                       !hasAccess
-                        ? "text-slate-400/40 cursor-not-allowed opacity-40"
+                        ? "text-white/30 cursor-not-allowed opacity-40"
                         : isActive
                         ? "bg-[#17407E] text-white border-l-4 border-white shadow-xs pl-2.5 font-bold"
-                        : "text-slate-200/90 hover:bg-white/10 hover:text-white cursor-pointer"
+                        : "text-white/80 hover:bg-white/10 hover:text-white cursor-pointer"
                     }`}
                   >
                     <div className="flex items-center gap-2.5 min-w-0 flex-1">
                       <IconComp
                         className={`h-4 w-4 shrink-0 transition-transform group-hover:scale-105 ${
-                          isActive ? "text-white" : "text-slate-300"
+                          isActive ? "text-white" : "text-blue-200"
                         }`}
                       />
                       {(!collapsed || isMobileDrawer) && (
@@ -230,7 +230,7 @@ export default function AdminSidebar({
                       <div className="flex items-center gap-1.5 shrink-0 ml-1">
                         {!hasAccess && (
                           <span title="Permission Denied by RBAC">
-                            <Lock className="h-3 w-3 text-slate-400" />
+                            <Lock className="h-3 w-3 text-blue-200" />
                           </span>
                         )}
                         {item.badge && hasAccess && (
@@ -238,7 +238,7 @@ export default function AdminSidebar({
                             className={`px-1.5 py-0.5 rounded-full font-mono text-[9px] font-bold ${
                               isActive
                                 ? "bg-white text-[#0F2D5C]"
-                                : "bg-white/15 text-slate-200"
+                                : "bg-white/15 text-white"
                             }`}
                           >
                             {item.badge}
@@ -257,7 +257,7 @@ export default function AdminSidebar({
       {/* Footer System Status & Logout */}
       <div className="p-3 border-t border-[#17407E]/50 bg-[#0A1E3F]/60 space-y-2">
         {(!collapsed || isMobileDrawer) && (
-          <div className="p-2 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between text-[10px] text-slate-300">
+          <div className="p-2 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between text-[10px] text-blue-100">
             <div className="flex items-center gap-1.5">
               <Globe className="h-3.5 w-3.5 text-emerald-400" />
               <span>Region: <strong className="text-white">Nigeria (WAT)</strong></span>

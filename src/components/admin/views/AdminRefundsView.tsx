@@ -199,22 +199,22 @@ export function AdminRefundsView({ session, onNavigate }: AdminRefundsViewProps)
     .reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
 
   return (
-    <div className="space-y-6 text-slate-100">
+    <div className="space-y-6 text-[#111827]">
       {/* Top Header Card */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6 md:p-8 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-slate-800 border border-slate-700 rounded-2xl text-blue-400">
+          <div className="p-3 bg-blue-50 border border-blue-200 rounded-2xl text-[#0F2D5C]">
             <RotateCcw className="h-7 w-7" />
           </div>
           <div>
-            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-blue-950/70 border border-blue-800/80 text-blue-300 text-xs font-semibold mb-1">
-              <ShieldCheck className="h-3.5 w-3.5 text-blue-400" />
+            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-[#0F2D5C] text-xs font-semibold mb-1">
+              <ShieldCheck className="h-3.5 w-3.5 text-[#0F2D5C]" />
               <span>Finance & Ledger Governance</span>
             </div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">
+            <h1 className="text-2xl font-bold text-[#111827] tracking-tight">
               Refunds & Reversals Management
             </h1>
-            <p className="text-xs md:text-sm text-slate-300 mt-0.5">
+            <p className="text-xs md:text-sm text-[#6B7280] mt-0.5">
               Review transaction refund requests, authorize wallet credits, and manage settlement disputes directly on our secure database.
             </p>
           </div>
@@ -224,16 +224,16 @@ export function AdminRefundsView({ session, onNavigate }: AdminRefundsViewProps)
           <button
             type="button"
             onClick={fetchRefunds}
-            className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors cursor-pointer text-xs flex items-center gap-1.5 font-semibold"
+            className="p-2.5 rounded-xl bg-[#F8FAFC] hover:bg-[#F0F5FA] text-[#111827] border border-[#E5E7EB] transition-colors cursor-pointer text-xs flex items-center gap-1.5 font-semibold"
           >
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-blue-400" : "text-slate-400"}`} />
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-[#0F2D5C]" : "text-[#6B7280]"}`} />
             <span>Refresh</span>
           </button>
 
           <button
             type="button"
             onClick={() => setShowCreateModal(true)}
-            className="py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+            className="py-2.5 px-4 rounded-xl bg-[#0F2D5C] hover:bg-[#17407E] text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
           >
             <Plus className="h-4 w-4" />
             <span>Issue Refund Ticket</span>
@@ -246,22 +246,22 @@ export function AdminRefundsView({ session, onNavigate }: AdminRefundsViewProps)
         <div
           className={`p-4 rounded-2xl border flex items-center justify-between text-xs font-semibold ${
             msg.type === "success"
-              ? "bg-emerald-950/80 border-emerald-800 text-emerald-200"
-              : "bg-red-950/80 border-red-800 text-red-200"
+              ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+              : "bg-red-50 border-red-200 text-red-800"
           }`}
         >
           <div className="flex items-center gap-2">
             {msg.type === "success" ? (
-              <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
             ) : (
-              <AlertCircle className="h-4 w-4 text-red-400" />
+              <AlertCircle className="h-4 w-4 text-red-600" />
             )}
             <span>{msg.text}</span>
           </div>
           <button
             type="button"
             onClick={() => setMsg(null)}
-            className="p-1 text-slate-400 hover:text-white rounded-lg cursor-pointer"
+            className="p-1 text-[#6B7280] hover:text-[#111827] rounded-lg cursor-pointer"
           >
             <X className="h-3.5 w-3.5" />
           </button>
@@ -270,43 +270,43 @@ export function AdminRefundsView({ session, onNavigate }: AdminRefundsViewProps)
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-1">
-          <span className="text-xs font-semibold text-slate-400">Total Approved Refunds</span>
-          <p className="text-2xl font-bold text-white font-mono">₦{totalRefundAmount.toLocaleString()}</p>
-          <span className="text-[11px] text-emerald-400 font-medium">Credited to customer wallets</span>
+        <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-xs space-y-1">
+          <span className="text-xs font-semibold text-[#6B7280]">Total Approved Refunds</span>
+          <p className="text-2xl font-bold text-[#111827] font-mono">₦{totalRefundAmount.toLocaleString()}</p>
+          <span className="text-[11px] text-emerald-600 font-medium">Credited to customer wallets</span>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-1">
-          <span className="text-xs font-semibold text-slate-400">Pending Authorization</span>
-          <p className="text-2xl font-bold text-amber-400 font-mono">{pendingCount}</p>
-          <span className="text-[11px] text-slate-400">Awaiting administrative review</span>
+        <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-xs space-y-1">
+          <span className="text-xs font-semibold text-[#6B7280]">Pending Authorization</span>
+          <p className="text-2xl font-bold text-amber-600 font-mono">{pendingCount}</p>
+          <span className="text-[11px] text-[#6B7280]">Awaiting administrative review</span>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-1">
-          <span className="text-xs font-semibold text-slate-400">Processed / Approved</span>
-          <p className="text-2xl font-bold text-emerald-400 font-mono">{approvedCount}</p>
-          <span className="text-[11px] text-slate-400">Successfully refunded</span>
+        <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-xs space-y-1">
+          <span className="text-xs font-semibold text-[#6B7280]">Processed / Approved</span>
+          <p className="text-2xl font-bold text-emerald-600 font-mono">{approvedCount}</p>
+          <span className="text-[11px] text-[#6B7280]">Successfully refunded</span>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-1">
-          <span className="text-xs font-semibold text-slate-400">Declined / Rejected</span>
-          <p className="text-2xl font-bold text-rose-400 font-mono">{rejectedCount}</p>
-          <span className="text-[11px] text-slate-400">Failed verification checks</span>
+        <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-xs space-y-1">
+          <span className="text-xs font-semibold text-[#6B7280]">Declined / Rejected</span>
+          <p className="text-2xl font-bold text-rose-600 font-mono">{rejectedCount}</p>
+          <span className="text-[11px] text-[#6B7280]">Failed verification checks</span>
         </div>
       </div>
 
       {/* Main Table & Filters Card */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+      <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs overflow-hidden">
         {/* Filters Header */}
-        <div className="p-5 border-b border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4 bg-slate-900/60">
+        <div className="p-5 border-b border-[#E5E7EB] flex flex-col md:flex-row items-center justify-between gap-4 bg-[#F8FAFC]">
           <div className="relative w-full md:w-80">
-            <Search className="h-4 w-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+            <Search className="h-4 w-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6B7280]" />
             <input
               type="text"
               placeholder="Search by ID, transaction, email, reason..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-800 border border-slate-700 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-colors"
+              className="w-full bg-white border border-[#E5E7EB] rounded-xl pl-9 pr-4 py-2 text-xs text-[#111827] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#0F2D5C]/20 focus:border-[#0F2D5C] transition-colors"
             />
           </div>
 
@@ -318,8 +318,8 @@ export function AdminRefundsView({ session, onNavigate }: AdminRefundsViewProps)
                 onClick={() => setStatusFilter(filterKey)}
                 className={`py-1.5 px-3.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                   statusFilter === filterKey
-                    ? "bg-blue-600 text-white shadow-xs"
-                    : "bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white"
+                    ? "bg-[#0F2D5C] text-white shadow-xs"
+                    : "bg-white border border-[#E5E7EB] text-[#4B5563] hover:bg-gray-50 hover:text-[#111827]"
                 }`}
               >
                 {filterKey}
@@ -330,8 +330,8 @@ export function AdminRefundsView({ session, onNavigate }: AdminRefundsViewProps)
 
         {/* Table Content */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-200">
-            <thead className="bg-slate-950/60 text-slate-400 font-bold uppercase tracking-wider text-[11px] border-b border-slate-800">
+          <table className="w-full text-left text-xs text-[#111827]">
+            <thead className="bg-[#F8FAFC] text-[#6B7280] font-bold uppercase tracking-wider text-[11px] border-b border-[#E5E7EB]">
               <tr>
                 <th className="py-3.5 px-5">Refund Ticket</th>
                 <th className="py-3.5 px-5">Transaction Ref</th>
@@ -343,58 +343,58 @@ export function AdminRefundsView({ session, onNavigate }: AdminRefundsViewProps)
                 <th className="py-3.5 px-5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/80">
+            <tbody className="divide-y divide-[#E5E7EB]">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-slate-400">
-                    <RefreshCw className="h-6 w-6 animate-spin mx-auto text-blue-400 mb-2" />
+                  <td colSpan={8} className="py-12 text-center text-[#6B7280]">
+                    <RefreshCw className="h-6 w-6 animate-spin mx-auto text-[#0F2D5C] mb-2" />
                     <span>Loading refund records from database...</span>
                   </td>
                 </tr>
               ) : filteredRefunds.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-slate-400">
-                    <FileText className="h-8 w-8 text-slate-600 mx-auto mb-2" />
-                    <p className="font-semibold text-sm text-slate-200">No refund requests found</p>
-                    <p className="text-xs text-slate-400">All refund records will appear here in real-time.</p>
+                  <td colSpan={8} className="py-12 text-center text-[#6B7280]">
+                    <FileText className="h-8 w-8 text-[#9CA3AF] mx-auto mb-2" />
+                    <p className="font-semibold text-sm text-[#111827]">No refund requests found</p>
+                    <p className="text-xs text-[#6B7280]">All refund records will appear here in real-time.</p>
                   </td>
                 </tr>
               ) : (
                 filteredRefunds.map((refund) => (
-                  <tr key={refund.id} className="hover:bg-slate-800/50 transition-colors">
-                    <td className="py-3.5 px-5 font-mono font-bold text-blue-400">
+                  <tr key={refund.id} className="hover:bg-gray-50/80 transition-colors">
+                    <td className="py-3.5 px-5 font-mono font-bold text-[#0F2D5C]">
                       {refund.id}
                     </td>
-                    <td className="py-3.5 px-5 font-mono text-slate-300">
+                    <td className="py-3.5 px-5 font-mono text-[#4B5563]">
                       {refund.transactionId}
                     </td>
                     <td className="py-3.5 px-5">
-                      <div className="font-semibold text-white">{refund.userEmail || refund.userId}</div>
-                      <div className="text-[10px] text-slate-400 font-mono">{refund.userId}</div>
+                      <div className="font-semibold text-[#111827]">{refund.userEmail || refund.userId}</div>
+                      <div className="text-[10px] text-[#6B7280] font-mono">{refund.userId}</div>
                     </td>
-                    <td className="py-3.5 px-5 font-bold text-white font-mono">
+                    <td className="py-3.5 px-5 font-bold text-[#111827] font-mono">
                       ₦{(Number(refund.amount) || 0).toLocaleString()}
                     </td>
-                    <td className="py-3.5 px-5 max-w-[200px] truncate text-slate-300">
+                    <td className="py-3.5 px-5 max-w-[200px] truncate text-[#4B5563]">
                       {refund.reason}
                     </td>
                     <td className="py-3.5 px-5">
                       <span
                         className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
                           refund.status === "APPROVED"
-                            ? "bg-emerald-950/70 text-emerald-300 border-emerald-800"
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                             : refund.status === "REJECTED"
-                            ? "bg-rose-950/70 text-rose-300 border-rose-800"
-                            : "bg-amber-950/70 text-amber-300 border-amber-800"
+                            ? "bg-rose-50 text-rose-700 border-rose-200"
+                            : "bg-amber-50 text-amber-700 border-amber-200"
                         }`}
                       >
-                        {refund.status === "APPROVED" && <CheckCircle2 className="h-3 w-3 text-emerald-400" />}
-                        {refund.status === "REJECTED" && <XCircle className="h-3 w-3 text-rose-400" />}
-                        {refund.status === "PENDING" && <Clock className="h-3 w-3 text-amber-400" />}
+                        {refund.status === "APPROVED" && <CheckCircle2 className="h-3 w-3 text-emerald-600" />}
+                        {refund.status === "REJECTED" && <XCircle className="h-3 w-3 text-rose-600" />}
+                        {refund.status === "PENDING" && <Clock className="h-3 w-3 text-amber-600" />}
                         <span>{refund.status}</span>
                       </span>
                     </td>
-                    <td className="py-3.5 px-5 text-slate-400 text-[11px] whitespace-nowrap">
+                    <td className="py-3.5 px-5 text-[#6B7280] text-[11px] whitespace-nowrap">
                       {new Date(refund.createdAt).toLocaleDateString("en-NG", {
                         day: "numeric",
                         month: "short",
@@ -413,9 +413,9 @@ export function AdminRefundsView({ session, onNavigate }: AdminRefundsViewProps)
                               setActionType("APPROVE");
                               setAdminNotes(`Approved refund credit of ₦${refund.amount}`);
                             }}
-                            className="py-1 px-2.5 rounded-lg bg-emerald-950/60 hover:bg-emerald-900 text-emerald-300 border border-emerald-700 font-bold text-[11px] flex items-center gap-1 cursor-pointer transition-colors"
+                            className="py-1 px-2.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold text-[11px] flex items-center gap-1 cursor-pointer transition-colors"
                           >
-                            <Check className="h-3.5 w-3.5 text-emerald-400" />
+                            <Check className="h-3.5 w-3.5 text-emerald-600" />
                             <span>Approve</span>
                           </button>
                           <button
@@ -425,14 +425,14 @@ export function AdminRefundsView({ session, onNavigate }: AdminRefundsViewProps)
                               setActionType("REJECT");
                               setAdminNotes("Disputed transaction confirmed as valid");
                             }}
-                            className="py-1 px-2.5 rounded-lg bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-700 font-bold text-[11px] flex items-center gap-1 cursor-pointer transition-colors"
+                            className="py-1 px-2.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-[11px] flex items-center gap-1 cursor-pointer transition-colors"
                           >
-                            <X className="h-3.5 w-3.5 text-rose-400" />
+                            <X className="h-3.5 w-3.5 text-rose-600" />
                             <span>Reject</span>
                           </button>
                         </div>
                       ) : (
-                        <span className="text-[11px] text-slate-500 font-medium italic">
+                        <span className="text-[11px] text-[#9CA3AF] font-medium italic">
                           {refund.status === "APPROVED" ? "Settled" : "Closed"}
                         </span>
                       )}
@@ -447,14 +447,14 @@ export function AdminRefundsView({ session, onNavigate }: AdminRefundsViewProps)
 
       {/* Issue Refund Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-slate-900 rounded-2xl border border-slate-800 max-w-md w-full p-6 shadow-2xl space-y-4 text-slate-100">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h2 className="text-base font-bold text-white">Issue Refund Ticket</h2>
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] max-w-md w-full p-6 shadow-2xl space-y-4 text-[#111827]">
+            <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
+              <h2 className="text-base font-bold text-[#111827]">Issue Refund Ticket</h2>
               <button
                 type="button"
                 onClick={() => setShowCreateModal(false)}
-                className="p-1 text-slate-400 hover:text-white rounded-lg cursor-pointer"
+                className="p-1 text-[#6B7280] hover:text-[#111827] rounded-lg cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -462,61 +462,61 @@ export function AdminRefundsView({ session, onNavigate }: AdminRefundsViewProps)
 
             <form onSubmit={handleCreateRefund} className="space-y-3 text-xs">
               <div>
-                <label className="font-semibold text-slate-300 block mb-1">User ID / Reference</label>
+                <label className="font-semibold text-[#374151] block mb-1">User ID / Reference</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. usr_178291..."
                   value={newRefund.userId}
                   onChange={(e) => setNewRefund({ ...newRefund, userId: e.target.value })}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-3 py-2 text-[#111827] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#0F2D5C]/20 focus:border-[#0F2D5C]"
                 />
               </div>
 
               <div>
-                <label className="font-semibold text-slate-300 block mb-1">User Email (Optional)</label>
+                <label className="font-semibold text-[#374151] block mb-1">User Email (Optional)</label>
                 <input
                   type="email"
                   placeholder="user@example.com"
                   value={newRefund.userEmail}
                   onChange={(e) => setNewRefund({ ...newRefund, userEmail: e.target.value })}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-3 py-2 text-[#111827] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#0F2D5C]/20 focus:border-[#0F2D5C]"
                 />
               </div>
 
               <div>
-                <label className="font-semibold text-slate-300 block mb-1">Original Transaction ID</label>
+                <label className="font-semibold text-[#374151] block mb-1">Original Transaction ID</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. TXN_991823"
                   value={newRefund.transactionId}
                   onChange={(e) => setNewRefund({ ...newRefund, transactionId: e.target.value })}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-3 py-2 text-[#111827] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#0F2D5C]/20 focus:border-[#0F2D5C]"
                 />
               </div>
 
               <div>
-                <label className="font-semibold text-slate-300 block mb-1">Refund Amount (₦)</label>
+                <label className="font-semibold text-[#374151] block mb-1">Refund Amount (₦)</label>
                 <input
                   type="number"
                   required
                   placeholder="e.g. 5000"
                   value={newRefund.amount}
                   onChange={(e) => setNewRefund({ ...newRefund, amount: e.target.value })}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-3 py-2 text-[#111827] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#0F2D5C]/20 focus:border-[#0F2D5C]"
                 />
               </div>
 
               <div>
-                <label className="font-semibold text-slate-300 block mb-1">Administrative Reason</label>
+                <label className="font-semibold text-[#374151] block mb-1">Administrative Reason</label>
                 <textarea
                   rows={2}
                   required
                   placeholder="Reason for reversal / compensation..."
                   value={newRefund.reason}
                   onChange={(e) => setNewRefund({ ...newRefund, reason: e.target.value })}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-3 py-2 text-[#111827] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#0F2D5C]/20 focus:border-[#0F2D5C]"
                 />
               </div>
 
@@ -524,14 +524,14 @@ export function AdminRefundsView({ session, onNavigate }: AdminRefundsViewProps)
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="py-2 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-semibold cursor-pointer"
+                  className="py-2 px-4 rounded-xl bg-gray-100 hover:bg-gray-200 text-[#374151] border border-[#E5E7EB] font-semibold cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={actionLoading === "create"}
-                  className="py-2 px-5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold cursor-pointer flex items-center gap-1.5 shadow-md"
+                  className="py-2 px-5 rounded-xl bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold cursor-pointer flex items-center gap-1.5 shadow-xs"
                 >
                   {actionLoading === "create" && <RefreshCw className="h-3.5 w-3.5 animate-spin" />}
                   <span>Submit Request</span>
@@ -544,10 +544,10 @@ export function AdminRefundsView({ session, onNavigate }: AdminRefundsViewProps)
 
       {/* Approve/Reject Confirmation Modal */}
       {selectedRefund && actionType && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-slate-900 rounded-2xl border border-slate-800 max-w-md w-full p-6 shadow-2xl space-y-4 text-slate-100">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h2 className="text-base font-bold text-white">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] max-w-md w-full p-6 shadow-2xl space-y-4 text-[#111827]">
+            <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
+              <h2 className="text-base font-bold text-[#111827]">
                 {actionType === "APPROVE" ? "Confirm Refund Approval" : "Confirm Refund Rejection"}
               </h2>
               <button
@@ -556,37 +556,37 @@ export function AdminRefundsView({ session, onNavigate }: AdminRefundsViewProps)
                   setSelectedRefund(null);
                   setActionType(null);
                 }}
-                className="p-1 text-slate-400 hover:text-white rounded-lg cursor-pointer"
+                className="p-1 text-[#6B7280] hover:text-[#111827] rounded-lg cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
             <div className="space-y-3 text-xs">
-              <div className="p-3 bg-slate-800/80 rounded-xl border border-slate-700 space-y-1">
+              <div className="p-3 bg-[#F8FAFC] rounded-xl border border-[#E5E7EB] space-y-1">
                 <p>
-                  <strong className="text-slate-300">Ticket:</strong> <span className="font-mono text-blue-400">{selectedRefund.id}</span>
+                  <strong className="text-[#4B5563]">Ticket:</strong> <span className="font-mono text-[#0F2D5C] font-bold">{selectedRefund.id}</span>
                 </p>
                 <p>
-                  <strong className="text-slate-300">Transaction Ref:</strong> <span className="font-mono text-slate-200">{selectedRefund.transactionId}</span>
+                  <strong className="text-[#4B5563]">Transaction Ref:</strong> <span className="font-mono text-[#111827]">{selectedRefund.transactionId}</span>
                 </p>
                 <p>
-                  <strong className="text-slate-300">Amount:</strong> <span className="font-mono font-bold text-white">₦{Number(selectedRefund.amount).toLocaleString()}</span>
+                  <strong className="text-[#4B5563]">Amount:</strong> <span className="font-mono font-bold text-[#111827]">₦{Number(selectedRefund.amount).toLocaleString()}</span>
                 </p>
                 <p>
-                  <strong className="text-slate-300">Customer:</strong> <span className="text-slate-200">{selectedRefund.userEmail || selectedRefund.userId}</span>
+                  <strong className="text-[#4B5563]">Customer:</strong> <span className="text-[#111827]">{selectedRefund.userEmail || selectedRefund.userId}</span>
                 </p>
               </div>
 
               <div>
-                <label className="font-semibold text-slate-300 block mb-1">
+                <label className="font-semibold text-[#374151] block mb-1">
                   {actionType === "APPROVE" ? "Administrative Note (Optional)" : "Rejection Reason"}
                 </label>
                 <textarea
                   rows={3}
                   value={adminNotes}
                   onChange={(e) => setAdminNotes(e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl p-3 text-[#111827] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#0F2D5C]/20 focus:border-[#0F2D5C]"
                   placeholder={
                     actionType === "APPROVE"
                       ? "Add optional audit notes..."
@@ -602,7 +602,7 @@ export function AdminRefundsView({ session, onNavigate }: AdminRefundsViewProps)
                     setSelectedRefund(null);
                     setActionType(null);
                   }}
-                  className="py-2 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-semibold cursor-pointer"
+                  className="py-2 px-4 rounded-xl bg-gray-100 hover:bg-gray-200 text-[#374151] border border-[#E5E7EB] font-semibold cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -611,7 +611,7 @@ export function AdminRefundsView({ session, onNavigate }: AdminRefundsViewProps)
                     type="button"
                     onClick={handleApprove}
                     disabled={Boolean(actionLoading)}
-                    className="py-2 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold cursor-pointer flex items-center gap-1.5 shadow-md"
+                    className="py-2 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold cursor-pointer flex items-center gap-1.5 shadow-xs"
                   >
                     {actionLoading && <RefreshCw className="h-3.5 w-3.5 animate-spin" />}
                     <span>Authorize & Credit Wallet</span>
@@ -621,7 +621,7 @@ export function AdminRefundsView({ session, onNavigate }: AdminRefundsViewProps)
                     type="button"
                     onClick={handleReject}
                     disabled={Boolean(actionLoading)}
-                    className="py-2 px-5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold cursor-pointer flex items-center gap-1.5 shadow-md"
+                    className="py-2 px-5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold cursor-pointer flex items-center gap-1.5 shadow-xs"
                   >
                     {actionLoading && <RefreshCw className="h-3.5 w-3.5 animate-spin" />}
                     <span>Confirm Rejection</span>

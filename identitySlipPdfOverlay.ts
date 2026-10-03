@@ -1052,6 +1052,17 @@ export async function generatePremiumCardPdf(
     });
   }
 
+  // Legal disclaimer note
+  const disclaimerText = "Note: The generated card/slip is for verification purposes only and is not an official NIMC document";
+  const disclaimerWidth = fontRegular.widthOfTextAtSize(disclaimerText, 7);
+  page.drawText(disclaimerText, {
+    x: Math.max(15, (page.getWidth() - disclaimerWidth) / 2),
+    y: 18,
+    size: 7,
+    font: fontRegular,
+    color: rgb(0.35, 0.35, 0.35),
+  });
+
   return pdfDoc.save();
 }
 
@@ -1440,6 +1451,17 @@ export async function generateRegularSlipPdf(
     drawFittedAddressLine(addr.line3, REGULAR_SLIP_CONFIG.addressLine3.x, REGULAR_SLIP_CONFIG.addressLine3.y, REGULAR_SLIP_CONFIG.addressLine3.size, 125, REGULAR_SLIP_CONFIG.addressLine3.color);
   }
 
+  // Legal disclaimer note
+  const disclaimerText = "Note: The generated card/slip is for verification purposes only and is not an official NIMC document";
+  const disclaimerWidth = fontRegular.widthOfTextAtSize(disclaimerText, 7);
+  page.drawText(disclaimerText, {
+    x: Math.max(15, (page.getWidth() - disclaimerWidth) / 2),
+    y: 18,
+    size: 7,
+    font: fontRegular,
+    color: rgb(0.35, 0.35, 0.35),
+  });
+
   return pdfDoc.save();
 }
 
@@ -1657,6 +1679,17 @@ export async function generateBvnCardPdf(
       color: BVN_CARD_CONFIG.bvnNumber.color,
     });
   }
+
+  // Legal disclaimer note
+  const disclaimerText = "Note: The generated card/slip is for verification purposes only and is not an official NIMC document";
+  const disclaimerWidth = fontRegular.widthOfTextAtSize(disclaimerText, 7);
+  page.drawText(disclaimerText, {
+    x: Math.max(15, (page.getWidth() - disclaimerWidth) / 2),
+    y: 18,
+    size: 7,
+    font: fontRegular,
+    color: rgb(0.35, 0.35, 0.35),
+  });
 
   return pdfDoc.save();
 }
@@ -1896,6 +1929,17 @@ export async function generateBvnSlipPdf(
   drawTableCell(residenceState, BVN_SLIP_CONFIG.table.rows.residenceState.y);
   drawTableCell(residenceLga, BVN_SLIP_CONFIG.table.rows.residenceLga.y);
   drawTableCell(residentialAddress, BVN_SLIP_CONFIG.table.rows.residentialAddress.y);
+
+  // Legal disclaimer note
+  const disclaimerText = "Note: The generated card/slip is for verification purposes only and is not an official NIMC document";
+  const disclaimerWidth = fontRegular.widthOfTextAtSize(disclaimerText, 7);
+  page.drawText(disclaimerText, {
+    x: Math.max(15, (page.getWidth() - disclaimerWidth) / 2),
+    y: 18,
+    size: 7,
+    font: fontRegular,
+    color: rgb(0.35, 0.35, 0.35),
+  });
 
   return pdfDoc.save();
 }

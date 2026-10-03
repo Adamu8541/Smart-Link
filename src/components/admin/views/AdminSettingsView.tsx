@@ -442,7 +442,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
 
   if (loading) {
     return (
-      <div className="bg-[#111827] border border-[#111827] rounded-3xl p-12 text-center text-[#9CA3AF] space-y-4">
+      <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-12 text-center text-[#9CA3AF] space-y-4">
         <RefreshCw className="h-8 w-8 animate-spin mx-auto text-[#0F2D5C]" />
         <p className="text-sm font-medium">Loading SmartLink System & Platform Configuration...</p>
       </div>
@@ -452,7 +452,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
   return (
     <div className="space-y-6">
       {/* Top Header Card */}
-      <div className="bg-[#111827] border border-[#111827] rounded-3xl p-6 md:p-8 space-y-6">
+      <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-6 md:p-8 space-y-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-[#111827] pb-6">
           <div className="flex items-center gap-4">
             <div className="p-3.5 bg-[#0F2D5C]/80 border border-[#0F2D5C]/80 rounded-2xl text-[#9CA3AF]">
@@ -1044,7 +1044,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
               </div>
 
               {/* Live Preview Card */}
-              <div className="p-5 bg-[#111827] border border-[#111827] rounded-2xl space-y-4">
+              <div className="p-5 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs space-y-4">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[#9CA3AF] block">
                   Live Asset Preview
                 </span>
@@ -1309,7 +1309,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
 
             <div className="space-y-6">
               {/* Announcement Bar */}
-              <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl space-y-4">
+              <div className="p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs space-y-4">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold text-white flex items-center gap-2">
                     Top Announcement Bar
@@ -1864,7 +1864,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                   fee: 100,
                 };
                 return (
-                  <div key={svc.key} className="p-4 bg-[#111827] border border-[#111827] rounded-2xl space-y-3">
+                  <div key={svc.key} className="p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-white">{svc.label}</span>
                       <span
@@ -2001,7 +2001,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                   serviceCharge: 50,
                 };
                 return (
-                  <div key={bill.key} className="p-4 bg-[#111827] border border-[#111827] rounded-2xl space-y-3">
+                  <div key={bill.key} className="p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-white">{bill.label}</span>
                       <label className="flex items-center gap-2 cursor-pointer text-xs text-[#E5E7EB]">
@@ -2116,7 +2116,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                 { key: "pushNotifications", label: "Mobile Push Notifications" },
                 { key: "inAppNotifications", label: "In-App Bell Alerts & Banner Cards" },
               ].map((notif) => (
-                <div key={notif.key} className="p-4 bg-[#111827] border border-[#111827] rounded-2xl flex items-center justify-between">
+                <div key={notif.key} className="p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs flex items-center justify-between">
                   <span className="text-xs font-bold text-[#E5E7EB]">{notif.label}</span>
                   <input
                     type="checkbox"
@@ -2240,7 +2240,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                 />
               </div>
 
-              <div className="md:col-span-2 flex flex-wrap items-center gap-6 p-4 bg-[#111827] border border-[#111827] rounded-2xl">
+              <div className="md:col-span-2 flex flex-wrap items-center gap-6 p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs">
                 <label className="flex items-center gap-2 cursor-pointer text-xs text-[#E5E7EB]">
                   <input
                     type="checkbox"
@@ -2478,7 +2478,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
             )}
 
             {/* Architecture Highlights Banner */}
-            <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs">
+            <div className="p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs">
               <div className="space-y-1">
                 <span className="font-bold text-white flex items-center gap-1.5">
                   <ShieldCheck className="w-4 h-4 text-emerald-400" /> Storage Bypass & Zero Data Loss Guarantee
@@ -2494,7 +2494,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
             </div>
 
             {/* Global Default Recipient Email */}
-            <div className="p-5 bg-[#111827] border border-[#111827] rounded-2xl space-y-3">
+            <div className="p-5 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs space-y-3">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
                   <label className="block text-xs font-bold text-white">
@@ -2855,7 +2855,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                       className="h-6 w-6 rounded accent-rose-500 cursor-pointer"
                     />
                   </div>
-                  <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase font-mono ${maintenanceSettings.maintenanceMode ? "bg-rose-500/20 text-rose-300 border border-rose-500/40" : "bg-[#111827] text-slate-500"}`}>
+                  <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase font-mono ${maintenanceSettings.maintenanceMode ? "bg-rose-500/20 text-rose-300 border border-rose-500/40" : "bg-[#111827] text-[#9CA3AF]"}`}>
                     {maintenanceSettings.maintenanceMode ? "FULL LOCKDOWN ACTIVE" : "OFF (SYSTEM ONLINE)"}
                   </span>
                 </div>
@@ -2882,7 +2882,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                       className="h-6 w-6 rounded accent-amber-500 cursor-pointer"
                     />
                   </div>
-                  <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase font-mono ${maintenanceSettings.loginMaintenanceMode ? "bg-amber-500/20 text-amber-300 border border-amber-500/40" : "bg-[#111827] text-slate-500"}`}>
+                  <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase font-mono ${maintenanceSettings.loginMaintenanceMode ? "bg-amber-500/20 text-amber-300 border border-amber-500/40" : "bg-[#111827] text-[#9CA3AF]"}`}>
                     {maintenanceSettings.loginMaintenanceMode ? "LOGIN BLOCKED" : "OFF (LOGIN OPEN)"}
                   </span>
                 </div>
@@ -2909,7 +2909,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                       className="h-6 w-6 rounded accent-blue-500 cursor-pointer"
                     />
                   </div>
-                  <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase font-mono ${maintenanceSettings.signupMaintenanceMode ? "bg-blue-500/20 text-blue-300 border border-blue-500/40" : "bg-[#111827] text-slate-500"}`}>
+                  <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase font-mono ${maintenanceSettings.signupMaintenanceMode ? "bg-blue-500/20 text-blue-300 border border-blue-500/40" : "bg-[#111827] text-[#9CA3AF]"}`}>
                     {maintenanceSettings.signupMaintenanceMode ? "REGISTRATION BLOCKED" : "OFF (SIGNUP OPEN)"}
                   </span>
                 </div>
@@ -2936,14 +2936,14 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                       className="h-6 w-6 rounded accent-purple-500 cursor-pointer"
                     />
                   </div>
-                  <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase font-mono ${maintenanceSettings.servicesMaintenanceMode ? "bg-purple-500/20 text-purple-300 border border-purple-500/40" : "bg-[#111827] text-slate-500"}`}>
+                  <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase font-mono ${maintenanceSettings.servicesMaintenanceMode ? "bg-purple-500/20 text-purple-300 border border-purple-500/40" : "bg-[#111827] text-[#9CA3AF]"}`}>
                     {maintenanceSettings.servicesMaintenanceMode ? "SERVICES LOCK ACTIVE" : "OFF"}
                   </span>
                 </div>
               </div>
 
               {/* Requirement 2: Granular Services Multi-Select Grid (One, Many, All) */}
-              <div className="p-6 bg-[#111827] border border-[#111827] rounded-2xl space-y-4">
+              <div className="p-6 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs space-y-4">
                 <div className="flex items-center justify-between border-b border-[#111827] pb-3">
                   <div>
                     <h3 className="text-sm font-bold text-white flex items-center gap-2">
@@ -2999,7 +2999,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
               </div>
 
               {/* Requirement 8: Maintenance Schedule & Details Inputs */}
-              <div className="p-6 bg-[#111827] border border-[#111827] rounded-2xl space-y-5">
+              <div className="p-6 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs space-y-5">
                 <h3 className="text-sm font-bold text-white border-b border-[#111827] pb-3">
                   📅 Maintenance Schedule, Reason & Emergency Support Details
                 </h3>
@@ -3093,11 +3093,11 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
               </div>
 
               {/* Live Overlay Preview */}
-              <div className="p-5 bg-[#111827] border border-[#111827] rounded-2xl space-y-2">
+              <div className="p-5 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs space-y-2">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[#9CA3AF] block font-mono">
                   User-Facing Full-Page Maintenance Live Preview
                 </span>
-                <div className="p-6 bg-slate-900 border border-[#0F2D5C]/60 rounded-xl text-center space-y-3 relative overflow-hidden">
+                <div className="p-6 bg-white border border-[#0F2D5C]/60 rounded-xl text-center space-y-3 relative overflow-hidden">
                   <div className="absolute top-0 left-0 bottom-0 w-1 bg-amber-500" />
                   <Wrench className="h-8 w-8 text-amber-400 mx-auto animate-spin" style={{ animationDuration: "12s" }} />
                   <h3 className="text-base font-bold text-white">System Under Scheduled Maintenance</h3>
@@ -3242,7 +3242,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Export Panel */}
-              <div className="p-6 bg-[#111827] border border-[#111827] rounded-2xl space-y-4">
+              <div className="p-6 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs space-y-4">
                 <div className="p-3 bg-[#0F2D5C]/60 border border-[#0F2D5C]/80 rounded-xl text-[#9CA3AF] w-fit">
                   <Download className="h-6 w-6" />
                 </div>
@@ -3260,7 +3260,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
               </div>
 
               {/* Import Panel */}
-              <div className="p-6 bg-[#111827] border border-[#111827] rounded-2xl space-y-4">
+              <div className="p-6 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs space-y-4">
                 <div className="p-3 bg-[#0F2D5C]/60 border border-[#0F2D5C]/80 rounded-xl text-[#9CA3AF] w-fit">
                   <Upload className="h-6 w-6" />
                 </div>
@@ -3310,7 +3310,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                   </button>
                 </div>
                 {clearStatus && (
-                  <div className="p-3 rounded-xl text-xs font-medium bg-slate-900/90 border border-slate-700 text-white">
+                  <div className="p-3 rounded-xl text-xs font-medium bg-white/90 border border-[#E5E7EB] text-white">
                     {clearStatus}
                   </div>
                 )}
@@ -3398,7 +3398,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
       {/* MODAL: TEST EMAIL */}
       {showTestEmailModal && (
         <div className="fixed inset-0 z-50 bg-[#111827]/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#111827] border border-[#111827] rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl">
+          <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-6 max-w-md w-full space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-[#111827] pb-3">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <Mail className="h-4 w-4 text-[#9CA3AF]" /> Send Test SMTP Email
@@ -3457,7 +3457,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
       {/* MODAL: TEST SMS */}
       {showTestSmsModal && (
         <div className="fixed inset-0 z-50 bg-[#111827]/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#111827] border border-[#111827] rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl">
+          <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-6 max-w-md w-full space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-[#111827] pb-3">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <MessageSquare className="h-4 w-4 text-[#9CA3AF]" /> Send Test SMS Message
@@ -3516,7 +3516,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
       {/* MODAL: IMPORT CONFIG */}
       {showImportModal && (
         <div className="fixed inset-0 z-50 bg-[#111827]/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#111827] border border-[#111827] rounded-3xl p-6 max-w-lg w-full space-y-4 shadow-2xl">
+          <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-6 max-w-lg w-full space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-[#111827] pb-3">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <Upload className="h-4 w-4 text-[#9CA3AF]" /> Import Platform Configuration JSON
@@ -3588,7 +3588,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
       {/* MODAL: MODULE 7 SELF-TEST SUITE */}
       {showTestPanelModal && (
         <div className="fixed inset-0 z-50 bg-[#111827]/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#111827] border border-[#111827] rounded-3xl p-6 max-w-2xl w-full max-h-[85vh] overflow-y-auto space-y-4 shadow-2xl">
+          <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-6 max-w-2xl w-full max-h-[85vh] overflow-y-auto space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-[#111827] pb-3">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <Play className="h-5 w-5 text-[#9CA3AF] fill-current" /> Module 7 — System Settings 10-Point Self-Test
@@ -3611,7 +3611,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
 
             {testResults && (
               <div className="space-y-4">
-                <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl flex items-center justify-between">
+                <div className="p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs flex items-center justify-between">
                   <div>
                     <h4 className="text-sm font-bold text-[#9CA3AF]">{testResults.summary}</h4>
                     <p className="text-xs text-[#9CA3AF] mt-0.5">

@@ -214,7 +214,7 @@ export class BiometricAuthService {
         publicKey,
         deviceName: defaultDeviceName,
         challenge: rawOptions.challenge,
-        transports: credential.response.getTransports ? credential.response.getTransports() : undefined,
+        transports: typeof (credential.response as any).getTransports === "function" ? (credential.response as any).getTransports() : undefined,
       }),
     });
 
@@ -224,6 +224,14 @@ export class BiometricAuthService {
     }
 
     const result = await verifyRes.json();
+    
+    // Mark biometric as enrolled on this device
+    try {
+      const rawUser = localStorage.getItem("smart_link_user") || localStorage.getItem("smartlink_user");
+      const uid = rawUser ? JSON.parse(rawUser)?.id || JSON.parse(rawUser)?.uid : undefined;
+      BiometricAuthService.setEnrolled(uid, true);
+    } catch {}
+
     return result;
   }
 
@@ -317,9 +325,81 @@ export class BiometricAuthService {
     }
     if (result.user) {
       localStorage.setItem("smartlink_user", JSON.stringify(result.user));
+      const uid = result.user.id || result.user.uid;
+      BiometricAuthService.setEnrolled(uid, true);
     }
 
     return result;
+  }
+
+  /**
+   * Helper to get local enrollment storage keys
+   */
+  private static getEnrollmentKey(userId?: string): string {
+    return `smartlink_biometric_enrolled_${userId || "current"}`;
+  }
+
+  private static getDismissedKey(userId?: string): string {
+    return `smartlink_biometric_dismissed_${userId || "current"}`;
+  }
+
+  /**
+   * Check if the user is already enrolled for biometrics locally or on server
+   */
+  public static async isEnrolled(userId?: string, token?: string): Promise<boolean> {
+    // 1. Immediate local storage check
+    const localFlag = localStorage.getItem(this.getEnrollmentKey(userId));
+    if (localFlag === "true") return true;
+
+    // 2. Server check if token available
+    try {
+      const passkeys = await this.listRegisteredPasskeys(token);
+      if (passkeys && passkeys.length > 0) {
+        this.setEnrolled(userId, true);
+        return true;
+      } else {
+        this.setEnrolled(userId, false);
+        return false;
+      }
+    } catch {
+      return localFlag === "true";
+    }
+  }
+
+  /**
+   * Mark biometric enrollment status for user
+   */
+  public static setEnrolled(userId?: string, enrolled: boolean = true): void {
+    try {
+      if (enrolled) {
+        localStorage.setItem(this.getEnrollmentKey(userId), "true");
+        localStorage.setItem("smartlink_biometric_enrolled", "true");
+        // Clear dismissed flag if newly enrolled
+        localStorage.removeItem(this.getDismissedKey(userId));
+      } else {
+        localStorage.removeItem(this.getEnrollmentKey(userId));
+      }
+    } catch {}
+  }
+
+  /**
+   * Check if user explicitly dismissed the activation prompt
+   */
+  public static isEnrollPromptDismissed(userId?: string): boolean {
+    try {
+      return localStorage.getItem(this.getDismissedKey(userId)) === "true";
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Dismiss the biometric prompt so user isn't prompted repetitively
+   */
+  public static dismissEnrollPrompt(userId?: string): void {
+    try {
+      localStorage.setItem(this.getDismissedKey(userId), "true");
+    } catch {}
   }
 
   /**
@@ -337,7 +417,11 @@ export class BiometricAuthService {
       const res = await fetch("/api/auth/passkeys/list", { headers });
       if (!res.ok) return [];
       const json = await res.json();
-      return json.passkeys || [];
+      const list = json.passkeys || [];
+      if (list.length > 0) {
+        localStorage.setItem("smartlink_biometric_enrolled", "true");
+      }
+      return list;
     } catch {
       return [];
     }
@@ -359,6 +443,20 @@ export class BiometricAuthService {
         method: "DELETE",
         headers,
       });
+
+      if (res.ok) {
+        // Re-check remaining passkeys
+        const remaining = await this.listRegisteredPasskeys(token);
+        if (remaining.length === 0) {
+          localStorage.removeItem("smartlink_biometric_enrolled");
+          try {
+            const rawUser = localStorage.getItem("smart_link_user") || localStorage.getItem("smartlink_user");
+            const uid = rawUser ? JSON.parse(rawUser)?.id || JSON.parse(rawUser)?.uid : undefined;
+            this.setEnrolled(uid, false);
+          } catch {}
+        }
+      }
+
       return res.ok;
     } catch {
       return false;

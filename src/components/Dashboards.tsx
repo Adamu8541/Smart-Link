@@ -952,86 +952,86 @@ export default function Dashboards({
 
             {/* Fund Wallet Modal */}
             {showFundModal && (
-              <div className="fixed inset-0 z-50 bg-[#111827]/70 backdrop-blur-sm flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 overflow-y-auto animate-fadeIn">
-                <div className="bg-white border border-[#E5E7EB] rounded-3xl max-w-lg w-full mb-8 p-6 shadow-2xl relative text-left space-y-5 overflow-hidden">
+              <div className="fixed inset-0 z-50 bg-[#111827]/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-fadeIn">
+                <div className="bg-white border border-[#E5E7EB] rounded-2xl max-w-md w-full p-4 sm:p-5 shadow-2xl relative text-left space-y-3.5 max-h-[88dvh] overflow-y-auto my-auto">
                   
                   {/* Modal Header */}
-                  <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-4">
-                    <div className="flex items-center gap-2.5">
-                      <div className="p-2.5 bg-[#F5F7FA] text-[#0F2D5C] rounded-2xl">
-                        <Wallet className="h-5 w-5" />
+                  <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3 shrink-0">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 bg-[#F5F7FA] text-[#0F2D5C] rounded-xl shrink-0">
+                        <Wallet className="h-4 w-4" />
                       </div>
                       <div>
-                        <h3 className="text-base font-extrabold text-[#111827]">Fund Wallet</h3>
-                        <p className="text-xs text-[#4B5563]">Dynamic Virtual Account Funding</p>
+                        <h3 className="text-sm font-bold text-[#111827]">Fund Wallet</h3>
+                        <p className="text-[11px] text-[#4B5563]">Dedicated Virtual Account Funding</p>
                       </div>
                     </div>
                     <button
                       onClick={() => setShowFundModal(false)}
-                      className="p-1.5 rounded-xl hover:bg-[#F5F7FA] text-[#4B5563] transition-colors cursor-pointer"
+                      className="p-1 rounded-lg hover:bg-[#F5F7FA] text-[#4B5563] transition-colors cursor-pointer"
                     >
                       ✕
                     </button>
                   </div>
 
                   {fundLoading ? (
-                    <div className="py-12 flex flex-col items-center justify-center space-y-3 text-center">
-                      <RefreshCw className="h-8 w-8 text-[#0F2D5C] animate-spin" />
-                      <p className="text-sm font-bold text-[#111827]">Connecting to Active Payment Engine...</p>
-                      <p className="text-xs text-[#6B7280]">Generating secure virtual account for wallet deposit</p>
+                    <div className="py-8 flex flex-col items-center justify-center space-y-2.5 text-center">
+                      <RefreshCw className="h-6 w-6 text-[#0F2D5C] animate-spin" />
+                      <p className="text-xs font-bold text-[#111827]">Connecting to Active Payment Engine...</p>
+                      <p className="text-[11px] text-[#6B7280]">Generating secure virtual account for wallet deposit</p>
                     </div>
                   ) : fundError ? (
-                    <div className="p-5 bg-[#F5F7FA] border border-[#E5E7EB] rounded-2xl space-y-3 text-left">
-                      <div className="flex items-center gap-2 text-[#111827] font-bold text-sm">
-                        <XCircle className="h-5 w-5 text-[#0F2D5C] shrink-0" />
+                    <div className="p-3.5 bg-[#F5F7FA] border border-[#E5E7EB] rounded-xl space-y-2 text-left">
+                      <div className="flex items-center gap-1.5 text-[#111827] font-bold text-xs">
+                        <XCircle className="h-4 w-4 text-[#0F2D5C] shrink-0" />
                         <span>Funding Engine Notice</span>
                       </div>
-                      <p className="text-xs text-[#4B5563] font-medium">{fundError}</p>
+                      <p className="text-[11px] text-[#4B5563] font-medium">{fundError}</p>
                       <button
                         onClick={handleOpenFundWallet}
-                        className="px-4 py-2 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold text-xs rounded-xl transition-all cursor-pointer"
+                        className="px-3 py-1.5 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold text-xs rounded-lg transition-all cursor-pointer"
                       >
                         Retry Connection
                       </button>
                     </div>
                   ) : fundAccount ? (
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                       {/* Active Provider Badge */}
-                      <div className="p-3 bg-[#F5F7FA] border border-[#E5E7EB] rounded-2xl flex items-center justify-between text-xs font-semibold text-[#111827]">
-                        <div className="flex items-center gap-2">
-                          <ShieldCheck className="h-4 w-4 text-[#17407E] shrink-0" />
-                          <span>Active Provider: <strong className="font-extrabold uppercase">{fundAccount.providerName}</strong></span>
+                      <div className="p-2.5 bg-[#F5F7FA] border border-[#E5E7EB] rounded-xl flex items-center justify-between text-[11px] font-semibold text-[#111827]">
+                        <div className="flex items-center gap-1.5">
+                          <ShieldCheck className="h-3.5 w-3.5 text-[#17407E] shrink-0" />
+                          <span>Provider: <strong className="font-extrabold uppercase">{fundAccount.providerName}</strong></span>
                         </div>
-                        <span className="text-[10px] bg-[#E5E7EB] text-[#111827] px-2 py-0.5 rounded-full font-mono font-bold">
+                        <span className="text-[9px] bg-[#E5E7EB] text-[#111827] px-2 py-0.5 rounded-full font-mono font-bold">
                           LIVE ENGINE
                         </span>
                       </div>
 
                       {/* Account Details Box */}
-                      <div className="bg-[#111827] text-white p-5 rounded-2xl space-y-4 shadow-inner">
-                        <div className="space-y-1">
-                          <span className="text-[10px] font-mono uppercase text-[#9CA3AF] tracking-wider">Bank Name</span>
-                          <div className="text-sm font-black font-mono text-white">{fundAccount.bankName}</div>
+                      <div className="bg-[#111827] text-white p-3.5 rounded-xl space-y-2.5 shadow-inner">
+                        <div className="space-y-0.5">
+                          <span className="text-[9px] font-mono uppercase text-[#9CA3AF] tracking-wider">Bank Name</span>
+                          <div className="text-xs font-bold font-mono text-white">{fundAccount.bankName}</div>
                         </div>
 
-                        <div className="space-y-1 border-t border-[#E5E7EB]/20 pt-3">
-                          <span className="text-[10px] font-mono uppercase text-[#9CA3AF] tracking-wider">Virtual Account Number</span>
-                          <div className="flex items-center justify-between bg-[#111827] p-3 rounded-xl border border-[#E5E7EB]/20">
-                            <span className="text-xl font-black font-mono tracking-widest text-[#E5E7EB]">
+                        <div className="space-y-1 border-t border-[#E5E7EB]/20 pt-2">
+                          <span className="text-[9px] font-mono uppercase text-[#9CA3AF] tracking-wider">Virtual Account Number</span>
+                          <div className="flex items-center justify-between bg-[#111827] p-2 rounded-lg border border-[#E5E7EB]/20">
+                            <span className="text-base sm:text-lg font-black font-mono tracking-widest text-[#E5E7EB]">
                               {fundAccount.accountNumber}
                             </span>
                             <button
                               onClick={() => handleCopyAccount(fundAccount.accountNumber)}
-                              className="px-3 py-1.5 bg-[#E5E7EB]/10 hover:bg-[#E5E7EB]/20 text-[#E5E7EB] rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                              className="px-2.5 py-1 bg-[#E5E7EB]/10 hover:bg-[#E5E7EB]/20 text-[#E5E7EB] rounded-md text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer"
                             >
                               {copiedAccount ? (
                                 <>
-                                  <Check className="h-3.5 w-3.5 text-[#FFFFFF]" />
+                                  <Check className="h-3 w-3 text-[#FFFFFF]" />
                                   Copied!
                                 </>
                               ) : (
                                 <>
-                                  <Copy className="h-3.5 w-3.5" />
+                                  <Copy className="h-3 w-3" />
                                   Copy
                                 </>
                               )}
@@ -1039,26 +1039,26 @@ export default function Dashboards({
                           </div>
                         </div>
 
-                        <div className="space-y-1 border-t border-[#E5E7EB]/20 pt-3">
-                          <span className="text-[10px] font-mono uppercase text-[#9CA3AF] tracking-wider">Account Name</span>
-                          <div className="text-xs font-bold font-mono text-[#E5E7EB]">{fundAccount.accountName}</div>
+                        <div className="space-y-0.5 border-t border-[#E5E7EB]/20 pt-2">
+                          <span className="text-[9px] font-mono uppercase text-[#9CA3AF] tracking-wider">Account Name</span>
+                          <div className="text-[11px] font-bold font-mono text-[#E5E7EB] truncate">{fundAccount.accountName}</div>
                         </div>
                       </div>
 
                       {/* Instructions */}
-                      <div className="p-3.5 bg-[#F5F7FA] rounded-2xl border border-[#E5E7EB] text-xs text-[#4B5563] leading-relaxed space-y-1">
+                      <div className="p-2.5 bg-[#F5F7FA] rounded-xl border border-[#E5E7EB] text-[11px] text-[#4B5563] leading-relaxed space-y-0.5">
                         <p className="font-bold text-[#111827]">How to fund your wallet:</p>
                         <p>1. Copy the Virtual Account Number above.</p>
-                        <p>2. Open your banking app or USSD service and transfer your desired amount to <strong className="text-[#111827]">{fundAccount.bankName}</strong>.</p>
-                        <p>3. Your wallet balance will be automatically credited once the active provider receives the deposit.</p>
+                        <p>2. Transfer desired amount to <strong className="text-[#111827]">{fundAccount.bankName}</strong>.</p>
+                        <p>3. Balance auto-credits instantly once received.</p>
                       </div>
                     </div>
                   ) : null}
 
-                  <div className="pt-2 flex justify-end">
+                  <div className="pt-1 flex justify-end shrink-0">
                     <button
                       onClick={() => setShowFundModal(false)}
-                      className="px-5 py-2.5 bg-[#F5F7FA] hover:bg-[#E5E7EB] text-[#4B5563] font-bold text-xs rounded-xl transition-all cursor-pointer"
+                      className="px-4 py-1.5 bg-[#F5F7FA] hover:bg-[#E5E7EB] text-[#4B5563] font-bold text-xs rounded-lg transition-all cursor-pointer"
                     >
                       Close
                     </button>
@@ -1075,7 +1075,7 @@ export default function Dashboards({
                   </div>
                   <div>
                     <h3 className="font-bold text-sm text-white">SmartLink Admin Control Suite</h3>
-                    <p className="text-xs text-[#9CA3AF]">
+                    <p className="text-xs text-[#D1D5DB]">
                       Unified administrative management portal for Users, Wallets, Transactions, API Providers, Security & System Configuration.
                     </p>
                   </div>

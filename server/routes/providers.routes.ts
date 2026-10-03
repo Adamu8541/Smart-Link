@@ -1172,6 +1172,7 @@ app.post("/api/admin/payment-providers/:id/test-connection", requireAdmin, async
 // 1. Get Portal Routing Rules, Health Metrics & Failover Summaries
 app.get("/api/admin/routing", requireAdmin, async (req, res) => {
   const db = readDB();
+  await syncFromStorage(db);
   const rules = MultiProviderRoutingEngine.getRoutingRules(db);
   const metrics = MultiProviderRoutingEngine.getProviderHealthMetrics(db);
   const failovers = db.provider_failover_logs || [];
@@ -1587,10 +1588,10 @@ function seedModule6ProvidersIfEmpty(db: any) {
   if (!db.api_providers.some((p: any) => p.id === "prov_identro" || (p.name || "").toLowerCase().includes("identro"))) {
     db.api_providers.push({
       id: "prov_identro",
-      name: "Identro Identity Portal",
+      name: "Identro Portal",
       category: "IDENTITY_API",
       providerType: "IDENTITY_API",
-      description: "Identro Identity, KYC & CAC Verification Portal (identro.ng)",
+      description: "Identro Identity, KYC, VTU Airtime & CAC Verification Portal (identro.ng)",
       logoUrl: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=100&auto=format&fit=crop&q=60",
       baseUrl: "https://api.identro.ng",
       apiVersion: "v1.0",
@@ -1607,6 +1608,9 @@ function seedModule6ProvidersIfEmpty(db: any) {
       supportsPayout: false,
       supportsRefund: false,
       supportsTxVerification: true,
+      supportsAirtime: true,
+      supportsData: true,
+      supportsTelecomVtu: true,
       timeout: 12000,
       retryAttempts: 3,
       healthStatus: "ONLINE",

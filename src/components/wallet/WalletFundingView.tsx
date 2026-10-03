@@ -573,47 +573,47 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
   });
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="space-y-4 sm:space-y-6 animate-fadeIn pb-4">
       {/* Top Banner & Wallet Balance */}
-      <div className="relative overflow-hidden rounded-[16px] bg-[#0F2D5C] p-6 md:p-8 text-white shadow-[0_4px_12px_rgba(15,23,42,0.08)] border border-[#0F2D5C]">
+      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-[#0F2D5C] p-3.5 sm:p-6 text-white shadow-xl border border-[#0F2D5C]">
         <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white/5 blur-3xl pointer-events-none" />
         
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-6 relative z-10">
+          <div className="space-y-1 sm:space-y-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <button
                 onClick={onBackToDashboard}
-                className="text-xs text-[#9CA3AF] hover:text-white font-bold flex items-center gap-1 bg-white/10 px-3 py-1.5 rounded-lg backdrop-blur-xs transition-colors cursor-pointer"
+                className="text-[11px] sm:text-xs text-[#9CA3AF] hover:text-white font-bold flex items-center gap-1 bg-white/10 px-2.5 py-1 rounded-lg backdrop-blur-xs transition-colors cursor-pointer"
               >
                 ← Back to Portal
               </button>
-              <span className="text-xs font-bold text-[#9CA3AF] bg-[#0F2D5C]/20 px-2.5 py-1 rounded-full border border-[#0F2D5C]/30 flex items-center gap-1">
-                <ShieldCheck className="h-3.5 w-3.5" /> Encrypted Financial Engine
+              <span className="text-[10px] sm:text-xs font-bold text-[#9CA3AF] bg-[#0F2D5C]/20 px-2 py-0.5 rounded-full border border-[#0F2D5C]/30 flex items-center gap-1">
+                <ShieldCheck className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> Encrypted Financial Engine
               </span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white">Wallet Funding Portal</h1>
-            <p className="text-xs text-[#E5E7EB] max-w-xl leading-relaxed">
+            <h1 className="text-lg sm:text-2xl font-black tracking-tight text-white">Wallet Funding Portal</h1>
+            <p className="text-[11px] sm:text-xs text-[#E5E7EB] max-w-xl leading-relaxed">
               Instantly fund your SmartLink wallet via Virtual Bank Accounts, Dynamic Bank Transfers, or Debit Cards.
             </p>
           </div>
 
           {/* Balance Card */}
-          <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl p-5 shrink-0 min-w-[280px]">
-            <div className="flex items-center justify-between text-xs text-[#E5E7EB] font-medium pb-2 border-b border-white/10">
-              <span className="flex items-center gap-1.5">
-                <WalletIcon className="h-4 w-4 text-[#9CA3AF]" /> Total Available Balance
+          <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl sm:rounded-2xl p-3 sm:p-4 shrink-0 min-w-[200px] sm:min-w-[260px]">
+            <div className="flex items-center justify-between text-xs text-[#E5E7EB] font-medium pb-1.5 border-b border-white/10">
+              <span className="flex items-center gap-1 text-[11px]">
+                <WalletIcon className="h-3.5 w-3.5 text-[#9CA3AF]" /> Total Available Balance
               </span>
               <button
                 onClick={() => setShowBalance(!showBalance)}
-                className="hover:text-white transition-colors cursor-pointer"
+                className="hover:text-white transition-colors cursor-pointer p-0.5"
                 aria-label={showBalance ? "Hide balance" : "Show balance"}
               >
-                {showBalance ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showBalance ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
               </button>
             </div>
 
-            <div className="mt-3 flex items-baseline justify-between gap-2">
-              <span className="text-2xl md:text-3xl font-black font-mono text-white tracking-tight">
+            <div className="mt-2 flex items-baseline justify-between gap-2">
+              <span className="text-lg sm:text-2xl font-black font-mono text-white tracking-tight">
                 {showBalance
                   ? `₦${(walletBalance ?? 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}`
                   : "••••••••••••"}
@@ -621,14 +621,14 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
               <button
                 onClick={fetchLatestBalance}
                 disabled={isRefreshing}
-                className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer disabled:opacity-50"
+                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer disabled:opacity-50"
                 title="Sync Balance"
               >
-                <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+                <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
               </button>
             </div>
 
-            <div className="mt-3 pt-2 border-t border-white/10 flex items-center justify-between text-[11px] text-[#E5E7EB]">
+            <div className="mt-2 pt-1.5 border-t border-white/10 flex items-center justify-between text-[10px] text-[#E5E7EB]">
               <span>Account Status: <strong className="text-[#9CA3AF] font-bold">VERIFIED</strong></span>
               <span>Currency: <strong className="text-white font-mono font-bold">NGN (₦)</strong></span>
             </div>
@@ -686,52 +686,52 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
       )}
 
       {/* Navigation Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none border-b border-[#E5E7EB]">
+      <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 scrollbar-none border-b border-[#E5E7EB]">
         <button
           onClick={() => setActiveTab("VIRTUAL_ACCOUNT")}
-          className={`flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-xs transition-all whitespace-nowrap cursor-pointer border ${
+          className={`flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl font-bold text-xs transition-all whitespace-nowrap cursor-pointer border ${
             activeTab === "VIRTUAL_ACCOUNT"
               ? "bg-[#0F2D5C] text-white border-[#0F2D5C] shadow-xs"
               : "bg-white text-[#4B5563] border-[#E5E7EB] hover:border-[#0F2D5C]"
           }`}
         >
-          <Building2 className="h-4 w-4" />
+          <Building2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           <span>Virtual Bank Account</span>
-          <span className="text-[10px] bg-[#E5E7EB] text-[#0F2D5C] px-1.5 py-0.5 rounded font-mono font-bold">Instant Bank</span>
+          <span className="text-[9px] sm:text-[10px] bg-[#E5E7EB] text-[#0F2D5C] px-1.5 py-0.5 rounded font-mono font-bold">Instant Bank</span>
         </button>
 
 
         <button
           onClick={() => setActiveTab("CARD")}
-          className={`flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-xs transition-all whitespace-nowrap cursor-pointer border ${
+          className={`flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl font-bold text-xs transition-all whitespace-nowrap cursor-pointer border ${
             activeTab === "CARD"
               ? "bg-[#0F2D5C] text-white border-[#0F2D5C] shadow-xs"
               : "bg-white text-[#4B5563] border-[#E5E7EB] hover:border-[#0F2D5C]"
           }`}
         >
-          <CreditCard className="h-4 w-4" />
+          <CreditCard className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           <span>Debit / Credit Card</span>
         </button>
 
         {isAdmin && (
           <button
             onClick={() => setActiveTab("ADMIN_CREDIT")}
-            className={`flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-xs transition-all whitespace-nowrap cursor-pointer border ${
+            className={`flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl font-bold text-xs transition-all whitespace-nowrap cursor-pointer border ${
               activeTab === "ADMIN_CREDIT"
                 ? "bg-[#0F2D5C] text-white border-[#0F2D5C] shadow-xs"
                 : "bg-[#F5F7FA] text-[#0F2D5C] border-[#E5E7EB] hover:border-[#0F2D5C]"
             }`}
           >
-            <ShieldCheck className="h-4 w-4" />
+            <ShieldCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             <span>Admin Manual Credit</span>
-            <span className="text-[10px] bg-[#E5E7EB] text-[#0F2D5C] px-1.5 py-0.5 rounded font-mono font-bold">STAFF</span>
+            <span className="text-[9px] sm:text-[10px] bg-[#E5E7EB] text-[#0F2D5C] px-1.5 py-0.5 rounded font-mono font-bold">STAFF</span>
           </button>
         )}
       </div>
 
       {/* Tab 1: Virtual Bank Account */}
       {activeTab === "VIRTUAL_ACCOUNT" && (
-        <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl p-6 md:p-8 space-y-6 shadow-sm">
+        <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 space-y-4 sm:space-y-6 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E5E7EB] dark:border-[#111827] pb-5">
             <div>
               <div className="flex items-center gap-2">
@@ -1182,150 +1182,158 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
 
       {/* 3D Secure OTP Modal for Card Payment */}
       {show3DSModal && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/70 backdrop-blur-xs animate-fadeIn overflow-y-auto">
-          <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl p-6 md:p-8 max-w-md w-full mb-8 space-y-6 shadow-2xl relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-[#111827]/75 backdrop-blur-xs animate-fadeIn overflow-hidden">
+          <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-slate-800 rounded-2xl sm:rounded-3xl p-4 sm:p-6 max-w-sm w-full max-h-[82dvh] sm:max-h-[85vh] flex flex-col shadow-2xl relative">
             <button
               onClick={() => setShow3DSModal(false)}
-              className="absolute right-4 top-4 p-2 text-[#9CA3AF] hover:text-[#4B5563] rounded-full cursor-pointer"
+              className="absolute right-3.5 top-3.5 p-1 text-[#9CA3AF] hover:text-[#4B5563] rounded-full cursor-pointer"
             >
-              <X className="h-5 w-5" />
+              <X className="h-4 w-4" />
             </button>
 
-            <div className="text-center space-y-2">
-              <div className="h-12 w-12 rounded-2xl bg-[#F5F7FA] text-[#0F2D5C] flex items-center justify-center mx-auto font-black border border-[#E5E7EB]">
-                3DS
+            <div className="overflow-y-auto pr-0.5 space-y-3 sm:space-y-4">
+              <div className="text-center space-y-1.5 pt-1">
+                <div className="h-10 w-10 rounded-xl bg-[#F5F7FA] text-[#0F2D5C] flex items-center justify-center mx-auto font-black text-sm border border-[#E5E7EB]">
+                  3DS
+                </div>
+                <h3 className="text-sm sm:text-base font-bold text-[#111827] dark:text-white">3D Secure OTP Authorization</h3>
+                <p className="text-[11px] text-[#6B7280]">
+                  Enter the One-Time Password (OTP) sent by your card issuer to authorize ₦
+                  {parseFloat(cardAmount || "0").toLocaleString("en-NG", { minimumFractionDigits: 2 })}.
+                </p>
               </div>
-              <h3 className="text-lg font-bold text-[#111827] dark:text-white">3D Secure OTP Authorization</h3>
-              <p className="text-xs text-[#6B7280]">
-                Enter the One-Time Password (OTP) sent by your card issuer to authorize ₦
-                {parseFloat(cardAmount || "0").toLocaleString("en-NG", { minimumFractionDigits: 2 })}.
-              </p>
-            </div>
 
-            <div className="p-3 bg-[#F5F7FA] dark:bg-[#0F2D5C]/30 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-[#0F2D5C] dark:text-[#9CA3AF] text-center font-mono">
-              💡 Test Sandbox OTP Code: <strong>123456</strong>
-            </div>
+              <div className="p-2.5 bg-[#F5F7FA] dark:bg-[#0F2D5C]/30 border border-slate-200 dark:border-slate-700 rounded-xl text-[11px] text-[#0F2D5C] dark:text-[#9CA3AF] text-center font-mono">
+                💡 Test Sandbox OTP Code: <strong>123456</strong>
+              </div>
 
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-[#111827] dark:text-[#E5E7EB]">6-Digit OTP Code</label>
-              <input
-                type="text"
-                maxLength={6}
-                value={otpCode}
-                onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
-                placeholder="123456"
-                className="w-full text-center tracking-[0.5em] font-mono text-xl py-3 border border-[#E5E7EB] dark:border-[#4B5563] rounded-xl outline-none bg-white dark:bg-[#111827] text-[#111827] dark:text-white focus:border-[#0F2D5C]"
-              />
-            </div>
+              <div className="space-y-1.5 text-left">
+                <label className="text-[11px] font-semibold text-[#111827] dark:text-[#E5E7EB]">6-Digit OTP Code</label>
+                <input
+                  type="text"
+                  maxLength={6}
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+                  placeholder="123456"
+                  className="w-full text-center tracking-[0.4em] font-mono text-lg py-2 border border-[#E5E7EB] dark:border-[#4B5563] rounded-xl outline-none bg-white dark:bg-[#111827] text-[#111827] dark:text-white focus:border-[#0F2D5C]"
+                />
+              </div>
 
-            <button
-              onClick={handleVerify3DSOTP}
-              disabled={isCardProcessing}
-              className="w-full py-3.5 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-bold rounded-xl text-sm transition-all cursor-pointer shadow-md shadow-purple-600/20 disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              {isCardProcessing ? (
-                <>
-                  <SmartLinkLogoMark size="xs" color="#FFFFFF" animating={true} /> Authorizing Payment...
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="h-4 w-4" /> Authorize & Credit Wallet
-                </>
-              )}
-            </button>
+              <button
+                onClick={handleVerify3DSOTP}
+                disabled={isCardProcessing}
+                className="w-full py-2.5 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold rounded-xl text-xs transition-all cursor-pointer shadow-md shadow-purple-600/20 disabled:opacity-50 flex items-center justify-center gap-1.5"
+              >
+                {isCardProcessing ? (
+                  <>
+                    <SmartLinkLogoMark size="xs" color="#FFFFFF" animating={true} /> Authorizing Payment...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="h-3.5 w-3.5" /> Authorize &amp; Credit Wallet
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}
 
       {/* QR Code Modal */}
       {showQrModal && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/70 backdrop-blur-xs animate-fadeIn overflow-y-auto">
-          <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl p-6 max-w-sm w-full mb-8 text-center space-y-4 shadow-2xl relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-[#111827]/75 backdrop-blur-xs animate-fadeIn overflow-hidden">
+          <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-slate-800 rounded-2xl sm:rounded-3xl p-4 sm:p-5 max-w-xs sm:max-w-sm w-full max-h-[82dvh] sm:max-h-[85vh] flex flex-col text-center shadow-2xl relative">
             <button
               onClick={() => setShowQrModal(false)}
-              className="absolute right-4 top-4 p-2 text-[#9CA3AF] hover:text-[#4B5563] rounded-full cursor-pointer"
+              className="absolute right-3.5 top-3.5 p-1 text-[#9CA3AF] hover:text-[#4B5563] rounded-full cursor-pointer"
             >
-              <X className="h-5 w-5" />
+              <X className="h-4 w-4" />
             </button>
 
-            <h3 className="text-base font-bold text-[#111827] dark:text-white">Scan Bank QR Code</h3>
-            <p className="text-xs text-[#6B7280]">{qrAccountTitle}</p>
-
-            {qrCodeDataUrl && (
-              <div className="p-4 bg-white rounded-2xl border border-[#E5E7EB] inline-block mx-auto shadow-inner">
-                <img src={qrCodeDataUrl} alt="Bank QR" className="w-48 h-48 object-contain" />
+            <div className="overflow-y-auto pr-0.5 space-y-3">
+              <div>
+                <h3 className="text-sm sm:text-base font-bold text-[#111827] dark:text-white">Scan Bank QR Code</h3>
+                <p className="text-[11px] text-[#6B7280]">{qrAccountTitle}</p>
               </div>
-            )}
 
-            <button
-              onClick={() => setShowQrModal(false)}
-              className="w-full py-2.5 bg-[#111827] text-white font-bold rounded-xl text-xs cursor-pointer"
-            >
-              Close QR Code
-            </button>
+              {qrCodeDataUrl && (
+                <div className="p-3 bg-white rounded-xl border border-[#E5E7EB] inline-block mx-auto shadow-inner">
+                  <img src={qrCodeDataUrl} alt="Bank QR" className="w-36 h-36 sm:w-44 sm:h-44 object-contain" />
+                </div>
+              )}
+
+              <button
+                onClick={() => setShowQrModal(false)}
+                className="w-full py-2 bg-[#111827] text-white font-bold rounded-xl text-xs cursor-pointer"
+              >
+                Close QR Code
+              </button>
+            </div>
           </div>
         </div>
       )}
 
       {/* Official Receipt Modal */}
       {selectedReceipt && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/75 backdrop-blur-xs animate-fadeIn overflow-y-auto">
-          <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl p-6 md:p-8 max-w-xl w-full mb-8 space-y-6 shadow-2xl relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-[#111827]/75 backdrop-blur-xs animate-fadeIn overflow-hidden">
+          <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-slate-800 rounded-2xl sm:rounded-3xl p-4 sm:p-6 max-w-lg w-full max-h-[82dvh] sm:max-h-[85vh] flex flex-col shadow-2xl relative text-left">
             <button
               onClick={() => setSelectedReceipt(null)}
-              className="absolute right-4 top-4 p-2 text-[#9CA3AF] hover:text-[#4B5563] rounded-full cursor-pointer"
+              className="absolute right-3.5 top-3.5 p-1 text-[#9CA3AF] hover:text-[#4B5563] rounded-full cursor-pointer"
             >
-              <X className="h-5 w-5" />
+              <X className="h-4 w-4" />
             </button>
 
-            {/* Receipt Header */}
-            <div className="border-b border-[#E5E7EB] dark:border-[#111827] pb-5 text-center space-y-2">
-              <div className="inline-flex items-center gap-2 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border border-slate-200 dark:border-slate-700 px-3 py-1 rounded-full text-[#0F2D5C] dark:text-[#9CA3AF] text-xs font-bold">
-                <ShieldCheck className="h-4 w-4 text-[#0F2D5C]" /> SmartLink Official Wallet Receipt
+            <div className="overflow-y-auto pr-0.5 space-y-3 sm:space-y-4 flex-1">
+              {/* Receipt Header */}
+              <div className="border-b border-[#E5E7EB] dark:border-slate-800 pb-3 text-center space-y-1">
+                <div className="inline-flex items-center gap-1.5 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border border-slate-200 dark:border-slate-700 px-2.5 py-0.5 rounded-full text-[#0F2D5C] dark:text-[#9CA3AF] text-[10px] sm:text-xs font-bold">
+                  <ShieldCheck className="h-3.5 w-3.5 text-[#0F2D5C]" /> SmartLink Official Wallet Receipt
+                </div>
+                <h2 className="text-lg sm:text-2xl font-black text-[#111827] dark:text-white">₦{(selectedReceipt.amount || 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</h2>
+                <p className="text-[10px] sm:text-xs text-[#6B7280] font-mono">Reference: {selectedReceipt.smartlinkReference || selectedReceipt.reference || "N/A"}</p>
               </div>
-              <h2 className="text-2xl font-black text-[#111827] dark:text-white">₦{(selectedReceipt.amount || 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</h2>
-              <p className="text-xs text-[#6B7280] font-mono">Reference: {selectedReceipt.smartlinkReference || selectedReceipt.reference || "N/A"}</p>
-            </div>
 
-            {/* Details Grid */}
-            <div className="bg-[#F5F7FA] dark:bg-[#111827]/50 rounded-2xl p-5 border border-[#E5E7EB] dark:border-[#111827] space-y-3 text-xs">
-              <div className="flex justify-between py-1.5 border-b border-[#E5E7EB]/60 dark:border-[#4B5563]">
-                <span className="text-[#6B7280]">Customer Name</span>
-                <span className="font-bold text-[#111827] dark:text-white">{currentUser.fullName}</span>
+              {/* Details Grid */}
+              <div className="bg-[#F5F7FA] dark:bg-[#111827]/50 rounded-xl p-3 sm:p-4 border border-[#E5E7EB] dark:border-[#111827] space-y-2 text-xs">
+                <div className="flex justify-between py-1 border-b border-[#E5E7EB]/60 dark:border-[#4B5563]">
+                  <span className="text-[#6B7280]">Customer Name</span>
+                  <span className="font-bold text-[#111827] dark:text-white">{currentUser.fullName}</span>
+                </div>
+                <div className="flex justify-between py-1 border-b border-[#E5E7EB]/60 dark:border-[#4B5563]">
+                  <span className="text-[#6B7280]">Payment Portal</span>
+                  <span className="font-bold text-[#111827] dark:text-white">{selectedReceipt.portal || selectedReceipt.provider || "SmartLink Portal"}</span>
+                </div>
+                <div className="flex justify-between py-1 border-b border-[#E5E7EB]/60 dark:border-[#4B5563]">
+                  <span className="text-[#6B7280]">Date &amp; Time</span>
+                  <span className="font-mono text-[#111827] dark:text-[#E5E7EB]">
+                    {new Date(selectedReceipt.createdAt || selectedReceipt.timestamp || Date.now()).toLocaleString("en-NG")}
+                  </span>
+                </div>
+                <div className="flex justify-between py-1 border-b border-[#E5E7EB]/60 dark:border-[#4B5563]">
+                  <span className="text-[#6B7280]">Status</span>
+                  <span className="font-bold text-[#0F2D5C] dark:text-[#9CA3AF] uppercase">{selectedReceipt.status || "SUCCESSFUL"}</span>
+                </div>
+                <div className="flex justify-between py-1">
+                  <span className="text-[#6B7280]">Receipt No</span>
+                  <span className="font-mono text-[#111827] dark:text-[#E5E7EB]">{selectedReceipt.receiptId || selectedReceipt.id || "REC-" + Date.now()}</span>
+                </div>
               </div>
-              <div className="flex justify-between py-1.5 border-b border-[#E5E7EB]/60 dark:border-[#4B5563]">
-                <span className="text-[#6B7280]">Payment Portal</span>
-                <span className="font-bold text-[#111827] dark:text-white">{selectedReceipt.portal || selectedReceipt.provider || "SmartLink Portal"}</span>
-              </div>
-              <div className="flex justify-between py-1.5 border-b border-[#E5E7EB]/60 dark:border-[#4B5563]">
-                <span className="text-[#6B7280]">Date & Time</span>
-                <span className="font-mono text-[#111827] dark:text-[#E5E7EB]">
-                  {new Date(selectedReceipt.createdAt || selectedReceipt.timestamp || Date.now()).toLocaleString("en-NG")}
-                </span>
-              </div>
-              <div className="flex justify-between py-1.5 border-b border-[#E5E7EB]/60 dark:border-[#4B5563]">
-                <span className="text-[#6B7280]">Status</span>
-                <span className="font-bold text-[#0F2D5C] dark:text-[#9CA3AF] uppercase">{selectedReceipt.status || "SUCCESSFUL"}</span>
-              </div>
-              <div className="flex justify-between py-1.5">
-                <span className="text-[#6B7280]">Receipt No</span>
-                <span className="font-mono text-[#111827] dark:text-[#E5E7EB]">{selectedReceipt.receiptId || selectedReceipt.id || "REC-" + Date.now()}</span>
-              </div>
-            </div>
 
-            <div className="flex gap-3">
-              <button
-                onClick={() => downloadReceiptPDF(selectedReceipt)}
-                className="flex-1 py-3 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-bold rounded-xl text-xs transition-all shadow-md shadow-blue-600/20 cursor-pointer flex items-center justify-center gap-2"
-              >
-                <Download className="h-4 w-4" /> Download PDF Receipt
-              </button>
-              <button
-                onClick={() => window.print()}
-                className="px-4 py-3 bg-[#E5E7EB] hover:bg-[#E5E7EB] text-[#111827] font-bold rounded-xl text-xs transition-colors cursor-pointer flex items-center gap-1.5"
-              >
-                <Printer className="h-4 w-4" /> Print
-              </button>
+              <div className="flex gap-2 pt-1">
+                <button
+                  onClick={() => downloadReceiptPDF(selectedReceipt)}
+                  className="flex-1 py-2 sm:py-2.5 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold rounded-xl text-xs transition-all shadow-md shadow-blue-600/20 cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <Download className="h-3.5 w-3.5" /> Download PDF
+                </button>
+                <button
+                  onClick={() => window.print()}
+                  className="px-3 py-2 sm:py-2.5 bg-[#E5E7EB] hover:bg-slate-300 text-[#111827] font-bold rounded-xl text-xs transition-colors cursor-pointer flex items-center gap-1"
+                >
+                  <Printer className="h-3.5 w-3.5" /> Print
+                </button>
+              </div>
             </div>
           </div>
         </div>

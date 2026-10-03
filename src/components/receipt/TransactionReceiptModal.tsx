@@ -104,57 +104,57 @@ export const TransactionReceiptModal: React.FC<TransactionReceiptModalProps> = (
   }, []);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/60 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-[#111827]/70 backdrop-blur-xs animate-in fade-in duration-200 overflow-hidden">
       <div
-        className={`relative w-full max-w-lg mb-8 rounded-2xl shadow-2xl overflow-hidden border ${
+        className={`relative w-full max-w-md max-h-[82dvh] sm:max-h-[85vh] flex flex-col rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden border ${
           isDarkMode
-            ? "bg-[#111827] border-[#111827] text-[#E5E7EB]"
+            ? "bg-[#111827] border-slate-800 text-[#E5E7EB]"
             : "bg-white border-[#E5E7EB] text-[#111827]"
         } print:border-none print:shadow-none print:w-full print:max-w-none print:absolute print:inset-0`}
       >
         {/* Printable Receipt Container */}
-        <div id="printable-receipt" className="p-6 sm:p-8 space-y-6">
+        <div id="printable-receipt" className="overflow-y-auto p-4 sm:p-6 space-y-3.5 sm:space-y-5 flex-1 text-left">
           {/* Header Branding */}
-          <div className="flex items-center justify-between pb-4 border-b border-[#E5E7EB] dark:border-[#111827]">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#0F2D5C] text-white flex items-center justify-center font-black text-xl shadow-md shadow-blue-500/20">
+          <div className="flex items-center justify-between pb-3 border-b border-[#E5E7EB] dark:border-[#111827]">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-[#0F2D5C] text-white flex items-center justify-center font-black text-sm shadow-md shadow-blue-500/20">
                 SL
               </div>
               <div>
-                <h3 className="font-bold text-lg text-[#111827] dark:text-white leading-tight">
+                <h3 className="font-bold text-sm sm:text-base text-[#111827] dark:text-white leading-tight">
                   SmartLink Digital
                 </h3>
-                <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">
+                <p className="text-[10px] sm:text-xs text-[#6B7280] dark:text-[#9CA3AF]">
                   Official Financial Transaction Receipt
                 </p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg text-[#9CA3AF] hover:text-[#4B5563] dark:hover:text-[#E5E7EB] hover:bg-[#E5E7EB] dark:hover:bg-[#111827] transition-colors print:hidden"
+              className="p-1.5 rounded-lg text-[#9CA3AF] hover:text-[#4B5563] dark:hover:text-[#E5E7EB] hover:bg-[#E5E7EB] dark:hover:bg-[#111827] transition-colors print:hidden"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
 
           {/* Status Badge & Amount */}
-          <div className="text-center py-3 bg-[#F5F7FA] dark:bg-[#111827]/50 rounded-xl border border-[#E5E7EB] dark:border-[#111827]/80">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold mb-2">
+          <div className="text-center py-2.5 bg-[#F5F7FA] dark:bg-[#111827]/50 rounded-xl border border-[#E5E7EB] dark:border-[#111827]/80">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold mb-1.5">
               {status === "SUCCESSFUL" && (
-                <span className="bg-emerald-50 text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 px-3 py-1 rounded-full flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                <span className="bg-emerald-50 text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 px-2.5 py-0.5 rounded-full flex items-center gap-1 text-[11px]">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                   Transaction Successful
                 </span>
               )}
               {status === "PENDING" && (
-                <span className="bg-amber-50 text-amber-700 dark:bg-amber-950/70 dark:text-amber-400 border border-amber-200 dark:border-amber-800 px-3 py-1 rounded-full flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                <span className="bg-amber-50 text-amber-700 dark:bg-amber-950/70 dark:text-amber-400 border border-amber-200 dark:border-amber-800 px-2.5 py-0.5 rounded-full flex items-center gap-1 text-[11px]">
+                  <Clock className="w-3 h-3 text-amber-600 dark:text-amber-400" />
                   Processing Transaction
                 </span>
               )}
               {status === "FAILED" && (
-                <span className="bg-red-50 text-red-700 dark:bg-red-950/70 dark:text-red-400 border border-red-200 dark:border-red-800 px-3 py-1 rounded-full flex items-center gap-1">
-                  <XCircle className="w-3.5 h-3.5 text-red-600 dark:text-red-400" />
+                <span className="bg-red-50 text-red-700 dark:bg-red-950/70 dark:text-red-400 border border-red-200 dark:border-red-800 px-2.5 py-0.5 rounded-full flex items-center gap-1 text-[11px]">
+                  <XCircle className="w-3 h-3 text-red-600 dark:text-red-400" />
                   Transaction Failed
                 </span>
               )}

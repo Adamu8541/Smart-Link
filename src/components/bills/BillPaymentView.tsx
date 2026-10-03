@@ -530,38 +530,38 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
   });
 
   return (
-    <div className="space-y-6 animate-fadeIn pb-12">
+    <div className="space-y-4 sm:space-y-6 animate-fadeIn pb-6">
       {/* Top Banner & Wallet Status */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#111827] via-[#0F2D5C] to-[#111827] p-6 md:p-8 text-white shadow-2xl">
+      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[#111827] via-[#0F2D5C] to-[#111827] p-3.5 sm:p-6 text-white shadow-xl">
         <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-[#0F2D5C]/10 blur-3xl pointer-events-none" />
 
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-6 relative z-10">
+          <div className="space-y-1 sm:space-y-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <button
                 onClick={onBackToDashboard}
-                className="text-xs text-[#9CA3AF] hover:text-white font-bold flex items-center gap-1 bg-white/10 px-3 py-1.5 rounded-lg backdrop-blur-xs transition-colors cursor-pointer"
+                className="text-[11px] sm:text-xs text-[#9CA3AF] hover:text-white font-bold flex items-center gap-1 bg-white/10 px-2.5 py-1 rounded-lg backdrop-blur-xs transition-colors cursor-pointer"
               >
                 ← Back to Portal
               </button>
-              <span className="text-xs font-bold text-[#9CA3AF] bg-[#0F2D5C]/20 px-2.5 py-1 rounded-full border border-[#0F2D5C]/30 flex items-center gap-1">
-                <ShieldCheck className="h-3.5 w-3.5" /> Module 7 Payment Engine
+              <span className="text-[10px] sm:text-xs font-bold text-[#9CA3AF] bg-[#0F2D5C]/20 px-2 py-0.5 rounded-full border border-[#0F2D5C]/30 flex items-center gap-1">
+                <ShieldCheck className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> Module 7 Payment Engine
               </span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white">Bill Payment Services</h1>
-            <p className="text-xs text-[#E5E7EB] max-w-xl leading-relaxed">
-              Pay Electricity, Cable TV, Airtime, Data, Exams, Betting & Utility bills with instant automated provider verification.
+            <h1 className="text-lg sm:text-2xl font-black tracking-tight text-white">Bill Payment Services</h1>
+            <p className="text-[11px] sm:text-xs text-[#E5E7EB] max-w-xl leading-relaxed">
+              Pay Electricity, Cable TV, Airtime, Data, Exams, Betting &amp; Utility bills with instant automated provider verification.
             </p>
           </div>
 
           {/* Wallet summary pill */}
-          <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl p-4 shrink-0 flex items-center gap-4">
-            <div className="h-12 w-12 rounded-xl bg-[#0F2D5C]/20 border border-[#E5E7EB]/30 flex items-center justify-center text-[#9CA3AF]">
-              <WalletIcon className="h-6 w-6" />
+          <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl sm:rounded-2xl p-2.5 sm:p-4 shrink-0 flex items-center gap-3">
+            <div className="h-9 w-9 sm:h-12 sm:w-12 rounded-lg sm:rounded-xl bg-[#0F2D5C]/20 border border-[#E5E7EB]/30 flex items-center justify-center text-[#9CA3AF]">
+              <WalletIcon className="h-4 w-4 sm:h-6 sm:w-6" />
             </div>
             <div>
-              <span className="text-[10px] text-[#E5E7EB] uppercase tracking-wider font-semibold">Wallet Balance</span>
-              <p className="text-xl md:text-2xl font-black font-mono text-white">
+              <span className="text-[9px] sm:text-[10px] text-[#E5E7EB] uppercase tracking-wider font-semibold">Wallet Balance</span>
+              <p className="text-base sm:text-xl font-black font-mono text-white">
                 {formatNaira(walletBalance, true)}
               </p>
             </div>
@@ -569,7 +569,7 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
         </div>
 
         {/* View Switcher Controls */}
-        <div className="flex items-center gap-2 mt-6 pt-5 border-t border-white/10 text-xs font-semibold overflow-x-auto scrollbar-none">
+        <div className="flex items-center gap-1.5 sm:gap-2 mt-3 sm:mt-5 pt-3 sm:pt-4 border-t border-white/10 text-xs font-semibold overflow-x-auto scrollbar-none">
           <button
             onClick={() => {
               setViewMode("CATALOG");
@@ -1157,137 +1157,140 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
 
       {/* CONFIRMATION DIALOG MODAL */}
       {showConfirmation && selectedCategory && selectedProvider && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/70 backdrop-blur-xs animate-fadeIn overflow-y-auto">
-          <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl p-6 md:p-8 max-w-lg w-full mb-8 space-y-6 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-[#E5E7EB] dark:border-[#111827] pb-4">
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#0F2D5C] dark:text-[#9CA3AF]">
-                  Transaction Audit Review
-                </span>
-                <h3 className="text-lg font-bold text-[#111827] dark:text-white">Confirm Bill Payment</h3>
-              </div>
-              <button
-                onClick={() => setShowConfirmation(false)}
-                className="text-[#9CA3AF] hover:text-[#4B5563] dark:hover:text-white cursor-pointer font-bold text-xs"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Financial Breakdown Table */}
-            <div className="space-y-3 text-xs">
-              <div className="bg-[#F5F7FA] dark:bg-[#111827]/50 p-4 rounded-2xl space-y-2 border border-[#E5E7EB] dark:border-[#4B5563]">
-                <div className="flex justify-between text-[#4B5563] dark:text-[#9CA3AF]">
-                  <span>Service Category</span>
-                  <strong className="text-[#111827] dark:text-white">{selectedCategory.name}</strong>
-                </div>
-                <div className="flex justify-between text-[#4B5563] dark:text-[#9CA3AF]">
-                  <span>Provider</span>
-                  <strong className="text-[#111827] dark:text-white">{selectedProvider.name}</strong>
-                </div>
-                <div className="flex justify-between text-[#4B5563] dark:text-[#9CA3AF]">
-                  <span>Target Customer ID</span>
-                  <strong className="text-[#111827] dark:text-white font-mono">{customerId || phoneNumber}</strong>
-                </div>
-                {customerValidation?.customerName && (
-                  <div className="flex justify-between text-[#4B5563] dark:text-[#9CA3AF]">
-                    <span>Verified Name</span>
-                    <strong className="text-[#0F2D5C] dark:text-[#9CA3AF]">{customerValidation.customerName}</strong>
-                  </div>
-                )}
-              </div>
-
-              <div className="bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 p-4 rounded-2xl space-y-2 border border-slate-200 dark:border-slate-700 text-[#0F2D5C] dark:text-[#9CA3AF] font-medium">
-                <div className="flex justify-between">
-                  <span>Base Bill Amount</span>
-                  <span>{formatNaira(((selectedPlan ? selectedPlan.amount : parseFloat(amount)) || 0), true)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Convenience Fee</span>
-                  <span>{formatNaira(selectedCategory.id === "ELECTRICITY" || selectedCategory.id === "CABLE_TV" ? 100 : 0, true)}</span>
-                </div>
-                <div className="pt-2 border-t border-slate-200 dark:border-slate-700 flex justify-between font-bold text-sm text-[#0F2D5C] dark:text-white">
-                  <span>Total Debit Amount</span>
-                  <span className="font-mono text-base">
-                    {formatNaira((((selectedPlan ? selectedPlan.amount : parseFloat(amount)) || 0) + (selectedCategory.id === "ELECTRICITY" || selectedCategory.id === "CABLE_TV" ? 100 : 0)), true)}
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-[#111827]/75 backdrop-blur-xs animate-fadeIn overflow-hidden">
+          <div className="bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-slate-800 rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 max-w-md w-full max-h-[82dvh] sm:max-h-[85vh] flex flex-col shadow-2xl">
+            <div className="overflow-y-auto flex-1 space-y-3 sm:space-y-4 pr-0.5 text-left">
+              <div className="flex items-center justify-between border-b border-[#E5E7EB] dark:border-slate-800 pb-2.5 sm:pb-3">
+                <div>
+                  <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-[#0F2D5C] dark:text-[#9CA3AF]">
+                    Transaction Audit Review
                   </span>
+                  <h3 className="text-sm sm:text-base font-bold text-[#111827] dark:text-white">Confirm Bill Payment</h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmation(false)}
+                  className="text-[#9CA3AF] hover:text-[#4B5563] dark:hover:text-white cursor-pointer font-bold text-xs p-1"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Financial Breakdown Table */}
+              <div className="space-y-2 sm:space-y-2.5 text-xs">
+                <div className="bg-[#F5F7FA] dark:bg-[#111827]/50 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl space-y-1.5 border border-[#E5E7EB] dark:border-[#4B5563]">
+                  <div className="flex justify-between text-[#4B5563] dark:text-[#9CA3AF]">
+                    <span>Service Category</span>
+                    <strong className="text-[#111827] dark:text-white">{selectedCategory.name}</strong>
+                  </div>
+                  <div className="flex justify-between text-[#4B5563] dark:text-[#9CA3AF]">
+                    <span>Provider</span>
+                    <strong className="text-[#111827] dark:text-white">{selectedProvider.name}</strong>
+                  </div>
+                  <div className="flex justify-between text-[#4B5563] dark:text-[#9CA3AF]">
+                    <span>Target Customer ID</span>
+                    <strong className="text-[#111827] dark:text-white font-mono">{customerId || phoneNumber}</strong>
+                  </div>
+                  {customerValidation?.customerName && (
+                    <div className="flex justify-between text-[#4B5563] dark:text-[#9CA3AF]">
+                      <span>Verified Name</span>
+                      <strong className="text-[#0F2D5C] dark:text-[#9CA3AF]">{customerValidation.customerName}</strong>
+                    </div>
+                  )}
+                </div>
+
+                <div className="bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl space-y-1.5 border border-slate-200 dark:border-slate-700 text-[#0F2D5C] dark:text-[#9CA3AF] font-medium text-[11px] sm:text-xs">
+                  <div className="flex justify-between">
+                    <span>Base Bill Amount</span>
+                    <span>{formatNaira(((selectedPlan ? selectedPlan.amount : parseFloat(amount)) || 0), true)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Convenience Fee</span>
+                    <span>{formatNaira(selectedCategory.id === "ELECTRICITY" || selectedCategory.id === "CABLE_TV" ? 100 : 0, true)}</span>
+                  </div>
+                  <div className="pt-1.5 border-t border-slate-200 dark:border-slate-700 flex justify-between font-bold text-xs sm:text-sm text-[#0F2D5C] dark:text-white">
+                    <span>Total Debit Amount</span>
+                    <span className="font-mono text-sm sm:text-base">
+                      {formatNaira((((selectedPlan ? selectedPlan.amount : parseFloat(amount)) || 0) + (selectedCategory.id === "ELECTRICITY" || selectedCategory.id === "CABLE_TV" ? 100 : 0)), true)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-2 sm:p-2.5 bg-[#E5E7EB] dark:bg-[#111827] rounded-lg sm:rounded-xl flex justify-between text-[10px] sm:text-[11px] text-[#4B5563] dark:text-[#E5E7EB]">
+                  <span>Wallet Balance After Payment</span>
+                  <strong className="font-mono text-[#111827] dark:text-white">
+                    {formatNaira(((walletBalance ?? 0) - (((selectedPlan ? selectedPlan.amount : parseFloat(amount)) || 0) + (selectedCategory.id === "ELECTRICITY" || selectedCategory.id === "CABLE_TV" ? 100 : 0))), true)}
+                  </strong>
                 </div>
               </div>
 
-              <div className="p-3 bg-[#E5E7EB] dark:bg-[#111827] rounded-xl flex justify-between text-[11px] text-[#4B5563] dark:text-[#E5E7EB]">
-                <span>Wallet Balance After Payment</span>
-                <strong className="font-mono text-[#111827] dark:text-white">
-                  {formatNaira(((walletBalance ?? 0) - (((selectedPlan ? selectedPlan.amount : parseFloat(amount)) || 0) + (selectedCategory.id === "ELECTRICITY" || selectedCategory.id === "CABLE_TV" ? 100 : 0))), true)}
-                </strong>
-              </div>
-            </div>
-
-            {/* PIN Authorization Section */}
-            {(currentUser?.pinRequiredForTransactions !== false && Boolean(currentUser?.hasTransactionPin)) ? (
-              <div className="p-3.5 bg-slate-50 dark:bg-[#0A1A33] rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
-                    <Lock className="h-3.5 w-3.5 text-[#0F2D5C] dark:text-sky-400" />
-                    <span>Enter 4-Digit Transaction PIN</span>
-                  </label>
-                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">PIN Required</span>
+              {/* PIN Authorization Section */}
+              {(currentUser?.pinRequiredForTransactions !== false && Boolean(currentUser?.hasTransactionPin)) ? (
+                <div className="p-2.5 sm:p-3 bg-slate-50 dark:bg-[#0A1A33] rounded-xl sm:rounded-2xl border border-slate-200 dark:border-slate-800 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] sm:text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                      <Lock className="h-3.5 w-3.5 text-[#0F2D5C] dark:text-sky-400" />
+                      <span>Enter 4-Digit Transaction PIN</span>
+                    </label>
+                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">PIN Required</span>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type={showPaymentPin ? "text" : "password"}
+                      maxLength={4}
+                      value={paymentPin}
+                      onChange={(e) => {
+                        setPaymentPin(e.target.value.replace(/\D/g, ""));
+                        setPaymentPinError(null);
+                      }}
+                      placeholder="••••"
+                      className="w-full px-3 py-2 text-center text-base sm:text-lg font-mono tracking-widest font-bold bg-white dark:bg-slate-900 rounded-lg sm:rounded-xl border border-slate-300 dark:border-slate-700 text-[#0F2D5C] dark:text-white focus:ring-2 focus:ring-[#0F2D5C] focus:outline-none shadow-inner"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPaymentPin(!showPaymentPin)}
+                      className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                    >
+                      {showPaymentPin ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  {paymentPinError && (
+                    <p className="text-[11px] text-rose-500 font-medium text-center">{paymentPinError}</p>
+                  )}
                 </div>
-                <div className="relative">
-                  <input
-                    type={showPaymentPin ? "text" : "password"}
-                    maxLength={4}
-                    value={paymentPin}
-                    onChange={(e) => {
-                      setPaymentPin(e.target.value.replace(/\D/g, ""));
-                      setPaymentPinError(null);
-                    }}
-                    placeholder="••••"
-                    className="w-full px-4 py-2.5 text-center text-lg font-mono tracking-widest font-bold bg-white dark:bg-slate-900 rounded-xl border border-slate-300 dark:border-slate-700 text-[#0F2D5C] dark:text-white focus:ring-2 focus:ring-[#0F2D5C] focus:outline-none shadow-inner"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPaymentPin(!showPaymentPin)}
-                    className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
-                  >
-                    {showPaymentPin ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
+              ) : (
+                <div className="flex items-center justify-center gap-1.5 py-1.5 px-2.5 bg-emerald-50/80 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 text-[11px] font-medium rounded-lg sm:rounded-xl border border-emerald-200/80 dark:border-emerald-800/50">
+                  <Zap className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                  <span>Fast 1-Click Checkout Active • PIN Disabled</span>
                 </div>
-                {paymentPinError && (
-                  <p className="text-xs text-rose-500 font-medium text-center">{paymentPinError}</p>
-                )}
-              </div>
-            ) : (
-              <div className="flex items-center justify-center gap-2 py-2 px-3 bg-emerald-50/80 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 text-xs font-medium rounded-xl border border-emerald-200/80 dark:border-emerald-800/50">
-                <Zap className="h-4 w-4 text-emerald-600 shrink-0" />
-                <span>Fast 1-Click Checkout Active • Transaction PIN Disabled</span>
-              </div>
-            )}
+              )}
 
-            <div className="flex items-center gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setShowConfirmation(false)}
-                disabled={isProcessingPayment}
-                className="flex-1 py-3 px-4 rounded-xl border border-[#E5E7EB] dark:border-[#4B5563] text-[#4B5563] dark:text-[#E5E7EB] font-bold text-xs hover:bg-[#E5E7EB] dark:hover:bg-[#111827] transition-colors cursor-pointer disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmPayment}
-                disabled={isProcessingPayment || ((currentUser?.pinRequiredForTransactions !== false && Boolean(currentUser?.hasTransactionPin)) && paymentPin.length !== 4)}
-                className="flex-1 py-3 px-4 rounded-xl bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-bold text-xs transition-all shadow-md shadow-indigo-600/20 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {isProcessingPayment ? (
-                  <>
-                    <SmartLinkLogoMark size="xs" color="#FFFFFF" animating={true} /> Authorizing...
-                  </>
-                ) : (
-                  <>
-                    <ShieldCheck className="h-4 w-4" /> Authorize & Debit Wallet
-                  </>
-                )}
-              </button>
+              <div className="flex items-center gap-2 pt-1.5">
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmation(false)}
+                  disabled={isProcessingPayment}
+                  className="flex-1 py-2 sm:py-2.5 px-3 rounded-lg sm:rounded-xl border border-[#E5E7EB] dark:border-[#4B5563] text-[#4B5563] dark:text-[#E5E7EB] font-bold text-xs hover:bg-[#E5E7EB] dark:hover:bg-[#111827] transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmPayment}
+                  disabled={isProcessingPayment || ((currentUser?.pinRequiredForTransactions !== false && Boolean(currentUser?.hasTransactionPin)) && paymentPin.length !== 4)}
+                  className="flex-1 py-2 sm:py-2.5 px-3 rounded-lg sm:rounded-xl bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold text-xs transition-all shadow-md shadow-indigo-600/20 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5"
+                >
+                  {isProcessingPayment ? (
+                    <>
+                      <SmartLinkLogoMark size="xs" color="#FFFFFF" animating={true} /> Authorizing...
+                    </>
+                  ) : (
+                    <>
+                      <ShieldCheck className="h-3.5 w-3.5" /> Authorize &amp; Debit
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -148,7 +148,7 @@ export default function AdminLogin({ onLoginSuccess, onNavigateHome }: AdminLogi
   };
 
   return (
-    <div id="admin-login-page" className="min-h-screen w-full bg-slate-950 text-slate-100 flex flex-col justify-center items-center p-4 md:p-6 relative overflow-hidden font-sans">
+    <div id="admin-login-page" className="min-h-screen w-full bg-[#F5F7FA] text-[#111827] flex flex-col justify-center items-center p-4 md:p-6 relative overflow-hidden font-sans">
       {/* Verification-Style Admin Login Loader Modal */}
       <LoginLoaderModal
         isOpen={loading}
@@ -163,8 +163,8 @@ export default function AdminLogin({ onLoginSuccess, onNavigateHome }: AdminLogi
       />
 
       {/* Background ambient lighting */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-10 right-10 w-80 h-80 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#0F2D5C]/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-10 right-10 w-80 h-80 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
 
       {/* Main Login Card */}
       <motion.div
@@ -172,11 +172,11 @@ export default function AdminLogin({ onLoginSuccess, onNavigateHome }: AdminLogi
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl relative z-10 space-y-6"
+        className="w-full max-w-md bg-white border border-[#E5E7EB] rounded-3xl p-6 md:p-8 shadow-xl relative z-10 space-y-6 text-[#111827]"
       >
         {/* Header */}
         <div className="text-center space-y-3">
-          <div className="inline-flex items-center justify-center p-3 bg-slate-950 border border-slate-800 rounded-2xl shadow-inner">
+          <div className="inline-flex items-center justify-center p-2.5 bg-white border border-[#E5E7EB] rounded-2xl shadow-2xs">
             <img
               src={activeLogo}
               alt={siteName || "SmartLink Logo"}
@@ -185,14 +185,14 @@ export default function AdminLogin({ onLoginSuccess, onNavigateHome }: AdminLogi
             />
           </div>
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-[11px] font-semibold text-blue-400 mb-1.5 uppercase tracking-wider">
-              <ShieldCheck className="h-3.5 w-3.5 text-blue-400" />
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-[11px] font-bold text-[#0F2D5C] mb-1.5 uppercase tracking-wider">
+              <ShieldCheck className="h-3.5 w-3.5 text-[#0F2D5C]" />
               SmartLink Admin Portal
             </div>
-            <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight">
+            <h1 className="text-xl md:text-2xl font-bold text-[#111827] tracking-tight">
               Administrator Login
             </h1>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-[#4B5563] mt-1">
               Restricted Area — Authenticate with your assigned administrative credentials
             </p>
           </div>
@@ -206,12 +206,12 @@ export default function AdminLogin({ onLoginSuccess, onNavigateHome }: AdminLogi
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="p-3.5 bg-rose-950/40 border border-rose-800 text-rose-300 rounded-xl text-xs flex items-start gap-2.5 leading-relaxed"
+              className="p-3.5 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs flex items-start gap-2.5 leading-relaxed"
             >
-              <AlertCircle className="h-4 w-4 shrink-0 text-rose-400 mt-0.5" />
+              <AlertCircle className="h-4 w-4 shrink-0 text-rose-600 mt-0.5" />
               <div className="flex-1">
-                <p className="font-semibold text-rose-200">Authentication Error</p>
-                <p className="font-normal text-rose-300">{errorMessage}</p>
+                <p className="font-bold text-rose-900">Authentication Error</p>
+                <p className="font-normal text-rose-800">{errorMessage}</p>
               </div>
             </motion.div>
           )}
@@ -222,12 +222,12 @@ export default function AdminLogin({ onLoginSuccess, onNavigateHome }: AdminLogi
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="p-3.5 bg-emerald-950/40 border border-emerald-800 text-emerald-300 rounded-xl text-xs flex items-start gap-2.5 leading-relaxed"
+              className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs flex items-start gap-2.5 leading-relaxed"
             >
-              <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400 mt-0.5" />
+              <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 mt-0.5" />
               <div className="flex-1">
-                <p className="font-semibold text-emerald-200">Session Verified</p>
-                <p className="font-normal text-emerald-300">{successMessage}</p>
+                <p className="font-bold text-emerald-900">Session Verified</p>
+                <p className="font-normal text-emerald-800">{successMessage}</p>
               </div>
             </motion.div>
           )}
@@ -236,9 +236,9 @@ export default function AdminLogin({ onLoginSuccess, onNavigateHome }: AdminLogi
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Email Field */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-              <Mail className="h-4 w-4 text-blue-400" />
+          <div className="space-y-1.5 text-left">
+            <label className="text-xs font-semibold text-[#111827] flex items-center gap-1.5">
+              <Mail className="h-4 w-4 text-[#0F2D5C]" />
               Admin Email Address
             </label>
             <input
@@ -248,15 +248,15 @@ export default function AdminLogin({ onLoginSuccess, onNavigateHome }: AdminLogi
               onChange={(e) => setEmail(e.target.value)}
               placeholder="admin@smartlinkng.com.ng"
               required
-              className="w-full bg-slate-950 border border-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 transition-colors outline-none"
+              className="w-full bg-[#F8FAFC] border border-[#E5E7EB] focus:bg-white focus:border-[#0F2D5C] focus:ring-2 focus:ring-[#0F2D5C]/10 rounded-xl px-4 py-3 text-sm text-[#111827] placeholder-[#6B7280] transition-colors outline-none"
             />
           </div>
 
           {/* Password Field */}
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 text-left">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                <Lock className="h-4 w-4 text-blue-400" />
+              <label className="text-xs font-semibold text-[#111827] flex items-center gap-1.5">
+                <Lock className="h-4 w-4 text-[#0F2D5C]" />
                 Password
               </label>
               <button
@@ -267,7 +267,7 @@ export default function AdminLogin({ onLoginSuccess, onNavigateHome }: AdminLogi
                   setShowForgotModal(true);
                   setForgotResponse(null);
                 }}
-                className="text-xs font-bold text-blue-400 hover:text-blue-300 hover:underline transition-colors cursor-pointer"
+                className="text-xs font-bold text-[#0F2D5C] hover:underline transition-colors cursor-pointer"
               >
                 Forgot Password?
               </button>
@@ -280,12 +280,12 @@ export default function AdminLogin({ onLoginSuccess, onNavigateHome }: AdminLogi
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••••••"
                 required
-                className="w-full bg-slate-950 border border-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl pl-4 pr-12 py-3 text-sm text-white placeholder-slate-500 transition-colors outline-none"
+                className="w-full bg-[#F8FAFC] border border-[#E5E7EB] focus:bg-white focus:border-[#0F2D5C] focus:ring-2 focus:ring-[#0F2D5C]/10 rounded-xl pl-4 pr-12 py-3 text-sm text-[#111827] placeholder-[#6B7280] transition-colors outline-none"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-[#6B7280] hover:text-[#111827] transition-colors cursor-pointer"
               >
                 {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
@@ -298,7 +298,7 @@ export default function AdminLogin({ onLoginSuccess, onNavigateHome }: AdminLogi
               id="admin-submit-btn"
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 px-5 bg-blue-600 hover:bg-blue-500 active:scale-98 text-white font-bold rounded-xl text-sm tracking-wider uppercase transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg disabled:opacity-50 focus:outline-none"
+              className="w-full py-3.5 px-5 bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white font-bold rounded-xl text-sm tracking-wider uppercase transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-50 focus:outline-none"
             >
               {loading ? (
                 <>
@@ -319,7 +319,7 @@ export default function AdminLogin({ onLoginSuccess, onNavigateHome }: AdminLogi
                 id="admin-return-home-btn"
                 type="button"
                 onClick={onNavigateHome}
-                className="w-full py-3 px-5 border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-300 hover:text-white font-semibold rounded-xl text-xs uppercase tracking-wider transition-colors cursor-pointer text-center shadow-xs"
+                className="w-full py-3 px-5 border border-[#E5E7EB] bg-white hover:bg-[#F8FAFC] text-[#4B5563] hover:text-[#111827] font-semibold rounded-xl text-xs uppercase tracking-wider transition-colors cursor-pointer text-center shadow-2xs"
               >
                 Return to Public Application
               </button>
@@ -331,27 +331,27 @@ export default function AdminLogin({ onLoginSuccess, onNavigateHome }: AdminLogi
       {/* Forgot Password Modal */}
       <AnimatePresence>
         {showForgotModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111827]/60 backdrop-blur-xs">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4 relative text-slate-100"
+              className="w-full max-w-sm bg-white border border-[#E5E7EB] rounded-3xl p-6 shadow-2xl space-y-4 relative text-[#111827]"
             >
               <button
                 type="button"
                 onClick={() => setShowForgotModal(false)}
-                className="absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer"
+                className="absolute top-4 right-4 text-[#6B7280] hover:text-[#111827] cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>
 
-              <div className="flex items-center gap-2 text-blue-400">
-                <KeyRound className="h-5 w-5 text-blue-400" />
-                <h3 className="text-sm font-bold text-white">Reset Admin Password</h3>
+              <div className="flex items-center gap-2 text-[#0F2D5C]">
+                <KeyRound className="h-5 w-5 text-[#0F2D5C]" />
+                <h3 className="text-sm font-bold text-[#111827]">Reset Admin Password</h3>
               </div>
 
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-[#4B5563]">
                 Enter your administrative email address to dispatch password recovery instructions.
               </p>
 
@@ -362,11 +362,11 @@ export default function AdminLogin({ onLoginSuccess, onNavigateHome }: AdminLogi
                   onChange={(e) => setForgotEmail(e.target.value)}
                   placeholder="admin@smartlinkng.com.ng"
                   required
-                  className="w-full bg-slate-950 border border-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 outline-none"
+                  className="w-full bg-[#F8FAFC] border border-[#E5E7EB] focus:bg-white focus:border-[#0F2D5C] focus:ring-2 focus:ring-[#0F2D5C]/10 rounded-xl px-3.5 py-2.5 text-xs text-[#111827] placeholder-[#6B7280] outline-none"
                 />
 
                 {forgotResponse && (
-                  <p className="text-[11px] p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-300 font-semibold">
+                  <p className="text-[11px] p-2.5 rounded-xl bg-blue-50 border border-blue-200 text-[#0F2D5C] font-semibold">
                     {forgotResponse}
                   </p>
                 )}
@@ -375,14 +375,14 @@ export default function AdminLogin({ onLoginSuccess, onNavigateHome }: AdminLogi
                   <button
                     type="button"
                     onClick={() => setShowForgotModal(false)}
-                    className="flex-1 py-2 border border-slate-800 hover:bg-slate-800 rounded-xl text-xs font-semibold text-slate-400 hover:text-white cursor-pointer transition-colors"
+                    className="flex-1 py-2 border border-[#E5E7EB] hover:bg-[#F8FAFC] rounded-xl text-xs font-semibold text-[#4B5563] hover:text-[#111827] cursor-pointer transition-colors"
                   >
                     Close
                   </button>
                   <button
                     type="submit"
                     disabled={forgotLoading}
-                    className="flex-1 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer disabled:opacity-50 transition-colors shadow-md"
+                    className="flex-1 py-2 bg-[#0F2D5C] hover:bg-[#17407E] text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1 cursor-pointer disabled:opacity-50 transition-colors shadow-sm"
                   >
                     {forgotLoading ? <SmartLinkLogoMark size="xs" color="#FFFFFF" animating={true} /> : "Send Reset Link"}
                   </button>

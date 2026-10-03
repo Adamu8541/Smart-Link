@@ -102,28 +102,28 @@ export function PolicyUpdateReAcceptanceModal({
   const allSelected = acceptedPolicyIds.length === pendingPolicies.length;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/80 backdrop-blur-xs animate-fadeIn overflow-y-auto">
-      <div className="bg-white rounded-2xl max-w-lg w-full mb-8 p-6 shadow-2xl border border-[#E5E7EB] text-left space-y-5 animate-scaleUp">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-2.5 sm:p-4 bg-[#111827]/80 backdrop-blur-xs animate-fadeIn overflow-hidden">
+      <div className="bg-white rounded-2xl sm:rounded-3xl max-w-md w-full max-h-[82dvh] sm:max-h-[85vh] flex flex-col p-4 sm:p-5 shadow-2xl border border-[#E5E7EB] text-left animate-scaleUp overflow-hidden">
         {/* Header */}
-        <div className="flex items-start gap-3.5">
-          <div className="h-11 w-11 rounded-xl bg-[#F5F7FA] border border-[#E5E7EB] flex items-center justify-center text-[#0F2D5C] shrink-0">
-            <ShieldAlert className="h-6 w-6" />
+        <div className="flex items-start gap-2.5 sm:gap-3.5 pb-2.5 border-b border-[#E5E7EB] shrink-0">
+          <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-[#F5F7FA] border border-[#E5E7EB] flex items-center justify-center text-[#0F2D5C] shrink-0">
+            <ShieldAlert className="h-5 w-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-lg font-bold text-[#111827]">Important Policy Updates</h3>
-              <span className="text-[10px] font-bold uppercase tracking-wider bg-[#E5E7EB] text-[#0F2D5C] px-2 py-0.5 rounded-full">
+              <h3 className="text-sm sm:text-base font-bold text-[#111827]">Important Policy Updates</h3>
+              <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider bg-[#E5E7EB] text-[#0F2D5C] px-1.5 py-0.5 rounded-full">
                 Action Required
               </span>
             </div>
-            <p className="text-xs text-[#6B7280] mt-1 leading-relaxed">
-              We have updated our platform terms to maintain regulatory compliance with NDPA 2023 and enhanced consumer protections. Please review and acknowledge the updated policies below.
+            <p className="text-[11px] sm:text-xs text-[#6B7280] mt-0.5 leading-relaxed">
+              We have updated our platform terms to maintain regulatory compliance with NDPA 2023. Please review and acknowledge below.
             </p>
           </div>
         </div>
 
         {error && (
-          <div className="p-3 bg-[#F5F7FA] border border-[#E5E7EB] text-[#0F2D5C] text-xs rounded-xl font-medium">
+          <div className="p-2.5 bg-[#F5F7FA] border border-[#E5E7EB] text-[#0F2D5C] text-xs rounded-xl font-medium mt-2">
             {error}
           </div>
         )}
@@ -176,7 +176,7 @@ export function PolicyUpdateReAcceptanceModal({
         </div>
 
         {/* Select all bar */}
-        <div className="flex items-center justify-between text-xs pt-1 border-t border-[#E5E7EB]">
+        <div className="flex items-center justify-between text-[11px] pt-1.5 border-t border-[#E5E7EB]">
           <button
             type="button"
             onClick={handleSelectAll}
@@ -184,25 +184,25 @@ export function PolicyUpdateReAcceptanceModal({
           >
             {allSelected ? "Deselect All" : "Select All Policies"}
           </button>
-          <span className="text-[#9CA3AF] text-[11px]">
+          <span className="text-[#9CA3AF] text-[10px]">
             {acceptedPolicyIds.length} of {pendingPolicies.length} selected
           </span>
         </div>
 
         {/* Action Buttons */}
-        <div className="pt-2">
+        <div className="pt-1.5">
           <button
             type="button"
             disabled={!allSelected || loading}
             onClick={handleConfirmReAcceptance}
-            className="w-full py-3 bg-[#0F2D5C] hover:bg-[#0F2D5C] disabled:opacity-50 text-white font-bold rounded-xl text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-blue-500/10 disabled:cursor-not-allowed"
+            className="w-full py-2.5 bg-[#0F2D5C] hover:bg-[#17407E] disabled:opacity-50 text-white font-bold rounded-xl text-xs sm:text-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-blue-500/10 disabled:cursor-not-allowed"
           >
             {loading ? (
               <span>Recording Agreement...</span>
             ) : (
               <>
                 <CheckCircle2 className="h-4 w-4" />
-                <span>Agree & Continue to SmartLink</span>
+                <span>Agree &amp; Continue to SmartLink</span>
               </>
             )}
           </button>

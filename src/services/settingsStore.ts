@@ -111,6 +111,22 @@ export async function syncFromStorage(dbObj: any): Promise<void> {
     if (fsDoc.siteSettings && Object.keys(fsDoc.siteSettings).length > 0) {
       dbObj.siteSettings = fsDoc.siteSettings;
     }
+    if (Array.isArray(fsDoc.api_providers) && fsDoc.api_providers.length > 0) {
+      dbObj.api_providers = fsDoc.api_providers;
+      dbObj.apiProviders = fsDoc.api_providers;
+    } else if (Array.isArray(fsDoc.apiProviders) && fsDoc.apiProviders.length > 0) {
+      dbObj.api_providers = fsDoc.apiProviders;
+      dbObj.apiProviders = fsDoc.apiProviders;
+    }
+    if (Array.isArray(fsDoc.provider_routing_rules) && fsDoc.provider_routing_rules.length > 0) {
+      dbObj.provider_routing_rules = fsDoc.provider_routing_rules;
+      dbObj.providerRoutingRules = fsDoc.provider_routing_rules;
+      dbObj.routing_rules = fsDoc.provider_routing_rules;
+    }
+    if (Array.isArray(fsDoc.servicesCatalog) && fsDoc.servicesCatalog.length > 0) {
+      dbObj.servicesCatalog = fsDoc.servicesCatalog;
+      dbObj.services_catalog = fsDoc.servicesCatalog;
+    }
   }
 }
 
@@ -118,6 +134,12 @@ export async function syncToStorage(dbObj: any): Promise<void> {
   const providers = (Array.isArray(dbObj.api_providers) && dbObj.api_providers.length > 0)
     ? dbObj.api_providers
     : (Array.isArray(dbObj.apiProviders) && dbObj.apiProviders.length > 0 ? dbObj.apiProviders : []);
+
+  const routingRules = (Array.isArray(dbObj.provider_routing_rules) && dbObj.provider_routing_rules.length > 0)
+    ? dbObj.provider_routing_rules
+    : (Array.isArray(dbObj.providerRoutingRules) && dbObj.providerRoutingRules.length > 0
+        ? dbObj.providerRoutingRules
+        : (Array.isArray(dbObj.routing_rules) ? dbObj.routing_rules : []));
 
   const services = (Array.isArray(dbObj.servicesCatalog) && dbObj.servicesCatalog.length > 0)
     ? dbObj.servicesCatalog
@@ -130,6 +152,9 @@ export async function syncToStorage(dbObj: any): Promise<void> {
     platform_configuration: dbObj.platform_configuration,
     apiProviders: providers,
     api_providers: providers,
+    provider_routing_rules: routingRules,
+    providerRoutingRules: routingRules,
+    routing_rules: routingRules,
     servicesCatalog: services,
     services_catalog: services,
     priceMatrix: dbObj.priceMatrix,

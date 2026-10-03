@@ -296,30 +296,30 @@ export const BvnPhoneVerificationView: React.FC<BvnPhoneVerificationViewProps> =
   );
 
   return (
-    <div className="w-full max-w-xl mx-auto bg-white rounded-3xl shadow-xl border border-slate-200/80 overflow-hidden font-sans select-text">
+    <div className="w-full max-w-xl mx-auto bg-white rounded-2xl sm:rounded-3xl shadow-xl border border-slate-200/80 overflow-hidden font-sans select-text">
       {/* 1. Top Header Banner - SmartLink NG Navy Gradient */}
-      <div className="bg-gradient-to-r from-[#0F2D5C] via-[#1E3A8A] to-[#0F2D5C] p-5 text-white flex items-center justify-between shadow-xs">
-        <div className="flex items-center gap-3.5">
+      <div className="bg-gradient-to-r from-[#0F2D5C] via-[#1E3A8A] to-[#0F2D5C] p-3.5 sm:p-5 text-white flex items-center justify-between shadow-xs">
+        <div className="flex items-center gap-2.5 sm:gap-3.5">
           {onBackToDashboard ? (
             <button
               type="button"
               onClick={onBackToDashboard}
-              className="p-2 -ml-1 text-white/80 hover:text-white hover:bg-white/10 rounded-xl transition-colors cursor-pointer"
+              className="p-1.5 -ml-1 text-white/80 hover:text-white hover:bg-white/10 rounded-xl transition-colors cursor-pointer"
               title="Back"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           ) : (
-            <div className="w-11 h-11 bg-white/20 rounded-2xl flex items-center justify-center shrink-0">
-              <Phone className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 sm:w-11 sm:h-11 bg-white/20 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0">
+              <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </div>
           )}
 
           <div>
-            <h1 className="text-lg sm:text-xl font-bold tracking-tight text-white flex items-center gap-2">
+            <h1 className="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-1.5">
               {serviceTitle}
             </h1>
-            <p className="text-xs text-white/80">
+            <p className="text-[10px] sm:text-xs text-white/80">
               Query &amp; verify Bank Verification Number (BVN) via registered phone number
             </p>
           </div>
@@ -329,45 +329,45 @@ export const BvnPhoneVerificationView: React.FC<BvnPhoneVerificationViewProps> =
           <button
             type="button"
             onClick={onBackToDashboard}
-            className="p-2 -mr-1 text-white/80 hover:text-white hover:bg-white/10 rounded-xl transition-colors cursor-pointer"
+            className="p-1.5 -mr-1 text-white/80 hover:text-white hover:bg-white/10 rounded-xl transition-colors cursor-pointer"
             title="Close"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         )}
       </div>
 
       {/* 2. Tabs Bar */}
-      <div className="bg-slate-100/90 p-2 border-b border-slate-200/80 flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <div className="bg-slate-100/90 p-1.5 sm:p-2 border-b border-slate-200/80 flex items-center justify-between">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <button
             type="button"
             onClick={() => setActiveTab("VERIFY")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
               activeTab === "VERIFY"
                 ? "bg-[#0F2D5C] text-white shadow-xs"
                 : "bg-white text-slate-700 hover:bg-slate-200"
             }`}
           >
-            <UserCheck className="w-4 h-4" />
+            <UserCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <span>BVN Phone Verify</span>
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("HISTORY")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
               activeTab === "HISTORY"
                 ? "bg-[#0F2D5C] text-white shadow-xs"
                 : "bg-white text-slate-700 hover:bg-slate-200"
             }`}
           >
-            <History className="w-4 h-4" />
+            <History className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <span>Audit History</span>
           </button>
         </div>
 
         <div className="text-right px-2">
-          <span className="text-[10px] text-slate-500 block uppercase font-bold">Wallet Balance</span>
+          <span className="text-[9px] sm:text-[10px] text-slate-500 block uppercase font-bold">Wallet Balance</span>
           <span className="font-mono text-xs font-extrabold text-[#0F2D5C]">
             {formatNaira(userBalance)}
           </span>
@@ -375,14 +375,14 @@ export const BvnPhoneVerificationView: React.FC<BvnPhoneVerificationViewProps> =
       </div>
 
       {/* Main Content Body */}
-      <div className="p-4 sm:p-6 space-y-6 bg-white">
+      <div className="p-3 sm:p-5 space-y-3.5 sm:space-y-5 bg-white">
         {activeTab === "VERIFY" && stepMode === "INPUT" && (
-          <div className="space-y-6">
+          <div className="space-y-3.5 sm:space-y-5">
             {/* SECTION 1: SLIP TYPE & PREVIEW */}
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-2.5">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-[#0F2D5C]" />
-                <h2 className="text-xs font-black text-slate-700 tracking-wider uppercase">
+                <h2 className="text-[11px] sm:text-xs font-black text-slate-700 tracking-wider uppercase">
                   SLIP TYPE &amp; PREVIEW
                 </h2>
               </div>
@@ -396,7 +396,7 @@ export const BvnPhoneVerificationView: React.FC<BvnPhoneVerificationViewProps> =
                     const found = availableSlips.find((s) => s.id === e.target.value);
                     setSelectedSlip(found || null);
                   }}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 px-4 text-xs sm:text-sm font-semibold text-slate-800 appearance-none focus:outline-hidden focus:ring-2 focus:ring-[#0F2D5C] shadow-2xs cursor-pointer pr-10"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl sm:rounded-2xl py-2.5 px-3 sm:py-3 sm:px-4 text-xs sm:text-sm font-semibold text-slate-800 appearance-none focus:outline-hidden focus:ring-2 focus:ring-[#0F2D5C] shadow-2xs cursor-pointer pr-10"
                 >
                   <option value="">- choose a slip type -</option>
                   {availableSlips.map((opt) => (
@@ -405,11 +405,11 @@ export const BvnPhoneVerificationView: React.FC<BvnPhoneVerificationViewProps> =
                     </option>
                   ))}
                 </select>
-                <ChevronDown className="pointer-events-none absolute right-3.5 top-3.5 w-4 h-4 text-slate-500" />
+                <ChevronDown className="pointer-events-none absolute right-3.5 top-3 w-4 h-4 text-slate-500" />
               </div>
 
               {/* Live Slip Preview Box */}
-              <div className="border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50 p-6 flex flex-col items-center justify-center min-h-[160px] text-center shadow-inner">
+              <div className="border-2 border-dashed border-slate-200 rounded-xl sm:rounded-2xl bg-slate-50/50 p-3 sm:p-5 flex flex-col items-center justify-center min-h-[110px] sm:min-h-[140px] text-center shadow-inner">
                 {selectedSlip ? (
                   <div className="w-full">
                     <SlipLivePreviewCard
@@ -419,12 +419,15 @@ export const BvnPhoneVerificationView: React.FC<BvnPhoneVerificationViewProps> =
                     />
                   </div>
                 ) : (
-                  <div className="space-y-2 py-2">
-                    <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center mx-auto shadow-2xs">
-                      <Folder className="w-6 h-6" />
+                  <div className="space-y-1.5 py-1">
+                    <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center mx-auto shadow-2xs">
+                      <Folder className="w-5 h-5" />
                     </div>
                     <p className="text-xs font-semibold text-slate-500">
                       Select a slip type to see a preview
+                    </p>
+                    <p className="text-[10px] text-amber-700 font-medium max-w-xs mx-auto pt-0.5">
+                      Note: The generated card/slip is for verification purposes only and is not an official NIMC document
                     </p>
                   </div>
                 )}
@@ -432,28 +435,28 @@ export const BvnPhoneVerificationView: React.FC<BvnPhoneVerificationViewProps> =
 
               {/* Auto Display Price / Fee Layer Down the Preview */}
               {selectedSlip && (
-                <div className="mt-3 bg-[#0F2D5C] text-white rounded-2xl p-4 shadow-md border border-[#0F2D5C]/80 flex items-center justify-between transition-all">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-amber-400/20 border border-amber-400/30 flex items-center justify-center font-bold text-amber-300 text-sm font-mono shadow-inner">
+                <div className="mt-2 bg-[#0F2D5C] text-white rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 shadow-md border border-[#0F2D5C]/80 flex items-center justify-between transition-all">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-amber-400/20 border border-amber-400/30 flex items-center justify-center font-bold text-amber-300 text-xs font-mono shadow-inner">
                       ₦
                     </div>
                     <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-black uppercase tracking-wider text-amber-300">
-                          {selectedSlip.name} Service Fee
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[11px] sm:text-xs font-black uppercase tracking-wider text-amber-300">
+                          {selectedSlip.name} Fee
                         </span>
-                        <span className="text-[10px] bg-white/10 text-slate-200 px-2.5 py-0.5 rounded-full border border-white/20 font-semibold">
+                        <span className="text-[9px] bg-white/10 text-slate-200 px-2 py-0.2 rounded-full border border-white/20 font-semibold">
                           {selectedSlip.badge}
                         </span>
                       </div>
-                      <p className="text-[11px] text-slate-200 font-medium mt-0.5">
-                        Auto-deducted from wallet on successful lookup
+                      <p className="text-[10px] text-slate-200 font-medium">
+                        Auto-deducted on successful lookup
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className="text-xs text-slate-300 block font-medium">Price</span>
-                    <span className="text-lg font-black text-amber-300 font-mono">
+                    <span className="text-[10px] text-slate-300 block font-medium">Price</span>
+                    <span className="text-base sm:text-lg font-black text-amber-300 font-mono">
                       {formatNaira(selectedSlip.price ?? 0)}
                     </span>
                   </div>
@@ -462,21 +465,21 @@ export const BvnPhoneVerificationView: React.FC<BvnPhoneVerificationViewProps> =
             </div>
 
             {/* SECTION 2: 11-DIGIT PHONE NUMBER INPUT */}
-            <div className="space-y-3 pt-2">
+            <div className="space-y-2 pt-1">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-[#0F2D5C]" />
-                <h2 className="text-xs font-black text-slate-700 tracking-wider uppercase">
+                <h2 className="text-[11px] sm:text-xs font-black text-slate-700 tracking-wider uppercase">
                   ENTER REGISTERED PHONE NUMBER
                 </h2>
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 <div className="flex items-center justify-between">
                   <label htmlFor="bvn-phone-input" className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                     <Phone className="w-3.5 h-3.5 text-[#0F2D5C]" />
                     Registered Phone Number <span className="text-red-500">*</span>
                   </label>
-                  <span className="text-[11px] font-mono text-slate-400">
+                  <span className="text-[10px] font-mono text-slate-400">
                     {phoneNumber.length}/11 digits
                   </span>
                 </div>
@@ -487,18 +490,18 @@ export const BvnPhoneVerificationView: React.FC<BvnPhoneVerificationViewProps> =
                   value={phoneNumber}
                   onChange={handlePhoneChange}
                   placeholder="e.g. 08012345678"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 px-4 font-mono text-base tracking-widest text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-[#0F2D5C]"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl sm:rounded-2xl py-2.5 px-3 sm:py-3 sm:px-4 font-mono text-sm sm:text-base tracking-wider text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-[#0F2D5C]"
                 />
-                <p className="text-[11px] text-slate-500 flex items-center gap-1.5 pt-0.5">
-                  <Lock className="w-3.5 h-3.5 text-[#0F2D5C] shrink-0" />
+                <p className="text-[10px] text-slate-500 flex items-center gap-1 pt-0.5">
+                  <Lock className="w-3 h-3 text-[#0F2D5C] shrink-0" />
                   <span>Enter the 11-digit phone number registered to the BVN record.</span>
                 </p>
               </div>
             </div>
 
             {/* SECTION 3: CONSENT CHECKBOX */}
-            <div className="space-y-3 pt-2">
-              <div className="flex items-start gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+            <div className="space-y-2 pt-1">
+              <div className="flex items-start gap-2.5 bg-slate-50 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl border border-slate-200">
                 <input
                   type="checkbox"
                   id="bvnPhoneConsent"
@@ -507,9 +510,9 @@ export const BvnPhoneVerificationView: React.FC<BvnPhoneVerificationViewProps> =
                     setHasConsent(e.target.checked);
                     if (inputError) setInputError(null);
                   }}
-                  className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#0F2D5C] focus:ring-[#0F2D5C] cursor-pointer"
+                  className="mt-0.5 h-3.5 w-3.5 rounded border-slate-300 text-[#0F2D5C] focus:ring-[#0F2D5C] cursor-pointer"
                 />
-                <label htmlFor="bvnPhoneConsent" className="text-xs text-slate-600 cursor-pointer leading-relaxed">
+                <label htmlFor="bvnPhoneConsent" className="text-[11px] sm:text-xs text-slate-600 cursor-pointer leading-relaxed">
                   <strong className="text-slate-800 font-bold block mb-0.5">Mandatory NDPR &amp; NIBSS Consent Declaration</strong>
                   I confirm that I have explicit lawful consent from the BVN holder to perform this identity verification and print the requested slip format.
                 </label>
@@ -518,7 +521,7 @@ export const BvnPhoneVerificationView: React.FC<BvnPhoneVerificationViewProps> =
 
             {/* Error Message if any */}
             {inputError && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-2xl text-xs text-red-600 flex items-center gap-2 font-medium">
+              <div className="p-2.5 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600 flex items-center gap-1.5 font-medium">
                 <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
                 <span>{inputError}</span>
               </div>

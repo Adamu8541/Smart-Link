@@ -39,18 +39,18 @@ export const LandingHowItWorks: React.FC<LandingHowItWorksProps> = ({ onGetStart
   ];
 
   return (
-    <section id="how-it-works-section" aria-labelledby="how-it-works-heading" className="py-20 bg-[#F5F7FA] border-b border-[#E5E7EB]">
+    <section id="how-it-works-section" aria-labelledby="how-it-works-heading" className="py-8 sm:py-12 bg-[#F5F7FA] border-b border-[#E5E7EB]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="text-center space-y-4 max-w-3xl mx-auto mb-16">
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-[#0F2D5C] border border-[#E5E7EB] shadow-2xs">
+        <div className="text-center space-y-2 max-w-3xl mx-auto mb-8 sm:mb-10">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-white text-[#0F2D5C] border border-[#E5E7EB] shadow-2xs">
             Simple 4-Step Process
           </span>
-          <h2 id="how-it-works-heading" className="text-3xl sm:text-4.5xl font-bold text-[#111827] tracking-tight">
+          <h2 id="how-it-works-heading" className="text-2xl sm:text-3.5xl lg:text-4xl font-bold text-[#111827] tracking-tight">
             How SmartLink Works
           </h2>
-          <p className="text-sm text-[#374151] font-normal leading-relaxed max-w-xl mx-auto">
+          <p className="text-xs sm:text-sm text-[#4B5563] font-normal leading-relaxed max-w-xl mx-auto">
             Get started in minutes. Experience automated processing with direct verification connections and instant wallet settlement.
           </p>
         </div>
@@ -61,32 +61,32 @@ export const LandingHowItWorks: React.FC<LandingHowItWorksProps> = ({ onGetStart
           {/* Desktop Connecting Line Visual */}
           <div className="hidden lg:block absolute top-1/2 left-12 right-12 h-0.5 bg-[#E5E7EB] -translate-y-6 pointer-events-none" />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {steps.map((step, idx) => {
               const IconComponent = step.icon;
               return (
                 <div
                   key={step.number}
                   id={`step-card-${idx + 1}`}
-                  className="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-[0_4px_12px_rgba(15,23,42,0.06)] hover:border-[#0F2D5C] transition-all duration-300 relative z-10 flex flex-col justify-between group"
+                  className="bg-white border border-[#E5E7EB] rounded-xl p-4 sm:p-5 shadow-xs hover:border-[#0F2D5C] transition-all duration-200 relative z-10 flex flex-col justify-between group"
                 >
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {/* Step Icon Header */}
                     <div className="flex items-center justify-between">
-                      <div className="h-12 w-12 rounded-2xl bg-[#0F2D5C] text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform duration-200">
-                        <IconComponent className="h-6 w-6 text-white" aria-hidden="true" />
+                      <div className="h-10 w-10 rounded-xl bg-[#0F2D5C] text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform duration-200">
+                        <IconComponent className="h-5 w-5 text-white" aria-hidden="true" />
                       </div>
-                      <span className="text-xs font-bold text-[#374151] bg-[#F5F7FA] border border-[#E5E7EB] px-2.5 py-1 rounded-full">
+                      <span className="text-[11px] font-bold text-[#374151] bg-[#F5F7FA] border border-[#E5E7EB] px-2 py-0.5 rounded-full">
                         Step {step.number}
                       </span>
                     </div>
 
                     {/* Step Details */}
                     <div>
-                      <h3 className="text-base font-bold text-[#111827] group-hover:text-[#0F2D5C] transition-colors">
+                      <h3 className="text-sm sm:text-base font-bold text-[#111827] group-hover:text-[#0F2D5C] transition-colors">
                         {step.title}
                       </h3>
-                      <p className="text-xs text-[#374151] font-normal leading-relaxed mt-2">
+                      <p className="text-xs text-[#4B5563] font-normal leading-relaxed mt-1">
                         {step.description}
                       </p>
                     </div>
@@ -98,12 +98,12 @@ export const LandingHowItWorks: React.FC<LandingHowItWorksProps> = ({ onGetStart
         </div>
 
         {/* CTA Banner under steps */}
-        <div className="mt-14 text-center">
+        <div className="mt-8 sm:mt-10 text-center">
           <button
             id="how-it-works-cta-btn"
             type="button"
             onClick={onGetStarted}
-            className="min-h-[48px] px-8 py-3.5 bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white font-bold rounded-xl text-sm shadow-xs transition-colors cursor-pointer inline-flex items-center justify-center gap-2 touch-manipulation"
+            className="min-h-[42px] px-6 sm:px-7 py-2.5 bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white font-bold rounded-xl text-xs sm:text-sm shadow-xs transition-colors cursor-pointer inline-flex items-center justify-center gap-2 touch-manipulation"
           >
             <span>Start Your First Verification Now</span>
             <ArrowRight className="h-4 w-4" aria-hidden="true" />

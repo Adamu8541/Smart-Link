@@ -96,7 +96,7 @@ export function EditProfileModal({ isOpen, onClose, session, onSuccess, user }: 
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="w-full max-w-lg bg-[#111827] border border-[#111827] rounded-3xl p-6 shadow-2xl relative"
+        className="w-full max-w-lg bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-6 shadow-2xl relative"
       >
         <button
           type="button"
@@ -280,7 +280,7 @@ export function StatusChangeModal({ isOpen, onClose, session, onSuccess, user, t
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="w-full max-w-md bg-[#111827] border border-[#111827] rounded-3xl p-6 shadow-2xl relative"
+        className="w-full max-w-md bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-6 shadow-2xl relative"
       >
         <button
           type="button"
@@ -421,7 +421,7 @@ export function WalletAdjustmentModal({ isOpen, onClose, session, onSuccess, use
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="w-full max-w-md bg-[#111827] border border-[#111827] rounded-3xl p-6 shadow-2xl relative"
+        className="w-full max-w-md bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-6 shadow-2xl relative"
       >
         <button
           type="button"
@@ -589,7 +589,7 @@ export function SendNotificationModal({ isOpen, onClose, session, onSuccess, use
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="w-full max-w-md bg-[#111827] border border-[#111827] rounded-3xl p-6 shadow-2xl relative"
+        className="w-full max-w-md bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-6 shadow-2xl relative"
       >
         <button
           type="button"
@@ -745,7 +745,7 @@ export function BulkActionModal({ isOpen, onClose, session, onSuccess, selectedU
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="w-full max-w-md bg-[#111827] border border-[#111827] rounded-3xl p-6 shadow-2xl relative"
+        className="w-full max-w-md bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-6 shadow-2xl relative"
       >
         <button
           type="button"

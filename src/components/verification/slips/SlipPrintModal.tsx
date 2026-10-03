@@ -525,51 +525,51 @@ export const SlipPrintModal: React.FC<SlipPrintModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center p-3 sm:p-6 pt-4 sm:pt-8 pb-12 bg-[#111827]/80 backdrop-blur-sm animate-fade-in overflow-y-auto print:p-0 print:bg-white print:static">
-      <div className="w-full max-w-5xl bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] mb-8 print:max-h-none print:shadow-none print:border-none print:rounded-none">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-[#111827]/80 backdrop-blur-xs animate-fade-in overflow-hidden print:p-0 print:bg-white print:static">
+      <div className="w-full max-w-4xl bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-slate-800 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[82dvh] sm:max-h-[86vh] print:max-h-none print:shadow-none print:border-none print:rounded-none">
         {/* Modal Header Controls (Hidden during direct print) */}
-        <div className="p-4 sm:p-5 border-b border-[#E5E7EB] dark:border-[#111827] flex flex-wrap items-center justify-between gap-3 bg-[#F5F7FA]/80 dark:bg-[#111827]/50 print:hidden">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#0F2D5C] text-white flex items-center justify-center shadow-md shadow-emerald-600/20">
-              <ShieldCheck className="h-5 w-5" />
+        <div className="p-3 sm:p-4 border-b border-[#E5E7EB] dark:border-[#111827] flex flex-wrap items-center justify-between gap-2.5 bg-[#F5F7FA]/80 dark:bg-[#111827]/50 print:hidden shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-[#0F2D5C] text-white flex items-center justify-center shadow-md shadow-emerald-600/20 shrink-0">
+              <ShieldCheck className="h-4 w-4" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-base font-extrabold text-[#111827] dark:text-white">
-                  Official Identity Slip Generator & Print Engine
+              <div className="flex items-center gap-1.5">
+                <h3 className="text-sm sm:text-base font-extrabold text-[#111827] dark:text-white truncate max-w-[220px] sm:max-w-none">
+                  Official Identity Slip Generator &amp; Print Engine
                 </h3>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-50 text-[#0F2D5C] dark:bg-blue-950/50 dark:text-blue-300 border border-slate-200 dark:border-slate-700">
+                <span className="px-1.5 py-0.2 rounded-full text-[9px] font-black bg-blue-50 text-[#0F2D5C] dark:bg-blue-950/50 dark:text-blue-300 border border-slate-200 dark:border-slate-700 shrink-0">
                   REAL VERIFIED
                 </span>
               </div>
-              <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">
-                Government-compliant printable slips with scannable 2D QR authentication &amp; instant email dispatch
+              <p className="text-[10px] sm:text-xs text-[#6B7280] dark:text-[#9CA3AF]">
+                Government-compliant printable slips with scannable 2D QR authentication
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <button
               type="button"
               onClick={() => setShowEmailPanel(!showEmailPanel)}
-              className={`px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+              className={`px-2.5 py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold flex items-center gap-1 transition-all cursor-pointer ${
                 showEmailPanel
                   ? "bg-[#0F2D5C] text-white shadow-md shadow-purple-600/20"
                   : "bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 border border-slate-200 dark:border-slate-700 hover:bg-[#E5E7EB] dark:hover:bg-[#0F2D5C]/40"
               }`}
               title="Email official verification slip"
             >
-              <Mail className="h-4 w-4" />
+              <Mail className="h-3.5 w-3.5" />
               <span>Email Slip</span>
-              {showEmailPanel ? <ChevronUp className="h-3.5 w-3.5 ml-0.5" /> : <ChevronDown className="h-3.5 w-3.5 ml-0.5" />}
+              {showEmailPanel ? <ChevronUp className="h-3 w-3 ml-0.5" /> : <ChevronDown className="h-3 w-3 ml-0.5" />}
             </button>
 
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-xl text-[#9CA3AF] hover:text-[#4B5563] dark:hover:text-[#E5E7EB] hover:bg-[#E5E7EB]/50 dark:hover:bg-[#4B5563]/50 transition-colors cursor-pointer"
+              className="p-1.5 rounded-lg text-[#9CA3AF] hover:text-[#4B5563] dark:hover:text-[#E5E7EB] hover:bg-[#E5E7EB]/50 dark:hover:bg-[#4B5563]/50 transition-colors cursor-pointer"
             >
-              <X className="h-5 w-5" />
+              <X className="h-4 w-4" />
             </button>
           </div>
         </div>
@@ -798,7 +798,7 @@ export const SlipPrintModal: React.FC<SlipPrintModalProps> = ({
           {activeSlip ? (
             <div className="w-full flex flex-col items-center justify-center">
               {/* Slip Card Render Container targeted by ID */}
-              <div id="active-printable-slip" className="w-full max-w-xl flex items-center justify-center p-2 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+              <div id="active-printable-slip" className="w-full max-w-xl flex flex-col items-center justify-center p-2 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden space-y-2">
                 {isBvn ? (
                   selectedFormat === "BVN_SLIP_1" || (selectedFormat as any) === "BVN_SLIP" ? (
                     <img src="/assets/BVN%20Slip%201.webp" alt="BVN Slip" loading="eager" referrerPolicy="no-referrer" className="w-full h-auto object-contain rounded-xl" />
@@ -832,6 +832,9 @@ export const SlipPrintModal: React.FC<SlipPrintModalProps> = ({
                     />
                   )
                 )}
+                <div className="w-full text-center px-2.5 py-1.5 text-[11px] font-medium text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 rounded-lg border border-amber-200/80 dark:border-amber-800/50 print:text-[10px] print:border-gray-300 print:text-gray-700 leading-relaxed">
+                  Note: The generated card/slip is for verification purposes only and is not an official NIMC document
+                </div>
               </div>
             </div>
           ) : (

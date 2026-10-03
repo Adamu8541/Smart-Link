@@ -257,15 +257,15 @@ export default function UserManagementAdmin({
       </div>
 
       {/* Filters bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow-xl">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-xl">
         <div className="relative flex-1 w-full sm:w-auto">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-[#6B7280]" />
           <input
             type="text"
             placeholder="Search by user name, email, or phone..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs focus:border-blue-500 text-white placeholder:text-slate-500 outline-none"
+            className="w-full pl-9 pr-3 py-2 bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl text-xs focus:border-blue-500 text-white placeholder:text-[#9CA3AF] outline-none"
           />
         </div>
 
@@ -273,7 +273,7 @@ export default function UserManagementAdmin({
           <select
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
-            className="px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-medium text-slate-200 outline-none focus:border-blue-500 cursor-pointer"
+            className="px-3 py-2 bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl text-xs font-medium text-[#111827] outline-none focus:border-blue-500 cursor-pointer"
           >
             <option value="ALL">All Roles</option>
             <option value={UserRole.CUSTOMER}>Customer</option>
@@ -287,7 +287,7 @@ export default function UserManagementAdmin({
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-medium text-slate-200 outline-none focus:border-blue-500 cursor-pointer"
+            className="px-3 py-2 bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl text-xs font-medium text-[#111827] outline-none focus:border-blue-500 cursor-pointer"
           >
             <option value="ALL">All Statuses</option>
             <option value="ACTIVE">Active</option>
@@ -297,10 +297,10 @@ export default function UserManagementAdmin({
       </div>
 
       {/* Directory Table */}
-      <div className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-xl">
+      <div className="bg-white rounded-2xl border border-[#E5E7EB] overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-200">
-            <thead className="bg-slate-950/90 text-[10px] uppercase font-bold text-slate-400 border-b border-slate-800">
+          <table className="w-full text-left text-xs text-[#111827]">
+            <thead className="bg-[#F8FAFC]/90 text-[10px] uppercase font-bold text-[#6B7280] border-b border-[#E5E7EB]">
               <tr>
                 <th className="p-3">User</th>
                 <th className="p-3">Role & Claims</th>
@@ -310,16 +310,16 @@ export default function UserManagementAdmin({
                 <th className="p-3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-[#E5E7EB]/60">
               {filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-6 text-center text-slate-400 text-xs">
+                  <td colSpan={6} className="p-6 text-center text-[#6B7280] text-xs">
                     No users found matching your search parameters.
                   </td>
                 </tr>
               ) : (
                 filteredUsers.map((u) => (
-                  <tr key={u.uid} className="hover:bg-slate-800/40 transition-colors">
+                  <tr key={u.uid} className="hover:bg-[#F8FAFC] transition-colors">
                     <td className="p-3">
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 font-bold flex items-center justify-center text-sm shrink-0">
@@ -327,7 +327,7 @@ export default function UserManagementAdmin({
                         </div>
                         <div>
                           <div className="font-bold text-white leading-tight">{u.fullName}</div>
-                          <div className="text-[11px] text-slate-400 font-mono">{u.email}</div>
+                          <div className="text-[11px] text-[#6B7280] font-mono">{u.email}</div>
                         </div>
                       </div>
                     </td>
@@ -340,7 +340,7 @@ export default function UserManagementAdmin({
                             ? "bg-blue-500/10 text-blue-300 border-blue-500/20"
                             : u.role === UserRole.FINANCE_OFFICER
                             ? "bg-amber-500/10 text-amber-300 border-amber-500/20"
-                            : "bg-slate-800 text-slate-300 border-slate-700"
+                            : "bg-[#F8FAFC] text-[#4B5563] border-[#E5E7EB]"
                         }`}
                       >
                         <Shield className="h-3 w-3" />
@@ -357,7 +357,7 @@ export default function UserManagementAdmin({
                           VERIFIED
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-[#F8FAFC] text-[#6B7280] border border-[#E5E7EB]">
                           UNVERIFIED
                         </span>
                       )}
@@ -380,21 +380,21 @@ export default function UserManagementAdmin({
                         <button
                           onClick={() => handleFetchUserHistory(u)}
                           title="View Login History"
-                          className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-all cursor-pointer"
+                          className="p-1.5 rounded-lg bg-[#F8FAFC] hover:bg-gray-100 text-[#4B5563] hover:text-white border border-[#E5E7EB] transition-all cursor-pointer"
                         >
                           <Clock className="h-3.5 w-3.5" />
                         </button>
                         <button
                           onClick={() => handleTriggerPasswordReset(u)}
                           title="Trigger Password Reset Email"
-                          className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-all cursor-pointer"
+                          className="p-1.5 rounded-lg bg-[#F8FAFC] hover:bg-gray-100 text-[#4B5563] hover:text-white border border-[#E5E7EB] transition-all cursor-pointer"
                         >
                           <Key className="h-3.5 w-3.5" />
                         </button>
                         <button
                           onClick={() => handleOpenRoleModal(u)}
                           title="Modify Role & Claims"
-                          className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-all cursor-pointer"
+                          className="p-1.5 rounded-lg bg-[#F8FAFC] hover:bg-gray-100 text-[#4B5563] hover:text-white border border-[#E5E7EB] transition-all cursor-pointer"
                         >
                           <Sliders className="h-3.5 w-3.5" />
                         </button>
@@ -404,7 +404,7 @@ export default function UserManagementAdmin({
                           className={`p-1.5 rounded-lg transition-all cursor-pointer border ${
                             u.status === "SUSPENDED"
                               ? "bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border-emerald-500/30"
-                              : "bg-slate-800 text-slate-300 hover:bg-slate-700 border-slate-700"
+                              : "bg-[#F8FAFC] text-[#4B5563] hover:bg-gray-100 border-[#E5E7EB]"
                           }`}
                         >
                           {u.status === "SUSPENDED" ? <Unlock className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
@@ -422,15 +422,15 @@ export default function UserManagementAdmin({
       {/* MODAL: EDIT ROLE & CUSTOM CLAIMS */}
       {editingRoleUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-fade-in overflow-y-auto">
-          <div className="w-full max-w-lg bg-slate-900 rounded-3xl p-6 border border-slate-800 shadow-2xl my-8 text-slate-100">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-800 mb-4">
+          <div className="w-full max-w-lg bg-white rounded-3xl p-6 border border-[#E5E7EB] shadow-2xl my-8 text-[#111827]">
+            <div className="flex items-center justify-between pb-4 border-b border-[#E5E7EB] mb-4">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <ShieldCheck className="h-5 w-5 text-blue-400" />
                 Edit Access Rights for {editingRoleUser.fullName}
               </h3>
               <button
                 onClick={() => setEditingRoleUser(null)}
-                className="text-slate-400 hover:text-white text-sm font-bold p-1 rounded-lg hover:bg-slate-800 cursor-pointer"
+                className="text-[#6B7280] hover:text-white text-sm font-bold p-1 rounded-lg hover:bg-[#F8FAFC] cursor-pointer"
               >
                 ✕
               </button>
@@ -438,11 +438,11 @@ export default function UserManagementAdmin({
 
             <form onSubmit={handleSaveRoleAndClaims} className="space-y-4 text-xs">
               <div>
-                <label className="block text-slate-300 font-bold mb-1">Assigned User Role</label>
+                <label className="block text-[#4B5563] font-bold mb-1">Assigned User Role</label>
                 <select
                   value={newRole}
                   onChange={(e) => setNewRole(e.target.value as UserRole)}
-                  className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl font-bold text-white outline-none focus:border-blue-500 cursor-pointer"
+                  className="w-full p-2.5 bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl font-bold text-white outline-none focus:border-blue-500 cursor-pointer"
                 >
                   <option value={UserRole.CUSTOMER}>Customer (Standard User)</option>
                   <option value={UserRole.STAFF}>Staff Member</option>
@@ -458,70 +458,70 @@ export default function UserManagementAdmin({
               </div>
 
               {/* Secure Custom Claims checkboxes */}
-              <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2">
+              <div className="bg-[#F8FAFC] p-4 rounded-2xl border border-[#E5E7EB] space-y-2">
                 <h4 className="font-bold text-white mb-2 flex items-center gap-1.5">
                   <Award className="h-4 w-4 text-blue-400" />
                   Secure Custom Claims Assignment
                 </h4>
                 
-                <label className="flex items-center gap-2 text-slate-300 cursor-pointer">
+                <label className="flex items-center gap-2 text-[#4B5563] cursor-pointer">
                   <input
                     type="checkbox"
                     checked={Boolean(customClaims.superAdmin)}
                     disabled={!isSuperAdmin}
                     onChange={(e) => setCustomClaims({ ...customClaims, superAdmin: e.target.checked })}
-                    className="rounded bg-slate-900 border-slate-700 text-blue-600 focus:ring-0 cursor-pointer"
+                    className="rounded bg-white border-[#E5E7EB] text-blue-600 focus:ring-0 cursor-pointer"
                   />
                   <span>superAdmin = true</span>
                 </label>
 
-                <label className="flex items-center gap-2 text-slate-300 cursor-pointer">
+                <label className="flex items-center gap-2 text-[#4B5563] cursor-pointer">
                   <input
                     type="checkbox"
                     checked={Boolean(customClaims.admin)}
                     disabled={!isSuperAdmin}
                     onChange={(e) => setCustomClaims({ ...customClaims, admin: e.target.checked })}
-                    className="rounded bg-slate-900 border-slate-700 text-blue-600 focus:ring-0 cursor-pointer"
+                    className="rounded bg-white border-[#E5E7EB] text-blue-600 focus:ring-0 cursor-pointer"
                   />
                   <span>admin = true</span>
                 </label>
 
-                <label className="flex items-center gap-2 text-slate-300 cursor-pointer">
+                <label className="flex items-center gap-2 text-[#4B5563] cursor-pointer">
                   <input
                     type="checkbox"
                     checked={Boolean(customClaims.staff)}
                     onChange={(e) => setCustomClaims({ ...customClaims, staff: e.target.checked })}
-                    className="rounded bg-slate-900 border-slate-700 text-blue-600 focus:ring-0 cursor-pointer"
+                    className="rounded bg-white border-[#E5E7EB] text-blue-600 focus:ring-0 cursor-pointer"
                   />
                   <span>staff = true</span>
                 </label>
 
-                <label className="flex items-center gap-2 text-slate-300 cursor-pointer">
+                <label className="flex items-center gap-2 text-[#4B5563] cursor-pointer">
                   <input
                     type="checkbox"
                     checked={Boolean(customClaims.support)}
                     onChange={(e) => setCustomClaims({ ...customClaims, support: e.target.checked })}
-                    className="rounded bg-slate-900 border-slate-700 text-blue-600 focus:ring-0 cursor-pointer"
+                    className="rounded bg-white border-[#E5E7EB] text-blue-600 focus:ring-0 cursor-pointer"
                   />
                   <span>support = true</span>
                 </label>
 
-                <label className="flex items-center gap-2 text-slate-300 cursor-pointer">
+                <label className="flex items-center gap-2 text-[#4B5563] cursor-pointer">
                   <input
                     type="checkbox"
                     checked={Boolean(customClaims.finance)}
                     onChange={(e) => setCustomClaims({ ...customClaims, finance: e.target.checked })}
-                    className="rounded bg-slate-900 border-slate-700 text-blue-600 focus:ring-0 cursor-pointer"
+                    className="rounded bg-white border-[#E5E7EB] text-blue-600 focus:ring-0 cursor-pointer"
                   />
                   <span>finance = true</span>
                 </label>
               </div>
 
-              <div className="pt-4 flex items-center justify-end gap-2 border-t border-slate-800">
+              <div className="pt-4 flex items-center justify-end gap-2 border-t border-[#E5E7EB]">
                 <button
                   type="button"
                   onClick={() => setEditingRoleUser(null)}
-                  className="px-4 py-2 rounded-xl font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+                  className="px-4 py-2 rounded-xl font-bold text-[#6B7280] hover:text-white hover:bg-[#F8FAFC] transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -540,18 +540,18 @@ export default function UserManagementAdmin({
       {/* MODAL: VIEW LOGIN HISTORY */}
       {viewHistoryUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-fade-in overflow-y-auto">
-          <div className="w-full max-w-2xl bg-slate-900 rounded-3xl p-6 border border-slate-800 shadow-2xl my-8 text-slate-100">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-800 mb-4">
+          <div className="w-full max-w-2xl bg-white rounded-3xl p-6 border border-[#E5E7EB] shadow-2xl my-8 text-[#111827]">
+            <div className="flex items-center justify-between pb-4 border-b border-[#E5E7EB] mb-4">
               <div>
                 <h3 className="text-base font-bold text-white flex items-center gap-2">
                   <Clock className="h-5 w-5 text-blue-400" />
                   Security Login Audit Trail
                 </h3>
-                <p className="text-xs text-slate-400">History for {viewHistoryUser.fullName} ({viewHistoryUser.email})</p>
+                <p className="text-xs text-[#6B7280]">History for {viewHistoryUser.fullName} ({viewHistoryUser.email})</p>
               </div>
               <button
                 onClick={() => setViewHistoryUser(null)}
-                className="text-slate-400 hover:text-white text-sm font-bold p-1 rounded-lg hover:bg-slate-800 cursor-pointer"
+                className="text-[#6B7280] hover:text-white text-sm font-bold p-1 rounded-lg hover:bg-[#F8FAFC] cursor-pointer"
               >
                 ✕
               </button>
@@ -559,14 +559,14 @@ export default function UserManagementAdmin({
 
             <div className="max-h-96 overflow-y-auto space-y-2 font-mono text-xs">
               {userLogs.length === 0 ? (
-                <div className="p-8 text-center text-slate-500 font-sans">
+                <div className="p-8 text-center text-[#9CA3AF] font-sans">
                   No login history sessions recorded for this user yet.
                 </div>
               ) : (
                 userLogs.map((log, idx) => (
                   <div
                     key={log.id ? `ulog-${log.id}-${idx}` : `ulog-${idx}`}
-                    className="p-3 bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-between"
+                    className="p-3 bg-[#F8FAFC] rounded-xl border border-[#E5E7EB] flex items-center justify-between"
                   >
                     <div>
                       <div className="flex items-center gap-2">
@@ -581,7 +581,7 @@ export default function UserManagementAdmin({
                           {log.status}
                         </span>
                       </div>
-                      <div className="text-[11px] text-slate-400 mt-0.5">
+                      <div className="text-[11px] text-[#6B7280] mt-0.5">
                         IP: {log.ipAddress} • {log.browser} on {log.os} ({log.deviceType})
                       </div>
                     </div>
@@ -590,10 +590,10 @@ export default function UserManagementAdmin({
               )}
             </div>
 
-            <div className="pt-4 flex justify-end border-t border-slate-800 mt-4">
+            <div className="pt-4 flex justify-end border-t border-[#E5E7EB] mt-4">
               <button
                 onClick={() => setViewHistoryUser(null)}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl font-bold cursor-pointer text-xs transition-colors"
+                className="px-4 py-2 bg-[#F8FAFC] hover:bg-gray-100 text-[#4B5563] hover:text-white rounded-xl font-bold cursor-pointer text-xs transition-colors"
               >
                 Close Audit
               </button>

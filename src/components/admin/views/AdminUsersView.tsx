@@ -266,7 +266,7 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
   const verifiedCount = users.filter((u) => (u as any).verificationStatus === "VERIFIED" || u.isVerified).length;
 
   return (
-    <div className="space-y-6 font-sans">
+    <div className="space-y-6 font-sans text-[#111827]">
       {/* Toast Notification */}
       <AnimatePresence>
         {toast && (
@@ -274,30 +274,32 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className={`fixed top-5 right-5 z-50 p-4 rounded-2xl border shadow-2xl flex items-center gap-3 text-xs font-bold text-white ${
-              toast.type === "success" ? "bg-emerald-700 border-emerald-500 text-white" : "bg-red-700 border-red-500 text-white"
+            className={`fixed top-5 right-5 z-50 p-4 rounded-xl border shadow-lg flex items-center gap-3 text-xs font-bold ${
+              toast.type === "success"
+                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                : "bg-rose-50 text-rose-700 border-rose-200"
             }`}
           >
-            {toast.type === "success" ? <CheckCircle2 className="h-5 w-5 text-emerald-200" /> : <AlertTriangle className="h-5 w-5 text-red-200" />}
+            {toast.type === "success" ? <CheckCircle2 className="h-5 w-5 text-emerald-600" /> : <AlertTriangle className="h-5 w-5 text-rose-600" />}
             <span>{toast.msg}</span>
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* Header Bar */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 space-y-6 shadow-xl">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+      <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6 md:p-8 space-y-6 shadow-xs text-left">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E5E7EB] pb-5">
           <div className="flex items-center gap-3.5">
-            <div className="p-3 bg-slate-800 border border-slate-700 rounded-2xl text-blue-400">
+            <div className="p-3 bg-[#F5F7FA] border border-[#E5E7EB] rounded-2xl text-[#0F2D5C]">
               <Users className="h-7 w-7" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-400">User Governance Engine</span>
-                <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-blue-950/70 text-blue-300 border border-blue-800/80">MODULE 3 ACTIVE</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">User Governance Engine</span>
+                <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-[#F5F7FA] text-[#0F2D5C] border border-[#E5E7EB]">MODULE 3 ACTIVE</span>
               </div>
-              <h1 className="text-xl md:text-2xl font-bold text-white">SmartLink Users Directory</h1>
-              <p className="text-xs text-slate-400 mt-0.5">Manage user profiles, account statuses, wallet floats, KYC verifications, and audit controls.</p>
+              <h1 className="text-xl md:text-2xl font-bold text-[#111827]">SmartLink Users Directory</h1>
+              <p className="text-xs text-[#6B7280] mt-0.5">Manage user profiles, account statuses, wallet floats, KYC verifications, and audit controls.</p>
             </div>
           </div>
 
@@ -305,53 +307,53 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
             <button
               type="button"
               onClick={() => setIsExportModalOpen(true)}
-              className="py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-100 border border-slate-700 rounded-xl text-xs font-bold flex items-center gap-2 transition-colors cursor-pointer shadow-xs"
+              className="py-2.5 px-4 bg-[#F8FAFC] hover:bg-[#F0F5FA] text-[#0F2D5C] border border-[#E5E7EB] rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-xs active:scale-95"
             >
-              <Download className="h-4 w-4 text-blue-400" /> Export Data ({filteredUsers.length})
+              <Download className="h-4 w-4 text-[#0F2D5C]" /> Export Data ({filteredUsers.length})
             </button>
 
             <button
               type="button"
               onClick={fetchUsers}
               disabled={refreshing}
-              className="py-2.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-100 border border-slate-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50 shadow-xs"
+              className="py-2.5 px-3 bg-[#F8FAFC] hover:bg-[#F0F5FA] text-[#0F2D5C] border border-[#E5E7EB] rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 shadow-xs"
             >
-              <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin text-blue-400" : "text-slate-300"}`} />
+              <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin text-[#0F2D5C]" : "text-[#0F2D5C]"}`} />
             </button>
           </div>
         </div>
 
         {/* Metrics Bar */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="p-4 bg-slate-950/60 border border-slate-800 rounded-2xl shadow-xs">
-            <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Total Directory Users</p>
-            <p className="text-xl font-extrabold text-white mt-1">{users.length} Accounts</p>
+          <div className="p-4 bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl shadow-xs">
+            <p className="text-[10px] text-[#6B7280] uppercase font-bold tracking-wider">Total Directory Users</p>
+            <p className="text-xl font-extrabold text-[#111827] mt-1">{users.length} Accounts</p>
           </div>
 
-          <div className="p-4 bg-slate-950/60 border border-slate-800 rounded-2xl shadow-xs">
-            <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Active User Accounts</p>
-            <p className="text-xl font-extrabold text-emerald-400 mt-1">{activeCount} Active</p>
+          <div className="p-4 bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl shadow-xs">
+            <p className="text-[10px] text-[#6B7280] uppercase font-bold tracking-wider">Active User Accounts</p>
+            <p className="text-xl font-extrabold text-emerald-600 mt-1">{activeCount} Active</p>
           </div>
 
-          <div className="p-4 bg-slate-950/60 border border-slate-800 rounded-2xl shadow-xs">
-            <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Suspended / Disabled</p>
-            <p className="text-xl font-extrabold text-rose-400 mt-1">{suspendedCount} Suspended</p>
+          <div className="p-4 bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl shadow-xs">
+            <p className="text-[10px] text-[#6B7280] uppercase font-bold tracking-wider">Suspended / Disabled</p>
+            <p className="text-xl font-extrabold text-rose-600 mt-1">{suspendedCount} Suspended</p>
           </div>
 
-          <div className="p-4 bg-slate-950/60 border border-slate-800 rounded-2xl shadow-xs">
-            <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Combined Wallet Float</p>
-            <p className="text-xl font-extrabold text-blue-400 mt-1 font-mono">
+          <div className="p-4 bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl shadow-xs">
+            <p className="text-[10px] text-[#6B7280] uppercase font-bold tracking-wider">Combined Wallet Float</p>
+            <p className="text-xl font-extrabold text-[#0F2D5C] mt-1 font-mono">
               ₦{totalBalanceSum.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
             </p>
           </div>
         </div>
 
         {/* Search & Multi-Filters Toolbar */}
-        <div className="p-4 bg-slate-950/70 border border-slate-800 rounded-2xl space-y-3">
+        <div className="p-4 bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl space-y-3">
           <div className="flex flex-col md:flex-row gap-3">
             {/* Search Input */}
             <div className="flex-1 relative">
-              <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-500" />
+              <Search className="absolute left-3.5 top-3 h-4 w-4 text-[#6B7280]" />
               <input
                 type="text"
                 value={searchQuery}
@@ -360,7 +362,7 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
                   setCurrentPage(1);
                 }}
                 placeholder="Search by Name, Username, Email, Phone, or User ID..."
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white text-xs font-medium focus:outline-hidden focus:ring-2 focus:ring-blue-500/50 placeholder:text-slate-500"
+                className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] text-xs font-medium focus:outline-hidden focus:border-[#0F2D5C] placeholder:text-[#9CA3AF]"
               />
             </div>
 
@@ -373,7 +375,7 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
                   setStatusFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-slate-200 font-medium focus:outline-hidden cursor-pointer"
+                className="px-3 py-2.5 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] font-medium focus:outline-hidden cursor-pointer"
               >
                 <option value="ALL">Status: All</option>
                 <option value="ACTIVE">Active Users</option>
@@ -390,7 +392,7 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
                   setVerificationFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-slate-200 font-medium focus:outline-hidden cursor-pointer"
+                className="px-3 py-2.5 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] font-medium focus:outline-hidden cursor-pointer"
               >
                 <option value="ALL">Verification: All</option>
                 <option value="VERIFIED">Verified (NIN/BVN)</option>
@@ -405,7 +407,7 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
                   setRoleFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-slate-200 font-medium focus:outline-hidden cursor-pointer"
+                className="px-3 py-2.5 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] font-medium focus:outline-hidden cursor-pointer"
               >
                 <option value="ALL">Role: All Roles</option>
                 <option value={UserRole.CUSTOMER}>Customer</option>
@@ -423,7 +425,7 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
                   setDateRange(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-slate-200 font-medium focus:outline-hidden cursor-pointer"
+                className="px-3 py-2.5 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] font-medium focus:outline-hidden cursor-pointer"
               >
                 <option value="ALL">Reg Date: All Time</option>
                 <option value="24H">Last 24 Hours</option>
@@ -439,10 +441,10 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="p-3 bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800/80 rounded-xl flex items-center justify-between text-xs font-bold text-blue-900 dark:text-blue-200 flex-wrap gap-2"
+              className="p-3 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-between text-xs font-bold text-[#0F2D5C] flex-wrap gap-2"
             >
               <div className="flex items-center gap-2">
-                <Sliders className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <Sliders className="h-4 w-4 text-[#0F2D5C]" />
                 <span>{selectedUserIds.length} users selected for bulk action</span>
               </div>
 
@@ -464,14 +466,14 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
                 <button
                   type="button"
                   onClick={() => setBulkActionType("BROADCAST")}
-                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg cursor-pointer transition-colors shadow-xs"
+                  className="px-3 py-1.5 bg-[#0F2D5C] hover:bg-[#17407E] text-white rounded-lg cursor-pointer transition-colors shadow-xs"
                 >
                   Broadcast Alert
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelectedUserIds([])}
-                  className="px-2.5 py-1.5 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-100 rounded-lg cursor-pointer transition-colors"
+                  className="px-2.5 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-lg cursor-pointer transition-colors"
                 >
                   Clear Selection
                 </button>
@@ -481,10 +483,10 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
         </div>
 
         {/* Data Table */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+        <div className="bg-white border border-[#E5E7EB] rounded-2xl overflow-hidden shadow-xs text-left">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-slate-200">
-              <thead className="bg-slate-950/70 border-b border-slate-800 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            <table className="w-full text-left text-xs text-[#111827]">
+              <thead className="bg-[#F8FAFC] border-b border-[#E5E7EB] text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">
                 <tr>
                   <th className="p-4 w-10 text-center">
                     <input
@@ -494,52 +496,52 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
                         paginatedUsers.every((u) => selectedUserIds.includes(u.uid))
                       }
                       onChange={handleSelectAllOnPage}
-                      className="rounded-xs border-slate-600 bg-slate-800 text-blue-500 focus:ring-0 cursor-pointer"
+                      className="rounded-xs border-[#E5E7EB] text-[#0F2D5C] focus:ring-0 cursor-pointer"
                     />
                   </th>
-                  <th className="p-4 cursor-pointer hover:text-white" onClick={() => { setSortField("fullName"); setSortOrder(sortOrder === "asc" ? "desc" : "asc"); }}>
+                  <th className="p-4 cursor-pointer hover:text-[#0F2D5C]" onClick={() => { setSortField("fullName"); setSortOrder(sortOrder === "asc" ? "desc" : "asc"); }}>
                     <div className="flex items-center gap-1.5">
                       User Identity
-                      <ArrowUpDown className="h-3 w-3 text-slate-500" />
+                      <ArrowUpDown className="h-3 w-3 text-[#6B7280]" />
                     </div>
                   </th>
                   <th className="p-4">Contact Info</th>
                   <th className="p-4">Role & KYC</th>
-                  <th className="p-4 cursor-pointer hover:text-white" onClick={() => { setSortField("walletBalance"); setSortOrder(sortOrder === "asc" ? "desc" : "asc"); }}>
+                  <th className="p-4 cursor-pointer hover:text-[#0F2D5C]" onClick={() => { setSortField("walletBalance"); setSortOrder(sortOrder === "asc" ? "desc" : "asc"); }}>
                     <div className="flex items-center gap-1.5">
                       Wallet Float
-                      <ArrowUpDown className="h-3 w-3 text-slate-500" />
+                      <ArrowUpDown className="h-3 w-3 text-[#6B7280]" />
                     </div>
                   </th>
                   <th className="p-4">Verification</th>
-                  <th className="p-4 cursor-pointer hover:text-white" onClick={() => { setSortField("status"); setSortOrder(sortOrder === "asc" ? "desc" : "asc"); }}>
+                  <th className="p-4 cursor-pointer hover:text-[#0F2D5C]" onClick={() => { setSortField("status"); setSortOrder(sortOrder === "asc" ? "desc" : "asc"); }}>
                     <div className="flex items-center gap-1.5">
                       Status
-                      <ArrowUpDown className="h-3 w-3 text-slate-500" />
+                      <ArrowUpDown className="h-3 w-3 text-[#6B7280]" />
                     </div>
                   </th>
-                  <th className="p-4 cursor-pointer hover:text-white" onClick={() => { setSortField("createdAt"); setSortOrder(sortOrder === "asc" ? "desc" : "asc"); }}>
+                  <th className="p-4 cursor-pointer hover:text-[#0F2D5C]" onClick={() => { setSortField("createdAt"); setSortOrder(sortOrder === "asc" ? "desc" : "asc"); }}>
                     <div className="flex items-center gap-1.5">
                       Reg Date
-                      <ArrowUpDown className="h-3 w-3 text-slate-500" />
+                      <ArrowUpDown className="h-3 w-3 text-[#6B7280]" />
                     </div>
                   </th>
                   <th className="p-4 text-right">Actions</th>
                 </tr>
               </thead>
 
-              <tbody className="divide-y divide-slate-800/70 font-medium">
+              <tbody className="divide-y divide-[#E5E7EB] font-medium">
                 {loading ? (
                   <tr>
-                    <td colSpan={9} className="py-16 text-center text-slate-400">
-                      <RefreshCw className="h-8 w-8 animate-spin text-blue-400 mx-auto mb-2" />
+                    <td colSpan={9} className="py-16 text-center text-[#6B7280]">
+                      <RefreshCw className="h-8 w-8 animate-spin text-[#0F2D5C] mx-auto mb-2" />
                       Loading User Registry...
                     </td>
                   </tr>
                 ) : paginatedUsers.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="py-16 text-center text-slate-400">
-                      <Users className="h-10 w-10 text-slate-600 mx-auto mb-2" />
+                    <td colSpan={9} className="py-16 text-center text-[#6B7280]">
+                      <Users className="h-10 w-10 text-[#9CA3AF] mx-auto mb-2" />
                       No user accounts match the selected filters or search criteria.
                     </td>
                   </tr>
@@ -551,8 +553,8 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
                     return (
                       <tr
                         key={u.uid}
-                        className={`hover:bg-slate-800/50 transition-colors ${
-                          isSelected ? "bg-blue-950/40" : ""
+                        className={`hover:bg-[#F8FAFC] transition-colors ${
+                          isSelected ? "bg-blue-50/50" : ""
                         }`}
                       >
                         {/* Checkbox */}
@@ -561,25 +563,25 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => handleToggleSelectUser(u.uid)}
-                            className="rounded-xs border-slate-600 bg-slate-800 text-blue-500 focus:ring-0 cursor-pointer"
+                            className="rounded-xs border-[#E5E7EB] text-[#0F2D5C] focus:ring-0 cursor-pointer"
                           />
                         </td>
 
                         {/* Name & Avatar */}
                         <td className="p-4">
                           <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 rounded-xl bg-blue-950/70 border border-blue-800/80 flex items-center justify-center text-blue-300 font-bold shrink-0 text-xs">
+                            <div className="h-9 w-9 rounded-xl bg-[#F5F7FA] border border-[#E5E7EB] flex items-center justify-center text-[#0F2D5C] font-bold shrink-0 text-xs">
                               {u.fullName ? u.fullName.substring(0, 2).toUpperCase() : "US"}
                             </div>
                             <div>
                               <button
                                 type="button"
                                 onClick={() => setActiveDrawerUserId(u.uid)}
-                                className="font-bold text-white hover:text-blue-400 text-left transition-colors cursor-pointer"
+                                className="font-bold text-[#111827] hover:text-[#0F2D5C] text-left transition-colors cursor-pointer"
                               >
                                 {u.fullName}
                               </button>
-                              <p className="text-[11px] text-slate-400 font-mono">
+                              <p className="text-[11px] text-[#6B7280] font-mono">
                                 {(u as any).username || "@" + (u.fullName || "user").toLowerCase().replace(/\s+/g, "")}
                               </p>
                             </div>
@@ -588,31 +590,31 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
 
                         {/* Email & Phone */}
                         <td className="p-4 font-mono text-[11px]">
-                          <p className="text-slate-200 font-medium">{u.email}</p>
-                          <p className="text-slate-400">{u.phoneNumber || "+2348000000000"}</p>
+                          <p className="text-[#111827] font-medium">{u.email}</p>
+                          <p className="text-[#6B7280]">{u.phoneNumber || "+2348000000000"}</p>
                         </td>
 
                         {/* Role & KYC */}
                         <td className="p-4">
-                          <span className="px-2.5 py-0.5 rounded-full font-mono text-[10px] font-bold bg-slate-800 text-slate-200 border border-slate-700">
+                          <span className="px-2.5 py-0.5 rounded-full font-mono text-[10px] font-bold bg-[#F5F7FA] text-[#0F2D5C] border border-[#E5E7EB]">
                             {u.role}
                           </span>
-                          <p className="text-[10px] text-slate-400 mt-1">Tier {(u as any).kycLevel || 1}</p>
+                          <p className="text-[10px] text-[#6B7280] mt-1">Tier {(u as any).kycLevel || 1}</p>
                         </td>
 
                         {/* Wallet Balance */}
-                        <td className="p-4 font-mono font-bold text-white text-sm">
+                        <td className="p-4 font-mono font-bold text-[#111827] text-sm">
                           ₦{(Number(u.walletBalance) || 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}
                         </td>
 
                         {/* Verification */}
                         <td className="p-4">
                           {isVerif ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/70 text-emerald-300 border border-emerald-800">
-                              <CheckCircle2 className="h-3 w-3 text-emerald-400" /> VERIFIED
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              <CheckCircle2 className="h-3 w-3 text-emerald-600" /> VERIFIED
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#F5F7FA] text-[#6B7280] border border-[#E5E7EB]">
                               UNVERIFIED
                             </span>
                           )}
@@ -623,10 +625,10 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
                           <span
                             className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
                               (u.status || "ACTIVE") === "ACTIVE"
-                                ? "bg-emerald-950/70 text-emerald-300 border-emerald-800"
+                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                                 : (u.status || "ACTIVE") === "SUSPENDED"
-                                ? "bg-amber-950/70 text-amber-300 border-amber-800"
-                                : "bg-rose-950/70 text-rose-300 border-rose-800"
+                                ? "bg-amber-50 text-amber-700 border-amber-200"
+                                : "bg-rose-50 text-rose-700 border-rose-200"
                             }`}
                           >
                             {u.status || "ACTIVE"}
@@ -634,7 +636,7 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
                         </td>
 
                         {/* Reg Date */}
-                        <td className="p-4 text-[11px] text-slate-400">
+                        <td className="p-4 text-[11px] text-[#6B7280]">
                           {u.createdAt ? new Date(u.createdAt).toLocaleDateString("en-NG", { dateStyle: "short" }) : "N/A"}
                         </td>
 
@@ -645,7 +647,7 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
                               type="button"
                               onClick={() => setActiveDrawerUserId(u.uid)}
                               title="View User Details"
-                              className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg cursor-pointer transition-colors"
+                              className="p-1.5 bg-[#F8FAFC] hover:bg-[#F0F5FA] text-[#0F2D5C] border border-[#E5E7EB] rounded-lg cursor-pointer transition-colors shadow-xs"
                             >
                               <Eye className="h-3.5 w-3.5" />
                             </button>
@@ -654,7 +656,7 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
                               type="button"
                               onClick={() => setEditingUser(u)}
                               title="Edit User Profile"
-                              className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg cursor-pointer transition-colors"
+                              className="p-1.5 bg-[#F8FAFC] hover:bg-[#F0F5FA] text-[#0F2D5C] border border-[#E5E7EB] rounded-lg cursor-pointer transition-colors shadow-xs"
                             >
                               <Edit className="h-3.5 w-3.5" />
                             </button>
@@ -663,7 +665,7 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
                               type="button"
                               onClick={() => setWalletModalUser(u)}
                               title="Adjust Wallet Float"
-                              className="p-1.5 bg-blue-950/70 hover:bg-blue-900 text-blue-300 border border-blue-800 rounded-lg cursor-pointer transition-colors"
+                              className="p-1.5 bg-[#F8FAFC] hover:bg-[#F0F5FA] text-[#0F2D5C] border border-[#E5E7EB] rounded-lg cursor-pointer transition-colors shadow-xs"
                             >
                               <Wallet className="h-3.5 w-3.5" />
                             </button>
@@ -672,7 +674,7 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
                               type="button"
                               onClick={() => handleResetPassword(u)}
                               title="Reset User Password"
-                              className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg cursor-pointer transition-colors"
+                              className="p-1.5 bg-[#F8FAFC] hover:bg-[#F0F5FA] text-[#0F2D5C] border border-[#E5E7EB] rounded-lg cursor-pointer transition-colors shadow-xs"
                             >
                               <Key className="h-3.5 w-3.5" />
                             </button>
@@ -682,7 +684,7 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
                                 type="button"
                                 onClick={() => { setStatusModalUser(u); setTargetStatus("SUSPENDED"); }}
                                 title="Suspend Account"
-                                className="p-1.5 bg-rose-950/70 hover:bg-rose-900 text-rose-300 border border-rose-800 rounded-lg cursor-pointer transition-colors"
+                                className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg cursor-pointer transition-colors shadow-xs"
                               >
                                 <Lock className="h-3.5 w-3.5" />
                               </button>
@@ -691,7 +693,7 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
                                 type="button"
                                 onClick={() => { setStatusModalUser(u); setTargetStatus("ACTIVE"); }}
                                 title="Activate Account"
-                                className="p-1.5 bg-emerald-950/70 hover:bg-emerald-900 text-emerald-300 border border-emerald-800 rounded-lg cursor-pointer transition-colors"
+                                className="p-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg cursor-pointer transition-colors shadow-xs"
                               >
                                 <Unlock className="h-3.5 w-3.5" />
                               </button>
@@ -707,23 +709,23 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
           </div>
 
           {/* Pagination Controls Footer */}
-          <div className="p-4 bg-slate-950/80 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400 flex-wrap gap-4">
+          <div className="p-4 bg-[#F8FAFC] border-t border-[#E5E7EB] flex items-center justify-between text-xs text-[#6B7280] flex-wrap gap-4">
             <div className="flex items-center gap-2">
               <span>Rows per page:</span>
               <select
                 value={pageSize}
                 onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}
-                className="px-2.5 py-1 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 font-medium cursor-pointer"
+                className="px-2.5 py-1 bg-white border border-[#E5E7EB] rounded-lg text-[#111827] font-medium cursor-pointer"
               >
                 <option value={10}>10</option>
                 <option value={25}>25</option>
                 <option value={50}>50</option>
                 <option value={100}>100</option>
               </select>
-              <span className="pl-2 border-l border-slate-700">
-                Showing <strong className="text-white">{sortedUsers.length > 0 ? (currentPage - 1) * pageSize + 1 : 0}</strong> to{" "}
-                <strong className="text-white">{Math.min(currentPage * pageSize, sortedUsers.length)}</strong> of{" "}
-                <strong className="text-white">{sortedUsers.length}</strong> users
+              <span className="pl-2 border-l border-[#E5E7EB]">
+                Showing <strong className="text-[#111827]">{sortedUsers.length > 0 ? (currentPage - 1) * pageSize + 1 : 0}</strong> to{" "}
+                <strong className="text-[#111827]">{Math.min(currentPage * pageSize, sortedUsers.length)}</strong> of{" "}
+                <strong className="text-[#111827]">{sortedUsers.length}</strong> users
               </span>
             </div>
 
@@ -732,7 +734,7 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
                 type="button"
                 onClick={() => setCurrentPage(1)}
                 disabled={currentPage === 1}
-                className="p-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-lg cursor-pointer disabled:opacity-40"
+                className="p-1.5 bg-white hover:bg-[#F5F7FA] border border-[#E5E7EB] text-[#111827] rounded-lg cursor-pointer disabled:opacity-40"
               >
                 <ChevronsLeft className="h-4 w-4" />
               </button>
@@ -740,18 +742,18 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
                 type="button"
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="p-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-lg cursor-pointer disabled:opacity-40"
+                className="p-1.5 bg-white hover:bg-[#F5F7FA] border border-[#E5E7EB] text-[#111827] rounded-lg cursor-pointer disabled:opacity-40"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
-              <span className="px-3 font-bold text-slate-200">
+              <span className="px-3 font-bold text-[#111827]">
                 Page {currentPage} of {totalPages}
               </span>
               <button
                 type="button"
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="p-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-lg cursor-pointer disabled:opacity-40"
+                className="p-1.5 bg-white hover:bg-[#F5F7FA] border border-[#E5E7EB] text-[#111827] rounded-lg cursor-pointer disabled:opacity-40"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
@@ -759,7 +761,7 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
                 type="button"
                 onClick={() => setCurrentPage(totalPages)}
                 disabled={currentPage === totalPages}
-                className="p-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-lg cursor-pointer disabled:opacity-40"
+                className="p-1.5 bg-white hover:bg-[#F5F7FA] border border-[#E5E7EB] text-[#111827] rounded-lg cursor-pointer disabled:opacity-40"
               >
                 <ChevronsRight className="h-4 w-4" />
               </button>

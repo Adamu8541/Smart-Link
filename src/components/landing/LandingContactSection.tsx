@@ -104,44 +104,44 @@ export const LandingContactSection: React.FC<LandingContactSectionProps> = ({
   return (
     <section
       id="contact-section"
-      className={`py-20 bg-white border-t border-[#E5E7EB] scroll-mt-20 ${className}`}
+      className={`py-10 sm:py-14 bg-white border-t border-[#E5E7EB] scroll-mt-20 ${className}`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 text-xs font-bold uppercase tracking-wider">
-            <MessageSquare className="h-3.5 w-3.5" />
+        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10 space-y-2">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 text-[11px] font-bold uppercase tracking-wider">
+            <MessageSquare className="h-3 w-3" />
             Official Communications Desk
           </div>
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#111827] tracking-tight">
+          <h2 className="text-2xl sm:text-3.5xl font-bold text-[#111827] tracking-tight">
             Get in Touch with Our Team
           </h2>
-          <p className="text-sm sm:text-base text-[#4B5563] font-normal leading-relaxed">
+          <p className="text-xs sm:text-sm text-[#4B5563] font-normal leading-relaxed">
             Have questions about CAC filings, automated API integration, identity verifications, or wallet funding? We're here to help.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
           
           {/* Left Column: Contact Channels & Credentials */}
-          <div className="lg:col-span-5 space-y-6">
+          <div className="lg:col-span-5 space-y-4 sm:space-y-5">
             
             {/* Direct Cards */}
-            <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl p-6 sm:p-7 space-y-6">
-              <h3 className="text-base font-bold text-[#111827] flex items-center gap-2">
+            <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-4 sm:p-5 space-y-4">
+              <h3 className="text-sm sm:text-base font-bold text-[#111827] flex items-center gap-2">
                 <Building2 className="h-4 w-4 text-[#0F2D5C]" />
                 Direct Communication Channels
               </h3>
 
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {/* Email Desk */}
-                <div className="flex items-start gap-3.5 p-3.5 bg-white border border-[#E5E7EB] rounded-xl">
-                  <div className="h-10 w-10 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 flex items-center justify-center shrink-0">
-                    <Mail className="h-5 w-5" />
+                <div className="flex items-start gap-3 p-3 bg-white border border-[#E5E7EB] rounded-lg">
+                  <div className="h-8 w-8 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 flex items-center justify-center shrink-0">
+                    <Mail className="h-4 w-4" />
                   </div>
                   <div className="space-y-0.5 text-left">
-                    <span className="text-[11px] font-bold text-[#6B7280] uppercase tracking-wider block">
+                    <span className="text-[10px] font-bold text-[#4B5563] uppercase tracking-wider block">
                       Support Email
                     </span>
                     <a
@@ -150,20 +150,20 @@ export const LandingContactSection: React.FC<LandingContactSectionProps> = ({
                     >
                       Smartlinkcomputerbusiness@gmail.com
                     </a>
-                    <span className="text-[10px] text-[#9CA3AF] block">
-                      Official ticketing & compliance desk
+                    <span className="text-[11px] text-[#4B5563] font-medium block">
+                      Official ticketing &amp; compliance desk
                     </span>
                   </div>
                 </div>
 
                 {/* Telephone */}
-                <div className="flex items-start gap-3.5 p-3.5 bg-white border border-[#E5E7EB] rounded-xl">
-                  <div className="h-10 w-10 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 flex items-center justify-center shrink-0">
-                    <Phone className="h-5 w-5" />
+                <div className="flex items-start gap-3 p-3 bg-white border border-[#E5E7EB] rounded-lg">
+                  <div className="h-8 w-8 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 flex items-center justify-center shrink-0">
+                    <Phone className="h-4 w-4" />
                   </div>
                   <div className="space-y-0.5 text-left">
-                    <span className="text-[11px] font-bold text-[#6B7280] uppercase tracking-wider block">
-                      Phone & Hotlines
+                    <span className="text-[10px] font-bold text-[#4B5563] uppercase tracking-wider block">
+                      Phone &amp; Hotlines
                     </span>
                     <a
                       href="tel:+2348085490982"
@@ -171,7 +171,7 @@ export const LandingContactSection: React.FC<LandingContactSectionProps> = ({
                     >
                       +234 808 549 0982
                     </a>
-                    <span className="text-[10px] text-[#9CA3AF] block">
+                    <span className="text-[11px] text-[#4B5563] font-medium block">
                       Mon – Sat: 8:00 AM – 8:00 PM (GMT+1)
                     </span>
                   </div>
@@ -183,7 +183,7 @@ export const LandingContactSection: React.FC<LandingContactSectionProps> = ({
                     <MessageSquare className="h-5 w-5" />
                   </div>
                   <div className="space-y-0.5 text-left">
-                    <span className="text-[11px] font-bold text-[#6B7280] uppercase tracking-wider block">
+                    <span className="text-[11px] font-bold text-[#4B5563] uppercase tracking-wider block">
                       WhatsApp Live Desk
                     </span>
                     <a
@@ -195,7 +195,7 @@ export const LandingContactSection: React.FC<LandingContactSectionProps> = ({
                       +234 904 773 8212
                       <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                     </a>
-                    <span className="text-[10px] text-[#9CA3AF] block">
+                    <span className="text-[11px] text-[#4B5563] font-medium block">
                       Fast response for registered agents
                     </span>
                   </div>
@@ -266,7 +266,7 @@ export const LandingContactSection: React.FC<LandingContactSectionProps> = ({
                     <h3 className="text-lg font-bold text-[#111827] tracking-tight">
                       Send Us an Official Message
                     </h3>
-                    <p className="text-xs text-[#6B7280]">
+                    <p className="text-xs text-[#4B5563] font-medium">
                       Fill out the form below. We will respond directly to your email address.
                     </p>
                   </div>
@@ -278,9 +278,9 @@ export const LandingContactSection: React.FC<LandingContactSectionProps> = ({
                     </div>
                   )}
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     {/* Full Name */}
-                    <div className="space-y-1.5 text-left">
+                    <div className="space-y-1 text-left">
                       <label htmlFor="contact-name" className="text-xs font-semibold text-[#111827]">
                         Full Name <span className="text-rose-500">*</span>
                       </label>
@@ -292,12 +292,12 @@ export const LandingContactSection: React.FC<LandingContactSectionProps> = ({
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="e.g. Adamu Muhammad"
-                        className="w-full px-4 py-2.5 border border-[#E5E7EB] rounded-xl text-xs sm:text-sm outline-none transition-all placeholder-[#9CA3AF] text-[#111827] bg-[#F8FAFC] focus:bg-white focus:border-[#0F2D5C] focus:ring-2 focus:ring-[#0F2D5C]/10"
+                        className="w-full px-3 py-2 border border-[#E5E7EB] rounded-lg text-xs sm:text-sm outline-none transition-all placeholder-[#6B7280] text-[#111827] bg-[#F8FAFC] focus:bg-white focus:border-[#0F2D5C] focus:ring-2 focus:ring-[#0F2D5C]/10"
                       />
                     </div>
 
                     {/* Email */}
-                    <div className="space-y-1.5 text-left">
+                    <div className="space-y-1 text-left">
                       <label htmlFor="contact-email" className="text-xs font-semibold text-[#111827]">
                         Email Address <span className="text-rose-500">*</span>
                       </label>
@@ -309,14 +309,14 @@ export const LandingContactSection: React.FC<LandingContactSectionProps> = ({
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="e.g. adamu@example.com"
-                        className="w-full px-4 py-2.5 border border-[#E5E7EB] rounded-xl text-xs sm:text-sm outline-none transition-all placeholder-[#9CA3AF] text-[#111827] bg-[#F8FAFC] focus:bg-white focus:border-[#0F2D5C] focus:ring-2 focus:ring-[#0F2D5C]/10"
+                        className="w-full px-3 py-2 border border-[#E5E7EB] rounded-lg text-xs sm:text-sm outline-none transition-all placeholder-[#6B7280] text-[#111827] bg-[#F8FAFC] focus:bg-white focus:border-[#0F2D5C] focus:ring-2 focus:ring-[#0F2D5C]/10"
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     {/* Phone Number */}
-                    <div className="space-y-1.5 text-left">
+                    <div className="space-y-1 text-left">
                       <label htmlFor="contact-phone" className="text-xs font-semibold text-[#111827]">
                         Phone / WhatsApp (Optional)
                       </label>
@@ -327,12 +327,12 @@ export const LandingContactSection: React.FC<LandingContactSectionProps> = ({
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         placeholder="e.g. 08031234567"
-                        className="w-full px-4 py-2.5 border border-[#E5E7EB] rounded-xl text-xs sm:text-sm outline-none transition-all placeholder-[#9CA3AF] text-[#111827] bg-[#F8FAFC] focus:bg-white focus:border-[#0F2D5C] focus:ring-2 focus:ring-[#0F2D5C]/10"
+                        className="w-full px-3 py-2 border border-[#E5E7EB] rounded-lg text-xs sm:text-sm outline-none transition-all placeholder-[#6B7280] text-[#111827] bg-[#F8FAFC] focus:bg-white focus:border-[#0F2D5C] focus:ring-2 focus:ring-[#0F2D5C]/10"
                       />
                     </div>
 
                     {/* Subject / Department */}
-                    <div className="space-y-1.5 text-left">
+                    <div className="space-y-1 text-left">
                       <label htmlFor="contact-subject" className="text-xs font-semibold text-[#111827]">
                         Inquiry Category <span className="text-rose-500">*</span>
                       </label>
@@ -341,7 +341,7 @@ export const LandingContactSection: React.FC<LandingContactSectionProps> = ({
                         disabled={loading}
                         value={subject}
                         onChange={(e) => setSubject(e.target.value)}
-                        className="w-full px-4 py-2.5 border border-[#E5E7EB] rounded-xl text-xs sm:text-sm outline-none transition-all text-[#111827] bg-[#F8FAFC] focus:bg-white focus:border-[#0F2D5C] focus:ring-2 focus:ring-[#0F2D5C]/10 cursor-pointer"
+                        className="w-full px-3 py-2 border border-[#E5E7EB] rounded-lg text-xs sm:text-sm outline-none transition-all text-[#111827] bg-[#F8FAFC] focus:bg-white focus:border-[#0F2D5C] focus:ring-2 focus:ring-[#0F2D5C]/10 cursor-pointer"
                       >
                         <option value="General Inquiry & Support">General Inquiry & Support</option>
                         <option value="CAC Corporate Registration & Compliance">CAC Corporate Registration & Compliance</option>
@@ -354,28 +354,28 @@ export const LandingContactSection: React.FC<LandingContactSectionProps> = ({
                   </div>
 
                   {/* Message */}
-                  <div className="space-y-1.5 text-left">
+                  <div className="space-y-1 text-left">
                     <label htmlFor="contact-message" className="text-xs font-semibold text-[#111827]">
                       Message / Inquiry Details <span className="text-rose-500">*</span>
                     </label>
                     <textarea
                       id="contact-message"
                       required
-                      rows={4}
+                      rows={3}
                       disabled={loading}
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       placeholder="Please describe your inquiry, transaction reference, or specific requirements in detail..."
-                      className="w-full px-4 py-3 border border-[#E5E7EB] rounded-xl text-xs sm:text-sm outline-none transition-all placeholder-[#9CA3AF] text-[#111827] bg-[#F8FAFC] focus:bg-white focus:border-[#0F2D5C] focus:ring-2 focus:ring-[#0F2D5C]/10 resize-y min-h-[100px]"
+                      className="w-full px-3 py-2 border border-[#E5E7EB] rounded-lg text-xs sm:text-sm outline-none transition-all placeholder-[#6B7280] text-[#111827] bg-[#F8FAFC] focus:bg-white focus:border-[#0F2D5C] focus:ring-2 focus:ring-[#0F2D5C]/10 resize-y min-h-[80px]"
                     />
                   </div>
 
                   {/* Submit Button */}
-                  <div className="pt-2">
+                  <div className="pt-1">
                     <button
                       type="submit"
                       disabled={loading}
-                      className="w-full py-3.5 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold rounded-xl text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-[#0F2D5C]/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full min-h-[40px] py-2.5 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold rounded-xl text-xs sm:text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {loading ? (
                         <>
@@ -391,7 +391,7 @@ export const LandingContactSection: React.FC<LandingContactSectionProps> = ({
                     </button>
                   </div>
 
-                  <p className="text-[11px] text-center text-[#9CA3AF] pt-1">
+                  <p className="text-[11px] text-center text-[#4B5563] font-medium pt-1">
                     Protected by NDPA 2023. We will never share your personal information.
                   </p>
                 </form>

@@ -107,7 +107,7 @@ export function UserExportModal({ isOpen, onClose, usersToExport, activeFilterSu
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="w-full max-w-lg bg-[#111827] border border-[#111827] rounded-3xl p-6 shadow-2xl relative"
+        className="w-full max-w-lg bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-6 shadow-2xl relative"
       >
         <button
           type="button"

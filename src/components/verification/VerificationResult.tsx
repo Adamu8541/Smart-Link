@@ -260,6 +260,11 @@ export const VerificationResult: React.FC<VerificationResultProps> = ({
           </div>
         )}
 
+        {/* Verification Purpose Disclaimer */}
+        <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/50 rounded-xl text-center text-xs font-medium text-amber-800 dark:text-amber-300 leading-relaxed">
+          Note: The generated card/slip is for verification purposes only and is not an official NIMC document
+        </div>
+
         {/* Audit Footer Metadata */}
         <div className="pt-3 border-t border-[#E5E7EB] dark:border-[#111827] flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#9CA3AF]">
           <div>

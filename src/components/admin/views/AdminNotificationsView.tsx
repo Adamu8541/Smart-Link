@@ -693,7 +693,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
     <div className="space-y-6" id="admin-notifications-module">
       
       {/* View Header */}
-      <div className="bg-[#111827] border border-[#111827] rounded-2xl p-6 text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
+      <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-6 text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
         <div>
           <div className="flex items-center gap-2">
             <Bell className="w-6 h-6 text-[#9CA3AF]" />
@@ -1006,7 +1006,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
       {/* TAB: SEND DIRECT & BROADCAST EMAIL */}
       {activeTab === "SEND_EMAIL" && (
         <div className="space-y-6 max-w-5xl">
-          <div className="bg-[#111827] border border-[#111827] rounded-2xl p-6 text-white space-y-6 shadow-xl">
+          <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-6 text-white space-y-6 shadow-xl">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#111827] pb-4">
               <div>
                 <div className="flex items-center gap-2">
@@ -1514,30 +1514,30 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
         <div className="space-y-6">
           {/* KPI Widget Cards */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl shadow-lg">
+            <div className="p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs shadow-lg">
               <span className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider">Sent Today</span>
               <p className="text-2xl font-extrabold text-white mt-1">{dashboardData?.metrics?.notificationsSentToday || 0}</p>
             </div>
-            <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl shadow-lg">
+            <div className="p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs shadow-lg">
               <span className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider">Unread Total</span>
               <p className="text-2xl font-extrabold text-[#9CA3AF] mt-1">{dashboardData?.metrics?.unreadNotifications || 0}</p>
             </div>
-            <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl shadow-lg">
+            <div className="p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs shadow-lg">
               <span className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider">Scheduled</span>
               <p className="text-2xl font-extrabold text-[#9CA3AF] mt-1">{dashboardData?.metrics?.scheduledNotifications || 0}</p>
             </div>
-            <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl shadow-lg">
+            <div className="p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs shadow-lg">
               <span className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider">Active Banners</span>
               <p className="text-2xl font-extrabold text-[#9CA3AF] mt-1">{activeAnnCount}</p>
             </div>
-            <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl shadow-lg">
+            <div className="p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs shadow-lg">
               <span className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider">Total Dispatches</span>
               <p className="text-2xl font-extrabold text-[#9CA3AF] mt-1">{notifications.length}</p>
             </div>
           </div>
 
           {/* Quick Announcement Switch List in Overview */}
-          <div className="bg-[#111827] border border-[#111827] rounded-2xl p-6 space-y-4">
+          <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-[#111827] pb-3">
               <div>
                 <h3 className="font-bold text-white text-base flex items-center gap-2">
@@ -1598,7 +1598,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
           </div>
 
           {/* Quick Filter & Notification Records Table */}
-          <div className="bg-[#111827] border border-[#111827] rounded-2xl p-6 space-y-4">
+          <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-6 space-y-4">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-[#111827] pb-4">
               <h3 className="font-bold text-white text-lg flex items-center gap-2">
                 <Bell className="w-5 h-5 text-[#9CA3AF]" />
@@ -1814,7 +1814,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
 
           {/* Announcements Grid Cards */}
           {filteredAnnouncements.length === 0 ? (
-            <div className="bg-[#111827] border border-[#111827] rounded-2xl p-12 text-center space-y-3">
+            <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-12 text-center space-y-3">
               <Megaphone className="w-10 h-10 text-[#4B5563] mx-auto" />
               <h4 className="text-base font-bold text-white">No Announcements Found</h4>
               <p className="text-xs text-[#9CA3AF] max-w-md mx-auto">
@@ -1945,7 +1945,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
 
       {/* TAB 3: CREATE & DISPATCH NOTIFICATION */}
       {activeTab === "CREATE" && (
-        <div className="bg-[#111827] border border-[#111827] rounded-2xl p-6 text-white space-y-6 max-w-4xl">
+        <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-6 text-white space-y-6 max-w-4xl">
           <div>
             <h3 className="text-lg font-bold">Create and Dispatch Notification</h3>
             <p className="text-xs text-[#9CA3AF]">Broadcast targeted messages to user notifications inbox, email, and SMS channels.</p>
@@ -2137,7 +2137,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {templates.map((tpl) => (
-              <div key={tpl.id} className="bg-[#111827] border border-[#111827] rounded-2xl p-5 space-y-3">
+              <div key={tpl.id} className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-5 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="px-2 py-0.5 bg-[#0F2D5C]/20 text-[#9CA3AF] border border-[#0F2D5C]/30 text-[10px] font-mono uppercase font-bold rounded">
                     {tpl.category}
@@ -2201,7 +2201,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Delivery History */}
-            <div className="bg-[#111827] border border-[#111827] rounded-2xl p-5 space-y-3">
+            <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-5 space-y-3">
               <h4 className="font-bold text-white text-sm flex items-center gap-2">
                 <History className="w-4 h-4 text-[#9CA3AF]" />
                 <span>Broadcast Dispatch Records ({historyLogs.length})</span>
@@ -2225,7 +2225,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
             </div>
 
             {/* Admin Audit Trail */}
-            <div className="bg-[#111827] border border-[#111827] rounded-2xl p-5 space-y-3">
+            <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-5 space-y-3">
               <h4 className="font-bold text-white text-sm flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-[#9CA3AF]" />
                 <span>Security Audit Trail ({auditLogs.length})</span>
@@ -2252,7 +2252,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
       {/* TAB 6: MODULE 9 AUTOMATED SELF-TEST SUITE */}
       {activeTab === "TEST_SUITE" && (
         <div className="space-y-6">
-          <div className="bg-[#111827] border border-[#111827] rounded-2xl p-6 space-y-4">
+          <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-6 space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-bold text-white flex items-center gap-2">
@@ -2318,7 +2318,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
       {/* CREATE & EDIT ANNOUNCEMENT MODAL */}
       {showAnnModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-[#111827] border border-[#111827] rounded-3xl p-6 text-white w-full max-w-lg space-y-4 shadow-2xl animate-in fade-in zoom-in-95">
+          <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-6 text-white w-full max-w-lg space-y-4 shadow-2xl animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between border-b border-[#111827] pb-3">
               <h3 className="font-bold text-base flex items-center gap-2">
                 <Megaphone className="w-4 h-4 text-[#9CA3AF]" />
@@ -2464,7 +2464,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
       {/* LIVE PREVIEW MODAL */}
       {previewAnnouncement && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-[#111827] border border-[#111827] rounded-3xl p-6 text-white w-full max-w-2xl space-y-4 shadow-2xl animate-in fade-in zoom-in-95">
+          <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-6 text-white w-full max-w-2xl space-y-4 shadow-2xl animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between border-b border-[#111827] pb-3">
               <div className="flex items-center gap-2">
                 <Eye className="w-5 h-5 text-[#9CA3AF]" />
@@ -2536,7 +2536,7 @@ export function AdminNotificationsView({ session, onNavigate }: AdminNotificatio
       {/* TEMPLATE EDIT MODAL */}
       {selectedTemplate && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-[#111827] border border-[#111827] rounded-3xl p-6 text-white w-full max-w-md space-y-4 shadow-2xl">
+          <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-6 text-white w-full max-w-md space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-[#111827] pb-3">
               <h3 className="font-bold text-base">Edit Notification Template</h3>
               <button onClick={() => setSelectedTemplate(null)} className=" p-1 rounded-lg">

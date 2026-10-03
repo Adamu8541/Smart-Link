@@ -497,7 +497,7 @@ export function ProviderDetailDrawer({
               {activeTab === "overview" && (
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl">
+                    <div className="p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs">
                       <span className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider block">Health Status</span>
                       <div className="flex items-center gap-2 mt-1.5">
                         <span className="h-2.5 w-2.5 rounded-full bg-[#0F2D5C] animate-pulse"></span>
@@ -506,13 +506,13 @@ export function ProviderDetailDrawer({
                       <span className="text-[10px] text-[#6B7280] mt-1 block">Status: {status}</span>
                     </div>
 
-                    <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl">
+                    <div className="p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs">
                       <span className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider block">Success Rate</span>
                       <div className="font-black text-[#9CA3AF] text-xl mt-1">{providerData?.successRate || 99.5}%</div>
                       <span className="text-[10px] text-[#6B7280] mt-1 block">Operational SLA</span>
                     </div>
 
-                    <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl">
+                    <div className="p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs">
                       <span className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider block">Avg Latency</span>
                       <div className="font-black text-[#9CA3AF] text-xl mt-1">{providerData?.avgResponseTimeMs || providerData?.avgResponseTime || 180} ms</div>
                       <span className="text-[10px] text-[#6B7280] mt-1 block">Roundtrip Ping</span>
@@ -541,7 +541,7 @@ export function ProviderDetailDrawer({
 
               {/* TAB 2: GENERAL */}
               {activeTab === "general" && (
-                <div className="space-y-4 p-5 bg-[#111827] border border-[#111827] rounded-2xl">
+                <div className="space-y-4 p-5 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs">
                   <h3 className="text-xs font-bold text-[#E5E7EB] uppercase tracking-wider flex items-center gap-2">
                     <FileText className="h-4 w-4 text-[#9CA3AF]" />
                     <span>General Information</span>
@@ -633,7 +633,7 @@ export function ProviderDetailDrawer({
 
               {/* TAB 3: API CREDENTIALS */}
               {activeTab === "api" && (
-                <div className="space-y-4 p-5 bg-[#111827] border border-[#111827] rounded-2xl">
+                <div className="space-y-4 p-5 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs">
                   <h3 className="text-xs font-bold text-[#E5E7EB] uppercase tracking-wider flex items-center gap-2">
                     <Key className="h-4 w-4 text-[#9CA3AF]" />
                     <span>API Credentials & Endpoints</span>
@@ -751,7 +751,7 @@ export function ProviderDetailDrawer({
 
               {/* TAB 4: WEBHOOK & URLS */}
               {activeTab === "webhook" && (
-                <div className="space-y-4 p-5 bg-[#111827] border border-[#111827] rounded-2xl">
+                <div className="space-y-4 p-5 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs">
                   <h3 className="text-xs font-bold text-[#E5E7EB] uppercase tracking-wider flex items-center gap-2">
                     <Webhook className="h-4 w-4 text-[#9CA3AF]" />
                     <span>Webhook & Redirect URLs</span>
@@ -877,7 +877,7 @@ export function ProviderDetailDrawer({
 
               {/* TAB 5: SECURITY KEYS */}
               {activeTab === "security" && (
-                <div className="space-y-4 p-5 bg-[#111827] border border-[#111827] rounded-2xl">
+                <div className="space-y-4 p-5 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs">
                   <h3 className="text-xs font-bold text-[#E5E7EB] uppercase tracking-wider flex items-center gap-2">
                     <Lock className="h-4 w-4 text-[#9CA3AF]" />
                     <span>Encryption & Security Keys</span>
@@ -944,7 +944,7 @@ export function ProviderDetailDrawer({
 
               {/* TAB 6: FEATURES */}
               {activeTab === "features" && (
-                <div className="space-y-4 p-5 bg-[#111827] border border-[#111827] rounded-2xl">
+                <div className="space-y-4 p-5 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs">
                   <h3 className="text-xs font-bold text-[#E5E7EB] uppercase tracking-wider flex items-center gap-2">
                     <Sliders className="h-4 w-4 text-[#9CA3AF]" />
                     <span>Feature Enable/Disable Toggles</span>
@@ -985,7 +985,7 @@ export function ProviderDetailDrawer({
               {/* TAB 7: TEST CONNECTION */}
               {activeTab === "test" && (
                 <div className="space-y-6">
-                  <div className="p-5 bg-[#111827] border border-[#111827] rounded-2xl space-y-3">
+                  <div className="p-5 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="p-2.5 bg-[#0F2D5C] border border-[#0F2D5C] rounded-xl text-[#9CA3AF]">
@@ -1010,8 +1010,8 @@ export function ProviderDetailDrawer({
                   </div>
 
                   {testResult && (
-                    <div className="p-5 bg-[#111827] border border-[#111827] rounded-2xl space-y-4 animate-fade-in">
-                      <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <div className="p-5 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs space-y-4 animate-fade-in">
+                      <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
                         <span className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wider">Test Execution Result</span>
                         <span
                           className={`px-2.5 py-1 text-xs font-bold rounded-full border ${

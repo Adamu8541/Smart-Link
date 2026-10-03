@@ -36,7 +36,7 @@ export function AdminTableSkeleton() {
 
 export function AdminDetailSkeleton() {
   return (
-    <div className="bg-[#111827] border border-[#111827] rounded-3xl p-6 md:p-8 space-y-6 animate-pulse">
+    <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-6 md:p-8 space-y-6 animate-pulse">
       <div className="flex items-center justify-between">
         <div className="space-y-2">
           <div className="h-6 w-48 bg-[#111827] rounded-lg" />

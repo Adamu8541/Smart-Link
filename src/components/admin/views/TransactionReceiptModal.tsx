@@ -67,156 +67,156 @@ export function TransactionReceiptModal({ isOpen, onClose, transaction, user }: 
     switch (status) {
       case "SUCCESSFUL":
       case "COMPLETED":
-        return "bg-emerald-950/70 text-emerald-300 border-emerald-700/80";
+        return "bg-emerald-50 text-emerald-700 border-emerald-200";
       case "FAILED":
       case "CANCELLED":
-        return "bg-red-950/70 text-red-300 border-red-700/80";
+        return "bg-rose-50 text-rose-700 border-rose-200";
       case "REFUNDED":
       case "REVERSED":
-        return "bg-blue-950/70 text-blue-300 border-blue-700/80";
+        return "bg-blue-50 text-blue-700 border-blue-200";
       default:
-        return "bg-amber-950/70 text-amber-300 border-amber-700/80";
+        return "bg-amber-50 text-amber-700 border-amber-200";
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111827]/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="bg-[#111827] border border-[#111827] rounded-3xl max-w-xl w-full overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="bg-white border border-[#E5E7EB] rounded-2xl max-w-xl w-full overflow-hidden shadow-2xl flex flex-col max-h-[90vh] text-[#111827]">
         {/* Modal Header */}
-        <div className="p-6 border-b border-[#111827] flex items-center justify-between bg-[#111827]/50">
+        <div className="p-6 border-b border-[#E5E7EB] flex items-center justify-between bg-[#F9FAFB]">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-[#0F2D5C]/80 border border-[#0F2D5C]/80 rounded-xl text-[#9CA3AF]">
+            <div className="p-2.5 bg-[#0F2D5C] rounded-xl text-white shadow-xs">
               <FileText className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-white">Official Transaction Receipt</h2>
-              <p className="text-xs text-[#9CA3AF] font-mono">Ref: {transaction.smartLinkRef || transaction.id}</p>
+              <h2 className="text-base font-bold text-[#111827]">Official Transaction Receipt</h2>
+              <p className="text-xs text-[#6B7280] font-mono">Ref: {transaction.smartLinkRef || transaction.id}</p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-2 hover:bg-[#111827] text-[#9CA3AF] hover:text-white rounded-xl transition-colors cursor-pointer"
+            className="p-2 hover:bg-[#E5E7EB] text-[#6B7280] hover:text-[#111827] rounded-xl transition-colors cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Printable Receipt Canvas Body */}
-        <div className="p-6 md:p-8 space-y-6 overflow-y-auto bg-[#111827] print:bg-white print:text-black">
+        <div className="p-6 md:p-8 space-y-6 overflow-y-auto bg-white print:p-0">
           {/* SmartLink Header */}
-          <div className="text-center pb-6 border-b border-[#111827]/80 print:border-black">
+          <div className="text-center pb-6 border-b border-[#E5E7EB]">
             <div className="inline-flex items-center gap-2 mb-1">
               <span className="h-3 w-3 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="text-lg font-black text-white tracking-wider uppercase print:text-black">SMARTLINK DIGITAL</span>
+              <span className="text-lg font-black text-[#0F2D5C] tracking-wider uppercase">SMARTLINK DIGITAL</span>
             </div>
-            <p className="text-xs text-[#9CA3AF] print:text-[#4B5563]">Smart Link Digital Identity & Payment Infrastructure</p>
-            <p className="text-[10px] text-[#6B7280] font-mono mt-0.5 print:text-[#6B7280]">Official Electronic Receipt • Issued {transaction.date} {transaction.time}</p>
+            <p className="text-xs text-[#6B7280]">Smart Link Digital Identity & Payment Infrastructure</p>
+            <p className="text-[10px] text-[#9CA3AF] font-mono mt-0.5">Official Electronic Receipt • Issued {transaction.date} {transaction.time}</p>
           </div>
 
           {/* Status Badge Stamp */}
           <div className="flex justify-center">
             <div className={`px-4 py-1.5 rounded-full border text-xs font-bold uppercase tracking-wider flex items-center gap-2 ${getStatusColor(transaction.status)}`}>
-              {(transaction.status === "SUCCESSFUL" || transaction.status === "COMPLETED") && <CheckCircle2 className="h-4 w-4 text-emerald-400" />}
-              {(transaction.status === "FAILED" || transaction.status === "CANCELLED") && <AlertTriangle className="h-4 w-4 text-red-400" />}
-              {transaction.status === "PENDING" && <Clock className="h-4 w-4 text-amber-400 animate-spin" />}
-              {(transaction.status === "REFUNDED" || transaction.status === "REVERSED") && <RefreshCw className="h-4 w-4 text-blue-400" />}
+              {(transaction.status === "SUCCESSFUL" || transaction.status === "COMPLETED") && <CheckCircle2 className="h-4 w-4 text-emerald-600" />}
+              {(transaction.status === "FAILED" || transaction.status === "CANCELLED") && <AlertTriangle className="h-4 w-4 text-rose-600" />}
+              {transaction.status === "PENDING" && <Clock className="h-4 w-4 text-amber-600 animate-spin" />}
+              {(transaction.status === "REFUNDED" || transaction.status === "REVERSED") && <RefreshCw className="h-4 w-4 text-blue-600" />}
               <span>{transaction.status}</span>
             </div>
           </div>
 
           {/* Reference Numbers Table */}
-          <div className="bg-[#1E293B] border border-slate-700/80 rounded-2xl p-4 space-y-2 text-xs print:bg-[#E5E7EB] print:border-[#E5E7EB]">
+          <div className="bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl p-4 space-y-2 text-xs">
             <div className="flex justify-between items-center">
-              <span className="text-slate-300 font-medium print:text-[#4B5563]">SmartLink Ref:</span>
-              <span className="font-mono font-bold text-white print:text-black">{transaction.smartLinkRef || transaction.id}</span>
+              <span className="text-[#6B7280] font-medium">SmartLink Ref:</span>
+              <span className="font-mono font-bold text-[#111827]">{transaction.smartLinkRef || transaction.id}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-slate-300 font-medium print:text-[#4B5563]">Provider Ref:</span>
-              <span className="font-mono font-bold text-slate-100 print:text-black">{transaction.providerRef || "PRV-PENDING"}</span>
+              <span className="text-[#6B7280] font-medium">Provider Ref:</span>
+              <span className="font-mono font-bold text-[#111827]">{transaction.providerRef || "PRV-PENDING"}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-slate-300 font-medium print:text-[#4B5563]">Payment Portal:</span>
-              <span className="font-medium text-slate-100 print:text-black">{transaction.provider || "VTU Portal"}</span>
+              <span className="text-[#6B7280] font-medium">Payment Portal:</span>
+              <span className="font-medium text-[#111827]">{transaction.provider || "VTU Portal"}</span>
             </div>
           </div>
 
           {/* Customer & Service Info */}
           <div className="grid grid-cols-2 gap-4 text-xs">
-            <div className="p-3.5 bg-[#1E293B]/80 border border-slate-700/80 rounded-xl space-y-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300">Customer</span>
-              <p className="font-bold text-white truncate">{user?.fullName || transaction.userName || "Customer"}</p>
-              <p className="text-slate-300 text-[11px] truncate">{user?.email || transaction.userEmail}</p>
-              <p className="text-slate-300 text-[11px] font-mono">{user?.phoneNumber || transaction.userPhone}</p>
+            <div className="p-3.5 bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl space-y-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">Customer</span>
+              <p className="font-bold text-[#111827] truncate">{user?.fullName || transaction.userName || "Customer"}</p>
+              <p className="text-[#6B7280] text-[11px] truncate">{user?.email || transaction.userEmail}</p>
+              <p className="text-[#6B7280] text-[11px] font-mono">{user?.phoneNumber || transaction.userPhone}</p>
             </div>
-            <div className="p-3.5 bg-[#1E293B]/80 border border-slate-700/80 rounded-xl space-y-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300">Payment Method</span>
-              <p className="font-bold text-white uppercase">{transaction.paymentMethod || "WALLET"}</p>
-              <p className="text-slate-300 text-[11px] truncate">{transaction.walletUsed || "Main Wallet Float"}</p>
-              <p className="text-slate-300 text-[10px] font-bold">100% Encrypted Ledger</p>
+            <div className="p-3.5 bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl space-y-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">Payment Method</span>
+              <p className="font-bold text-[#111827] uppercase">{transaction.paymentMethod || "WALLET"}</p>
+              <p className="text-[#6B7280] text-[11px] truncate">{transaction.walletUsed || "Main Wallet Float"}</p>
+              <p className="text-emerald-700 text-[10px] font-bold">100% Encrypted Ledger</p>
             </div>
           </div>
 
           {/* Line Items Breakdown */}
-          <div className="border border-slate-700/80 rounded-2xl overflow-hidden text-xs">
-            <div className="bg-[#1E293B] p-3 font-bold text-slate-100 border-b border-slate-700 flex justify-between">
+          <div className="border border-[#E5E7EB] rounded-xl overflow-hidden text-xs">
+            <div className="bg-[#F9FAFB] p-3 font-bold text-[#111827] border-b border-[#E5E7EB] flex justify-between">
               <span>Service Description</span>
               <span>Amount</span>
             </div>
-            <div className="p-4 space-y-3 bg-[#111827]">
+            <div className="p-4 space-y-3 bg-white">
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="font-bold text-white">{transaction.serviceName || transaction.serviceType}</p>
-                  <p className="text-[11px] text-slate-300 mt-0.5">{transaction.description || "Digital Service Execution"}</p>
+                  <p className="font-bold text-[#111827]">{transaction.serviceName || transaction.serviceType}</p>
+                  <p className="text-[11px] text-[#6B7280] mt-0.5">{transaction.description || "Digital Service Execution"}</p>
                 </div>
-                <span className="font-mono font-bold text-white">₦{(transaction.amount || 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
+                <span className="font-mono font-bold text-[#111827]">₦{(transaction.amount || 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
               </div>
 
               {transaction.charges > 0 && (
-                <div className="flex justify-between items-center text-slate-300 pt-2 border-t border-slate-800">
+                <div className="flex justify-between items-center text-[#6B7280] pt-2 border-t border-[#E5E7EB]">
                   <span>Convenience / Processing Fee</span>
-                  <span className="font-mono font-bold text-white">₦{(transaction.charges || 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
+                  <span className="font-mono font-bold text-[#111827]">₦{(transaction.charges || 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
                 </div>
               )}
 
-              <div className="flex justify-between items-center font-bold text-sm text-white pt-3 border-t border-slate-700">
+              <div className="flex justify-between items-center font-bold text-sm text-[#111827] pt-3 border-t border-[#E5E7EB]">
                 <span>Total Paid</span>
-                <span className="font-mono text-base text-emerald-400">₦{((transaction.amount || 0) + (transaction.charges || 0)).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
+                <span className="font-mono text-base text-[#0F2D5C]">₦{((transaction.amount || 0) + (transaction.charges || 0)).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</span>
               </div>
             </div>
           </div>
 
           {/* Security Verification Footer */}
           <div className="pt-2 text-center space-y-1">
-            <div className="flex items-center justify-center gap-1.5 text-[11px] text-[#9CA3AF]">
-              <ShieldCheck className="h-3.5 w-3.5 text-[#9CA3AF]" />
+            <div className="flex items-center justify-center gap-1.5 text-[11px] text-[#6B7280]">
+              <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
               <span>Verified SmartLink Digital Cryptographic Ledger Entry</span>
             </div>
-            <p className="text-[10px] text-[#6B7280] font-mono">For support inquiries, contact support@smartlink.com or +234 803 123 4567.</p>
+            <p className="text-[10px] text-[#9CA3AF] font-mono">For support inquiries, contact support@smartlink.com or +234 808 549 0982.</p>
           </div>
         </div>
 
         {/* Modal Actions Footer */}
-        <div className="p-5 border-t border-[#111827] bg-[#111827]/80 flex items-center justify-between gap-3">
+        <div className="p-5 border-t border-[#E5E7EB] bg-[#F9FAFB] flex items-center justify-between gap-3">
           <button
             type="button"
             onClick={handleShare}
-            className="py-2.5 px-4 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition-colors"
+            className="py-2.5 px-4 bg-white hover:bg-[#E5E7EB] text-[#111827] border border-[#E5E7EB] text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition-colors shadow-xs"
           >
-            <Share2 className="h-4 w-4 text-[#9CA3AF]" /> Share
+            <Share2 className="h-4 w-4 text-[#6B7280]" /> Share
           </button>
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={handlePrint}
-              className="py-2.5 px-4 bg-[#111827] hover:bg-[#4B5563] text-[#E5E7EB] text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition-colors"
+              className="py-2.5 px-4 bg-white hover:bg-[#E5E7EB] text-[#111827] border border-[#E5E7EB] text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition-colors shadow-xs"
             >
-              <Printer className="h-4 w-4 text-[#9CA3AF]" /> Print
+              <Printer className="h-4 w-4 text-[#6B7280]" /> Print
             </button>
             <button
               type="button"
               onClick={handleDownloadPDF}
-              className="py-2.5 px-5 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer shadow-lg shadow-none transition-all"
+              className="py-2.5 px-5 bg-[#0F2D5C] hover:bg-[#17407E] text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer shadow-xs transition-all"
             >
               <Download className="h-4 w-4" /> Download Receipt
             </button>

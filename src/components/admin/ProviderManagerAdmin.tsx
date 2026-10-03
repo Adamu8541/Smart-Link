@@ -367,7 +367,7 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
   const getConnectionBadge = (status?: string, lastResult?: string) => {
     if (status === "Connected" || lastResult === "Connected") {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/80 dark:text-[#9CA3AF] border border-slate-200 dark:border-slate-700">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/80 dark:text-[#9CA3AF] border border-slate-200 dark:border-[#E5E7EB]">
           <span className="w-1.5 h-1.5 rounded-full bg-[#0F2D5C] animate-pulse"></span>
           Connected
         </span>
@@ -375,7 +375,7 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
     }
     if (status === "Warning" || lastResult === "Invalid Base URL" || lastResult === "Timeout") {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/80 dark:text-[#9CA3AF] border border-slate-200 dark:border-slate-700">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/80 dark:text-[#9CA3AF] border border-slate-200 dark:border-[#E5E7EB]">
           <span className="w-1.5 h-1.5 rounded-full bg-[#0F2D5C]"></span>
           Warning
         </span>
@@ -383,7 +383,7 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
     }
     if (status === "Disconnected" || (lastResult && lastResult !== "Untested")) {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/80 dark:text-[#9CA3AF] border border-slate-200 dark:border-slate-700">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/80 dark:text-[#9CA3AF] border border-slate-200 dark:border-[#E5E7EB]">
           <span className="w-1.5 h-1.5 rounded-full bg-[#0F2D5C]"></span>
           Disconnected
         </span>
@@ -402,14 +402,14 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
     switch (status) {
       case "Active":
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/80 dark:text-[#9CA3AF] border border-slate-200 dark:border-slate-700">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/80 dark:text-[#9CA3AF] border border-slate-200 dark:border-[#E5E7EB]">
             <span className="w-2 h-2 rounded-full bg-[#0F2D5C] animate-pulse"></span>
             Active
           </span>
         );
       case "Inactive":
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/80 dark:text-[#9CA3AF] border border-slate-200 dark:border-slate-700">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/80 dark:text-[#9CA3AF] border border-slate-200 dark:border-[#E5E7EB]">
             <span className="w-2 h-2 rounded-full bg-[#0F2D5C]"></span>
             Inactive
           </span>
@@ -417,7 +417,7 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
       case "Draft":
       default:
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/80 dark:text-[#9CA3AF] border border-slate-200 dark:border-slate-700">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/80 dark:text-[#9CA3AF] border border-slate-200 dark:border-[#E5E7EB]">
             <span className="w-2 h-2 rounded-full bg-[#0F2D5C]"></span>
             Draft
           </span>
@@ -500,31 +500,31 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
             <div className="text-xl font-black text-white mt-0.5">{paymentProviders.length}</div>
           </div>
           <div className="bg-white/5 rounded-2xl p-3.5 border border-white/10">
-            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Active Provider</div>
+            <div className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">Active Provider</div>
             <div className="text-sm font-extrabold text-emerald-400 mt-1 truncate">
               {activeProvider ? activeProvider.name : "None Active"}
             </div>
           </div>
           <div className="bg-white/5 rounded-2xl p-3.5 border border-white/10">
-            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Inactive Providers</div>
-            <div className="text-xl font-black text-slate-200 mt-0.5">{inactiveCount}</div>
+            <div className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">Inactive Providers</div>
+            <div className="text-xl font-black text-[#111827] mt-0.5">{inactiveCount}</div>
           </div>
           <div className="bg-white/5 rounded-2xl p-3.5 border border-white/10">
-            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Draft Providers</div>
-            <div className="text-xl font-black text-slate-200 mt-0.5">{draftCount}</div>
+            <div className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">Draft Providers</div>
+            <div className="text-xl font-black text-[#111827] mt-0.5">{draftCount}</div>
           </div>
         </div>
       </div>
 
       {/* Sub-Tabs & Filter Toolbar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow-xl">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-xl">
         <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={() => setActiveSubTab("PAYMENT_PROVIDERS")}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
               activeSubTab === "PAYMENT_PROVIDERS"
                 ? "bg-blue-600 text-white shadow-xs"
-                : "bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white"
+                : "bg-[#F8FAFC] text-[#4B5563] hover:bg-gray-100 hover:text-white"
             }`}
           >
             <CreditCard className="h-4 w-4" />
@@ -535,7 +535,7 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
               activeSubTab === "API_PROVIDERS"
                 ? "bg-blue-600 text-white shadow-xs"
-                : "bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white"
+                : "bg-[#F8FAFC] text-[#4B5563] hover:bg-gray-100 hover:text-white"
             }`}
           >
             <Server className="h-4 w-4" />
@@ -546,7 +546,7 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
               activeSubTab === "LOGS"
                 ? "bg-blue-600 text-white shadow-xs"
-                : "bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white"
+                : "bg-[#F8FAFC] text-[#4B5563] hover:bg-gray-100 hover:text-white"
             }`}
           >
             <FileText className="h-4 w-4" />
@@ -557,19 +557,19 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
         {activeSubTab === "PAYMENT_PROVIDERS" && (
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <div className="relative flex-1 sm:w-56">
-              <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-500" />
+              <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-[#9CA3AF]" />
               <input
                 type="text"
                 placeholder="Search payment provider..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 bg-slate-800 border border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-500/50 text-white placeholder:text-slate-500"
+                className="w-full pl-8 pr-3 py-1.5 bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-500/50 text-white placeholder:text-[#9CA3AF]"
               />
             </div>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-xl text-xs font-medium text-slate-200 cursor-pointer"
+              className="px-3 py-1.5 bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl text-xs font-medium text-[#111827] cursor-pointer"
             >
               <option value="ALL">All Statuses</option>
               <option value="Active">Active Only</option>
@@ -584,10 +584,10 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
       {activeSubTab === "PAYMENT_PROVIDERS" && (
         <div className="space-y-4">
           {filteredPaymentProviders.length === 0 ? (
-            <div className="bg-slate-900 rounded-2xl p-12 text-center border border-slate-800 shadow-xl">
+            <div className="bg-white rounded-2xl p-12 text-center border border-[#E5E7EB] shadow-xl">
               <CreditCard className="h-12 w-12 text-slate-600 mx-auto mb-3" />
               <h3 className="text-base font-bold text-white">No Payment Providers Found</h3>
-              <p className="text-xs text-slate-400 max-w-sm mx-auto mt-1 mb-4">
+              <p className="text-xs text-[#6B7280] max-w-sm mx-auto mt-1 mb-4">
                 No payment providers match your criteria or none have been added to the database table yet.
               </p>
               <button
@@ -762,7 +762,7 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
 
                         <button
                           onClick={() => handleOpenEditModal(prov)}
-                          className="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+                          className="px-2.5 py-1.5 bg-slate-100 dark:bg-[#F8FAFC] hover:bg-slate-200 dark:hover:bg-gray-100 text-slate-700 dark:text-[#111827] border border-slate-200 dark:border-[#E5E7EB] rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
                         >
                           <Edit3 className="h-3.5 w-3.5" />
                           Edit
@@ -840,18 +840,18 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
 
       {/* SUB-TAB 3: AUDIT LOGS LEDGER */}
       {activeSubTab === "LOGS" && (
-        <div className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-xl">
-          <div className="p-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+        <div className="bg-white rounded-2xl border border-[#E5E7EB] overflow-hidden shadow-xl">
+          <div className="p-4 bg-[#F8FAFC] border-b border-[#E5E7EB] flex items-center justify-between">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#4B5563] flex items-center gap-2">
               <FileText className="h-4 w-4 text-blue-400" />
               Provider Interactions Ledger
             </h3>
-            <span className="text-[10px] font-mono text-slate-400">Total Recorded: {logs.length}</span>
+            <span className="text-[10px] font-mono text-[#6B7280]">Total Recorded: {logs.length}</span>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-slate-200 font-mono">
-              <thead className="bg-slate-950/80 text-[10px] uppercase font-bold text-slate-400 border-b border-slate-800">
+            <table className="w-full text-left text-xs text-[#111827] font-mono">
+              <thead className="bg-[#F8FAFC]/80 text-[10px] uppercase font-bold text-[#6B7280] border-b border-[#E5E7EB]">
                 <tr>
                   <th className="p-3">Timestamp</th>
                   <th className="p-3">Provider</th>
@@ -862,31 +862,31 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
                   <th className="p-3">Latency</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-[#E5E7EB]/60">
                 {logs.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="p-6 text-center text-slate-400 font-sans text-xs">
+                    <td colSpan={7} className="p-6 text-center text-[#6B7280] font-sans text-xs">
                       No logs recorded yet.
                     </td>
                   </tr>
                 ) : (
                   logs.map((log) => (
-                    <tr key={log.id} className="hover:bg-slate-800/40 transition-colors">
-                      <td className="p-3 text-slate-400 whitespace-nowrap">
+                    <tr key={log.id} className="hover:bg-[#F8FAFC] transition-colors">
+                      <td className="p-3 text-[#6B7280] whitespace-nowrap">
                         {new Date(log.requestTime).toLocaleTimeString()}
                       </td>
                       <td className="p-3 font-bold text-blue-400 whitespace-nowrap">
                         {log.providerName}
                       </td>
                       <td className="p-3 text-white whitespace-nowrap">{log.service}</td>
-                      <td className="p-3 text-slate-400 font-mono text-[11px] whitespace-nowrap">{log.transactionId}</td>
-                      <td className="p-3 text-slate-400 text-[11px] whitespace-nowrap">{log.userId}</td>
+                      <td className="p-3 text-[#6B7280] font-mono text-[11px] whitespace-nowrap">{log.transactionId}</td>
+                      <td className="p-3 text-[#6B7280] text-[11px] whitespace-nowrap">{log.userId}</td>
                       <td className="p-3 whitespace-nowrap">
                         <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                           200 SUCCESS
                         </span>
                       </td>
-                      <td className="p-3 font-bold text-slate-300 whitespace-nowrap">
+                      <td className="p-3 font-bold text-[#4B5563] whitespace-nowrap">
                         {log.responseTime}ms
                       </td>
                     </tr>
@@ -901,15 +901,15 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
       {/* MODAL: ADD / EDIT PAYMENT PROVIDER */}
       {showPaymentModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-fade-in overflow-y-auto">
-          <div className="w-full max-w-2xl bg-slate-900 rounded-3xl p-6 md:p-8 border border-slate-800 shadow-2xl my-8 text-slate-100">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-800 mb-6">
+          <div className="w-full max-w-2xl bg-white rounded-3xl p-6 md:p-8 border border-[#E5E7EB] shadow-2xl my-8 text-[#111827]">
+            <div className="flex items-center justify-between pb-4 border-b border-[#E5E7EB] mb-6">
               <h3 className="text-lg font-bold text-white flex items-center gap-2.5">
                 <CreditCard className="h-5 w-5 text-blue-400" />
                 {editingPaymentProvider ? `Edit Provider: ${editingPaymentProvider.name}` : "Add New Payment Provider"}
               </h3>
               <button
                 onClick={() => setShowPaymentModal(false)}
-                className="text-slate-400 hover:text-white text-sm font-bold p-1.5 rounded-lg hover:bg-slate-800 cursor-pointer transition-colors"
+                className="text-[#6B7280] hover:text-white text-sm font-bold p-1.5 rounded-lg hover:bg-[#F8FAFC] cursor-pointer transition-colors"
               >
                 ✕
               </button>
@@ -917,15 +917,15 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
 
             <form onSubmit={handleSavePaymentProvider} className="space-y-4 text-xs">
               {/* Mandatory Fields Section */}
-              <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800 space-y-4">
-                <div className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+              <div className="p-4 bg-[#F8FAFC]/60 rounded-2xl border border-[#E5E7EB] space-y-4">
+                <div className="text-[11px] font-bold text-[#4B5563] uppercase tracking-wider flex items-center gap-1.5">
                   <Lock className="h-3.5 w-3.5 text-blue-400" />
                   Mandatory Configuration Fields
                 </div>
 
                 {/* Provider Name */}
                 <div>
-                  <label className="block text-slate-300 font-bold mb-1">
+                  <label className="block text-[#4B5563] font-bold mb-1">
                     Provider Name <span className="text-rose-400">*</span>
                   </label>
                   <input
@@ -936,8 +936,8 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
                       setPaymentForm({ ...paymentForm, name: e.target.value });
                       if (formErrors.name) setFormErrors({ ...formErrors, name: "" });
                     }}
-                    className={`w-full p-3 bg-slate-900 border ${
-                      formErrors.name ? "border-rose-500 ring-1 ring-rose-500" : "border-slate-700"
+                    className={`w-full p-3 bg-white border ${
+                      formErrors.name ? "border-rose-500 ring-1 ring-rose-500" : "border-[#E5E7EB]"
                     } rounded-xl font-bold text-sm text-white focus:outline-hidden focus:border-blue-500`}
                   />
                   {formErrors.name && <p className="text-rose-400 text-[11px] font-bold mt-1">{formErrors.name}</p>}
@@ -946,7 +946,7 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {/* Secret Key */}
                   <div>
-                    <label className="block text-slate-300 font-bold mb-1">
+                    <label className="block text-[#4B5563] font-bold mb-1">
                       Secret Key <span className="text-rose-400">*</span>
                     </label>
                     <input
@@ -957,8 +957,8 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
                         setPaymentForm({ ...paymentForm, secretKey: e.target.value });
                         if (formErrors.secretKey) setFormErrors({ ...formErrors, secretKey: "" });
                       }}
-                      className={`w-full p-2.5 bg-slate-900 border ${
-                        formErrors.secretKey ? "border-rose-500 ring-1 ring-rose-500" : "border-slate-700"
+                      className={`w-full p-2.5 bg-white border ${
+                        formErrors.secretKey ? "border-rose-500 ring-1 ring-rose-500" : "border-[#E5E7EB]"
                       } rounded-xl font-mono text-white focus:outline-hidden focus:border-blue-500`}
                     />
                     {formErrors.secretKey && <p className="text-rose-400 text-[11px] font-bold mt-1">{formErrors.secretKey}</p>}
@@ -966,7 +966,7 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
 
                   {/* Webhook URL */}
                   <div>
-                    <label className="block text-slate-300 font-bold mb-1">
+                    <label className="block text-[#4B5563] font-bold mb-1">
                       Webhook URL <span className="text-rose-400">*</span>
                     </label>
                     <input
@@ -977,8 +977,8 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
                         setPaymentForm({ ...paymentForm, webhookUrl: e.target.value });
                         if (formErrors.webhookUrl) setFormErrors({ ...formErrors, webhookUrl: "" });
                       }}
-                      className={`w-full p-2.5 bg-slate-900 border ${
-                        formErrors.webhookUrl ? "border-rose-500 ring-1 ring-rose-500" : "border-slate-700"
+                      className={`w-full p-2.5 bg-white border ${
+                        formErrors.webhookUrl ? "border-rose-500 ring-1 ring-rose-500" : "border-[#E5E7EB]"
                       } rounded-xl font-mono text-white focus:outline-hidden focus:border-blue-500`}
                     />
                     {formErrors.webhookUrl && <p className="text-rose-400 text-[11px] font-bold mt-1">{formErrors.webhookUrl}</p>}
@@ -987,13 +987,13 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
 
                 {/* Status Selection */}
                 <div>
-                  <label className="block text-slate-300 font-bold mb-1">
+                  <label className="block text-[#4B5563] font-bold mb-1">
                     Status <span className="text-rose-400">*</span>
                   </label>
                   <select
                     value={paymentForm.status}
                     onChange={(e) => setPaymentForm({ ...paymentForm, status: e.target.value as PaymentProviderStatus })}
-                    className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl font-bold text-white focus:outline-hidden focus:border-blue-500"
+                    className="w-full p-2.5 bg-white border border-[#E5E7EB] rounded-xl font-bold text-white focus:outline-hidden focus:border-blue-500"
                   >
                     <option value="Draft">Draft (Being configured, cannot be used)</option>
                     <option value="Active">Active (Live system provider - Deactivates all others)</option>
@@ -1009,118 +1009,118 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
               </div>
 
               {/* Optional Fields Section */}
-              <div className="p-4 bg-slate-950/40 rounded-2xl border border-slate-800 space-y-3">
-                <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+              <div className="p-4 bg-[#F8FAFC]/40 rounded-2xl border border-[#E5E7EB] space-y-3">
+                <div className="text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">
                   Optional Provider Credentials & Endpoints
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-slate-400 font-bold mb-1">Base API URL</label>
+                    <label className="block text-[#6B7280] font-bold mb-1">Base API URL</label>
                     <input
                       type="text"
                       placeholder="e.g. https://api.aspfiy.com"
                       value={paymentForm.baseUrl}
                       onChange={(e) => setPaymentForm({ ...paymentForm, baseUrl: e.target.value })}
-                      className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl font-mono text-white focus:outline-hidden focus:border-blue-500"
+                      className="w-full p-2.5 bg-white border border-[#E5E7EB] rounded-xl font-mono text-white focus:outline-hidden focus:border-blue-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-slate-400 font-bold mb-1">Public Key</label>
+                    <label className="block text-[#6B7280] font-bold mb-1">Public Key</label>
                     <input
                       type="text"
                       placeholder="e.g. PK_LIVE_..."
                       value={paymentForm.publicKey}
                       onChange={(e) => setPaymentForm({ ...paymentForm, publicKey: e.target.value })}
-                      className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl font-mono text-white focus:outline-hidden focus:border-blue-500"
+                      className="w-full p-2.5 bg-white border border-[#E5E7EB] rounded-xl font-mono text-white focus:outline-hidden focus:border-blue-500"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-slate-400 font-bold mb-1">Merchant ID</label>
+                    <label className="block text-[#6B7280] font-bold mb-1">Merchant ID</label>
                     <input
                       type="text"
                       placeholder="Merchant ID"
                       value={paymentForm.merchantId}
                       onChange={(e) => setPaymentForm({ ...paymentForm, merchantId: e.target.value })}
-                      className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-hidden focus:border-blue-500"
+                      className="w-full p-2.5 bg-white border border-[#E5E7EB] rounded-xl text-white focus:outline-hidden focus:border-blue-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-slate-400 font-bold mb-1">Client ID</label>
+                    <label className="block text-[#6B7280] font-bold mb-1">Client ID</label>
                     <input
                       type="text"
                       placeholder="Client ID"
                       value={paymentForm.clientId}
                       onChange={(e) => setPaymentForm({ ...paymentForm, clientId: e.target.value })}
-                      className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-hidden focus:border-blue-500"
+                      className="w-full p-2.5 bg-white border border-[#E5E7EB] rounded-xl text-white focus:outline-hidden focus:border-blue-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-slate-400 font-bold mb-1">Client Secret</label>
+                    <label className="block text-[#6B7280] font-bold mb-1">Client Secret</label>
                     <input
                       type="password"
                       placeholder="Client Secret"
                       value={paymentForm.clientSecret}
                       onChange={(e) => setPaymentForm({ ...paymentForm, clientSecret: e.target.value })}
-                      className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl font-mono text-white focus:outline-hidden focus:border-blue-500"
+                      className="w-full p-2.5 bg-white border border-[#E5E7EB] rounded-xl font-mono text-white focus:outline-hidden focus:border-blue-500"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-slate-400 font-bold mb-1">Encryption Key</label>
+                    <label className="block text-[#6B7280] font-bold mb-1">Encryption Key</label>
                     <input
                       type="password"
                       placeholder="Encryption Key"
                       value={paymentForm.encryptionKey}
                       onChange={(e) => setPaymentForm({ ...paymentForm, encryptionKey: e.target.value })}
-                      className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl font-mono text-white focus:outline-hidden focus:border-blue-500"
+                      className="w-full p-2.5 bg-white border border-[#E5E7EB] rounded-xl font-mono text-white focus:outline-hidden focus:border-blue-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-slate-400 font-bold mb-1">Webhook Secret</label>
+                    <label className="block text-[#6B7280] font-bold mb-1">Webhook Secret</label>
                     <input
                       type="password"
                       placeholder="Webhook Secret"
                       value={paymentForm.webhookSecret}
                       onChange={(e) => setPaymentForm({ ...paymentForm, webhookSecret: e.target.value })}
-                      className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl font-mono text-white focus:outline-hidden focus:border-blue-500"
+                      className="w-full p-2.5 bg-white border border-[#E5E7EB] rounded-xl font-mono text-white focus:outline-hidden focus:border-blue-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-slate-400 font-bold mb-1">Callback URL</label>
+                    <label className="block text-[#6B7280] font-bold mb-1">Callback URL</label>
                     <input
                       type="text"
                       placeholder="https://..."
                       value={paymentForm.callbackUrl}
                       onChange={(e) => setPaymentForm({ ...paymentForm, callbackUrl: e.target.value })}
-                      className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl font-mono text-white focus:outline-hidden focus:border-blue-500"
+                      className="w-full p-2.5 bg-white border border-[#E5E7EB] rounded-xl font-mono text-white focus:outline-hidden focus:border-blue-500"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-slate-400 font-bold mb-1">Administrative Notes</label>
+                  <label className="block text-[#6B7280] font-bold mb-1">Administrative Notes</label>
                   <textarea
                     rows={2}
                     placeholder="Optional details, sandbox instructions, or internal team notes..."
                     value={paymentForm.notes}
                     onChange={(e) => setPaymentForm({ ...paymentForm, notes: e.target.value })}
-                    className="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-hidden focus:border-blue-500"
+                    className="w-full p-2.5 bg-white border border-[#E5E7EB] rounded-xl text-white focus:outline-hidden focus:border-blue-500"
                   />
                 </div>
               </div>
 
               {/* Modal Actions */}
-              <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-800">
+              <div className="pt-4 flex items-center justify-end gap-3 border-t border-[#E5E7EB]">
                 <button
                   type="button"
                   onClick={() => setShowPaymentModal(false)}
-                  className="px-4 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 font-bold cursor-pointer transition-colors"
+                  className="px-4 py-2.5 rounded-xl text-[#6B7280] hover:text-white hover:bg-[#F8FAFC] font-bold cursor-pointer transition-colors"
                 >
                   Cancel
                 </button>
@@ -1140,7 +1140,7 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
       {/* MODAL: CONFIRM DELETE */}
       {deletingPaymentProvider && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-fade-in">
-          <div className="w-full max-w-md bg-slate-900 rounded-3xl p-6 border border-slate-800 shadow-2xl text-slate-100">
+          <div className="w-full max-w-md bg-white rounded-3xl p-6 border border-[#E5E7EB] shadow-2xl text-[#111827]">
             <div className="text-center">
               <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center mx-auto mb-4">
                 <Trash2 className="h-6 w-6" />
@@ -1148,13 +1148,13 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
               <h3 className="text-base font-bold text-white">
                 Delete Payment Provider
               </h3>
-              <p className="text-xs text-slate-400 mt-2 mb-6 leading-relaxed">
+              <p className="text-xs text-[#6B7280] mt-2 mb-6 leading-relaxed">
                 Are you sure you want to delete <strong className="text-white">"{deletingPaymentProvider.name}"</strong> from the database? This action cannot be undone.
               </p>
               <div className="flex items-center justify-center gap-3">
                 <button
                   onClick={() => setDeletingPaymentProvider(null)}
-                  className="px-4 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 font-bold text-xs cursor-pointer transition-colors"
+                  className="px-4 py-2.5 rounded-xl text-[#6B7280] hover:text-white hover:bg-[#F8FAFC] font-bold text-xs cursor-pointer transition-colors"
                 >
                   Cancel
                 </button>

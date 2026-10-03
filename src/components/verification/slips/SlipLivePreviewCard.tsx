@@ -16,8 +16,9 @@ export const SlipLivePreviewCard: React.FC<SlipLivePreviewCardProps> = ({
   const name = (slipOption?.name || "").trim().toLowerCase();
   const id = (slipOption?.id || "").trim().toUpperCase();
 
-  // 1. BVN Services / Bank Services
-  // Drop down: BVN Card, image: BVN Card.webp
+  let imageSrc = "/assets/Regular.webp";
+  let altText = "Regular Slip";
+
   if (
     name === "bvn card" ||
     id === "BVN_CARD" ||
@@ -25,21 +26,9 @@ export const SlipLivePreviewCard: React.FC<SlipLivePreviewCardProps> = ({
     name.includes("bvn card") ||
     (serviceType.toUpperCase().includes("BVN") && (id.includes("CARD") || name.includes("card")))
   ) {
-    return (
-      <div className="w-full flex items-center justify-center p-2 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden select-none">
-        <img
-          src="/assets/BVN%20Card.webp"
-          alt="BVN Card"
-          loading="eager"
-          referrerPolicy="no-referrer"
-          className="w-full h-auto max-w-lg rounded-xl object-contain shadow-xs block mx-auto"
-        />
-      </div>
-    );
-  }
-
-  // Drop down: BVN Slip, image: BVN Slip 1.webp
-  if (
+    imageSrc = "/assets/BVN%20Card.webp";
+    altText = "BVN Card";
+  } else if (
     name === "bvn slip" ||
     name === "bvn slip 1" ||
     id === "BVN_SLIP_1" ||
@@ -47,22 +36,9 @@ export const SlipLivePreviewCard: React.FC<SlipLivePreviewCardProps> = ({
     name.includes("bvn slip") ||
     (serviceType.toUpperCase().includes("BVN") && (id.includes("slip") || name.includes("slip")))
   ) {
-    return (
-      <div className="w-full flex items-center justify-center p-2 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden select-none">
-        <img
-          src="/assets/BVN%20Slip%201.webp"
-          alt="BVN Slip"
-          loading="eager"
-          referrerPolicy="no-referrer"
-          className="w-full h-auto max-w-lg rounded-xl object-contain shadow-xs block mx-auto"
-        />
-      </div>
-    );
-  }
-
-  // 2. Identity Services or NIN Services
-  // Drop down: Premium Card -> image: premium.webp
-  if (
+    imageSrc = "/assets/BVN%20Slip%201.webp";
+    altText = "BVN Slip";
+  } else if (
     name === "premium card" ||
     name === "nin premium card" ||
     name === "premium slip" ||
@@ -72,41 +48,30 @@ export const SlipLivePreviewCard: React.FC<SlipLivePreviewCardProps> = ({
     id === "NIN_PREMIUM_GREEN" ||
     name.includes("premium")
   ) {
-    return (
-      <div className="w-full flex items-center justify-center p-2 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden select-none">
-        <img
-          src="/assets/premium.webp"
-          alt="Premium Card"
-          loading="eager"
-          referrerPolicy="no-referrer"
-          onError={(e) => {
-            const target = e.currentTarget;
-            if (!target.src.includes("Premium.webp")) {
-              target.src = "/assets/Premium.webp";
-            }
-          }}
-          className="w-full h-auto max-w-lg rounded-xl object-contain shadow-xs block mx-auto"
-        />
-      </div>
-    );
+    imageSrc = "/assets/premium.webp";
+    altText = "Premium Card";
   }
 
-  // Drop down: Regular Slip (Official NIMC Enrolment Slip) -> image: Regular.webp / regular.webp
   return (
-    <div className="w-full flex items-center justify-center p-2 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden select-none">
+    <div className="w-full flex flex-col items-center justify-center p-2 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden select-none space-y-2">
       <img
-        src="/assets/Regular.webp"
-        alt="Regular Slip"
+        src={imageSrc}
+        alt={altText}
         loading="eager"
         referrerPolicy="no-referrer"
         onError={(e) => {
           const target = e.currentTarget;
-          if (!target.src.includes("regular.webp")) {
+          if (imageSrc.includes("premium") && !target.src.includes("Premium.webp")) {
+            target.src = "/assets/Premium.webp";
+          } else if (imageSrc.includes("Regular") && !target.src.includes("regular.webp")) {
             target.src = "/assets/regular.webp";
           }
         }}
         className="w-full h-auto max-w-lg rounded-xl object-contain shadow-xs block mx-auto"
       />
+      <div className="w-full text-center px-2.5 py-1.5 text-[11px] font-medium text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 rounded-lg border border-amber-200/80 dark:border-amber-800/50 leading-relaxed">
+        Note: The generated card/slip is for verification purposes only and is not an official NIMC document
+      </div>
     </div>
   );
 };

@@ -79,17 +79,17 @@ export default function AdminNotificationDrawer({
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="w-screen max-w-md bg-slate-900 border-l border-slate-800 shadow-2xl flex flex-col text-slate-100"
+              className="w-screen max-w-md bg-white border-l border-[#E5E7EB] shadow-2xl flex flex-col text-[#111827]"
             >
               {/* Header */}
-              <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950">
+              <div className="p-5 border-b border-[#E5E7EB] flex items-center justify-between bg-[#F8FAFC]">
                 <div className="flex items-center gap-2.5">
-                  <div className="p-2 bg-slate-800 border border-slate-700 rounded-xl text-blue-400">
+                  <div className="p-2 bg-blue-50 border border-blue-200 rounded-xl text-[#0F2D5C]">
                     <Bell className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-white">Admin Notifications</h3>
-                    <p className="text-xs text-slate-400">
+                    <h3 className="text-base font-bold text-[#111827]">Admin Notifications</h3>
+                    <p className="text-xs text-[#6B7280]">
                       {unreadCount} unread alert{unreadCount !== 1 ? "s" : ""}
                     </p>
                   </div>
@@ -98,14 +98,14 @@ export default function AdminNotificationDrawer({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="p-1.5 rounded-xl border border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+                  className="p-1.5 rounded-xl border border-[#E5E7EB] text-[#6B7280] hover:text-[#111827] hover:bg-[#E5E7EB] transition-colors cursor-pointer"
                 >
                   <X className="h-4 w-4" />
                 </button>
               </div>
 
               {/* Filter Tabs */}
-              <div className="p-3 border-b border-slate-800 bg-slate-900/90 flex items-center gap-1.5 overflow-x-auto text-xs">
+              <div className="p-3 border-b border-[#E5E7EB] bg-[#F8FAFC] flex items-center gap-1.5 overflow-x-auto text-xs">
                 {(["ALL", "UNREAD", "SECURITY", "FINANCE"] as const).map((tab) => (
                   <button
                     key={tab}
@@ -113,8 +113,8 @@ export default function AdminNotificationDrawer({
                     onClick={() => setFilter(tab)}
                     className={`py-1 px-3 rounded-xl font-bold font-mono transition-all cursor-pointer whitespace-nowrap text-xs ${
                       filter === tab
-                        ? "bg-blue-600 text-white"
-                        : "bg-slate-800/80 text-slate-400 hover:text-white border border-slate-700"
+                        ? "bg-[#0F2D5C] text-white"
+                        : "bg-white text-[#4B5563] hover:text-[#111827] border border-[#E5E7EB]"
                     }`}
                   >
                     {tab}
@@ -125,44 +125,44 @@ export default function AdminNotificationDrawer({
                   <button
                     type="button"
                     onClick={onMarkAllRead}
-                    className="ml-auto py-1 px-2.5 text-[10px] font-bold rounded-xl border border-slate-700 text-slate-300 hover:bg-slate-800 transition-colors cursor-pointer flex items-center gap-1 shrink-0"
+                    className="ml-auto py-1 px-2.5 text-[10px] font-bold rounded-xl border border-[#E5E7EB] text-[#4B5563] hover:bg-white transition-colors cursor-pointer flex items-center gap-1 shrink-0"
                   >
-                    <Check className="h-3 w-3 text-emerald-400" />
+                    <Check className="h-3 w-3 text-emerald-600" />
                     Mark All Read
                   </button>
                 )}
               </div>
 
               {/* Notification Items List */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-950">
+              <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[#F5F7FA]">
                 {filtered.length === 0 ? (
-                  <div className="text-center py-16 text-slate-400 space-y-2">
-                    <ShieldAlert className="h-8 w-8 mx-auto text-slate-600" />
+                  <div className="text-center py-16 text-[#6B7280] space-y-2">
+                    <ShieldAlert className="h-8 w-8 mx-auto text-[#9CA3AF]" />
                     <p className="text-xs font-medium">No notifications in this category.</p>
                   </div>
                 ) : (
                   filtered.map((item) => (
                     <div
                       key={item.id}
-                      className={`p-4 rounded-2xl border transition-all space-y-2 ${
+                      className={`p-4 rounded-2xl border transition-all space-y-2 bg-white ${
                         !item.read
-                          ? "bg-slate-900 border-blue-500/30"
-                          : "bg-slate-900/60 border-slate-800 opacity-80"
+                          ? "border-[#0F2D5C]/30 shadow-xs"
+                          : "border-[#E5E7EB] opacity-80"
                       }`}
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2">
                           {getIcon(item.type)}
-                          <p className="text-xs font-bold text-white">{item.title}</p>
+                          <p className="text-xs font-bold text-[#111827]">{item.title}</p>
                         </div>
                         {!item.read && (
-                          <span className="h-2 w-2 rounded-full bg-blue-500 shrink-0" />
+                          <span className="h-2 w-2 rounded-full bg-[#0F2D5C] shrink-0" />
                         )}
                       </div>
 
-                      <p className="text-xs text-slate-300 leading-relaxed pl-6">{item.message}</p>
+                      <p className="text-xs text-[#4B5563] leading-relaxed pl-6">{item.message}</p>
 
-                      <div className="pt-2 flex items-center justify-between text-[10px] text-slate-400 border-t border-slate-800/80">
+                      <div className="pt-2 flex items-center justify-between text-[10px] text-[#6B7280] border-t border-[#E5E7EB]">
                         <span className="font-mono">{new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
 
                         <div className="flex items-center gap-2">
@@ -170,7 +170,7 @@ export default function AdminNotificationDrawer({
                             <button
                               type="button"
                               onClick={() => onMarkRead(item.id)}
-                              className="text-blue-400 hover:text-blue-300 hover:underline font-medium cursor-pointer"
+                              className="text-[#0F2D5C] hover:underline font-bold cursor-pointer"
                             >
                               Mark Read
                             </button>
@@ -182,7 +182,7 @@ export default function AdminNotificationDrawer({
                                 onClose();
                                 onNavigate(item.link!);
                               }}
-                              className="text-blue-400 hover:text-blue-300 hover:underline flex items-center gap-0.5 cursor-pointer font-bold"
+                              className="text-[#0F2D5C] hover:underline flex items-center gap-0.5 cursor-pointer font-bold"
                             >
                               View <ExternalLink className="h-2.5 w-2.5" />
                             </button>

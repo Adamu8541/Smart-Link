@@ -106,32 +106,32 @@ export function UserLegalAgreementsModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/70 backdrop-blur-xs animate-fadeIn overflow-y-auto">
-      <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] mb-8 flex flex-col shadow-2xl border border-[#E5E7EB] text-left overflow-hidden animate-scaleUp">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-2.5 sm:p-4 bg-[#111827]/75 backdrop-blur-xs animate-fadeIn overflow-hidden">
+      <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[82dvh] sm:max-h-[85vh] flex flex-col shadow-2xl border border-[#E5E7EB] text-left overflow-hidden animate-scaleUp">
         {/* Header */}
-        <div className="px-6 py-4 bg-[#111827] text-white flex items-center justify-between border-b border-[#111827] shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-[#0F2D5C]/20 border border-[#E5E7EB]/30 flex items-center justify-center text-[#9CA3AF]">
-              <ShieldCheck className="h-5 w-5" />
+        <div className="px-3.5 py-2.5 sm:px-6 sm:py-3.5 bg-[#111827] text-white flex items-center justify-between border-b border-[#111827] shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg sm:rounded-xl bg-[#0F2D5C]/20 border border-[#E5E7EB]/30 flex items-center justify-center text-[#9CA3AF]">
+              <ShieldCheck className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold tracking-tight">Your Legal & Consent Center</h2>
-              <p className="text-xs text-[#9CA3AF]">Manage your agreements, NDPA privacy rights, and communications</p>
+              <h2 className="text-sm sm:text-base font-bold tracking-tight">Your Legal &amp; Consent Center</h2>
+              <p className="text-[10px] sm:text-xs text-[#9CA3AF]">Manage your agreements, NDPA privacy rights, and communications</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-[#9CA3AF] hover:text-white hover:bg-[#111827] transition-colors cursor-pointer"
+            className="p-1 rounded-lg text-[#9CA3AF] hover:text-white hover:bg-[#111827] transition-colors cursor-pointer"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4 sm:h-5 sm:w-5" />
           </button>
         </div>
 
         {/* Tab Navigation */}
-        <div className="px-6 pt-3 border-b border-[#E5E7EB] bg-[#F5F7FA] flex items-center gap-2 overflow-x-auto shrink-0">
+        <div className="px-3.5 sm:px-6 pt-2 border-b border-[#E5E7EB] bg-[#F5F7FA] flex items-center gap-1.5 sm:gap-2 overflow-x-auto shrink-0">
           <button
             onClick={() => setActiveTab("DOCUMENTS")}
-            className={`px-3 py-2 text-xs font-semibold rounded-t-lg border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+            className={`px-2.5 py-1.5 sm:px-3 sm:py-2 text-[11px] sm:text-xs font-semibold rounded-t-lg border-b-2 transition-all cursor-pointer whitespace-nowrap ${
               activeTab === "DOCUMENTS"
                 ? "border-[#0F2D5C] text-[#0F2D5C] bg-white shadow-2xs"
                 : "border-transparent text-[#6B7280] hover:text-[#111827]"
@@ -141,41 +141,41 @@ export function UserLegalAgreementsModal({
           </button>
           <button
             onClick={() => setActiveTab("HISTORY")}
-            className={`px-3 py-2 text-xs font-semibold rounded-t-lg border-b-2 transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+            className={`px-2.5 py-1.5 sm:px-3 sm:py-2 text-[11px] sm:text-xs font-semibold rounded-t-lg border-b-2 transition-all cursor-pointer whitespace-nowrap flex items-center gap-1 ${
               activeTab === "HISTORY"
                 ? "border-[#0F2D5C] text-[#0F2D5C] bg-white shadow-2xs"
                 : "border-transparent text-[#6B7280] hover:text-[#111827]"
             }`}
           >
-            <History className="h-3.5 w-3.5" />
+            <History className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
             Acceptance Records ({userAcceptances.length})
           </button>
           <button
             onClick={() => setActiveTab("MARKETING")}
-            className={`px-3 py-2 text-xs font-semibold rounded-t-lg border-b-2 transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+            className={`px-2.5 py-1.5 sm:px-3 sm:py-2 text-[11px] sm:text-xs font-semibold rounded-t-lg border-b-2 transition-all cursor-pointer whitespace-nowrap flex items-center gap-1 ${
               activeTab === "MARKETING"
                 ? "border-[#0F2D5C] text-[#0F2D5C] bg-white shadow-2xs"
                 : "border-transparent text-[#6B7280] hover:text-[#111827]"
             }`}
           >
-            <Mail className="h-3.5 w-3.5" />
+            <Mail className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
             Communication Channels
           </button>
           <button
             onClick={() => setActiveTab("DATA_RIGHTS")}
-            className={`px-3 py-2 text-xs font-semibold rounded-t-lg border-b-2 transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+            className={`px-2.5 py-1.5 sm:px-3 sm:py-2 text-[11px] sm:text-xs font-semibold rounded-t-lg border-b-2 transition-all cursor-pointer whitespace-nowrap flex items-center gap-1 ${
               activeTab === "DATA_RIGHTS"
                 ? "border-[#0F2D5C] text-[#0F2D5C] bg-white shadow-2xs"
                 : "border-transparent text-[#6B7280] hover:text-[#111827]"
             }`}
           >
-            <Lock className="h-3.5 w-3.5" />
+            <Lock className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
             NDPA 2023 Data Rights
           </button>
         </div>
 
         {/* Content Body */}
-        <div className="p-6 overflow-y-auto flex-1 space-y-4">
+        <div className="p-3.5 sm:p-5 overflow-y-auto flex-1 space-y-3 sm:space-y-4">
           {/* TAB 1: ALL DOCUMENTS */}
           {activeTab === "DOCUMENTS" && (
             <div className="space-y-3">

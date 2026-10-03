@@ -232,23 +232,21 @@ export function readDB(): any {
   if (currentDbMemory) {
     return currentDbMemory;
   }
-  if (process.env.NODE_ENV === "development") {
-    try {
-      let data = "";
-      if (fs.existsSync(DB_FILE)) {
-        data = fs.readFileSync(DB_FILE, "utf8");
-      } else {
-        const seedFile = path.join(process.cwd(), "src", "data", "db.json");
-        if (fs.existsSync(seedFile)) {
-          data = fs.readFileSync(seedFile, "utf8");
-        }
+  try {
+    let data = "";
+    if (fs.existsSync(DB_FILE)) {
+      data = fs.readFileSync(DB_FILE, "utf8");
+    } else {
+      const seedFile = path.join(process.cwd(), "src", "data", "db.json");
+      if (fs.existsSync(seedFile)) {
+        data = fs.readFileSync(seedFile, "utf8");
       }
-      if (data && data.trim()) {
-        currentDbMemory = JSON.parse(data);
-      }
-    } catch (e) {
-      console.warn("[server] Notice reading local DB:", e);
     }
+    if (data && data.trim()) {
+      currentDbMemory = JSON.parse(data);
+    }
+  } catch (e) {
+    console.warn("[server] Notice reading local DB:", e);
   }
 
   if (!currentDbMemory) {

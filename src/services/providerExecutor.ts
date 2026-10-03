@@ -323,7 +323,9 @@ export class ProviderExecutor {
       const pNameLower = (providerName || "").toLowerCase().trim();
       const directMatch = enabled.find((p: any) =>
         (p.id && String(p.id).toUpperCase().trim() === pCodeUpper) ||
-        (p.name && String(p.name).toLowerCase().trim() === pNameLower)
+        (p.name && String(p.name).toLowerCase().trim() === pNameLower) ||
+        (p.id && pNameLower && String(p.id).toLowerCase().includes(pNameLower)) ||
+        (p.name && pNameLower && String(p.name).toLowerCase().includes(pNameLower))
       );
       if (directMatch) return directMatch;
     }
@@ -497,7 +499,8 @@ export class ProviderExecutor {
       const targetPhoneNumber = params.phoneNumber || params.customerId || "";
 
       // Airtime
-      if (cat === "AIRTIME" && typeof (registeredAdapter as any).purchaseAirtime === "function") {
+      const isAirtime = cat === "AIRTIME" || (cat === "TELECOM_VTU" && (!params.extraData?.planId && params.extraData?.type !== "DATA" && (params as any).type !== "DATA"));
+      if (isAirtime && typeof (registeredAdapter as any).purchaseAirtime === "function") {
         const net = params.providerCode || params.extraData?.network || "MTN";
         const res = await (registeredAdapter as any).purchaseAirtime(
           { network: net, phoneNumber: targetPhoneNumber, amount: params.amount, reference: params.smartlinkReference },
@@ -517,7 +520,8 @@ export class ProviderExecutor {
       }
 
       // Data Bundle
-      if (cat === "DATA" && typeof (registeredAdapter as any).purchaseData === "function") {
+      const isData = cat === "DATA" || (cat === "TELECOM_VTU" && (params.extraData?.planId || params.extraData?.type === "DATA" || (params as any).type === "DATA"));
+      if (isData && typeof (registeredAdapter as any).purchaseData === "function") {
         const net = params.providerCode || params.extraData?.network || "MTN";
         const plan = params.planId || params.extraData?.planCode || "1000";
         const res = await (registeredAdapter as any).purchaseData(

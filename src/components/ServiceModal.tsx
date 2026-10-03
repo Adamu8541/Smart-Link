@@ -83,34 +83,38 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
 
   if (!service) return null;
 
-  if ((service.id === "wallet_funding" || service.id === "fund_wallet") && currentUser) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
-        <div className="w-full max-w-4xl mb-8">
-          <WalletFundingView
-            currentUser={currentUser}
-            onBackToDashboard={onClose}
-            onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
-          />
+  const renderModalContainer = (content: React.ReactNode, maxWidth = "max-w-xl") => (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-[#111827]/70 backdrop-blur-xs animate-fade-in overflow-hidden">
+      <div className={`w-full ${maxWidth} max-h-[82dvh] sm:max-h-[86vh] flex flex-col overflow-hidden rounded-2xl sm:rounded-3xl bg-white shadow-2xl border border-slate-200`}>
+        <div className="overflow-y-auto flex-1 w-full">
+          {content}
         </div>
       </div>
+    </div>
+  );
+
+  if ((service.id === "wallet_funding" || service.id === "fund_wallet") && currentUser) {
+    return renderModalContainer(
+      <WalletFundingView
+        currentUser={currentUser}
+        onBackToDashboard={onClose}
+        onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
+      />,
+      "max-w-4xl"
     );
   }
 
   // Intercept Manual Services (CAC Registrations, TIN Registration, NIN/BVN Modifications, Passport, ICT development)
   const manualServiceConfig = getManualServiceConfig(service.id);
   if (manualServiceConfig && currentUser) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
-        <div className="w-full max-w-3xl mb-8">
-          <ManualServiceFormView
-            serviceConfig={manualServiceConfig}
-            currentUser={currentUser}
-            onClose={onClose}
-            onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
-          />
-        </div>
-      </div>
+    return renderModalContainer(
+      <ManualServiceFormView
+        serviceConfig={manualServiceConfig}
+        currentUser={currentUser}
+        onClose={onClose}
+        onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
+      />,
+      "max-w-3xl"
     );
   }
 
@@ -159,18 +163,15 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
   if (isBillPaymentService && currentUser) {
     const initialCategory = getBillCategory(service.id);
     const initialProviderCode = getBillProviderCode(service.id);
-    return (
-      <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
-        <div className="w-full max-w-4xl mb-8">
-          <BillPaymentView
-            currentUser={currentUser}
-            initialCategory={initialCategory}
-            initialProviderCode={initialProviderCode}
-            onBackToDashboard={onClose}
-            onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
-          />
-        </div>
-      </div>
+    return renderModalContainer(
+      <BillPaymentView
+        currentUser={currentUser}
+        initialCategory={initialCategory}
+        initialProviderCode={initialProviderCode}
+        onBackToDashboard={onClose}
+        onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
+      />,
+      "max-w-4xl"
     );
   }
 
@@ -202,18 +203,15 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
       (service.id.includes("bvn") && service.id.includes("phone")) ||
       (service.name.toLowerCase().includes("bvn") && service.name.toLowerCase().includes("phone"))
     ) {
-      return (
-        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
-          <div className="w-full max-w-xl mb-8">
-            <BvnPhoneVerificationView
-              userId={currentUser.uid}
-              userEmail={currentUser.email}
-              serviceTitle={service.name}
-              onBackToDashboard={onClose}
-              onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
-            />
-          </div>
-        </div>
+      return renderModalContainer(
+        <BvnPhoneVerificationView
+          userId={currentUser.uid}
+          userEmail={currentUser.email}
+          serviceTitle={service.name}
+          onBackToDashboard={onClose}
+          onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
+        />,
+        "max-w-xl"
       );
     }
 
@@ -224,18 +222,15 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
       service.name.toLowerCase().includes("nin with phone") ||
       (service.name.toLowerCase().includes("nin") && service.name.toLowerCase().includes("phone"))
     ) {
-      return (
-        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
-          <div className="w-full max-w-xl mb-8">
-            <NinPhoneVerificationView
-              userId={currentUser.uid}
-              userEmail={currentUser.email}
-              serviceTitle={service.name}
-              onBackToDashboard={onClose}
-              onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
-            />
-          </div>
-        </div>
+      return renderModalContainer(
+        <NinPhoneVerificationView
+          userId={currentUser.uid}
+          userEmail={currentUser.email}
+          serviceTitle={service.name}
+          onBackToDashboard={onClose}
+          onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
+        />,
+        "max-w-xl"
       );
     }
 
@@ -245,34 +240,28 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
       (service.id.includes("bvn") && (service.id.includes("demography") || service.name.toLowerCase().includes("demography") || service.name.toLowerCase().includes("dob") || service.name.toLowerCase().includes("name & dob"))) ||
       (service.name.toLowerCase().includes("bvn") && (service.name.toLowerCase().includes("demography") || service.name.toLowerCase().includes("name & dob") || service.name.toLowerCase().includes("dob")))
     ) {
-      return (
-        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
-          <div className="w-full max-w-xl mb-8">
-            <BvnDemographyView
-              userId={currentUser.uid}
-              userEmail={currentUser.email}
-              serviceTitle={service.name}
-              onBackToDashboard={onClose}
-              onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
-            />
-          </div>
-        </div>
+      return renderModalContainer(
+        <BvnDemographyView
+          userId={currentUser.uid}
+          userEmail={currentUser.email}
+          serviceTitle={service.name}
+          onBackToDashboard={onClose}
+          onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
+        />,
+        "max-w-xl"
       );
     }
 
     // 4. NIN Demographic Verification
     if (service.id.includes("demography") || service.name.toLowerCase().includes("demography") || service.name.toLowerCase().includes("name & dob")) {
-      return (
-        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
-          <div className="w-full max-w-xl mb-8">
-            <NinDemographyView
-              userId={currentUser.uid}
-              userEmail={currentUser.email}
-              onBackToDashboard={onClose}
-              onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
-            />
-          </div>
-        </div>
+      return renderModalContainer(
+        <NinDemographyView
+          userId={currentUser.uid}
+          userEmail={currentUser.email}
+          onBackToDashboard={onClose}
+          onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
+        />,
+        "max-w-xl"
       );
     }
 
@@ -283,102 +272,81 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
       service.id.includes("bvn") ||
       service.name.toLowerCase().includes("bvn")
     ) {
-      return (
-        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
-          <div className="w-full max-w-xl mb-8">
-            <BvnVerificationView
-              userId={currentUser.uid}
-              userEmail={currentUser.email}
-              serviceTitle={service.name}
-              onBackToDashboard={onClose}
-              onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
-            />
-          </div>
-        </div>
+      return renderModalContainer(
+        <BvnVerificationView
+          userId={currentUser.uid}
+          userEmail={currentUser.email}
+          serviceTitle={service.name}
+          onBackToDashboard={onClose}
+          onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
+        />,
+        "max-w-xl"
       );
     }
 
     const vType = getVerificationType(service.id);
     if (vType === "NIN") {
-      return (
-        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
-          <div className="w-full max-w-xl mb-8">
-            <NinVerificationView
-              userId={currentUser.uid}
-              userEmail={currentUser.email}
-              serviceTitle={service.name}
-              serviceId={service.id}
-              onBackToDashboard={onClose}
-              onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
-            />
-          </div>
-        </div>
+      return renderModalContainer(
+        <NinVerificationView
+          userId={currentUser.uid}
+          userEmail={currentUser.email}
+          serviceTitle={service.name}
+          serviceId={service.id}
+          onBackToDashboard={onClose}
+          onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
+        />,
+        "max-w-xl"
       );
     }
     if (vType === "BVN") {
-      return (
-        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
-          <div className="w-full max-w-5xl mb-8">
-            <BvnVerificationView
-              userId={currentUser.uid}
-              userEmail={currentUser.email}
-              onBackToDashboard={onClose}
-              onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
-            />
-          </div>
-        </div>
+      return renderModalContainer(
+        <BvnVerificationView
+          userId={currentUser.uid}
+          userEmail={currentUser.email}
+          onBackToDashboard={onClose}
+          onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
+        />,
+        "max-w-xl"
       );
     }
     if (vType === "CAC") {
-      return (
-        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
-          <div className="w-full max-w-xl mb-8">
-            <CacVerificationView
-              userId={currentUser.uid}
-              onBackToDashboard={onClose}
-              onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
-            />
-          </div>
-        </div>
+      return renderModalContainer(
+        <CacVerificationView
+          userId={currentUser.uid}
+          onBackToDashboard={onClose}
+          onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
+        />,
+        "max-w-xl"
       );
     }
     if (vType === "TIN") {
-      return (
-        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
-          <div className="w-full max-w-3xl mb-8">
-            <TinVerificationView
-              userId={currentUser.uid}
-              onBackToDashboard={onClose}
-              onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
-            />
-          </div>
-        </div>
+      return renderModalContainer(
+        <TinVerificationView
+          userId={currentUser.uid}
+          onBackToDashboard={onClose}
+          onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
+        />,
+        "max-w-xl"
       );
     }
     if (vType === "BANK_ACCOUNT") {
-      return (
-        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
-          <div className="w-full max-w-3xl mb-8">
-            <BankAccountVerificationView
-              userId={currentUser.uid}
-              onBackToDashboard={onClose}
-              onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
-            />
-          </div>
-        </div>
+      return renderModalContainer(
+        <BankAccountVerificationView
+          userId={currentUser.uid}
+          onBackToDashboard={onClose}
+          onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
+        />,
+        "max-w-xl"
       );
     }
-    return (
-      <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
-        <div className="w-full max-w-2xl mb-8">
-          <VerificationEngine
-            userId={currentUser.uid}
-            initialServiceType={vType}
-            onClose={onClose}
-            onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
-          />
-        </div>
-      </div>
+    return renderModalContainer(
+      <VerificationEngine
+        userId={currentUser.uid}
+        initialServiceType={vType}
+        onClose={onClose}
+        onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
+      />,
+      "max-w-xl"
     );
   }
 
@@ -502,30 +470,30 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
   };
 
   return (
-    <div className="fixed inset-0 bg-[#111827]/60 backdrop-blur-xs flex items-start justify-center p-4 pt-4 sm:pt-8 pb-12 z-50 overflow-y-auto">
-      <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full overflow-hidden border border-[#E5E7EB] flex flex-col mb-8">
+    <div className="fixed inset-0 bg-[#111827]/70 backdrop-blur-xs flex items-center justify-center p-2.5 sm:p-4 z-50 overflow-hidden animate-fade-in">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-[#E5E7EB] flex flex-col max-h-[82dvh] sm:max-h-[86vh]">
         {/* Modal Header */}
-        <div className="bg-[#111827] text-white p-5 flex justify-between items-center">
+        <div className="bg-[#0F2D5C] text-white px-3.5 py-2.5 sm:px-5 sm:py-3 flex justify-between items-center shrink-0">
           <div>
-            <h3 className="text-sm font-mono text-[#9CA3AF] uppercase tracking-wider font-semibold">Smart Link Digital Node</h3>
-            <h2 className="text-lg font-extrabold">{service.name}</h2>
+            <h3 className="text-[10px] font-mono text-slate-300 uppercase tracking-wider font-semibold">Smart Link Digital Node</h3>
+            <h2 className="text-sm sm:text-base font-bold text-white truncate max-w-[240px] sm:max-w-xs">{service.name}</h2>
           </div>
-          <button onClick={onClose} className="bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white p-1 rounded-full transition-colors">
-            <X className="h-5 w-5 text-[#9CA3AF]" />
+          <button onClick={onClose} className="p-1 rounded-full text-slate-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer" aria-label="Close">
+            <X className="h-4 w-4" />
           </button>
         </div>
 
         {/* Modal Body */}
-        <div className="p-6 overflow-y-auto max-h-[70vh]">
+        <div className="p-3.5 sm:p-5 overflow-y-auto flex-1">
           {successResult ? (
             /* Digital Receipt Area */
-            <div className="space-y-6 text-left">
-              <div className="text-center space-y-2">
-                <div className="h-12 w-12 rounded-full bg-[#E5E7EB] text-[#0F2D5C] flex items-center justify-center mx-auto border border-[#E5E7EB]">
-                  <Check className="h-6 w-6" />
+            <div className="space-y-4 text-left">
+              <div className="text-center space-y-1.5">
+                <div className="h-10 w-10 rounded-full bg-[#E5E7EB] text-[#0F2D5C] flex items-center justify-center mx-auto border border-[#E5E7EB]">
+                  <Check className="h-5 w-5" />
                 </div>
-                <h4 className="text-lg font-bold text-[#111827]">Transaction Completed</h4>
-                <p className="text-xs text-[#6B7280]">Receipt generated on {formatSafeDateTime(new Date(), "Recently")}</p>
+                <h4 className="text-base font-bold text-[#111827]">Transaction Completed</h4>
+                <p className="text-[11px] text-[#6B7280]">Receipt generated on {formatSafeDateTime(new Date(), "Recently")}</p>
               </div>
 
               {/* Verified Identity Profile Sheet */}
@@ -667,13 +635,13 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
             </div>
           ) : (
             /* Service Entry Form */
-            <form onSubmit={handleSubmit} autoComplete="off" className="space-y-5 text-left">
+            <form onSubmit={handleSubmit} autoComplete="off" className="space-y-3 sm:space-y-4 text-left">
               {!currentUser && (
-                <div className="p-3 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border border-[#E5E7EB] dark:border-[#0F2D5C] rounded-lg flex items-start gap-2.5 text-xs text-[#0F2D5C] dark:text-[#9CA3AF]">
-                  <AlertTriangle className="h-4.5 w-4.5 text-[#0F2D5C] shrink-0 mt-0.5" />
+                <div className="p-2.5 bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border border-[#E5E7EB] dark:border-[#0F2D5C] rounded-xl flex items-start gap-2 text-xs text-[#0F2D5C] dark:text-[#9CA3AF]">
+                  <AlertTriangle className="h-4 w-4 text-[#0F2D5C] shrink-0 mt-0.5" />
                   <div>
-                    <strong>Account Sign In Required</strong>
-                    <p className="mt-1 font-light leading-relaxed">
+                    <strong className="text-[11px] sm:text-xs">Account Sign In Required</strong>
+                    <p className="mt-0.5 font-light leading-snug text-[10.5px] sm:text-[11px]">
                       You are not logged in. To buy scratch cards, purchase data/airtime, or perform identity verifications, please sign in or register an account.
                     </p>
                   </div>
@@ -681,13 +649,13 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
               )}
 
               {error && (
-                <div className="p-3 bg-[#F5F7FA] border border-[#E5E7EB] rounded-lg text-[#0F2D5C] text-xs font-medium">
+                <div className="p-2.5 bg-[#F5F7FA] border border-[#E5E7EB] rounded-xl text-[#0F2D5C] text-xs font-medium">
                   {error}
                 </div>
               )}
 
               {/* Dynamic Form Fields */}
-              <div className="space-y-4">
+              <div className="space-y-2.5 sm:space-y-3">
                 {service.fields.map((f) => {
                   const uniqueFieldId = `field-${service.id}-${f.name}`;
                   const isTaxOrCacService =
@@ -697,10 +665,10 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
                     service.id === "id_cac_registration";
 
                   return (
-                    <div key={f.name} className="space-y-1.5">
-                      <label htmlFor={uniqueFieldId} className="text-xs font-bold text-[#4B5563] flex justify-between">
+                    <div key={f.name} className="space-y-1">
+                      <label htmlFor={uniqueFieldId} className="text-[11px] sm:text-xs font-semibold text-[#4B5563] flex justify-between">
                         {f.label}
-                        {f.required && <span className="text-[#0F2D5C]">* Required</span>}
+                        {f.required && <span className="text-[#0F2D5C] text-[10px]">* Required</span>}
                       </label>
 
                       {f.type === "select" ? (
@@ -709,7 +677,7 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
                           value={formData[f.name] || ""}
                           onChange={(e) => handleInputChange(f.name, e.target.value)}
                           required={f.required}
-                          className="w-full px-3 py-2 rounded border border-[#E5E7EB] text-sm focus:outline-none focus:ring-1 focus:ring-[#0F2D5C] focus:border-[#0F2D5C] bg-white"
+                          className="w-full px-2.5 py-1.5 sm:py-2 rounded-lg border border-[#E5E7EB] text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-[#0F2D5C] focus:border-[#0F2D5C] bg-white"
                         >
                           <option value="">{isTaxOrCacService ? "-- Select --" : f.placeholder}</option>
                           {f.options?.map((opt) => (
@@ -726,8 +694,8 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
                           placeholder={isTaxOrCacService ? undefined : f.placeholder}
                           autoComplete="off"
                           required={f.required}
-                          rows={3}
-                          className="w-full px-3 py-2 rounded border border-[#E5E7EB] text-sm focus:outline-none focus:ring-1 focus:ring-[#0F2D5C] focus:border-[#0F2D5C] bg-white"
+                          rows={2}
+                          className="w-full px-2.5 py-1.5 sm:py-2 rounded-lg border border-[#E5E7EB] text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-[#0F2D5C] focus:border-[#0F2D5C] bg-white"
                         />
                       ) : (
                         <input
@@ -738,7 +706,7 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
                           placeholder={isTaxOrCacService ? undefined : f.placeholder}
                           autoComplete="off"
                           required={f.required}
-                          className="w-full px-3 py-2 rounded border border-[#E5E7EB] text-sm focus:outline-none focus:ring-1 focus:ring-[#0F2D5C] focus:border-[#0F2D5C] bg-white"
+                          className="w-full px-2.5 py-1.5 sm:py-2 rounded-lg border border-[#E5E7EB] text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-[#0F2D5C] focus:border-[#0F2D5C] bg-white"
                         />
                       )}
                     </div>
@@ -747,8 +715,8 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
               </div>
 
               {/* Order summary panel */}
-              <div className="bg-[#F5F7FA] rounded-lg p-4 border border-[#E5E7EB] space-y-2">
-                <div className="flex justify-between items-center text-xs">
+              <div className="bg-[#F5F7FA] rounded-xl p-2.5 sm:p-3 border border-[#E5E7EB] space-y-1.5 text-xs">
+                <div className="flex justify-between items-center text-[11px] sm:text-xs">
                   <span className="text-[#6B7280] font-mono">Platform Service Fee</span>
                   <span className="font-semibold text-[#111827]">
                     {service.price !== undefined && service.price !== null ? formatNaira(service.price) : "Provider Plan Cost"}
@@ -756,19 +724,19 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
                 </div>
 
                 {(service.id.startsWith("edu_") || service.category === "EDUCATION") && (
-                  <div className="flex justify-between items-center text-xs border-t pt-1">
+                  <div className="flex justify-between items-center text-[11px] sm:text-xs border-t pt-1">
                     <span className="text-[#6B7280] font-mono">Quantity Requested</span>
                     <span className="font-semibold text-[#111827]">x{formData["quantity"] || 1}</span>
                   </div>
                 )}
 
-                <div className="flex justify-between items-center text-sm font-bold border-t pt-2 text-[#111827]">
+                <div className="flex justify-between items-center text-xs sm:text-sm font-bold border-t pt-1.5 text-[#111827]">
                   <span>Grand Total (Naira)</span>
                   <span className="text-[#0F2D5C] font-mono">{formatNaira(totalCost)}</span>
                 </div>
 
                 {currentUser && (
-                  <div className="flex justify-between items-center text-[11px] border-t pt-1 text-[#6B7280]">
+                  <div className="flex justify-between items-center text-[10.5px] sm:text-[11px] border-t pt-1 text-[#6B7280]">
                     <span>Your Current Wallet Balance</span>
                     <span className={(currentUser.walletBalance ?? 0) < totalCost ? "text-[#0F2D5C] font-bold" : "text-[#0F2D5C] font-bold"}>
                       {formatNaira(currentUser.walletBalance)}
@@ -778,11 +746,11 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
               </div>
 
               {/* Submit / Cancel Actions */}
-              <div className="flex gap-3 justify-end pt-4 border-t">
+              <div className="flex gap-2 justify-end pt-2.5 border-t">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white px-4 py-2 border border-[#E5E7EB] rounded text-xs font-semibold transition-colors"
+                  className="bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white px-3 py-1.5 border border-[#E5E7EB] rounded-lg text-xs font-semibold transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -790,12 +758,12 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
                   type="submit"
                   id="btn-confirm-transaction"
                   disabled={loading}
-                  className="px-6 py-2 bg-[#0F2D5C] hover:bg-[#0F2D5C] disabled:bg-[#E5E7EB] text-white font-bold rounded text-xs transition-colors flex items-center gap-1 shadow-md shadow-none active:scale-95"
+                  className="px-4 py-1.5 bg-[#0F2D5C] hover:bg-[#17407E] disabled:bg-[#E5E7EB] text-white font-bold rounded-lg text-xs transition-colors flex items-center gap-1 shadow-xs active:scale-95 cursor-pointer"
                 >
                   {loading ? (
                     <>
                       <SmartLinkLogoMark size="xs" color="#FFFFFF" animating={true} />
-                      Validating Secure Node...
+                      Validating...
                     </>
                   ) : (
                     "Authorize Transaction"

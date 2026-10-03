@@ -325,6 +325,14 @@ app.post("/api/auth/login", async (req, res) => {
 
   // Return user profile with their assigned role
   const { passwordHash, salt, ...safeUser } = user;
+  try {
+    const userPasskeys = await PasskeyRepository.listByUserId(user.uid || user.id || "");
+    (safeUser as any).hasPasskeys = userPasskeys.length > 0;
+    (safeUser as any).isBiometricEnrolled = userPasskeys.length > 0;
+  } catch {
+    (safeUser as any).hasPasskeys = false;
+    (safeUser as any).isBiometricEnrolled = false;
+  }
   const userRole = (user.role as AdminRoleType) || "CUSTOMER";
   const userToken = signAdminJwt({
     uid: user.uid || user.id || "usr_user",
@@ -1744,7 +1752,7 @@ app.post("/api/auth/passkeys/login-verify", async (req, res) => {
       return res.status(404).json({ error: "Biometric credential not recognized on this account." });
     }
 
-    const user = await usersStore.getUserById(passkey.user_id);
+    const user = await usersStore.getUserById(String(passkey.user_id));
     if (!user) {
       return res.status(404).json({ error: "User account linked to biometric passkey was not found." });
     }
@@ -1758,16 +1766,21 @@ app.post("/api/auth/passkeys/login-verify", async (req, res) => {
     await PasskeyRepository.updateCounter(credentialId, newCounter);
 
     // Issue platform JWT session token
+    const userRole = (user.role as AdminRoleType) || "CUSTOMER";
     const token = signAdminJwt({
-      uid: user.uid,
+      uid: user.uid || user.id || "usr_user",
       email: user.email,
-      role: (user.role as any) || "USER",
+      role: userRole as any,
+      permissions: (ADMIN_ROLES_CONFIG as any)[userRole]?.permissions || ["*"],
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
     });
 
     const safeUser = { ...user };
     delete (safeUser as any).passwordHash;
     delete (safeUser as any).salt;
     (safeUser as any).token = token;
+    (safeUser as any).hasPasskeys = true;
+    (safeUser as any).isBiometricEnrolled = true;
 
     res.json({
       success: true,

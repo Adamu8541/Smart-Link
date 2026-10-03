@@ -332,10 +332,43 @@ app.get("/llms-full.txt", (_req, res) => {
   res.status(404).send("llms-full.txt not found");
 });
 
+app.get(["/ai-catalog.json", "/.well-known/ai-catalog.json"], (_req, res) => {
+  const filePaths = [
+    path.join(process.cwd(), "public", ".well-known", "ai-catalog.json"),
+    path.join(process.cwd(), "public", "ai-catalog.json"),
+  ];
+  for (const fp of filePaths) {
+    if (fs.existsSync(fp)) {
+      res.setHeader("Content-Type", "application/json; charset=utf-8");
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Cache-Control", "public, max-age=86400");
+      return res.sendFile(fp);
+    }
+  }
+  res.status(404).json({ error: "ai-catalog.json not found" });
+});
+
+app.get(["/ard.json", "/.well-known/ard.json"], (_req, res) => {
+  const filePaths = [
+    path.join(process.cwd(), "public", ".well-known", "ard.json"),
+    path.join(process.cwd(), "public", "ard.json"),
+  ];
+  for (const fp of filePaths) {
+    if (fs.existsSync(fp)) {
+      res.setHeader("Content-Type", "application/json; charset=utf-8");
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Cache-Control", "public, max-age=86400");
+      return res.sendFile(fp);
+    }
+  }
+  res.status(404).json({ error: "ard.json not found" });
+});
+
 app.get("/.well-known/ai-plugin.json", (_req, res) => {
   const filePath = path.join(process.cwd(), "public", ".well-known", "ai-plugin.json");
   if (fs.existsSync(filePath)) {
     res.setHeader("Content-Type", "application/json; charset=utf-8");
+    res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Cache-Control", "public, max-age=86400");
     return res.sendFile(filePath);
   }
@@ -346,6 +379,7 @@ app.get("/.well-known/agent.json", (_req, res) => {
   const filePath = path.join(process.cwd(), "public", ".well-known", "agent.json");
   if (fs.existsSync(filePath)) {
     res.setHeader("Content-Type", "application/json; charset=utf-8");
+    res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Cache-Control", "public, max-age=86400");
     return res.sendFile(filePath);
   }

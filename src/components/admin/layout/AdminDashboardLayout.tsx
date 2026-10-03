@@ -85,7 +85,7 @@ export default function AdminDashboardLayout({
   const unreadNotifCount = notifications.filter((n) => !n.read).length;
 
   return (
-    <div className="dark min-h-screen flex flex-col font-sans bg-slate-950 text-slate-100">
+    <div className="min-h-screen flex flex-col font-sans bg-[#F5F7FA] text-[#111827]">
       <div className="flex-1 flex overflow-hidden">
         {/* Desktop Left Sidebar */}
         <div className="hidden lg:block shrink-0 sticky top-0 h-screen z-20">
@@ -110,14 +110,14 @@ export default function AdminDashboardLayout({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={() => setMobileDrawerOpen(false)}
-                className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs"
+                className="fixed inset-0 bg-[#111827]/60 backdrop-blur-xs"
               />
               <motion.div
                 initial={{ x: "-100%" }}
                 animate={{ x: 0 }}
                 exit={{ x: "-100%" }}
                 transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                className="relative w-80 max-w-full h-full z-10 bg-slate-900 text-white shadow-2xl"
+                className="relative w-80 max-w-full h-full z-10 bg-[#0F2D5C] text-white shadow-2xl"
               >
                 <AdminSidebar
                   currentRoute={currentRoute}
@@ -137,7 +137,7 @@ export default function AdminDashboardLayout({
         </AnimatePresence>
 
         {/* Right Main Container */}
-        <div className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-slate-950 text-slate-100">
+        <div className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-[#F5F7FA] text-[#111827]">
           {/* Top Sticky Header */}
           <AdminHeader
             session={session}
@@ -183,7 +183,7 @@ export default function AdminDashboardLayout({
           )}
 
           {/* Breadcrumbs Bar */}
-          <div className="px-4 md:px-8 py-2.5 border-b border-slate-800 bg-slate-900/90 text-slate-300 shadow-xs backdrop-blur-xs">
+          <div className="px-4 md:px-8 py-2.5 border-b border-[#E5E7EB] bg-[#F8FAFC] text-[#4B5563] shadow-xs">
             <AdminBreadcrumbs breadcrumbs={breadcrumbs} onNavigate={onNavigate} />
           </div>
 

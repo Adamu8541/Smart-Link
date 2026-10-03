@@ -213,19 +213,19 @@ export const LandingServicesPreview: React.FC<LandingServicesPreviewProps> = ({
   ];
 
   return (
-    <section id="services-section" className="py-12 bg-[#F5F7FA] border-b border-[#E5E7EB]">
+    <section id="services-section" className="py-8 sm:py-12 bg-[#F5F7FA] border-b border-[#E5E7EB]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
-          <div className="space-y-3 max-w-2xl">
-            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#F5F7FA] text-[#0F2D5C] border border-[#E5E7EB]">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-10 gap-4 sm:gap-6">
+          <div className="space-y-2 max-w-2xl">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-[#F5F7FA] text-[#0F2D5C] border border-[#E5E7EB]">
               Complete Service Ecosystem
             </span>
-            <h2 className="text-3xl sm:text-4.5xl font-bold text-[#111827] tracking-tight">
-              Comprehensive Verification & Utility Services
+            <h2 className="text-2xl sm:text-3.5xl lg:text-4xl font-bold text-[#111827] tracking-tight">
+              Comprehensive Verification &amp; Utility Services
             </h2>
-            <p className="text-sm text-[#4B5563] font-normal leading-relaxed">
+            <p className="text-xs sm:text-sm text-[#4B5563] font-normal leading-relaxed">
               Explore our core suite of digital verifications, bill settlements, educational tokens, and enterprise APIs designed for maximum uptime and speed.
             </p>
           </div>
@@ -235,66 +235,66 @@ export const LandingServicesPreview: React.FC<LandingServicesPreviewProps> = ({
               id="services-preview-explore-all"
               type="button"
               onClick={onExploreAll}
-              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white font-medium rounded-xl text-sm transition-colors cursor-pointer shadow-xs"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white font-medium rounded-lg text-xs sm:text-sm transition-colors cursor-pointer shadow-xs"
             >
               <span>Explore All Portal Services</span>
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
             </button>
           </div>
         </div>
 
         {/* Categories Grouping */}
-        <div className="space-y-16">
+        <div className="space-y-8 sm:space-y-10">
           {categories.map((category) => (
-            <section key={category.title} className="space-y-8">
-              <div className="border-l-4 border-[#0F2D5C] pl-4">
-                <h3 className="text-2xl font-bold text-[#111827] tracking-tight">
+            <section key={category.title} className="space-y-4 sm:space-y-5">
+              <div className="border-l-3 border-[#0F2D5C] pl-3">
+                <h3 className="text-lg sm:text-xl font-bold text-[#111827] tracking-tight">
                   {category.title}
                 </h3>
-                <p className="text-sm text-[#374151] mt-1">
+                <p className="text-xs sm:text-sm text-[#4B5563] mt-0.5">
                   {category.benefit}
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 sm:gap-4.5">
                 {category.services.map((service) => {
                   const IconComponent = service.icon;
                   return (
                     <div
                       key={service.id}
                       id={`service-card-${service.id}`}
-                      className="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-[0_4px_12px_rgba(15,23,42,0.06)] hover:border-[#0F2D5C] transition-all duration-300 flex flex-col justify-between group"
+                      className="bg-white border border-[#E5E7EB] rounded-xl p-4 sm:p-5 shadow-xs hover:border-[#0F2D5C] transition-all duration-200 flex flex-col justify-between group"
                     >
-                      <div className="space-y-4">
+                      <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                          <div className={`h-12 w-12 rounded-2xl border ${service.color} flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform duration-200`}>
-                            <IconComponent className="h-6 w-6" aria-hidden="true" />
+                          <div className={`h-10 w-10 rounded-xl border ${service.color} flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform duration-200`}>
+                            <IconComponent className="h-5 w-5" aria-hidden="true" />
                           </div>
-                          <span className="text-[10px] font-bold text-[#111827] bg-[#F5F7FA] border border-[#E5E7EB] px-2 py-1 rounded-md uppercase tracking-wide">
+                          <span className="text-[9px] font-bold text-[#111827] bg-[#F5F7FA] border border-[#E5E7EB] px-1.5 py-0.5 rounded-md uppercase tracking-wide">
                             {service.badge}
                           </span>
                         </div>
 
                         <div>
-                          <h4 className="text-base font-bold text-[#111827] group-hover:text-[#0F2D5C] transition-colors">
+                          <h4 className="text-sm sm:text-base font-bold text-[#111827] group-hover:text-[#0F2D5C] transition-colors">
                             {service.name}
                           </h4>
-                          <p className="text-xs text-[#374151] leading-relaxed mt-2 font-normal line-clamp-3">
+                          <p className="text-xs text-[#4B5563] leading-relaxed mt-1 font-normal line-clamp-2">
                             {service.description}
                           </p>
                         </div>
                       </div>
 
-                      <div className="pt-5 mt-4 border-t border-[#E5E7EB]">
+                      <div className="pt-3.5 mt-3 border-t border-[#E5E7EB]">
                         <button
                           id={`btn-learn-more-${service.id}`}
                           type="button"
                           onClick={() => onSelectService && onSelectService(service.id)}
                           aria-label={`Learn more about ${service.name}`}
-                          className="w-full min-h-[48px] py-3 px-4 bg-white hover:bg-[#0F2D5C] active:bg-[#17407E] text-[#111827] hover:text-white border border-[#E5E7EB] hover:border-[#0F2D5C] rounded-xl text-xs font-bold transition-colors flex items-center justify-between cursor-pointer shadow-xs touch-manipulation"
+                          className="w-full min-h-[38px] py-2 px-3 bg-white hover:bg-[#0F2D5C] active:bg-[#17407E] text-[#111827] hover:text-white border border-[#E5E7EB] hover:border-[#0F2D5C] rounded-lg text-xs font-bold transition-colors flex items-center justify-between cursor-pointer shadow-xs touch-manipulation"
                         >
                           <span>Learn More</span>
-                          <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
+                          <ArrowRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
                         </button>
                       </div>
                     </div>

@@ -18,6 +18,7 @@ import { AspfiyAdapter } from "./providers/aspfiyAdapter";
 import { LumiIDAdapter } from "./providers/lumiidAdapter";
 import { IdentroAdapter } from "./providers/identroAdapter";
 import { PrembleyAdapter } from "./providers/prembleyAdapter";
+import { syncFromStorage } from "./settingsStore";
 
 export interface MultiPortalExecutionParams {
   service: string; // NIN, BVN, PHONE, CAC, TIN, etc.
@@ -506,6 +507,7 @@ export class MultiProviderRoutingEngine {
     db: any,
     providerId: string
   ): Promise<{ ok: boolean; message: string; responseTimeMs: number; status: string }> {
+    await syncFromStorage(db);
     const startTime = Date.now();
     const cleanId = providerId.toLowerCase().trim();
     const normalizedKey = cleanId.replace(/^prov_/, "");
@@ -636,6 +638,7 @@ export class MultiProviderRoutingEngine {
     db: any,
     params: MultiPortalExecutionParams
   ): Promise<MultiPortalExecutionResult> {
+    await syncFromStorage(db);
     const sType = params.service.toUpperCase().trim();
     const rule = this.getRuleForService(db, sType);
 
@@ -695,15 +698,48 @@ export class MultiProviderRoutingEngine {
       }
     }
 
-    // If no provider is selected or configured for this service, fail gracefully without executing unselected defaults
+    // If no provider is explicitly configured in routing rules, fallback to active providers in db.api_providers
+    if (providerChain.length === 0) {
+      const allProviders = (Array.isArray(db.api_providers) && db.api_providers.length > 0)
+        ? db.api_providers
+        : (Array.isArray(db.apiProviders) ? db.apiProviders : []);
+      
+      const enabledProviders = allProviders.filter(
+        (p: any) =>
+          (p.status === "Active" || p.status === "ENABLED" || p.isActive === true || p.enabled === true) &&
+          p.status !== "Draft" &&
+          p.status !== "Inactive" &&
+          p.status !== "DISABLED"
+      );
+
+      if (enabledProviders.length > 0) {
+        const isVtu = ["MTN", "GLO", "AIRTEL", "9MOBILE", "DATA", "AIRTIME", "ELECTRICITY", "CABLE"].includes(sType);
+        const isPayment = ["PAYMENT", "WALLET", "DEPOSIT"].includes(sType);
+        
+        const matched = enabledProviders.find((p: any) => {
+          const cat = (p.category || p.providerType || "").toUpperCase();
+          if (isVtu) return cat.includes("VTU") || cat.includes("TELECOM");
+          if (isPayment) return cat.includes("PAYMENT");
+          return cat.includes("IDENTITY") || cat.includes("VERIFICATION");
+        }) || enabledProviders[0];
+
+        if (matched) {
+          providerChain.push({
+            id: matched.id || matched.name,
+            name: matched.name || this.resolveProviderDisplayName(matched.id, db),
+          });
+        }
+      }
+    }
+
+    // If still no provider is configured, return clear message
     if (providerChain.length === 0) {
       return {
         success: false,
-        service: sType,
-        targetId: params.targetId,
-        providerUsed: "None",
         providerName: "None (Unassigned)",
-        error: `No provider is configured or selected for service "${rule.serviceName || sType}". Please configure a provider in Admin > Portal Routing Matrix or select a provider.`,
+        providerCode: "NONE",
+        providerReference: "",
+        error: `No provider is configured or selected for service "${rule.serviceName || sType}". Please configure an active provider in Admin > API Providers or Portal Routing.`,
         responseTimeMs: 0,
         wasFailedOver: false,
         routingStrategyUsed: rule.strategy || "PRIORITY_ORDER",

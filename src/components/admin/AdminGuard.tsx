@@ -159,9 +159,9 @@ export default function AdminGuard({
   // 1. Loading State
   if (sessionValid === null) {
     return (
-      <div id="admin-guard-loading" className="min-h-screen bg-[#0F172A] flex flex-col items-center justify-center text-slate-200 p-6">
+      <div id="admin-guard-loading" className="min-h-screen bg-[#0F172A] flex flex-col items-center justify-center text-[#111827] p-6">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mb-4" />
-        <p className="text-xs font-semibold text-slate-400">Verifying Admin Session & RBAC Permissions...</p>
+        <p className="text-xs font-semibold text-[#6B7280]">Verifying Admin Session & RBAC Permissions...</p>
       </div>
     );
   }
@@ -169,14 +169,14 @@ export default function AdminGuard({
   // 2. Unauthenticated -> Redirect to Login
   if (!sessionValid || !adminSession) {
     return (
-      <div id="admin-guard-unauth" className="min-h-screen bg-slate-950 flex items-center justify-center p-6 text-center text-slate-100">
-        <div className="max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-8 space-y-5 shadow-2xl">
+      <div id="admin-guard-unauth" className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-6 text-center text-[#111827]">
+        <div className="max-w-md bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-8 space-y-5 shadow-2xl">
           <div className="mx-auto w-12 h-12 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center">
             <Lock className="h-5 w-5" />
           </div>
           <div className="space-y-2">
             <h2 className="text-lg font-bold text-white">Unauthorized Administrator Access</h2>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-[#6B7280] leading-relaxed">
               You must authenticate with valid administrator credentials to access protected SmartLink Admin pages.
             </p>
           </div>
@@ -202,7 +202,7 @@ export default function AdminGuard({
           animate={{ opacity: 1, scale: 1 }}
           className="max-w-lg bg-[#1E293B] border border-red-900/40 rounded-3xl p-8 space-y-6 shadow-2xl relative overflow-hidden text-white"
         >
-          <div className="flex items-center gap-3 border-b border-slate-700 pb-4">
+          <div className="flex items-center gap-3 border-b border-[#E5E7EB] pb-4">
             <div className="p-3 bg-red-900/30 border border-red-800/40 rounded-2xl text-red-400">
               <ShieldAlert className="h-7 w-7" />
             </div>
@@ -214,9 +214,9 @@ export default function AdminGuard({
             </div>
           </div>
 
-          <div className="p-4 bg-red-950/30 border border-red-900/50 rounded-2xl space-y-2 text-xs text-slate-300 leading-relaxed">
+          <div className="p-4 bg-red-950/30 border border-red-900/50 rounded-2xl space-y-2 text-xs text-[#4B5563] leading-relaxed">
             <p className="font-semibold text-red-300">{denialReason}</p>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-[11px] text-[#6B7280]">
               Your session is active as <span className="font-bold text-white">{adminSession.fullName}</span> ({ADMIN_ROLES_CONFIG[adminSession.role]?.displayName || adminSession.role}), but this page requires higher administrative authorization.
             </p>
           </div>
@@ -235,9 +235,9 @@ export default function AdminGuard({
               id="guard-switch-account-btn"
               type="button"
               onClick={onLogout}
-              className="py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+              className="py-2.5 px-4 bg-[#F8FAFC] hover:bg-gray-100 text-[#111827] border border-[#E5E7EB] font-semibold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
             >
-              <LogOut className="h-4 w-4 text-slate-400" />
+              <LogOut className="h-4 w-4 text-[#6B7280]" />
               Switch Account
             </button>
           </div>
@@ -254,20 +254,20 @@ export default function AdminGuard({
   };
 
   return (
-    <div id="admin-guard-container" className="min-h-screen bg-[#0F172A] text-slate-100 flex flex-col font-sans">
+    <div id="admin-guard-container" className="min-h-screen bg-[#0F172A] text-[#111827] flex flex-col font-sans">
       {/* Top Session & RBAC Status Bar */}
-      <div className="bg-[#1E293B] border-b border-slate-700/80 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs">
+      <div className="bg-[#1E293B] border-b border-[#E5E7EB]/80 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-900/40 border border-blue-700/50 text-blue-300 font-bold text-[11px]">
             <ShieldCheck className="h-3.5 w-3.5" />
             <span>SmartLink Admin Panel</span>
           </div>
 
-          <div className="hidden md:flex items-center gap-2 text-slate-300 text-[11px]">
+          <div className="hidden md:flex items-center gap-2 text-[#4B5563] text-[11px]">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <span className="font-semibold text-white">{adminSession.fullName}</span>
-            <span className="text-slate-500">|</span>
-            <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[10px]">
+            <span className="text-[#9CA3AF]">|</span>
+            <span className="px-2 py-0.5 rounded bg-[#F8FAFC] text-[#4B5563] font-mono text-[10px]">
               {ADMIN_ROLES_CONFIG[adminSession.role]?.displayName || adminSession.role}
             </span>
           </div>
@@ -278,15 +278,15 @@ export default function AdminGuard({
           <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-mono ${
             timeRemainingSeconds < 300
               ? "bg-red-950/40 border-red-800 text-red-300 animate-pulse"
-              : "bg-slate-800/80 border-slate-700 text-slate-300"
+              : "bg-[#F8FAFC] border-[#E5E7EB] text-[#4B5563]"
           }`}>
-            <Clock className="h-3.5 w-3.5 text-slate-400" />
+            <Clock className="h-3.5 w-3.5 text-[#6B7280]" />
             <span>Session: {formatTimer(timeRemainingSeconds)}</span>
             <button
               type="button"
               onClick={handleExtendSession}
               title="Extend Session"
-              className="ml-1 p-0.5 hover:text-white text-slate-400 cursor-pointer"
+              className="ml-1 p-0.5 hover:text-white text-[#6B7280] cursor-pointer"
             >
               <RefreshCw className="h-3 w-3" />
             </button>

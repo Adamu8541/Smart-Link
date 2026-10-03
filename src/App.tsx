@@ -1126,7 +1126,7 @@ export default function App() {
                     />
                     <div className="absolute left-1/2 -translate-x-1/2 mt-3 w-[460px] bg-white border border-[#E5E7EB]/80 rounded-2xl shadow-xl p-5 z-50 text-left">
                       <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3 mb-3">
-                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#9CA3AF] font-mono">
+                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#4B5563] font-mono">
                           Smart Link Nigeria Services Summary
                         </span>
                         {currentUser ? (
@@ -1202,7 +1202,7 @@ export default function App() {
                         </div>
                       </div>
 
-                      <div className="mt-4 pt-3.5 border-t border-[#E5E7EB] flex items-center justify-between text-[10px] text-[#9CA3AF]">
+                      <div className="mt-4 pt-3.5 border-t border-[#E5E7EB] flex items-center justify-between text-[11px] text-[#4B5563] font-medium">
                         <span>Need full portal access? Sign in to your node.</span>
                         <button
                           onClick={() => {
@@ -1823,16 +1823,26 @@ export default function App() {
                 <Suspense fallback={<AuthFormSkeleton />}>
                   <AuthPortal
                     initialIsRegistering={isRegistering}
-                    onAuthSuccess={(user) => {
+                    onAuthSuccess={async (user) => {
                       setCurrentUser(user);
                       navigateToView("DASHBOARD");
                       setIsRegistering(false);
-                      // Check if biometric enrollment prompt modal should appear immediately after manual login
-                      BiometricAuthService.isBiometricSupported().then((supported) => {
-                        if (supported) {
-                          setTimeout(() => setShowBiometricEnrollPrompt(true), 500);
+                      // Check if biometric enrollment prompt modal should appear after login
+                      // ONLY if supported, NOT already enrolled, and NOT dismissed
+                      try {
+                        const uid = user?.id || (user as any)?.uid;
+                        const token = user?.token || (user as any)?.sessionToken;
+                        const supported = await BiometricAuthService.isBiometricSupported();
+                        if (supported && uid) {
+                          const alreadyEnrolled = (user as any)?.isBiometricEnrolled || (user as any)?.hasPasskeys || (await BiometricAuthService.isEnrolled(uid, token));
+                          const dismissed = BiometricAuthService.isEnrollPromptDismissed(uid);
+                          if (!alreadyEnrolled && !dismissed) {
+                            setTimeout(() => setShowBiometricEnrollPrompt(true), 600);
+                          }
                         }
-                      });
+                      } catch {
+                        // ignore background enrollment check errors
+                      }
                     }}
                     onNavigateHome={() => navigateToView("HOME")}
                     onOpenLegalDoc={(docId) => setQuickLegalModalDocId(docId)}
@@ -1857,8 +1867,18 @@ export default function App() {
       {/* Biometric Fingerprint Enrollment Prompt Modal (Fintech-style after manual login) */}
       <BiometricEnrollPromptModal
         isOpen={showBiometricEnrollPrompt}
-        onClose={() => setShowBiometricEnrollPrompt(false)}
+        onClose={() => {
+          setShowBiometricEnrollPrompt(false);
+          const uid = currentUser?.id || (currentUser as any)?.uid;
+          if (uid) {
+            BiometricAuthService.dismissEnrollPrompt(uid);
+          }
+        }}
         onSuccess={() => {
+          const uid = currentUser?.id || (currentUser as any)?.uid;
+          if (uid) {
+            BiometricAuthService.setEnrolled(uid, true);
+          }
           setToast({ message: "Fingerprint sign-in successfully enabled! You can now log in with 1 touch.", type: "success" });
         }}
         userFullName={currentUser?.fullName || "Valued User"}
@@ -1945,42 +1965,42 @@ export default function App() {
 
       {/* Logout Confirmation Modal */}
       {showLogoutModal && (
-        <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-4 pt-10 sm:pt-4 bg-[#111827]/60 backdrop-blur-xs overflow-y-auto">
-          <div className="w-full max-w-sm bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#E5E7EB] rounded-2xl p-6 shadow-2xl space-y-5 text-center relative overflow-hidden transition-all duration-200 animate-in fade-in zoom-in-95">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-[#111827]/60 backdrop-blur-xs overflow-hidden">
+          <div className="w-full max-w-sm bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#E5E7EB] rounded-2xl p-4 sm:p-6 shadow-2xl space-y-4 text-center relative overflow-y-auto max-h-[82dvh] transition-all duration-200 animate-in fade-in zoom-in-95">
             <button
               type="button"
               onClick={cancelLogout}
-              className="absolute top-4 right-4 p-1 rounded-full text-[#9CA3AF] hover:text-[#4B5563] dark:hover:text-[#E5E7EB] hover:bg-[#E5E7EB] dark:hover:bg-[#111827] transition-colors cursor-pointer"
+              className="absolute top-3.5 right-3.5 p-1 rounded-full text-[#9CA3AF] hover:text-[#4B5563] dark:hover:text-[#E5E7EB] hover:bg-[#E5E7EB] dark:hover:bg-[#111827] transition-colors cursor-pointer"
               aria-label="Close modal"
             >
               <X className="h-4 w-4" />
             </button>
 
-            <div className="mx-auto w-12 h-12 rounded-full bg-[#E5E7EB] dark:bg-[#111827]/60 text-[#0F2D5C] dark:text-[#E5E7EB] flex items-center justify-center shadow-xs">
-              <LogOut className="h-6 w-6 ml-0.5" />
+            <div className="mx-auto w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#E5E7EB] dark:bg-[#111827]/60 text-[#0F2D5C] dark:text-[#E5E7EB] flex items-center justify-center shadow-xs">
+              <LogOut className="h-5 w-5 sm:h-6 sm:w-6 ml-0.5" />
             </div>
 
-            <div className="space-y-1.5">
-              <h3 className="text-base font-bold text-[#111827] dark:text-white">
+            <div className="space-y-1">
+              <h3 className="text-sm sm:text-base font-bold text-[#111827] dark:text-white">
                 Confirm Sign Out
               </h3>
-              <p className="text-xs text-[#4B5563] dark:text-[#6B7280] leading-relaxed">
+              <p className="text-[11px] sm:text-xs text-[#4B5563] dark:text-[#6B7280] leading-relaxed">
                 You are currently signed in. Navigating back or exiting will sign you out of your account session. Are you sure you want to sign out?
               </p>
             </div>
 
-            <div className="flex items-center gap-3 pt-2">
+            <div className="flex items-center gap-2.5 sm:gap-3 pt-1">
               <button
                 type="button"
                 onClick={cancelLogout}
-                className="flex-1 py-2.5 px-4 bg-[#E5E7EB] dark:bg-[#111827] hover:bg-[#E5E7EB] dark:hover:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB] font-semibold rounded-xl text-xs transition-colors cursor-pointer"
+                className="flex-1 py-2 sm:py-2.5 px-3 sm:px-4 bg-[#E5E7EB] dark:bg-[#111827] hover:bg-[#E5E7EB] dark:hover:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB] font-semibold rounded-xl text-xs transition-colors cursor-pointer"
               >
                 Stay Signed In
               </button>
               <button
                 type="button"
                 onClick={confirmLogout}
-                className="flex-1 py-2.5 px-4 bg-[#0F2D5C] hover:bg-[#17407E] active:scale-98 text-white font-semibold rounded-xl text-xs transition-all shadow-md shadow-[#0F2D5C]/20 cursor-pointer flex items-center justify-center gap-1.5"
+                className="flex-1 py-2 sm:py-2.5 px-3 sm:px-4 bg-[#0F2D5C] hover:bg-[#17407E] active:scale-98 text-white font-semibold rounded-xl text-xs transition-all shadow-md shadow-[#0F2D5C]/20 cursor-pointer flex items-center justify-center gap-1.5"
               >
                 <LogOut className="h-3.5 w-3.5" />
                 Sign Out

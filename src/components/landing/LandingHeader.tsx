@@ -51,40 +51,40 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
   return (
     <header
       id="site-header"
-      className={`sticky top-0 z-40 w-full min-h-[80px] sm:min-h-[96px] transition-colors duration-200 border-b mobile-gpu-layer ${
+      className={`sticky top-0 z-40 w-full min-h-[60px] sm:min-h-[72px] transition-colors duration-200 border-b mobile-gpu-layer ${
         isScrolled
-          ? "bg-white/95 backdrop-blur-md shadow-sm border-[#E5E7EB]"
+          ? "bg-white/95 backdrop-blur-md shadow-xs border-[#E5E7EB]"
           : "bg-white border-[#E5E7EB]"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20 sm:h-24">
+        <div className="flex items-center justify-between h-15 sm:h-18">
           
           {/* Left: SmartLink Logo */}
           <button
             id="header-logo-container"
             type="button"
             onClick={() => handleNavClick("hero-section")}
-            className="flex items-center cursor-pointer group bg-transparent border-none p-0 text-left w-[224px] sm:w-[280px] h-14 sm:h-16 lg:h-18 shrink-0"
+            className="flex items-center cursor-pointer group bg-transparent border-none p-0 text-left w-[170px] sm:w-[210px] h-10 sm:h-12 shrink-0"
             aria-label="Smart Link NG Home"
           >
             <img
               src={activeLogo}
               alt={`${siteName || "Smart Link NG"} - Official Identity Verification & Fintech Portal`}
-              width={224}
-              height={56}
+              width={190}
+              height={46}
               loading="eager"
               fetchPriority="high"
               decoding="async"
-              style={{ aspectRatio: "224 / 56", width: "224px", height: "56px" }}
-              className="h-14 w-[224px] sm:h-16 sm:w-[256px] lg:h-18 lg:w-[280px] object-contain shrink-0"
+              style={{ aspectRatio: "190 / 46" }}
+              className="h-9 w-auto sm:h-11 max-w-[190px] sm:max-w-[210px] object-contain shrink-0"
               referrerPolicy="no-referrer"
               onError={handleLogoError}
             />
           </button>
 
           {/* Center: Desktop Navigation Links */}
-          <nav id="header-desktop-nav" aria-label="Primary Desktop Navigation" className="hidden md:flex items-center gap-1 lg:gap-2">
+          <nav id="header-desktop-nav" aria-label="Primary Desktop Navigation" className="hidden md:flex items-center gap-1 lg:gap-1.5">
             {[
               { id: "hero-section", label: "Home" },
               { id: "services-section", label: "Services" },
@@ -98,7 +98,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
                 id={`nav-link-${item.id}`}
                 type="button"
                 onClick={() => handleNavClick(item.id)}
-                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                   activeSection === item.id
                     ? "text-[#0F2D5C] bg-[#F5F7FA] font-bold"
                     : "text-[#374151] hover:text-[#0F2D5C] hover:bg-[#F5F7FA]"
@@ -110,12 +110,12 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
           </nav>
 
           {/* Right: Actions (Login, Register, Get Started) */}
-          <div id="header-right-actions" className="hidden lg:flex items-center gap-3">
+          <div id="header-right-actions" className="hidden lg:flex items-center gap-2.5">
             <button
               id="header-btn-login"
               type="button"
               onClick={onLogin}
-              className="px-4 py-2 text-xs font-bold text-white bg-[#111827] hover:bg-[#0F2D5C] focus:ring-2 focus:ring-offset-2 focus:ring-[#0F2D5C] rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
+              className="px-3.5 py-1.5 text-xs font-bold text-white bg-[#111827] hover:bg-[#0F2D5C] focus:ring-2 focus:ring-offset-2 focus:ring-[#0F2D5C] rounded-lg transition-all cursor-pointer flex items-center gap-1.5"
             >
               <LogIn className="h-3.5 w-3.5 text-white" aria-hidden="true" />
               Login
@@ -125,7 +125,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
               id="header-btn-register"
               type="button"
               onClick={onRegister}
-              className="px-4 py-2 text-xs font-bold text-white bg-[#111827] hover:bg-[#0F2D5C] focus:ring-2 focus:ring-offset-2 focus:ring-[#0F2D5C] rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
+              className="px-3.5 py-1.5 text-xs font-bold text-white bg-[#111827] hover:bg-[#0F2D5C] focus:ring-2 focus:ring-offset-2 focus:ring-[#0F2D5C] rounded-lg transition-all cursor-pointer flex items-center gap-1.5"
             >
               <UserPlus className="h-3.5 w-3.5 text-white" aria-hidden="true" />
               Register
@@ -135,7 +135,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
               id="header-btn-get-started"
               type="button"
               onClick={onGetStarted}
-              className="px-5 py-2.5 bg-[#111827] hover:bg-[#0F2D5C] text-white font-bold rounded-xl text-xs shadow-xs focus:ring-2 focus:ring-offset-2 focus:ring-[#0F2D5C] transition-all active:scale-98 cursor-pointer flex items-center gap-2"
+              className="px-4 py-1.5 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold rounded-lg text-xs shadow-xs focus:ring-2 focus:ring-offset-2 focus:ring-[#0F2D5C] transition-all active:scale-98 cursor-pointer flex items-center gap-1.5"
             >
               Get Started
               <ArrowRight className="h-3.5 w-3.5 text-white" aria-hidden="true" />

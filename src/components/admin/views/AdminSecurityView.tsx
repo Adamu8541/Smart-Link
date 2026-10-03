@@ -422,7 +422,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
   const metrics = dashMetrics?.metrics || {};
 
   return (
-    <div className="bg-[#111827] border border-[#111827] rounded-3xl p-4 md:p-8 space-y-6">
+    <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-4 md:p-8 space-y-6">
       {/* Header Banner */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-[#111827] pb-5">
         <div className="flex items-center gap-3">
@@ -530,7 +530,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
         <div className="space-y-6">
           {/* Top Metric Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
-            <div className="bg-[#111827] border border-[#111827] rounded-2xl p-4 space-y-2">
+            <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-4 space-y-2">
               <div className="flex items-center justify-between text-xs text-[#9CA3AF]">
                 <span>Failed Logins Today</span>
                 <XCircle className="h-4 w-4 text-[#9CA3AF]" />
@@ -539,7 +539,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
               <div className="text-[10px] text-[#6B7280]">Recorded authentication failures</div>
             </div>
 
-            <div className="bg-[#111827] border border-[#111827] rounded-2xl p-4 space-y-2">
+            <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-4 space-y-2">
               <div className="flex items-center justify-between text-xs text-[#9CA3AF]">
                 <span>Successful Logins Today</span>
                 <CheckCircle2 className="h-4 w-4 text-[#9CA3AF]" />
@@ -548,7 +548,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
               <div className="text-[10px] text-[#9CA3AF]">Verified identity sessions</div>
             </div>
 
-            <div className="bg-[#111827] border border-[#111827] rounded-2xl p-4 space-y-2">
+            <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-4 space-y-2">
               <div className="flex items-center justify-between text-xs text-[#9CA3AF]">
                 <span>Locked Accounts</span>
                 <Lock className="h-4 w-4 text-[#9CA3AF]" />
@@ -557,7 +557,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
               <div className="text-[10px] text-[#6B7280]">Governance locks triggered</div>
             </div>
 
-            <div className="bg-[#111827] border border-[#111827] rounded-2xl p-4 space-y-2">
+            <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-4 space-y-2">
               <div className="flex items-center justify-between text-xs text-[#9CA3AF]">
                 <span>Blocked IPs & Devices</span>
                 <Globe className="h-4 w-4 text-[#9CA3AF]" />
@@ -570,7 +570,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
               </div>
             </div>
 
-            <div className="bg-[#111827] border border-[#111827] rounded-2xl p-4 space-y-2">
+            <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-4 space-y-2">
               <div className="flex items-center justify-between text-xs text-[#9CA3AF]">
                 <span>Active Sessions</span>
                 <Key className="h-4 w-4 text-[#9CA3AF]" />
@@ -579,7 +579,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
               <div className="text-[10px] text-[#6B7280]">Live tokens monitored</div>
             </div>
 
-            <div className="bg-[#111827] border border-[#111827] rounded-2xl p-4 space-y-2">
+            <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-4 space-y-2">
               <div className="flex items-center justify-between text-xs text-[#9CA3AF]">
                 <span>Suspicious Activities</span>
                 <AlertTriangle className="h-4 w-4 text-[#9CA3AF]" />
@@ -588,7 +588,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
               <div className="text-[10px] text-[#6B7280]">Anomaly engine flags</div>
             </div>
 
-            <div className="bg-[#111827] border border-[#111827] rounded-2xl p-4 space-y-2">
+            <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-4 space-y-2">
               <div className="flex items-center justify-between text-xs text-[#9CA3AF]">
                 <span>Critical Security Alerts</span>
                 <ShieldAlert className="h-4 w-4 text-[#0F2D5C] animate-pulse" />
@@ -597,7 +597,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
               <div className="text-[10px] text-[#9CA3AF] font-bold">Action Required</div>
             </div>
 
-            <div className="bg-[#111827] border border-[#111827] rounded-2xl p-4 space-y-2">
+            <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-4 space-y-2">
               <div className="flex items-center justify-between text-xs text-[#9CA3AF]">
                 <span>Audit Logs Ledger</span>
                 <FileText className="h-4 w-4 text-[#9CA3AF]" />
@@ -610,7 +610,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
           {/* Graphical Analytics & Distribution */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Login Attempt Trends Bar Visual */}
-            <div className="bg-[#111827] border border-[#111827] rounded-2xl p-5 space-y-4">
+            <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-sm font-bold text-white flex items-center gap-2">
@@ -647,7 +647,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
             </div>
 
             {/* Device Distribution */}
-            <div className="bg-[#111827] border border-[#111827] rounded-2xl p-5 space-y-4">
+            <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-sm font-bold text-white flex items-center gap-2">
@@ -679,7 +679,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
           </div>
 
           {/* Quick Critical Alerts Table in Overview */}
-          <div className="bg-[#111827] border border-[#111827] rounded-2xl p-5 space-y-4">
+          <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-5 space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
@@ -768,7 +768,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
       {/* SUB-VIEW 2: IMMUTABLE AUDIT LOGS */}
       {activeTab === "AUDIT_LOGS" && (
         <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-[#111827] border border-[#111827] rounded-2xl p-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-4">
             <div className="flex items-center gap-3 w-full sm:w-auto">
               <div className="relative flex-1 sm:w-72">
                 <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-[#9CA3AF]" />
@@ -826,7 +826,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
           </div>
 
           {/* Table */}
-          <div className="bg-[#111827] border border-[#111827] rounded-2xl overflow-hidden">
+          <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
@@ -892,7 +892,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
       {/* SUB-VIEW 3: LOGIN HISTORY */}
       {activeTab === "LOGIN_HISTORY" && (
         <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-[#111827] border border-[#111827] rounded-2xl p-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-4">
             <div className="flex items-center gap-3 w-full sm:w-auto">
               <div className="relative flex-1 sm:w-80">
                 <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-[#9CA3AF]" />
@@ -918,7 +918,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
             </div>
           </div>
 
-          <div className="bg-[#111827] border border-[#111827] rounded-2xl overflow-hidden">
+          <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
@@ -983,7 +983,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
       {/* SUB-VIEW 4: ACCOUNT GOVERNANCE & LOCKS */}
       {activeTab === "ACCOUNT_LOCKS" && (
         <div className="space-y-4">
-          <div className="bg-[#111827] border border-[#111827] rounded-2xl p-5 space-y-4">
+          <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-5 space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
@@ -1074,7 +1074,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
       {/* SUB-VIEW 5: BLOCKED DEVICES */}
       {activeTab === "BLOCKED_DEVICES" && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between bg-[#111827] border border-[#111827] rounded-2xl p-4">
+          <div className="flex items-center justify-between bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-4">
             <div>
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <Laptop className="h-4 w-4 text-[#9CA3AF]" /> Blocked Hardware & Device Signatures
@@ -1090,7 +1090,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
             </button>
           </div>
 
-          <div className="bg-[#111827] border border-[#111827] rounded-2xl overflow-hidden">
+          <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
@@ -1143,7 +1143,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
       {/* SUB-VIEW 6: BLOCKED IP ADDRESSES */}
       {activeTab === "BLOCKED_IPS" && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between bg-[#111827] border border-[#111827] rounded-2xl p-4">
+          <div className="flex items-center justify-between bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-4">
             <div>
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <Globe className="h-4 w-4 text-[#9CA3AF]" /> Blocked IP Address Firewall Table
@@ -1159,7 +1159,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
             </button>
           </div>
 
-          <div className="bg-[#111827] border border-[#111827] rounded-2xl overflow-hidden">
+          <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
@@ -1213,7 +1213,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
       {/* SUB-VIEW 7: SUSPICIOUS ACTIVITY DETECTOR */}
       {activeTab === "SUSPICIOUS" && (
         <div className="space-y-4">
-          <div className="bg-[#111827] border border-[#111827] rounded-2xl p-5 space-y-4">
+          <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-5 space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
@@ -1314,7 +1314,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
       {/* SUB-VIEW 8: ACTIVE SESSIONS */}
       {activeTab === "SESSIONS" && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between bg-[#111827] border border-[#111827] rounded-2xl p-4">
+          <div className="flex items-center justify-between bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-4">
             <div>
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <Key className="h-4 w-4 text-[#9CA3AF]" /> Active User Sessions Monitor
@@ -1323,7 +1323,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
             </div>
           </div>
 
-          <div className="bg-[#111827] border border-[#111827] rounded-2xl overflow-hidden">
+          <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
@@ -1391,7 +1391,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* List */}
-            <div className="md:col-span-2 bg-[#111827] border border-[#111827] rounded-2xl p-5 space-y-4">
+            <div className="md:col-span-2 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-5 space-y-4">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <ShieldAlert className="h-4 w-4 text-[#9CA3AF]" /> System Security Alerts Center
               </h3>
@@ -1449,7 +1449,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
             </div>
 
             {/* Alert Inspection & Notes Sidebar */}
-            <div className="bg-[#111827] border border-[#111827] rounded-2xl p-5 space-y-4">
+            <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-5 space-y-4">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <Eye className="h-4 w-4 text-[#9CA3AF]" /> Alert Details & Action Ledger
               </h3>
@@ -1528,7 +1528,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
       {/* SUB-VIEW 10: MODULE 10 SELF-TEST SUITE */}
       {activeTab === "TEST_SUITE" && (
         <div className="space-y-4">
-          <div className="bg-[#111827] border border-[#111827] rounded-2xl p-5 space-y-4">
+          <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-5 space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
@@ -1587,7 +1587,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
       {/* MODAL 1: BLOCK IP ADDRESS */}
       {showBlockIpModal && (
         <div className="fixed inset-0 z-50 bg-[#111827]/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#111827] border border-[#111827] rounded-3xl p-6 max-w-md w-full space-y-5 animate-fadeIn">
+          <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-6 max-w-md w-full space-y-5 animate-fadeIn">
             <div className="flex items-center justify-between border-b border-[#111827] pb-3">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <Globe className="h-5 w-5 text-[#9CA3AF]" /> Block IP Address
@@ -1660,7 +1660,7 @@ export function AdminSecurityView({ session, onNavigate, subRoute = "" }: AdminS
       {/* MODAL 2: BLOCK HARDWARE DEVICE */}
       {showBlockDeviceModal && (
         <div className="fixed inset-0 z-50 bg-[#111827]/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#111827] border border-[#111827] rounded-3xl p-6 max-w-md w-full space-y-5 animate-fadeIn">
+          <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-6 max-w-md w-full space-y-5 animate-fadeIn">
             <div className="flex items-center justify-between border-b border-[#111827] pb-3">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <Laptop className="h-5 w-5 text-[#9CA3AF]" /> Block Hardware Device Fingerprint

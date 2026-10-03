@@ -249,7 +249,7 @@ export const AdminMultiProviderView: React.FC = () => {
               <div>
                 <h1 className="text-2xl font-bold text-[#111827] dark:text-white flex items-center gap-2">
                   Multi-Provider Routing & Failover
-                  <span className="text-xs px-2.5 py-0.5 rounded-full font-medium bg-[#E5E7EB] dark:bg-[#0F2D5C]/50 text-[#0F2D5C] dark:text-[#9CA3AF] border border-slate-200 dark:border-slate-700">
+                  <span className="text-xs px-2.5 py-0.5 rounded-full font-medium bg-[#E5E7EB] dark:bg-[#0F2D5C]/50 text-[#0F2D5C] dark:text-[#9CA3AF] border border-slate-200 dark:border-[#E5E7EB]">
                     Phase 2 Engine Active
                   </span>
                 </h1>
@@ -437,8 +437,8 @@ export const AdminMultiProviderView: React.FC = () => {
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                         metric.status === "ONLINE"
-                          ? "bg-[#E5E7EB] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] border border-slate-200 dark:border-slate-700"
-                          : "bg-[#E5E7EB] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] border border-slate-200 dark:border-slate-700"
+                          ? "bg-[#E5E7EB] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] border border-slate-200 dark:border-[#E5E7EB]"
+                          : "bg-[#E5E7EB] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] border border-slate-200 dark:border-[#E5E7EB]"
                       }`}
                     >
                       {metric.status}
@@ -447,7 +447,7 @@ export const AdminMultiProviderView: React.FC = () => {
 
                   {/* Circuit Breaker Status */}
                   {metric.circuitBreakerTripped && (
-                    <div className="mt-3 p-2 rounded-lg bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border border-slate-200 dark:border-slate-700 text-[#0F2D5C] dark:text-[#9CA3AF] text-xs flex items-center space-x-2">
+                    <div className="mt-3 p-2 rounded-lg bg-[#F5F7FA] dark:bg-[#0F2D5C]/40 border border-slate-200 dark:border-[#E5E7EB] text-[#0F2D5C] dark:text-[#9CA3AF] text-xs flex items-center space-x-2">
                       <XCircle className="w-4 h-4 shrink-0" />
                       <span>Circuit Breaker Tripped ({metric.consecutiveFailures} consecutive failures)</span>
                     </div>
@@ -502,7 +502,7 @@ export const AdminMultiProviderView: React.FC = () => {
                   <button
                     onClick={() => handlePingPortal(metric.providerId)}
                     disabled={isPinging}
-                    className=" inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg dark: dark: dark: border border-slate-200 dark:border-slate-700 transition"
+                    className=" inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg dark: dark: dark: border border-slate-200 dark:border-[#E5E7EB] transition"
                   >
                     <RefreshCw className={`w-3.5 h-3.5${isPinging ? "animate-spin text-[#0F2D5C]" : ""}`} />
                     <span>{isPinging ? "Testing..." : "Ping Provider"}</span>
@@ -564,7 +564,7 @@ export const AdminMultiProviderView: React.FC = () => {
                           <span>{rule.primaryProviderName}</span>
                         </div>
                       ) : (
-                        <span className="text-slate-400 dark:text-slate-500 italic text-xs">
+                        <span className="text-[#6B7280] dark:text-[#9CA3AF] italic text-xs">
                           None (Unassigned)
                         </span>
                       )}
@@ -577,7 +577,7 @@ export const AdminMultiProviderView: React.FC = () => {
                           <span>{rule.secondaryProviderName}</span>
                         </div>
                       ) : (
-                        <span className="text-slate-400 dark:text-slate-500 italic text-xs">
+                        <span className="text-[#6B7280] dark:text-[#9CA3AF] italic text-xs">
                           None
                         </span>
                       )}
@@ -693,7 +693,7 @@ export const AdminMultiProviderView: React.FC = () => {
                       </td>
 
                       <td className="py-3 px-4">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-[#E5E7EB] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] border border-slate-200 dark:border-slate-700">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-[#E5E7EB] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] border border-slate-200 dark:border-[#E5E7EB]">
                           Rescued &amp; Completed
                         </span>
                       </td>

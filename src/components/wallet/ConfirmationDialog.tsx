@@ -96,23 +96,23 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111827]/60 backdrop-blur-xs animate-fade-in">
-      <div className="w-full max-w-sm bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-2xl p-6 shadow-2xl space-y-4 relative overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-[#111827]/60 backdrop-blur-xs animate-fade-in overflow-hidden">
+      <div className="w-full max-w-sm bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-2xl p-3.5 sm:p-5 shadow-2xl space-y-3 sm:space-y-4 relative overflow-y-auto max-h-[82dvh] sm:max-h-[86vh]">
         <button
           type="button"
           onClick={onClose}
           disabled={isLoading || isVerifyingPin}
-          className="absolute top-4 right-4 p-1 rounded-full text-[#9CA3AF] hover:text-[#4B5563] dark:hover:text-[#E5E7EB] hover:bg-[#E5E7EB] dark:hover:bg-[#111827] transition-colors cursor-pointer"
+          className="absolute top-3 right-3 sm:top-4 sm:right-4 p-1 rounded-full text-[#9CA3AF] hover:text-[#4B5563] dark:hover:text-[#E5E7EB] hover:bg-[#E5E7EB] dark:hover:bg-[#111827] transition-colors cursor-pointer"
         >
           <X className="h-4 w-4" />
         </button>
 
-        <div className="text-center space-y-1 pt-1">
-          <div className="mx-auto w-12 h-12 rounded-2xl bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] flex items-center justify-center shadow-xs">
-            <Wallet className="h-6 w-6" />
+        <div className="text-center space-y-1 pt-0.5">
+          <div className="mx-auto w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 text-[#0F2D5C] dark:text-[#9CA3AF] flex items-center justify-center shadow-xs">
+            <Wallet className="h-5 w-5 sm:h-6 sm:w-6" />
           </div>
-          <h3 className="text-base font-bold text-[#111827] dark:text-white">Confirm Payment</h3>
-          <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">
+          <h3 className="text-sm sm:text-base font-bold text-[#111827] dark:text-white">Confirm Payment</h3>
+          <p className="text-[11px] sm:text-xs text-[#6B7280] dark:text-[#9CA3AF]">
             Review your order breakdown before wallet deduction
           </p>
         </div>

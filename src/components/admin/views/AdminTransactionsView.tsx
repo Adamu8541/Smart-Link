@@ -207,34 +207,34 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
     switch (status) {
       case "SUCCESSFUL":
       case "COMPLETED":
-        return "bg-emerald-950/70 text-emerald-300 border-emerald-700/80";
+        return " bg-emerald-50 text-emerald-700 border-emerald-200";
       case "FAILED":
       case "CANCELLED":
-        return "bg-red-950/70 text-red-300 border-red-700/80";
+        return " bg-rose-50 text-rose-700 border-rose-200";
       case "REFUNDED":
       case "REVERSED":
-        return "bg-blue-950/70 text-blue-300 border-blue-700/80";
+        return " bg-blue-50 text-blue-700 border-blue-200";
       default:
-        return "bg-amber-950/70 text-amber-300 border-amber-700/80";
+        return " bg-amber-50 text-amber-700 border-amber-200";
     }
   };
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6 pb-12 text-[#111827]">
       {/* View Header */}
-      <div className="bg-[#111827] border border-[#111827] rounded-3xl p-6 md:p-8 space-y-6 shadow-xl">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#111827] pb-5">
+      <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6 md:p-8 space-y-6 shadow-xs text-left">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E5E7EB] pb-5">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-[#0F2D5C] border border-[#0F2D5C] rounded-2xl text-[#9CA3AF] shadow-lg shadow-none">
+            <div className="p-3 bg-[#0F2D5C] rounded-2xl text-white shadow-sm">
               <BarChart3 className="h-6 w-6" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#9CA3AF]">Financial Governance</span>
-                <span className="px-2 py-0.5 bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C] rounded-full text-[10px] font-mono font-bold">MODULE 5 ACTIVE</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">Financial Governance</span>
+                <span className="px-2 py-0.5 bg-[#0F2D5C]/10 text-[#0F2D5C] border border-[#0F2D5C]/20 rounded-full text-[10px] font-mono font-bold">MODULE 5 ACTIVE</span>
               </div>
-              <h1 className="text-xl font-bold text-white">Transaction Management System</h1>
-              <p className="text-xs text-[#9CA3AF] mt-0.5">Centralized audit, search, investigation, receipts and multi-format exports.</p>
+              <h1 className="text-xl font-bold text-[#111827]">Transaction Management System</h1>
+              <p className="text-xs text-[#6B7280] mt-0.5">Centralized audit, search, investigation, receipts and multi-format exports.</p>
             </div>
           </div>
 
@@ -242,9 +242,9 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
             <button
               type="button"
               onClick={() => setShowTestPanel(!showTestPanel)}
-              className=" py-2.5 px-4 border border-[#0F2D5C]/80 text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition-colors"
+              className="py-2.5 px-4 bg-[#F5F7FA] hover:bg-[#E5E7EB] text-[#111827] border border-[#E5E7EB] text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition-colors"
             >
-              <Terminal className="h-4 w-4" />
+              <Terminal className="h-4 w-4 text-[#0F2D5C]" />
               <span>{showTestPanel ? "Hide Self-Test Suite" : "Run Module 5 Self-Tests"}</span>
             </button>
 
@@ -252,15 +252,15 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
               type="button"
               onClick={() => fetchTransactions(pagination.pageNum, true)}
               disabled={refreshing}
-              className=" py-2.5 px-3 text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer transition-colors"
+              className="py-2.5 px-3 bg-[#F5F7FA] hover:bg-[#E5E7EB] text-[#111827] border border-[#E5E7EB] text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer transition-colors"
             >
-              <RefreshCw className={`h-4 w-4${refreshing ? "animate-spin text-[#9CA3AF]" : ""}`} />
+              <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin text-[#0F2D5C]" : "text-[#6B7280]"}`} />
             </button>
 
             <button
               type="button"
               onClick={() => onNavigate("/admin/dashboard")}
-              className=" py-2.5 px-4 text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition-colors"
+              className="py-2.5 px-4 bg-[#0F2D5C] hover:bg-[#17407E] text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition-colors shadow-xs"
             >
               <ArrowLeft className="h-3.5 w-3.5" /> Back
             </button>
@@ -269,46 +269,46 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
 
         {/* Top Summary Widgets / Stat Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl space-y-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Transactions</span>
-            <p className="text-lg font-black text-white font-mono">{metrics.totalTransactions.toLocaleString()}</p>
-            <span className="text-[10px] text-slate-500 font-mono">Vol: ₦{(metrics.totalVolume / 1000).toFixed(1)}k</span>
+          <div className="p-4 bg-[#F5F7FA] border border-[#E5E7EB] rounded-xl space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">Total Transactions</span>
+            <p className="text-lg font-black text-[#111827] font-mono">{metrics.totalTransactions.toLocaleString()}</p>
+            <span className="text-[10px] text-[#6B7280] font-mono">Vol: ₦{(metrics.totalVolume / 1000).toFixed(1)}k</span>
           </div>
 
-          <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl space-y-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Successful</span>
-            <p className="text-lg font-black text-emerald-400 font-mono">{metrics.successfulCount.toLocaleString()}</p>
-            <span className="text-[10px] text-emerald-400/90 font-mono">100% Settled</span>
+          <div className="p-4 bg-[#F5F7FA] border border-[#E5E7EB] rounded-xl space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">Successful</span>
+            <p className="text-lg font-black text-emerald-600 font-mono">{metrics.successfulCount.toLocaleString()}</p>
+            <span className="text-[10px] text-emerald-600 font-mono">100% Settled</span>
           </div>
 
-          <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl space-y-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Pending</span>
-            <p className="text-lg font-black text-amber-400 font-mono">{metrics.pendingCount.toLocaleString()}</p>
-            <span className="text-[10px] text-amber-400/90 font-mono">Processing Portal</span>
+          <div className="p-4 bg-[#F5F7FA] border border-[#E5E7EB] rounded-xl space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">Pending</span>
+            <p className="text-lg font-black text-amber-600 font-mono">{metrics.pendingCount.toLocaleString()}</p>
+            <span className="text-[10px] text-amber-600 font-mono">Processing Portal</span>
           </div>
 
-          <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl space-y-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Failed</span>
-            <p className="text-lg font-black text-rose-400 font-mono">{metrics.failedCount.toLocaleString()}</p>
-            <span className="text-[10px] text-rose-400/90 font-mono">Safe Retry Eligible</span>
+          <div className="p-4 bg-[#F5F7FA] border border-[#E5E7EB] rounded-xl space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">Failed</span>
+            <p className="text-lg font-black text-rose-600 font-mono">{metrics.failedCount.toLocaleString()}</p>
+            <span className="text-[10px] text-rose-600 font-mono">Safe Retry Eligible</span>
           </div>
 
-          <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl space-y-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Revenue Today</span>
-            <p className="text-lg font-black text-blue-400 font-mono">₦{metrics.revenueToday.toLocaleString()}</p>
-            <span className="text-[10px] text-blue-400/90 font-mono">24h Volume</span>
+          <div className="p-4 bg-[#F5F7FA] border border-[#E5E7EB] rounded-xl space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">Revenue Today</span>
+            <p className="text-lg font-black text-[#0F2D5C] font-mono">₦{metrics.revenueToday.toLocaleString()}</p>
+            <span className="text-[10px] text-[#0F2D5C] font-mono">24h Volume</span>
           </div>
 
-          <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl space-y-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Revenue This Month</span>
-            <p className="text-lg font-black text-indigo-400 font-mono">₦{(metrics.revenueThisMonth / 1000).toFixed(1)}k</p>
-            <span className="text-[10px] text-indigo-400/90 font-mono">MTD Ledger</span>
+          <div className="p-4 bg-[#F5F7FA] border border-[#E5E7EB] rounded-xl space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">Revenue Month</span>
+            <p className="text-lg font-black text-[#0F2D5C] font-mono">₦{(metrics.revenueThisMonth / 1000).toFixed(1)}k</p>
+            <span className="text-[10px] text-[#0F2D5C] font-mono">MTD Ledger</span>
           </div>
         </div>
       </div>
 
       {/* Main Table & Controls Container */}
-      <div className="bg-[#111827] border border-[#111827] rounded-3xl p-6 md:p-8 space-y-6 shadow-xl">
+      <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6 md:p-8 space-y-6 shadow-xs text-left">
         {/* Search & Filter Bar */}
         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
           <form onSubmit={handleSearchSubmit} className="flex-1 flex items-center gap-2">
@@ -319,12 +319,12 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search SmartLink Ref, Provider Ref, User, Email, Phone, TxID..."
-                className="w-full bg-[#111827] border border-[#111827] rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#0F2D5C] transition-colors"
+                className="w-full bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl pl-10 pr-4 py-2.5 text-xs text-[#111827] placeholder-[#9CA3AF] focus:outline-none focus:border-[#0F2D5C] focus:bg-white transition-colors"
               />
             </div>
             <button
               type="submit"
-              className="py-2.5 px-4 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl cursor-pointer transition-colors"
+              className="py-2.5 px-4 bg-[#0F2D5C] hover:bg-[#17407E] text-white text-xs font-bold rounded-xl cursor-pointer transition-colors shadow-xs"
             >
               Search
             </button>
@@ -334,13 +334,13 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
             <button
               type="button"
               onClick={() => setShowFilterDrawer(!showFilterDrawer)}
-              className={`py-2.5 px-4 border text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition-colors${
+              className={`py-2.5 px-4 border text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition-colors ${
                 showFilterDrawer
-                  ? "bg-[#0F2D5C] border-[#0F2D5C] text-[#9CA3AF]"
-                  : "bg-[#111827] border-[#111827] text-[#E5E7EB] hover:bg-[#111827]"
+                  ? "bg-[#0F2D5C] border-[#0F2D5C] text-white"
+                  : "bg-[#F5F7FA] border-[#E5E7EB] text-[#111827] hover:bg-[#E5E7EB]"
               }`}
             >
-              <SlidersHorizontal className=" h-4 w-4" /> Filters
+              <SlidersHorizontal className="h-4 w-4" /> Filters
             </button>
 
             {/* Export Menu */}
@@ -349,9 +349,9 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
                 type="button"
                 onClick={() => handleExport("FILTERED_RESULTS", "CSV")}
                 disabled={exporting}
-                className=" py-2.5 px-4 border border-[#0F2D5C]/80 text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition-colors shadow-lg shadow-none"
+                className="py-2.5 px-4 bg-[#F5F7FA] hover:bg-[#E5E7EB] border border-[#E5E7EB] text-[#111827] text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition-colors"
               >
-                {exporting ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                {exporting ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4 text-[#0F2D5C]" />}
                 <span>Export CSV</span>
               </button>
             </div>
@@ -364,42 +364,42 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
           <button
             type="button"
             onClick={() => { setStatusFilter("ALL"); setServiceFilter("ALL"); fetchTransactions(1); }}
-            className={`px-3 py-1.5 rounded-xl font-bold cursor-pointer transition-colors shrink-0${statusFilter === "ALL" && serviceFilter === "ALL" ? "bg-[#0F2D5C] text-white" : "bg-[#111827] text-[#9CA3AF] hover:text-white"}`}
+            className={`px-3 py-1.5 rounded-xl font-bold cursor-pointer transition-colors shrink-0 ${statusFilter === "ALL" && serviceFilter === "ALL" ? "bg-[#0F2D5C] text-white" : "bg-[#F5F7FA] text-[#6B7280] hover:bg-[#E5E7EB] hover:text-[#111827]"}`}
           >
             All Ledger
           </button>
           <button
             type="button"
             onClick={() => { setStatusFilter("SUCCESSFUL"); fetchTransactions(1); }}
-            className={`px-3 py-1.5 rounded-xl font-bold cursor-pointer transition-colors shrink-0${statusFilter === "SUCCESSFUL" ? "bg-[#0F2D5C] text-white" : "bg-[#111827] text-[#9CA3AF] hover:text-white"}`}
+            className={`px-3 py-1.5 rounded-xl font-bold cursor-pointer transition-colors shrink-0 ${statusFilter === "SUCCESSFUL" ? "bg-[#0F2D5C] text-white" : "bg-[#F5F7FA] text-[#6B7280] hover:bg-[#E5E7EB] hover:text-[#111827]"}`}
           >
             Successful
           </button>
           <button
             type="button"
             onClick={() => { setStatusFilter("FAILED"); fetchTransactions(1); }}
-            className={`px-3 py-1.5 rounded-xl font-bold cursor-pointer transition-colors shrink-0${statusFilter === "FAILED" ? "bg-[#0F2D5C] text-white" : "bg-[#111827] text-[#9CA3AF] hover:text-white"}`}
+            className={`px-3 py-1.5 rounded-xl font-bold cursor-pointer transition-colors shrink-0 ${statusFilter === "FAILED" ? "bg-[#0F2D5C] text-white" : "bg-[#F5F7FA] text-[#6B7280] hover:bg-[#E5E7EB] hover:text-[#111827]"}`}
           >
             Failed / Errors
           </button>
           <button
             type="button"
             onClick={() => { setStatusFilter("PENDING"); fetchTransactions(1); }}
-            className={`px-3 py-1.5 rounded-xl font-bold cursor-pointer transition-colors shrink-0${statusFilter === "PENDING" ? "bg-[#0F2D5C] text-white" : "bg-[#111827] text-[#9CA3AF] hover:text-white"}`}
+            className={`px-3 py-1.5 rounded-xl font-bold cursor-pointer transition-colors shrink-0 ${statusFilter === "PENDING" ? "bg-[#0F2D5C] text-white" : "bg-[#F5F7FA] text-[#6B7280] hover:bg-[#E5E7EB] hover:text-[#111827]"}`}
           >
             Pending
           </button>
           <button
             type="button"
             onClick={() => { setServiceFilter("WALLET_FUNDING"); fetchTransactions(1); }}
-            className={`px-3 py-1.5 rounded-xl font-bold cursor-pointer transition-colors shrink-0${serviceFilter === "WALLET_FUNDING" ? "bg-[#0F2D5C] text-white" : "bg-[#111827] text-[#9CA3AF] hover:text-white"}`}
+            className={`px-3 py-1.5 rounded-xl font-bold cursor-pointer transition-colors shrink-0 ${serviceFilter === "WALLET_FUNDING" ? "bg-[#0F2D5C] text-white" : "bg-[#F5F7FA] text-[#6B7280] hover:bg-[#E5E7EB] hover:text-[#111827]"}`}
           >
             Wallet Funding
           </button>
           <button
             type="button"
             onClick={() => { setServiceFilter("NIN_VERIFICATION"); fetchTransactions(1); }}
-            className={`px-3 py-1.5 rounded-xl font-bold cursor-pointer transition-colors shrink-0${serviceFilter === "NIN_VERIFICATION" ? "bg-[#0F2D5C] text-white" : "bg-[#111827] text-[#9CA3AF] hover:text-white"}`}
+            className={`px-3 py-1.5 rounded-xl font-bold cursor-pointer transition-colors shrink-0 ${serviceFilter === "NIN_VERIFICATION" ? "bg-[#0F2D5C] text-white" : "bg-[#F5F7FA] text-[#6B7280] hover:bg-[#E5E7EB] hover:text-[#111827]"}`}
           >
             Verifications
           </button>
@@ -407,15 +407,15 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
 
         {/* Expanded Multi-Filter Drawer Panel */}
         {showFilterDrawer && (
-          <div className=" p-5 border border-[#111827] rounded-2xl space-y-4 text-xs animate-in fade-in duration-150">
-            <div className="flex items-center justify-between border-b border-[#111827] pb-3">
-              <span className="font-bold text-white uppercase tracking-wider text-[11px] flex items-center gap-2">
-                <SlidersHorizontal className="h-4 w-4 text-[#9CA3AF]" /> Advanced Filter Combinator
+          <div className="p-5 bg-[#F9FAFB] border border-[#E5E7EB] rounded-2xl space-y-4 text-xs animate-in fade-in duration-150">
+            <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
+              <span className="font-bold text-[#111827] uppercase tracking-wider text-[11px] flex items-center gap-2">
+                <SlidersHorizontal className="h-4 w-4 text-[#0F2D5C]" /> Advanced Filter Combinator
               </span>
               <button
                 type="button"
                 onClick={handleResetFilters}
-                className=" text-xs hover:underline cursor-pointer"
+                className="text-xs text-[#0F2D5C] hover:underline font-semibold cursor-pointer"
               >
                 Reset All Filters
               </button>
@@ -423,11 +423,11 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               <div>
-                <label className="block text-[10px] uppercase font-bold text-[#9CA3AF] mb-1">Status</label>
+                <label className="block text-[10px] uppercase font-bold text-[#6B7280] mb-1">Status</label>
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full bg-[#111827] border border-[#111827] rounded-xl p-2.5 text-xs text-white"
+                  className="w-full bg-white border border-[#E5E7EB] rounded-xl p-2.5 text-xs text-[#111827]"
                 >
                   <option value="ALL">All Statuses</option>
                   <option value="SUCCESSFUL">Successful</option>
@@ -441,11 +441,11 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
               </div>
 
               <div>
-                <label className="block text-[10px] uppercase font-bold text-[#9CA3AF] mb-1">Service Type</label>
+                <label className="block text-[10px] uppercase font-bold text-[#6B7280] mb-1">Service Type</label>
                 <select
                   value={serviceFilter}
                   onChange={(e) => setServiceFilter(e.target.value)}
-                  className="w-full bg-[#111827] border border-[#111827] rounded-xl p-2.5 text-xs text-white"
+                  className="w-full bg-white border border-[#E5E7EB] rounded-xl p-2.5 text-xs text-[#111827]"
                 >
                   <option value="ALL">All Services</option>
                   <option value="AIRTIME">Airtime VTU</option>
@@ -462,11 +462,11 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
               </div>
 
               <div>
-                <label className="block text-[10px] uppercase font-bold text-[#9CA3AF] mb-1">Provider Portal</label>
+                <label className="block text-[10px] uppercase font-bold text-[#6B7280] mb-1">Provider Portal</label>
                 <select
                   value={providerFilter}
                   onChange={(e) => setProviderFilter(e.target.value)}
-                  className="w-full bg-[#111827] border border-[#111827] rounded-xl p-2.5 text-xs text-white"
+                  className="w-full bg-white border border-[#E5E7EB] rounded-xl p-2.5 text-xs text-[#111827]"
                 >
                   <option value="ALL">All Providers</option>
                   <option value="Aspfiy">Aspfiy</option>
@@ -478,11 +478,11 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
               </div>
 
               <div>
-                <label className="block text-[10px] uppercase font-bold text-[#9CA3AF] mb-1">Payment Method</label>
+                <label className="block text-[10px] uppercase font-bold text-[#6B7280] mb-1">Payment Method</label>
                 <select
                   value={paymentMethodFilter}
                   onChange={(e) => setPaymentMethodFilter(e.target.value)}
-                  className="w-full bg-[#111827] border border-[#111827] rounded-xl p-2.5 text-xs text-white"
+                  className="w-full bg-white border border-[#E5E7EB] rounded-xl p-2.5 text-xs text-[#111827]"
                 >
                   <option value="ALL">All Payment Methods</option>
                   <option value="WALLET">Wallet Balance</option>
@@ -494,44 +494,44 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
               </div>
 
               <div>
-                <label className="block text-[10px] uppercase font-bold text-[#9CA3AF] mb-1">Min Amount (₦)</label>
+                <label className="block text-[10px] uppercase font-bold text-[#6B7280] mb-1">Min Amount (₦)</label>
                 <input
                   type="number"
                   value={minAmount}
                   onChange={(e) => setMinAmount(e.target.value)}
                   placeholder="e.g. 1000"
-                  className="w-full bg-[#111827] border border-[#111827] rounded-xl p-2.5 text-xs text-white"
+                  className="w-full bg-white border border-[#E5E7EB] rounded-xl p-2.5 text-xs text-[#111827]"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] uppercase font-bold text-[#9CA3AF] mb-1">Max Amount (₦)</label>
+                <label className="block text-[10px] uppercase font-bold text-[#6B7280] mb-1">Max Amount (₦)</label>
                 <input
                   type="number"
                   value={maxAmount}
                   onChange={(e) => setMaxAmount(e.target.value)}
                   placeholder="e.g. 50000"
-                  className="w-full bg-[#111827] border border-[#111827] rounded-xl p-2.5 text-xs text-white"
+                  className="w-full bg-white border border-[#E5E7EB] rounded-xl p-2.5 text-xs text-[#111827]"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] uppercase font-bold text-[#9CA3AF] mb-1">Start Date</label>
+                <label className="block text-[10px] uppercase font-bold text-[#6B7280] mb-1">Start Date</label>
                 <input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full bg-[#111827] border border-[#111827] rounded-xl p-2.5 text-xs text-white"
+                  className="w-full bg-white border border-[#E5E7EB] rounded-xl p-2.5 text-xs text-[#111827]"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] uppercase font-bold text-[#9CA3AF] mb-1">End Date</label>
+                <label className="block text-[10px] uppercase font-bold text-[#6B7280] mb-1">End Date</label>
                 <input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full bg-[#111827] border border-[#111827] rounded-xl p-2.5 text-xs text-white"
+                  className="w-full bg-white border border-[#E5E7EB] rounded-xl p-2.5 text-xs text-[#111827]"
                 />
               </div>
             </div>
@@ -540,7 +540,7 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
               <button
                 type="button"
                 onClick={() => fetchTransactions(1)}
-                className="py-2 px-5 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-bold rounded-xl cursor-pointer"
+                className="py-2 px-5 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold rounded-xl cursor-pointer transition-colors shadow-xs"
               >
                 Apply Filters
               </button>
@@ -549,10 +549,10 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
         )}
 
         {/* Data Table */}
-        <div className="border border-[#111827] rounded-2xl overflow-hidden bg-[#111827]/40">
+        <div className="border border-[#E5E7EB] rounded-2xl overflow-hidden bg-white shadow-xs">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-[#E5E7EB]">
-              <thead className="bg-[#111827] border-b border-[#111827] text-[10px] font-bold uppercase tracking-wider text-[#9CA3AF]">
+            <table className="w-full text-left text-xs text-[#111827]">
+              <thead className="bg-[#F9FAFB] border-b border-[#E5E7EB] text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">
                 <tr>
                   <th className="p-4">SmartLink Ref</th>
                   <th className="p-4">Provider Ref</th>
@@ -567,56 +567,56 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
                   <th className="p-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#6B7280] font-mono">
+              <tbody className="divide-y divide-[#E5E7EB] font-mono">
                 {loading ? (
                   <tr>
                     <td colSpan={11} className="p-12 text-center text-[#6B7280]">
-                      <RefreshCw className="h-6 w-6 text-[#9CA3AF] animate-spin mx-auto mb-2" />
+                      <RefreshCw className="h-6 w-6 text-[#0F2D5C] animate-spin mx-auto mb-2" />
                       Loading transactions data...
                     </td>
                   </tr>
                 ) : error ? (
                   <tr>
-                    <td colSpan={11} className="p-8 text-center text-[#9CA3AF]">
+                    <td colSpan={11} className="p-8 text-center text-rose-600 font-sans">
                       {error}
                     </td>
                   </tr>
                 ) : transactions.length === 0 ? (
                   <tr>
-                    <td colSpan={11} className="p-12 text-center text-[#6B7280]">
+                    <td colSpan={11} className="p-12 text-center text-[#6B7280] font-sans">
                       No matching transaction records found.
                     </td>
                   </tr>
                 ) : (
                   transactions.map((tx: any) => (
-                    <tr key={tx.id} className="hover:bg-[#111827]/40 transition-colors">
-                      <td className="p-4 font-bold text-white">{tx.smartLinkRef}</td>
-                      <td className="p-4 text-[#9CA3AF] font-mono">{tx.providerRef || "N/A"}</td>
+                    <tr key={tx.id} className="hover:bg-[#F9FAFB] transition-colors">
+                      <td className="p-4 font-bold text-[#111827]">{tx.smartLinkRef}</td>
+                      <td className="p-4 text-[#6B7280] font-mono">{tx.providerRef || "N/A"}</td>
                       <td className="p-4 font-sans">
-                        <p className="font-bold text-[#E5E7EB] truncate max-w-[140px]">{tx.userName}</p>
-                        <p className="text-[10px] text-[#9CA3AF] font-mono truncate max-w-[140px]">{tx.userEmail}</p>
+                        <p className="font-bold text-[#111827] truncate max-w-[140px]">{tx.userName}</p>
+                        <p className="text-[10px] text-[#6B7280] font-mono truncate max-w-[140px]">{tx.userEmail}</p>
                       </td>
                       <td className="p-4 font-sans">
-                        <span className="px-2 py-0.5 bg-[#111827] border border-[#111827] rounded text-[11px] text-[#E5E7EB] font-medium">
+                        <span className="px-2 py-0.5 bg-[#F5F7FA] border border-[#E5E7EB] rounded text-[11px] text-[#111827] font-medium">
                           {tx.serviceName || tx.serviceType}
                         </span>
                       </td>
-                      <td className="p-4 font-sans text-[#9CA3AF]">{tx.provider}</td>
-                      <td className="p-4 text-right font-bold text-white">
+                      <td className="p-4 font-sans text-[#6B7280]">{tx.provider}</td>
+                      <td className="p-4 text-right font-bold text-[#111827]">
                         ₦{(tx.amount || 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}
                       </td>
-                      <td className="p-4 text-right text-[#9CA3AF]">
+                      <td className="p-4 text-right text-[#6B7280]">
                         ₦{(tx.charges || 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}
                       </td>
                       <td className="p-4 text-center font-sans">
-                        <span className={`px-2.5 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider${getStatusBadge(tx.status)}`}>
+                        <span className={`px-2.5 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider ${getStatusBadge(tx.status)}`}>
                           {tx.status}
                         </span>
                       </td>
-                      <td className="p-4 font-sans uppercase text-[11px] text-[#9CA3AF]">{tx.paymentMethod}</td>
-                      <td className="p-4 text-[#9CA3AF] text-[11px]">
+                      <td className="p-4 font-sans uppercase text-[11px] text-[#6B7280]">{tx.paymentMethod}</td>
+                      <td className="p-4 text-[#6B7280] text-[11px]">
                         <div>{tx.date}</div>
-                        <div className="text-[10px] text-[#6B7280]">{tx.time}</div>
+                        <div className="text-[10px] text-[#9CA3AF]">{tx.time}</div>
                       </td>
                       <td className="p-4 text-right font-sans">
                         <div className="flex items-center justify-end gap-1">
@@ -624,7 +624,7 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
                             type="button"
                             title="Investigate Transaction"
                             onClick={() => handleOpenDetail(tx.id)}
-                            className=" p-1.5 rounded-lg transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg text-[#0F2D5C] hover:bg-[#F5F7FA] border border-[#E5E7EB] transition-colors cursor-pointer"
                           >
                             <Eye className="h-4 w-4" />
                           </button>
@@ -632,7 +632,7 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
                             type="button"
                             title="View Receipt"
                             onClick={() => handleOpenReceipt(tx, { fullName: tx.userName, email: tx.userEmail, phoneNumber: tx.userPhone })}
-                            className=" p-1.5 rounded-lg transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg text-[#0F2D5C] hover:bg-[#F5F7FA] border border-[#E5E7EB] transition-colors cursor-pointer"
                           >
                             <FileText className="h-4 w-4" />
                           </button>
@@ -646,11 +646,11 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
           </div>
 
           {/* Pagination Controls */}
-          <div className="p-4 bg-[#111827] border-t border-[#111827] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#9CA3AF] font-sans">
+          <div className="p-4 bg-[#F9FAFB] border-t border-[#E5E7EB] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#6B7280] font-sans">
             <div>
-              Showing <span className="font-bold text-white">{transactions.length > 0 ? (pagination.pageNum - 1) * pagination.limitNum + 1 : 0}</span> to{" "}
-              <span className="font-bold text-white">{Math.min(pagination.pageNum * pagination.limitNum, pagination.totalRecords)}</span> of{" "}
-              <span className="font-bold text-white">{pagination.totalRecords}</span> entries
+              Showing <span className="font-bold text-[#111827]">{transactions.length > 0 ? (pagination.pageNum - 1) * pagination.limitNum + 1 : 0}</span> to{" "}
+              <span className="font-bold text-[#111827]">{Math.min(pagination.pageNum * pagination.limitNum, pagination.totalRecords)}</span> of{" "}
+              <span className="font-bold text-[#111827]">{pagination.totalRecords}</span> entries
             </div>
 
             <div className="flex items-center gap-2">
@@ -658,12 +658,12 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
                 type="button"
                 onClick={() => fetchTransactions(pagination.pageNum - 1)}
                 disabled={pagination.pageNum <= 1 || loading}
-                className=" py-1.5 px-3 border border-[#111827] disabled:opacity-40 font-bold rounded-lg flex items-center gap-1 cursor-pointer transition-colors"
+                className="py-1.5 px-3 bg-white hover:bg-[#F5F7FA] text-[#111827] border border-[#E5E7EB] disabled:opacity-40 font-bold rounded-lg flex items-center gap-1 cursor-pointer transition-colors shadow-xs"
               >
                 <ChevronLeft className="h-4 w-4" /> Previous
               </button>
 
-              <span className="px-3 py-1 font-mono font-bold text-white bg-[#111827] border border-[#111827] rounded-lg">
+              <span className="px-3 py-1 font-mono font-bold text-[#111827] bg-white border border-[#E5E7EB] rounded-lg shadow-xs">
                 {pagination.pageNum} / {pagination.totalPages}
               </span>
 
@@ -671,7 +671,7 @@ export function AdminTransactionsView({ session, onNavigate }: AdminTransactions
                 type="button"
                 onClick={() => fetchTransactions(pagination.pageNum + 1)}
                 disabled={pagination.pageNum >= pagination.totalPages || loading}
-                className=" py-1.5 px-3 border border-[#111827] disabled:opacity-40 font-bold rounded-lg flex items-center gap-1 cursor-pointer transition-colors"
+                className="py-1.5 px-3 bg-white hover:bg-[#F5F7FA] text-[#111827] border border-[#E5E7EB] disabled:opacity-40 font-bold rounded-lg flex items-center gap-1 cursor-pointer transition-colors shadow-xs"
               >
                 Next <ChevronRight className="h-4 w-4" />
               </button>

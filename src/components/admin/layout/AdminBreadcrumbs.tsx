@@ -14,28 +14,28 @@ interface AdminBreadcrumbsProps {
 
 export default function AdminBreadcrumbs({ breadcrumbs, onNavigate }: AdminBreadcrumbsProps) {
   return (
-    <nav className="flex items-center gap-2 text-xs text-slate-400 font-medium py-1 px-1 overflow-x-auto whitespace-nowrap scrollbar-none">
+    <nav className="flex items-center gap-2 text-xs text-[#4B5563] font-medium py-1 px-1 overflow-x-auto whitespace-nowrap scrollbar-none">
       <button
         type="button"
         onClick={() => onNavigate("/admin/dashboard")}
-        className="flex items-center gap-1.5 text-blue-400 hover:text-blue-300 font-bold transition-colors cursor-pointer shrink-0"
+        className="flex items-center gap-1.5 text-[#0F2D5C] hover:text-[#17407E] font-bold transition-colors cursor-pointer shrink-0"
       >
-        <ShieldCheck className="h-3.5 w-3.5 text-blue-400" />
+        <ShieldCheck className="h-3.5 w-3.5 text-[#0F2D5C]" />
         <span>SmartLink Admin</span>
       </button>
 
       {breadcrumbs.map((crumb, idx) => (
         <React.Fragment key={crumb.label + idx}>
-          <ChevronRight className="h-3 w-3 text-slate-600 shrink-0" />
+          <ChevronRight className="h-3 w-3 text-[#9CA3AF] shrink-0" />
           {crumb.isCurrentPage ? (
-            <span className="font-bold text-blue-300 bg-blue-950/70 border border-blue-800/80 px-2 py-0.5 rounded-md shrink-0">
+            <span className="font-bold text-[#0F2D5C] bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-md shrink-0">
               {crumb.label}
             </span>
           ) : (
             <button
               type="button"
               onClick={() => onNavigate(crumb.path)}
-              className="text-slate-400 hover:text-slate-100 transition-colors cursor-pointer shrink-0 font-medium"
+              className="text-[#4B5563] hover:text-[#111827] transition-colors cursor-pointer shrink-0 font-medium"
             >
               {crumb.label}
             </button>

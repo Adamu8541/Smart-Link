@@ -152,7 +152,7 @@ export const LandingTestimonials: React.FC = () => {
                     <p className="text-xs font-medium text-[#4B5563]">
                       {testimonials[currentIndex].business}
                     </p>
-                    <p className="text-[11px] text-[#9CA3AF]">
+                    <p className="text-[11px] text-[#4B5563] font-medium">
                       {testimonials[currentIndex].location}
                     </p>
                   </div>

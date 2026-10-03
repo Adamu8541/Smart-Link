@@ -233,14 +233,14 @@ export function UserProfileDrawer({
                   <div className="space-y-6 text-xs">
                     {/* Metrics Banner */}
                     <div className="grid grid-cols-3 gap-3">
-                      <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl">
+                      <div className="p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs">
                         <p className="text-[10px] text-[#9CA3AF] uppercase font-bold">Wallet Balance</p>
                         <p className="text-lg font-extrabold text-[#9CA3AF] mt-1">
                           ₦{(user.walletBalance || 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}
                         </p>
                       </div>
 
-                      <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl">
+                      <div className="p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs">
                         <p className="text-[10px] text-[#9CA3AF] uppercase font-bold">KYC Status</p>
                         <div className="flex items-center gap-1.5 mt-1">
                           <ShieldCheck className="h-4 w-4 text-[#9CA3AF]" />
@@ -248,14 +248,14 @@ export function UserProfileDrawer({
                         </div>
                       </div>
 
-                      <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl">
+                      <div className="p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs">
                         <p className="text-[10px] text-[#9CA3AF] uppercase font-bold">Role Tier</p>
                         <p className="text-sm font-bold text-[#9CA3AF] mt-1">{user.role}</p>
                       </div>
                     </div>
 
                     {/* Details Grid */}
-                    <div className="p-5 bg-[#111827] border border-[#111827] rounded-2xl space-y-4">
+                    <div className="p-5 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs space-y-4">
                       <h3 className="font-bold text-sm text-white border-b border-[#111827] pb-2">Personal & Identity Specs</h3>
 
                       <div className="grid grid-cols-2 gap-y-3 gap-x-6">
@@ -306,7 +306,7 @@ export function UserProfileDrawer({
                 {/* TAB 2: FINANCE */}
                 {activeTab === "FINANCE" && (
                   <div className="space-y-6 text-xs">
-                    <div className="p-5 bg-[#111827] border border-[#111827] rounded-2xl space-y-4">
+                    <div className="p-5 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs space-y-4">
                       <div className="flex items-center justify-between border-b border-[#111827] pb-3">
                         <h3 className="font-bold text-sm text-white">Wallet Ledger Summary</h3>
                         <button
@@ -340,7 +340,7 @@ export function UserProfileDrawer({
                 {/* TAB 3: VERIFICATION */}
                 {activeTab === "VERIFICATION" && (
                   <div className="space-y-6 text-xs">
-                    <div className="p-5 bg-[#111827] border border-[#111827] rounded-2xl space-y-4">
+                    <div className="p-5 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs space-y-4">
                       <h3 className="font-bold text-sm text-white border-b border-[#111827] pb-3">NIN & BVN Identity Compliance</h3>
 
                       <div className="space-y-3">
@@ -368,7 +368,7 @@ export function UserProfileDrawer({
                 {activeTab === "TRANSACTIONS" && (
                   <div className="space-y-4 text-xs">
                     <p className="font-bold text-[#E5E7EB]">User Recent Transactions Ledger:</p>
-                    <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl text-center text-[#9CA3AF]">
+                    <div className="p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs text-center text-[#9CA3AF]">
                       <FileText className="h-8 w-8 text-[#4B5563] mx-auto mb-2" />
                       <p>View complete transaction ledger filter applied for <strong className="text-white">{user.email}</strong>.</p>
                     </div>

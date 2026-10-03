@@ -1135,6 +1135,32 @@ export class IdentroAdapter implements ProviderAdapter {
   }
 
   /**
+   * Helper to resolve standard Nigerian network codes for Identro
+   * 01: MTN, 02: Glo, 03: 9mobile, 04: Airtel
+   */
+  public mapNetworkToIdentroCode(net?: string): string {
+    const n = String(net || "").toUpperCase().trim();
+    if (n.includes("MTN") || n === "01" || n === "1") return "01";
+    if (n.includes("GLO") || n === "02" || n === "2") return "02";
+    if (n.includes("9MOBILE") || n.includes("ETISALAT") || n === "03" || n === "3") return "03";
+    if (n.includes("AIRTEL") || n === "04" || n === "4") return "04";
+    return n || "01";
+  }
+
+  /**
+   * Format phone number to 11-digit Nigerian standard required by Identro regex /^0[789][01]\d{8}$/
+   */
+  public formatIdentroPhone(phone: string): string {
+    let clean = String(phone || "").replace(/\D/g, "");
+    if (clean.startsWith("234") && clean.length === 13) {
+      clean = "0" + clean.slice(3);
+    } else if (clean.length === 10 && /^[789][01]/.test(clean)) {
+      clean = "0" + clean;
+    }
+    return clean;
+  }
+
+  /**
    * Airtime Purchase via Identro
    */
   public async purchaseAirtime(
@@ -1154,6 +1180,7 @@ export class IdentroAdapter implements ProviderAdapter {
       success: res.success,
       orderId: res.reference,
       reference: res.reference,
+      requestId: (res.data as any)?.requestId,
       message: res.success ? "Airtime purchase processed successfully" : (res.error || "Airtime purchase failed"),
       error: res.error,
       rawResponse: res.data || res,
@@ -1180,6 +1207,7 @@ export class IdentroAdapter implements ProviderAdapter {
       success: res.success,
       orderId: res.reference,
       reference: res.reference,
+      requestId: (res.data as any)?.requestId,
       message: res.success ? "Data purchase processed successfully" : (res.error || "Data purchase failed"),
       error: res.error,
       rawResponse: res.data || res,
@@ -1246,84 +1274,136 @@ export class IdentroAdapter implements ProviderAdapter {
       };
     }
 
-    let endpoint = "";
-    let payload: Record<string, any> = { reference: ref };
+    const formattedPhone = this.formatIdentroPhone(requestData.recipient);
+    const networkCode = this.mapNetworkToIdentroCode(requestData.networkOrProvider);
+    const amtStr = String(requestData.amount || 100);
+
+    let endpoints: { path: string; payload: Record<string, any> }[] = [];
 
     if (serviceType === "AIRTIME") {
-      endpoint = "/merchant-api/vtu/airtime";
-      payload = {
-        ...payload,
-        phone: normalizeNigerianPhone(requestData.recipient),
-        amount: requestData.amount,
-        network: requestData.networkOrProvider,
-      };
+      endpoints = [
+        {
+          path: "/api/v1/merchant-api/digital-services/airtime",
+          payload: {
+            mobileNetwork: networkCode,
+            amount: amtStr,
+            mobileNumber: formattedPhone,
+          },
+        },
+        {
+          path: "/merchant-api/digital-services/airtime",
+          payload: {
+            mobileNetwork: networkCode,
+            amount: amtStr,
+            mobileNumber: formattedPhone,
+          },
+        },
+        {
+          path: "/api/v1/merchant-api/vtu/airtime",
+          payload: {
+            phone: formattedPhone,
+            amount: Number(amtStr),
+            network: requestData.networkOrProvider || "MTN",
+            reference: ref,
+          },
+        },
+      ];
     } else if (serviceType === "DATA") {
-      endpoint = "/merchant-api/vtu/data";
-      payload = {
-        ...payload,
-        phone: normalizeNigerianPhone(requestData.recipient),
-        planCode: requestData.planCode,
-        network: requestData.networkOrProvider,
-      };
+      endpoints = [
+        {
+          path: "/api/v1/merchant-api/digital-services/data",
+          payload: {
+            mobileNetwork: networkCode,
+            planCode: requestData.planCode,
+            mobileNumber: formattedPhone,
+          },
+        },
+        {
+          path: "/api/v1/merchant-api/vtu/data",
+          payload: {
+            phone: formattedPhone,
+            planCode: requestData.planCode,
+            network: requestData.networkOrProvider || "MTN",
+            reference: ref,
+          },
+        },
+      ];
     } else if (serviceType === "ELECTRICITY") {
-      endpoint = "/merchant-api/bills/electricity";
-      payload = {
-        ...payload,
-        meterNumber: requestData.recipient,
-        disco: requestData.networkOrProvider,
-        amount: requestData.amount,
-        meterType: requestData.meterType || "PREPAID",
-      };
+      endpoints = [
+        {
+          path: "/api/v1/merchant-api/digital-services/electricity",
+          payload: {
+            meterNumber: requestData.recipient,
+            disco: requestData.networkOrProvider,
+            amount: amtStr,
+            meterType: requestData.meterType || "01",
+          },
+        },
+        {
+          path: "/api/v1/merchant-api/bills/electricity",
+          payload: {
+            meterNumber: requestData.recipient,
+            disco: requestData.networkOrProvider,
+            amount: requestData.amount,
+            meterType: requestData.meterType || "PREPAID",
+          },
+        },
+      ];
     } else if (serviceType === "CABLE_TV") {
-      endpoint = "/merchant-api/bills/cable";
-      payload = {
-        ...payload,
-        smartcardNumber: requestData.recipient,
-        provider: requestData.networkOrProvider,
-        planCode: requestData.planCode,
-      };
+      endpoints = [
+        {
+          path: "/api/v1/merchant-api/digital-services/cable",
+          payload: {
+            smartcardNumber: requestData.recipient,
+            provider: requestData.networkOrProvider,
+            planCode: requestData.planCode,
+          },
+        },
+      ];
     }
 
-    const candidateUrls = this.resolveCandidateUrls(base, [
-      endpoint,
-      `/api/v1${endpoint}`,
-    ]);
+    let lastError = "";
 
-    for (const url of candidateUrls) {
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 20000);
+    for (const ep of endpoints) {
+      const candidateUrls = this.resolveCandidateUrls(base, [ep.path]);
+      for (const url of candidateUrls) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 25000);
 
-        const res = await fetch(url, {
-          method: "POST",
-          headers: this.headers(config),
-          body: JSON.stringify(payload),
-          signal: controller.signal,
-        });
-        clearTimeout(timeoutId);
+          const res = await fetch(url, {
+            method: "POST",
+            headers: this.headers(config),
+            body: JSON.stringify(ep.payload),
+            signal: controller.signal,
+          });
+          clearTimeout(timeoutId);
 
-        const json: any = await res.json().catch(() => null);
-        if (res.ok && (json?.status === true || json?.success === true)) {
-          const d = json.data || json;
-          return {
-            success: true,
-            reference: json.reference || ref,
-            token: d.token || d.pin || "",
-            units: d.units || d.token_units || "",
-            amount: requestData.amount,
-            data: d,
-            responseTimeMs: Date.now() - startTime,
-          };
+          const json: any = await res.json().catch(() => null);
+          if (res.ok && (json?.status === true || json?.success === true || json?.code === "SUCCESS" || res.status === 201 || res.status === 200)) {
+            const d = json?.data || json;
+            return {
+              success: true,
+              reference: d?.reference || json?.reference || ref,
+              token: d?.token || d?.pin || "",
+              units: d?.units || d?.token_units || "",
+              amount: requestData.amount,
+              data: d,
+              responseTimeMs: Date.now() - startTime,
+            };
+          } else if (json) {
+            lastError = json.message || json.error || `HTTP ${res.status}`;
+          }
+        } catch (err: any) {
+          lastError = err?.message || "Identro gateway connection timeout";
         }
-      } catch (err: any) {
-        // Continue to fallback candidate
       }
     }
 
     return {
       success: false,
       reference: ref,
-      error: "Identro utility purchase transaction could not be completed.",
+      error: lastError || "Identro utility purchase transaction could not be completed.",
       responseTimeMs: Date.now() - startTime,
     };
   }

@@ -210,7 +210,7 @@ export function WalletDetailDrawer({
                       <span className="text-[10px] text-[#9CA3AF] block">Total ledger float</span>
                     </div>
 
-                    <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl space-y-1">
+                    <div className="p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs space-y-1">
                       <span className="text-[11px] text-[#9CA3AF] font-semibold uppercase tracking-wider block">Available Balance</span>
                       <div className="text-xl font-bold text-[#E5E7EB] font-mono">
                         {formatNaira(walletInfo?.availableBalance ?? 0)}
@@ -218,7 +218,7 @@ export function WalletDetailDrawer({
                       <span className="text-[10px] text-[#6B7280] block">Unreserved liquid funds</span>
                     </div>
 
-                    <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl space-y-1">
+                    <div className="p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs space-y-1">
                       <span className="text-[11px] text-[#9CA3AF] font-semibold uppercase tracking-wider block">Pending Escrow</span>
                       <div className="text-xl font-bold text-[#9CA3AF] font-mono">
                         {formatNaira(walletInfo?.pendingBalance ?? 0)}
@@ -228,7 +228,7 @@ export function WalletDetailDrawer({
                   </div>
 
                   {/* Funding & Spending Summary */}
-                  <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+                  <div className="p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
                     <div>
                       <span className="text-[#6B7280] block">Lifetime Funding</span>
                       <span className="text-[#9CA3AF] font-bold font-mono text-sm">

@@ -211,6 +211,11 @@ export const VerificationReceipt: React.FC<VerificationReceiptProps> = ({
           </div>
         </div>
 
+        {/* Verification Purpose Disclaimer */}
+        <div className="p-2.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/50 rounded-xl text-center text-[11px] font-medium text-amber-800 dark:text-amber-300 leading-relaxed print:text-[10px] print:border-gray-300 print:text-gray-700">
+          Note: The generated card/slip is for verification purposes only and is not an official NIMC document
+        </div>
+
         {/* Buttons - Hidden in Print */}
         <div className="flex flex-wrap items-center gap-2 pt-2 print:hidden">
           {emailStatusMsg && (

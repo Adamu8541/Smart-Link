@@ -1,0 +1,161 @@
+{
+  "specVersion": "1.0",
+  "host": {
+    "identifier": "smartlinkng.com.ng",
+    "displayName": "SmartLink Nigeria",
+    "documentationUrl": "https://smartlinkng.com.ng/api-docs",
+    "logoUrl": "https://smartlinkng.com.ng/logo.webp",
+    "contactEmail": "support@smartlinkng.com.ng",
+    "website": "https://smartlinkng.com.ng"
+  },
+  "entries": [
+    {
+      "identifier": "smartlink-nin-verification",
+      "displayName": "NIN Identity Verification API",
+      "type": "api",
+      "description": "Instant sub-second verification, lookup, and validation of Nigerian National Identity Numbers (NIN) with biometric slip generation.",
+      "url": "https://smartlinkng.com.ng/api-docs#nin-verification",
+      "tags": [
+        "nin",
+        "identity",
+        "kyc",
+        "nimc",
+        "nigeria",
+        "verification"
+      ],
+      "representativeQueries": [
+        "Verify Nigerian NIN number",
+        "Validate National Identity Number NIMC",
+        "Lookup NIN card details in Nigeria",
+        "Check NIN validation status"
+      ]
+    },
+    {
+      "identifier": "smartlink-bvn-validation",
+      "displayName": "BVN Validation & KYC API",
+      "type": "api",
+      "description": "Enterprise Bank Verification Number (BVN) validation and KYC matching across Nigerian financial institutions.",
+      "url": "https://smartlinkng.com.ng/api-docs#bvn-verification",
+      "tags": [
+        "bvn",
+        "banking",
+        "kyc",
+        "fintech",
+        "identity",
+        "nigeria"
+      ],
+      "representativeQueries": [
+        "Validate Bank Verification Number BVN",
+        "Verify Nigerian BVN",
+        "Match BVN identity details",
+        "Perform KYC BVN lookup"
+      ]
+    },
+    {
+      "identifier": "smartlink-cac-verification",
+      "displayName": "CAC Corporate Registry & Company Search API",
+      "type": "api",
+      "description": "Corporate Affairs Commission (CAC) business registry lookup, RC/BN number validation, and corporate status verification in Nigeria.",
+      "url": "https://smartlinkng.com.ng/api-docs#cac-verification",
+      "tags": [
+        "cac",
+        "business",
+        "corporate",
+        "registry",
+        "company-search",
+        "nigeria"
+      ],
+      "representativeQueries": [
+        "Search Nigerian CAC company",
+        "Verify CAC RC number",
+        "Lookup business name registration in Nigeria",
+        "Validate corporate registration status"
+      ]
+    },
+    {
+      "identifier": "smartlink-scuml-compliance",
+      "displayName": "SCUML Compliance Verification API",
+      "type": "api",
+      "description": "Special Control Unit Against Money Laundering (SCUML) certificate validation and compliance reporting.",
+      "url": "https://smartlinkng.com.ng/api-docs#scuml-verification",
+      "tags": [
+        "scuml",
+        "compliance",
+        "aml",
+        "anti-money-laundering",
+        "nigeria"
+      ],
+      "representativeQueries": [
+        "Check SCUML compliance certificate",
+        "Validate Nigerian SCUML number",
+        "Verify anti-money laundering registration",
+        "Search SCUML status"
+      ]
+    },
+    {
+      "identifier": "smartlink-electricity-vending",
+      "displayName": "Prepaid Electricity Disco Token Vending API",
+      "type": "api",
+      "description": "Instant electricity token vending and meter bill payment across all 11 Nigerian Discos (IKEDC, EKEDC, AEDC, IBEDC, EEDC, KEDCO, etc.).",
+      "url": "https://smartlinkng.com.ng/api-docs#electricity-bills",
+      "tags": [
+        "electricity",
+        "utility",
+        "disco",
+        "meter-token",
+        "bills",
+        "nigeria"
+      ],
+      "representativeQueries": [
+        "Buy electricity token in Nigeria",
+        "Recharge prepaid Disco meter",
+        "Validate Nigerian electricity meter number",
+        "Pay IKEDC or EKEDC bill online"
+      ]
+    },
+    {
+      "identifier": "smartlink-data-airtime-vending",
+      "displayName": "VTU Airtime & SME Mobile Data Bundles API",
+      "type": "api",
+      "description": "Automated mobile airtime top-up and SME / Corporate data bundle vending for MTN, Airtel, Glo, and 9mobile in Nigeria.",
+      "url": "https://smartlinkng.com.ng/api-docs#data-vtu",
+      "tags": [
+        "vtu",
+        "airtime",
+        "data",
+        "telecom",
+        "sme-data",
+        "mtn",
+        "airtel",
+        "glo",
+        "9mobile"
+      ],
+      "representativeQueries": [
+        "Buy cheap SME mobile data in Nigeria",
+        "Send VTU airtime recharge",
+        "Top up MTN Airtel Glo 9mobile data",
+        "Automate airtime vending API"
+      ]
+    },
+    {
+      "identifier": "smartlink-developer-rest-api",
+      "displayName": "SmartLink Nigeria Unified Fintech & Utility API",
+      "type": "api",
+      "description": "Unified REST API with webhook callbacks, live balance checks, sandbox testing, and multi-portal routing for automated Nigerian digital services.",
+      "url": "https://smartlinkng.com.ng/api-docs",
+      "tags": [
+        "rest-api",
+        "fintech",
+        "developer-tools",
+        "webhooks",
+        "nigeria"
+      ],
+      "representativeQueries": [
+        "SmartLink Nigeria API documentation",
+        "Integrate Nigerian bill payment and KYC API",
+        "Connect automated Nigerian identity verification",
+        "Access SmartLink REST API"
+      ]
+    }
+  ]
+}

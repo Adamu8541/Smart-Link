@@ -56,7 +56,7 @@ export const LandingFAQSection: React.FC<{ onContactSupport?: () => void; onGetS
       icon: Fingerprint,
       question: "How do I verify and download my NIN Slip in Nigeria?",
       answer:
-        "Simply enter the 11-digit National Identity Number (NIN) or registered phone number in our verification portal. The system validates the record directly against national databases and instantly generates downloadable, high-resolution Regular Slip or Premium Plastic Card PDF layouts complete with verifiable QR barcodes.",
+        "Simply enter the 11-digit National Identity Number (NIN) or registered phone number in our verification portal. The system validates the record directly against national databases and instantly generates downloadable, high-resolution Regular Slip or Premium Plastic Card PDF layouts complete with verifiable QR barcodes. Note: The generated card/slip is for verification purposes only and is not an official NIMC document.",
       keywords: "NIN slip download print PDF premium QR code NIMC",
     },
     {
@@ -88,36 +88,36 @@ export const LandingFAQSection: React.FC<{ onContactSupport?: () => void; onGetS
   };
 
   return (
-    <section id="faq-section" className="py-16 sm:py-24 bg-[#F8FAFC] border-t border-[#E2E8F0] relative overflow-hidden">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-10">
+    <section id="faq-section" className="py-10 sm:py-14 bg-[#F8FAFC] border-t border-[#E2E8F0] relative overflow-hidden">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-6 sm:space-y-8">
         
         {/* Section Header */}
-        <div className="text-center space-y-3 max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#EBF3FC] text-[#0F2D5C] text-xs font-bold border border-[#D0E2F7]">
-            <HelpCircle className="h-3.5 w-3.5" aria-hidden="true" />
+        <div className="text-center space-y-2 max-w-3xl mx-auto">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EBF3FC] text-[#0F2D5C] text-[11px] font-bold border border-[#D0E2F7]">
+            <HelpCircle className="h-3 w-3" aria-hidden="true" />
             <span>Frequently Asked Questions</span>
           </div>
 
-          <h2 id="faq-heading" className="text-2xl sm:text-4xl font-bold text-[#111827] tracking-tight">
+          <h2 id="faq-heading" className="text-2xl sm:text-3.5xl font-bold text-[#111827] tracking-tight">
             Everything You Need to Know About SmartLink NG
           </h2>
 
-          <p className="text-sm sm:text-base text-[#374151] max-w-2xl mx-auto leading-relaxed">
+          <p className="text-xs sm:text-sm text-[#4B5563] max-w-2xl mx-auto leading-relaxed">
             Find answers to common questions on wallet funding, developer API integration, CAC business registration requirements, and instant identity validation.
           </p>
         </div>
 
         {/* Category Filters */}
-        <div className="flex items-center justify-center flex-wrap gap-2 pt-2" role="toolbar" aria-label="FAQ category filter">
+        <div className="flex items-center justify-center flex-wrap gap-1.5 pt-1" role="toolbar" aria-label="FAQ category filter">
           {categories.map((cat) => (
             <button
               key={cat}
               type="button"
               onClick={() => setActiveCategory(cat)}
               aria-pressed={activeCategory === cat}
-              className={`min-h-[48px] px-4 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer touch-manipulation ${
+              className={`min-h-[36px] px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer touch-manipulation ${
                 activeCategory === cat
-                  ? "bg-[#0F2D5C] text-white shadow-xs"
+                  ? "bg-[#0F2D5C] text-white shadow-xs font-bold"
                   : "bg-white text-[#1E293B] border border-[#E2E8F0] hover:bg-[#F1F5F9] hover:text-[#0F2D5C]"
               }`}
             >
@@ -127,7 +127,7 @@ export const LandingFAQSection: React.FC<{ onContactSupport?: () => void; onGetS
         </div>
 
         {/* Accordion Questions List */}
-        <div className="space-y-3 max-w-4xl mx-auto">
+        <div className="space-y-2.5 max-w-4xl mx-auto">
           {filteredFaqs.map((faq) => {
             const isOpen = openId === faq.id;
             const Icon = faq.icon;
@@ -135,34 +135,34 @@ export const LandingFAQSection: React.FC<{ onContactSupport?: () => void; onGetS
             return (
               <div
                 key={faq.id}
-                className={`rounded-2xl border transition-all duration-200 overflow-hidden ${
-                  isOpen ? "bg-white border-[#0F2D5C] shadow-sm" : "bg-white border-[#E2E8F0] hover:border-[#CBD5E1]"
+                className={`rounded-xl border transition-all duration-200 overflow-hidden ${
+                  isOpen ? "bg-white border-[#0F2D5C] shadow-xs" : "bg-white border-[#E2E8F0] hover:border-[#CBD5E1]"
                 }`}
               >
                 <button
                   id={`faq-btn-${faq.id}`}
                   type="button"
                   onClick={() => toggleAccordion(faq.id)}
-                  className="w-full p-5 sm:p-6 text-left flex items-start justify-between gap-4 cursor-pointer touch-manipulation"
+                  className="w-full p-3.5 sm:p-4 text-left flex items-start justify-between gap-3 cursor-pointer touch-manipulation"
                   aria-expanded={isOpen}
                   aria-controls={`faq-answer-${faq.id}`}
                 >
-                  <div className="flex items-start gap-3.5">
-                    <div className={`p-2 rounded-xl shrink-0 mt-0.5 ${isOpen ? "bg-[#0F2D5C] text-white" : "bg-[#F1F5F9] text-[#0F2D5C]"}`}>
-                      <Icon className="h-4 w-4" aria-hidden="true" />
+                  <div className="flex items-start gap-3">
+                    <div className={`p-1.5 rounded-lg shrink-0 mt-0.5 ${isOpen ? "bg-[#0F2D5C] text-white" : "bg-[#F1F5F9] text-[#0F2D5C]"}`}>
+                      <Icon className="h-3.5 w-3.5" aria-hidden="true" />
                     </div>
                     <div>
-                      <span className="text-[11px] font-bold text-[#0F2D5C] uppercase tracking-wider block mb-1">
+                      <span className="text-[10px] font-bold text-[#0F2D5C] uppercase tracking-wider block mb-0.5">
                         {faq.category}
                       </span>
-                      <h3 className="text-sm sm:text-base font-bold text-[#111827]">
+                      <h3 className="text-xs sm:text-sm font-bold text-[#111827]">
                         {faq.question}
                       </h3>
                     </div>
                   </div>
 
-                  <div className={`p-1.5 rounded-full shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180 bg-[#F1F5F9] text-[#0F2D5C]" : "text-[#374151]"}`}>
-                    <ChevronDown className="h-4 w-4" aria-hidden="true" />
+                  <div className={`p-1 rounded-full shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180 bg-[#F1F5F9] text-[#0F2D5C]" : "text-[#374151]"}`}>
+                    <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
                   </div>
                 </button>
 
@@ -173,7 +173,7 @@ export const LandingFAQSection: React.FC<{ onContactSupport?: () => void; onGetS
                     aria-labelledby={`faq-btn-${faq.id}`}
                     className="animate-in fade-in duration-200"
                   >
-                    <div className="px-5 sm:px-6 pb-6 pt-1 text-xs sm:text-sm text-[#374151] leading-relaxed border-t border-[#F1F5F9] ml-12">
+                    <div className="px-4 pb-3.5 pt-1 text-xs text-[#4B5563] leading-relaxed border-t border-[#F1F5F9] ml-9 sm:ml-10">
                       {faq.answer}
                     </div>
                   </div>
@@ -184,15 +184,15 @@ export const LandingFAQSection: React.FC<{ onContactSupport?: () => void; onGetS
         </div>
 
         {/* Bottom Support CTA */}
-        <div className="p-6 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs text-center max-w-2xl mx-auto space-y-3">
+        <div className="p-4 sm:p-5 rounded-xl bg-white border border-[#E2E8F0] shadow-2xs text-center max-w-2xl mx-auto space-y-2.5">
           <p className="text-xs sm:text-sm font-medium text-[#374151]">
             Have a specific question not covered here? Our support team is active 24/7.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5">
             <button
               type="button"
               onClick={onContactSupport}
-              className="w-full sm:w-auto min-h-[48px] px-6 py-3 rounded-xl bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white text-xs font-bold transition-colors shadow-xs cursor-pointer flex items-center justify-center gap-2 touch-manipulation"
+              className="w-full sm:w-auto min-h-[38px] px-5 py-2 rounded-lg bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white text-xs font-bold transition-colors shadow-xs cursor-pointer flex items-center justify-center gap-1.5 touch-manipulation"
             >
               <span>Chat with Support</span>
               <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />

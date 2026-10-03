@@ -401,7 +401,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
       </AnimatePresence>
 
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-[#111827] border border-[#111827] rounded-3xl p-6 shadow-xl">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-6 shadow-xl">
         <div className="space-y-1">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-[#0F2D5C]/20 border border-[#0F2D5C]/30 rounded-2xl text-[#9CA3AF]">
@@ -455,7 +455,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
             placeholder="Search mapping name, provider, or endpoint URL..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#111827] border border-[#111827] rounded-2xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#0F2D5C] transition"
+            className="w-full bg-white border border-[#E5E7EB] rounded-2xl shadow-xs pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#0F2D5C] transition"
           />
         </div>
 
@@ -463,7 +463,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
           <select
             value={selectedProvider}
             onChange={(e) => setSelectedProvider(e.target.value)}
-            className="w-full bg-[#111827] border border-[#111827] rounded-2xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C] transition"
+            className="w-full bg-white border border-[#E5E7EB] rounded-2xl shadow-xs px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C] transition"
           >
             <option value="ALL">All Providers ({mappings.length})</option>
             {PROVIDER_OPTIONS.map((p) => (
@@ -476,7 +476,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full bg-[#111827] border border-[#111827] rounded-2xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C] transition"
+            className="w-full bg-white border border-[#E5E7EB] rounded-2xl shadow-xs px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C] transition"
           >
             <option value="ALL">All Statuses</option>
             <option value="ENABLED">Enabled Only</option>
@@ -486,7 +486,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
       </div>
 
       {/* Mappings Table */}
-      <div className="bg-[#111827] border border-[#111827] rounded-3xl overflow-hidden shadow-xl">
+      <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs overflow-hidden shadow-xl">
         {isLoading ? (
           <div className="p-12 text-center space-y-3">
             <RefreshCw className="h-8 w-8 text-[#0F2D5C] animate-spin mx-auto" />
@@ -639,7 +639,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-5xl bg-[#111827] border border-[#111827] rounded-3xl p-6 md:p-8 shadow-2xl my-8 space-y-6 max-h-[92vh] overflow-y-auto text-xs"
+              className="w-full max-w-5xl bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-6 md:p-8 shadow-2xl my-8 space-y-6 max-h-[92vh] overflow-y-auto text-xs"
             >
               {/* Modal Header */}
               <div className="flex items-center justify-between border-b border-[#111827] pb-4">
@@ -1026,7 +1026,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-4xl bg-[#111827] border border-[#111827] rounded-3xl p-6 md:p-8 shadow-2xl space-y-6 max-h-[92vh] overflow-y-auto"
+              className="w-full max-w-4xl bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-6 md:p-8 shadow-2xl space-y-6 max-h-[92vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between border-b border-[#111827] pb-4">
                 <div className="flex items-center gap-3">
@@ -1074,7 +1074,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                   value={sampleInputJson}
                   onChange={(e) => setSampleInputJson(e.target.value)}
                   placeholder="Paste JSON response body here..."
-                  className="w-full bg-[#111827] border border-[#111827] rounded-2xl p-4 text-xs font-mono text-[#9CA3AF] focus:outline-none focus:border-[#0F2D5C]"
+                  className="w-full bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-4 text-xs font-mono text-[#9CA3AF] focus:outline-none focus:border-[#0F2D5C]"
                 />
 
                 <div className="flex justify-end">
@@ -1190,7 +1190,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
                   {/* Original Input JSON */}
                   <div className="space-y-2">
                     <label className="font-bold text-xs text-[#E5E7EB]">Original Provider JSON</label>
-                    <pre className="p-4 bg-[#111827] border border-[#111827] rounded-2xl text-[11px] text-[#E5E7EB] font-mono overflow-x-auto max-h-48">
+                    <pre className="p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs text-[11px] text-[#E5E7EB] font-mono overflow-x-auto max-h-48">
                       {JSON.stringify(testResult.originalJson || {}, null, 2)}
                     </pre>
                   </div>
@@ -1219,7 +1219,7 @@ export default function ApiResponseMapperView({ session, onNavigate }: ApiRespon
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-5xl bg-[#111827] border border-[#111827] rounded-3xl p-6 md:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto"
+              className="w-full max-w-5xl bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-6 md:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between border-b border-[#111827] pb-4">
                 <div className="flex items-center gap-3">

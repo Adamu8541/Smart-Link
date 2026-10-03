@@ -54,56 +54,56 @@ export const LoginLoaderModal: React.FC<LoginLoaderModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#111827]/70 backdrop-blur-xs animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-[#111827]/70 backdrop-blur-xs animate-fade-in"
       role="dialog"
       aria-modal="true"
       aria-label={title}
     >
-      <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 text-center space-y-6 animate-scale-up">
+      <div className="w-full max-w-xs sm:max-w-sm bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-5 text-center space-y-3 max-h-[80dvh] overflow-y-auto animate-scale-up">
         {/* Animated SmartLink Logo Mark Badge */}
-        <div className="relative w-24 h-24 mx-auto flex items-center justify-center">
+        <div className="relative w-14 h-14 mx-auto flex items-center justify-center">
           <div className="absolute inset-0 rounded-full bg-[#0F2D5C]/15 dark:bg-blue-500/20 animate-ping opacity-60" />
-          <div className="relative p-3.5 rounded-2xl bg-white dark:bg-slate-800 shadow-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center">
-            <SmartLinkLogoMark size="lg" animating={currentStep.progress < 100} />
+          <div className="relative p-2.5 rounded-xl bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 flex items-center justify-center">
+            <SmartLinkLogoMark size="sm" animating={currentStep.progress < 100} />
           </div>
         </div>
 
         {/* Service Header */}
-        <div className="space-y-1.5">
-          <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">
+        <div className="space-y-1">
+          <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white tracking-tight">
             {title}
           </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center justify-center gap-1.5">
-            <Lock className="h-3.5 w-3.5 text-[#0F2D5C] dark:text-blue-400 shrink-0" />
+          <p className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-center gap-1 font-medium">
+            <Lock className="h-3 w-3 text-[#0F2D5C] dark:text-blue-400 shrink-0" />
             <span>Encrypted Portal: {providerName}</span>
           </p>
         </div>
 
         {/* Step Status Text */}
-        <div className="space-y-2.5 p-4 bg-slate-50 dark:bg-slate-800/70 rounded-2xl border border-slate-200/80 dark:border-slate-700/80">
-          <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-200">
-            <span className="flex items-center gap-2 text-[#0F2D5C] dark:text-blue-400">
+        <div className="space-y-2 p-3 bg-slate-50 dark:bg-slate-800/70 rounded-xl border border-slate-200/80 dark:border-slate-700/80">
+          <div className="flex items-center justify-between text-[11px] font-bold text-slate-700 dark:text-slate-200">
+            <span className="flex items-center gap-1.5 text-[#0F2D5C] dark:text-blue-400">
               <SmartLinkLogoMark size="xs" animating={currentStep.progress < 100} />
               <span>{currentStep.label}</span>
             </span>
-            <span className="font-mono text-xs font-extrabold text-[#0F2D5C] dark:text-blue-300">
+            <span className="font-mono text-[11px] font-extrabold text-[#0F2D5C] dark:text-blue-300">
               {currentStep.progress}%
             </span>
           </div>
 
           {/* Animated Progress Bar */}
-          <div className="w-full bg-slate-200 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden">
+          <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
             <div
-              className="bg-[#0F2D5C] dark:bg-blue-600 h-full transition-all duration-400 ease-out rounded-full"
+              className="bg-[#0F2D5C] dark:bg-blue-600 h-full transition-all duration-300 ease-out rounded-full shadow-xs"
               style={{ width: `${currentStep.progress}%` }}
             />
           </div>
         </div>
 
         {/* Security notice footer */}
-        <div className="flex items-center justify-center gap-2 text-[11px] font-medium text-slate-500 dark:text-slate-400">
-          <ShieldCheck className="h-4 w-4 text-[#0F2D5C] dark:text-blue-400 shrink-0" />
-          <span>End-to-End 256-Bit SSL Encrypted Communication</span>
+        <div className="flex items-center justify-center gap-1.5 text-[10px] font-medium text-slate-500 dark:text-slate-400">
+          <ShieldCheck className="h-3.5 w-3.5 text-[#0F2D5C] dark:text-blue-400 shrink-0" />
+          <span>256-Bit SSL Encrypted Communication</span>
         </div>
       </div>
     </div>

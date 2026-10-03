@@ -97,7 +97,7 @@ export function CreditWalletModal({ user, session, onClose, onSuccess }: CreditW
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="w-full max-w-md bg-[#111827] border border-[#111827] rounded-3xl shadow-2xl overflow-hidden"
+        className="w-full max-w-md bg-white border border-[#E5E7EB] rounded-2xl shadow-xs shadow-2xl overflow-hidden"
       >
         <div className="p-5 bg-[#111827] border-b border-[#111827] flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -122,7 +122,7 @@ export function CreditWalletModal({ user, session, onClose, onSuccess }: CreditW
             </div>
           )}
 
-          <div className="p-3 bg-[#111827] border border-[#111827] rounded-2xl text-xs space-y-1">
+          <div className="p-3 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs text-xs space-y-1">
             <span className="text-[#9CA3AF] block">Target Account</span>
             <div className="font-bold text-white text-sm">{user?.fullName}</div>
             <div className="text-[#9CA3AF] font-mono">{user?.email} • Bal: <strong className="text-[#9CA3AF]">{formatNaira(currentBal)}</strong></div>
@@ -281,7 +281,7 @@ export function DebitWalletModal({ user, session, onClose, onSuccess }: DebitWal
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="w-full max-w-md bg-[#111827] border border-[#111827] rounded-3xl shadow-2xl overflow-hidden"
+        className="w-full max-w-md bg-white border border-[#E5E7EB] rounded-2xl shadow-xs shadow-2xl overflow-hidden"
       >
         <div className="p-5 bg-[#111827] border-b border-[#111827] flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -306,7 +306,7 @@ export function DebitWalletModal({ user, session, onClose, onSuccess }: DebitWal
             </div>
           )}
 
-          <div className="p-3 bg-[#111827] border border-[#111827] rounded-2xl text-xs space-y-1">
+          <div className="p-3 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs text-xs space-y-1">
             <span className="text-[#9CA3AF] block">Target Account</span>
             <div className="font-bold text-white text-sm">{user?.fullName}</div>
             <div className="text-[#9CA3AF] font-mono">Current Float: <strong className="text-[#9CA3AF]">{formatNaira(currentBal)}</strong></div>
@@ -444,7 +444,7 @@ export function WalletStatusModal({ user, targetStatus, session, onClose, onSucc
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="w-full max-w-md bg-[#111827] border border-[#111827] rounded-3xl shadow-2xl overflow-hidden"
+        className="w-full max-w-md bg-white border border-[#E5E7EB] rounded-2xl shadow-xs shadow-2xl overflow-hidden"
       >
         <div className="p-5 bg-[#111827] border-b border-[#111827] flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -477,7 +477,7 @@ export function WalletStatusModal({ user, targetStatus, session, onClose, onSucc
             </div>
           )}
 
-          <div className="p-3 bg-[#111827] border border-[#111827] rounded-2xl text-xs space-y-1">
+          <div className="p-3 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs text-xs space-y-1">
             <span className="text-[#9CA3AF] block">Target Account</span>
             <div className="font-bold text-white text-sm">{user?.fullName} ({user?.email})</div>
             <div className="text-[#9CA3AF]">Current Status: <strong className="text-[#9CA3AF]">{user?.walletStatus || "ACTIVE"}</strong></div>

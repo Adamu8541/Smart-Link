@@ -109,7 +109,7 @@ export function WalletStatementModal({ user, session, onClose }: WalletStatement
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="w-full max-w-3xl bg-[#111827] border border-[#111827] rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+        className="w-full max-w-3xl bg-white border border-[#E5E7EB] rounded-2xl shadow-xs shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
       >
         <div className="p-5 bg-[#111827] border-b border-[#111827] flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
@@ -137,7 +137,7 @@ export function WalletStatementModal({ user, session, onClose }: WalletStatement
           {/* Form */}
           {!statementData ? (
             <form onSubmit={handleGenerate} className="space-y-5">
-              <div className="p-4 bg-[#111827] border border-[#111827] rounded-2xl text-xs space-y-1">
+              <div className="p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs text-xs space-y-1">
                 <span className="text-[#9CA3AF] block">Target Account</span>
                 <div className="font-bold text-white text-sm">{user?.fullName}</div>
                 <div className="text-[#9CA3AF] font-mono">{user?.email} • Wallet ID: <strong className="text-[#9CA3AF]">WLT_{user?.userId || user?.uid}</strong></div>
@@ -243,7 +243,7 @@ export function WalletStatementModal({ user, session, onClose }: WalletStatement
           ) : (
             /* Generated Statement View */
             <div className="space-y-6">
-              <div className="p-6 bg-[#111827] border border-[#111827] rounded-3xl space-y-4 print:p-0 print:bg-white print:text-[#111827]">
+              <div className="p-6 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs space-y-4 print:p-0 print:bg-white print:text-[#111827]">
                 {/* Statement Header */}
                 <div className="flex items-start justify-between border-b border-[#111827] pb-4">
                   <div>
@@ -291,7 +291,7 @@ export function WalletStatementModal({ user, session, onClose }: WalletStatement
                         <th className="py-2.5 px-3 text-right">Running Bal (₦)</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800/60 font-mono text-[11px]">
+                    <tbody className="divide-y divide-[#E5E7EB]/60 font-mono text-[11px]">
                       {statementData.items.map((item: any, idx: number) => (
                         <tr key={idx} className="hover:bg-[#111827]/40">
                           <td className="py-2 px-3 text-[#9CA3AF]">{formatSafeDate(item.date)}</td>

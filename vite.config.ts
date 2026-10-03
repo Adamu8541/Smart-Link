@@ -34,7 +34,7 @@ export default defineConfig(() => {
     },
     build: {
       target: 'esnext',
-      sourcemap: false,
+      sourcemap: true,
       minify: 'esbuild',
       cssCodeSplit: true,
       chunkSizeWarningLimit: 1000,

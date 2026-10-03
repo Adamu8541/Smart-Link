@@ -45,24 +45,24 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
   };
 
   return (
-    <footer id="landing-footer" className="bg-white text-[#4B5563] pt-16 pb-12 border-t border-[#E5E7EB] text-xs">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+    <footer id="landing-footer" className="bg-white text-[#4B5563] pt-10 sm:pt-12 pb-8 sm:pb-10 border-t border-[#E5E7EB] text-xs">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 sm:space-y-10">
         
         {/* Top Grid: Logo & 4 Navigation Columns */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8 text-left">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 lg:gap-8 text-left">
           
           {/* Column 1 & 2: Brand Information */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className="lg:col-span-2 space-y-3">
             <div className="flex items-center">
               <img
                 src={activeLogo}
                 alt={`${siteName || "SmartLink Nigeria"} - Identity Verification, Utility Bills and Enterprise CAC Filing`}
-                width={224}
-                height={56}
+                width={190}
+                height={46}
                 loading="lazy"
                 decoding="async"
-                style={{ aspectRatio: "224 / 56" }}
-                className="h-14 sm:h-16 w-auto max-w-[224px] object-contain rounded-lg p-1 bg-white"
+                style={{ aspectRatio: "190 / 46" }}
+                className="h-10 sm:h-12 w-auto max-w-[190px] object-contain rounded-lg p-0.5 bg-white"
                 referrerPolicy="no-referrer"
                 onError={handleLogoError}
               />
@@ -72,24 +72,24 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
               Nigeria's premier digital verification and payment platform. Authorized technology provider for NIN/BVN lookups, corporate CAC filings, utility bill settlements, and educational scratch cards.
             </p>
 
-            <div className="space-y-2 pt-2 text-[#4B5563]">
-              <div className="flex items-center gap-2">
-                <Mail className="h-4 w-4 text-[#0F2D5C] shrink-0" />
+            <div className="space-y-1.5 pt-1 text-[#4B5563]">
+              <div className="flex items-center gap-2 text-xs">
+                <Mail className="h-3.5 w-3.5 text-[#0F2D5C] shrink-0" />
                 <span>Smartlinkcomputerbusiness@gmail.com</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4 text-[#0F2D5C] shrink-0" />
+              <div className="flex items-center gap-2 text-xs">
+                <Phone className="h-3.5 w-3.5 text-[#0F2D5C] shrink-0" />
                 <span>+234 808 549 0982 | WhatsApp: +234 904 773 8212</span>
               </div>
             </div>
           </div>
 
           {/* Column 3: Company */}
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             <h2 className="text-xs font-bold uppercase tracking-wider text-[#111827]">
               Company
             </h2>
-            <ul className="space-y-1 font-normal">
+            <ul className="space-y-0.5 font-normal">
               {[
                 { name: "About", tab: "about" },
                 { name: "Contact", tab: "contact" }
@@ -99,7 +99,7 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
                     id={`footer-company-${item.tab}`}
                     type="button"
                     onClick={() => setActiveInfoTab(item.tab as any)}
-                    className="text-[#374151] hover:text-[#0F2D5C] hover:translate-x-1 duration-200 transition-all cursor-pointer bg-transparent border-none py-2 px-1 min-h-[48px] text-left font-medium flex items-center gap-1.5 touch-manipulation"
+                    className="text-[#374151] hover:text-[#0F2D5C] hover:translate-x-0.5 duration-200 transition-all cursor-pointer bg-transparent border-none py-1 px-0.5 text-left font-medium flex items-center gap-1 text-xs"
                   >
                     <ChevronRight className="h-3 w-3 text-[#374151]/60" aria-hidden="true" />
                     <span>{item.name}</span>
@@ -110,11 +110,11 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
           </div>
 
           {/* Column 4: Services */}
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             <h2 className="text-xs font-bold uppercase tracking-wider text-[#111827]">
               Services
             </h2>
-            <ul className="space-y-1 font-normal">
+            <ul className="space-y-0.5 font-normal">
               {[
                 "Identity Verification",
                 "Bill Payments",
@@ -126,7 +126,7 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
                     id={`footer-services-${item.toLowerCase().replace(/\s+/g, "-")}`}
                     type="button"
                     onClick={() => onNavigateSection("services-section")}
-                    className="text-[#374151] hover:text-[#0F2D5C] transition-colors cursor-pointer bg-transparent border-none py-2 px-1 min-h-[48px] text-left font-medium flex items-center touch-manipulation"
+                    className="text-[#374151] hover:text-[#0F2D5C] transition-colors cursor-pointer bg-transparent border-none py-1 px-0.5 text-left font-medium flex items-center text-xs"
                   >
                     {item}
                   </button>
@@ -136,11 +136,11 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
           </div>
 
           {/* Column 5: Legal & Policies */}
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             <h2 className="text-xs font-bold uppercase tracking-wider text-[#111827] flex items-center justify-between">
-              <span>Legal & Policies</span>
+              <span>Legal &amp; Policies</span>
             </h2>
-            <ul className="space-y-1 font-normal">
+            <ul className="space-y-0.5 font-normal">
               {[
                 { label: "Legal Center", docId: "legal-center" },
                 { label: "Privacy Policy", docId: "privacy-policy" },
@@ -159,7 +159,7 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
                     id={`footer-legal-${item.docId}`}
                     type="button"
                     onClick={() => handleLegalClick(item.docId === "legal-center" ? undefined : item.docId)}
-                    className="text-[#374151] hover:text-[#0F2D5C] transition-colors cursor-pointer bg-transparent border-none py-2 px-1 min-h-[48px] text-left font-medium text-xs flex items-center touch-manipulation"
+                    className="text-[#374151] hover:text-[#0F2D5C] transition-colors cursor-pointer bg-transparent border-none py-1 px-0.5 text-left font-medium text-xs flex items-center"
                   >
                     {item.label}
                   </button>
@@ -169,11 +169,11 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
           </div>
 
           {/* Column 6: Support */}
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             <h2 className="text-xs font-bold uppercase tracking-wider text-[#111827]">
               Support
             </h2>
-            <ul className="space-y-1 font-normal">
+            <ul className="space-y-0.5 font-normal">
               {[
                 "Help Center",
                 "FAQs",
@@ -184,7 +184,7 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
                     id={`footer-support-${item.toLowerCase().replace(/\s+/g, "-")}`}
                     type="button"
                     onClick={() => item === "FAQs" ? onNavigateSection("faq-section") : onNavigateSection("contact-section")}
-                    className="text-[#374151] hover:text-[#0F2D5C] transition-colors cursor-pointer bg-transparent border-none py-2 px-1 min-h-[48px] text-left font-medium flex items-center touch-manipulation"
+                    className="text-[#374151] hover:text-[#0F2D5C] transition-colors cursor-pointer bg-transparent border-none py-1 px-0.5 text-left font-medium flex items-center text-xs"
                   >
                     {item}
                   </button>
@@ -196,9 +196,9 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
         </div>
 
         {/* Middle Row: Social Media Icons */}
-        <div className="pt-8 border-t border-[#E5E7EB] flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="pt-6 border-t border-[#E5E7EB] flex flex-col md:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <span className="text-xs text-[#6B7280] font-semibold mr-2">Follow Us:</span>
+            <span className="text-xs text-[#6B7280] font-semibold mr-1">Follow Us:</span>
             {[
               { name: "Facebook", icon: Facebook, href: "https://facebook.com/smartlinkng" },
               { name: "X (Twitter)", icon: Twitter, href: "https://twitter.com/smartlinkng" },
@@ -214,10 +214,10 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="min-h-[48px] min-w-[48px] flex items-center justify-center p-3 rounded-xl bg-[#F5F7FA] text-[#4B5563] border border-[#E5E7EB] hover:bg-[#0F2D5C] hover:text-white transition-colors cursor-pointer touch-manipulation"
+                  className="h-8 w-8 flex items-center justify-center rounded-lg bg-[#F5F7FA] text-[#4B5563] border border-[#E5E7EB] hover:bg-[#0F2D5C] hover:text-white transition-colors cursor-pointer"
                   aria-label={social.name}
                 >
-                  <IconComp className="h-4 w-4" aria-hidden="true" />
+                  <IconComp className="h-3.5 w-3.5" aria-hidden="true" />
                 </a>
               );
             })}
@@ -231,7 +231,7 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
             >
               Sign In to Portal
             </button>
-            <span className="text-[#9CA3AF]" aria-hidden="true">•</span>
+            <span className="text-[#4B5563]" aria-hidden="true">•</span>
             <button
               type="button"
               onClick={onRegister}
