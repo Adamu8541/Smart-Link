@@ -1147,8 +1147,7 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
                 type="submit"
                 className="px-8 py-3.5 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-indigo-600/20 cursor-pointer flex items-center justify-center gap-2"
               >
-                <span>Proceed to Confirmation</span>
-                <ChevronRight className="h-4 w-4" />
+                Proceed to Confirmation
               </button>
             </div>
           </form>

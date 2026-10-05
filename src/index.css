@@ -76,13 +76,13 @@ html {
 
 /* Zero Cumulative Layout Shift (CLS) stabilization */
 #site-header {
-  min-height: 80px;
-  contain-intrinsic-size: 80px;
+  min-height: 44px;
+  contain-intrinsic-size: 44px;
 }
 @media (min-width: 640px) {
   #site-header {
-    min-height: 96px;
-    contain-intrinsic-size: 96px;
+    min-height: 52px;
+    contain-intrinsic-size: 52px;
   }
 }
 #header-logo-container img {

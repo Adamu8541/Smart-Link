@@ -94,8 +94,7 @@ import {
   CbnOfficialCardLogo,
   ExamPinsOfficialCardLogo,
   AirtimeOfficialCardLogo,
-  DataBundlesOfficialCardLogo,
-  FloatingHelpWidget
+  DataBundlesOfficialCardLogo
 } from "./common/ScreenshotServiceLogos";
 import {
   ResponsiveContainer,
@@ -1054,24 +1053,24 @@ export default function Dashboards({
         })()}
 
             {/* 2. MAIN SERVICES GRID (Quick Services Card) */}
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm text-left py-6 sm:py-8 space-y-5">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h2 className="text-base sm:text-lg font-extrabold text-[#0F2D5C] tracking-tight flex items-center gap-2">
-                  <Sparkles className="h-4.5 w-4.5 text-[#0F2D5C]" />
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200/80 shadow-2xs text-left space-y-3 sm:space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2 sm:pb-3">
+                <h2 className="text-xs sm:text-sm font-bold text-[#0F2D5C] tracking-tight flex items-center gap-1.5">
+                  <Sparkles className="h-4 w-4 text-[#0F2D5C]" />
                   <span>Quick Services</span>
                 </h2>
               </div>
-              <div className="grid grid-cols-4 gap-y-8 sm:gap-y-10 gap-x-3 sm:gap-x-4">
+              <div className="grid grid-cols-4 gap-y-3.5 sm:gap-y-6 gap-x-2 sm:gap-x-3">
                 {/* Row 1 */}
                 {/* 1. NIN Identity */}
                 <button
                   onClick={() => handleServiceCardClick("id_nin_ver")}
-                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-1"
                 >
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
-                    <Fingerprint className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-xl sm:rounded-2xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-1 sm:mb-1.5 transition-transform group-hover:scale-105 shadow-2xs">
+                    <Fingerprint className="h-5 w-5 sm:h-6 sm:w-6 stroke-[2]" />
                   </div>
-                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C]">
+                  <span className="text-[10.5px] sm:text-xs font-semibold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
                     NIN Identity
                   </span>
                 </button>
@@ -1079,12 +1078,12 @@ export default function Dashboards({
                 {/* 2. BVN Identity */}
                 <button
                   onClick={() => handleServiceCardClick("id_bvn_ver")}
-                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-1"
                 >
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
-                    <ShieldCheck className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-xl sm:rounded-2xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-1 sm:mb-1.5 transition-transform group-hover:scale-105 shadow-2xs">
+                    <ShieldCheck className="h-5 w-5 sm:h-6 sm:w-6 stroke-[2]" />
                   </div>
-                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C]">
+                  <span className="text-[10.5px] sm:text-xs font-semibold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
                     BVN Identity
                   </span>
                 </button>
@@ -1092,12 +1091,12 @@ export default function Dashboards({
                 {/* 3. Airtime */}
                 <button
                   onClick={() => handleServiceCardClick("vtu_airtime")}
-                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-1"
                 >
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
-                    <Smartphone className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-xl sm:rounded-2xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-1 sm:mb-1.5 transition-transform group-hover:scale-105 shadow-2xs">
+                    <Smartphone className="h-5 w-5 sm:h-6 sm:w-6 stroke-[2]" />
                   </div>
-                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C]">
+                  <span className="text-[10.5px] sm:text-xs font-semibold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
                     Airtime
                   </span>
                 </button>
@@ -1105,12 +1104,12 @@ export default function Dashboards({
                 {/* 4. Data */}
                 <button
                   onClick={() => handleServiceCardClick("vtu_data")}
-                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-1"
                 >
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
-                    <Wifi className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-xl sm:rounded-2xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-1 sm:mb-1.5 transition-transform group-hover:scale-105 shadow-2xs">
+                    <Wifi className="h-5 w-5 sm:h-6 sm:w-6 stroke-[2]" />
                   </div>
-                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C]">
+                  <span className="text-[10.5px] sm:text-xs font-semibold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
                     Data
                   </span>
                 </button>
@@ -1119,12 +1118,12 @@ export default function Dashboards({
                 {/* 5. TV */}
                 <button
                   onClick={() => handleServiceCardClick("vtu_cable")}
-                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-1"
                 >
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
-                    <Tv className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-xl sm:rounded-2xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-1 sm:mb-1.5 transition-transform group-hover:scale-105 shadow-2xs">
+                    <Tv className="h-5 w-5 sm:h-6 sm:w-6 stroke-[2]" />
                   </div>
-                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C]">
+                  <span className="text-[10.5px] sm:text-xs font-semibold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
                     TV
                   </span>
                 </button>
@@ -1132,12 +1131,12 @@ export default function Dashboards({
                 {/* 6. Electricity */}
                 <button
                   onClick={() => handleServiceCardClick("vtu_electricity")}
-                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-1"
                 >
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
-                    <Lightbulb className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-xl sm:rounded-2xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-1 sm:mb-1.5 transition-transform group-hover:scale-105 shadow-2xs">
+                    <Lightbulb className="h-5 w-5 sm:h-6 sm:w-6 stroke-[2]" />
                   </div>
-                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C]">
+                  <span className="text-[10.5px] sm:text-xs font-semibold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
                     Electricity
                   </span>
                 </button>
@@ -1145,12 +1144,12 @@ export default function Dashboards({
                 {/* 7. Exam Pins */}
                 <button
                   onClick={() => handleServiceCardClick("edu_waec")}
-                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-1"
                 >
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
-                    <GraduationCap className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-xl sm:rounded-2xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-1 sm:mb-1.5 transition-transform group-hover:scale-105 shadow-2xs">
+                    <GraduationCap className="h-5 w-5 sm:h-6 sm:w-6 stroke-[2]" />
                   </div>
-                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C]">
+                  <span className="text-[10.5px] sm:text-xs font-semibold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
                     Exam Pins
                   </span>
                 </button>
@@ -1160,12 +1159,12 @@ export default function Dashboards({
                   onClick={() => {
                     setShowMoreServicesModal(true);
                   }}
-                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-1"
                 >
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
-                    <Layers className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-xl sm:rounded-2xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-1 sm:mb-1.5 transition-transform group-hover:scale-105 shadow-2xs">
+                    <Layers className="h-5 w-5 sm:h-6 sm:w-6 stroke-[2]" />
                   </div>
-                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C]">
+                  <span className="text-[10.5px] sm:text-xs font-semibold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
                     More
                   </span>
                 </button>
@@ -1173,24 +1172,24 @@ export default function Dashboards({
             </div>
 
             {/* 3. SECONDARY SERVICES GRID (Identity & Compliance Services Card) */}
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm text-left py-6 sm:py-8 space-y-5 mt-6">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h2 className="text-base sm:text-lg font-extrabold text-[#0F2D5C] tracking-tight flex items-center gap-2">
-                  <ShieldCheck className="h-4.5 w-4.5 text-[#0F2D5C]" />
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200/80 shadow-2xs text-left space-y-3 sm:space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2 sm:pb-3">
+                <h2 className="text-xs sm:text-sm font-bold text-[#0F2D5C] tracking-tight flex items-center gap-1.5">
+                  <ShieldCheck className="h-4 w-4 text-[#0F2D5C]" />
                   <span>Identity &amp; Compliance Services</span>
                 </h2>
               </div>
-              <div className="grid grid-cols-4 gap-y-8 sm:gap-y-10 gap-x-3 sm:gap-x-4">
+              <div className="grid grid-cols-4 gap-y-3.5 sm:gap-y-6 gap-x-2 sm:gap-x-3">
                 {/* Row 1 */}
                 {/* 1. NIN Verification with Phone Number */}
                 <button
                   onClick={() => handleServiceCardClick("id_nin_phone")}
-                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-1"
                 >
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
-                    <Phone className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-xl sm:rounded-2xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-1 sm:mb-1.5 transition-transform group-hover:scale-105 shadow-2xs">
+                    <Phone className="h-5 w-5 sm:h-6 sm:w-6 stroke-[2]" />
                   </div>
-                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
+                  <span className="text-[10.5px] sm:text-xs font-semibold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
                     NIN Phone Search
                   </span>
                 </button>
@@ -1198,12 +1197,12 @@ export default function Dashboards({
                 {/* 2. BVN Verification with Phone Number */}
                 <button
                   onClick={() => handleServiceCardClick("id_bvn_phone")}
-                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-1"
                 >
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
-                    <Phone className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-xl sm:rounded-2xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-1 sm:mb-1.5 transition-transform group-hover:scale-105 shadow-2xs">
+                    <Phone className="h-5 w-5 sm:h-6 sm:w-6 stroke-[2]" />
                   </div>
-                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
+                  <span className="text-[10.5px] sm:text-xs font-semibold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
                     BVN Phone Search
                   </span>
                 </button>
@@ -1211,12 +1210,12 @@ export default function Dashboards({
                 {/* 3. BVN Demographic */}
                 <button
                   onClick={() => handleServiceCardClick("id_bvn_demography")}
-                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-1"
                 >
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
-                    <User className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-xl sm:rounded-2xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-1 sm:mb-1.5 transition-transform group-hover:scale-105 shadow-2xs">
+                    <User className="h-5 w-5 sm:h-6 sm:w-6 stroke-[2]" />
                   </div>
-                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
+                  <span className="text-[10.5px] sm:text-xs font-semibold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
                     BVN Demographic
                   </span>
                 </button>
@@ -1224,12 +1223,12 @@ export default function Dashboards({
                 {/* 4. NIN Demographic */}
                 <button
                   onClick={() => handleServiceCardClick("id_nin_demography")}
-                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-1"
                 >
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
-                    <Users className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-xl sm:rounded-2xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-1 sm:mb-1.5 transition-transform group-hover:scale-105 shadow-2xs">
+                    <Users className="h-5 w-5 sm:h-6 sm:w-6 stroke-[2]" />
                   </div>
-                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
+                  <span className="text-[10.5px] sm:text-xs font-semibold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
                     NIN Demographic
                   </span>
                 </button>
@@ -1238,12 +1237,12 @@ export default function Dashboards({
                 {/* 5. CAC Registration */}
                 <button
                   onClick={() => handleServiceCardClick("id_cac_registration")}
-                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-1"
                 >
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
-                    <Building2 className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-xl sm:rounded-2xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-1 sm:mb-1.5 transition-transform group-hover:scale-105 shadow-2xs">
+                    <Building2 className="h-5 w-5 sm:h-6 sm:w-6 stroke-[2]" />
                   </div>
-                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
+                  <span className="text-[10.5px] sm:text-xs font-semibold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
                     CAC Registration
                   </span>
                 </button>
@@ -1251,12 +1250,12 @@ export default function Dashboards({
                 {/* 6. TIN Verification */}
                 <button
                   onClick={() => handleServiceCardClick("id_tax_id_search")}
-                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-1"
                 >
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
-                    <FileText className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-xl sm:rounded-2xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-1 sm:mb-1.5 transition-transform group-hover:scale-105 shadow-2xs">
+                    <FileText className="h-5 w-5 sm:h-6 sm:w-6 stroke-[2]" />
                   </div>
-                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
+                  <span className="text-[10.5px] sm:text-xs font-semibold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
                     TIN Verification
                   </span>
                 </button>
@@ -1264,12 +1263,12 @@ export default function Dashboards({
                 {/* 7. SCUML Registration */}
                 <button
                   onClick={() => handleServiceCardClick("cac_scuml")}
-                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-1"
                 >
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
-                    <ShieldCheck className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-xl sm:rounded-2xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-1 sm:mb-1.5 transition-transform group-hover:scale-105 shadow-2xs">
+                    <ShieldCheck className="h-5 w-5 sm:h-6 sm:w-6 stroke-[2]" />
                   </div>
-                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
+                  <span className="text-[10.5px] sm:text-xs font-semibold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
                     SCUML Registration
                   </span>
                 </button>
@@ -1279,12 +1278,12 @@ export default function Dashboards({
                   onClick={() => {
                     setShowMoreServicesModal(true);
                   }}
-                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-1"
                 >
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
-                    <Layers className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-xl sm:rounded-2xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-1 sm:mb-1.5 transition-transform group-hover:scale-105 shadow-2xs">
+                    <Layers className="h-5 w-5 sm:h-6 sm:w-6 stroke-[2]" />
                   </div>
-                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
+                  <span className="text-[10.5px] sm:text-xs font-semibold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
                     More
                   </span>
                 </button>
@@ -1292,24 +1291,24 @@ export default function Dashboards({
             </div>
 
             {/* 4. QUICK TOOLS CARD (Matching Services Icons Grid Layout) */}
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm text-left py-6 sm:py-8 space-y-5 mt-6">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h2 className="text-base sm:text-lg font-extrabold text-[#0F2D5C] tracking-tight flex items-center gap-2">
-                  <SlidersHorizontal className="h-4.5 w-4.5 text-[#0F2D5C]" />
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200/80 shadow-2xs text-left space-y-3 sm:space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2 sm:pb-3">
+                <h2 className="text-xs sm:text-sm font-bold text-[#0F2D5C] tracking-tight flex items-center gap-1.5">
+                  <SlidersHorizontal className="h-4 w-4 text-[#0F2D5C]" />
                   <span>Account &amp; Quick Tools</span>
                 </h2>
               </div>
-              <div className="grid grid-cols-4 gap-y-8 sm:gap-y-10 gap-x-3 sm:gap-x-4">
+              <div className="grid grid-cols-4 gap-y-3.5 sm:gap-y-6 gap-x-2 sm:gap-x-3">
                 {/* 1. Setting */}
                 <button
                   onClick={() => onSwitchView("ACCOUNT_SECURITY")}
-                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-1"
                   title="Account Settings & Security"
                 >
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
-                    <SlidersHorizontal className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-xl sm:rounded-2xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-1 sm:mb-1.5 transition-transform group-hover:scale-105 shadow-2xs">
+                    <SlidersHorizontal className="h-5 w-5 sm:h-6 sm:w-6 stroke-[2]" />
                   </div>
-                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
+                  <span className="text-[10.5px] sm:text-xs font-semibold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
                     Setting
                   </span>
                 </button>
@@ -1318,13 +1317,13 @@ export default function Dashboards({
                 <button
                   type="button"
                   onClick={() => setShowContactInfoModal(true)}
-                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-1"
                   title="Smart Link NG Support & Contact Information"
                 >
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
-                    <Headphones className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-xl sm:rounded-2xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-1 sm:mb-1.5 transition-transform group-hover:scale-105 shadow-2xs">
+                    <Headphones className="h-5 w-5 sm:h-6 sm:w-6 stroke-[2]" />
                   </div>
-                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
+                  <span className="text-[10.5px] sm:text-xs font-semibold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
                     Support
                   </span>
                 </button>
@@ -1336,13 +1335,13 @@ export default function Dashboards({
                     setSuggestionSubmitted(false);
                     setShowSuggestionModal(true);
                   }}
-                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-1"
                   title="Send Platform Feedback & Suggestion"
                 >
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
-                    <MessageSquare className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-xl sm:rounded-2xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-1 sm:mb-1.5 transition-transform group-hover:scale-105 shadow-2xs">
+                    <MessageSquare className="h-5 w-5 sm:h-6 sm:w-6 stroke-[2]" />
                   </div>
-                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
+                  <span className="text-[10.5px] sm:text-xs font-semibold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
                     Suggestion
                   </span>
                 </button>
@@ -1359,13 +1358,13 @@ export default function Dashboards({
                       onSwitchView("HOME");
                     }
                   }}
-                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-1"
                   title="Sign Out of Session"
                 >
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-rose-50 text-rose-600 flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs border border-rose-100">
-                    <LogOut className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-xl sm:rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mb-1 sm:mb-1.5 transition-transform group-hover:scale-105 shadow-2xs border border-rose-100">
+                    <LogOut className="h-5 w-5 sm:h-6 sm:w-6 stroke-[2]" />
                   </div>
-                  <span className="text-xs sm:text-sm font-bold text-rose-600 group-hover:text-rose-700 leading-tight">
+                  <span className="text-[10.5px] sm:text-xs font-semibold text-rose-600 group-hover:text-rose-700 leading-tight">
                     Sign out
                   </span>
                 </button>
@@ -1982,29 +1981,26 @@ export default function Dashboards({
 
         </div>
 
-        {/* Floating Customer Support Help Widget on the Bottom-Right */}
-        <FloatingHelpWidget />
-
         {/* ======================================================== */}
         {/* 📱 5-TAB BOTTOM NAVIGATION BAR (NIN, BVN, Airtime, Data, Wallet) */}
         {/* ======================================================== */}
         <nav
           id="user-dashboard-bottom-nav"
           aria-label="User Dashboard Navigation"
-          className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/90 shadow-[0_-6px_30px_rgba(0,0,0,0.1)] px-3 sm:px-8 py-3 sm:py-4 transition-all"
+          className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/90 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] px-2 sm:px-6 py-1.5 sm:py-2 transition-all"
         >
-          <div className="max-w-lg sm:max-w-2xl md:max-w-3xl mx-auto flex items-center justify-between gap-3 sm:gap-6 md:gap-8 relative">
+          <div className="max-w-md sm:max-w-lg md:max-w-xl mx-auto flex items-center justify-between gap-1 sm:gap-4 relative">
             
             {/* 1. NIN */}
             <button
               onClick={() => handleServiceCardClick("id_nin_ver")}
-              className="flex-1 flex flex-col items-center justify-center py-1 px-1 sm:px-3 rounded-2xl transition-all text-center group cursor-pointer active:scale-95"
+              className="flex-1 flex flex-col items-center justify-center py-1 px-1 sm:px-2 rounded-xl transition-all text-center group cursor-pointer active:scale-95"
               title="NIN Verification & Validation"
             >
-              <div className="w-14 h-14 sm:w-18 sm:h-18 rounded-2xl bg-slate-50 group-hover:bg-[#0F2D5C]/10 flex items-center justify-center transition-all group-hover:scale-110 shadow-2xs">
-                <Fingerprint className="h-9 w-9 sm:h-11 sm:w-11 text-slate-600 group-hover:text-[#0F2D5C] group-active:text-[#0F2D5C] transition-colors stroke-[2.2]" />
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-50 group-hover:bg-[#0F2D5C]/10 flex items-center justify-center transition-all group-hover:scale-105 shadow-2xs">
+                <Fingerprint className="h-4.5 w-4.5 sm:h-5 sm:w-5 text-slate-600 group-hover:text-[#0F2D5C] group-active:text-[#0F2D5C] transition-colors stroke-[2]" />
               </div>
-              <span className="text-xs sm:text-sm font-extrabold tracking-tight text-slate-700 group-hover:text-[#0F2D5C] transition-colors mt-1.5">
+              <span className="text-[10px] sm:text-[11px] font-bold tracking-tight text-slate-700 group-hover:text-[#0F2D5C] transition-colors mt-0.5">
                 NIN
               </span>
             </button>
@@ -2012,13 +2008,13 @@ export default function Dashboards({
             {/* 2. BVN */}
             <button
               onClick={() => handleServiceCardClick("id_bvn_ver")}
-              className="flex-1 flex flex-col items-center justify-center py-1 px-1 sm:px-3 rounded-2xl transition-all text-center group cursor-pointer active:scale-95"
+              className="flex-1 flex flex-col items-center justify-center py-1 px-1 sm:px-2 rounded-xl transition-all text-center group cursor-pointer active:scale-95"
               title="BVN Identity Verification"
             >
-              <div className="w-14 h-14 sm:w-18 sm:h-18 rounded-2xl bg-slate-50 group-hover:bg-[#0F2D5C]/10 flex items-center justify-center transition-all group-hover:scale-110 shadow-2xs">
-                <ShieldCheck className="h-9 w-9 sm:h-11 sm:w-11 text-slate-600 group-hover:text-[#0F2D5C] group-active:text-[#0F2D5C] transition-colors stroke-[2.2]" />
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-50 group-hover:bg-[#0F2D5C]/10 flex items-center justify-center transition-all group-hover:scale-105 shadow-2xs">
+                <ShieldCheck className="h-4.5 w-4.5 sm:h-5 sm:w-5 text-slate-600 group-hover:text-[#0F2D5C] group-active:text-[#0F2D5C] transition-colors stroke-[2]" />
               </div>
-              <span className="text-xs sm:text-sm font-extrabold tracking-tight text-slate-700 group-hover:text-[#0F2D5C] transition-colors mt-1.5">
+              <span className="text-[10px] sm:text-[11px] font-bold tracking-tight text-slate-700 group-hover:text-[#0F2D5C] transition-colors mt-0.5">
                 BVN
               </span>
             </button>
@@ -2026,13 +2022,13 @@ export default function Dashboards({
             {/* 3. Airtime */}
             <button
               onClick={() => handleServiceCardClick("vtu_airtime")}
-              className="flex-1 flex flex-col items-center justify-center py-1 px-1 sm:px-3 rounded-2xl transition-all text-center group cursor-pointer active:scale-95"
+              className="flex-1 flex flex-col items-center justify-center py-1 px-1 sm:px-2 rounded-xl transition-all text-center group cursor-pointer active:scale-95"
               title="Airtime Topup"
             >
-              <div className="w-14 h-14 sm:w-18 sm:h-18 rounded-2xl bg-slate-50 group-hover:bg-[#0F2D5C]/10 flex items-center justify-center transition-all group-hover:scale-110 shadow-2xs">
-                <Smartphone className="h-9 w-9 sm:h-11 sm:w-11 text-slate-600 group-hover:text-[#0F2D5C] group-active:text-[#0F2D5C] transition-colors stroke-[2.2]" />
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-50 group-hover:bg-[#0F2D5C]/10 flex items-center justify-center transition-all group-hover:scale-105 shadow-2xs">
+                <Smartphone className="h-4.5 w-4.5 sm:h-5 sm:w-5 text-slate-600 group-hover:text-[#0F2D5C] group-active:text-[#0F2D5C] transition-colors stroke-[2]" />
               </div>
-              <span className="text-xs sm:text-sm font-extrabold tracking-tight text-slate-700 group-hover:text-[#0F2D5C] transition-colors mt-1.5">
+              <span className="text-[10px] sm:text-[11px] font-bold tracking-tight text-slate-700 group-hover:text-[#0F2D5C] transition-colors mt-0.5">
                 Airtime
               </span>
             </button>
@@ -2040,13 +2036,13 @@ export default function Dashboards({
             {/* 4. Data */}
             <button
               onClick={() => handleServiceCardClick("vtu_data")}
-              className="flex-1 flex flex-col items-center justify-center py-1 px-1 sm:px-3 rounded-2xl transition-all text-center group cursor-pointer active:scale-95"
+              className="flex-1 flex flex-col items-center justify-center py-1 px-1 sm:px-2 rounded-xl transition-all text-center group cursor-pointer active:scale-95"
               title="Data Bundles"
             >
-              <div className="w-14 h-14 sm:w-18 sm:h-18 rounded-2xl bg-slate-50 group-hover:bg-[#0F2D5C]/10 flex items-center justify-center transition-all group-hover:scale-110 shadow-2xs">
-                <Wifi className="h-9 w-9 sm:h-11 sm:w-11 text-slate-600 group-hover:text-[#0F2D5C] group-active:text-[#0F2D5C] transition-colors stroke-[2.2]" />
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-50 group-hover:bg-[#0F2D5C]/10 flex items-center justify-center transition-all group-hover:scale-105 shadow-2xs">
+                <Wifi className="h-4.5 w-4.5 sm:h-5 sm:w-5 text-slate-600 group-hover:text-[#0F2D5C] group-active:text-[#0F2D5C] transition-colors stroke-[2]" />
               </div>
-              <span className="text-xs sm:text-sm font-extrabold tracking-tight text-slate-700 group-hover:text-[#0F2D5C] transition-colors mt-1.5">
+              <span className="text-[10px] sm:text-[11px] font-bold tracking-tight text-slate-700 group-hover:text-[#0F2D5C] transition-colors mt-0.5">
                 Data
               </span>
             </button>
@@ -2054,13 +2050,13 @@ export default function Dashboards({
             {/* 5. Wallet */}
             <button
               onClick={handleOpenFundWallet}
-              className="flex-1 flex flex-col items-center justify-center py-1 px-1 sm:px-3 rounded-2xl transition-all text-center group cursor-pointer active:scale-95"
+              className="flex-1 flex flex-col items-center justify-center py-1 px-1 sm:px-2 rounded-xl transition-all text-center group cursor-pointer active:scale-95"
               title="Fund Wallet & Accounts"
             >
-              <div className={`w-14 h-14 sm:w-18 sm:h-18 rounded-2xl flex items-center justify-center transition-all group-hover:scale-110 shadow-2xs ${showFundModal ? "bg-[#0F2D5C] text-white" : "bg-slate-50 group-hover:bg-[#0F2D5C]/10"}`}>
-                <Wallet className={`h-9 w-9 sm:h-11 sm:w-11 transition-colors stroke-[2.2] ${showFundModal ? "text-white" : "text-slate-600 group-hover:text-[#0F2D5C]"}`} />
+              <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition-all group-hover:scale-105 shadow-2xs ${showFundModal ? "bg-[#0F2D5C] text-white" : "bg-slate-50 group-hover:bg-[#0F2D5C]/10"}`}>
+                <Wallet className={`h-4.5 w-4.5 sm:h-5 sm:w-5 transition-colors stroke-[2] ${showFundModal ? "text-white" : "text-slate-600 group-hover:text-[#0F2D5C]"}`} />
               </div>
-              <span className={`text-xs sm:text-sm font-extrabold tracking-tight transition-colors mt-1.5 ${showFundModal ? "text-[#0F2D5C]" : "text-slate-700 group-hover:text-[#0F2D5C]"}`}>
+              <span className={`text-[10px] sm:text-[11px] font-bold tracking-tight transition-colors mt-0.5 ${showFundModal ? "text-[#0F2D5C]" : "text-slate-700 group-hover:text-[#0F2D5C]"}`}>
                 Wallet
               </span>
             </button>

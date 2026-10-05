@@ -51,33 +51,33 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
   return (
     <header
       id="site-header"
-      className={`sticky top-0 z-40 w-full min-h-[60px] sm:min-h-[72px] transition-colors duration-200 border-b mobile-gpu-layer ${
+      className={`sticky top-0 z-40 w-full min-h-[44px] sm:min-h-[52px] transition-colors duration-200 border-b mobile-gpu-layer ${
         isScrolled
           ? "bg-white/95 backdrop-blur-md shadow-xs border-[#E5E7EB]"
           : "bg-white border-[#E5E7EB]"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-15 sm:h-18">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-11 sm:h-13">
           
           {/* Left: SmartLink Logo */}
           <button
             id="header-logo-container"
             type="button"
             onClick={() => handleNavClick("hero-section")}
-            className="flex items-center cursor-pointer group bg-transparent border-none p-0 text-left w-[170px] sm:w-[210px] h-10 sm:h-12 shrink-0"
+            className="flex items-center cursor-pointer group bg-transparent border-none p-0 text-left w-[115px] sm:w-[155px] h-7 sm:h-8 shrink-0"
             aria-label="Smart Link NG Home"
           >
             <img
               src={activeLogo}
               alt={`${siteName || "Smart Link NG"} - Official Identity Verification & Fintech Portal`}
-              width={190}
-              height={46}
+              width={140}
+              height={32}
               loading="eager"
               fetchPriority="high"
               decoding="async"
-              style={{ aspectRatio: "190 / 46" }}
-              className="h-9 w-auto sm:h-11 max-w-[190px] sm:max-w-[210px] object-contain shrink-0"
+              style={{ aspectRatio: "140 / 32" }}
+              className="h-6 w-auto sm:h-7.5 max-w-[115px] sm:max-w-[155px] object-contain shrink-0"
               referrerPolicy="no-referrer"
               onError={handleLogoError}
             />
@@ -142,18 +142,18 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
             </button>
           </div>
 
-          {/* Mobile Hamburger Toggle with 48px touch target */}
-          <div className="flex items-center gap-2 lg:hidden">
+          {/* Mobile Hamburger Toggle with compact touch target */}
+          <div className="flex items-center gap-1.5 lg:hidden">
             <button
               id="header-mobile-toggle"
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="min-w-[48px] min-h-[48px] flex items-center justify-center p-2.5 rounded-xl text-[#111827] hover:bg-[#F5F7FA] active:bg-[#E5E7EB] transition-colors cursor-pointer touch-manipulation"
+              className="min-w-[34px] min-h-[34px] flex items-center justify-center p-1.5 rounded-lg text-[#111827] hover:bg-[#F5F7FA] active:bg-[#E5E7EB] transition-colors cursor-pointer touch-manipulation"
               aria-label="Toggle mobile menu"
               aria-expanded={mobileMenuOpen}
               aria-controls="mobile-drawer-overlay"
             >
-              {mobileMenuOpen ? <X className="h-6 w-6" aria-hidden="true" /> : <Menu className="h-6 w-6" aria-hidden="true" />}
+              {mobileMenuOpen ? <X className="h-4.5 w-4.5" aria-hidden="true" /> : <Menu className="h-4.5 w-4.5" aria-hidden="true" />}
             </button>
           </div>
 
@@ -165,7 +165,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
         <>
           {/* Backdrop Overlay */}
           <div
-            className="lg:hidden fixed inset-0 top-20 bg-slate-900/40 backdrop-blur-xs z-40 transition-opacity"
+            className="lg:hidden fixed inset-0 top-11 sm:top-13 bg-slate-900/40 backdrop-blur-xs z-40 transition-opacity"
             onClick={() => setMobileMenuOpen(false)}
             aria-hidden="true"
           />
@@ -176,7 +176,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
             role="dialog"
             aria-modal="true"
             aria-label="Mobile Navigation Menu"
-            className="lg:hidden fixed top-20 right-0 w-3/4 sm:w-1/2 max-w-xs h-[calc(100vh-80px)] bg-white border-l border-slate-200 shadow-2xl p-5 transition-all z-50 overflow-y-auto"
+            className="lg:hidden fixed top-11 sm:top-13 right-0 w-3/4 sm:w-1/2 max-w-xs h-[calc(100vh-44px)] sm:h-[calc(100vh-52px)] bg-white border-l border-slate-200 shadow-2xl p-4 transition-all z-50 overflow-y-auto"
           >
             <div className="space-y-4">
               <div className="space-y-1">
