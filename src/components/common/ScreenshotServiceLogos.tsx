@@ -637,7 +637,7 @@ export const FloatingHelpWidget: React.FC = () => {
   const whatsappUrl = `https://wa.me/${internationalNumber}?text=Hello%20Support%2C%20I%20need%20assistance.`;
 
   return (
-    <aside id="whatsapp-floating-widget" aria-label="WhatsApp Support Help Desk" className="fixed right-4 bottom-5 sm:right-6 sm:bottom-6 z-50 flex flex-col items-center select-none pointer-events-auto">
+    <aside id="whatsapp-floating-widget" aria-label="WhatsApp Support Help Desk" className="fixed right-4 bottom-32 sm:right-6 sm:bottom-36 z-50 flex flex-col items-center select-none pointer-events-auto">
       {/* Speech Bubble Tooltip */}
       <div className="relative mb-2 filter drop-shadow-md animate-bounce" style={{ animationDuration: "2.5s" }} aria-hidden="true">
         <div className="bg-[#111827] text-white text-[11px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg border border-white/10">

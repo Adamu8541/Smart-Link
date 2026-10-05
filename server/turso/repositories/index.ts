@@ -1186,3 +1186,188 @@ export class PasskeyRepository {
     return (result.rowsAffected || 0) > 0;
   }
 }
+
+// -----------------------------------------------------------------------------
+// 16. PROVIDER ROUTING RULES REPOSITORY (Turso Direct Persistence)
+// -----------------------------------------------------------------------------
+export class RoutingRuleRepository {
+  static async getAllRules(): Promise<any[]> {
+    const sql = `SELECT * FROM provider_routing_rules ORDER BY service ASC;`;
+    const result = await executeTurso(sql);
+    if (!result.rows || result.rows.length === 0) return [];
+    return result.rows.map((row: any) => ({
+      id: String(row.id),
+      service: String(row.service),
+      serviceName: String(row.service_name || row.service),
+      strategy: String(row.strategy || "PRIORITY_ORDER"),
+      primaryProviderId: row.primary_provider_id || "",
+      primaryProviderName: row.primary_provider_name || "",
+      secondaryProviderId: row.secondary_provider_id || undefined,
+      secondaryProviderName: row.secondary_provider_name || undefined,
+      tertiaryProviderId: row.tertiary_provider_id || undefined,
+      tertiaryProviderName: row.tertiary_provider_name || undefined,
+      fallbackProviderId: row.fallback_provider_id || undefined,
+      fallbackProviderName: row.fallback_provider_name || undefined,
+      timeoutMs: Number(row.timeout_ms) || 20000,
+      maxRetries: Number(row.max_retries) || 2,
+      autoFailover: Boolean(row.auto_failover),
+      circuitBreakerThreshold: Number(row.circuit_breaker_threshold) || 3,
+      circuitBreakerResetMs: Number(row.circuit_breaker_reset_ms) || 60000,
+      enabled: Boolean(row.enabled),
+      updatedAt: String(row.updated_at || new Date().toISOString()),
+    }));
+  }
+
+  static async getRuleForService(service: string): Promise<any | null> {
+    const sql = `SELECT * FROM provider_routing_rules WHERE upper(service) = upper(?) LIMIT 1;`;
+    const result = await executeTurso(sql, [service.trim()]);
+    if (!result.rows || result.rows.length === 0) return null;
+    const row: any = result.rows[0];
+    return {
+      id: String(row.id),
+      service: String(row.service),
+      serviceName: String(row.service_name || row.service),
+      strategy: String(row.strategy || "PRIORITY_ORDER"),
+      primaryProviderId: row.primary_provider_id || "",
+      primaryProviderName: row.primary_provider_name || "",
+      secondaryProviderId: row.secondary_provider_id || undefined,
+      secondaryProviderName: row.secondary_provider_name || undefined,
+      tertiaryProviderId: row.tertiary_provider_id || undefined,
+      tertiaryProviderName: row.tertiary_provider_name || undefined,
+      fallbackProviderId: row.fallback_provider_id || undefined,
+      fallbackProviderName: row.fallback_provider_name || undefined,
+      timeoutMs: Number(row.timeout_ms) || 20000,
+      maxRetries: Number(row.max_retries) || 2,
+      autoFailover: Boolean(row.auto_failover),
+      circuitBreakerThreshold: Number(row.circuit_breaker_threshold) || 3,
+      circuitBreakerResetMs: Number(row.circuit_breaker_reset_ms) || 60000,
+      enabled: Boolean(row.enabled),
+      updatedAt: String(row.updated_at || new Date().toISOString()),
+    };
+  }
+
+  static async upsertRule(rule: any): Promise<void> {
+    const now = new Date().toISOString();
+    const service = String(rule.service || "").trim().toUpperCase();
+    const sql = `
+      INSERT INTO provider_routing_rules (
+        id, service, service_name, strategy,
+        primary_provider_id, primary_provider_name,
+        secondary_provider_id, secondary_provider_name,
+        tertiary_provider_id, tertiary_provider_name,
+        fallback_provider_id, fallback_provider_name,
+        timeout_ms, max_retries, auto_failover,
+        circuit_breaker_threshold, circuit_breaker_reset_ms,
+        enabled, raw_config, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(service) DO UPDATE SET
+        service_name = excluded.service_name,
+        strategy = excluded.strategy,
+        primary_provider_id = excluded.primary_provider_id,
+        primary_provider_name = excluded.primary_provider_name,
+        secondary_provider_id = excluded.secondary_provider_id,
+        secondary_provider_name = excluded.secondary_provider_name,
+        tertiary_provider_id = excluded.tertiary_provider_id,
+        tertiary_provider_name = excluded.tertiary_provider_name,
+        fallback_provider_id = excluded.fallback_provider_id,
+        fallback_provider_name = excluded.fallback_provider_name,
+        timeout_ms = excluded.timeout_ms,
+        max_retries = excluded.max_retries,
+        auto_failover = excluded.auto_failover,
+        circuit_breaker_threshold = excluded.circuit_breaker_threshold,
+        circuit_breaker_reset_ms = excluded.circuit_breaker_reset_ms,
+        enabled = excluded.enabled,
+        raw_config = excluded.raw_config,
+        updated_at = excluded.updated_at;
+    `;
+    const args = [
+      rule.id || `rule_${service.toLowerCase()}`,
+      service,
+      rule.serviceName || service,
+      rule.strategy || "PRIORITY_ORDER",
+      rule.primaryProviderId || null,
+      rule.primaryProviderName || null,
+      rule.secondaryProviderId || null,
+      rule.secondaryProviderName || null,
+      rule.tertiaryProviderId || null,
+      rule.tertiaryProviderName || null,
+      rule.fallbackProviderId || null,
+      rule.fallbackProviderName || null,
+      rule.timeoutMs || 20000,
+      rule.maxRetries || 2,
+      rule.autoFailover !== false ? 1 : 0,
+      rule.circuitBreakerThreshold || 3,
+      rule.circuitBreakerResetMs || 60000,
+      rule.enabled !== false ? 1 : 0,
+      JSON.stringify(rule),
+      now,
+      now,
+    ];
+    await executeTurso(sql, args);
+  }
+
+  static async upsertAllRules(rules: any[]): Promise<void> {
+    await withTursoTransaction(async (tx) => {
+      const now = new Date().toISOString();
+      for (const rule of rules) {
+        const service = String(rule.service || "").trim().toUpperCase();
+        const sql = `
+          INSERT INTO provider_routing_rules (
+            id, service, service_name, strategy,
+            primary_provider_id, primary_provider_name,
+            secondary_provider_id, secondary_provider_name,
+            tertiary_provider_id, tertiary_provider_name,
+            fallback_provider_id, fallback_provider_name,
+            timeout_ms, max_retries, auto_failover,
+            circuit_breaker_threshold, circuit_breaker_reset_ms,
+            enabled, raw_config, created_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ON CONFLICT(service) DO UPDATE SET
+            service_name = excluded.service_name,
+            strategy = excluded.strategy,
+            primary_provider_id = excluded.primary_provider_id,
+            primary_provider_name = excluded.primary_provider_name,
+            secondary_provider_id = excluded.secondary_provider_id,
+            secondary_provider_name = excluded.secondary_provider_name,
+            tertiary_provider_id = excluded.tertiary_provider_id,
+            tertiary_provider_name = excluded.tertiary_provider_name,
+            fallback_provider_id = excluded.fallback_provider_id,
+            fallback_provider_name = excluded.fallback_provider_name,
+            timeout_ms = excluded.timeout_ms,
+            max_retries = excluded.max_retries,
+            auto_failover = excluded.auto_failover,
+            circuit_breaker_threshold = excluded.circuit_breaker_threshold,
+            circuit_breaker_reset_ms = excluded.circuit_breaker_reset_ms,
+            enabled = excluded.enabled,
+            raw_config = excluded.raw_config,
+            updated_at = excluded.updated_at;
+        `;
+        const args = [
+          rule.id || `rule_${service.toLowerCase()}`,
+          service,
+          rule.serviceName || service,
+          rule.strategy || "PRIORITY_ORDER",
+          rule.primaryProviderId || null,
+          rule.primaryProviderName || null,
+          rule.secondaryProviderId || null,
+          rule.secondaryProviderName || null,
+          rule.tertiaryProviderId || null,
+          rule.tertiaryProviderName || null,
+          rule.fallbackProviderId || null,
+          rule.fallbackProviderName || null,
+          rule.timeoutMs || 20000,
+          rule.maxRetries || 2,
+          rule.autoFailover !== false ? 1 : 0,
+          rule.circuitBreakerThreshold || 3,
+          rule.circuitBreakerResetMs || 60000,
+          rule.enabled !== false ? 1 : 0,
+          JSON.stringify(rule),
+          now,
+          now,
+        ];
+        await tx.execute({ sql, args });
+      }
+    });
+  }
+}
+

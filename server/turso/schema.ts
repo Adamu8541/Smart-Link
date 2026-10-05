@@ -29,8 +29,33 @@ export const TURSO_TABLES = {
   APPLICATION_SETTINGS: "application_settings",
   WEBHOOK_EVENTS: "webhook_events",
   USER_PASSKEYS: "user_passkeys",
+  PROVIDER_ROUTING_RULES: "provider_routing_rules",
   MIGRATIONS: "_migrations",
 } as const;
+
+export interface TursoProviderRoutingRule {
+  id: string;
+  service: string;
+  service_name: string;
+  strategy: string;
+  primary_provider_id?: string | null;
+  primary_provider_name?: string | null;
+  secondary_provider_id?: string | null;
+  secondary_provider_name?: string | null;
+  tertiary_provider_id?: string | null;
+  tertiary_provider_name?: string | null;
+  fallback_provider_id?: string | null;
+  fallback_provider_name?: string | null;
+  timeout_ms: number;
+  max_retries: number;
+  auto_failover: number;
+  circuit_breaker_threshold: number;
+  circuit_breaker_reset_ms: number;
+  enabled: number;
+  raw_config?: string | null;
+  created_at: string;
+  updated_at: string;
+}
 
 // Types mirroring relational records
 export interface TursoUser {

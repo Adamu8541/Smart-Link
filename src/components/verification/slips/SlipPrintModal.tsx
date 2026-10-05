@@ -832,9 +832,6 @@ export const SlipPrintModal: React.FC<SlipPrintModalProps> = ({
                     />
                   )
                 )}
-                <div className="w-full text-center px-2.5 py-1.5 text-[11px] font-medium text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 rounded-lg border border-amber-200/80 dark:border-amber-800/50 print:text-[10px] print:border-gray-300 print:text-gray-700 leading-relaxed">
-                  Note: The generated card/slip is for verification purposes only and is not an official NIMC document
-                </div>
               </div>
             </div>
           ) : (

@@ -144,7 +144,7 @@ export const AdminMultiProviderView: React.FC = () => {
         setRules(data.rules || []);
         setIsEditingRule(false);
         setSelectedRule(null);
-        showFeedback(`Routing rules for ${updatedRule.service} updated successfully.`);
+        showFeedback(`Routing rules for ${updatedRule.service} saved directly to Turso database (Zero Fallback).`);
       } else {
         showFeedback(data.error || "Failed to update routing rule.", "error");
       }
@@ -249,8 +249,8 @@ export const AdminMultiProviderView: React.FC = () => {
               <div>
                 <h1 className="text-2xl font-bold text-[#111827] dark:text-white flex items-center gap-2">
                   Multi-Provider Routing & Failover
-                  <span className="text-xs px-2.5 py-0.5 rounded-full font-medium bg-[#E5E7EB] dark:bg-[#0F2D5C]/50 text-[#0F2D5C] dark:text-[#9CA3AF] border border-slate-200 dark:border-[#E5E7EB]">
-                    Phase 2 Engine Active
+                  <span className="text-xs px-2.5 py-0.5 rounded-full font-medium bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                    Turso Database Primary (Zero Fallback)
                   </span>
                 </h1>
                 <p className="text-sm text-[#6B7280] dark:text-[#9CA3AF] mt-0.5">
@@ -867,6 +867,8 @@ export const AdminMultiProviderView: React.FC = () => {
                           ? "Prembley Portal (Identitypass)"
                           : pId === "identro"
                           ? "Identro Portal"
+                          : pId === "clubkonnect"
+                          ? "Clubkonnect Portal"
                           : pId === "aspfiy"
                           ? "Aspfiy Payment Portal"
                           : pId === "verifyng"
@@ -879,9 +881,10 @@ export const AdminMultiProviderView: React.FC = () => {
                     className="w-full p-2 rounded-lg border border-[#E5E7EB] dark:border-[#4B5563] bg-white dark:bg-[#111827] text-[#111827] dark:text-white"
                   >
                     <option value="">None (No Provider Assigned)</option>
-                    <option value="prembley">Prembley Portal (Identitypass)</option>
                     <option value="identro">Identro Portal</option>
+                    <option value="clubkonnect">Clubkonnect Portal</option>
                     <option value="lumiid">LumiID Portal</option>
+                    <option value="prembley">Prembley Portal (Identitypass)</option>
                     <option value="verifyng">VerifyNG Portal</option>
                     <option value="aspfiy">Aspfiy Payment Portal</option>
                   </select>
@@ -900,6 +903,8 @@ export const AdminMultiProviderView: React.FC = () => {
                           ? "Prembley Portal (Identitypass)"
                           : pId === "identro"
                           ? "Identro Portal"
+                          : pId === "clubkonnect"
+                          ? "Clubkonnect Portal"
                           : pId === "aspfiy"
                           ? "Aspfiy Payment Portal"
                           : pId === "verifyng"
@@ -912,9 +917,10 @@ export const AdminMultiProviderView: React.FC = () => {
                     className="w-full p-2 rounded-lg border border-[#E5E7EB] dark:border-[#4B5563] bg-white dark:bg-[#111827] text-[#111827] dark:text-white"
                   >
                     <option value="">None (No Failover)</option>
-                    <option value="prembley">Prembley Portal (Identitypass)</option>
                     <option value="identro">Identro Portal</option>
+                    <option value="clubkonnect">Clubkonnect Portal</option>
                     <option value="lumiid">LumiID Portal</option>
+                    <option value="prembley">Prembley Portal (Identitypass)</option>
                     <option value="verifyng">VerifyNG Portal</option>
                     <option value="aspfiy">Aspfiy Payment Portal</option>
                   </select>

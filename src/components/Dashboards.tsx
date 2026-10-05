@@ -13,11 +13,14 @@ import {
   Plus,
   Send,
   Users,
+  User,
+  Phone,
   Award,
   Clock,
   CheckCircle,
   XCircle,
   MessageSquare,
+  Mail,
   FileText,
   BarChart3,
   Percent,
@@ -26,6 +29,7 @@ import {
   Download,
   Activity,
   LogIn,
+  LogOut,
   Fingerprint,
   Shield,
   Info,
@@ -40,7 +44,33 @@ import {
   Copy,
   Check,
   LayoutDashboard,
-  Bell
+  Bell,
+  Search,
+  Zap,
+  Wifi,
+  Smartphone,
+  Lightbulb,
+  Tv,
+  GraduationCap,
+  Eye,
+  EyeOff,
+  Headphones,
+  Scan,
+  Gift,
+  CreditCard,
+  ArrowUp,
+  ArrowDown,
+  Building2,
+  ChevronRight,
+  Sparkles,
+  Layers,
+  Flame,
+  ArrowRight,
+  Landmark,
+  Compass,
+  SlidersHorizontal,
+  X,
+  AlertTriangle
 } from "lucide-react";
 import { UserProfile, UserRole, Transaction, CACApplication } from "../types";
 import { formatNaira, formatNumber, formatSafeDate, formatSafeDateTime } from "../utils/formatUtils";
@@ -84,6 +114,7 @@ interface DashboardsProps {
   isDarkMode?: boolean;
   onToggleDarkMode?: () => void;
   onSelectService?: (service: any) => void;
+  onLogout?: () => void;
 }
 
 // NIMC High-Fidelity SVG Logo (Authentic Nigerian NIMC Green #008751)
@@ -241,7 +272,8 @@ export default function Dashboards({
   onSwitchView,
   isDarkMode = false,
   onToggleDarkMode,
-  onSelectService
+  onSelectService,
+  onLogout,
 }: DashboardsProps) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [cacApps, setCacApps] = useState<CACApplication[]>([]);
@@ -249,6 +281,9 @@ export default function Dashboards({
   const [activeTab, setActiveTab] = useState<"OVERVIEW" | "ACTIVITY_FEED">("OVERVIEW");
   const [activityFilter, setActivityFilter] = useState<string>("ALL");
   const [activitySearch, setActivitySearch] = useState("");
+  const [selectedServiceCategory, setSelectedServiceCategory] = useState<string>("ALL");
+  const [dashboardSearchQuery, setDashboardSearchQuery] = useState<string>("");
+  const [isBalanceHidden, setIsBalanceHidden] = useState(false);
 
   // Admin stats
   const [adminStats, setAdminStats] = useState<any>({
@@ -263,10 +298,24 @@ export default function Dashboards({
   // Dynamic Provider Fund Wallet states
   const [showFundModal, setShowFundModal] = useState(false);
   useModalBackHandler(showFundModal, "dashboards-fund-modal", () => setShowFundModal(false));
+  const [showSuggestionModal, setShowSuggestionModal] = useState(false);
+  useModalBackHandler(showSuggestionModal, "dashboards-suggestion-modal", () => setShowSuggestionModal(false));
+  const [showContactInfoModal, setShowContactInfoModal] = useState(false);
+  useModalBackHandler(showContactInfoModal, "dashboards-contact-info-modal", () => setShowContactInfoModal(false));
+  const [copiedEmail, setCopiedEmail] = useState(false);
+  const [copiedPhone, setCopiedPhone] = useState(false);
+  const [suggestionText, setSuggestionText] = useState("");
+  const [suggestionSubmitting, setSuggestionSubmitting] = useState(false);
+  const [suggestionSubmitted, setSuggestionSubmitted] = useState(false);
+  const [suggestionRef, setSuggestionRef] = useState<string | null>(null);
   const [fundAccount, setFundAccount] = useState<any>(null);
   const [fundLoading, setFundLoading] = useState(false);
   const [fundError, setFundError] = useState<string | null>(null);
   const [copiedAccount, setCopiedAccount] = useState(false);
+
+  // "More" All Services Modal states
+  const [showMoreServicesModal, setShowMoreServicesModal] = useState(false);
+  useModalBackHandler(showMoreServicesModal, "dashboards-more-services-modal", () => setShowMoreServicesModal(false));
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
@@ -336,82 +385,61 @@ export default function Dashboards({
     }
   };
 
+  const isInvalidPhoneAccount = (accNum?: string, phone?: string): boolean => {
+    if (!accNum || typeof accNum !== "string") return true;
+    const clean = accNum.replace(/\D/g, "");
+    if (!clean || clean.length < 10) return true;
+    if (clean === "8085490982") return true;
+    if (phone) {
+      const cleanPhone = String(phone).replace(/\D/g, "");
+      if (cleanPhone.length >= 10 && (cleanPhone === clean || cleanPhone.slice(-10) === clean)) {
+        return true;
+      }
+    }
+    return false;
+  };
+
   const handleOpenFundWallet = async () => {
     setShowFundModal(true);
-    setFundLoading(true);
     setFundError(null);
 
-    // If currentUser already has virtual account details in memory, seed them immediately
     const userAny = currentUser as any;
-    if (userAny.virtualAccountNumber || userAny.accountNumber) {
-      setFundAccount({
-        accountNumber: userAny.virtualAccountNumber || userAny.accountNumber,
-        accountName: userAny.virtualAccountName || userAny.accountName || currentUser.fullName || "SMARTLINK CUSTOMER",
-        bankName: userAny.virtualBankName || userAny.bankName || "PalmPay",
-        providerName: userAny.providerName || "Aspfiy Payment Portal",
-        providerReference: userAny.virtualAccountReference || userAny.reference || `SL-${currentUser.uid}`,
-      });
+    const rawPhone = userAny.phone || userAny.phoneNumber || "";
+
+    // Clear any previous invalid phone account numbers
+    if (fundAccount?.accountNumber && isInvalidPhoneAccount(fundAccount.accountNumber, rawPhone)) {
+      setFundAccount(null);
     }
 
+    setFundLoading(true);
+
     try {
-      const userPhone = (currentUser as any).phone || (currentUser as any).phoneNumber || "";
       const res = await ProviderService.getVirtualAccount(currentUser.uid, {
         email: currentUser.email,
-        fullName: currentUser.fullName || (currentUser as any).name,
-        phone: userPhone,
+        fullName: currentUser.fullName || userAny.name,
+        phone: rawPhone,
       });
       const acc = res.account || res.virtualAccount || (res as any).data?.account || (res as any).data?.virtualAccount || (res as any).data;
-      if (res.success && acc && (acc.accountNumber || acc.account_number)) {
+      const accNum = acc?.accountNumber || acc?.account_number;
+
+      if (res.success && accNum && !isInvalidPhoneAccount(accNum, rawPhone)) {
         setFundAccount({
-          accountNumber: acc.accountNumber || acc.account_number,
+          accountNumber: accNum,
           accountName: acc.accountName || acc.account_name || currentUser.fullName || "SMARTLINK CUSTOMER",
           bankName: acc.bankName || acc.bank_name || "PalmPay",
-          providerName: acc.providerName || (res.provider as any)?.name || acc.bankName || "Aspfiy Portal",
+          providerName: acc.providerName || (res.provider as any)?.name || acc.bankName || "PalmPay Gateway",
           providerReference: acc.providerReference || acc.reference || `SL-${currentUser.uid}`,
         });
         setFundError(null);
-      } else if (!userAny.virtualAccountNumber && !userAny.accountNumber) {
-        // Direct attempt via /api/wallet/virtual-account/generate
-        try {
-          const authHeaders = await getAuthHeaders(currentUser.uid);
-          const genRes = await fetch("/api/wallet/virtual-account/generate", {
-            method: "POST",
-            headers: authHeaders,
-            body: JSON.stringify({
-              userId: currentUser.uid,
-              userEmail: currentUser.email,
-              email: currentUser.email,
-              userName: currentUser.fullName,
-              fullName: currentUser.fullName,
-              phone: userPhone,
-              phoneNumber: userPhone,
-              forceRegenerate: false,
-            }),
-          });
-          const genData = await genRes.json().catch(() => ({}));
-          const genAcc = genData.account || genData.virtualAccount;
-          if (genRes.ok && genAcc && (genAcc.accountNumber || genAcc.account_number)) {
-            setFundAccount({
-              accountNumber: genAcc.accountNumber || genAcc.account_number,
-              accountName: genAcc.accountName || genAcc.account_name || currentUser.fullName || "SMARTLINK CUSTOMER",
-              bankName: genAcc.bankName || genAcc.bank_name || "PalmPay",
-              providerName: genAcc.providerName || "Aspfiy Portal",
-              providerReference: genAcc.providerReference || genAcc.reference || `SL-${currentUser.uid}`,
-            });
-            setFundError(null);
-            return;
-          }
-        } catch (innerErr) {
-          // ignore
-        }
+      } else {
+        const errorMsg = res.error || (res as any).message || "Aspfiy provider was unable to generate a reserved virtual account right now.";
+        setFundError(errorMsg);
         setFundAccount(null);
-        setFundError(res.error || "Unable to reserve account with active provider.");
       }
     } catch (err: any) {
-      if (!userAny.virtualAccountNumber && !userAny.accountNumber) {
-        setFundAccount(null);
-        setFundError(err?.message || "Failed to load virtual account.");
-      }
+      console.warn("[VirtualAccount] Background sync note:", err);
+      setFundError(err?.message || "Failed to communicate with Aspfiy provider.");
+      setFundAccount(null);
     } finally {
       setFundLoading(false);
     }
@@ -462,6 +490,29 @@ export default function Dashboards({
         if (statRes.ok && statRes.data) {
           setAdminStats(statRes.data);
         }
+      }
+
+      // Preload Virtual Account details
+      try {
+        const userAny = currentUser as any;
+        const res = await ProviderService.getVirtualAccount(currentUser.uid, {
+          email: currentUser.email,
+          fullName: currentUser.fullName || userAny.name,
+          phone: userAny.phone || userAny.phoneNumber,
+        });
+        const acc = res.account || res.virtualAccount || (res as any).data?.account || (res as any).data?.virtualAccount || (res as any).data;
+        const rawAccNum = acc?.accountNumber || acc?.account_number;
+        if (res.success && rawAccNum && !isInvalidPhoneAccount(rawAccNum, userAny.phone || userAny.phoneNumber)) {
+          setFundAccount({
+            accountNumber: rawAccNum,
+            accountName: acc.accountName || acc.account_name || currentUser.fullName || "SMARTLINK CUSTOMER",
+            bankName: acc.bankName || acc.bank_name || "PalmPay",
+            providerName: acc.providerName || (res.provider as any)?.name || acc.bankName || "PalmPay Gateway",
+            providerReference: acc.providerReference || acc.reference || `SL-${currentUser.uid}`,
+          });
+        }
+      } catch (vaErr) {
+        console.warn("Virtual account preload note:", vaErr);
       }
     } catch (err) {
       console.warn("Dashboard metrics load note:", err);
@@ -798,39 +849,104 @@ export default function Dashboards({
     return fallbackPrice;
   };
 
-  // Local card list for the identity verification sections with dynamic pricing overlay
-  const identityServices = [
-    { id: "id_nin_ver", name: "NIN Verification", price: getDynamicServicePrice("id_nin_ver", 500) },
-    { id: "id_nin_phone", name: "NIN Verification with Phone Number", price: getDynamicServicePrice("id_nin_phone", 500) },
-    { id: "id_slip_gen", name: "NIN ID CARD, NIN SLIP GENERATION", price: getDynamicServicePrice("id_slip_gen", 1000) },
-    { id: "id_nin_demography", name: "NIN Verification with Name & DOB", price: getDynamicServicePrice("id_nin_demography", 600) }
+  // Categories list for segmented console (Identities first)
+  const categoriesList = [
+    { id: "ALL", label: "All Solutions", icon: Layers },
+    { id: "IDENTITY", label: "NIN & Identity", icon: Fingerprint },
+    { id: "BANKING", label: "BVN & Banking", icon: Landmark },
+    { id: "VTU", label: "Airtime & Utilities", icon: Wifi },
+    { id: "EDUCATION", label: "Exam PINs & Cards", icon: GraduationCap },
+    { id: "CAC", label: "CAC & Corporate", icon: Building2 },
+    { id: "ICT", label: "ICT & Portals", icon: Sparkles }
   ];
 
-  const bankingBvnServices = [
-    { id: "id_bvn_ver", name: "BVN Verification", price: getDynamicServicePrice("id_bvn_ver", 250) },
-    { id: "id_bvn_demography", name: "BVN Verification with Name & DOB", price: getDynamicServicePrice("id_bvn_demography", 500) },
-    { id: "id_premium_slip", name: "BVN SLIP, BVN ID CARD GENERATION", price: getDynamicServicePrice("id_premium_slip", 1200) },
-    { id: "id_bvn_phone", name: "BVN Verification with Phone Number", price: getDynamicServicePrice("id_bvn_phone", 500) }
+  // Primary Quick-Dock items (Identities first: NIN & BVN, followed by Telecom, Utilities, Education & CAC)
+  const quickDockServices = [
+    { id: "id_nin_ver", label: "NIN Identity", sub: "NIMC Slip & Direct", icon: Fingerprint, color: "bg-emerald-500/10 text-emerald-600 border-emerald-200" },
+    { id: "id_bvn_ver", label: "BVN Identity", sub: "NIBSS Validation", icon: ShieldCheck, color: "bg-blue-500/10 text-blue-600 border-blue-200" },
+    { id: "id_slip_gen", label: "NIN Slip & Card", sub: "Official Printout", icon: FileText, color: "bg-teal-500/10 text-teal-600 border-teal-200" },
+    { id: "id_premium_slip", label: "BVN Slip & Card", sub: "Verified NIBSS ID", icon: ShieldCheck, color: "bg-indigo-500/10 text-indigo-600 border-indigo-200" },
+    { id: "vtu_airtime", label: "Airtime VTU", sub: "Instant Top-up", icon: Smartphone, color: "bg-amber-500/10 text-amber-600 border-amber-200" },
+    { id: "vtu_data", label: "Data Bundles", sub: "SME & Direct", icon: Wifi, color: "bg-sky-500/10 text-sky-600 border-sky-200" },
+    { id: "vtu_electricity", label: "Electricity", sub: "Prepaid Tokens", icon: Lightbulb, color: "bg-yellow-500/10 text-yellow-600 border-yellow-200" },
+    { id: "edu_waec", label: "WAEC / JAMB", sub: "Instant ePINs", icon: GraduationCap, color: "bg-rose-500/10 text-rose-600 border-rose-200" },
   ];
 
-  const corporateFilingsServices = [
-    { id: "id_cac_verification", name: "CAC Verification", price: getDynamicServicePrice("id_cac_verification", 500) },
-    { id: "id_cac_registration", name: "CAC Registration", price: getDynamicServicePrice("id_cac_registration", 28000) },
-    { id: "cac_scuml", name: "SCUML Services", price: getDynamicServicePrice("cac_scuml", 0) },
-    { id: "id_tax_id_search", name: "Tax Identity Verification", price: getDynamicServicePrice("id_tax_id_search", 500) }
+  // Instant 1-Click Recharges & Quick Verifications (Identities first)
+  const quickRechargePills = [
+    { id: "id_nin_ver", name: "NIN Verification", desc: "NIMC Live Lookup", badge: "Instant" },
+    { id: "id_bvn_ver", name: "BVN Verification", desc: "NIBSS Direct", badge: "Instant" },
+    { id: "id_slip_gen", name: "NIN Standard Slip", desc: "Color PDF Card", badge: "Official" },
+    { id: "id_premium_slip", name: "BVN Card / Slip", desc: "Digital ID", badge: "Verified" },
+    { id: "vtu_data", name: "Glo / MTN Data", desc: "SME Data", badge: "Hot" },
+    { id: "vtu_airtime", name: "Airtime Top-up", desc: "Instant Top-up", badge: "Fast" },
+    { id: "vtu_electricity", name: "Ikeja Electric", desc: "Prepaid Tokens", badge: "24/7" },
+    { id: "edu_waec", name: "WAEC Result PIN", desc: "Scratch Card", badge: "Direct" },
   ];
 
-  const educationServices = [
-    { id: "edu_waec", name: "WAEC Pins", price: getDynamicServicePrice("edu_waec", 3800) },
-    { id: "edu_neco", name: "NECO Tokens", price: getDynamicServicePrice("edu_neco", 1200) },
-    { id: "edu_nabteb", name: "NABTEB Cards", price: getDynamicServicePrice("edu_nabteb", 1500) },
-    { id: "edu_jamb", name: "JAMB Services", price: getDynamicServicePrice("edu_jamb", 6200) }
-  ];
+  // Render high-fidelity service logo
+  const renderServiceItemLogo = (srvId: string) => {
+    if (srvId === "cac_scuml") return <ScumlOfficialCardLogo className="w-full h-full object-contain" />;
+    if (srvId.includes("cac")) return <CacOfficialCardLogo className="w-full h-full object-contain" />;
+    if (srvId.includes("tax") || srvId.includes("tin") || srvId.includes("nrs")) return <NrsOfficialCardLogo className="w-full h-full object-contain" />;
+    if (srvId.includes("bvn") || srvId.includes("nibss")) return <NibssOfficialCardLogo className="w-full h-full object-contain" />;
+    if (srvId.includes("nin") || srvId.includes("nimc") || srvId.includes("slip")) return <NimcOfficialCardLogo className="w-full h-full object-contain" />;
+    if (srvId === "vtu_airtime") return <AirtimeOfficialCardLogo className="w-full h-full object-contain" />;
+    if (srvId === "vtu_data") return <DataBundlesOfficialCardLogo className="w-full h-full object-contain" />;
+    if (srvId === "vtu_electricity") return <ElectricityOfficialCardLogo className="w-full h-full object-contain" />;
+    if (srvId === "gov_passport") return <PassportOfficialCardLogo className="w-full h-full object-contain" />;
+    if (srvId === "id_bank_account_verification") return <CbnOfficialCardLogo className="w-full h-full object-contain" />;
+    if (srvId === "edu_jamb") return <JambOfficialCardLogo className="w-full h-full object-contain" />;
+    if (srvId === "edu_waec") return <WaecOfficialCardLogo className="w-full h-full object-contain" />;
+    if (srvId === "edu_neco") return <NecoOfficialCardLogo className="w-full h-full object-contain" />;
+    if (srvId === "edu_nabteb") return <NabtebOfficialCardLogo className="w-full h-full object-contain" />;
+    if (srvId.startsWith("edu_")) return <ExamPinsOfficialCardLogo className="w-full h-full object-contain" />;
+    return <Sparkles className="w-5 h-5 text-[#0F2D5C]" />;
+  };
 
-  const utilitiesBillsServices = [
-    { id: "vtu_airtime", name: "Buy Airtime", price: getDynamicServicePrice("vtu_airtime", 100) },
-    { id: "vtu_data", name: "Data Bundles", price: getDynamicServicePrice("vtu_data", 350) }
-  ];
+  // Enriched and dynamically priced services list (Sorted with NIN & BVN Identities first)
+  const allEnrichedServices = SMART_LINK_SERVICES.map(srv => {
+    let cat = srv.category;
+    if (srv.id.includes("bvn") || srv.id.includes("bank") || srv.id.includes("nibss")) {
+      cat = "BANKING" as any;
+    }
+    const dynamicPrice = getDynamicServicePrice(srv.id, srv.price);
+    return {
+      ...srv,
+      displayCategory: cat,
+      displayPrice: dynamicPrice !== undefined ? dynamicPrice : srv.price,
+    };
+  }).sort((a, b) => {
+    // Identity Priority Rank: NIN (1) -> BVN (2) -> IDENTITY general (3) -> VTU (4) -> EDUCATION (5) -> CAC (6) -> GOV (7) -> ICT (8)
+    const getRank = (item: typeof a) => {
+      if (item.id === "id_nin_ver") return 1;
+      if (item.id === "id_bvn_ver") return 2;
+      if (item.id.includes("nin") || item.id.includes("nimc") || item.id.includes("slip")) return 3;
+      if (item.id.includes("bvn") || item.id.includes("nibss")) return 4;
+      if (item.category === "IDENTITY") return 5;
+      if (item.category === "VTU") return 6;
+      if (item.category === "EDUCATION") return 7;
+      if (item.category === "CAC") return 8;
+      if (item.category === "GOVERNMENT") return 9;
+      return 10;
+    };
+    return getRank(a) - getRank(b);
+  });
+
+  const displayedServices = allEnrichedServices.filter(srv => {
+    const matchesCategory = selectedServiceCategory === "ALL" || 
+      (selectedServiceCategory === "BANKING" ? (srv.id.includes("bvn") || srv.id.includes("bank") || (srv.category === "IDENTITY" && srv.id.includes("bvn"))) : 
+       selectedServiceCategory === "IDENTITY" ? (srv.category === "IDENTITY" && !srv.id.includes("bvn") && !srv.id.includes("bank")) :
+       srv.category === selectedServiceCategory);
+       
+    const query = dashboardSearchQuery.trim().toLowerCase();
+    const matchesSearch = !query || 
+      srv.name.toLowerCase().includes(query) ||
+      srv.description.toLowerCase().includes(query) ||
+      srv.id.toLowerCase().includes(query);
+
+    return matchesCategory && matchesSearch;
+  });
 
   const handleServiceCardClick = (serviceId: string) => {
     if (serviceActionLoading) return;
@@ -860,410 +976,1098 @@ export default function Dashboards({
   };
 
   return (
-    <div className="py-8 bg-[#F5F7FA] min-h-screen transition-colors duration-300 flex-1" id="dashboard-main-section">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+    <div className="py-5 pb-32 bg-[#F5F7FA] min-h-screen transition-colors duration-300 flex-1 relative" id="dashboard-main-section">
+      <div className="max-w-xl mx-auto px-3.5 sm:px-5 space-y-4">
 
-        {/* User Full Name Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-left" id="user-dashboard-header">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-[#111827] tracking-tight">
-              {currentUser.fullName}
-            </h1>
-            <p className="text-xs text-[#6B7280] font-medium mt-0.5">
-              Account Overview & Services
-            </p>
+        {/* 1. TOP USER APP BAR */}
+        <div className="flex items-center justify-between gap-3 text-left pt-1" id="user-dashboard-header">
+          {/* Left: Avatar + Greeting */}
+          <div className="flex items-center gap-2.5">
+            <div className="relative shrink-0">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#0F2D5C] to-[#17407E] text-white flex items-center justify-center font-bold text-sm shadow-xs border-2 border-white">
+                {currentUser.fullName ? currentUser.fullName.charAt(0).toUpperCase() : "S"}
+              </div>
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-sm sm:text-base font-bold text-[#111827] tracking-tight truncate">
+                Hi, {currentUser.fullName?.toUpperCase() || "SMART LINK USER"}
+              </h1>
+            </div>
           </div>
         </div>
 
         {/* Global Action Banner Feedback */}
         {actionSuccess && (
-          <div className="p-4 bg-[#F5F7FA] border border-[#E5E7EB] text-[#111827] rounded-xl text-sm font-semibold flex items-center justify-between">
+          <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-xl text-xs font-semibold flex items-center justify-between animate-fadeIn">
             <span>{actionSuccess}</span>
-            <button onClick={() => setActionSuccess(null)} className="text-[#0F2D5C] hover:text-[#17407E] font-bold font-sans">✕</button>
+            <button onClick={() => setActionSuccess(null)} className="text-emerald-700 hover:text-emerald-900 font-bold font-sans">✕</button>
           </div>
         )}
         {actionError && (
-          <div className="p-4 bg-[#F5F7FA] border border-[#E5E7EB] text-[#111827] rounded-xl text-sm font-semibold flex items-center justify-between">
+          <div className="p-3 bg-rose-50 border border-rose-200 text-rose-900 rounded-xl text-xs font-semibold flex items-center justify-between animate-fadeIn">
             <span>{actionError}</span>
-            <button onClick={() => setActionError(null)} className="text-[#0F2D5C] hover:text-[#17407E] font-bold font-sans">✕</button>
+            <button onClick={() => setActionError(null)} className="text-rose-700 hover:text-rose-900 font-bold font-sans">✕</button>
           </div>
         )}
 
-        <>
-            {/* Balance Card Section matching the fintech specification */}
-            <div className="bg-[#0F2D5C] rounded-2xl p-4 sm:p-5 md:p-6 text-white relative overflow-hidden shadow-sm border border-[#0F2D5C] text-left">
+        {/* 1. SMARTLINK NAVY BALANCE CARD */}
+        {(() => {
+          const rawBal = (currentUser as any)?.walletBalance ?? (currentUser as any)?.balance ?? (currentUser as any)?.wallet?.balance ?? 0;
+          const currentWalletBalance = typeof rawBal === "number" ? rawBal : (parseFloat(String(rawBal).replace(/[^0-9.-]+/g, "")) || 0);
+          return (
+            <div className="bg-[#0F2D5C] rounded-2xl p-4 sm:p-5 text-white relative overflow-hidden shadow-sm border border-[#0F2D5C] text-left">
               <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full blur-2xl pointer-events-none"></div>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
-                <div className="space-y-1.5">
-                  <div className="flex flex-wrap items-center gap-2.5">
-                    <div className="flex items-center gap-1.5 text-[#E5E7EB] font-mono text-[10px] font-bold tracking-wider uppercase">
-                      <Wallet className="h-3.5 w-3.5" />
-                      Available Balance
-                    </div>
+              <div className="flex items-center justify-between relative z-10">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-slate-300 font-medium">Available Balance</span>
+                    <button 
+                      onClick={() => setIsBalanceHidden(!isBalanceHidden)}
+                      className="text-slate-300 hover:text-white transition-colors cursor-pointer"
+                      title={isBalanceHidden ? "Show Balance" : "Hide Balance"}
+                    >
+                      {isBalanceHidden ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                    </button>
                     <button
                       onClick={handleRefreshBalance}
                       disabled={isRefreshing}
-                      title="Refresh balance"
-                      id="btn-refresh-balance-authoritative"
-                      className={`flex items-center gap-1 px-2 py-0.5 text-[9px] font-mono font-bold tracking-wider rounded-md border border-white/15 hover:border-white/30 text-[#E5E7EB] hover:text-white transition-all bg-white/5 active:scale-95 disabled:opacity-50 cursor-pointer ${
-                        isRefreshing ? "cursor-not-allowed" : ""
-                      }`}
+                      className="p-1 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                      title="Refresh Balance"
                     >
-                      <RefreshCw className={`h-2.5 w-2.5 ${isRefreshing ? "animate-spin text-white" : ""}`} />
-                      {isRefreshing ? "REFRESHING..." : refreshSuccess ? "SYNCED" : "REFRESH"}
+                      <RefreshCw className={`h-3 w-3 ${isRefreshing ? "animate-spin text-white" : ""}`} />
                     </button>
                   </div>
-                  
-                  {refreshError && (
-                    <div className="text-[10px] font-mono text-[#111827] bg-[#F5F7FA] border border-[#E5E7EB] px-2.5 py-1 rounded animate-fadeIn max-w-xs mt-1">
-                      ⚠️ {refreshError}
-                    </div>
-                  )}
-
-                  <div className="text-2xl sm:text-3xl font-extrabold tracking-tight font-mono text-white flex items-baseline">
-                    {formatNaira(currentUser.walletBalance, true)}
-                  </div>
-                  <div className="pt-1">
-                    <button
-                      onClick={handleOpenFundWallet}
-                      className="px-3.5 py-1.5 bg-white hover:bg-[#F5F7FA] text-[#0F2D5C] font-black rounded-lg text-xs transition-all shadow-xs cursor-pointer flex items-center gap-1.5 active:scale-95"
-                    >
-                      <Plus className="h-3.5 w-3.5 stroke-[3]" />
-                      Fund Wallet
-                    </button>
+                  <div className="text-2xl sm:text-3xl font-extrabold font-mono tracking-tight text-white">
+                    {isBalanceHidden ? "••••••••" : formatNaira(currentWalletBalance, true)}
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-2.5 shrink-0">
-                  <button
-                    onClick={() => {
-                      sessionStorage.setItem("dashboard_tab", "ACTIVITY_FEED");
-                      setActiveTab("ACTIVITY_FEED");
-                      window.dispatchEvent(new Event("dashboard_tab_changed"));
-                    }}
-                    className="px-3.5 py-1.5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-lg text-xs border border-white/20 transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
-                  >
-                    <Clock className="h-3.5 w-3.5" />
-                    History
-                  </button>
-                </div>
+                <button
+                  onClick={handleOpenFundWallet}
+                  className="px-4 py-2 bg-white hover:bg-slate-100 text-[#0F2D5C] font-extrabold rounded-xl text-xs transition-all shadow-xs cursor-pointer flex items-center gap-1.5 active:scale-95 shrink-0"
+                >
+                  <Plus className="h-3.5 w-3.5 stroke-[3]" />
+                  <span>+ Add Money</span>
+                </button>
               </div>
+            </div>
+          );
+        })()}
 
+            {/* 2. MAIN SERVICES GRID (Quick Services Card) */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm text-left py-6 sm:py-8 space-y-5">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h2 className="text-base sm:text-lg font-extrabold text-[#0F2D5C] tracking-tight flex items-center gap-2">
+                  <Sparkles className="h-4.5 w-4.5 text-[#0F2D5C]" />
+                  <span>Quick Services</span>
+                </h2>
+              </div>
+              <div className="grid grid-cols-4 gap-y-8 sm:gap-y-10 gap-x-3 sm:gap-x-4">
+                {/* Row 1 */}
+                {/* 1. NIN Identity */}
+                <button
+                  onClick={() => handleServiceCardClick("id_nin_ver")}
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                >
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
+                    <Fingerprint className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C]">
+                    NIN Identity
+                  </span>
+                </button>
+
+                {/* 2. BVN Identity */}
+                <button
+                  onClick={() => handleServiceCardClick("id_bvn_ver")}
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                >
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
+                    <ShieldCheck className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C]">
+                    BVN Identity
+                  </span>
+                </button>
+
+                {/* 3. Airtime */}
+                <button
+                  onClick={() => handleServiceCardClick("vtu_airtime")}
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                >
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
+                    <Smartphone className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C]">
+                    Airtime
+                  </span>
+                </button>
+
+                {/* 4. Data */}
+                <button
+                  onClick={() => handleServiceCardClick("vtu_data")}
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                >
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
+                    <Wifi className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C]">
+                    Data
+                  </span>
+                </button>
+
+                {/* Row 2 */}
+                {/* 5. TV */}
+                <button
+                  onClick={() => handleServiceCardClick("vtu_cable")}
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                >
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
+                    <Tv className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C]">
+                    TV
+                  </span>
+                </button>
+
+                {/* 6. Electricity */}
+                <button
+                  onClick={() => handleServiceCardClick("vtu_electricity")}
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                >
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
+                    <Lightbulb className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C]">
+                    Electricity
+                  </span>
+                </button>
+
+                {/* 7. Exam Pins */}
+                <button
+                  onClick={() => handleServiceCardClick("edu_waec")}
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                >
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
+                    <GraduationCap className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C]">
+                    Exam Pins
+                  </span>
+                </button>
+
+                {/* 8. More */}
+                <button
+                  onClick={() => {
+                    setShowMoreServicesModal(true);
+                  }}
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                >
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
+                    <Layers className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C]">
+                    More
+                  </span>
+                </button>
+              </div>
             </div>
 
-            {/* Fund Wallet Modal */}
-            {showFundModal && (
-              <div className="fixed inset-0 z-50 bg-[#111827]/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-fadeIn">
-                <div className="bg-white border border-[#E5E7EB] rounded-2xl max-w-md w-full p-4 sm:p-5 shadow-2xl relative text-left space-y-3.5 max-h-[88dvh] overflow-y-auto my-auto">
-                  
-                  {/* Modal Header */}
-                  <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3 shrink-0">
-                    <div className="flex items-center gap-2">
-                      <div className="p-2 bg-[#F5F7FA] text-[#0F2D5C] rounded-xl shrink-0">
-                        <Wallet className="h-4 w-4" />
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-bold text-[#111827]">Fund Wallet</h3>
-                        <p className="text-[11px] text-[#4B5563]">Dedicated Virtual Account Funding</p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => setShowFundModal(false)}
-                      className="p-1 rounded-lg hover:bg-[#F5F7FA] text-[#4B5563] transition-colors cursor-pointer"
-                    >
-                      ✕
-                    </button>
-                  </div>
-
-                  {fundLoading ? (
-                    <div className="py-8 flex flex-col items-center justify-center space-y-2.5 text-center">
-                      <RefreshCw className="h-6 w-6 text-[#0F2D5C] animate-spin" />
-                      <p className="text-xs font-bold text-[#111827]">Connecting to Active Payment Engine...</p>
-                      <p className="text-[11px] text-[#6B7280]">Generating secure virtual account for wallet deposit</p>
-                    </div>
-                  ) : fundError ? (
-                    <div className="p-3.5 bg-[#F5F7FA] border border-[#E5E7EB] rounded-xl space-y-2 text-left">
-                      <div className="flex items-center gap-1.5 text-[#111827] font-bold text-xs">
-                        <XCircle className="h-4 w-4 text-[#0F2D5C] shrink-0" />
-                        <span>Funding Engine Notice</span>
-                      </div>
-                      <p className="text-[11px] text-[#4B5563] font-medium">{fundError}</p>
-                      <button
-                        onClick={handleOpenFundWallet}
-                        className="px-3 py-1.5 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold text-xs rounded-lg transition-all cursor-pointer"
-                      >
-                        Retry Connection
-                      </button>
-                    </div>
-                  ) : fundAccount ? (
-                    <div className="space-y-3">
-                      {/* Active Provider Badge */}
-                      <div className="p-2.5 bg-[#F5F7FA] border border-[#E5E7EB] rounded-xl flex items-center justify-between text-[11px] font-semibold text-[#111827]">
-                        <div className="flex items-center gap-1.5">
-                          <ShieldCheck className="h-3.5 w-3.5 text-[#17407E] shrink-0" />
-                          <span>Provider: <strong className="font-extrabold uppercase">{fundAccount.providerName}</strong></span>
-                        </div>
-                        <span className="text-[9px] bg-[#E5E7EB] text-[#111827] px-2 py-0.5 rounded-full font-mono font-bold">
-                          LIVE ENGINE
-                        </span>
-                      </div>
-
-                      {/* Account Details Box */}
-                      <div className="bg-[#111827] text-white p-3.5 rounded-xl space-y-2.5 shadow-inner">
-                        <div className="space-y-0.5">
-                          <span className="text-[9px] font-mono uppercase text-[#9CA3AF] tracking-wider">Bank Name</span>
-                          <div className="text-xs font-bold font-mono text-white">{fundAccount.bankName}</div>
-                        </div>
-
-                        <div className="space-y-1 border-t border-[#E5E7EB]/20 pt-2">
-                          <span className="text-[9px] font-mono uppercase text-[#9CA3AF] tracking-wider">Virtual Account Number</span>
-                          <div className="flex items-center justify-between bg-[#111827] p-2 rounded-lg border border-[#E5E7EB]/20">
-                            <span className="text-base sm:text-lg font-black font-mono tracking-widest text-[#E5E7EB]">
-                              {fundAccount.accountNumber}
-                            </span>
-                            <button
-                              onClick={() => handleCopyAccount(fundAccount.accountNumber)}
-                              className="px-2.5 py-1 bg-[#E5E7EB]/10 hover:bg-[#E5E7EB]/20 text-[#E5E7EB] rounded-md text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer"
-                            >
-                              {copiedAccount ? (
-                                <>
-                                  <Check className="h-3 w-3 text-[#FFFFFF]" />
-                                  Copied!
-                                </>
-                              ) : (
-                                <>
-                                  <Copy className="h-3 w-3" />
-                                  Copy
-                                </>
-                              )}
-                            </button>
-                          </div>
-                        </div>
-
-                        <div className="space-y-0.5 border-t border-[#E5E7EB]/20 pt-2">
-                          <span className="text-[9px] font-mono uppercase text-[#9CA3AF] tracking-wider">Account Name</span>
-                          <div className="text-[11px] font-bold font-mono text-[#E5E7EB] truncate">{fundAccount.accountName}</div>
-                        </div>
-                      </div>
-
-                      {/* Instructions */}
-                      <div className="p-2.5 bg-[#F5F7FA] rounded-xl border border-[#E5E7EB] text-[11px] text-[#4B5563] leading-relaxed space-y-0.5">
-                        <p className="font-bold text-[#111827]">How to fund your wallet:</p>
-                        <p>1. Copy the Virtual Account Number above.</p>
-                        <p>2. Transfer desired amount to <strong className="text-[#111827]">{fundAccount.bankName}</strong>.</p>
-                        <p>3. Balance auto-credits instantly once received.</p>
-                      </div>
-                    </div>
-                  ) : null}
-
-                  <div className="pt-1 flex justify-end shrink-0">
-                    <button
-                      onClick={() => setShowFundModal(false)}
-                      className="px-4 py-1.5 bg-[#F5F7FA] hover:bg-[#E5E7EB] text-[#4B5563] font-bold text-xs rounded-lg transition-all cursor-pointer"
-                    >
-                      Close
-                    </button>
-                  </div>
-
-                </div>
+            {/* 3. SECONDARY SERVICES GRID (Identity & Compliance Services Card) */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm text-left py-6 sm:py-8 space-y-5 mt-6">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h2 className="text-base sm:text-lg font-extrabold text-[#0F2D5C] tracking-tight flex items-center gap-2">
+                  <ShieldCheck className="h-4.5 w-4.5 text-[#0F2D5C]" />
+                  <span>Identity &amp; Compliance Services</span>
+                </h2>
               </div>
-            )}
-            {(currentUser.role === UserRole.SUPER_ADMIN || currentUser.role === UserRole.ADMIN || currentUser.role === UserRole.SUB_ADMIN) && (
-              <div className="bg-[#111827] text-white rounded-2xl p-5 border border-[#E5E7EB]/20 shadow-lg flex flex-col md:flex-row items-center justify-between gap-4 my-6">
-                <div className="flex items-center gap-3 text-left">
-                  <div className="p-3 bg-[#17407E]/20 rounded-xl border border-[#E5E7EB]/20 text-white shrink-0">
-                    <ShieldCheck className="h-6 w-6" />
+              <div className="grid grid-cols-4 gap-y-8 sm:gap-y-10 gap-x-3 sm:gap-x-4">
+                {/* Row 1 */}
+                {/* 1. NIN Verification with Phone Number */}
+                <button
+                  onClick={() => handleServiceCardClick("id_nin_phone")}
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                >
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
+                    <Phone className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
+                    NIN Phone Search
+                  </span>
+                </button>
+
+                {/* 2. BVN Verification with Phone Number */}
+                <button
+                  onClick={() => handleServiceCardClick("id_bvn_phone")}
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                >
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
+                    <Phone className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
+                    BVN Phone Search
+                  </span>
+                </button>
+
+                {/* 3. BVN Demographic */}
+                <button
+                  onClick={() => handleServiceCardClick("id_bvn_demography")}
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                >
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
+                    <User className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
+                    BVN Demographic
+                  </span>
+                </button>
+
+                {/* 4. NIN Demographic */}
+                <button
+                  onClick={() => handleServiceCardClick("id_nin_demography")}
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                >
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
+                    <Users className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
+                    NIN Demographic
+                  </span>
+                </button>
+
+                {/* Row 2 */}
+                {/* 5. CAC Registration */}
+                <button
+                  onClick={() => handleServiceCardClick("id_cac_registration")}
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                >
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
+                    <Building2 className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
+                    CAC Registration
+                  </span>
+                </button>
+
+                {/* 6. TIN Verification */}
+                <button
+                  onClick={() => handleServiceCardClick("id_tax_id_search")}
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                >
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
+                    <FileText className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
+                    TIN Verification
+                  </span>
+                </button>
+
+                {/* 7. SCUML Registration */}
+                <button
+                  onClick={() => handleServiceCardClick("cac_scuml")}
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                >
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
+                    <ShieldCheck className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
+                    SCUML Registration
+                  </span>
+                </button>
+
+                {/* 8. More */}
+                <button
+                  onClick={() => {
+                    setShowMoreServicesModal(true);
+                  }}
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                >
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
+                    <Layers className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
+                    More
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* 4. QUICK TOOLS CARD (Matching Services Icons Grid Layout) */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm text-left py-6 sm:py-8 space-y-5 mt-6">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h2 className="text-base sm:text-lg font-extrabold text-[#0F2D5C] tracking-tight flex items-center gap-2">
+                  <SlidersHorizontal className="h-4.5 w-4.5 text-[#0F2D5C]" />
+                  <span>Account &amp; Quick Tools</span>
+                </h2>
+              </div>
+              <div className="grid grid-cols-4 gap-y-8 sm:gap-y-10 gap-x-3 sm:gap-x-4">
+                {/* 1. Setting */}
+                <button
+                  onClick={() => onSwitchView("ACCOUNT_SECURITY")}
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                  title="Account Settings & Security"
+                >
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
+                    <SlidersHorizontal className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
+                    Setting
+                  </span>
+                </button>
+
+                {/* 2. Support */}
+                <button
+                  type="button"
+                  onClick={() => setShowContactInfoModal(true)}
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                  title="Smart Link NG Support & Contact Information"
+                >
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
+                    <Headphones className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
+                    Support
+                  </span>
+                </button>
+
+                {/* 3. Suggestion */}
+                <button
+                  onClick={() => {
+                    setSuggestionText("");
+                    setSuggestionSubmitted(false);
+                    setShowSuggestionModal(true);
+                  }}
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                  title="Send Platform Feedback & Suggestion"
+                >
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs">
+                    <MessageSquare className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
+                    Suggestion
+                  </span>
+                </button>
+
+                {/* 4. Sign out */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onLogout) {
+                      onLogout();
+                    } else {
+                      localStorage.removeItem("smart_link_user");
+                      sessionStorage.clear();
+                      onSwitchView("HOME");
+                    }
+                  }}
+                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-2"
+                  title="Sign Out of Session"
+                >
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-rose-50 text-rose-600 flex items-center justify-center mb-2 sm:mb-3 transition-transform group-hover:scale-110 shadow-xs border border-rose-100">
+                    <LogOut className="h-8 w-8 sm:h-10 sm:w-10 stroke-[2.2]" />
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold text-rose-600 group-hover:text-rose-700 leading-tight">
+                    Sign out
+                  </span>
+                </button>
+              </div>
+            </div>
+
+        {/* ======================================================== */}
+        {/* 💳 FUND WALLET MODAL (VIRTUAL ACCOUNT DETAILS)           */}
+        {/* ======================================================== */}
+        {showSuggestionModal && (
+          <div 
+            id="suggestion-modal"
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn overflow-y-auto"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setShowSuggestionModal(false);
+            }}
+          >
+            <div 
+              className="bg-white w-full max-w-md rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-200 animate-scaleIn text-left my-auto p-5 sm:p-6 space-y-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-[#0F2D5C] text-white flex items-center justify-center shadow-xs">
+                    <MessageSquare className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-sm text-white">SmartLink Admin Control Suite</h3>
-                    <p className="text-xs text-[#D1D5DB]">
-                      Unified administrative management portal for Users, Wallets, Transactions, API Providers, Security & System Configuration.
+                    <h2 className="text-base font-bold text-[#111827]">
+                      Submit Suggestion
+                    </h2>
+                    <p className="text-xs text-[#6B7280]">
+                      Help us improve SmartLink NG
                     </p>
                   </div>
                 </div>
                 <button
-                  onClick={() => onSwitchView("ADMIN_DASHBOARD")}
-                  className="px-5 py-2.5 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold text-xs rounded-xl transition-all shadow-md flex items-center gap-2 shrink-0 cursor-pointer"
+                  type="button"
+                  onClick={() => setShowSuggestionModal(false)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
                 >
-                  <Shield className="h-4 w-4" />
-                  <span>Launch Admin Portal</span>
+                  <X className="h-5 w-5" />
                 </button>
               </div>
-            )}
 
-            {/* --- PRIMARY SERVICES GRID SECTION (MATCHING THE SCREENSHOT EXACTLY) --- */}
-            <div className="space-y-6 pb-12">
-              
-              {/* Category 1: IDENTITY VERIFICATION */}
-              <div className="space-y-2.5">
-                <div className="flex items-center gap-2 text-left">
-                  <div className="w-1.5 h-3.5 bg-[#1E56A0] rounded-xs"></div>
-                  <h2 className="text-xs font-bold tracking-wider text-[#1E293B] uppercase font-sans">
-                    IDENTITY VERIFICATION
-                  </h2>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
-                  {identityServices.map((srv) => (
-                    <div
-                      key={srv.id}
-                      onClick={() => handleServiceCardClick(srv.id)}
-                      className="bg-white rounded-xl border border-slate-100/90 shadow-[0_1px_4px_rgba(0,0,0,0.03)] hover:border-slate-300 hover:shadow-md transition-all duration-200 p-3 sm:p-3.5 flex flex-col items-center justify-center min-h-[105px] sm:min-h-[115px] cursor-pointer group relative"
-                    >
-                      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#F4F6F8] flex items-center justify-center p-2 transition-transform duration-200 group-hover:scale-105 shrink-0">
-                        <NimcOfficialCardLogo className="w-full h-full object-contain" />
-                      </div>
-                      <h3 className="font-bold text-[#1E293B] text-[11px] sm:text-xs tracking-tight text-center mt-2 leading-snug line-clamp-2">
-                        {srv.name}
-                      </h3>
+              {suggestionSubmitted ? (
+                <div className="py-6 text-center space-y-3">
+                  <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-xs">
+                    <CheckCircle2 className="h-6 w-6" />
+                  </div>
+                  <h3 className="text-sm font-extrabold text-[#111827]">Suggestion Dispatched to Admin!</h3>
+                  <p className="text-xs text-[#4B5563] leading-relaxed max-w-xs mx-auto">
+                    Your feature suggestion has been sent via email directly to the Admin support desk
+                    <span className="font-semibold text-[#0F2D5C] block mt-1">(Smartlinkcomputerbusiness@gmail.com)</span>
+                  </p>
+                  {suggestionRef && (
+                    <div className="inline-block bg-slate-100 text-slate-700 px-3 py-1 rounded-lg text-[11px] font-mono font-bold">
+                      Tracking Ref: {suggestionRef}
                     </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Category 2: BANKING & BVN */}
-              <div className="space-y-2.5">
-                <div className="flex items-center gap-2 text-left">
-                  <div className="w-1.5 h-3.5 bg-[#1E56A0] rounded-xs"></div>
-                  <h2 className="text-xs font-bold tracking-wider text-[#1E293B] uppercase font-sans">
-                    BANKING & BVN
-                  </h2>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
-                  {bankingBvnServices.map((srv) => (
-                    <div
-                      key={srv.id}
-                      onClick={() => handleServiceCardClick(srv.id)}
-                      className="bg-white rounded-xl border border-slate-100/90 shadow-[0_1px_4px_rgba(0,0,0,0.03)] hover:border-slate-300 hover:shadow-md transition-all duration-200 p-3 sm:p-3.5 flex flex-col items-center justify-center min-h-[105px] sm:min-h-[115px] cursor-pointer group relative"
+                  )}
+                  <div className="pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowSuggestionModal(false)}
+                      className="px-6 py-2 bg-[#0F2D5C] hover:bg-[#17407E] text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
                     >
-                      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#F4F6F8] flex items-center justify-center p-2 transition-transform duration-200 group-hover:scale-105 shrink-0">
-                        <NibssOfficialCardLogo className="w-full h-full object-contain" />
-                      </div>
-                      <h3 className="font-bold text-[#1E293B] text-[11px] sm:text-xs tracking-tight text-center mt-2 leading-snug line-clamp-2">
-                        {srv.name}
-                      </h3>
-                    </div>
-                  ))}
+                      Close
+                    </button>
+                  </div>
                 </div>
-              </div>
-
-              {/* Category 3: CORPORATE FILINGS */}
-              <div className="space-y-2.5">
-                <div className="flex items-center gap-2 text-left">
-                  <div className="w-1.5 h-3.5 bg-[#1E56A0] rounded-xs"></div>
-                  <h2 className="text-xs font-bold tracking-wider text-[#1E293B] uppercase font-sans">
-                    CORPORATE FILINGS
-                  </h2>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
-                  {corporateFilingsServices.map((srv) => (
-                    <div
-                      key={srv.id}
-                      onClick={() => handleServiceCardClick(srv.id)}
-                      className="bg-white rounded-xl border border-slate-100/90 shadow-[0_1px_4px_rgba(0,0,0,0.03)] hover:border-slate-300 hover:shadow-md transition-all duration-200 p-3 sm:p-3.5 flex flex-col items-center justify-center min-h-[105px] sm:min-h-[115px] cursor-pointer group relative"
+              ) : (
+                <form 
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    if (!suggestionText.trim()) return;
+                    setSuggestionSubmitting(true);
+                    try {
+                      const res = await safeFetchJson<any>("/api/contact/submit", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          name: currentUser?.fullName || "Portal User",
+                          email: currentUser?.email || "Smartlinkcomputerbusiness@gmail.com",
+                          phone: (currentUser as any)?.phoneNumber || (currentUser as any)?.phone || "",
+                          subject: "Platform Suggestion & User Feedback",
+                          department: "Product Suggestions",
+                          message: suggestionText.trim(),
+                        }),
+                      });
+                      if (res.ok && res.data?.reference) {
+                        setSuggestionRef(res.data.reference);
+                      }
+                    } catch (err) {
+                      console.warn("Suggestion dispatch note:", err);
+                    }
+                    setSuggestionSubmitting(false);
+                    setSuggestionSubmitted(true);
+                  }}
+                  className="space-y-4"
+                >
+                  <div>
+                    <label className="block text-xs font-bold text-[#111827] mb-1">
+                      Your Feedback / Feature Request
+                    </label>
+                    <textarea
+                      rows={4}
+                      required
+                      value={suggestionText}
+                      onChange={(e) => setSuggestionText(e.target.value)}
+                      placeholder="Tell us what new feature, service, or improvement you would like to see..."
+                      className="w-full p-3 border border-slate-200 rounded-xl text-xs outline-none focus:border-[#0F2D5C] focus:ring-2 focus:ring-[#0F2D5C]/10 bg-slate-50 focus:bg-white transition-all text-[#111827]"
+                    />
+                  </div>
+                  <div className="flex justify-end gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowSuggestionModal(false)}
+                      className="px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-bold cursor-pointer"
                     >
-                      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#F4F6F8] flex items-center justify-center p-2 transition-transform duration-200 group-hover:scale-105 shrink-0">
-                        {srv.id === "cac_scuml" ? (
-                          <ScumlOfficialCardLogo className="w-full h-full object-contain" />
-                        ) : srv.id.includes("cac") ? (
-                          <CacOfficialCardLogo className="w-full h-full object-contain" />
-                        ) : (
-                          <NrsOfficialCardLogo className="w-full h-full object-contain" />
-                        )}
-                      </div>
-                      <h3 className="font-bold text-[#1E293B] text-[11px] sm:text-xs tracking-tight text-center mt-2 leading-snug line-clamp-2">
-                        {srv.name}
-                      </h3>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Category 4: UTILITIES & BILLS */}
-              <div className="space-y-2.5">
-                <div className="flex items-center gap-2 text-left">
-                  <div className="w-1.5 h-3.5 bg-[#1E56A0] rounded-xs"></div>
-                  <h2 className="text-xs font-bold tracking-wider text-[#1E293B] uppercase font-sans">
-                    UTILITIES & BILLS
-                  </h2>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
-                  {utilitiesBillsServices.map((srv) => (
-                    <div
-                      key={srv.id}
-                      onClick={() => handleServiceCardClick(srv.id)}
-                      className="bg-white rounded-xl border border-slate-100/90 shadow-[0_1px_4px_rgba(0,0,0,0.03)] hover:border-slate-300 hover:shadow-md transition-all duration-200 p-3 sm:p-3.5 flex flex-col items-center justify-center min-h-[105px] sm:min-h-[115px] cursor-pointer group relative"
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={suggestionSubmitting || !suggestionText.trim()}
+                      className="px-5 py-2 bg-[#0F2D5C] hover:bg-[#17407E] text-white rounded-xl text-xs font-bold cursor-pointer transition-all disabled:opacity-50 flex items-center gap-1.5"
                     >
-                      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#F4F6F8] flex items-center justify-center p-2 transition-transform duration-200 group-hover:scale-105 shrink-0">
-                        {srv.id === "vtu_airtime" ? (
-                          <AirtimeOfficialCardLogo className="w-full h-full object-contain" />
-                        ) : srv.id === "vtu_data" ? (
-                          <DataBundlesOfficialCardLogo className="w-full h-full object-contain" />
-                        ) : srv.id === "vtu_electricity" ? (
-                          <ElectricityOfficialCardLogo className="w-full h-full object-contain" />
-                        ) : srv.id === "gov_passport" ? (
-                          <PassportOfficialCardLogo className="w-full h-full object-contain" />
-                        ) : srv.id === "id_bank_account_verification" ? (
-                          <CbnOfficialCardLogo className="w-full h-full object-contain" />
-                        ) : (
-                          <AirtimeOfficialCardLogo className="w-full h-full object-contain" />
-                        )}
-                      </div>
-                      <h3 className="font-bold text-[#1E293B] text-[11px] sm:text-xs tracking-tight text-center mt-2 leading-snug line-clamp-2">
-                        {srv.name}
-                      </h3>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Category 5: EDUCATION */}
-              <div className="space-y-2.5">
-                <div className="flex items-center gap-2 text-left">
-                  <div className="w-1.5 h-3.5 bg-[#1E56A0] rounded-xs"></div>
-                  <h2 className="text-xs font-bold tracking-wider text-[#1E293B] uppercase font-sans">
-                    EDUCATION
-                  </h2>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
-                  {educationServices.map((srv) => (
-                    <div
-                      key={srv.id}
-                      onClick={() => handleServiceCardClick(srv.id)}
-                      className="bg-white rounded-xl border border-slate-100/90 shadow-[0_1px_4px_rgba(0,0,0,0.03)] hover:border-slate-300 hover:shadow-md transition-all duration-200 p-3 sm:p-3.5 flex flex-col items-center justify-center min-h-[105px] sm:min-h-[115px] cursor-pointer group relative"
-                    >
-                      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#F4F6F8] flex items-center justify-center p-2 transition-transform duration-200 group-hover:scale-105 shrink-0">
-                        {srv.id === "edu_jamb" ? (
-                          <JambOfficialCardLogo className="w-full h-full object-contain" />
-                        ) : srv.id === "edu_waec" ? (
-                          <WaecOfficialCardLogo className="w-full h-full object-contain" />
-                        ) : srv.id === "edu_neco" ? (
-                          <NecoOfficialCardLogo className="w-full h-full object-contain" />
-                        ) : srv.id === "edu_nabteb" ? (
-                          <NabtebOfficialCardLogo className="w-full h-full object-contain" />
-                        ) : (
-                          <ExamPinsOfficialCardLogo className="w-full h-full object-contain" />
-                        )}
-                      </div>
-                      <h3 className="font-bold text-[#1E293B] text-[11px] sm:text-xs tracking-tight text-center mt-2 leading-snug line-clamp-2">
-                        {srv.name}
-                      </h3>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
+                      {suggestionSubmitting ? (
+                        <span>Sending...</span>
+                      ) : (
+                        <>
+                          <Send className="h-3.5 w-3.5" />
+                          <span>Submit Suggestion</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
+          </div>
+        )}
 
-          </>
+        {/* ======================================================== */}
+        {/* 📞 SMART LINK NG CONTACT INFORMATION MODAL               */}
+        {/* ======================================================== */}
+        {showContactInfoModal && (
+          <div 
+            id="contact-info-modal"
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn overflow-y-auto"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setShowContactInfoModal(false);
+            }}
+          >
+            <div 
+              className="bg-white w-full max-w-lg rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-slate-200 animate-scaleIn text-left my-auto p-5 sm:p-7 space-y-5"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-[#0F2D5C] text-white flex items-center justify-center shadow-xs">
+                    <Headphones className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-base sm:text-lg font-bold text-[#111827] tracking-tight">
+                      Smart Link NG Support Desk
+                    </h2>
+                    <p className="text-xs text-[#6B7280]">
+                      Official Communication &amp; Compliance Channels
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowContactInfoModal(false)}
+                  className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                  title="Close"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Contact Channels List */}
+              <div className="space-y-3.5">
+                {/* Email Channel */}
+                <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-2xl flex items-center justify-between gap-3 hover:bg-slate-100/80 transition-colors">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#0F2D5C] flex items-center justify-center shrink-0 border border-blue-100">
+                      <Mail className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0 text-left">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                        Official Support Email
+                      </span>
+                      <a 
+                        href="mailto:Smartlinkcomputerbusiness@gmail.com" 
+                        className="text-xs sm:text-sm font-bold text-[#0F2D5C] hover:underline break-all block"
+                      >
+                        Smartlinkcomputerbusiness@gmail.com
+                      </a>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText("Smartlinkcomputerbusiness@gmail.com");
+                      setCopiedEmail(true);
+                      setTimeout(() => setCopiedEmail(false), 2000);
+                    }}
+                    className="p-2 bg-white hover:bg-blue-50 text-[#0F2D5C] rounded-xl border border-slate-200 transition-colors cursor-pointer shrink-0"
+                    title="Copy Email"
+                  >
+                    {copiedEmail ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
+                  </button>
+                </div>
+
+                {/* Phone & Hotline Channel */}
+                <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-2xl flex items-center justify-between gap-3 hover:bg-slate-100/80 transition-colors">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#0F2D5C] flex items-center justify-center shrink-0 border border-blue-100">
+                      <Phone className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0 text-left">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                        Direct Phone &amp; Hotlines
+                      </span>
+                      <a 
+                        href="tel:+2348085490982" 
+                        className="text-xs sm:text-sm font-bold text-[#111827] hover:text-[#0F2D5C] block"
+                      >
+                        +234 808 549 0982
+                      </a>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText("+2348085490982");
+                      setCopiedPhone(true);
+                      setTimeout(() => setCopiedPhone(false), 2000);
+                    }}
+                    className="p-2 bg-white hover:bg-blue-50 text-[#0F2D5C] rounded-xl border border-slate-200 transition-colors cursor-pointer shrink-0"
+                    title="Copy Phone Number"
+                  >
+                    {copiedPhone ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
+                  </button>
+                </div>
+
+                {/* WhatsApp Live Desk Channel */}
+                <div className="p-3.5 bg-emerald-50/60 border border-emerald-200/80 rounded-2xl flex items-center justify-between gap-3 hover:bg-emerald-50 transition-colors">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+                      <MessageSquare className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0 text-left">
+                      <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">
+                        WhatsApp Live Support Desk
+                      </span>
+                      <a 
+                        href="https://wa.me/2349047738212?text=Hello%20SmartLink%20Support,%20I%20have%20an%20inquiry" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-xs sm:text-sm font-extrabold text-emerald-900 hover:underline flex items-center gap-1.5"
+                      >
+                        +234 904 773 8212
+                        <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                      </a>
+                    </div>
+                  </div>
+                  <a
+                    href="https://wa.me/2349047738212?text=Hello%20SmartLink%20Support,%20I%20have%20an%20inquiry"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs shrink-0"
+                  >
+                    Chat Now
+                  </a>
+                </div>
+
+                {/* Working Hours Info */}
+                <div className="p-3.5 bg-[#0F2D5C]/5 border border-[#0F2D5C]/10 rounded-2xl flex items-center gap-3 text-left">
+                  <Clock className="h-5 w-5 text-[#0F2D5C] shrink-0" />
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                      Support Desk Operating Hours
+                    </span>
+                    <span className="text-xs font-bold text-[#111827] block">
+                      Mon – Sat: 8:00 AM – 8:00 PM (GMT+1)
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Close Button */}
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowContactInfoModal(false)}
+                  className="w-full py-2.5 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold rounded-xl text-xs transition-all shadow-xs cursor-pointer"
+                >
+                  Close Contact Info
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 💳 FUND WALLET MODAL (VIRTUAL ACCOUNT DETAILS)           */}
+        {/* ======================================================== */}
+        {showFundModal && (
+          <div 
+            id="fund-wallet-modal"
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn overflow-y-auto"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setShowFundModal(false);
+            }}
+          >
+            <div 
+              className="bg-white w-full max-w-lg rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-200 animate-scaleIn text-left my-auto max-h-[92vh]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-[#0F2D5C] text-white flex items-center justify-center shadow-xs">
+                    <Wallet className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-bold text-[#111827]">
+                      Fund Your Wallet
+                    </h2>
+                    <p className="text-xs text-[#6B7280]">
+                      Instant Automated Bank Transfer
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowFundModal(false)}
+                  className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                  title="Close"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-4 sm:p-6 space-y-4">
+                {fundLoading ? (
+                  <div className="py-12 text-center space-y-3">
+                    <RefreshCw className="h-9 w-9 text-[#0F2D5C] animate-spin mx-auto" />
+                    <p className="text-sm font-bold text-[#0F2D5C]">Connecting to Aspfiy Provider...</p>
+                    <p className="text-xs text-slate-500 max-w-xs mx-auto">
+                      Reserving your dedicated PalmPay virtual account. Please wait a moment.
+                    </p>
+                  </div>
+                ) : fundError && !fundAccount ? (
+                  <div className="p-5 rounded-2xl bg-amber-50 border border-amber-200/80 text-left space-y-3.5 animate-fadeIn">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 rounded-xl bg-amber-100 text-amber-700 shrink-0 mt-0.5">
+                        <AlertTriangle className="h-5 w-5" />
+                      </div>
+                      <div className="space-y-1.5 flex-1">
+                        <h3 className="text-sm font-bold text-amber-900">
+                          Aspfiy Provider Notice
+                        </h3>
+                        <div className="text-xs text-amber-900 font-mono bg-white p-2.5 rounded-xl border border-amber-200 break-words">
+                          {fundError}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-xs text-slate-600 bg-white/90 p-3 rounded-xl border border-amber-200/60 space-y-1">
+                      <p className="font-semibold text-slate-800">Action Required on Aspfiy Portal:</p>
+                      <p>
+                        Aspfiy returned: <em>"{fundError}"</em>. Please log in to your Aspfiy merchant dashboard (<strong>aspfiy.com</strong>) and ensure your Merchant API Keys and Virtual Account permissions are enabled.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 pt-1">
+                      <button
+                        onClick={handleOpenFundWallet}
+                        className="px-4 py-2 bg-[#0F2D5C] hover:bg-[#17407E] text-white rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-xs active:scale-95"
+                      >
+                        <RefreshCw className="h-3.5 w-3.5" />
+                        <span>Retry Connection</span>
+                      </button>
+                      <button
+                        onClick={() => setShowFundModal(false)}
+                        className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition-all cursor-pointer active:scale-95"
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </div>
+                ) : fundAccount ? (
+                  <>
+                    <div className="bg-gradient-to-br from-[#0F2D5C] to-[#17407E] rounded-2xl p-5 text-white space-y-4 shadow-sm relative overflow-hidden">
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-xl pointer-events-none"></div>
+                      
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] uppercase tracking-wider text-slate-300 font-bold">
+                          Dedicated Virtual Account
+                        </span>
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-extrabold border border-emerald-500/30">
+                          Active · 24/7 Instant
+                        </span>
+                      </div>
+
+                      {/* Account Number & Copy */}
+                      <div className="space-y-1">
+                        <p className="text-xs text-slate-300">Account Number</p>
+                        <div className="flex items-center justify-between gap-2 bg-white/10 p-3 rounded-xl backdrop-blur-xs border border-white/10">
+                          <span className="text-2xl sm:text-3xl font-mono font-black tracking-wider text-white select-all">
+                            {fundAccount.accountNumber}
+                          </span>
+                          <button
+                            onClick={() => handleCopyAccount(fundAccount.accountNumber)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
+                              copiedAccount ? "bg-emerald-500 text-white shadow-xs" : "bg-white text-[#0F2D5C] hover:bg-slate-100"
+                            }`}
+                          >
+                            {copiedAccount ? <Check className="h-3.5 w-3.5 stroke-[3]" /> : <Copy className="h-3.5 w-3.5" />}
+                            <span>{copiedAccount ? "Copied" : "Copy"}</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Bank Details Grid */}
+                      <div className="grid grid-cols-2 gap-3 pt-1 border-t border-white/10 text-xs">
+                        <div>
+                          <p className="text-[10px] text-slate-300 uppercase font-medium">Bank Name</p>
+                          <p className="font-bold text-white text-sm">
+                            {fundAccount.bankName || "PalmPay"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-slate-300 uppercase font-medium">Account Name</p>
+                          <p className="font-bold text-white text-sm truncate">
+                            {fundAccount.accountName || currentUser.fullName || "SMARTLINK CUSTOMER"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* How to fund instructions */}
+                    <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2 text-xs text-slate-600">
+                      <div className="flex items-start gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                        <p>Transfer any amount from your bank app (OPay, Kuda, GTBank, Zenith, Access, PalmPay, etc.) to this account.</p>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                        <p>Your wallet will be credited <strong>instantly within seconds</strong> automatically.</p>
+                      </div>
+                    </div>
+
+                    {/* Refresh & Sync Button */}
+                    <div className="flex items-center justify-between gap-3 pt-2">
+                      <button
+                        onClick={handleRefreshBalance}
+                        disabled={isRefreshing}
+                        className="flex-1 py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#0F2D5C] text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer"
+                      >
+                        <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
+                        <span>{isRefreshing ? "Checking Payment..." : "I have made transfer"}</span>
+                      </button>
+
+                      <button
+                        onClick={() => setShowFundModal(false)}
+                        className="py-2.5 px-5 rounded-xl bg-[#0F2D5C] hover:bg-[#17407E] text-white text-xs font-bold transition-all cursor-pointer"
+                      >
+                        Done
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="py-8 text-center space-y-3">
+                    <p className="text-xs text-slate-500">No account details found.</p>
+                    <button
+                      onClick={handleOpenFundWallet}
+                      className="px-4 py-2 bg-[#0F2D5C] text-white rounded-xl text-xs font-bold"
+                    >
+                      Generate Account
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ======================================================== */}
+        {/* 🌟 MORE SERVICES & ALL SOLUTIONS MODAL                   */}
+        {/* ======================================================== */}
+        {showMoreServicesModal && (
+          <div 
+            id="more-services-modal"
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn overflow-y-auto"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setShowMoreServicesModal(false);
+            }}
+          >
+            <div 
+              className="bg-white w-full max-w-2xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-200 animate-scaleIn text-left my-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-[#0F2D5C] text-white flex items-center justify-center shadow-xs">
+                    <Layers className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-bold text-[#111827]">
+                      All Services & Solutions
+                    </h2>
+                    <p className="text-xs text-[#6B7280]">
+                      {displayedServices.length} instant services available
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowMoreServicesModal(false)}
+                  className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                  title="Close"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Search & Categories Ribbon */}
+              <div className="p-4 border-b border-slate-100 space-y-2.5 bg-white shrink-0">
+                <div className="relative">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <input
+                    type="text"
+                    value={dashboardSearchQuery}
+                    onChange={(e) => setDashboardSearchQuery(e.target.value)}
+                    placeholder="Search NIN, BVN, Airtime, JAMB, Discos, CAC..."
+                    className="w-full pl-10 pr-9 py-2.5 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0F2D5C]/20 focus:border-[#0F2D5C]"
+                    autoFocus
+                  />
+                  {dashboardSearchQuery && (
+                    <button
+                      onClick={() => setDashboardSearchQuery("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Category Pills (Identities First) */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+                  {categoriesList.map((cat) => {
+                    const Icon = cat.icon;
+                    const isActive = selectedServiceCategory === cat.id;
+                    return (
+                      <button
+                        key={cat.id}
+                        onClick={() => setSelectedServiceCategory(cat.id)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                          isActive
+                            ? "bg-[#0F2D5C] text-white shadow-xs"
+                            : "bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200/60"
+                        }`}
+                      >
+                        <Icon className={`h-3 w-3 ${isActive ? "text-white" : "text-[#0F2D5C]"}`} />
+                        <span>{cat.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Pure Icon Matrix inside Modal (No Cards, No Amounts) */}
+              <div className="p-4 sm:p-6 overflow-y-auto max-h-[60vh] space-y-4">
+                {displayedServices.length === 0 ? (
+                  <div className="py-12 text-center text-slate-400 space-y-2">
+                    <Search className="h-8 w-8 mx-auto opacity-40" />
+                    <p className="text-xs font-semibold">No services found matching "{dashboardSearchQuery}"</p>
+                    <button
+                      onClick={() => {
+                        setDashboardSearchQuery("");
+                        setSelectedServiceCategory("ALL");
+                      }}
+                      className="text-xs text-[#0F2D5C] font-bold underline cursor-pointer"
+                    >
+                      Reset filters
+                    </button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-4 sm:grid-cols-6 gap-y-5 gap-x-2">
+                    {displayedServices.map((srv) => (
+                      <button
+                        key={srv.id}
+                        onClick={() => {
+                          setShowMoreServicesModal(false);
+                          handleServiceCardClick(srv.id);
+                        }}
+                        className="flex flex-col items-center justify-start p-1.5 rounded-xl hover:bg-slate-100/80 transition-all group active:scale-95 cursor-pointer text-center select-none"
+                      >
+                        <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200/80 shadow-2xs flex items-center justify-center p-2 mb-1.5 transition-transform group-hover:scale-110">
+                          {renderServiceItemLogo(srv.id)}
+                        </div>
+                        <span className="text-[11px] font-semibold text-[#1E293B] group-hover:text-[#0F2D5C] line-clamp-2 leading-tight">
+                          {srv.name}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         </div>
 
         {/* Floating Customer Support Help Widget on the Bottom-Right */}
         <FloatingHelpWidget />
-      </div>
+
+        {/* ======================================================== */}
+        {/* 📱 5-TAB BOTTOM NAVIGATION BAR (NIN, BVN, Airtime, Data, Wallet) */}
+        {/* ======================================================== */}
+        <nav
+          id="user-dashboard-bottom-nav"
+          aria-label="User Dashboard Navigation"
+          className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/90 shadow-[0_-6px_30px_rgba(0,0,0,0.1)] px-3 sm:px-8 py-3 sm:py-4 transition-all"
+        >
+          <div className="max-w-lg sm:max-w-2xl md:max-w-3xl mx-auto flex items-center justify-between gap-3 sm:gap-6 md:gap-8 relative">
+            
+            {/* 1. NIN */}
+            <button
+              onClick={() => handleServiceCardClick("id_nin_ver")}
+              className="flex-1 flex flex-col items-center justify-center py-1 px-1 sm:px-3 rounded-2xl transition-all text-center group cursor-pointer active:scale-95"
+              title="NIN Verification & Validation"
+            >
+              <div className="w-14 h-14 sm:w-18 sm:h-18 rounded-2xl bg-slate-50 group-hover:bg-[#0F2D5C]/10 flex items-center justify-center transition-all group-hover:scale-110 shadow-2xs">
+                <Fingerprint className="h-9 w-9 sm:h-11 sm:w-11 text-slate-600 group-hover:text-[#0F2D5C] group-active:text-[#0F2D5C] transition-colors stroke-[2.2]" />
+              </div>
+              <span className="text-xs sm:text-sm font-extrabold tracking-tight text-slate-700 group-hover:text-[#0F2D5C] transition-colors mt-1.5">
+                NIN
+              </span>
+            </button>
+
+            {/* 2. BVN */}
+            <button
+              onClick={() => handleServiceCardClick("id_bvn_ver")}
+              className="flex-1 flex flex-col items-center justify-center py-1 px-1 sm:px-3 rounded-2xl transition-all text-center group cursor-pointer active:scale-95"
+              title="BVN Identity Verification"
+            >
+              <div className="w-14 h-14 sm:w-18 sm:h-18 rounded-2xl bg-slate-50 group-hover:bg-[#0F2D5C]/10 flex items-center justify-center transition-all group-hover:scale-110 shadow-2xs">
+                <ShieldCheck className="h-9 w-9 sm:h-11 sm:w-11 text-slate-600 group-hover:text-[#0F2D5C] group-active:text-[#0F2D5C] transition-colors stroke-[2.2]" />
+              </div>
+              <span className="text-xs sm:text-sm font-extrabold tracking-tight text-slate-700 group-hover:text-[#0F2D5C] transition-colors mt-1.5">
+                BVN
+              </span>
+            </button>
+
+            {/* 3. Airtime */}
+            <button
+              onClick={() => handleServiceCardClick("vtu_airtime")}
+              className="flex-1 flex flex-col items-center justify-center py-1 px-1 sm:px-3 rounded-2xl transition-all text-center group cursor-pointer active:scale-95"
+              title="Airtime Topup"
+            >
+              <div className="w-14 h-14 sm:w-18 sm:h-18 rounded-2xl bg-slate-50 group-hover:bg-[#0F2D5C]/10 flex items-center justify-center transition-all group-hover:scale-110 shadow-2xs">
+                <Smartphone className="h-9 w-9 sm:h-11 sm:w-11 text-slate-600 group-hover:text-[#0F2D5C] group-active:text-[#0F2D5C] transition-colors stroke-[2.2]" />
+              </div>
+              <span className="text-xs sm:text-sm font-extrabold tracking-tight text-slate-700 group-hover:text-[#0F2D5C] transition-colors mt-1.5">
+                Airtime
+              </span>
+            </button>
+
+            {/* 4. Data */}
+            <button
+              onClick={() => handleServiceCardClick("vtu_data")}
+              className="flex-1 flex flex-col items-center justify-center py-1 px-1 sm:px-3 rounded-2xl transition-all text-center group cursor-pointer active:scale-95"
+              title="Data Bundles"
+            >
+              <div className="w-14 h-14 sm:w-18 sm:h-18 rounded-2xl bg-slate-50 group-hover:bg-[#0F2D5C]/10 flex items-center justify-center transition-all group-hover:scale-110 shadow-2xs">
+                <Wifi className="h-9 w-9 sm:h-11 sm:w-11 text-slate-600 group-hover:text-[#0F2D5C] group-active:text-[#0F2D5C] transition-colors stroke-[2.2]" />
+              </div>
+              <span className="text-xs sm:text-sm font-extrabold tracking-tight text-slate-700 group-hover:text-[#0F2D5C] transition-colors mt-1.5">
+                Data
+              </span>
+            </button>
+
+            {/* 5. Wallet */}
+            <button
+              onClick={handleOpenFundWallet}
+              className="flex-1 flex flex-col items-center justify-center py-1 px-1 sm:px-3 rounded-2xl transition-all text-center group cursor-pointer active:scale-95"
+              title="Fund Wallet & Accounts"
+            >
+              <div className={`w-14 h-14 sm:w-18 sm:h-18 rounded-2xl flex items-center justify-center transition-all group-hover:scale-110 shadow-2xs ${showFundModal ? "bg-[#0F2D5C] text-white" : "bg-slate-50 group-hover:bg-[#0F2D5C]/10"}`}>
+                <Wallet className={`h-9 w-9 sm:h-11 sm:w-11 transition-colors stroke-[2.2] ${showFundModal ? "text-white" : "text-slate-600 group-hover:text-[#0F2D5C]"}`} />
+              </div>
+              <span className={`text-xs sm:text-sm font-extrabold tracking-tight transition-colors mt-1.5 ${showFundModal ? "text-[#0F2D5C]" : "text-slate-700 group-hover:text-[#0F2D5C]"}`}>
+                Wallet
+              </span>
+            </button>
+
+          </div>
+        </nav>
+    </div>
   );
 }
 

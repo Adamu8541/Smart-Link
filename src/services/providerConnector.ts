@@ -107,8 +107,11 @@ export function getActiveProviderAndAdapter(
     resolvedBaseUrl = resolvedBaseUrl || "https://api.identro.ng";
     resolvedAppId = resolvedAppId || "smartlink_identro_app";
   } else if (activeNameLower.includes("clubkonnect")) {
-    if (process.env.CLUBKONNECT_API_KEY) {
-      resolvedSecret = String(process.env.CLUBKONNECT_API_KEY).trim();
+    if (process.env.CLUBKONNECT_API_KEY || process.env.CLUBKONNECT_SECRET_KEY) {
+      resolvedSecret = String(process.env.CLUBKONNECT_API_KEY || process.env.CLUBKONNECT_SECRET_KEY).trim();
+    }
+    if (process.env.CLUBKONNECT_USER_ID || process.env.CLUBKONNECT_USERID || process.env.CLUBKONNECT_APP_ID || process.env.CLUBKONNECT_CLIENT_ID) {
+      resolvedAppId = String(process.env.CLUBKONNECT_USER_ID || process.env.CLUBKONNECT_USERID || process.env.CLUBKONNECT_APP_ID || process.env.CLUBKONNECT_CLIENT_ID).trim();
     }
     resolvedBaseUrl = resolvedBaseUrl || "https://www.clubkonnect.com/API";
     resolvedAppId = resolvedAppId || "smartlink_vtu";

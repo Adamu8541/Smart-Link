@@ -69,9 +69,6 @@ export const SlipLivePreviewCard: React.FC<SlipLivePreviewCardProps> = ({
         }}
         className="w-full h-auto max-w-lg rounded-xl object-contain shadow-xs block mx-auto"
       />
-      <div className="w-full text-center px-2.5 py-1.5 text-[11px] font-medium text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 rounded-lg border border-amber-200/80 dark:border-amber-800/50 leading-relaxed">
-        Note: The generated card/slip is for verification purposes only and is not an official NIMC document
-      </div>
     </div>
   );
 };

@@ -10,18 +10,44 @@ import {
   GraduationCap,
   Wifi,
   Building,
-  HelpCircle,
   Sparkles,
   Search,
   CheckCircle,
   Tag,
-  X
+  X,
+  Zap,
+  Smartphone,
+  Lightbulb,
+  Tv,
+  Building2,
+  Landmark,
+  ChevronRight,
+  Layers,
+  Flame,
+  SlidersHorizontal,
+  ShieldCheck
 } from "lucide-react";
-import { motion } from "motion/react";
 import { formatNaira } from "../utils/formatUtils";
 import { useSiteConfig } from "../context/SiteConfigContext";
-import { getRealServiceIcon } from "./common/ServiceIcons";
 import { SMART_LINK_SERVICES, ServiceItem } from "../data/servicesData";
+import {
+  NimcOfficialCardLogo,
+  NibssOfficialCardLogo,
+  CacOfficialCardLogo,
+  NrsOfficialCardLogo,
+  JambOfficialCardLogo,
+  WaecOfficialCardLogo,
+  NecoOfficialCardLogo,
+  NabtebOfficialCardLogo,
+  ScumlOfficialCardLogo,
+  ElectricityOfficialCardLogo,
+  PassportOfficialCardLogo,
+  CbnOfficialCardLogo,
+  ExamPinsOfficialCardLogo,
+  AirtimeOfficialCardLogo,
+  DataBundlesOfficialCardLogo
+} from "./common/ScreenshotServiceLogos";
+
 export type { ServiceItem };
 export { SMART_LINK_SERVICES };
 
@@ -40,201 +66,291 @@ export default function ServicesGrid({ onSelectService }: ServicesGridProps) {
   }, []);
 
   const categories = [
-    { id: "ALL", label: "All Solutions", icon: HelpCircle },
-    { id: "IDENTITY", label: "KYC & NIN Biometrics", icon: Fingerprint },
-    { id: "CAC", label: "CAC Registrations", icon: Building },
-    { id: "EDUCATION", label: "School Cards (WAEC/JAMB)", icon: GraduationCap },
-    { id: "VTU", label: "VTU Airtime & Utilities", icon: Wifi },
+    { id: "ALL", label: "All Solutions", icon: Layers },
+    { id: "IDENTITY", label: "NIN & Identity", icon: Fingerprint },
+    { id: "BANKING", label: "BVN & Banking", icon: Landmark },
+    { id: "CAC", label: "CAC & Corporate", icon: Building2 },
+    { id: "VTU", label: "Airtime & Utilities", icon: Wifi },
+    { id: "EDUCATION", label: "Exam PINs & Cards", icon: GraduationCap },
     { id: "GOVERNMENT", label: "E-Gov & Passports", icon: FileText },
-    { id: "ICT", label: "ICT Portal Building", icon: Sparkles }
+    { id: "ICT", label: "ICT & Portals", icon: Sparkles }
   ];
 
+  // Quick-action top dock (Identities first, followed by Telecom, Utilities, Education & CAC)
+  const quickDockServices = [
+    { id: "id_nin_ver", label: "NIN Identity", sub: "NIMC Slip & Direct", icon: Fingerprint, color: "bg-emerald-500/10 text-emerald-600 border-emerald-200" },
+    { id: "id_bvn_ver", label: "BVN Identity", sub: "NIBSS Validation", icon: ShieldCheck, color: "bg-blue-500/10 text-blue-600 border-blue-200" },
+    { id: "id_slip_gen", label: "NIN Slip & Card", sub: "Official Printout", icon: FileText, color: "bg-teal-500/10 text-teal-600 border-teal-200" },
+    { id: "id_premium_slip", label: "BVN Slip & Card", sub: "Verified NIBSS ID", icon: ShieldCheck, color: "bg-indigo-500/10 text-indigo-600 border-indigo-200" },
+    { id: "vtu_airtime", label: "Airtime VTU", sub: "Instant Top-up", icon: Smartphone, color: "bg-amber-500/10 text-amber-600 border-amber-200" },
+    { id: "vtu_data", label: "Data Bundles", sub: "SME & Direct", icon: Wifi, color: "bg-sky-500/10 text-sky-600 border-sky-200" },
+    { id: "vtu_electricity", label: "Electricity", sub: "Prepaid Tokens", icon: Lightbulb, color: "bg-yellow-500/10 text-yellow-600 border-yellow-200" },
+    { id: "edu_waec", label: "WAEC / JAMB", sub: "Instant ePINs", icon: GraduationCap, color: "bg-rose-500/10 text-rose-600 border-rose-200" },
+  ];
+
+  // Popular Quick Recharge capsules (Identities first)
+  const quickRechargePills = [
+    { id: "id_nin_ver", name: "NIN Verification", desc: "NIMC Live Lookup", badge: "Instant" },
+    { id: "id_bvn_ver", name: "BVN Verification", desc: "NIBSS Direct", badge: "Instant" },
+    { id: "id_slip_gen", name: "NIN Standard Slip", desc: "Color PDF Card", badge: "Official" },
+    { id: "id_premium_slip", name: "BVN Card / Slip", desc: "Digital ID", badge: "Verified" },
+    { id: "vtu_data", name: "Glo / MTN Data", desc: "SME Data", badge: "Hot" },
+    { id: "vtu_airtime", name: "Airtime Top-up", desc: "Instant Top-up", badge: "Fast" },
+    { id: "vtu_electricity", name: "Ikeja Electric", desc: "Prepaid Tokens", badge: "24/7" },
+    { id: "edu_waec", name: "WAEC Result PIN", desc: "Scratch Card", badge: "Direct" },
+  ];
+
+  // Render high-fidelity service logo
+  const renderServiceItemLogo = (srvId: string) => {
+    if (srvId === "cac_scuml") return <ScumlOfficialCardLogo className="w-full h-full object-contain" />;
+    if (srvId.includes("cac")) return <CacOfficialCardLogo className="w-full h-full object-contain" />;
+    if (srvId.includes("tax") || srvId.includes("tin") || srvId.includes("nrs")) return <NrsOfficialCardLogo className="w-full h-full object-contain" />;
+    if (srvId.includes("bvn") || srvId.includes("nibss")) return <NibssOfficialCardLogo className="w-full h-full object-contain" />;
+    if (srvId.includes("nin") || srvId.includes("nimc") || srvId.includes("slip")) return <NimcOfficialCardLogo className="w-full h-full object-contain" />;
+    if (srvId === "vtu_airtime") return <AirtimeOfficialCardLogo className="w-full h-full object-contain" />;
+    if (srvId === "vtu_data") return <DataBundlesOfficialCardLogo className="w-full h-full object-contain" />;
+    if (srvId === "vtu_electricity") return <ElectricityOfficialCardLogo className="w-full h-full object-contain" />;
+    if (srvId === "gov_passport") return <PassportOfficialCardLogo className="w-full h-full object-contain" />;
+    if (srvId === "id_bank_account_verification") return <CbnOfficialCardLogo className="w-full h-full object-contain" />;
+    if (srvId === "edu_jamb") return <JambOfficialCardLogo className="w-full h-full object-contain" />;
+    if (srvId === "edu_waec") return <WaecOfficialCardLogo className="w-full h-full object-contain" />;
+    if (srvId === "edu_neco") return <NecoOfficialCardLogo className="w-full h-full object-contain" />;
+    if (srvId === "edu_nabteb") return <NabtebOfficialCardLogo className="w-full h-full object-contain" />;
+    if (srvId.startsWith("edu_")) return <ExamPinsOfficialCardLogo className="w-full h-full object-contain" />;
+    return <Sparkles className="w-5 h-5 text-[#0F2D5C]" />;
+  };
+
+  const handleTriggerService = (serviceId: string) => {
+    let base = SMART_LINK_SERVICES.find(s => s.id === serviceId);
+    if (!base && serviceId === "id_vnin_to_nibss") {
+      base = SMART_LINK_SERVICES.find(s => s.id === "id_vnin_to_bvn");
+    }
+    if (!base && serviceId.startsWith("edu_")) {
+      const examKeyword = serviceId.replace("edu_", "");
+      base = SMART_LINK_SERVICES.find(s => s.id.includes(examKeyword) || s.name.toLowerCase().includes(examKeyword));
+    }
+    if (base) {
+      const livePrice = base.price !== undefined ? getServicePrice(base.id, base.price) : undefined;
+      onSelectService({
+        ...base,
+        price: livePrice !== undefined ? livePrice : base.price,
+      });
+    }
+  };
+
   const filteredServices = SMART_LINK_SERVICES.filter((srv) => {
-    const matchesTab = activeTab === "ALL" || srv.category === activeTab;
+    const isBanking = srv.id.includes("bvn") || srv.id.includes("bank");
+    const matchesTab =
+      activeTab === "ALL" ||
+      (activeTab === "BANKING" ? isBanking : 
+       activeTab === "IDENTITY" ? (srv.category === "IDENTITY" && !isBanking) :
+       srv.category === activeTab);
+
+    const query = searchQuery.trim().toLowerCase();
     const matchesSearch =
-      srv.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      srv.description.toLowerCase().includes(searchQuery.toLowerCase());
+      !query ||
+      srv.name.toLowerCase().includes(query) ||
+      srv.description.toLowerCase().includes(query) ||
+      srv.id.toLowerCase().includes(query);
+
     return matchesTab && matchesSearch;
+  }).sort((a, b) => {
+    const getRank = (item: typeof a) => {
+      if (item.id === "id_nin_ver") return 1;
+      if (item.id === "id_bvn_ver") return 2;
+      if (item.id.includes("nin") || item.id.includes("nimc") || item.id.includes("slip")) return 3;
+      if (item.id.includes("bvn") || item.id.includes("nibss")) return 4;
+      if (item.category === "IDENTITY") return 5;
+      if (item.category === "VTU") return 6;
+      if (item.category === "EDUCATION") return 7;
+      if (item.category === "CAC") return 8;
+      if (item.category === "GOVERNMENT") return 9;
+      return 10;
+    };
+    return getRank(a) - getRank(b);
   });
 
   return (
-    <div className="py-12 bg-[#F5F7FA]" id="services-grid-section">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Title Block */}
-        <div className="text-center space-y-3 max-w-3xl mx-auto mb-10">
-          <span className="px-3 py-1 rounded-full bg-[#F5F7FA] text-[#0F2D5C] text-xs font-bold tracking-wider uppercase border border-[#E5E7EB]">
-            Product Portfolio
-          </span>
-          <h2 className="text-3xl sm:text-4xl font-bold text-[#111827] tracking-tight">
-            Our Elite Digital Enterprise Services
-          </h2>
-          <p className="text-[#4B5563] font-normal">
-            Providing Nigerians and corporations with instantaneous API identity verifications, Corporate CAC filings, VTU top ups, and official government application assistances.
-          </p>
+    <div className="py-10 bg-[#F5F7FA] min-h-screen" id="services-grid-section">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 text-left">
+        
+        {/* Header Title & Trust Bar */}
+        <div className="bg-[#0F2D5C] rounded-2xl p-6 sm:p-8 text-white relative overflow-hidden shadow-sm border border-[#0F2D5C]">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
+          <div className="relative z-10 max-w-3xl space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-0.5 rounded-full bg-white/10 text-white text-[10px] font-mono font-bold tracking-wider uppercase border border-white/15">
+                FINTECH & TELECOM PORTAL
+              </span>
+              <span className="flex items-center gap-1 text-[11px] text-emerald-300 font-bold">
+                <ShieldCheck className="h-3.5 w-3.5" /> 99.9% Automated Uptime
+              </span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-white">
+              Instant Digital Services & Bill Payments
+            </h1>
+            <p className="text-xs sm:text-sm text-[#E5E7EB] leading-relaxed">
+              Disburse mobile airtime, fast SME data bundles, electricity meter tokens, exam scratch PINs, corporate CAC filings, and biometric identity verification in seconds.
+            </p>
+          </div>
         </div>
 
-        {/* Search Bar */}
-        <div className="max-w-xl mx-auto mb-10 space-y-3">
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-              <Search className="h-4.5 w-4.5 text-[#0F2D5C]" />
+        {/* 1. FINTECH QUICK-ACTION DOCK */}
+        <div className="space-y-3 text-left">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-lg bg-[#0F2D5C]/10 flex items-center justify-center text-[#0F2D5C]">
+                <Zap className="h-3.5 w-3.5" />
+              </div>
+              <h2 className="text-xs font-bold text-[#111827] uppercase tracking-wider font-sans">
+                Quick Top Services
+              </h2>
             </div>
-            <input
-              type="text"
-              id="search-services-input"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search registrations, airtime, scratch cards..."
-              className="w-full pl-10 pr-10 py-3 rounded-xl border border-[#E5E7EB] focus:outline-none focus:ring-2 focus:ring-[#0F2D5C]/20 focus:border-[#0F2D5C] text-sm shadow-xs transition-all bg-white font-medium text-[#111827]"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white absolute inset-y-0 right-0 pr-3.5 flex items-center transition-colors"
-                title="Clear Search"
-              >
-                <X className="h-4.5 w-4.5" />
-              </button>
-            )}
+            <span className="text-[11px] text-[#6B7280] font-medium hidden sm:inline">
+              Instant 1-Click Launch
+            </span>
           </div>
 
-          {/* Quick-tap Tag Shortcuts */}
-          <div className="flex flex-wrap items-center justify-center gap-1.5 text-xs">
-            <span className="text-[#6B7280] font-medium">Try searching:</span>
-            {[
-              { label: "NIN Biometrics", query: "NIN" },
-              { label: "CAC Filings", query: "CAC" },
-              { label: "WAEC Pins", query: "WAEC" },
-              { label: "Airtime Top-up", query: "Airtime" },
-              { label: "Prepaid Electricity", query: "Electricity" },
-              { label: "Passport Booking", query: "Passport" }
-            ].map((tag) => (
+          <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-8 gap-2 sm:gap-3">
+            {quickDockServices.map((dock) => {
+              const IconComp = dock.icon;
+              return (
+                <button
+                  key={dock.id}
+                  onClick={() => handleTriggerService(dock.id)}
+                  className="flex flex-col items-center justify-start p-2 sm:p-2.5 rounded-2xl hover:bg-white/80 transition-all group active:scale-95 cursor-pointer text-center select-none"
+                >
+                  <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center mb-1.5 transition-all duration-200 group-hover:scale-110 shadow-xs border ${dock.color}`}>
+                    <IconComp className="h-6 w-6" />
+                  </div>
+                  <span className="text-[11px] sm:text-xs font-semibold text-[#1E293B] leading-tight line-clamp-1 group-hover:text-[#0F2D5C]">
+                    {dock.label}
+                  </span>
+                  <span className="text-[9px] text-[#64748B] font-medium mt-0.5 line-clamp-1">
+                    {dock.sub}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 2. POPULAR RECHARGES RIBBON */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+          <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#475569] uppercase tracking-wider shrink-0 mr-1">
+            <Flame className="h-3.5 w-3.5 text-amber-500" />
+            <span>Popular:</span>
+          </div>
+          {quickRechargePills.map((pill) => (
+            <button
+              key={pill.id + pill.name}
+              onClick={() => handleTriggerService(pill.id)}
+              className="flex items-center gap-2 px-3 py-1.5 bg-white/80 hover:bg-white border border-slate-200/70 rounded-full text-xs transition-all shrink-0 hover:shadow-xs active:scale-95 cursor-pointer group"
+            >
+              <span className="font-semibold text-[#1E293B] group-hover:text-[#0F2D5C] text-[11px]">{pill.name}</span>
+              <span className="text-[9px] font-bold px-1.5 py-0.2 bg-[#0F2D5C]/10 text-[#0F2D5C] rounded-full">
+                {pill.badge}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* 3. ALL SOLUTIONS EXPLORER CONSOLE */}
+        <div className="space-y-4">
+          
+          {/* Search Bar & Count */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 sm:p-3.5 rounded-2xl border border-slate-200/80 shadow-xs">
+            <div className="relative flex-1">
+              <Search className="h-4 w-4 text-[#0F2D5C] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search any service, NIN, BVN, Airtime, JAMB, Discos..."
+                className="w-full pl-9 pr-8 py-2 bg-slate-50 hover:bg-slate-100/80 focus:bg-white rounded-xl border border-slate-200 focus:border-[#0F2D5C] focus:ring-2 focus:ring-[#0F2D5C]/10 text-xs font-medium text-[#0F172A] transition-all outline-none"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-md transition-colors cursor-pointer"
+                  title="Clear search"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+            <div className="text-[11px] font-medium text-[#64748B] shrink-0 pl-1">
+              Showing <strong className="text-[#0F172A] font-bold">{filteredServices.length}</strong> active solutions
+            </div>
+          </div>
+
+          {/* Segmented Category Switcher Tabs */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+            {categories.map((cat) => {
+              const CatIcon = cat.icon;
+              const isActive = activeTab === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveTab(cat.id)}
+                  id={`tab-service-${cat.id}`}
+                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
+                    isActive
+                      ? "bg-[#0F2D5C] text-white shadow-xs"
+                      : "bg-white/80 text-[#475569] border border-slate-200/80 hover:border-slate-300 hover:text-[#0F172A]"
+                  }`}
+                >
+                  <CatIcon className={`h-3.5 w-3.5 ${isActive ? "text-white" : "text-[#0F2D5C]"}`} />
+                  <span>{cat.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Service Tiles in Pure App Icon Grid (No cards) */}
+          {filteredServices.length === 0 ? (
+            <div className="bg-white rounded-2xl p-10 border border-slate-200 text-center space-y-3">
+              <SlidersHorizontal className="h-8 w-8 text-slate-400 mx-auto" />
+              <h3 className="text-sm font-bold text-[#1E293B]">No solutions found</h3>
+              <p className="text-xs text-[#64748B]">No service matches "{searchQuery}". Try clearing search or selecting another category.</p>
               <button
-                key={tag.query}
                 onClick={() => {
-                  setSearchQuery(tag.query);
+                  setSearchQuery("");
                   setActiveTab("ALL");
                 }}
-                className={`bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all${
-                  searchQuery.toLowerCase() === tag.query.toLowerCase()
-                    ? "bg-[#0F2D5C] text-white shadow-xs"
-                    : "bg-white border border-[#E5E7EB] text-[#4B5563] hover:bg-[#F5F7FA] hover:text-[#0F2D5C]"
-                }bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white`}
+                className="px-4 py-2 bg-[#0F2D5C] text-white text-xs font-bold rounded-xl hover:bg-[#17407E] transition-all cursor-pointer"
               >
-                {tag.label}
+                Reset Filters
               </button>
-            ))}
-          </div>
-
-          {/* Matches Counter */}
-          {searchQuery && (
-            <p className="bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white text-center text-xs font-bold">
-              Found {filteredServices.length} {filteredServices.length === 1 ? "solution" : "solutions"} matching &quot;{searchQuery}&quot;
-            </p>
-          )}
-        </div>
-
-        {/* Category Tab List */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-8 scrollbar-thin border-b border-[#E5E7EB]">
-          {categories.map((cat) => {
-            const IconComp = cat.icon;
-            const isSelected = activeTab === cat.id;
-            return (
-              <button
-                key={cat.id}
-                onClick={() => setActiveTab(cat.id)}
-                id={`tab-service-${cat.id}`}
-                className={`bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all${
-                  isSelected
-                    ? "bg-[#0F2D5C] text-white shadow-xs border border-[#0F2D5C]"
-                    : "bg-white text-[#4B5563] border border-[#E5E7EB] hover:border-[#0F2D5C]"
-                }bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white`}
-              >
-                <IconComp className="h-3.5 w-3.5" />
-                {cat.label}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Services Cards Grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredServices.map((srv) => {
-            const livePrice = srv.price !== undefined ? getServicePrice(srv.id, srv.price) : undefined;
-            return (
-              <motion.div
-                layout
-                key={srv.id}
-                className="group flex flex-col justify-between p-6 rounded-2xl border border-[#E5E7EB] hover:border-[#0F2D5C] shadow-[0_4px_12px_rgba(15,23,42,0.06)] hover:shadow-md transition-all bg-white relative overflow-hidden"
-              >
-                <div className="space-y-4">
-                  {/* Category Indicator */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] uppercase bg-[#F5F7FA] text-[#0F2D5C] px-2.5 py-0.5 rounded font-bold tracking-wider">
-                      {srv.category}
-                    </span>
-                    {livePrice !== undefined && (
-                      <span className="text-xs font-bold text-[#0F2D5C] bg-[#F5F7FA] px-2.5 py-0.5 rounded-full flex items-center gap-1 font-mono border border-[#E5E7EB]">
-                        <Tag className="h-3 w-3" />
-                        {formatNaira(livePrice)}
-                      </span>
-                    )}
-                    {srv.priceLabel && (
-                      <span className="text-[10px] text-[#6B7280] italic bg-[#F5F7FA] px-2 py-0.5 rounded">
-                        {srv.priceLabel}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Icon & Name */}
-                  <div className="flex items-center gap-3">
-                    <div className="shrink-0">
-                      {getRealServiceIcon(srv.id, "h-11 w-11")}
-                    </div>
-                    <h3 className="text-base font-bold text-[#111827] group-hover:text-[#0F2D5C] transition-colors leading-tight">
-                      {srv.name}
-                    </h3>
-                  </div>
-
-                  {/* Description */}
-                  <p className="text-xs text-[#4B5563] leading-relaxed">
-                    {srv.description}
-                  </p>
-                </div>
-
-                {/* Action Button */}
-                <div className="mt-6 pt-4 border-t border-[#E5E7EB] flex items-center justify-between">
-                  <span className="flex items-center gap-1 text-[11px] text-[#6B7280]">
-                    <CheckCircle className="h-3.5 w-3.5 text-[#0F2D5C]" />
-                    Instant processing
-                  </span>
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2.5 sm:gap-3.5 pt-2">
+              {filteredServices.map((srv) => {
+                const livePrice = srv.price !== undefined ? getServicePrice(srv.id, srv.price) : undefined;
+                return (
                   <button
+                    key={srv.id}
                     onClick={() => onSelectService({ ...srv, price: livePrice ?? srv.price })}
                     id={`btn-order-${srv.id}`}
-                    className="px-4 py-2 bg-[#0F2D5C] hover:bg-[#17407E] text-white rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-xs"
+                    className="flex flex-col items-center justify-start p-2 sm:p-2.5 rounded-2xl hover:bg-white/80 transition-all group active:scale-95 cursor-pointer text-center select-none"
                   >
-                    {srv.actionLabel}
-                  </button>
-                </div>
-              </motion.div>
-            );
-          })}
+                    {/* Pure Icon Container without surrounding card */}
+                    <div className="w-13 h-13 sm:w-15 sm:h-15 rounded-2xl bg-white shadow-xs border border-slate-200/70 flex items-center justify-center p-2 mb-1.5 transition-all duration-200 group-hover:scale-110 group-hover:shadow-md shrink-0">
+                      {renderServiceItemLogo(srv.id)}
+                    </div>
 
-          {filteredServices.length === 0 && (
-            <div className="col-span-full py-12 text-center space-y-3">
-              <p className="text-[#6B7280] text-sm font-medium">No digital solutions found matching your search criteria.</p>
-              <button
-                onClick={() => {
-                  setActiveTab("ALL");
-                  setSearchQuery("");
-                }}
-                className="bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white px-4 py-2 border border-[#E5E7EB] hover:border-[#0F2D5C] rounded-xl text-xs font-bold"
-              >
-                Clear Filters
-              </button>
+                    {/* Title */}
+                    <span className="text-[11px] sm:text-xs font-semibold text-[#1E293B] leading-tight line-clamp-2 group-hover:text-[#0F2D5C] text-center max-w-[105px]">
+                      {srv.name}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           )}
+
         </div>
+
       </div>
     </div>
   );

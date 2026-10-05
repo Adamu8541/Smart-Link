@@ -11,20 +11,34 @@ import {
   CheckCircle2,
   ArrowRight,
   Sparkles,
-  CreditCard,
-  FileText,
   Building2,
   Tv,
   GraduationCap,
   ChevronRight,
-  PhoneCall,
   Smartphone,
   Layers,
-  Lock,
+  SlidersHorizontal,
+  Flame,
+  X,
+  Fingerprint,
+  Landmark,
+  FileText
 } from "lucide-react";
 import SEOHead from "../landing/SEOHead";
 import LandingHeader from "../landing/LandingHeader";
 import LandingFooter from "../landing/LandingFooter";
+import {
+  NimcOfficialCardLogo,
+  NibssOfficialCardLogo,
+  CacOfficialCardLogo,
+  NrsOfficialCardLogo,
+  JambOfficialCardLogo,
+  WaecOfficialCardLogo,
+  NecoOfficialCardLogo,
+  ElectricityOfficialCardLogo,
+  AirtimeOfficialCardLogo,
+  DataBundlesOfficialCardLogo
+} from "../common/ScreenshotServiceLogos";
 
 interface ExploreServicesPublicViewProps {
   onLogin: () => void;
@@ -166,7 +180,7 @@ const PUBLIC_SERVICES: ServiceCard[] = [
     category: "government",
     description: "Integrate high-speed NIN verification, BVN lookup, automated wallet funding, and VTU dispatch directly into your apps and fintech portals.",
     price: "Pay-As-You-Go API Rates",
-    turnaround: "Sub-450ms p95 Latency",
+    turnaround: "Sub-450ms Latency",
     features: ["RESTful JSON Endpoints", "Live & Sandbox Environments", "Webhook Callbacks", "Postman Collections & SDKs"],
     popular: true,
   },
@@ -192,14 +206,36 @@ export const ExploreServicesPublicView: React.FC<ExploreServicesPublicViewProps>
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   const categories = [
-    { id: "all", label: "All Services", icon: Layers },
-    { id: "identity", label: "Identity & KYC (NIN / BVN)", icon: ShieldCheck },
-    { id: "corporate", label: "Corporate (CAC & SCUML)", icon: Building2 },
+    { id: "all", label: "All Solutions", icon: Layers },
+    { id: "identity", label: "NIN & Identity", icon: Fingerprint },
+    { id: "corporate", label: "CAC & Corporate", icon: Building2 },
     { id: "bills", label: "Electricity & Cable TV", icon: Zap },
-    { id: "telecom", label: "Airtime & SME Data VTU", icon: Smartphone },
-    { id: "education", label: "Exam Pins (WAEC / NECO)", icon: GraduationCap },
-    { id: "government", label: "Developer APIs & Government", icon: FileText },
+    { id: "telecom", label: "Airtime & SME Data", icon: Smartphone },
+    { id: "education", label: "Exam PINs & Cards", icon: GraduationCap },
+    { id: "government", label: "Developer APIs & Gov", icon: Landmark },
   ];
+
+  // Quick Action Top Dock for Public Explore
+  const quickPills = [
+    { name: "MTN VTU", desc: "Airtime Top-up", badge: "2% Disc" },
+    { name: "SME Data", desc: "From ₦220/GB", badge: "Instant" },
+    { name: "Ikeja Electric", desc: "Prepaid Tokens", badge: "20-Digit" },
+    { name: "NIN Slip Print", desc: "Official PDF", badge: "Live" },
+    { name: "WAEC Result", desc: "Electronic PIN", badge: "Instant" },
+  ];
+
+  const renderServiceLogo = (id: string) => {
+    if (id.includes("nin")) return <NimcOfficialCardLogo className="w-full h-full object-contain" />;
+    if (id.includes("bvn")) return <NibssOfficialCardLogo className="w-full h-full object-contain" />;
+    if (id.includes("cac") || id.includes("scuml")) return <CacOfficialCardLogo className="w-full h-full object-contain" />;
+    if (id.includes("disco") || id.includes("electricity")) return <ElectricityOfficialCardLogo className="w-full h-full object-contain" />;
+    if (id.includes("data")) return <DataBundlesOfficialCardLogo className="w-full h-full object-contain" />;
+    if (id.includes("airtime")) return <AirtimeOfficialCardLogo className="w-full h-full object-contain" />;
+    if (id.includes("waec")) return <WaecOfficialCardLogo className="w-full h-full object-contain" />;
+    if (id.includes("neco")) return <NecoOfficialCardLogo className="w-full h-full object-contain" />;
+    if (id.includes("api") || id.includes("court")) return <NrsOfficialCardLogo className="w-full h-full object-contain" />;
+    return <Sparkles className="w-5 h-5 text-[#0F2D5C]" />;
+  };
 
   const filteredServices = useMemo(() => {
     return PUBLIC_SERVICES.filter((service) => {
@@ -231,40 +267,40 @@ export const ExploreServicesPublicView: React.FC<ExploreServicesPublicViewProps>
 
       {/* Hero Banner */}
       <header className="bg-gradient-to-b from-[#0F2D5C] to-[#17407E] text-white pt-14 pb-16 px-4 sm:px-6 lg:px-8 border-b border-[#0F2D5C]/30 shadow-inner">
-        <div className="max-w-6xl mx-auto text-center space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 text-white text-xs font-semibold backdrop-blur-md border border-white/15">
+        <div className="max-w-5xl mx-auto text-center space-y-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-white text-xs font-semibold backdrop-blur-md border border-white/15">
             <Sparkles className="h-3.5 w-3.5 text-[#F59E0B]" />
-            <span>Complete Enterprise Services Catalog &amp; Directory</span>
+            <span>Complete Fintech &amp; Digital Services Catalog</span>
           </div>
 
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-white max-w-3xl mx-auto leading-tight">
-            Explore Over 25+ Digital Services &amp; Verification Solutions
+            Explore 25+ Instant Digital Solutions
           </h1>
 
-          <p className="text-sm sm:text-base text-gray-200 max-w-2xl mx-auto leading-relaxed">
-            From official National Identity slips and CAC enterprise filings to automated utility tokens and high-throughput developer APIs—access Nigeria's premier digital infrastructure.
+          <p className="text-xs sm:text-sm text-gray-200 max-w-2xl mx-auto leading-relaxed">
+            From official National Identity slips and CAC enterprise filings to automated electricity tokens and high-throughput developer APIs.
           </p>
 
           {/* Search Box */}
-          <div className="max-w-2xl mx-auto pt-4">
+          <div className="max-w-2xl mx-auto pt-2">
             <div className="relative flex items-center">
-              <Search className="absolute left-4 h-5 w-5 text-gray-400 pointer-events-none" />
+              <Search className="absolute left-4 h-4.5 w-4.5 text-gray-400 pointer-events-none" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search services, NIN, BVN, CAC, Discos, SME Data, WAEC, APIs..."
                 aria-label="Search all services and verification solutions"
-                className="w-full pl-12 pr-4 py-3.5 bg-white text-gray-900 rounded-2xl shadow-lg border border-transparent focus:border-[#0F2D5C] focus:ring-4 focus:ring-white/20 text-sm placeholder-gray-400 outline-none transition-all"
+                className="w-full pl-11 pr-10 py-3 bg-white text-gray-900 rounded-xl shadow-lg border border-transparent focus:border-[#0F2D5C] focus:ring-4 focus:ring-white/20 text-xs sm:text-sm placeholder-gray-400 outline-none transition-all font-medium"
               />
               {searchTerm && (
                 <button
                   type="button"
                   onClick={() => setSearchTerm("")}
                   aria-label="Clear search query"
-                  className="absolute right-3.5 px-2.5 py-1 text-xs text-gray-500 hover:text-gray-900 font-medium bg-gray-100 hover:bg-gray-200 rounded-lg cursor-pointer"
+                  className="absolute right-3.5 p-1 text-xs text-gray-500 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-lg cursor-pointer"
                 >
-                  Clear
+                  <X className="h-3.5 w-3.5" />
                 </button>
               )}
             </div>
@@ -273,10 +309,31 @@ export const ExploreServicesPublicView: React.FC<ExploreServicesPublicViewProps>
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10">
+      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6 text-left">
         
+        {/* Popular Quick Recharges Ribbon */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
+          <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#475569] uppercase tracking-wider shrink-0 mr-1">
+            <Flame className="h-3.5 w-3.5 text-amber-500" />
+            <span>Popular:</span>
+          </div>
+          {quickPills.map((pill) => (
+            <button
+              key={pill.name}
+              onClick={onGetStarted}
+              className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200/90 hover:border-[#0F2D5C] rounded-full text-xs transition-all shrink-0 hover:shadow-xs active:scale-95 cursor-pointer group"
+            >
+              <span className="font-bold text-[#1E293B] group-hover:text-[#0F2D5C]">{pill.name}</span>
+              <span className="text-[10px] text-[#64748B] font-medium">{pill.desc}</span>
+              <span className="text-[9px] font-bold px-1.5 py-0.2 bg-[#0F2D5C]/10 text-[#0F2D5C] rounded-full">
+                {pill.badge}
+              </span>
+            </button>
+          ))}
+        </div>
+
         {/* Category Pills Filter */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-8 scrollbar-none">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none">
           {categories.map((cat) => {
             const Icon = cat.icon;
             const isSelected = selectedCategory === cat.id;
@@ -285,13 +342,13 @@ export const ExploreServicesPublicView: React.FC<ExploreServicesPublicViewProps>
                 key={cat.id}
                 type="button"
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer border ${
+                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                   isSelected
-                    ? "bg-[#0F2D5C] text-white border-[#0F2D5C] shadow-md shadow-[#0F2D5C]/15"
-                    : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:text-gray-900"
+                    ? "bg-[#0F2D5C] text-white shadow-xs"
+                    : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 hover:text-gray-900"
                 }`}
               >
-                <Icon className={`h-4 w-4 ${isSelected ? "text-white" : "text-gray-500"}`} />
+                <Icon className={`h-3.5 w-3.5 ${isSelected ? "text-white" : "text-[#0F2D5C]"}`} />
                 <span>{cat.label}</span>
               </button>
             );
@@ -299,93 +356,46 @@ export const ExploreServicesPublicView: React.FC<ExploreServicesPublicViewProps>
         </div>
 
         {/* Results Header */}
-        <div className="flex items-center justify-between border-b border-gray-200 pb-4 mb-6">
+        <div className="flex items-center justify-between border-b border-gray-200 pb-3">
           <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-            Showing <span className="text-gray-900 font-extrabold">{filteredServices.length}</span> Services
+            Showing <strong className="text-gray-900 font-extrabold">{filteredServices.length}</strong> Digital Services
           </p>
-          <div className="flex items-center gap-3 text-xs font-medium text-gray-500">
-            <span className="hidden sm:inline">Transparent Direct Pricing</span>
-            <span className="h-1 w-1 rounded-full bg-gray-300 hidden sm:inline" />
-            <span className="text-emerald-600 font-bold flex items-center gap-1">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              100% Automated Instant Processing
-            </span>
+          <div className="flex items-center gap-2 text-xs font-medium text-emerald-700">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="hidden sm:inline font-bold">100% Automated Instant Processing</span>
           </div>
         </div>
 
-        {/* Service Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Service Cards in Exact Instant Quick Actions Squircle Layout */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 sm:gap-3.5">
           {filteredServices.map((service) => (
-            <div
+            <button
               key={service.id}
-              className={`bg-white rounded-2xl border p-6 flex flex-col justify-between transition-all duration-200 hover:shadow-xl hover:-translate-y-1 ${
-                service.popular
-                  ? "border-[#0F2D5C]/40 ring-1 ring-[#0F2D5C]/10 shadow-sm relative overflow-hidden"
-                  : "border-gray-200 shadow-xs hover:border-gray-300"
-              }`}
+              onClick={onGetStarted}
+              className="flex flex-col items-center justify-between p-3 sm:p-3.5 rounded-2xl border border-slate-100 hover:border-[#0F2D5C]/30 hover:bg-[#F8FAFC] transition-all group active:scale-95 cursor-pointer text-center bg-white shadow-xs hover:shadow-md min-h-[125px] relative"
             >
-              {service.popular && (
-                <div className="absolute top-0 right-0">
-                  <div className="bg-[#0F2D5C] text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-bl-xl shadow-xs">
-                    Popular
-                  </div>
-                </div>
-              )}
-
-              <div className="space-y-4">
-                {/* Title & Badge */}
-                <div>
-                  <h3 className="text-base font-black text-gray-900 leading-snug pr-8">
-                    {service.name}
-                  </h3>
-                  <div className="flex items-center gap-2 mt-2">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-blue-50 text-[#0F2D5C] border border-blue-100">
-                      {service.turnaround}
-                    </span>
-                    <span className="text-xs font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
-                      {service.price}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Description */}
-                <p className="text-xs text-gray-600 leading-relaxed">
-                  {service.description}
-                </p>
-
-                {/* Features list */}
-                <div className="pt-2 border-t border-gray-100 space-y-1.5">
-                  {service.features.map((feat, idx) => (
-                    <div key={idx} className="flex items-center gap-2 text-xs text-gray-700">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-                      <span className="truncate">{feat}</span>
-                    </div>
-                  ))}
-                </div>
+              <div className="w-12 h-12 rounded-2xl bg-[#F8FAFC] border border-slate-100 flex items-center justify-center p-2 mb-1.5 transition-transform duration-200 group-hover:scale-105 shrink-0">
+                {renderServiceLogo(service.id)}
               </div>
 
-              {/* Action Button */}
-              <div className="pt-5 mt-4 border-t border-gray-100">
-                <button
-                  type="button"
-                  onClick={onGetStarted}
-                  className="w-full py-2.5 px-4 bg-[#0F2D5C] hover:bg-[#17407E] text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm hover:shadow"
-                >
-                  <span>Access Service</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            </div>
+              <span className="text-[11px] sm:text-xs font-bold text-[#1E293B] leading-tight line-clamp-2 group-hover:text-[#0F2D5C] text-center">
+                {service.name}
+              </span>
+
+              <span className="text-[10px] text-[#64748B] font-mono font-semibold mt-1 line-clamp-1 bg-[#0F2D5C]/5 px-2 py-0.5 rounded-md border border-[#0F2D5C]/10 text-[#0F2D5C]">
+                {service.price}
+              </span>
+            </button>
           ))}
         </div>
 
         {/* Empty State */}
         {filteredServices.length === 0 && (
-          <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center max-w-lg mx-auto my-8">
-            <Search className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-            <h3 className="text-base font-bold text-gray-900">No matching services found</h3>
-            <p className="text-xs text-gray-500 mt-1">
-              Try adjusting your search terms or select "All Services" above.
+          <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center max-w-lg mx-auto my-8 space-y-3">
+            <SlidersHorizontal className="h-8 w-8 text-gray-400 mx-auto" />
+            <h3 className="text-sm font-bold text-gray-900">No matching services found</h3>
+            <p className="text-xs text-gray-500">
+              Try adjusting your search terms or select "All Solutions" above.
             </p>
             <button
               type="button"
@@ -393,47 +403,12 @@ export const ExploreServicesPublicView: React.FC<ExploreServicesPublicViewProps>
                 setSearchTerm("");
                 setSelectedCategory("all");
               }}
-              className="mt-4 px-4 py-2 bg-[#0F2D5C] text-white text-xs font-bold rounded-xl cursor-pointer"
+              className="mt-2 px-4 py-2 bg-[#0F2D5C] text-white text-xs font-bold rounded-xl cursor-pointer hover:bg-[#17407E] transition-all"
             >
               Reset Search Filter
             </button>
           </div>
         )}
-
-        {/* Informational Trust Banner */}
-        <div className="mt-16 bg-white rounded-3xl border border-gray-200 p-8 sm:p-10 shadow-sm">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center sm:text-left">
-            <div className="space-y-2">
-              <div className="h-10 w-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#0F2D5C] mx-auto sm:mx-0">
-                <Zap className="h-5 w-5" />
-              </div>
-              <h4 className="text-sm font-black text-gray-900">Dedicated Virtual Accounts</h4>
-              <p className="text-xs text-gray-600 leading-relaxed">
-                Automated wallet funding via dedicated Providus, Moniepoint, Wema, and Sterling virtual bank accounts with zero deposit wait times.
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <div className="h-10 w-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700 mx-auto sm:mx-0">
-                <ShieldCheck className="h-5 w-5" />
-              </div>
-              <h4 className="text-sm font-black text-gray-900">Bank-Grade Security &amp; NDPA</h4>
-              <p className="text-xs text-gray-600 leading-relaxed">
-                TLS 1.3 encryption, AES-256 data protection at rest, and full compliance with Nigeria Data Protection Act 2023 regulations.
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <div className="h-10 w-10 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-700 mx-auto sm:mx-0">
-                <PhoneCall className="h-5 w-5" />
-              </div>
-              <h4 className="text-sm font-black text-gray-900">24/7 Priority Agent Support</h4>
-              <p className="text-xs text-gray-600 leading-relaxed">
-                Dedicated WhatsApp (+234 808 549 0982) and email support desks to assist with filing, ticket resolutions, and API queries.
-              </p>
-            </div>
-          </div>
-        </div>
 
       </main>
 

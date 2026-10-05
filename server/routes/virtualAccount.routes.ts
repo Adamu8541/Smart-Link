@@ -29,12 +29,12 @@ function checkVirtualAccountRateLimit(key: string, limit = 10, windowMs = 60000)
 function sanitizeVirtualAccountResponse(accountData: any) {
   if (!accountData) return null;
   return {
-    accountNumber: accountData.accountNumber || accountData.virtualAccountNumber || "",
-    accountName: accountData.accountName || accountData.virtualAccountName || "",
-    bankName: accountData.bankName || accountData.virtualBankName || "",
-    reference: accountData.reference || accountData.virtualAccountReference || "",
-    provider: accountData.provider || accountData.providerName || "SmartLink Reserved Account",
-    createdAt: accountData.createdAt || new Date().toISOString(),
+    accountNumber: accountData.accountNumber || accountData.virtualAccountNumber || accountData.account_number || "",
+    accountName: accountData.accountName || accountData.virtualAccountName || accountData.account_name || "",
+    bankName: accountData.bankName || accountData.virtualBankName || accountData.bank_name || "PalmPay",
+    reference: accountData.reference || accountData.virtualAccountReference || accountData.providerReference || "",
+    provider: accountData.provider || accountData.providerName || "PalmPay Automated Gateway",
+    createdAt: accountData.createdAt || accountData.created_at || new Date().toISOString(),
   };
 }
 

@@ -419,9 +419,6 @@ export const NinVerificationView: React.FC<NinVerificationViewProps> = ({
                     <p className="text-xs font-semibold text-slate-500">
                       Select a slip type to see a preview
                     </p>
-                    <p className="text-[10px] text-amber-700 font-medium max-w-xs mx-auto pt-0.5">
-                      Note: The generated card/slip is for verification purposes only and is not an official NIMC document
-                    </p>
                   </div>
                 )}
               </div>

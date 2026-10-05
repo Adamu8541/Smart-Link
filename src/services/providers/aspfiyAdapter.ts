@@ -171,16 +171,60 @@ export class AspfiyAdapter implements ProviderAdapter {
         webhook_url: webhookUrl,
       };
 
-      console.log(`[AspfiyAdapter] Requesting virtual account from Aspfiy: POST /reserve-palmpay/ for user ${userId} (${email})`);
+      console.log(`[AspfiyAdapter] Requesting virtual account from Aspfiy for user ${userId} (${email})`);
 
-      const res = await fetch(`${this.baseUrl(config)}/reserve-palmpay/`, {
+      let res = await fetch(`${this.baseUrl(config)}/reserve-palmpay/`, {
         method: "POST",
         headers: this.headers(config),
         body: JSON.stringify(requestPayload),
       });
 
-      const json: any = await res.json().catch(() => ({}));
-      console.log(`[AspfiyAdapter] Aspfiy response status ${res.status}:`, JSON.stringify(json));
+      let json: any = await res.json().catch(() => ({}));
+      console.log(`[AspfiyAdapter] Aspfiy /reserve-palmpay/ response status ${res.status}:`, JSON.stringify(json));
+
+      // If reserve-palmpay failed, try /reserve-paga/ (official Aspfiy Paga endpoint) and /reserve-account/
+      if (json?.status === false || (!json?.account_number && !json?.accountNumber && !json?.data?.account_number)) {
+        try {
+          const resPaga = await fetch(`${this.baseUrl(config)}/reserve-paga/`, {
+            method: "POST",
+            headers: this.headers(config),
+            body: JSON.stringify(requestPayload),
+          });
+          const jsonPaga: any = await resPaga.json().catch(() => ({}));
+          console.log(`[AspfiyAdapter] Aspfiy /reserve-paga/ response status ${resPaga.status}:`, JSON.stringify(jsonPaga));
+          if (jsonPaga?.status === true || jsonPaga?.account_number || jsonPaga?.data?.account_number) {
+            res = resPaga;
+            json = jsonPaga;
+            if (!json.bank_name && !json.bankName) {
+              json.bank_name = "Paga";
+            }
+          } else if (jsonPaga?.message && (!json?.message || json?.message.includes("Cannot reserve"))) {
+            json = jsonPaga;
+          }
+        } catch (pagaErr) {
+          console.warn("[AspfiyAdapter] Reserve Paga check note:", pagaErr);
+        }
+
+        if (json?.status === false || (!json?.account_number && !json?.accountNumber && !json?.data?.account_number)) {
+          try {
+            const resAlt = await fetch(`${this.baseUrl(config)}/reserve-account/`, {
+              method: "POST",
+              headers: this.headers(config),
+              body: JSON.stringify(requestPayload),
+            });
+            const jsonAlt: any = await resAlt.json().catch(() => ({}));
+            console.log(`[AspfiyAdapter] Aspfiy /reserve-account/ response status ${resAlt.status}:`, JSON.stringify(jsonAlt));
+            if (jsonAlt?.status === true || jsonAlt?.account_number || jsonAlt?.data?.account_number) {
+              res = resAlt;
+              json = jsonAlt;
+            } else if (jsonAlt?.message && (!json?.message || json?.message.includes("Cannot reserve"))) {
+              json = jsonAlt;
+            }
+          } catch (altErr) {
+            console.warn("[AspfiyAdapter] Alt endpoint check note:", altErr);
+          }
+        }
+      }
 
       // Extract account number from any field or depth in response JSON
       const extractAccNum = (obj: any): string => {

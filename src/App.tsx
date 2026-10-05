@@ -45,6 +45,7 @@ const LegalCenter = lazyWithRetry(() => import("./components/legal").then(m => (
 const LegalDocumentView = lazyWithRetry(() => import("./components/legal").then(m => ({ default: m.LegalDocumentView })), "LegalDocumentView");
 import { LegalQuickModal } from "./components/legal";
 import { ServiceOpeningLoaderModal } from "./components/common/ServiceOpeningLoaderModal";
+import { GetStartedLoaderModal } from "./components/common/GetStartedLoaderModal";
 import { BiometricEnrollPromptModal } from "./components/auth/BiometricEnrollPromptModal";
 import { BiometricAuthService } from "./services/biometricAuthService";
 const UserLegalAgreementsModal = lazyWithRetry(() => import("./components/legal").then(m => ({ default: m.UserLegalAgreementsModal })), "UserLegalAgreementsModal");
@@ -291,6 +292,7 @@ export default function App() {
   const [selectedService, setSelectedService] = useState<ServiceItem | null>(null);
   useModalBackHandler(selectedService !== null, "app-service-modal", () => setSelectedService(null));
   const [openingService, setOpeningService] = useState<ServiceItem | null>(null);
+  const [isOpeningGetStarted, setIsOpeningGetStarted] = useState<boolean>(false);
   const [showBiometricEnrollPrompt, setShowBiometricEnrollPrompt] = useState<boolean>(false);
 
   const handleSelectServiceWithLoader = (service: ServiceItem | null) => {
@@ -308,6 +310,16 @@ export default function App() {
       setOpeningService(null);
       setSelectedService(s);
     }
+  };
+
+  const handleGetStartedWithLoader = (register: boolean = true) => {
+    setIsRegistering(register);
+    setIsOpeningGetStarted(true);
+  };
+
+  const handleFinishGetStarted = () => {
+    setIsOpeningGetStarted(false);
+    navigateToView("DASHBOARD");
   };
   const [showServicesSummaryDropdown, setShowServicesSummaryDropdown] = useState<boolean>(false);
   const [showLogoutModal, setShowLogoutModal] = useState<boolean>(false);
@@ -1262,8 +1274,7 @@ export default function App() {
             setIsRegistering(true);
           }}
           onGetStarted={() => {
-            navigateToView("DASHBOARD");
-            setIsRegistering(true);
+            handleGetStartedWithLoader(true);
           }}
           onAdminLogin={() => {
             navigateToView("ADMIN_LOGIN");
@@ -1553,6 +1564,7 @@ export default function App() {
                 isDarkMode={isDarkMode}
                 onToggleDarkMode={handleToggleDarkMode}
                 onSelectService={handleSelectServiceWithLoader}
+                onLogout={handleLogout}
               />
             )}
 
@@ -1692,8 +1704,7 @@ export default function App() {
                   setIsRegistering(false);
                 }}
                 onRegister={() => {
-                  navigateToView("DASHBOARD");
-                  setIsRegistering(true);
+                  handleGetStartedWithLoader(true);
                 }}
               />
             )}
@@ -1714,8 +1725,7 @@ export default function App() {
                   setIsRegistering(false);
                 }}
                 onRegister={() => {
-                  navigateToView("DASHBOARD");
-                  setIsRegistering(true);
+                  handleGetStartedWithLoader(true);
                 }}
               />
             )}
@@ -1736,8 +1746,7 @@ export default function App() {
                   setIsRegistering(false);
                 }}
                 onRegister={() => {
-                  navigateToView("DASHBOARD");
-                  setIsRegistering(true);
+                  handleGetStartedWithLoader(true);
                 }}
               />
             )}
@@ -1750,8 +1759,7 @@ export default function App() {
                   setIsRegistering(false);
                 }}
                 onRegister={() => {
-                  navigateToView("DASHBOARD");
-                  setIsRegistering(true);
+                  handleGetStartedWithLoader(true);
                 }}
               />
             )}
@@ -1862,6 +1870,12 @@ export default function App() {
         service={openingService}
         isOpen={openingService !== null}
         onReadyToOpen={handleFinishServiceOpening}
+      />
+
+      {/* Get Started / Portal Onboarding Loader Modal (Verification-style loader before showing registration) */}
+      <GetStartedLoaderModal
+        isOpen={isOpeningGetStarted}
+        onReadyToOpen={handleFinishGetStarted}
       />
 
       {/* Biometric Fingerprint Enrollment Prompt Modal (Fintech-style after manual login) */}

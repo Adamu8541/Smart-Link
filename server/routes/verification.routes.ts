@@ -2787,9 +2787,6 @@ function buildSlipEmailHtml(params: {
       <!-- Security Notice -->
       <div class="security-notice">
         <strong>Security Authentication Notice:</strong> This digital certificate was generated directly from authenticated federal identity databases via SmartLink Enterprise. The authenticity of this record can be confirmed by scanning the 2D QR watermark or by visiting the validation link provided above.
-        <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed #cbd5e1; font-weight: 600; color: #b45309;">
-          Note: The generated card/slip is for verification purposes only and is not an official NIMC document
-        </div>
       </div>
     </div>
 

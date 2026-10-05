@@ -1091,19 +1091,42 @@ export const AuthPortal: React.FC<AuthPortalProps>= ({
 
               {/* Biometric Passkey / Fingerprint Sign-in Option */}
               {isBiometricSupported && (
-                <div className="pt-1">
+                <div className="pt-2 flex flex-col items-center">
+                  {/* Thumb / Fingerprint Biometric Scanner Graphic in between */}
+                  <div className="relative w-full flex items-center justify-center my-2">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-slate-200"></div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleBiometricSignIn}
+                      disabled={authLoading || isBiometricLoading || authSuccessState !== null}
+                      aria-label="Click to sign in with Fingerprint"
+                      title="Click to sign in with Fingerprint"
+                      className="relative bg-white p-1 rounded-full border border-slate-200 shadow-2xs flex items-center justify-center text-[#0F2D5C] hover:scale-105 active:scale-95 hover:border-[#0F2D5C]/50 hover:shadow-md transition-all cursor-pointer focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed group"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-[#0F2D5C]/10 border border-[#0F2D5C]/20 flex items-center justify-center shrink-0 group-hover:bg-[#0F2D5C]/20 transition-colors">
+                        <Fingerprint className={`w-7 h-7 text-[#0F2D5C] ${isBiometricLoading ? "animate-bounce" : "animate-pulse group-hover:scale-110 transition-transform"}`} />
+                      </div>
+                    </button>
+                  </div>
+
                   <button
                     type="button"
                     onClick={handleBiometricSignIn}
-                    disabled={authLoading || authSuccessState !== null}
-                    className="w-full py-1.5 sm:py-2 px-2.5 bg-slate-50 hover:bg-slate-100 active:bg-slate-200 text-slate-800 font-bold rounded-xl border border-slate-200 hover:border-[#0F2D5C]/60 hover:shadow-xs transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5 group disabled:opacity-60 disabled:cursor-not-allowed"
+                    disabled={authLoading || isBiometricLoading || authSuccessState !== null}
+                    className="w-full py-2 px-3 bg-slate-50 hover:bg-slate-100 active:bg-slate-200 text-slate-800 font-bold rounded-xl border border-slate-200 hover:border-[#0F2D5C]/60 hover:shadow-xs transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 group disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    <div className="w-4.5 h-4.5 rounded bg-white shadow-2xs border border-slate-200 flex items-center justify-center text-[#0F2D5C] group-hover:scale-105 shrink-0">
-                      <Fingerprint className="w-3 h-3 text-[#0F2D5C]" />
-                    </div>
-                    <span className="text-[10px] sm:text-[11px] font-bold text-[#0F2D5C] tracking-wide uppercase text-center">
-                      Sign in with Fingerprint
-                    </span>
+                    {isBiometricLoading ? (
+                      <span className="text-[10px] sm:text-[11px] font-bold text-[#0F2D5C] tracking-wide uppercase text-center flex items-center gap-1.5">
+                        <Fingerprint className="w-4 h-4 text-[#0F2D5C] inline animate-bounce" />
+                        Scanning Fingerprint...
+                      </span>
+                    ) : (
+                      <span className="text-[10px] sm:text-[11px] font-bold text-[#0F2D5C] tracking-wide uppercase text-center">
+                        SIGN IN WITH FINGERPRINT
+                      </span>
+                    )}
                   </button>
                 </div>
               )}

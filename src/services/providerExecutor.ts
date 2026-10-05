@@ -316,6 +316,7 @@ export class ProviderExecutor {
     if (enabled.length === 0) return null;
 
     const catUpper = (category || "").toUpperCase().trim();
+    const effectiveService = (serviceType || category || "").toUpperCase().trim();
 
     // 1. If caller specified a provider code or name, try exact match among enabled providers first
     if (providerCode || providerName) {
@@ -330,14 +331,17 @@ export class ProviderExecutor {
       if (directMatch) return directMatch;
     }
 
-    // 2. If serviceType is supplied for identity verification, resolve provider designated in routing rules
-    if (serviceType && (catUpper === "IDENTITY_API" || catUpper === "VERIFICATION")) {
-      const sTypeUpper = String(serviceType).toUpperCase().trim();
+    // 2. Resolve provider designated in routing rules for any service / category
+    if (effectiveService) {
       const rules = Array.isArray(db.provider_routing_rules) ? db.provider_routing_rules : [];
       const matchedRule = rules.find((r: any) =>
         r &&
         r.enabled !== false &&
-        String(r.service || "").toUpperCase().trim() === sTypeUpper
+        (String(r.service || "").toUpperCase().trim() === effectiveService ||
+         (effectiveService.includes("AIRTIME") && String(r.service || "").toUpperCase().includes("AIRTIME")) ||
+         (effectiveService.includes("DATA") && String(r.service || "").toUpperCase().includes("DATA")) ||
+         (effectiveService.includes("ELECTRICITY") && String(r.service || "").toUpperCase().includes("ELECTRICITY")) ||
+         (effectiveService.includes("VTU") && String(r.service || "").toUpperCase().includes("VTU")))
       );
       if (matchedRule?.primaryProviderId) {
         const ruleId = String(matchedRule.primaryProviderId).toLowerCase().trim();
@@ -360,12 +364,35 @@ export class ProviderExecutor {
       const pCat = (p.category || p.providerType || "").toUpperCase().trim();
       const nameLower = (p.name || "").toLowerCase();
       const idLower = (p.id || "").toLowerCase();
-      if (catUpper === "IDENTITY_API") {
+      if (catUpper === "IDENTITY_API" || catUpper === "VERIFICATION") {
         const isIdentityName = nameLower.includes("lumi") || nameLower.includes("verify") || nameLower.includes("identro") || nameLower.includes("nin") || nameLower.includes("bvn") || idLower.includes("lumi") || idLower.includes("verify") || idLower.includes("identro") || idLower.includes("nin");
         return (pCat === "IDENTITY_API" || isIdentityName) && !nameLower.includes("aspfiy") && idLower !== "prov_aspfiy";
       }
-      if (catUpper === "VTU_API" || catUpper === "AIRTIME" || catUpper === "DATA") {
-        return (pCat === "VTU_API" || pCat === "AIRTIME_API" || nameLower.includes("club")) && !nameLower.includes("aspfiy");
+      if (
+        catUpper === "VTU_API" ||
+        catUpper === "AIRTIME" ||
+        catUpper === "DATA" ||
+        catUpper === "TELECOM_VTU" ||
+        catUpper === "UTILITY_BILL" ||
+        catUpper === "ELECTRICITY" ||
+        catUpper === "CABLE" ||
+        catUpper === "CABLE_TV" ||
+        catUpper === "EDUCATION"
+      ) {
+        return (
+          pCat === "VTU_API" ||
+          pCat === "AIRTIME_API" ||
+          pCat === "TELECOM_VTU" ||
+          pCat === "BILL_PAYMENT" ||
+          p.supportsAirtime === true ||
+          p.supportsData === true ||
+          p.supportsTelecomVtu === true ||
+          p.supportsBills === true ||
+          nameLower.includes("identro") ||
+          nameLower.includes("club") ||
+          idLower.includes("identro") ||
+          idLower.includes("club")
+        ) && !nameLower.includes("aspfiy");
       }
       if (catUpper === "PAYMENT_PROVIDER" || catUpper === "PAYMENT" || catUpper === "WALLET_ENGINE") {
         return pCat === "PAYMENT_PROVIDER" || pCat === "PAYMENT" || pCat === "WALLET_ENGINE" || nameLower.includes("aspfiy");
@@ -374,7 +401,7 @@ export class ProviderExecutor {
     });
 
     if (categoryMatches.length === 0) {
-      if (catUpper === "IDENTITY_API" || catUpper === "VTU_API") {
+      if (catUpper === "IDENTITY_API") {
         return null;
       }
       categoryMatches = enabled;
@@ -386,7 +413,16 @@ export class ProviderExecutor {
     const defaultProvider = candidates.find((p: any) => p.isDefault === true);
     if (defaultProvider) return defaultProvider;
 
-    // 5. Otherwise pick highest priority (lowest priority number)
+    // 5. Prefer providers with live API keys configured
+    const withValidKey = candidates.filter((p: any) => {
+      const key = String(p.secretKey || p.apiKey || "").trim();
+      return key && key.length > 8 && !key.includes("•") && !key.includes("*");
+    });
+    if (withValidKey.length > 0) {
+      return withValidKey.sort((a: any, b: any) => (Number(a.priority) || 1) - (Number(b.priority) || 1))[0];
+    }
+
+    // 6. Otherwise pick highest priority (lowest priority number)
     return candidates.sort((a: any, b: any) => (Number(a.priority) || 1) - (Number(b.priority) || 1))[0];
   }
 
@@ -492,28 +528,105 @@ export class ProviderExecutor {
       };
     }
 
-    // Direct routing for Clubkonnect or similar adapters when no explicit custom request template is defined
+    // Direct routing for Identro, Clubkonnect or similar adapters when no explicit custom request template is defined
     if (registeredAdapter && !requestTemplate) {
       const cat = (params.category || "").toUpperCase().trim();
       const targetCustomerId = params.customerId || params.phoneNumber || "";
       const targetPhoneNumber = params.phoneNumber || params.customerId || "";
 
+      const resolveNetwork = (raw?: any): string => {
+        if (!raw) return "";
+        const upper = String(raw).toUpperCase().trim();
+        if (upper.includes("MTN") || upper === "01") return "MTN";
+        if (upper.includes("AIRTEL") || upper === "04") return "AIRTEL";
+        if (upper.includes("GLO") || upper === "02") return "GLO";
+        if (upper.includes("9MOBILE") || upper.includes("ETISALAT") || upper === "03") return "9MOBILE";
+        return "";
+      };
+
+      const resolvedNet =
+        resolveNetwork(params.extraData?.network) ||
+        resolveNetwork(params.extraData?.networkOrProvider) ||
+        resolveNetwork(params.providerCode) ||
+        resolveNetwork(params.providerName) ||
+        resolveNetwork(params.customerName) ||
+        resolveNetwork(params.planName) ||
+        "AIRTEL";
+
+      const allProviders = (Array.isArray(db?.api_providers) && db.api_providers.length > 0)
+        ? db.api_providers
+        : (Array.isArray(db?.apiProviders) ? db.apiProviders : []);
+
+      const getFallbackProviders = () => {
+        return allProviders.filter((p: any) =>
+          p &&
+          p.id !== provider.id &&
+          (p.enabled !== false && p.isActive !== false) &&
+          p.status !== "Draft" &&
+          p.status !== "Inactive" &&
+          p.status !== "DISABLED" &&
+          !String(p.name || "").toLowerCase().includes("aspfiy")
+        );
+      };
+
       // Airtime
       const isAirtime = cat === "AIRTIME" || (cat === "TELECOM_VTU" && (!params.extraData?.planId && params.extraData?.type !== "DATA" && (params as any).type !== "DATA"));
       if (isAirtime && typeof (registeredAdapter as any).purchaseAirtime === "function") {
-        const net = params.providerCode || params.extraData?.network || "MTN";
         const res = await (registeredAdapter as any).purchaseAirtime(
-          { network: net, phoneNumber: targetPhoneNumber, amount: params.amount, reference: params.smartlinkReference },
+          { network: resolvedNet, phoneNumber: targetPhoneNumber, amount: params.amount, reference: params.smartlinkReference },
           provider
         );
+
+        if (res.success) {
+          return {
+            success: true,
+            providerName,
+            providerCode,
+            providerReference: res.orderId || res.reference,
+            transactionId: res.orderId,
+            message: res.message || "Airtime Top-Up Successful",
+            error: res.error,
+            rawResponse: res.rawResponse,
+            responseTimeMs: Date.now() - startTime,
+          };
+        }
+
+        // Automatic failover to other active providers supporting Airtime
+        for (const altProvider of getFallbackProviders()) {
+          const altAdapter = getAdapterForProvider(altProvider);
+          if (altAdapter && typeof (altAdapter as any).purchaseAirtime === "function") {
+            try {
+              const altRes = await (altAdapter as any).purchaseAirtime(
+                { network: resolvedNet, phoneNumber: targetPhoneNumber, amount: params.amount, reference: params.smartlinkReference },
+                altProvider
+              );
+              if (altRes.success) {
+                return {
+                  success: true,
+                  providerName: altProvider.name || "Fallback Airtime Provider",
+                  providerCode: altProvider.id || "FALLBACK_PROV",
+                  providerReference: altRes.orderId || altRes.reference,
+                  transactionId: altRes.orderId,
+                  message: altRes.message || "Airtime Top-Up Successful",
+                  error: altRes.error,
+                  rawResponse: altRes.rawResponse,
+                  responseTimeMs: Date.now() - startTime,
+                };
+              }
+            } catch (altErr) {
+              console.warn(`[ProviderExecutor] Failover airtime purchase to ${altProvider.name} failed:`, altErr);
+            }
+          }
+        }
+
         return {
-          success: res.success,
+          success: false,
           providerName,
           providerCode,
           providerReference: res.orderId || res.reference,
           transactionId: res.orderId,
-          message: res.message || (res.success ? "Airtime Top-Up Successful" : "Failed"),
-          error: res.error,
+          message: res.message || "Airtime purchase failed",
+          error: res.error || "Airtime purchase could not be completed by provider gateway.",
           rawResponse: res.rawResponse,
           responseTimeMs: Date.now() - startTime,
         };
@@ -522,20 +635,62 @@ export class ProviderExecutor {
       // Data Bundle
       const isData = cat === "DATA" || (cat === "TELECOM_VTU" && (params.extraData?.planId || params.extraData?.type === "DATA" || (params as any).type === "DATA"));
       if (isData && typeof (registeredAdapter as any).purchaseData === "function") {
-        const net = params.providerCode || params.extraData?.network || "MTN";
         const plan = params.planId || params.extraData?.planCode || "1000";
         const res = await (registeredAdapter as any).purchaseData(
-          { network: net, phoneNumber: targetPhoneNumber, planCode: plan, reference: params.smartlinkReference },
+          { network: resolvedNet, phoneNumber: targetPhoneNumber, planCode: plan, reference: params.smartlinkReference },
           provider
         );
+
+        if (res.success) {
+          return {
+            success: true,
+            providerName,
+            providerCode,
+            providerReference: res.orderId || res.reference,
+            transactionId: res.orderId,
+            message: res.message || "Data Purchase Successful",
+            error: res.error,
+            rawResponse: res.rawResponse,
+            responseTimeMs: Date.now() - startTime,
+          };
+        }
+
+        // Automatic failover for Data
+        for (const altProvider of getFallbackProviders()) {
+          const altAdapter = getAdapterForProvider(altProvider);
+          if (altAdapter && typeof (altAdapter as any).purchaseData === "function") {
+            try {
+              const altRes = await (altAdapter as any).purchaseData(
+                { network: resolvedNet, phoneNumber: targetPhoneNumber, planCode: plan, reference: params.smartlinkReference },
+                altProvider
+              );
+              if (altRes.success) {
+                return {
+                  success: true,
+                  providerName: altProvider.name || "Fallback Data Provider",
+                  providerCode: altProvider.id || "FALLBACK_PROV",
+                  providerReference: altRes.orderId || altRes.reference,
+                  transactionId: altRes.orderId,
+                  message: altRes.message || "Data Purchase Successful",
+                  error: altRes.error,
+                  rawResponse: altRes.rawResponse,
+                  responseTimeMs: Date.now() - startTime,
+                };
+              }
+            } catch (altErr) {
+              console.warn(`[ProviderExecutor] Failover data purchase to ${altProvider.name} failed:`, altErr);
+            }
+          }
+        }
+
         return {
-          success: res.success,
+          success: false,
           providerName,
           providerCode,
           providerReference: res.orderId || res.reference,
           transactionId: res.orderId,
-          message: res.message || (res.success ? "Data Purchase Successful" : "Failed"),
-          error: res.error,
+          message: res.message || "Data Purchase Failed",
+          error: res.error || "Data purchase failed",
           rawResponse: res.rawResponse,
           responseTimeMs: Date.now() - startTime,
         };
@@ -555,16 +710,70 @@ export class ProviderExecutor {
           },
           provider
         );
+
+        if (res.success) {
+          return {
+            success: true,
+            providerName,
+            providerCode,
+            providerReference: res.orderId || res.reference,
+            transactionId: res.orderId,
+            token: res.token,
+            units: res.units,
+            message: res.message || "Electricity Payment Successful",
+            error: res.error,
+            rawResponse: res.rawResponse,
+            responseTimeMs: Date.now() - startTime,
+          };
+        }
+
+        // Automatic failover for Electricity
+        for (const altProvider of getFallbackProviders()) {
+          const altAdapter = getAdapterForProvider(altProvider);
+          if (altAdapter && typeof (altAdapter as any).payElectricity === "function") {
+            try {
+              const altRes = await (altAdapter as any).payElectricity(
+                {
+                  electricCompany: disco,
+                  meterType: params.meterType || "PREPAID",
+                  meterNo: targetCustomerId,
+                  amount: params.amount,
+                  phoneNumber: targetPhoneNumber,
+                  reference: params.smartlinkReference,
+                },
+                altProvider
+              );
+              if (altRes.success) {
+                return {
+                  success: true,
+                  providerName: altProvider.name || "Fallback Electricity Provider",
+                  providerCode: altProvider.id || "FALLBACK_PROV",
+                  providerReference: altRes.orderId || altRes.reference,
+                  transactionId: altRes.orderId,
+                  token: altRes.token,
+                  units: altRes.units,
+                  message: altRes.message || "Electricity Payment Successful",
+                  error: altRes.error,
+                  rawResponse: altRes.rawResponse,
+                  responseTimeMs: Date.now() - startTime,
+                };
+              }
+            } catch (altErr) {
+              console.warn(`[ProviderExecutor] Failover electricity payment to ${altProvider.name} failed:`, altErr);
+            }
+          }
+        }
+
         return {
-          success: res.success,
+          success: false,
           providerName,
           providerCode,
           providerReference: res.orderId || res.reference,
           transactionId: res.orderId,
           token: res.token,
           units: res.units,
-          message: res.message || (res.success ? "Electricity Payment Successful" : "Failed"),
-          error: res.error,
+          message: res.message || "Electricity Payment Failed",
+          error: res.error || "Electricity payment failed",
           rawResponse: res.rawResponse,
           responseTimeMs: Date.now() - startTime,
         };

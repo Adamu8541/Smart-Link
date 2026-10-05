@@ -703,7 +703,6 @@ export const LEGAL_DOCUMENTS: LegalDocument[] = [
           "• Document Types: SmartLink NG facilitates the generation of NIN slips, BVN Validation Records, and CAC Status Slips.",
           "• Security Watermarks: All generated slips feature digital security barcodes, QR code verification payloads, and anti-tamper timestamps to prevent document forgery.",
           "• Facilitation Status: Generated verification slips are digital representations derived from third-party API lookups. SmartLink NG is an independent third-party technology facilitator, not directly connected to primary providers, and does not issue statutory national identity cards in lieu of government authorities.",
-          "• Statutory Disclaimer: Note: The generated card/slip is for verification purposes only and is not an official NIMC document.",
         ],
       },
       {
@@ -889,10 +888,6 @@ export const LEGAL_DOCUMENTS: LegalDocument[] = [
           "• Electricity Distribution Companies (IKEDC, EKEDC, AEDC, IBEDC, etc.) and Telecom Operators (MTN, Airtel, Glo, 9mobile).",
           "• Examination Bodies (WAEC, NECO, JAMB) for scratch card PIN generation.",
         ],
-        callout: {
-          type: "notice",
-          text: "Note: The generated card/slip is for verification purposes only and is not an official NIMC document.",
-        },
       },
       {
         id: "no-guarantee-decisions",

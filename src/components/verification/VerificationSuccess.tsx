@@ -259,10 +259,6 @@ export const VerificationSuccess: React.FC<VerificationSuccessProps> = ({
           <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
             <div className="h-full bg-gradient-to-r from-emerald-500 to-[#0F2D5C] w-full animate-pulse" />
           </div>
-
-          <div className="w-full text-center px-3 py-2 text-[11px] font-medium text-amber-800 bg-amber-50 rounded-xl border border-amber-200/80 leading-relaxed">
-            Note: The generated card/slip is for verification purposes only and is not an official NIMC document
-          </div>
         </div>
       ) : (
         /* State B: Downloaded Complete - No Data Preview, Clean Verified Successful with 2 Buttons */
@@ -314,11 +310,6 @@ export const VerificationSuccess: React.FC<VerificationSuccessProps> = ({
               <Mail className="w-5 h-5" />
               <span>send slip to my email</span>
             </button>
-          </div>
-
-          {/* Verification Purpose Disclaimer */}
-          <div className="w-full text-center px-3 py-2 text-xs font-medium text-amber-800 bg-amber-50 rounded-2xl border border-amber-200/80 leading-relaxed">
-            Note: The generated card/slip is for verification purposes only and is not an official NIMC document
           </div>
 
           {/* Email Form (Toggled or Triggered by "send slip to my email") */}

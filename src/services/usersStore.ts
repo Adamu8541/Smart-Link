@@ -110,11 +110,12 @@ export async function getUserByPhone(phoneNumber: string): Promise<UserDoc | nul
 export async function createUser(user: UserDoc): Promise<UserDoc> {
   const uid = user.uid || user.id || `usr_${Date.now()}`;
   const now = new Date().toISOString();
+  const cleanEmail = user.email ? user.email.toLowerCase().trim() : "";
   const cleanUser: UserDoc = {
     ...user,
     uid,
     id: uid,
-    email: user.email ? user.email.toLowerCase().trim() : "",
+    email: cleanEmail,
     fullName: user.fullName || "Smart Link User",
     role: user.role || "CUSTOMER",
     walletBalance: typeof user.walletBalance === "number" ? user.walletBalance : 0,
@@ -128,41 +129,126 @@ export async function createUser(user: UserDoc): Promise<UserDoc> {
   const pinHash = cleanUser.transactionPinHash || null;
   const pinReq = cleanUser.pinRequiredForTransactions !== false ? 1 : 0;
 
-  await executeTurso(
-    `INSERT INTO users (id, uid, email, phone_number, full_name, role, wallet_balance, referral_code, is_verified, status, has_transaction_pin, transaction_pin_hash, pin_required_for_transactions, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-     ON CONFLICT(uid) DO UPDATE SET
-       email=excluded.email,
-       phone_number=excluded.phone_number,
-       full_name=excluded.full_name,
-       role=excluded.role,
-       wallet_balance=excluded.wallet_balance,
-       is_verified=excluded.is_verified,
-       status=excluded.status,
-       has_transaction_pin=excluded.has_transaction_pin,
-       transaction_pin_hash=excluded.transaction_pin_hash,
-       pin_required_for_transactions=excluded.pin_required_for_transactions,
-       updated_at=excluded.updated_at;`,
-    [
-      uid,
-      uid,
-      cleanUser.email || "",
-      cleanUser.phoneNumber || "",
-      cleanUser.fullName || "",
-      cleanUser.role || "CUSTOMER",
-      cleanUser.walletBalance || 0,
-      cleanUser.referralCode || "",
-      cleanUser.isVerified ? 1 : 0,
-      cleanUser.status || "ACTIVE",
-      hasPin,
-      pinHash,
-      pinReq,
-      cleanUser.createdAt || now,
-      cleanUser.updatedAt || now,
-    ]
-  );
+  // Check if user exists by UID first
+  const existingByUid = await getUserByUid(uid);
+  if (existingByUid) {
+    await updateUser(uid, cleanUser);
+    return (await getUserByUid(uid)) || cleanUser;
+  }
+
+  // Check if user exists by email to prevent UNIQUE constraint failed on email
+  if (cleanEmail) {
+    const existingByEmail = await getUserByEmail(cleanEmail);
+    if (existingByEmail) {
+      await executeTurso(
+        `UPDATE users SET 
+           uid = ?, 
+           id = ?, 
+           phone_number = COALESCE(?, phone_number),
+           full_name = COALESCE(?, full_name),
+           role = COALESCE(?, role),
+           wallet_balance = COALESCE(?, wallet_balance),
+           is_verified = COALESCE(?, is_verified),
+           status = COALESCE(?, status),
+           updated_at = ?
+         WHERE lower(email) = lower(?);`,
+        [
+          uid,
+          uid,
+          cleanUser.phoneNumber || null,
+          cleanUser.fullName || null,
+          cleanUser.role || null,
+          cleanUser.walletBalance || null,
+          cleanUser.isVerified ? 1 : 0,
+          cleanUser.status || null,
+          now,
+          cleanEmail,
+        ]
+      );
+      return (await getUserByUid(uid)) || cleanUser;
+    }
+  }
+
+  const cleanReferralCode = cleanUser.referralCode && cleanUser.referralCode.trim()
+    ? cleanUser.referralCode.trim()
+    : null;
+
+  try {
+    await executeTurso(
+      `INSERT INTO users (id, uid, email, phone_number, full_name, role, wallet_balance, referral_code, is_verified, status, has_transaction_pin, transaction_pin_hash, pin_required_for_transactions, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(uid) DO UPDATE SET
+         email=excluded.email,
+         phone_number=excluded.phone_number,
+         full_name=excluded.full_name,
+         role=excluded.role,
+         wallet_balance=excluded.wallet_balance,
+         is_verified=excluded.is_verified,
+         status=excluded.status,
+         has_transaction_pin=excluded.has_transaction_pin,
+         transaction_pin_hash=excluded.transaction_pin_hash,
+         pin_required_for_transactions=excluded.pin_required_for_transactions,
+         updated_at=excluded.updated_at;`,
+      [
+        uid,
+        uid,
+        cleanUser.email || `${uid}@user.smartlink.ng`,
+        cleanUser.phoneNumber || "",
+        cleanUser.fullName || "",
+        cleanUser.role || "CUSTOMER",
+        cleanUser.walletBalance || 0,
+        cleanReferralCode,
+        cleanUser.isVerified ? 1 : 0,
+        cleanUser.status || "ACTIVE",
+        hasPin,
+        pinHash,
+        pinReq,
+        cleanUser.createdAt || now,
+        cleanUser.updatedAt || now,
+      ]
+    );
+  } catch (insertErr: any) {
+    console.warn(`[usersStore] User insert note: ${insertErr?.message}`);
+    try {
+      await executeTurso(
+        `INSERT INTO users (id, uid, email, full_name, role, wallet_balance, referral_code, is_verified, status, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, 0, NULL, 1, 'ACTIVE', ?, ?)
+         ON CONFLICT(uid) DO UPDATE SET updated_at = excluded.updated_at;`,
+        [uid, uid, cleanUser.email || `${uid}@user.smartlink.ng`, cleanUser.fullName || "Smart Link User", cleanUser.role || "CUSTOMER", now, now]
+      );
+    } catch (fallbackErr: any) {
+      console.warn(`[usersStore] User fallback insert note: ${fallbackErr?.message}`);
+    }
+  }
 
   return cleanUser;
+}
+
+export async function ensureUserExists(uid: string, fallback?: Partial<UserDoc>): Promise<UserDoc> {
+  if (!uid) return null as any;
+  const existingByUid = await getUserByUid(uid);
+  if (existingByUid) return existingByUid;
+
+  const email = fallback?.email ? fallback.email.toLowerCase().trim() : `${uid}@user.smartlink.ng`;
+  const existingByEmail = await getUserByEmail(email);
+  if (existingByEmail) {
+    return existingByEmail;
+  }
+
+  const created = await createUser({
+    uid,
+    id: uid,
+    email,
+    fullName: fallback?.fullName || "Smart Link User",
+    phoneNumber: fallback?.phoneNumber || fallback?.phone || "",
+    role: fallback?.role || "CUSTOMER",
+    walletBalance: typeof fallback?.walletBalance === "number" ? fallback.walletBalance : 0,
+    isVerified: fallback?.isVerified ?? true,
+    status: fallback?.status || "ACTIVE",
+  });
+
+  const verified = await getUserByUid(uid);
+  return verified || created;
 }
 
 export async function updateUser(uid: string, updates: Partial<UserDoc>): Promise<UserDoc | null> {
@@ -236,6 +322,7 @@ export const usersStore = {
   getUserByEmail,
   getUserByPhone,
   createUser,
+  ensureUserExists,
   updateUser,
   deleteUser,
   seedUsersIfEmpty,

@@ -349,7 +349,7 @@ export default function Navigation({
               )}
 
               {/* Categorized Menu Scroll Area */}
-              <nav className="flex flex-col gap-4 text-left overflow-y-auto max-h-[calc(100vh-240px)] pr-1 scrollbar-none">
+              <nav className="flex flex-col gap-4 text-left overflow-y-auto flex-1 pr-1 pb-4 scrollbar-thin">
                 {menuGroups.map((group) => (
                   <div key={group.title} className="space-y-1">
                     <div className="px-3 py-1 text-[9px] font-extrabold text-[#6B7280] font-sans tracking-wider uppercase">
@@ -389,47 +389,55 @@ export default function Navigation({
                     </div>
                   </div>
                 ))}
+
+                {/* Preferences & Session Controls - Joined directly into upper list */}
+                <div className="pt-3 border-t border-white/10 space-y-2">
+                  <div className="px-3 py-1 text-[9px] font-extrabold text-[#9CA3AF]/70 font-sans tracking-wider uppercase">
+                    PREFERENCES & SESSION
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <button
+                      type="button"
+                      onClick={onToggleDarkMode}
+                      id="btn-nav-mobile-darkmode"
+                      className="w-full min-h-[42px] py-2 bg-white/5 hover:bg-white/10 text-[#E5E7EB] border border-white/10 rounded-lg text-xs font-semibold transition-all flex items-center justify-between px-3 cursor-pointer"
+                    >
+                      <span className="flex items-center gap-2.5 font-medium">
+                        {isDarkMode ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-blue-300" />}
+                        <span>{isDarkMode ? "Light Mode" : "Dark Mode"}</span>
+                      </span>
+                      <span className={`h-4 w-7 rounded-full p-0.5 transition-colors duration-200 ${isDarkMode ? "bg-[#0F2D5C]" : "bg-white/20"} flex items-center`}>
+                        <span className={`h-3 w-3 rounded-full bg-white transition-transform duration-200 transform ${isDarkMode ? "translate-x-3" : "translate-x-0"}`}></span>
+                      </span>
+                    </button>
+
+                    {currentUser && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onLogout();
+                          setMobileMenuOpen(false);
+                        }}
+                        id="btn-nav-mobile-sign-out"
+                        className="w-full min-h-[42px] py-2 bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 hover:text-rose-200 border border-rose-500/30 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer"
+                      >
+                        <LogOut className="h-4 w-4 text-rose-400" />
+                        <span>Sign Out / Exit</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
               </nav>
-            </div>
-
-            {/* Logout and Dark mode */}
-            <div className="pt-4 border-t border-[#111827] space-y-2 mt-auto shrink-0">
-              <button
-                type="button"
-                onClick={onToggleDarkMode}
-                className="w-full min-h-[44px] py-2.5 bg-[#111827]/50 hover:bg-[#6B7280] text-[#E5E7EB] border border-[#111827] rounded-lg text-[11px] font-bold transition-all flex items-center justify-between px-3 cursor-pointer"
-              >
-                <span className="flex items-center gap-2">
-                  {isDarkMode ? <Sun className="h-3.5 w-3.5 text-[#9CA3AF]" /> : <Moon className="h-3.5 w-3.5 text-[#9CA3AF]" />}
-                  {isDarkMode ? "Light Mode" : "Dark Mode"}
-                </span>
-                <span className={`h-4 w-7 rounded-full p-0.5 transition-colors duration-200 ${isDarkMode ? "bg-[#0F2D5C]" : "bg-[#4B5563]"} flex items-center`}>
-                  <span className={`h-3 w-3 rounded-full bg-white transition-transform duration-200 transform ${isDarkMode ? "translate-x-3" : "translate-x-0"}`}></span>
-                </span>
-              </button>
-
-              {currentUser && (
-                <button
-                  onClick={() => {
-                    onLogout();
-                    setMobileMenuOpen(false);
-                  }}
-                  className="w-full min-h-[44px] py-2.5 bg-[#6B7280] hover:bg-[#0F2D5C]/40 hover:text-[#9CA3AF] text-[#9CA3AF] border border-[#111827] rounded-lg text-[11px] font-bold transition-all flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <LogOut className="h-4 w-4" />
-                  Sign Out / Exit
-                </button>
-              )}
             </div>
           </div>
         </div>
       )}
 
       {/* --- DESKTOP SIDEBAR --- */}
-      <aside className="hidden lg:flex flex-col justify-between w-72 h-screen bg-[#0F2D5C] text-white border-r border-[#17407E]/40 p-4 sticky top-0 shrink-0">
-        <div className="space-y-4 flex flex-col h-full overflow-hidden">
+      <aside className="hidden lg:flex flex-col w-72 h-screen bg-[#0F2D5C] text-white border-r border-[#17407E]/40 p-4 sticky top-0 shrink-0">
+        <div className="space-y-4 flex flex-col flex-1 min-h-0">
           {/* Logo Brand matching the Image precisely */}
-          <div className="flex items-center justify-center px-1 py-2 select-none bg-white rounded-xl shadow-sm border border-[#17407E]/30">
+          <div className="flex items-center justify-center px-1 py-2 select-none bg-white rounded-xl shadow-sm border border-[#17407E]/30 shrink-0">
             <img
               src={logoUrl}
               alt={`${siteName} Enterprise Dashboard`}
@@ -445,7 +453,7 @@ export default function Navigation({
 
           {/* Profile Card */}
           {currentUser && (
-            <div className="p-3.5 rounded-xl bg-[#17407E]/60 border border-white/10 text-left space-y-2 animate-fadeIn">
+            <div className="p-3.5 rounded-xl bg-[#17407E]/60 border border-white/10 text-left space-y-2 animate-fadeIn shrink-0">
               <div className="flex justify-between items-center text-[9px] text-[#9CA3AF] font-mono font-bold tracking-wider">
                 <span>AUTHORIZED PARTNER</span>
                 <span className="inline-block h-1.5 w-1.5 bg-[#0F2D5C] rounded-full animate-pulse"></span>
@@ -479,7 +487,7 @@ export default function Navigation({
           )}
 
           {/* Categorized Desktop Navigation Links */}
-          <nav className="flex-1 overflow-y-auto pr-1 flex flex-col gap-3.5 text-left scrollbar-thin max-h-[calc(100vh-280px)]">
+          <nav className="flex-1 overflow-y-auto pr-1 flex flex-col gap-3.5 text-left scrollbar-thin pb-4">
             {menuGroups.map((group) => (
               <div key={group.title} className="space-y-1">
                 <div className="px-3 text-[9px] font-bold text-[#9CA3AF]/70 font-sans tracking-wider uppercase">
@@ -520,36 +528,45 @@ export default function Navigation({
                 </div>
               </div>
             ))}
+
+            {/* Preferences & Session Controls - Joined directly into upper list */}
+            <div className="pt-3 border-t border-white/10 space-y-1.5">
+              <div className="px-3 text-[9px] font-bold text-[#9CA3AF]/70 font-sans tracking-wider uppercase">
+                PREFERENCES & SESSION
+              </div>
+              <div className="flex flex-col gap-1">
+                {/* Dark Mode Theme */}
+                <button
+                  type="button"
+                  onClick={onToggleDarkMode}
+                  id="btn-nav-desktop-darkmode"
+                  title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                  className="w-full py-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-xl text-xs font-semibold transition-all flex items-center justify-between px-3 cursor-pointer"
+                >
+                  <span className="flex items-center gap-3">
+                    {isDarkMode ? <Sun className="h-4 w-4 text-amber-300" /> : <Moon className="h-4 w-4 text-blue-300" />}
+                    <span>{isDarkMode ? "Light Mode" : "Dark Mode"}</span>
+                  </span>
+                  <span className={`h-4 w-7 rounded-full p-0.5 transition-colors duration-200 ${isDarkMode ? "bg-[#0F2D5C]" : "bg-white/20"} flex items-center`}>
+                    <span className={`h-3 w-3 rounded-full bg-white transition-transform duration-200 transform ${isDarkMode ? "translate-x-3" : "translate-x-0"}`}></span>
+                  </span>
+                </button>
+
+                {currentUser && (
+                  <button
+                    type="button"
+                    onClick={onLogout}
+                    id="btn-sign-out"
+                    title="Sign Out / Exit"
+                    className="w-full py-2 bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 hover:text-rose-200 border border-rose-500/30 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <LogOut className="h-4 w-4 text-rose-400" />
+                    <span>Sign Out / Exit</span>
+                  </button>
+                )}
+              </div>
+            </div>
           </nav>
-        </div>
-
-        {/* Bottom Panel Settings */}
-        <div className="pt-3 border-t border-white/10 space-y-2 text-left shrink-0">
-          {/* Dark Mode Theme */}
-          <button
-            type="button"
-            onClick={onToggleDarkMode}
-            className="w-full py-2 bg-white/5 hover:bg-white/10 text-[#9CA3AF] border border-white/10 rounded-xl text-xs font-semibold transition-all flex items-center justify-between px-3 cursor-pointer"
-          >
-            <span className="flex items-center gap-2 font-mono text-[11px]">
-              {isDarkMode ? <Sun className="h-3.5 w-3.5 text-[#9CA3AF]" /> : <Moon className="h-3.5 w-3.5 text-[#9CA3AF]" />}
-              {isDarkMode ? "Light Mode" : "Dark Mode"}
-            </span>
-            <span className={`h-4 w-7 rounded-full p-0.5 transition-colors duration-200 ${isDarkMode ? "bg-[#0F2D5C]" : "bg-white/20"} flex items-center`}>
-              <span className={`h-3 w-3 rounded-full bg-white transition-transform duration-200 transform ${isDarkMode ? "translate-x-3" : "translate-x-0"}`}></span>
-            </span>
-          </button>
-
-          {currentUser && (
-            <button
-              onClick={onLogout}
-              id="btn-sign-out"
-              className="w-full py-2 bg-white/5 hover:bg-[#0F2D5C]/20 hover:text-[#9CA3AF] text-[#9CA3AF] border border-white/10 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2"
-            >
-              <LogOut className="h-3.5 w-3.5" />
-              Sign Out / Exit
-            </button>
-          )}
         </div>
       </aside>
     </>

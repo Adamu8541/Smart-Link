@@ -177,17 +177,43 @@ export function recordAdminUserAction(
   return record;
 }
 
+export interface VirtualAccountResult {
+  success: boolean;
+  error?: string;
+  code?: string;
+  message?: string;
+  provider?: any;
+  account?: any;
+  virtualAccount?: any;
+  isExisting?: boolean;
+}
+
+export function isInvalidPhoneAccount(accNum?: string, phone?: string): boolean {
+  if (!accNum || typeof accNum !== "string") return true;
+  const clean = accNum.replace(/\D/g, "");
+  if (!clean || clean.length < 10) return true;
+  if (clean === "8085490982") return true;
+  if (phone) {
+    const cleanPhone = String(phone).replace(/\D/g, "");
+    if (cleanPhone.length >= 10 && (cleanPhone === clean || cleanPhone.slice(-10) === clean)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 export async function getOrCreateUserVirtualAccount(
   userId: string,
   userFallback?: any,
   amount?: number,
   options?: { forceRegenerate?: boolean }
-) {
+): Promise<VirtualAccountResult> {
   const db = readDB();
   if (!db.virtualAccounts) db.virtualAccounts = [];
   if (!db.walletAccounts) db.walletAccounts = [];
 
   const forceRegenerate = Boolean(options?.forceRegenerate);
+  const targetPhone = userFallback?.phone || userFallback?.phoneNumber || "";
 
   // 1. Check Turso Database first for persistent user virtual account (unless forceRegenerate is true)
   if (!forceRegenerate) {
@@ -195,51 +221,42 @@ export async function getOrCreateUserVirtualAccount(
       const tursoVa = await VirtualAccountRepository.findByUserId(userId);
       if (tursoVa && (tursoVa.account_number || (tursoVa as any).accountNumber)) {
         const accNum = String(tursoVa.account_number || (tursoVa as any).accountNumber).trim();
-        const exactAccName = tursoVa.account_name || (tursoVa as any).accountName || userFallback?.fullName || "Customer";
-        const bankName = tursoVa.bank_name || (tursoVa as any).bankName || "PalmPay";
-        const providerName = String(tursoVa.provider || "").toLowerCase().includes("aspfiy")
-          ? "Aspfiy Payment Portal"
-          : (tursoVa.provider || "Aspfiy Payment Portal");
+        if (!isInvalidPhoneAccount(accNum, targetPhone)) {
+          const exactAccName = tursoVa.account_name || (tursoVa as any).accountName || userFallback?.fullName || "Customer";
+          const bankName = tursoVa.bank_name || (tursoVa as any).bankName || "PalmPay";
+          const providerName = String(tursoVa.provider || "").toLowerCase().includes("aspfiy")
+            ? "Aspfiy Payment Portal"
+            : (tursoVa.provider || "Aspfiy Payment Portal");
 
-        const existingAccount = {
-          id: tursoVa.id || `va_${tursoVa.provider || "aspfiy"}_${userId}`,
-          userId: tursoVa.user_id || userId,
-          userEmail: userFallback?.email || "",
-          userName: userFallback?.fullName || exactAccName,
-          provider: tursoVa.provider || "prov_aspfiy",
-          providerId: tursoVa.provider || "prov_aspfiy",
-          providerName,
-          bankName,
-          accountNumber: accNum,
-          accountName: exactAccName, // EXACT account name from Turso as returned by provider
-          reference: tursoVa.reference || `SL-${userId}`,
-          providerReference: tursoVa.reference || `SL-${userId}`,
-          accounts: [{ bankName, accountNumber: accNum }],
-          status: tursoVa.is_active ? "ACTIVE" : "INACTIVE",
-          createdAt: tursoVa.created_at || new Date().toISOString(),
-        };
+          const existingAccount = {
+            id: tursoVa.id || `va_${tursoVa.provider || "aspfiy"}_${userId}`,
+            userId: tursoVa.user_id || userId,
+            userEmail: userFallback?.email || "",
+            userName: userFallback?.fullName || exactAccName,
+            provider: tursoVa.provider || "prov_aspfiy",
+            providerId: tursoVa.provider || "prov_aspfiy",
+            providerName,
+            bankName,
+            accountNumber: accNum,
+            accountName: exactAccName,
+            reference: tursoVa.reference || `SL-${userId}`,
+            providerReference: tursoVa.reference || `SL-${userId}`,
+            accounts: [{ bankName, accountNumber: accNum }],
+            status: tursoVa.is_active ? "ACTIVE" : "INACTIVE",
+            createdAt: tursoVa.created_at || new Date().toISOString(),
+          };
 
-        // Synchronize in-memory cache
-        const existIdx = (db.virtualAccounts || []).findIndex(
-          (acc: any) => acc && (acc.userId === userId || acc.accountNumber === accNum)
-        );
-        if (existIdx >= 0) {
-          db.virtualAccounts[existIdx] = existingAccount;
-        } else {
-          db.virtualAccounts.push(existingAccount);
+          return {
+            success: true,
+            account: existingAccount,
+            virtualAccount: existingAccount,
+            provider: {
+              name: existingAccount.providerName || existingAccount.bankName,
+              id: existingAccount.providerId || existingAccount.provider,
+            },
+            isExisting: true,
+          };
         }
-        writeDB(db);
-
-        return {
-          success: true,
-          account: existingAccount,
-          virtualAccount: existingAccount,
-          provider: {
-            name: existingAccount.providerName || existingAccount.bankName,
-            id: existingAccount.providerId || existingAccount.provider,
-          },
-          isExisting: true,
-        };
       }
     } catch (tursoErr: any) {
       console.warn(`[Turso] Virtual account lookup note: ${tursoErr?.message}`);
@@ -250,10 +267,10 @@ export async function getOrCreateUserVirtualAccount(
   if (!forceRegenerate) {
     let existingAccount =
       (db.virtualAccounts || []).find(
-        (acc: any) => acc && acc.userId === userId && (acc.accountNumber || acc.account_number)
+        (acc: any) => acc && acc.userId === userId && !isInvalidPhoneAccount(acc.accountNumber || acc.account_number, targetPhone)
       ) ||
       (db.walletAccounts || []).find(
-        (acc: any) => acc && acc.userId === userId && (acc.accountNumber || acc.account_number)
+        (acc: any) => acc && acc.userId === userId && !isInvalidPhoneAccount(acc.accountNumber || acc.account_number, targetPhone)
       );
 
     if (existingAccount) {
@@ -276,39 +293,38 @@ export async function getOrCreateUserVirtualAccount(
       const userWallet: any = await walletsStore.getWalletByUserId(userId);
       if (userWallet && (userWallet.virtualAccountNumber || userWallet.accountNumber)) {
         const accNum = userWallet.virtualAccountNumber || userWallet.accountNumber;
-        const existingAccount = {
-          id: `va_${userWallet.provider || "aspfiy"}_${userId}`,
-          userId,
-          userEmail: userWallet.email || userFallback?.email || "",
-          userName: userWallet.virtualAccountName || userFallback?.fullName || "",
-          provider: userWallet.provider || "prov_aspfiy",
-          providerId: userWallet.provider || "prov_aspfiy",
-          providerName: userWallet.providerName || "Aspfiy Payment Portal",
-          bankName: userWallet.virtualBankName || userWallet.bankName || "PalmPay",
-          accountNumber: accNum,
-          accountName:
-            userWallet.virtualAccountName ||
-            userWallet.accountName ||
-            userFallback?.fullName ||
-            "Customer",
-          reference: userWallet.virtualAccountReference || userWallet.reference || `SL-${userId}`,
-          providerReference: userWallet.virtualAccountReference || userWallet.reference || `SL-${userId}`,
-          status: "ACTIVE",
-          createdAt: userWallet.createdAt || new Date().toISOString(),
-        };
-        db.virtualAccounts.push(existingAccount);
-        db.walletAccounts.push(existingAccount);
-        writeDB(db);
-        return {
-          success: true,
-          account: existingAccount,
-          virtualAccount: existingAccount,
-          provider: {
-            name: existingAccount.providerName || existingAccount.bankName,
-            id: existingAccount.providerId || existingAccount.provider,
-          },
-          isExisting: true,
-        };
+        if (!isInvalidPhoneAccount(accNum, targetPhone)) {
+          const existingAccount = {
+            id: `va_${userWallet.provider || "aspfiy"}_${userId}`,
+            userId,
+            userEmail: userWallet.email || userFallback?.email || "",
+            userName: userWallet.virtualAccountName || userFallback?.fullName || "",
+            provider: userWallet.provider || "prov_aspfiy",
+            providerId: userWallet.provider || "prov_aspfiy",
+            providerName: userWallet.providerName || "Aspfiy Payment Portal",
+            bankName: userWallet.virtualBankName || userWallet.bankName || "PalmPay",
+            accountNumber: accNum,
+            accountName:
+              userWallet.virtualAccountName ||
+              userWallet.accountName ||
+              userFallback?.fullName ||
+              "Customer",
+            reference: userWallet.virtualAccountReference || userWallet.reference || `SL-${userId}`,
+            providerReference: userWallet.virtualAccountReference || userWallet.reference || `SL-${userId}`,
+            status: "ACTIVE",
+            createdAt: userWallet.createdAt || new Date().toISOString(),
+          };
+          return {
+            success: true,
+            account: existingAccount,
+            virtualAccount: existingAccount,
+            provider: {
+              name: existingAccount.providerName || existingAccount.bankName,
+              id: existingAccount.providerId || existingAccount.provider,
+            },
+            isExisting: true,
+          };
+        }
       }
     } catch (err: any) {
       console.warn(`[VirtualAccount] Storage wallet lookup note: ${err?.message}`);
@@ -364,78 +380,76 @@ export async function getOrCreateUserVirtualAccount(
 
   if (!forceRegenerate && user && (user.virtualAccountNumber || user.accountNumber)) {
     const accNum = user.virtualAccountNumber || user.accountNumber;
-    const existingAccount = {
-      id: `va_${user.provider || "aspfiy"}_${userId}`,
-      userId,
-      userEmail: user.email || "",
-      userName: user.fullName || "",
-      provider: user.provider || "prov_aspfiy",
-      providerId: user.provider || "prov_aspfiy",
-      providerName: "Aspfiy Payment Portal",
-      bankName: user.virtualBankName || user.bankName || "PalmPay",
-      accountNumber: accNum,
-      accountName:
-        user.virtualAccountName || user.accountName || user.fullName || "Customer",
-      reference: user.virtualAccountReference || user.reference || `SL-${userId}`,
-      providerReference: user.virtualAccountReference || user.reference || `SL-${userId}`,
-      status: "ACTIVE",
-      createdAt: user.createdAt || new Date().toISOString(),
-    };
-    db.virtualAccounts.push(existingAccount);
-    db.walletAccounts.push(existingAccount);
-    writeDB(db);
-    return {
-      success: true,
-      account: existingAccount,
-      virtualAccount: existingAccount,
-      provider: {
-        name: existingAccount.providerName || existingAccount.bankName,
-        id: existingAccount.providerId || existingAccount.provider,
-      },
-      isExisting: true,
-    };
+    if (!isInvalidPhoneAccount(accNum, resolvedPhone)) {
+      const existingAccount = {
+        id: `va_${user.provider || "aspfiy"}_${userId}`,
+        userId,
+        userEmail: user.email || "",
+        userName: user.fullName || "",
+        provider: user.provider || "prov_aspfiy",
+        providerId: user.provider || "prov_aspfiy",
+        providerName: "Aspfiy Payment Portal",
+        bankName: user.virtualBankName || user.bankName || "PalmPay",
+        accountNumber: accNum,
+        accountName:
+          user.virtualAccountName || user.accountName || user.fullName || "Customer",
+        reference: user.virtualAccountReference || user.reference || `SL-${userId}`,
+        providerReference: user.virtualAccountReference || user.reference || `SL-${userId}`,
+        status: "ACTIVE",
+        createdAt: user.createdAt || new Date().toISOString(),
+      };
+      return {
+        success: true,
+        account: existingAccount,
+        virtualAccount: existingAccount,
+        provider: {
+          name: existingAccount.providerName || existingAccount.bankName,
+          id: existingAccount.providerId || existingAccount.provider,
+        },
+        isExisting: true,
+      };
+    }
   }
 
-  // 5. Resolve Active Provider and Adapter
+  // 5. Resolve Active Provider and Adapter to Generate Real Virtual Account
   const resolved = getActiveProviderAndAdapter(db);
-  if (!resolved) {
+  let result: any = null;
+  let providerInfo = resolved?.provider || { id: "prov_aspfiy", name: "Aspfiy Payment Portal" };
+
+  if (resolved && resolved.adapter && resolved.adapter.createVirtualAccount) {
+    try {
+      result = await resolved.adapter.createVirtualAccount(db, user, resolved.provider);
+    } catch (adapterErr: any) {
+      console.warn("[VirtualAccount] Adapter creation error:", adapterErr?.message);
+      result = { success: false, error: adapterErr?.message || "Failed to communicate with Aspfiy provider." };
+    }
+  }
+
+  // If external provider call failed or returned no account number, DO NOT return the phone number!
+  if (!result || !result.success || !result.accountNumber || isInvalidPhoneAccount(result.accountNumber, user.phone)) {
+    const errorMsg = result?.error || "Aspfiy provider was unable to generate a reserved virtual account. Please check merchant API keys in Aspfiy dashboard.";
     return {
       success: false,
-      error: "No active payment provider configured.",
-      code: "NO_ACTIVE_PROVIDER",
+      code: "PROVIDER_ERROR",
+      error: errorMsg,
+      provider: {
+        name: providerInfo.name || "Aspfiy Payment Portal",
+        id: providerInfo.id || "prov_aspfiy",
+      },
     };
   }
 
-  const { provider, adapter } = resolved;
-  if (!adapter.createVirtualAccount) {
-    return {
-      success: false,
-      error: `Active provider "${provider.name}" does not support virtual account creation.`,
-      code: "NOT_SUPPORTED",
-    };
-  }
-
-  const result = await adapter.createVirtualAccount(db, user, provider);
-  if (!result.success || !result.accountNumber) {
-    return {
-      success: false,
-      error: result.error || "Failed to create virtual account with active provider.",
-      code: "PROVIDER_ACCOUNT_CREATION_FAILED",
-      rawResponse: result.rawResponse,
-    };
-  }
-
-  // Exact account name as returned by the provider (e.g. Aspfiy)
+  // Exact account name as returned by the provider or user name
   const exactAccountName = result.accountName || user.fullName || "Customer";
 
   const virtualAccount = {
-    id: `va_${provider.id || "prov"}_${Date.now()}`,
+    id: `va_${providerInfo.id || "prov"}_${Date.now()}`,
     userId,
     userEmail: user.email || userFallback?.email,
     userName: user.fullName || userFallback?.fullName,
-    provider: provider.id || "PORTAL",
-    providerId: provider.id,
-    providerName: provider.name,
+    provider: providerInfo.id || "PORTAL",
+    providerId: providerInfo.id,
+    providerName: providerInfo.name,
     bankName: result.bankName || "PalmPay",
     accountNumber: result.accountNumber,
     accountName: exactAccountName,
@@ -449,37 +463,49 @@ export async function getOrCreateUserVirtualAccount(
 
   // Persist to Turso Database
   try {
-    // 1. Ensure user row exists in Turso users table
-    await executeTurso(`
-      INSERT INTO users (id, uid, email, full_name, role, wallet_balance, is_verified, status, created_at, updated_at)
-      VALUES (?, ?, ?, ?, 'USER', 0, 1, 'ACTIVE', datetime('now'), datetime('now'))
-      ON CONFLICT(uid) DO UPDATE SET
-        full_name = excluded.full_name,
-        updated_at = datetime('now');
-    `, [userId, userId, user.email || `${userId}@user.smartlink.ng`, exactAccountName || user.fullName]);
+    const cleanEmail = (user.email || `${userId}@user.smartlink.ng`).toLowerCase().trim();
+
+    // 1. Ensure user row exists in Turso users table cleanly
+    const confirmedUser = await usersStore.ensureUserExists(userId, {
+      uid: userId,
+      email: cleanEmail,
+      fullName: exactAccountName || user.fullName || "Smart Link User",
+      phoneNumber: user.phone || user.phoneNumber || "",
+    });
+    const targetUserId = confirmedUser?.uid || userId;
+
+    // 1.5. Guarantee targetUserId is in users table before writing child rows
+    const userCheck = await executeTurso(`SELECT uid FROM users WHERE uid = ? LIMIT 1;`, [targetUserId]);
+    if (!userCheck.rows || userCheck.rows.length === 0) {
+      await executeTurso(`
+        INSERT INTO users (id, uid, email, full_name, role, wallet_balance, referral_code, is_verified, status, created_at, updated_at)
+        VALUES (?, ?, ?, ?, 'CUSTOMER', 0, NULL, 1, 'ACTIVE', datetime('now'), datetime('now'))
+        ON CONFLICT(uid) DO UPDATE SET updated_at = datetime('now');
+      `, [targetUserId, targetUserId, cleanEmail, exactAccountName || "Smart Link User"]);
+    }
 
     // 2. Ensure wallet row exists in Turso wallets table
     await executeTurso(`
       INSERT INTO wallets (id, wallet_id, user_id, currency, balance, held_balance, total_credits, total_debits, status, created_at, updated_at)
       VALUES (?, ?, ?, 'NGN', 0, 0, 0, 0, 'ACTIVE', datetime('now'), datetime('now'))
       ON CONFLICT(user_id) DO NOTHING;
-    `, [`wal_${userId}`, `wal_${userId}`, userId]);
+    `, [`wal_${targetUserId}`, `wal_${targetUserId}`, targetUserId]);
 
     // 3. Save virtual account into Turso user_virtual_accounts table
     await VirtualAccountRepository.create({
       id: virtualAccount.id,
-      user_id: userId,
+      user_id: targetUserId,
       account_number: result.accountNumber,
       bank_name: result.bankName || "PalmPay",
       bank_code: (result as any).bankCode || "999991",
       account_name: exactAccountName,
-      provider: provider.id || "aspfiy",
-      reference: result.providerReference || `SL-${userId}`,
+      provider: providerInfo.id || "aspfiy",
+      reference: result.providerReference || `SL-${targetUserId}`,
       is_active: 1,
     });
-    console.log(`[Turso] Saved virtual account for user ${userId} (${result.accountNumber} - ${exactAccountName})`);
+    console.log(`[Turso] Saved virtual account for user ${targetUserId} (${result.accountNumber} - ${exactAccountName})`);
   } catch (tursoSaveErr: any) {
-    console.warn(`[Turso] Non-fatal virtual account save note: ${tursoSaveErr?.message}`);
+    console.warn(`[Turso] Virtual account save note: ${tursoSaveErr?.message}`);
   }
 
   db.virtualAccounts.push(virtualAccount);
@@ -491,7 +517,7 @@ export async function getOrCreateUserVirtualAccount(
       virtualBankName: result.bankName || "PalmPay",
       virtualAccountName: exactAccountName,
       virtualAccountReference: result.providerReference || `SL-${userId}`,
-      provider: provider.id || provider.name,
+      provider: providerInfo.id || providerInfo.name,
       updatedAt: new Date().toISOString(),
     }));
   } catch (err: any) {
@@ -514,7 +540,7 @@ export async function getOrCreateUserVirtualAccount(
 
   return {
     success: true,
-    provider,
+    provider: providerInfo,
     account: virtualAccount,
     virtualAccount,
   };

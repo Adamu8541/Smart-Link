@@ -14,7 +14,9 @@ import {
   Copy,
   Check,
   AlertCircle,
-  HelpCircle
+  HelpCircle,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 
 interface LandingContactSectionProps {
@@ -26,6 +28,8 @@ export const LandingContactSection: React.FC<LandingContactSectionProps> = ({
   className = "",
   onNavigateFAQ,
 }) => {
+  const [showChannels, setShowChannels] = useState(false);
+  const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -128,86 +132,119 @@ export const LandingContactSection: React.FC<LandingContactSectionProps> = ({
           <div className="lg:col-span-5 space-y-4 sm:space-y-5">
             
             {/* Direct Cards */}
-            <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-4 sm:p-5 space-y-4">
-              <h3 className="text-sm sm:text-base font-bold text-[#111827] flex items-center gap-2">
-                <Building2 className="h-4 w-4 text-[#0F2D5C]" />
-                Direct Communication Channels
-              </h3>
+            <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-4 sm:p-5 space-y-3">
+              <button
+                type="button"
+                onClick={() => setShowChannels(!showChannels)}
+                className="w-full text-sm sm:text-base font-bold text-[#111827] flex items-center justify-between gap-2 cursor-pointer focus:outline-none"
+              >
+                <span className="flex items-center gap-2">
+                  <Building2 className="h-4 w-4 text-[#0F2D5C]" />
+                  Direct Communication Channels
+                </span>
+                <span className="flex items-center gap-1.5 text-xs font-semibold text-[#0F2D5C] bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-100 shrink-0">
+                  {showChannels ? "Hide" : "Click to Show"}
+                  {showChannels ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </span>
+              </button>
 
-              <div className="space-y-3">
-                {/* Email Desk */}
-                <div className="flex items-start gap-3 p-3 bg-white border border-[#E5E7EB] rounded-lg">
-                  <div className="h-8 w-8 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 flex items-center justify-center shrink-0">
-                    <Mail className="h-4 w-4" />
+              {showChannels && (
+                <div className="space-y-3 pt-2 border-t border-[#E2E8F0] animate-fadeIn">
+                  {/* Email Desk */}
+                  <div className="flex items-start gap-3 p-3 bg-white border border-[#E5E7EB] rounded-lg">
+                    <div className="h-8 w-8 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 flex items-center justify-center shrink-0">
+                      <Mail className="h-4 w-4" />
+                    </div>
+                    <div className="space-y-0.5 text-left">
+                      <span className="text-[10px] font-bold text-[#4B5563] uppercase tracking-wider block">
+                        Support Email
+                      </span>
+                      <a
+                        href="mailto:Smartlinkcomputerbusiness@gmail.com"
+                        className="text-xs sm:text-sm font-bold text-[#0F2D5C] hover:underline break-all"
+                      >
+                        Smartlinkcomputerbusiness@gmail.com
+                      </a>
+                      <span className="text-[11px] text-[#4B5563] font-medium block">
+                        Official ticketing &amp; compliance desk
+                      </span>
+                    </div>
                   </div>
-                  <div className="space-y-0.5 text-left">
-                    <span className="text-[10px] font-bold text-[#4B5563] uppercase tracking-wider block">
-                      Support Email
-                    </span>
-                    <a
-                      href="mailto:Smartlinkcomputerbusiness@gmail.com"
-                      className="text-xs sm:text-sm font-bold text-[#0F2D5C] hover:underline break-all"
-                    >
-                      Smartlinkcomputerbusiness@gmail.com
-                    </a>
-                    <span className="text-[11px] text-[#4B5563] font-medium block">
-                      Official ticketing &amp; compliance desk
-                    </span>
+
+                  {/* Telephone */}
+                  <div className="flex items-start gap-3 p-3 bg-white border border-[#E5E7EB] rounded-lg">
+                    <div className="h-8 w-8 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 flex items-center justify-center shrink-0">
+                      <Phone className="h-4 w-4" />
+                    </div>
+                    <div className="space-y-0.5 text-left">
+                      <span className="text-[10px] font-bold text-[#4B5563] uppercase tracking-wider block">
+                        Phone &amp; Hotlines
+                      </span>
+                      <a
+                        href="tel:+2348085490982"
+                        className="text-xs sm:text-sm font-bold text-[#111827] hover:text-[#0F2D5C] block"
+                      >
+                        +234 808 549 0982
+                      </a>
+                      <span className="text-[11px] text-[#4B5563] font-medium block">
+                        Mon – Sat: 8:00 AM – 8:00 PM (GMT+1)
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* WhatsApp */}
+                  <div className="flex items-start gap-3.5 p-3.5 bg-white border border-[#E5E7EB] rounded-xl">
+                    <div className="h-10 w-10 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 flex items-center justify-center shrink-0">
+                      <MessageSquare className="h-5 w-5" />
+                    </div>
+                    <div className="space-y-0.5 text-left">
+                      <span className="text-[11px] font-bold text-[#4B5563] uppercase tracking-wider block">
+                        WhatsApp Live Desk
+                      </span>
+                      <a
+                        href="https://wa.me/2349047738212?text=Hello%20SmartLink%20Support,%20I%20have%20an%20inquiry"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs sm:text-sm font-bold text-[#0F2D5C] hover:underline flex items-center gap-1.5"
+                      >
+                        +234 904 773 8212
+                        <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                      </a>
+                      <span className="text-[11px] text-[#4B5563] font-medium block">
+                        Fast response for registered agents
+                      </span>
+                    </div>
                   </div>
                 </div>
-
-                {/* Telephone */}
-                <div className="flex items-start gap-3 p-3 bg-white border border-[#E5E7EB] rounded-lg">
-                  <div className="h-8 w-8 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 flex items-center justify-center shrink-0">
-                    <Phone className="h-4 w-4" />
-                  </div>
-                  <div className="space-y-0.5 text-left">
-                    <span className="text-[10px] font-bold text-[#4B5563] uppercase tracking-wider block">
-                      Phone &amp; Hotlines
-                    </span>
-                    <a
-                      href="tel:+2348085490982"
-                      className="text-xs sm:text-sm font-bold text-[#111827] hover:text-[#0F2D5C] block"
-                    >
-                      +234 808 549 0982
-                    </a>
-                    <span className="text-[11px] text-[#4B5563] font-medium block">
-                      Mon – Sat: 8:00 AM – 8:00 PM (GMT+1)
-                    </span>
-                  </div>
-                </div>
-
-                {/* WhatsApp */}
-                <div className="flex items-start gap-3.5 p-3.5 bg-white border border-[#E5E7EB] rounded-xl">
-                  <div className="h-10 w-10 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 flex items-center justify-center shrink-0">
-                    <MessageSquare className="h-5 w-5" />
-                  </div>
-                  <div className="space-y-0.5 text-left">
-                    <span className="text-[11px] font-bold text-[#4B5563] uppercase tracking-wider block">
-                      WhatsApp Live Desk
-                    </span>
-                    <a
-                      href="https://wa.me/2349047738212?text=Hello%20SmartLink%20Support,%20I%20have%20an%20inquiry"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs sm:text-sm font-bold text-[#0F2D5C] hover:underline flex items-center gap-1.5"
-                    >
-                      +234 904 773 8212
-                      <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                    </a>
-                    <span className="text-[11px] text-[#4B5563] font-medium block">
-                      Fast response for registered agents
-                    </span>
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
 
           </div>
 
           {/* Right Column: Contact Form */}
           <div className="lg:col-span-7">
-            <div className="bg-white border border-[#E5E7EB] rounded-3xl p-7 sm:p-9 shadow-sm text-left">
+            <div className="bg-white border border-[#E5E7EB] rounded-3xl p-5 sm:p-7 shadow-sm text-left">
+              <button
+                type="button"
+                onClick={() => setShowForm(!showForm)}
+                className="w-full flex items-center justify-between gap-3 cursor-pointer focus:outline-none"
+              >
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-[#111827] tracking-tight text-left">
+                    Send Us an Official Message
+                  </h3>
+                  <p className="text-xs text-[#4B5563] font-medium text-left mt-0.5">
+                    {showForm ? "Fill out the form below. We will respond directly to your email address." : "Click here to open the message contact form."}
+                  </p>
+                </div>
+                <span className="flex items-center gap-1.5 text-xs font-bold text-[#0F2D5C] bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100 shrink-0">
+                  {showForm ? "Hide Form" : "Click to Show Form"}
+                  {showForm ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </span>
+              </button>
+
+              {showForm && (
+                <div className="pt-5 border-t border-[#E5E7EB] mt-4 animate-fadeIn">
               
               {successData ? (
                 <div className="py-8 text-center space-y-6 animate-fadeIn">
@@ -395,6 +432,8 @@ export const LandingContactSection: React.FC<LandingContactSectionProps> = ({
                     Protected by NDPA 2023. We will never share your personal information.
                   </p>
                 </form>
+              )}
+                </div>
               )}
 
             </div>

@@ -33,7 +33,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
           {/* Main Semantic H1 Headline */}
           <h1
             id="hero-main-heading"
-            className="text-2xl sm:text-3.5xl md:text-4.5xl lg:text-5xl font-extrabold tracking-tight leading-[1.15] text-[#111827]"
+            className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight leading-[1.2] text-[#111827]"
           >
             Instant Identity Verification, Business Filing &amp;{" "}
             <span className="text-[#0F2D5C]">

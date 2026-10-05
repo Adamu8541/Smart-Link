@@ -8,7 +8,6 @@ import SEOHead from "./SEOHead";
 import LandingHeader from "./LandingHeader";
 import LandingHero from "./LandingHero";
 import LandingTrustSection from "./LandingTrustSection";
-import LandingServicesPreview from "./LandingServicesPreview";
 import LandingHowItWorks from "./LandingHowItWorks";
 import LandingFAQSection from "./LandingFAQSection";
 import LandingContactSection from "./LandingContactSection";
@@ -45,6 +44,10 @@ export const SmartLinkLandingPage: React.FC<SmartLinkLandingPageProps> = ({
   const [activeInfoTab, setActiveInfoTab] = useState<"about" | "contact" | null>(null);
 
   const handleNavigateSection = (sectionId: string) => {
+    if (sectionId === "services-section") {
+      onExploreServices();
+      return;
+    }
     if (sectionId === "about-section") {
       setActiveInfoTab("about");
       return;
@@ -120,14 +123,6 @@ export const SmartLinkLandingPage: React.FC<SmartLinkLandingPageProps> = ({
         {/* Trust Section */}
         <div>
           <LandingTrustSection />
-        </div>
-
-        {/* Services Preview */}
-        <div>
-          <LandingServicesPreview
-            onSelectService={onSelectService}
-            onExploreAll={onExploreServices}
-          />
         </div>
 
         {/* How It Works */}

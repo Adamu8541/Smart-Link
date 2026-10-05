@@ -60,10 +60,10 @@ export class MultiProviderRoutingEngine {
         service: "NIN",
         serviceName: "NIN Identity Verification",
         strategy: "PRIORITY_ORDER",
-        primaryProviderId: "",
-        primaryProviderName: "None (Unassigned)",
-        secondaryProviderId: "",
-        secondaryProviderName: "",
+        primaryProviderId: "lumiid",
+        primaryProviderName: "LumiID Identity Verification",
+        secondaryProviderId: "identro",
+        secondaryProviderName: "Identro Portal",
         tertiaryProviderId: "",
         tertiaryProviderName: "",
         fallbackProviderId: "",
@@ -81,10 +81,10 @@ export class MultiProviderRoutingEngine {
         service: "NIN_DEMOGRAPHY",
         serviceName: "NIN Demographic Verification (Name & DOB)",
         strategy: "PRIORITY_ORDER",
-        primaryProviderId: "",
-        primaryProviderName: "None (Unassigned)",
-        secondaryProviderId: "",
-        secondaryProviderName: "",
+        primaryProviderId: "lumiid",
+        primaryProviderName: "LumiID Identity Verification",
+        secondaryProviderId: "identro",
+        secondaryProviderName: "Identro Portal",
         tertiaryProviderId: "",
         tertiaryProviderName: "",
         fallbackProviderId: "",
@@ -102,10 +102,10 @@ export class MultiProviderRoutingEngine {
         service: "BVN",
         serviceName: "BVN Banking Verification",
         strategy: "PRIORITY_ORDER",
-        primaryProviderId: "",
-        primaryProviderName: "None (Unassigned)",
-        secondaryProviderId: "",
-        secondaryProviderName: "",
+        primaryProviderId: "lumiid",
+        primaryProviderName: "LumiID Identity Verification",
+        secondaryProviderId: "identro",
+        secondaryProviderName: "Identro Portal",
         tertiaryProviderId: "",
         tertiaryProviderName: "",
         fallbackProviderId: "",
@@ -123,10 +123,10 @@ export class MultiProviderRoutingEngine {
         service: "NIN_PHONE",
         serviceName: "NIN Lookup via Phone Number",
         strategy: "PRIORITY_ORDER",
-        primaryProviderId: "",
-        primaryProviderName: "None (Unassigned)",
-        secondaryProviderId: "",
-        secondaryProviderName: "",
+        primaryProviderId: "lumiid",
+        primaryProviderName: "LumiID Identity Verification",
+        secondaryProviderId: "identro",
+        secondaryProviderName: "Identro Portal",
         tertiaryProviderId: "",
         tertiaryProviderName: "",
         fallbackProviderId: "",
@@ -144,10 +144,10 @@ export class MultiProviderRoutingEngine {
         service: "BVN_DEMOGRAPHY",
         serviceName: "BVN Verification with Name & DOB",
         strategy: "PRIORITY_ORDER",
-        primaryProviderId: "",
-        primaryProviderName: "None (Unassigned)",
-        secondaryProviderId: "",
-        secondaryProviderName: "",
+        primaryProviderId: "lumiid",
+        primaryProviderName: "LumiID Identity Verification",
+        secondaryProviderId: "identro",
+        secondaryProviderName: "Identro Portal",
         tertiaryProviderId: "",
         tertiaryProviderName: "",
         fallbackProviderId: "",
@@ -165,10 +165,10 @@ export class MultiProviderRoutingEngine {
         service: "BVN_PHONE",
         serviceName: "BVN Verification with Phone Number",
         strategy: "PRIORITY_ORDER",
-        primaryProviderId: "",
-        primaryProviderName: "None (Unassigned)",
-        secondaryProviderId: "",
-        secondaryProviderName: "",
+        primaryProviderId: "lumiid",
+        primaryProviderName: "LumiID Identity Verification",
+        secondaryProviderId: "identro",
+        secondaryProviderName: "Identro Portal",
         tertiaryProviderId: "",
         tertiaryProviderName: "",
         fallbackProviderId: "",
@@ -207,10 +207,10 @@ export class MultiProviderRoutingEngine {
         service: "CAC",
         serviceName: "CAC Corporate Registration Verification",
         strategy: "PRIORITY_ORDER",
-        primaryProviderId: "",
-        primaryProviderName: "None (Unassigned)",
-        secondaryProviderId: "",
-        secondaryProviderName: "",
+        primaryProviderId: "lumiid",
+        primaryProviderName: "LumiID Identity Verification",
+        secondaryProviderId: "identro",
+        secondaryProviderName: "Identro Portal",
         tertiaryProviderId: "",
         tertiaryProviderName: "",
         fallbackProviderId: "",
@@ -228,10 +228,10 @@ export class MultiProviderRoutingEngine {
         service: "TIN",
         serviceName: "TIN Tax Identification Lookup",
         strategy: "PRIORITY_ORDER",
-        primaryProviderId: "",
-        primaryProviderName: "None (Unassigned)",
-        secondaryProviderId: "",
-        secondaryProviderName: "",
+        primaryProviderId: "lumiid",
+        primaryProviderName: "LumiID Identity Verification",
+        secondaryProviderId: "identro",
+        secondaryProviderName: "Identro Portal",
         tertiaryProviderId: "",
         tertiaryProviderName: "",
         fallbackProviderId: "",
@@ -308,6 +308,132 @@ export class MultiProviderRoutingEngine {
         updatedAt: now,
       },
       {
+        id: "rule_airtime",
+        service: "AIRTIME",
+        serviceName: "VTU Airtime Top-Up",
+        strategy: "PRIORITY_ORDER",
+        primaryProviderId: "identro",
+        primaryProviderName: "Identro Portal",
+        secondaryProviderId: "clubkonnect",
+        secondaryProviderName: "Clubkonnect Portal",
+        tertiaryProviderId: "",
+        tertiaryProviderName: "",
+        fallbackProviderId: "",
+        fallbackProviderName: "",
+        timeoutMs: 15000,
+        maxRetries: 2,
+        autoFailover: true,
+        circuitBreakerThreshold: 3,
+        circuitBreakerResetMs: 60000,
+        enabled: true,
+        updatedAt: now,
+      },
+      {
+        id: "rule_data",
+        service: "DATA",
+        serviceName: "Mobile SME & Direct Data Bundles",
+        strategy: "PRIORITY_ORDER",
+        primaryProviderId: "identro",
+        primaryProviderName: "Identro Portal",
+        secondaryProviderId: "clubkonnect",
+        secondaryProviderName: "Clubkonnect Portal",
+        tertiaryProviderId: "",
+        tertiaryProviderName: "",
+        fallbackProviderId: "",
+        fallbackProviderName: "",
+        timeoutMs: 15000,
+        maxRetries: 2,
+        autoFailover: true,
+        circuitBreakerThreshold: 3,
+        circuitBreakerResetMs: 60000,
+        enabled: true,
+        updatedAt: now,
+      },
+      {
+        id: "rule_electricity",
+        service: "ELECTRICITY",
+        serviceName: "Electricity Meter Bill Payment & Token",
+        strategy: "PRIORITY_ORDER",
+        primaryProviderId: "identro",
+        primaryProviderName: "Identro Portal",
+        secondaryProviderId: "clubkonnect",
+        secondaryProviderName: "Clubkonnect Portal",
+        tertiaryProviderId: "",
+        tertiaryProviderName: "",
+        fallbackProviderId: "",
+        fallbackProviderName: "",
+        timeoutMs: 20000,
+        maxRetries: 2,
+        autoFailover: true,
+        circuitBreakerThreshold: 3,
+        circuitBreakerResetMs: 60000,
+        enabled: true,
+        updatedAt: now,
+      },
+      {
+        id: "rule_cable_tv",
+        service: "CABLE_TV",
+        serviceName: "Cable TV Subscription (DStv, GOtv, StarTimes)",
+        strategy: "PRIORITY_ORDER",
+        primaryProviderId: "identro",
+        primaryProviderName: "Identro Portal",
+        secondaryProviderId: "clubkonnect",
+        secondaryProviderName: "Clubkonnect Portal",
+        tertiaryProviderId: "",
+        tertiaryProviderName: "",
+        fallbackProviderId: "",
+        fallbackProviderName: "",
+        timeoutMs: 20000,
+        maxRetries: 2,
+        autoFailover: true,
+        circuitBreakerThreshold: 3,
+        circuitBreakerResetMs: 60000,
+        enabled: true,
+        updatedAt: now,
+      },
+      {
+        id: "rule_education",
+        service: "EDUCATION",
+        serviceName: "Exam Scratch Card PINs (WAEC, NECO, NABTEB)",
+        strategy: "PRIORITY_ORDER",
+        primaryProviderId: "identro",
+        primaryProviderName: "Identro Portal",
+        secondaryProviderId: "clubkonnect",
+        secondaryProviderName: "Clubkonnect Portal",
+        tertiaryProviderId: "",
+        tertiaryProviderName: "",
+        fallbackProviderId: "",
+        fallbackProviderName: "",
+        timeoutMs: 20000,
+        maxRetries: 2,
+        autoFailover: true,
+        circuitBreakerThreshold: 3,
+        circuitBreakerResetMs: 60000,
+        enabled: true,
+        updatedAt: now,
+      },
+      {
+        id: "rule_scuml",
+        service: "SCUML",
+        serviceName: "SCUML AML Compliance Certificate Verification",
+        strategy: "PRIORITY_ORDER",
+        primaryProviderId: "identro",
+        primaryProviderName: "Identro Portal",
+        secondaryProviderId: "prembley",
+        secondaryProviderName: "Prembley Portal (Identitypass)",
+        tertiaryProviderId: "",
+        tertiaryProviderName: "",
+        fallbackProviderId: "",
+        fallbackProviderName: "",
+        timeoutMs: 20000,
+        maxRetries: 2,
+        autoFailover: true,
+        circuitBreakerThreshold: 3,
+        circuitBreakerResetMs: 60000,
+        enabled: true,
+        updatedAt: now,
+      },
+      {
         id: "rule_email",
         service: "EMAIL",
         serviceName: "Email Security & Fraud Verification",
@@ -362,7 +488,20 @@ export class MultiProviderRoutingEngine {
   public static getRoutingRules(db: any): ProviderRoutingRule[] {
     if (!db.provider_routing_rules || !Array.isArray(db.provider_routing_rules) || db.provider_routing_rules.length === 0) {
       db.provider_routing_rules = this.getDefaultRoutingRules();
+      return db.provider_routing_rules;
     }
+
+    // Auto-merge any newly defined service rules (e.g. AIRTIME, DATA, ELECTRICITY, CABLE_TV, EDUCATION, SCUML)
+    const defaults = this.getDefaultRoutingRules();
+    for (const defRule of defaults) {
+      const exists = db.provider_routing_rules.some(
+        (r: any) => r && (r.service === defRule.service || r.id === defRule.id)
+      );
+      if (!exists) {
+        db.provider_routing_rules.push(defRule);
+      }
+    }
+
     return db.provider_routing_rules;
   }
 
@@ -640,7 +779,18 @@ export class MultiProviderRoutingEngine {
   ): Promise<MultiPortalExecutionResult> {
     await syncFromStorage(db);
     const sType = params.service.toUpperCase().trim();
-    const rule = this.getRuleForService(db, sType);
+    let rule = this.getRuleForService(db, sType);
+
+    // Query routing rule directly from Turso database (single source of truth)
+    try {
+      const { RoutingRuleRepository } = await import("../../server/turso/repositories");
+      const tursoRule = await RoutingRuleRepository.getRuleForService(sType);
+      if (tursoRule) {
+        rule = tursoRule;
+      }
+    } catch (tursoErr: any) {
+      console.warn("[MultiProviderRoutingEngine] Notice querying Turso rule:", tursoErr?.message);
+    }
 
     // Build the ordered provider chain based on selected provider and configured routing rules
     const providerChain: { id: string; name: string }[] = [];
@@ -718,7 +868,7 @@ export class MultiProviderRoutingEngine {
         
         const matched = enabledProviders.find((p: any) => {
           const cat = (p.category || p.providerType || "").toUpperCase();
-          if (isVtu) return cat.includes("VTU") || cat.includes("TELECOM");
+          if (isVtu) return cat.includes("VTU") || cat.includes("TELECOM") || p.supportsAirtime === true || p.supportsData === true || p.supportsTelecomVtu === true || p.supportsBills === true;
           if (isPayment) return cat.includes("PAYMENT");
           return cat.includes("IDENTITY") || cat.includes("VERIFICATION");
         }) || enabledProviders[0];
@@ -828,8 +978,10 @@ export class MultiProviderRoutingEngine {
         if (isMaskedOrEmpty(pConfig.secretKey)) {
           pConfig.secretKey = process.env.CLUBKONNECT_API_KEY || pConfig.secretKey;
         }
-        pConfig.clientId = pConfig.clientId || "smartlink_vtu";
-        pConfig.appId = pConfig.appId || "smartlink_vtu";
+        if (isMaskedOrEmpty(pConfig.clientId) || pConfig.clientId === "smartlink_vtu") {
+          pConfig.clientId = process.env.CLUBKONNECT_USER_ID || process.env.CLUBKONNECT_USERID || pConfig.clientId || "smartlink_vtu";
+        }
+        pConfig.appId = pConfig.clientId;
         pConfig.baseUrl = pConfig.baseUrl || "https://www.clubkonnect.com/API";
       }
 

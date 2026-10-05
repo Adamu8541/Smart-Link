@@ -134,6 +134,9 @@ export async function updateWallet(
     lastUpdated: now,
   });
 
+  // 1.5. Ensure user exists in Turso users table to satisfy foreign key constraint
+  await usersStore.ensureUserExists(userId, { uid: userId });
+
   // 2. Persist directly to Turso
   await executeTurso(
     `INSERT INTO wallets (id, user_id, wallet_id, balance, held_balance, total_credits, total_debits, status, currency, created_at, updated_at)
@@ -174,6 +177,9 @@ export async function updateWalletAtomic(
   modifier: (current: WalletDbRecord) => Partial<WalletDbRecord>
 ): Promise<WalletDbRecord | null> {
   if (!userId) return null;
+
+  // Ensure user exists in Turso users table to satisfy foreign key constraint
+  await usersStore.ensureUserExists(userId, { uid: userId });
 
   const currentWallet = await getWalletByUserId(userId);
   const baseWallet = currentWallet || sanitizeWalletRecord(userId, { userId, balance: 0 });

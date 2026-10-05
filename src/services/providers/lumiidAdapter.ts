@@ -9,9 +9,9 @@
  *   - Accept: application/json
  *
  * Supported Services:
- *   1. NIN (National Identification Number) — NIMC: /ng/nin-basic/, /ng/nin, /ng/nin-advance
- *   2. BVN (Bank Verification Number) — NIBSS: /ng/bvn-basic/, /ng/bvn, /ng/bvn-advance
- *   3. CAC / KYB (Corporate Affairs Commission) — /kyb/verify, /ng/cac
+ *   1. NIN (National Identification Number) — NIMC: /ng/nin-premium/, /ng/nin-advance/, /ng/nin
+ *   2. BVN (Bank Verification Number) — NIBSS: /ng/bvn-advance/, /ng/bvn-premium/, /ng/bvn
+ *   3. CAC / KYB (Corporate Affairs Commission) — /ng/cac-premium/, /kyb/verify, /ng/cac
  *   4. Driver's License — FRSC: /ng/driver-license, /ng/drivers-license
  *   5. Voter's Card (VIN) — INEC: /ng/voters-card, /ng/vin
  *   6. TIN (Tax Identification Number) — FIRS: /ng/tin, /tin/verify
@@ -100,10 +100,16 @@ export class LumiIDAdapter implements ProviderAdapter {
 
     // Extract human-readable string from Django REST Framework ErrorDetail syntax
     // e.g. {'id_number': [ErrorDetail(string='BVN is required', code='required')]}
-    if (s.includes("ErrorDetail") || s.includes("id_number")) {
+    // or {'nin': [ErrorDetail(string='NIN is required', code='required')]}
+    if (s.includes("ErrorDetail") || s.includes("string=")) {
+      const match = s.match(/ErrorDetail\(string=['"]([^'"]+)['"]/);
+      if (match && match[1]) {
+        return match[1];
+      }
       s = s.replace(/ErrorDetail\(string=['"]([^'"]+)['"],\s*code=['"][^'"]+['"]\)/g, "$1");
-      s = s.replace(/\{'id_number':\s*\[?'([^']+)'\]?\}/g, "$1");
-      s = s.replace(/\{['"]?id_number['"]?:\s*\[?['"]?([^'"\]}]+)['"]?\]?\}/g, "$1");
+    }
+
+    if (s.includes("{") && s.includes("}")) {
       s = s.replace(/\{['"]?(\w+)['"]?:\s*\[?['"]?([^'"\]}]+)['"]?\]?\}/g, "$1: $2");
       s = s.replace(/[\[\]'"{}]/g, "").trim();
     }
@@ -256,85 +262,108 @@ export class LumiIDAdapter implements ProviderAdapter {
   private resolveEndpoints(serviceType: string): { primary: string; fallbacks: string[]; payloadKey: string } {
     const sType = serviceType.toUpperCase().replace(/[^A-Z0-9_]/g, "_");
 
-    if (sType.includes("PHONE") || sType.includes("TELCO")) {
+    // NIN Phone Search
+    if (sType.includes("NIN") && (sType.includes("PHONE") || sType.includes("SEARCH") || sType.includes("TELCO"))) {
       return {
-        primary: "/ng/phone",
-        fallbacks: ["/phone/verify", "/phone/lookup", "/ng/phone-lookup"],
+        primary: "/v1/ng/nin-phone/",
+        fallbacks: ["/v1/ng/phone-nin/", "/v1/ng/phone/", "/v1/ng/nin-premium/", "/v1/ng/nin-advance/"],
         payloadKey: "phone",
       };
     }
 
-    if (sType.includes("NIN")) {
+    // BVN Phone Search
+    if (sType.includes("BVN") && (sType.includes("PHONE") || sType.includes("SEARCH"))) {
       return {
-        primary: "/v1/ng/nin-basic/",
-        fallbacks: ["/v1/ng/nin", "/ng/nin-basic/", "/v1/nin/verify", "/nin/verify", "/v1/ng/nin-advance/"],
-        payloadKey: "nin",
+        primary: "/v1/ng/bvn-phone/",
+        fallbacks: ["/v1/ng/phone-bvn/", "/v1/ng/phone/", "/v1/ng/bvn-advance/", "/v1/ng/bvn-premium/"],
+        payloadKey: "phone",
       };
     }
 
-    if (sType.includes("BVN")) {
+    // General Phone Lookup
+    if (sType.includes("PHONE") || sType.includes("TELCO")) {
       return {
-        primary: "/v1/ng/bvn-basic/",
-        fallbacks: [
-          "/ng/bvn-basic/",
-        ],
+        primary: "/v1/ng/phone/",
+        fallbacks: ["/v1/ng/phone-lookup/", "/phone/verify", "/ng/phone"],
+        payloadKey: "phone",
+      };
+    }
+
+    // NIN Identity & NIN Demographic / Premium (With Photo)
+    if (sType.includes("NIN")) {
+      return {
+        primary: "/v1/ng/nin-premium/",
+        fallbacks: ["/v1/ng/nin-advance/", "/v1/ng/nin/"],
         payloadKey: "id_number",
       };
     }
 
-    if (sType.includes("CAC") || sType.includes("KYB") || sType.includes("BUSINESS")) {
+    // BVN Identity & BVN Demographic / Advance / Premium (With Photo)
+    if (sType.includes("BVN")) {
       return {
-        primary: "/v1/kyb/verify",
-        fallbacks: ["/kyb/verify", "/ng/cac", "/cac/verify", "/ng/kyb", "/kyb/lookup"],
-        payloadKey: "rcNumber",
+        primary: "/v1/ng/bvn-advance/",
+        fallbacks: ["/v1/ng/bvn-premium/", "/v1/ng/bvn/"],
+        payloadKey: "id_number",
       };
     }
 
+    // CAC / KYB / Business / SCUML
+    if (sType.includes("CAC") || sType.includes("KYB") || sType.includes("SCUML") || sType.includes("BUSINESS")) {
+      return {
+        primary: "/v1/ng/cac-premium/",
+        fallbacks: ["/v1/kyb/verify/", "/v1/ng/cac/"],
+        payloadKey: "reg_number",
+      };
+    }
+
+    // Driver's License (FRSC)
     if (sType.includes("DRIVER") || sType.includes("DRIVERS_LICENSE") || sType.includes("DL")) {
       return {
-        primary: "/v1/drivers-license/verify",
-        fallbacks: ["/ng/driver-license", "/ng/drivers-license", "/drivers-license/verify", "/dl/verify"],
+        primary: "/v1/ng/drivers-license/",
+        fallbacks: ["/v1/ng/driver-license/", "/v1/drivers-license/verify"],
         payloadKey: "licenseNumber",
       };
     }
 
+    // Voter's Card (INEC)
     if (sType.includes("VOTER") || sType.includes("VIN")) {
       return {
-        primary: "/ng/voters-card",
-        fallbacks: ["/ng/vin", "/voters-card/verify", "/vin/verify"],
+        primary: "/v1/ng/voters-card/",
+        fallbacks: ["/v1/ng/vin/", "/ng/voters-card"],
         payloadKey: "vin",
       };
     }
 
+    // Tax Identification Number (TIN)
     if (sType.includes("TIN") || sType.includes("TAX")) {
       return {
-        primary: "/ng/tin",
-        fallbacks: ["/tin/verify", "/ng/tax", "/tax/verify"],
-        payloadKey: "tin",
+        primary: "/v1/ng/tin/",
+        fallbacks: ["/v1/ng/tin-premium/", "/ng/tin"],
+        payloadKey: "id_number",
       };
     }
 
     if (sType.includes("BANK") || sType.includes("NUBAN") || sType.includes("ACCOUNT")) {
       return {
-        primary: "/ng/bank-account",
-        fallbacks: ["/transfers/resolve-nuban", "/bank/resolve", "/nuban/verify"],
+        primary: "/v1/ng/bank-account/",
+        fallbacks: ["/ng/bank-account", "/transfers/resolve-nuban"],
         payloadKey: "accountNumber",
       };
     }
 
     if (sType.includes("FACE") || sType.includes("LIVENESS") || sType.includes("BIOMETRIC")) {
       return {
-        primary: "/face/match",
-        fallbacks: ["/kyc/face-match", "/biometric/verify"],
+        primary: "/v1/face/match/",
+        fallbacks: ["/face/match", "/kyc/face-match"],
         payloadKey: "image1",
       };
     }
 
     // Default generic identity verification
     return {
-      primary: "/ng/nin-basic/",
-      fallbacks: ["/ng/nin", "/identity/verify"],
-      payloadKey: "idNumber",
+      primary: "/v1/ng/nin-premium/",
+      fallbacks: ["/v1/ng/nin-advance/", "/v1/ng/nin/"],
+      payloadKey: "id_number",
     };
   }
 
@@ -358,41 +387,102 @@ export class LumiIDAdapter implements ProviderAdapter {
       ...extraData,
     };
 
-    if (sType.includes("NIN")) {
-      payload["nin"] = cleanId.replace(/\D/g, "");
-      payload["idNumber"] = payload["nin"];
+    if (sType.includes("NIN") && (sType.includes("PHONE") || sType.includes("SEARCH") || sType.includes("TELCO"))) {
+      const phoneNorm = normalizeNigerianPhone(cleanId || extraData.phoneNumber || extraData.phone);
+      payload["phone"] = phoneNorm;
+      payload["phone_number"] = phoneNorm;
+      payload["id_number"] = phoneNorm;
+      payload["nin"] = phoneNorm;
+      payload["search_value"] = phoneNorm;
+      payload["consent"] = true;
+    } else if (sType.includes("BVN") && (sType.includes("PHONE") || sType.includes("SEARCH"))) {
+      const phoneNorm = normalizeNigerianPhone(cleanId || extraData.phoneNumber || extraData.phone);
+      payload["phone"] = phoneNorm;
+      payload["phone_number"] = phoneNorm;
+      payload["id_number"] = phoneNorm;
+      payload["bvn"] = phoneNorm;
+      payload["search_value"] = phoneNorm;
+      payload["consent"] = true;
+    } else if (sType.includes("NIN")) {
+      const cleanNin = (cleanId.replace(/\D/g, "") || String(extraData.nin || "").replace(/\D/g, "")).trim();
+      if (cleanNin) {
+        payload["nin"] = cleanNin;
+        payload["id_number"] = cleanNin;
+        payload["idNumber"] = cleanNin;
+      }
+      if (extraData.firstName) {
+        payload["firstname"] = extraData.firstName;
+        payload["first_name"] = extraData.firstName;
+      }
+      if (extraData.lastName) {
+        payload["lastname"] = extraData.lastName;
+        payload["last_name"] = extraData.lastName;
+      }
+      if (extraData.dateOfBirth || extraData.dob) {
+        payload["dob"] = extraData.dateOfBirth || extraData.dob;
+        payload["date_of_birth"] = extraData.dateOfBirth || extraData.dob;
+      }
+      if (extraData.gender) {
+        payload["gender"] = extraData.gender;
+      }
+      payload["consent"] = true;
     } else if (sType.includes("BVN")) {
-      const cleanBvn = cleanId.replace(/\D/g, "");
-      payload["bvn"] = cleanBvn;
-      payload["id_number"] = cleanBvn;
-      payload["idNumber"] = cleanBvn;
-      payload["number"] = cleanBvn;
-      payload["bvn_number"] = cleanBvn;
-      payload["search_value"] = cleanBvn;
+      const cleanBvn = (cleanId.replace(/\D/g, "") || String(extraData.bvn || "").replace(/\D/g, "")).trim();
+      if (cleanBvn) {
+        payload["bvn"] = cleanBvn;
+        payload["id_number"] = cleanBvn;
+        payload["idNumber"] = cleanBvn;
+        payload["number"] = cleanBvn;
+        payload["bvn_number"] = cleanBvn;
+        payload["search_value"] = cleanBvn;
+      }
+      if (extraData.firstName) {
+        payload["firstname"] = extraData.firstName;
+        payload["first_name"] = extraData.firstName;
+      }
+      if (extraData.lastName) {
+        payload["lastname"] = extraData.lastName;
+        payload["last_name"] = extraData.lastName;
+      }
+      if (extraData.dateOfBirth || extraData.dob) {
+        payload["dob"] = extraData.dateOfBirth || extraData.dob;
+        payload["date_of_birth"] = extraData.dateOfBirth || extraData.dob;
+      }
+      if (extraData.gender) {
+        payload["gender"] = extraData.gender;
+      }
       payload["consent"] = true;
       payload["is_consent"] = true;
       payload["customer_consent"] = true;
-    } else if (sType.includes("CAC") || sType.includes("KYB")) {
-      payload["rcNumber"] = cleanId;
+    } else if (sType.includes("CAC") || sType.includes("KYB") || sType.includes("SCUML") || sType.includes("BUSINESS")) {
+      payload["reg_number"] = cleanId;
       payload["rc_number"] = cleanId;
+      payload["rcNumber"] = cleanId;
+      payload["id_number"] = cleanId;
       if (extraData.companyName) payload["companyName"] = extraData.companyName;
       if (extraData.companyType) payload["companyType"] = extraData.companyType;
     } else if (sType.includes("DRIVER")) {
       payload["licenseNumber"] = cleanId;
       payload["license_number"] = cleanId;
+      payload["id_number"] = cleanId;
       if (extraData.dob || extraData.dateOfBirth) {
         payload["dob"] = extraData.dob || extraData.dateOfBirth;
       }
     } else if (sType.includes("VOTER") || sType.includes("VIN")) {
       payload["vin"] = cleanId;
+      payload["id_number"] = cleanId;
       if (extraData.state || extraData.stateOfOrigin) {
         payload["state"] = extraData.state || extraData.stateOfOrigin;
       }
       if (extraData.lastName) payload["lastName"] = extraData.lastName;
     } else if (sType.includes("TIN")) {
       payload["tin"] = cleanId;
+      payload["id_number"] = cleanId;
     } else if (sType.includes("PHONE")) {
-      payload["phone"] = normalizeNigerianPhone(cleanId);
+      const phoneNorm = normalizeNigerianPhone(cleanId);
+      payload["phone"] = phoneNorm;
+      payload["phone_number"] = phoneNorm;
+      payload["id_number"] = phoneNorm;
     } else if (sType.includes("BANK") || sType.includes("NUBAN")) {
       payload["accountNumber"] = cleanId;
       payload["account_number"] = cleanId;
@@ -596,14 +686,37 @@ export class LumiIDAdapter implements ProviderAdapter {
         const json: any = await res.json().catch(() => null);
         lastRawResponse = json;
 
-        // 1. Check if provider returned an identity record-level not found (e.g. 404 with JSON containing code BVN_NOT_FOUND, NOT_FOUND, or summary.verified: false)
+        // 1. Handle provider insufficient balance error explicitly (highest priority)
+        const isInsufficientCredit = Boolean(
+          res.status === 402 ||
+          json?.code === "INSUFFICIENT_CREDITS" ||
+          (typeof json?.message === "string" &&
+            (json.message.toLowerCase().includes("insufficient") ||
+              json.message.toLowerCase().includes("wallet balance") ||
+              json.message.toLowerCase().includes("top up") ||
+              json.message.toLowerCase().includes("credit")))
+        );
+
+        if (isInsufficientCredit) {
+          return {
+            success: false,
+            providerReference: json?.meta?.request_id || json?.reference || reference,
+            error: json?.message || "LumiID Provider error: Insufficient provider account credits. Please fund your LumiID developer wallet at lumiid.com to verify live identity records.",
+            rawResponse: json,
+            responseTimeMs: elapsed,
+            statusCode: 402,
+          };
+        }
+
+        // 2. Check if provider returned an identity record-level not found (e.g. 404 with JSON containing code BVN_NOT_FOUND, NOT_FOUND, or summary.verified: false)
         const isRecordNotFound = Boolean(
           json &&
+          !isInsufficientCredit &&
           (json.code === "BVN_NOT_FOUND" ||
             json.code === "NIN_NOT_FOUND" ||
             json.code === "RECORD_NOT_FOUND" ||
             json.code === "NOT_FOUND" ||
-            json.summary?.verified === false ||
+            (json.summary && json.summary.verified === false && !json.code?.includes("CREDIT")) ||
             (res.status === 404 && typeof json.message === "string" && json.message.toLowerCase().includes("not found")))
         );
 
@@ -616,18 +729,6 @@ export class LumiIDAdapter implements ProviderAdapter {
             rawResponse: json,
             responseTimeMs: elapsed,
             statusCode: 404,
-          };
-        }
-
-        // 2. Handle provider insufficient balance error explicitly
-        if (res.status === 402 || json?.code === "INSUFFICIENT_CREDITS") {
-          return {
-            success: false,
-            providerReference: reference,
-            error: "LumiID Provider error: Insufficient provider account credits. Please fund your LumiID developer wallet at lumiid.com to verify live identity records.",
-            rawResponse: json,
-            responseTimeMs: elapsed,
-            statusCode: 402,
           };
         }
 
@@ -715,10 +816,15 @@ export class LumiIDAdapter implements ProviderAdapter {
       }
     }
 
+    const userFriendlyError =
+      lastStatusCode >= 500 && (!lastError || lastError.includes("returned HTTP 500"))
+        ? `LumiID Gateway Error: Upstream service returned HTTP 500 Internal Server Error for ${serviceType.replace(/_/g, " ")}. The upstream identity gateway is temporarily unavailable or under maintenance.`
+        : lastError || "Failed to complete verification via LumiID Portal.";
+
     return {
       success: false,
       providerReference: reference,
-      error: lastError || "Failed to complete verification via LumiID Portal.",
+      error: userFriendlyError,
       rawResponse: lastRawResponse,
       responseTimeMs: Date.now() - startTime,
       statusCode: lastStatusCode,

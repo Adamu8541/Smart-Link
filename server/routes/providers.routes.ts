@@ -30,6 +30,7 @@ import { IdentroAdapter } from "../../src/services/providers/identroAdapter";
 import { PrembleyAdapter } from "../../src/services/providers/prembleyAdapter";
 import { MultiProviderRoutingEngine } from "../../src/services/multiProviderRoutingEngine";
 import { syncFromStorage, syncToStorage } from "../../src/services/settingsStore";
+import { RoutingRuleRepository } from "../turso/repositories";
 import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
 import * as securityStore from "../../src/services/securityStore";
@@ -1169,49 +1170,76 @@ app.post("/api/admin/payment-providers/:id/test-connection", requireAdmin, async
 // PHASE 2: MULTI-PORTAL ROUTING, AUTOMATED FAILOVER & RECONCILIATION
 // =========================================================================
 
-// 1. Get Portal Routing Rules, Health Metrics & Failover Summaries
+// 1. Get Portal Routing Rules, Health Metrics & Failover Summaries (Turso Primary Persistence Only)
 app.get("/api/admin/routing", requireAdmin, async (req, res) => {
-  const db = readDB();
-  await syncFromStorage(db);
-  const rules = MultiProviderRoutingEngine.getRoutingRules(db);
-  const metrics = MultiProviderRoutingEngine.getProviderHealthMetrics(db);
-  const failovers = db.provider_failover_logs || [];
-  const backgroundJobs = db.background_verification_jobs || [];
+  try {
+    let rules = await RoutingRuleRepository.getAllRules();
+    if (!rules || rules.length === 0) {
+      const defaultRules = MultiProviderRoutingEngine.getDefaultRoutingRules();
+      await RoutingRuleRepository.upsertAllRules(defaultRules);
+      rules = await RoutingRuleRepository.getAllRules();
+    }
 
-  return res.json({
-    success: true,
-    rules,
-    metrics,
-    failovers,
-    backgroundJobs,
-  });
+    const db = readDB();
+    // Keep runtime in-memory pointer synced without writing to db.json
+    db.provider_routing_rules = rules;
+
+    const metrics = MultiProviderRoutingEngine.getProviderHealthMetrics(db);
+    const failovers = db.provider_failover_logs || [];
+    const backgroundJobs = db.background_verification_jobs || [];
+
+    return res.json({
+      success: true,
+      rules,
+      metrics,
+      failovers,
+      backgroundJobs,
+      storage: "TURSO_ONLY",
+    });
+  } catch (err: any) {
+    console.error("[api/admin/routing] Turso load error:", err);
+    return res.status(500).json({
+      success: false,
+      error: `Turso Database Error: ${err.message || "Failed to load routing rules from Turso"}. Zero fallback permitted.`,
+    });
+  }
 });
 
-// 2. Update Service Portal Routing Rule
+// 2. Update Service Portal Routing Rule (Persisted to Turso ONLY — No db.json, No fallback)
 app.post("/api/admin/routing", requireAdmin, async (req, res) => {
-  const db = readDB();
   const { rule, rules } = req.body;
 
-  if (rules && Array.isArray(rules)) {
-    db.provider_routing_rules = rules;
-  } else if (rule && rule.id) {
-    if (!db.provider_routing_rules) db.provider_routing_rules = MultiProviderRoutingEngine.getDefaultRoutingRules();
-    const idx = db.provider_routing_rules.findIndex((r: any) => r.id === rule.id || r.service === rule.service);
-    if (idx >= 0) {
-      db.provider_routing_rules[idx] = { ...db.provider_routing_rules[idx], ...rule, updatedAt: new Date().toISOString() };
-    } else {
-      db.provider_routing_rules.push({ ...rule, updatedAt: new Date().toISOString() });
-    }
+  if (!rule && (!rules || !Array.isArray(rules))) {
+    return res.status(400).json({ success: false, error: "Invalid routing rule payload. Expected 'rule' or 'rules'." });
   }
 
-  writeDB(db);
-  await syncToStorage(db);
+  try {
+    if (rules && Array.isArray(rules)) {
+      await RoutingRuleRepository.upsertAllRules(rules);
+    } else if (rule && (rule.service || rule.id)) {
+      await RoutingRuleRepository.upsertRule(rule);
+    }
 
-  return res.json({
-    success: true,
-    message: "Portal routing configuration updated successfully.",
-    rules: db.provider_routing_rules,
-  });
+    // Read back latest state strictly from Turso
+    const updatedRules = await RoutingRuleRepository.getAllRules();
+
+    // Align in-memory runtime cache for active worker queries — strictly NO writeDB or db.json persistence
+    const db = readDB();
+    db.provider_routing_rules = updatedRules;
+
+    return res.json({
+      success: true,
+      message: "Portal routing configuration saved strictly to Turso database (no db.json or fallback).",
+      rules: updatedRules,
+      storage: "TURSO_ONLY",
+    });
+  } catch (err: any) {
+    console.error("[api/admin/routing] Turso save error:", err);
+    return res.status(500).json({
+      success: false,
+      error: `Failed to save routing configuration to Turso database: ${err.message || "Database error"}. Zero fallback permitted.`,
+    });
+  }
 });
 
 // 3. Active Portal Health Ping & Latency Probe
@@ -1563,8 +1591,8 @@ function seedModule6ProvidersIfEmpty(db: any) {
       authMethod: "API_KEY",
       secretKey: String(process.env.CLUBKONNECT_API_KEY || "").trim(),
       apiKey: String(process.env.CLUBKONNECT_API_KEY || "").trim(),
-      clientId: "smartlink_vtu",
-      appId: "smartlink_vtu",
+      clientId: String(process.env.CLUBKONNECT_USER_ID || process.env.CLUBKONNECT_USERID || "smartlink_vtu").trim(),
+      appId: String(process.env.CLUBKONNECT_USER_ID || process.env.CLUBKONNECT_USERID || "smartlink_vtu").trim(),
       supportsWalletFunding: false,
       supportsBankTransfer: false,
       supportsCardPayment: false,

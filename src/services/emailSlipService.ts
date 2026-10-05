@@ -130,7 +130,6 @@ export class EmailSlipService {
       text += `*Note:* ${customNote}\n\n`;
     }
     text += `*View & Download Official PDF Slip:*\n${qrVerificationUrl}\n\n`;
-    text += `_Note: The generated card/slip is for verification purposes only and is not an official NIMC document_\n\n`;
     text += `_Issued via SmartLink Enterprise Identity Portal_`;
 
     return `https://wa.me/?text=${encodeURIComponent(text)}`;
@@ -147,6 +146,6 @@ export class EmailSlipService {
     qrVerificationUrl: string;
   }): string {
     const { serviceType, holderName, maskedId, reference, qrVerificationUrl } = params;
-    return `SmartLink Verification Confirmed: ${serviceType.toUpperCase()} for ${holderName} (${maskedId}) is VALID. Ref: #${reference}. Note: The generated card/slip is for verification purposes only and is not an official NIMC document. View Official Slip: ${qrVerificationUrl}`;
+    return `SmartLink Verification Confirmed: ${serviceType.toUpperCase()} for ${holderName} (${maskedId}) is VALID. Ref: #${reference}. View Official Slip: ${qrVerificationUrl}`;
   }
 }
