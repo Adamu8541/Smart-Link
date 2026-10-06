@@ -32,6 +32,7 @@ const AdminNotificationsView = lazyWithRetry(() => import("./components/admin/vi
 const UserNotificationCenter = lazyWithRetry(() => import("./components/notification/UserNotificationCenter").then(m => ({ default: m.UserNotificationCenter })), "UserNotificationCenter");
 const AdminSecurityView = lazyWithRetry(() => import("./components/admin/views/AdminSecurityView").then(m => ({ default: m.AdminSecurityView })), "AdminSecurityView");
 const AdminServicesView = lazyWithRetry(() => import("./components/admin/views/AdminServicesView").then(m => ({ default: m.AdminServicesView })), "AdminServicesView");
+const AdminPriceControlView = lazyWithRetry(() => import("./components/admin/views/AdminPriceControlView").then(m => ({ default: m.default })), "AdminPriceControlView");
 const AdminReconciliationView = lazyWithRetry(() => import("./components/admin/views/AdminReconciliationView").then(m => ({ default: m.AdminReconciliationView })), "AdminReconciliationView");
 const AdminLegalComplianceView = lazyWithRetry(() => import("./components/admin/views/AdminLegalComplianceView").then(m => ({ default: m.AdminLegalComplianceView })), "AdminLegalComplianceView");
 const AdminRefundsView = lazyWithRetry(() => import("./components/admin/views/AdminPlaceholderViews").then(m => ({ default: m.AdminRefundsView })), "AdminRefundsView");
@@ -48,6 +49,7 @@ import { ServiceOpeningLoaderModal } from "./components/common/ServiceOpeningLoa
 import { GetStartedLoaderModal } from "./components/common/GetStartedLoaderModal";
 import { BiometricEnrollPromptModal } from "./components/auth/BiometricEnrollPromptModal";
 import { BiometricAuthService } from "./services/biometricAuthService";
+import { PwaInstallPrompt } from "./components/pwa/PwaInstallPrompt";
 const UserLegalAgreementsModal = lazyWithRetry(() => import("./components/legal").then(m => ({ default: m.UserLegalAgreementsModal })), "UserLegalAgreementsModal");
 const PolicyUpdateReAcceptanceModal = lazyWithRetry(() => import("./components/legal").then(m => ({ default: m.PolicyUpdateReAcceptanceModal })), "PolicyUpdateReAcceptanceModal");
 const AuthPortal = lazyWithRetry(() => import("./components/auth/AuthPortal").then(m => ({ default: m.AuthPortal })), "AuthPortal");
@@ -358,6 +360,8 @@ export default function App() {
     "/admin/wallet": "ADMIN_WALLET",
     "/admin/permissions": "ADMIN_PERMISSIONS",
     "/admin/services": "ADMIN_SERVICES",
+    "/admin/prices": "ADMIN_PRICE_CONTROL",
+    "/admin/price-control": "ADMIN_PRICE_CONTROL",
     "/admin/providers": "ADMIN_PROVIDERS",
     "/admin/routing": "ADMIN_PROVIDER_ROUTING",
     "/admin/api-builder": "ADMIN_API_BUILDER",
@@ -1434,6 +1438,16 @@ export default function App() {
                         />
                       )}
 
+                      {currentView === "ADMIN_PRICE_CONTROL" && (
+                        <AdminPriceControlView
+                          session={adminSession}
+                          onNavigate={(routePath) => {
+                            const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
+                            setCurrentView(targetView);
+                          }}
+                        />
+                      )}
+
                       {currentView === "ADMIN_PROVIDERS" && (
                         <AdminProvidersView
                           session={adminSession}
@@ -2023,6 +2037,8 @@ export default function App() {
           </div>
         </div>
       )}
+      {/* PWA Progressive Web App Auto-Install Prompt & Guide */}
+      <PwaInstallPrompt />
     </div>
   );
 }

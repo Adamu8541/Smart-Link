@@ -21,7 +21,8 @@ import {
   TursoVerificationRecord, 
   TursoAuditLog, 
   TursoApplicationSetting,
-  TursoWebhookEvent 
+  TursoWebhookEvent,
+  TursoServicePrice
 } from "../schema";
 
 // -----------------------------------------------------------------------------
@@ -1370,4 +1371,1000 @@ export class RoutingRuleRepository {
     });
   }
 }
+
+// -----------------------------------------------------------------------------
+// 17. SERVICE PRICES REPOSITORY (Turso Database Primary Persistence)
+// -----------------------------------------------------------------------------
+export const DEFAULT_SERVICE_PRICES: Array<{
+  service_id: string;
+  service_code: string;
+  name: string;
+  category: string;
+  description: string;
+  price: number;
+  cost_price: number;
+  service_charge: number;
+  commission_rate: number;
+  price_label?: string;
+  is_active: number;
+}> = [
+  // 1. Identity & KYC Verification Services
+  {
+    service_id: "id_nin_ver",
+    service_code: "NIN_VERIFY",
+    name: "NIN Verification",
+    category: "IDENTITY",
+    description: "Verify NIN profile via authorized national identity gateway.",
+    price: 500,
+    cost_price: 250,
+    service_charge: 50,
+    commission_rate: 10,
+    is_active: 1,
+  },
+  {
+    service_id: "id_nin_phone",
+    service_code: "NIN_PHONE",
+    name: "NIN Verification with Phone Number",
+    category: "IDENTITY",
+    description: "Lookup NIN record via registered 11-digit mobile phone number.",
+    price: 500,
+    cost_price: 250,
+    service_charge: 50,
+    commission_rate: 10,
+    is_active: 1,
+  },
+  {
+    service_id: "id_nin_demography",
+    service_code: "NIN_DEMOGRAPHY",
+    name: "NIN Verification with Name & DOB",
+    category: "IDENTITY",
+    description: "Verify identity via NIMC demographic parameters (Name, Gender, DOB).",
+    price: 600,
+    cost_price: 300,
+    service_charge: 50,
+    commission_rate: 10,
+    is_active: 1,
+  },
+  {
+    service_id: "id_nin_val",
+    service_code: "NIN_VALIDATION",
+    name: "NIN Validation",
+    category: "IDENTITY",
+    description: "Verify validation and active legal status of National Identification Number.",
+    price: 500,
+    cost_price: 250,
+    service_charge: 50,
+    commission_rate: 10,
+    is_active: 1,
+  },
+  {
+    service_id: "id_vnin_slip",
+    service_code: "VNIN_SLIP",
+    name: "VNIN Slip",
+    category: "IDENTITY",
+    description: "Generate Virtual NIN (VNIN) slip for corporate compliance.",
+    price: 1000,
+    cost_price: 400,
+    service_charge: 100,
+    commission_rate: 15,
+    is_active: 1,
+  },
+  {
+    service_id: "id_nin_pers",
+    service_code: "NIN_PERSONALIZATION",
+    name: "NIN Personalization",
+    category: "IDENTITY",
+    description: "Personalize active NIN profile with verified corporate parameters.",
+    price: 2000,
+    cost_price: 1000,
+    service_charge: 200,
+    commission_rate: 15,
+    is_active: 1,
+  },
+  {
+    service_id: "id_nin_mod",
+    service_code: "NIN_MODIFICATION",
+    name: "NIN Modification",
+    category: "IDENTITY",
+    description: "Submit official correction of birth date, name spelling, or phone linkage.",
+    price: 15000,
+    cost_price: 10000,
+    service_charge: 500,
+    commission_rate: 20,
+    is_active: 1,
+  },
+  {
+    service_id: "id_slip_gen",
+    service_code: "NIN_SLIP_GEN",
+    name: "NIN ID Card & Slip Generation",
+    category: "IDENTITY",
+    description: "Generate premium high-resolution printable NIN verification slips.",
+    price: 1000,
+    cost_price: 400,
+    service_charge: 100,
+    commission_rate: 15,
+    is_active: 1,
+  },
+  {
+    service_id: "id_ipe_clearance",
+    service_code: "IPE_CLEARANCE",
+    name: "IPE Clearance",
+    category: "IDENTITY",
+    description: "Process official IPE biometric clearance certificates.",
+    price: 5000,
+    cost_price: 3000,
+    service_charge: 250,
+    commission_rate: 15,
+    is_active: 1,
+  },
+  {
+    service_id: "id_bvn_ver",
+    service_code: "BVN_VERIFY",
+    name: "BVN Verification",
+    category: "IDENTITY",
+    description: "Validate Central Bank of Nigeria Bank Verification Number records.",
+    price: 500,
+    cost_price: 250,
+    service_charge: 50,
+    commission_rate: 10,
+    is_active: 1,
+  },
+  {
+    service_id: "id_bvn_demography",
+    service_code: "BVN_DEMOGRAPHY",
+    name: "BVN Verification with Name & DOB",
+    category: "IDENTITY",
+    description: "Confirm and validate BVN record using registered Name and Date of Birth.",
+    price: 500,
+    cost_price: 250,
+    service_charge: 50,
+    commission_rate: 10,
+    is_active: 1,
+  },
+  {
+    service_id: "id_bvn_phone",
+    service_code: "BVN_PHONE",
+    name: "BVN Verification with Phone Number",
+    category: "IDENTITY",
+    description: "Confirm and validate BVN details using registered mobile phone number.",
+    price: 500,
+    cost_price: 250,
+    service_charge: 50,
+    commission_rate: 10,
+    is_active: 1,
+  },
+  {
+    service_id: "id_nin_bvn",
+    service_code: "NIN_BVN_LINK",
+    name: "NIN-BVN Linkage",
+    category: "IDENTITY",
+    description: "Assistance to link NIN profile with active BVN commercial record.",
+    price: 1500,
+    cost_price: 800,
+    service_charge: 100,
+    commission_rate: 15,
+    is_active: 1,
+  },
+  {
+    service_id: "id_vnin_to_bvn",
+    service_code: "VNIN_TO_BVN",
+    name: "VNIN to BVN",
+    category: "IDENTITY",
+    description: "Link and resolve Virtual NIN (VNIN) to BVN database for banking.",
+    price: 1000,
+    cost_price: 500,
+    service_charge: 100,
+    commission_rate: 15,
+    is_active: 1,
+  },
+  {
+    service_id: "id_vnin_to_nibss",
+    service_code: "VNIN_TO_NIBSS",
+    name: "VNIN to NIBSS",
+    category: "IDENTITY",
+    description: "Transmit and synchronize Virtual NIN (VNIN) records with NIBSS settlement.",
+    price: 1500,
+    cost_price: 800,
+    service_charge: 100,
+    commission_rate: 15,
+    is_active: 1,
+  },
+  {
+    service_id: "id_bvn_user",
+    service_code: "BVN_USER",
+    name: "BVN User Profile",
+    category: "IDENTITY",
+    description: "Query user bio-data logs via third-party BVN gateways.",
+    price: 500,
+    cost_price: 250,
+    service_charge: 50,
+    commission_rate: 10,
+    is_active: 1,
+  },
+  {
+    service_id: "id_bvn_modification",
+    service_code: "BVN_MODIFICATION",
+    name: "BVN Modification",
+    category: "IDENTITY",
+    description: "Submit request to correct or update registered BVN biodata.",
+    price: 15000,
+    cost_price: 10000,
+    service_charge: 500,
+    commission_rate: 20,
+    is_active: 1,
+  },
+  {
+    service_id: "id_premium_slip",
+    service_code: "BVN_SLIP_GEN",
+    name: "BVN Slip & ID Card Generation",
+    category: "IDENTITY",
+    description: "Generate and print verified BVN identity slips and cards.",
+    price: 1000,
+    cost_price: 400,
+    service_charge: 100,
+    commission_rate: 15,
+    is_active: 1,
+  },
+  {
+    service_id: "id_bvn_retrieval",
+    service_code: "BVN_RETRIEVAL",
+    name: "BVN Retrieval",
+    category: "IDENTITY",
+    description: "Retrieve forgotten BVN details using phone number and bio match.",
+    price: 1000,
+    cost_price: 500,
+    service_charge: 100,
+    commission_rate: 15,
+    is_active: 1,
+  },
+  {
+    service_id: "id_tin_verification",
+    service_code: "TIN_VERIFICATION",
+    name: "TIN Verification",
+    category: "IDENTITY",
+    description: "Verify federal Tax Identification Number records from JTB/FIRS.",
+    price: 500,
+    cost_price: 250,
+    service_charge: 50,
+    commission_rate: 10,
+    is_active: 1,
+  },
+  {
+    service_id: "id_bank_account_verification",
+    service_code: "BANK_ACCOUNT_VERIFICATION",
+    name: "Bank Account Verification",
+    category: "IDENTITY",
+    description: "Confirm bank account holder legal name via NIBSS gateway.",
+    price: 100,
+    cost_price: 50,
+    service_charge: 20,
+    commission_rate: 10,
+    is_active: 1,
+  },
+
+  // 2. CAC & Corporate Registration Services
+  {
+    service_id: "id_cac_verification",
+    service_code: "CAC_VERIFICATION",
+    name: "CAC Corporate Verification",
+    category: "CAC",
+    description: "Official Corporate Affairs Commission business and company verification.",
+    price: 500,
+    cost_price: 250,
+    service_charge: 50,
+    commission_rate: 10,
+    is_active: 1,
+  },
+  {
+    service_id: "id_tax_id_search",
+    service_code: "TAX_ID_SEARCH",
+    name: "Tax Identity Verification (TIN)",
+    category: "CAC",
+    description: "Official Joint Tax Board (JTB) & FIRS Tax Identification Number search.",
+    price: 500,
+    cost_price: 250,
+    service_charge: 50,
+    commission_rate: 10,
+    is_active: 1,
+  },
+  {
+    service_id: "cac_biz_name",
+    service_code: "CAC_BUSINESS_NAME",
+    name: "CAC Business Name Registration",
+    category: "CAC",
+    description: "Official registration of Business Name with CAC certificate & status report.",
+    price: 28000,
+    cost_price: 22000,
+    service_charge: 1000,
+    commission_rate: 15,
+    is_active: 1,
+  },
+  {
+    service_id: "id_cac_registration",
+    service_code: "CAC_REGISTRATION",
+    name: "CAC Registration Filing",
+    category: "CAC",
+    description: "Filing and incorporation service for business enterprise applications.",
+    price: 28000,
+    cost_price: 22000,
+    service_charge: 1000,
+    commission_rate: 15,
+    is_active: 1,
+  },
+  {
+    service_id: "cac_ltd_co",
+    service_code: "CAC_LTD_COMPANY",
+    name: "CAC Limited Liability Company (LTD)",
+    category: "CAC",
+    description: "Incorporate private limited liability company with share capital.",
+    price: 35000,
+    cost_price: 28000,
+    service_charge: 1500,
+    commission_rate: 15,
+    is_active: 1,
+  },
+  {
+    service_id: "cac_ngo",
+    service_code: "CAC_NGO",
+    name: "CAC NGO Registration",
+    category: "CAC",
+    description: "Official non-profit NGO incorporation with Corporate Affairs Commission.",
+    price: 50000,
+    cost_price: 40000,
+    service_charge: 2000,
+    commission_rate: 15,
+    price_label: "WhatsApp Desk",
+    is_active: 1,
+  },
+  {
+    service_id: "cac_incorporated_trustee",
+    service_code: "CAC_INCORPORATED_TRUSTEE",
+    name: "CAC Incorporated Trustees",
+    category: "CAC",
+    description: "Incorporation of Foundations, Charities, Churches, and Associations.",
+    price: 55000,
+    cost_price: 45000,
+    service_charge: 2000,
+    commission_rate: 15,
+    price_label: "WhatsApp Desk",
+    is_active: 1,
+  },
+  {
+    service_id: "cac_annual_returns",
+    service_code: "CAC_ANNUAL_RETURNS",
+    name: "CAC Annual Returns Filing",
+    category: "CAC",
+    description: "Keep registered enterprise or company active on CAC portal.",
+    price: 12000,
+    cost_price: 8000,
+    service_charge: 500,
+    commission_rate: 15,
+    price_label: "WhatsApp Desk",
+    is_active: 1,
+  },
+  {
+    service_id: "cac_scuml",
+    service_code: "CAC_SCUML",
+    name: "SCUML Certificate Registration",
+    category: "CAC",
+    description: "Official Special Control Unit Against Money Laundering anti-fraud certification.",
+    price: 25000,
+    cost_price: 18000,
+    service_charge: 1000,
+    commission_rate: 15,
+    price_label: "WhatsApp Desk",
+    is_active: 1,
+  },
+
+  // 3. Education Examination e-Pins
+  {
+    service_id: "edu_waec",
+    service_code: "EDU_WAEC",
+    name: "WAEC Result Checker e-Pin",
+    category: "EDUCATION",
+    description: "Official WAEC result checker scratch card PIN delivered instantly.",
+    price: 3500,
+    cost_price: 3200,
+    service_charge: 100,
+    commission_rate: 8,
+    is_active: 1,
+  },
+  {
+    service_id: "edu_neco",
+    service_code: "EDU_NECO",
+    name: "NECO Result Token",
+    category: "EDUCATION",
+    description: "National Examination Council result checker token.",
+    price: 1500,
+    cost_price: 1200,
+    service_charge: 50,
+    commission_rate: 15,
+    is_active: 1,
+  },
+  {
+    service_id: "edu_jamb",
+    service_code: "EDU_JAMB",
+    name: "JAMB ePIN Processing",
+    category: "EDUCATION",
+    description: "Official JAMB examination registration ePin and result slip.",
+    price: 4500,
+    cost_price: 4000,
+    service_charge: 100,
+    commission_rate: 10,
+    is_active: 1,
+  },
+  {
+    service_id: "edu_nabteb",
+    service_code: "EDU_NABTEB",
+    name: "NABTEB Scratch Card",
+    category: "EDUCATION",
+    description: "Official NABTEB result checker scratch card PIN.",
+    price: 1500,
+    cost_price: 1200,
+    service_charge: 50,
+    commission_rate: 15,
+    is_active: 1,
+  },
+
+  // 4. Telecom, VTU & Utilities
+  {
+    service_id: "vtu_airtime",
+    service_code: "VTU_AIRTIME",
+    name: "VTU Instant Airtime Purchase",
+    category: "VTU",
+    description: "Instant airtime top-up across MTN, Airtel, Glo, and 9mobile networks.",
+    price: 100,
+    cost_price: 98,
+    service_charge: 0,
+    commission_rate: 2,
+    price_label: "Pay exact amount",
+    is_active: 1,
+  },
+  {
+    service_id: "vtu_data",
+    service_code: "VTU_DATA",
+    name: "VTU Telecom Data Bundles",
+    category: "VTU",
+    description: "Fast MTN SME data, Glo Gifting, and Airtel corporate bundles.",
+    price: 260,
+    cost_price: 240,
+    service_charge: 20,
+    commission_rate: 8,
+    price_label: "Select plan",
+    is_active: 1,
+  },
+  {
+    service_id: "vtu_electricity",
+    service_code: "VTU_ELECTRICITY",
+    name: "Prepaid Electricity Token",
+    category: "VTU",
+    description: "Instant energy tokens across AEDC, EKEDC, IKEDC, JEDC, and IBEDC.",
+    price: 100,
+    cost_price: 0,
+    service_charge: 100,
+    commission_rate: 2,
+    price_label: "Pay bill + ₦100 fee",
+    is_active: 1,
+  },
+  {
+    service_id: "vtu_cable",
+    service_code: "VTU_CABLE",
+    name: "Cable TV Subscription",
+    category: "VTU",
+    description: "Subscription renewal for DStv, GOtv, and StarTimes.",
+    price: 100,
+    cost_price: 0,
+    service_charge: 100,
+    commission_rate: 2,
+    price_label: "Package + ₦100 fee",
+    is_active: 1,
+  },
+
+  // 5. Government & ICT Services
+  {
+    service_id: "gov_passport",
+    service_code: "GOV_PASSPORT",
+    name: "Nigerian Passport Application Filing",
+    category: "GOVERNMENT",
+    description: "Immigration passport portal form filing & biometric booking support.",
+    price: 3500,
+    cost_price: 2500,
+    service_charge: 250,
+    commission_rate: 20,
+    is_active: 1,
+  },
+  {
+    service_id: "ict_website",
+    service_code: "ICT_WEBSITE",
+    name: "Custom Website & Portal Design",
+    category: "ICT",
+    description: "Custom enterprise portals, school management platforms, and fintech apps.",
+    price: 50000,
+    cost_price: 35000,
+    service_charge: 2500,
+    commission_rate: 25,
+    price_label: "Consultation Quote",
+    is_active: 1,
+  },
+
+  // 6. Slips & Cards & Preview Formats
+  {
+    service_id: "slip_regular",
+    service_code: "NIN_REGULAR",
+    name: "NIN Regular Slip",
+    category: "SLIPS",
+    description: "Standard monochrome print verification confirmation slip with barcode & QR code.",
+    price: 180,
+    cost_price: 50,
+    service_charge: 30,
+    commission_rate: 20,
+    price_label: "A4 Monochrome",
+    is_active: 1,
+  },
+  {
+    service_id: "slip_premium",
+    service_code: "NIN_PREMIUM_WHITE",
+    name: "NIN Premium Card",
+    category: "SLIPS",
+    description: "High-resolution plastic wallet-sized card profile with biometrics & security watermark.",
+    price: 250,
+    cost_price: 100,
+    service_charge: 50,
+    commission_rate: 20,
+    price_label: "CR80 Plastic Card",
+    is_active: 1,
+  },
+  {
+    service_id: "slip_standard",
+    service_code: "SLIP_STANDARD",
+    name: "NIN Standard Slip",
+    category: "SLIPS",
+    description: "Laminated wallet-sized card profile slip with embedded QR code.",
+    price: 200,
+    cost_price: 80,
+    service_charge: 40,
+    commission_rate: 20,
+    price_label: "Laminated A4/Card",
+    is_active: 1,
+  },
+  {
+    service_id: "slip_bvn_card",
+    service_code: "BVN_CARD",
+    name: "BVN Wallet Card",
+    category: "SLIPS",
+    description: "Dual-sided landscape wallet card format with customer photograph and verification seal.",
+    price: 250,
+    cost_price: 100,
+    service_charge: 50,
+    commission_rate: 20,
+    price_label: "CR80 Plastic Card",
+    is_active: 1,
+  },
+  {
+    service_id: "slip_bvn_slip",
+    service_code: "BVN_SLIP_1",
+    name: "BVN Verification Slip",
+    category: "SLIPS",
+    description: "Official verification slip with banking demographics, photo, and official NIBSS seal.",
+    price: 200,
+    cost_price: 80,
+    service_charge: 40,
+    commission_rate: 20,
+    price_label: "A4 Banking KYC",
+    is_active: 1,
+  },
+];
+
+export class ServicePriceRepository {
+  /**
+   * Ensures the service_prices table exists in Turso and seeds initial defaults if empty.
+   */
+  static async ensureTableAndSeed(): Promise<void> {
+    await executeTurso(`
+      CREATE TABLE IF NOT EXISTS service_prices (
+        id TEXT PRIMARY KEY,
+        service_id TEXT NOT NULL UNIQUE,
+        service_code TEXT NOT NULL,
+        name TEXT NOT NULL,
+        category TEXT NOT NULL,
+        description TEXT,
+        price REAL NOT NULL DEFAULT 0,
+        cost_price REAL NOT NULL DEFAULT 0,
+        service_charge REAL NOT NULL DEFAULT 0,
+        commission_rate REAL NOT NULL DEFAULT 0,
+        price_label TEXT,
+        is_active INTEGER NOT NULL DEFAULT 1,
+        updated_by TEXT,
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+    `);
+    try {
+      await executeTurso(`CREATE INDEX IF NOT EXISTS idx_service_prices_service_id ON service_prices(service_id);`);
+      await executeTurso(`CREATE INDEX IF NOT EXISTS idx_service_prices_category ON service_prices(category);`);
+      await executeTurso(`CREATE INDEX IF NOT EXISTS idx_service_prices_active ON service_prices(is_active);`);
+    } catch {
+      // index might already exist
+    }
+
+    const countRes = await executeTurso(`SELECT COUNT(*) as count FROM service_prices;`);
+    const count = Number(countRes.rows[0]?.count) || 0;
+
+    if (count === 0) {
+      console.log(`[ServicePriceRepository] Seeding ${DEFAULT_SERVICE_PRICES.length} service prices into Turso...`);
+      await this.resetToDefaults("SYSTEM_INIT");
+    } else {
+      // Ensure any newly added default services or slips (like slip_bvn_card, slip_bvn_slip) are inserted if missing
+      for (const item of DEFAULT_SERVICE_PRICES) {
+        try {
+          const insertId = `sp_${item.service_id}`;
+          await executeTurso(`
+            INSERT OR IGNORE INTO service_prices (
+              id, service_id, service_code, name, category, description,
+              price, cost_price, service_charge, commission_rate, price_label,
+              is_active, updated_by, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'SYSTEM_SEED', datetime('now'), datetime('now'));
+          `, [
+            insertId,
+            item.service_id,
+            item.service_code,
+            item.name,
+            item.category,
+            item.description || null,
+            item.price,
+            item.cost_price || 0,
+            item.service_charge || 0,
+            item.commission_rate || 0,
+            item.price_label || null,
+            item.is_active ?? 1,
+          ]);
+        } catch {}
+      }
+    }
+  }
+
+  /**
+   * Fetches all service prices directly from Turso database.
+   */
+  static async getAllPrices(): Promise<TursoServicePrice[]> {
+    await this.ensureTableAndSeed();
+    const sql = `
+      SELECT id, service_id, service_code, name, category, description,
+             price, cost_price, service_charge, commission_rate, price_label,
+             is_active, updated_by, created_at, updated_at
+      FROM service_prices
+      ORDER BY category ASC, name ASC;
+    `;
+    const res = await executeTurso(sql);
+    if (!res.rows || res.rows.length === 0) {
+      return [];
+    }
+
+    return res.rows.map((row: any) => ({
+      id: String(row.id),
+      service_id: String(row.service_id),
+      service_code: String(row.service_code),
+      name: String(row.name),
+      category: String(row.category),
+      description: row.description ? String(row.description) : null,
+      price: Number(row.price) || 0,
+      cost_price: Number(row.cost_price) || 0,
+      service_charge: Number(row.service_charge) || 0,
+      commission_rate: Number(row.commission_rate) || 0,
+      price_label: row.price_label ? String(row.price_label) : null,
+      is_active: Number(row.is_active) ? 1 : 0,
+      updated_by: row.updated_by ? String(row.updated_by) : null,
+      created_at: String(row.created_at || new Date().toISOString()),
+      updated_at: String(row.updated_at || new Date().toISOString()),
+    }));
+  }
+
+  /**
+   * Fetches a single service price by service_id, service_code, alias, or name.
+   */
+  static async getPriceByServiceId(serviceId: string): Promise<TursoServicePrice | null> {
+    await this.ensureTableAndSeed();
+    const cleanId = String(serviceId || "").trim();
+    if (!cleanId) return null;
+
+    const lowerId = cleanId.toLowerCase();
+    const aliasMap: Record<string, string> = {
+      // Identity & KYC
+      svc_nin_verify: "id_nin_ver",
+      nin: "id_nin_ver",
+      nin_verify: "id_nin_ver",
+      nin_verification: "id_nin_ver",
+      id_nin_ver: "id_nin_ver",
+      id_nin_phone: "id_nin_phone",
+      nin_phone: "id_nin_phone",
+      id_nin_demography: "id_nin_demography",
+      nin_demography: "id_nin_demography",
+      id_nin_val: "id_nin_val",
+      nin_val: "id_nin_val",
+      nin_validation: "id_nin_val",
+      id_vnin_slip: "id_vnin_slip",
+      vnin: "id_vnin_slip",
+      vnin_slip: "id_vnin_slip",
+      id_nin_pers: "id_nin_pers",
+      nin_pers: "id_nin_pers",
+      nin_personalization: "id_nin_pers",
+
+      // BVN Services
+      svc_bvn_verify: "id_bvn_ver",
+      bvn: "id_bvn_ver",
+      bvn_verify: "id_bvn_ver",
+      bvn_verification: "id_bvn_ver",
+      id_bvn_ver: "id_bvn_ver",
+      id_bvn_phone: "id_bvn_phone",
+      bvn_phone: "id_bvn_phone",
+      id_bvn_demography: "id_bvn_demography",
+      bvn_demography: "id_bvn_demography",
+
+      // Slips, Cards & Live Previews
+      slip_regular: "slip_regular",
+      nin_regular: "slip_regular",
+      regular: "slip_regular",
+      regular_slip: "slip_regular",
+      "regular slip": "slip_regular",
+      slip_premium: "slip_premium",
+      nin_premium: "slip_premium",
+      nin_premium_white: "slip_premium",
+      nin_premium_green: "slip_premium",
+      premium: "slip_premium",
+      premium_card: "slip_premium",
+      "premium card": "slip_premium",
+      slip_standard: "slip_standard",
+      nin_standard: "slip_standard",
+      standard: "slip_standard",
+      standard_slip: "slip_standard",
+      slip_bvn_card: "slip_bvn_card",
+      bvn_card: "slip_bvn_card",
+      "bvn card": "slip_bvn_card",
+      bvn_premium_card: "slip_bvn_card",
+      slip_bvn_slip: "slip_bvn_slip",
+      bvn_slip: "slip_bvn_slip",
+      bvn_slip_1: "slip_bvn_slip",
+      "bvn slip": "slip_bvn_slip",
+      "bvn slip 1": "slip_bvn_slip",
+
+      // CAC & Corporate
+      svc_cac_reg: "cac_biz_name",
+      cac: "cac_biz_name",
+      cac_registration: "id_cac_registration",
+      cac_biz_name: "cac_biz_name",
+      cac_ltd_co: "cac_ltd_co",
+      cac_it: "cac_it",
+
+      // VTU & Utilities
+      svc_airtime_vtu: "vtu_airtime",
+      airtime: "vtu_airtime",
+      airtime_vtu: "vtu_airtime",
+      vtu_airtime: "vtu_airtime",
+      svc_data_bundle: "vtu_data",
+      data: "vtu_data",
+      data_bundle: "vtu_data",
+      vtu_data: "vtu_data",
+      svc_electricity_bill: "vtu_electricity",
+      electricity: "vtu_electricity",
+      electricity_bill: "vtu_electricity",
+      vtu_electricity: "vtu_electricity",
+      svc_cable_tv: "vtu_cable",
+      cable: "vtu_cable",
+      cable_tv: "vtu_cable",
+      vtu_cable: "vtu_cable",
+      svc_tin_verify: "id_tin_verification",
+      tin: "id_tin_verification",
+      tin_verification: "id_tin_verification",
+      waec: "edu_waec",
+      neco: "edu_neco",
+      jamb: "edu_jamb",
+      nabteb: "edu_nabteb",
+      passport: "gov_passport",
+      website: "ict_website",
+    };
+
+    const resolvedId = aliasMap[lowerId] || cleanId;
+
+    const sql = `
+      SELECT id, service_id, service_code, name, category, description,
+             price, cost_price, service_charge, commission_rate, price_label,
+             is_active, updated_by, created_at, updated_at
+      FROM service_prices
+      WHERE service_id = ? 
+         OR upper(service_code) = upper(?)
+         OR service_id = ?
+         OR upper(service_code) = upper(?)
+         OR upper(name) = upper(?)
+      LIMIT 1;
+    `;
+    const res = await executeTurso(sql, [cleanId, cleanId, resolvedId, resolvedId, cleanId]);
+    if (!res.rows || res.rows.length === 0) return null;
+    const row: any = res.rows[0];
+    return {
+      id: String(row.id),
+      service_id: String(row.service_id),
+      service_code: String(row.service_code),
+      name: String(row.name),
+      category: String(row.category),
+      description: row.description ? String(row.description) : null,
+      price: Number(row.price) || 0,
+      cost_price: Number(row.cost_price) || 0,
+      service_charge: Number(row.service_charge) || 0,
+      commission_rate: Number(row.commission_rate) || 0,
+      price_label: row.price_label ? String(row.price_label) : null,
+      is_active: Number(row.is_active) ? 1 : 0,
+      updated_by: row.updated_by ? String(row.updated_by) : null,
+      created_at: String(row.created_at || new Date().toISOString()),
+      updated_at: String(row.updated_at || new Date().toISOString()),
+    };
+  }
+
+  /**
+   * Upserts a single service price into Turso database.
+   */
+  static async upsertPrice(
+    priceItem: {
+      service_id: string;
+      service_code?: string;
+      name?: string;
+      category?: string;
+      description?: string;
+      price: number;
+      cost_price?: number;
+      service_charge?: number;
+      commission_rate?: number;
+      price_label?: string;
+      is_active?: number | boolean;
+      updated_by?: string;
+    }
+  ): Promise<TursoServicePrice> {
+    await this.ensureTableAndSeed();
+    const now = new Date().toISOString();
+    const sId = String(priceItem.service_id || "").trim();
+    const sCode = String(priceItem.service_code || sId).toUpperCase().trim();
+    const id = `sp_${sId.toLowerCase().replace(/[^a-z0-9]/g, "_")}`;
+
+    const sql = `
+      INSERT INTO service_prices (
+        id, service_id, service_code, name, category, description,
+        price, cost_price, service_charge, commission_rate, price_label,
+        is_active, updated_by, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(service_id) DO UPDATE SET
+        service_code = coalesce(excluded.service_code, service_prices.service_code),
+        name = coalesce(excluded.name, service_prices.name),
+        category = coalesce(excluded.category, service_prices.category),
+        description = coalesce(excluded.description, service_prices.description),
+        price = excluded.price,
+        cost_price = excluded.cost_price,
+        service_charge = excluded.service_charge,
+        commission_rate = excluded.commission_rate,
+        price_label = excluded.price_label,
+        is_active = excluded.is_active,
+        updated_by = excluded.updated_by,
+        updated_at = excluded.updated_at;
+    `;
+
+    const args = [
+      id,
+      sId,
+      sCode,
+      priceItem.name || sId,
+      priceItem.category || "IDENTITY",
+      priceItem.description || null,
+      Number(priceItem.price) || 0,
+      Number(priceItem.cost_price) || 0,
+      Number(priceItem.service_charge) || 0,
+      Number(priceItem.commission_rate) || 0,
+      priceItem.price_label || null,
+      priceItem.is_active !== undefined ? (priceItem.is_active ? 1 : 0) : 1,
+      priceItem.updated_by || "ADMIN",
+      now,
+      now,
+    ];
+
+    await executeTurso(sql, args);
+    const updated = await this.getPriceByServiceId(sId);
+    return updated!;
+  }
+
+  /**
+   * Bulk updates multiple service prices in a single ACID transaction on Turso.
+   */
+  static async bulkUpdatePrices(
+    prices: Array<{
+      service_id: string;
+      price: number;
+      cost_price?: number;
+      service_charge?: number;
+      commission_rate?: number;
+      price_label?: string;
+      is_active?: number | boolean;
+    }>,
+    updatedBy = "ADMIN"
+  ): Promise<void> {
+    await this.ensureTableAndSeed();
+    await withTursoTransaction(async (tx) => {
+      const now = new Date().toISOString();
+      for (const item of prices) {
+        const sId = String(item.service_id || "").trim();
+        const sql = `
+          UPDATE service_prices
+          SET price = ?,
+              cost_price = coalesce(?, cost_price),
+              service_charge = coalesce(?, service_charge),
+              commission_rate = coalesce(?, commission_rate),
+              price_label = coalesce(?, price_label),
+              is_active = coalesce(?, is_active),
+              updated_by = ?,
+              updated_at = ?
+          WHERE service_id = ?;
+        `;
+        const args = [
+          Number(item.price) || 0,
+          item.cost_price !== undefined ? Number(item.cost_price) : null,
+          item.service_charge !== undefined ? Number(item.service_charge) : null,
+          item.commission_rate !== undefined ? Number(item.commission_rate) : null,
+          item.price_label !== undefined ? item.price_label : null,
+          item.is_active !== undefined ? (item.is_active ? 1 : 0) : null,
+          updatedBy,
+          now,
+          sId,
+        ];
+        await tx.execute({ sql, args });
+      }
+    });
+  }
+
+  /**
+   * Resets all service prices directly in Turso to project default values.
+   */
+  static async resetToDefaults(updatedBy = "ADMIN"): Promise<void> {
+    await withTursoTransaction(async (tx) => {
+      const now = new Date().toISOString();
+      for (const item of DEFAULT_SERVICE_PRICES) {
+        const id = `sp_${item.service_id.toLowerCase().replace(/[^a-z0-9]/g, "_")}`;
+        const sql = `
+          INSERT INTO service_prices (
+            id, service_id, service_code, name, category, description,
+            price, cost_price, service_charge, commission_rate, price_label,
+            is_active, updated_by, created_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ON CONFLICT(service_id) DO UPDATE SET
+            service_code = excluded.service_code,
+            name = excluded.name,
+            category = excluded.category,
+            description = excluded.description,
+            price = excluded.price,
+            cost_price = excluded.cost_price,
+            service_charge = excluded.service_charge,
+            commission_rate = excluded.commission_rate,
+            price_label = excluded.price_label,
+            is_active = excluded.is_active,
+            updated_by = excluded.updated_by,
+            updated_at = excluded.updated_at;
+        `;
+        const args = [
+          id,
+          item.service_id,
+          item.service_code,
+          item.name,
+          item.category,
+          item.description || null,
+          item.price,
+          item.cost_price,
+          item.service_charge,
+          item.commission_rate,
+          item.price_label || null,
+          item.is_active,
+          updatedBy,
+          now,
+          now,
+        ];
+        await tx.execute({ sql, args });
+      }
+    });
+  }
+}
+
 

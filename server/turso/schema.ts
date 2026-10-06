@@ -30,8 +30,27 @@ export const TURSO_TABLES = {
   WEBHOOK_EVENTS: "webhook_events",
   USER_PASSKEYS: "user_passkeys",
   PROVIDER_ROUTING_RULES: "provider_routing_rules",
+  SERVICE_PRICES: "service_prices",
   MIGRATIONS: "_migrations",
 } as const;
+
+export interface TursoServicePrice {
+  id: string;
+  service_id: string;
+  service_code: string;
+  name: string;
+  category: string;
+  description?: string | null;
+  price: number;
+  cost_price: number;
+  service_charge: number;
+  commission_rate: number;
+  price_label?: string | null;
+  is_active: number;
+  updated_by?: string | null;
+  created_at: string;
+  updated_at: string;
+}
 
 export interface TursoProviderRoutingRule {
   id: string;

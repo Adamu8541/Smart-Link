@@ -1,32 +1,97 @@
 {
+  "$schema": "https://json.schemastore.org/web-manifest-combined.json",
   "name": "Smart Link NG - Identity, CAC & VTU Portal",
   "short_name": "SmartLink NG",
-  "description": "Nigeria's all-in-one digital portal for NIN Verification, BVN Validation, CAC Business Name Registration, Electricity Disco Tokens, cheap VTU Data & Airtime, and Developer Verification APIs.",
-  "start_url": "/",
-  "id": "/",
+  "description": "Nigeria's all-in-one digital portal for NIN Verification & Slip Printing, BVN Validation, CAC Registration, Electricity Disco Tokens, cheap VTU Data & Airtime, and Developer APIs.",
+  "id": "https://smartlinkng.com.ng/",
+  "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui", "browser"],
   "orientation": "portrait-primary",
   "background_color": "#F5F7FA",
   "theme_color": "#0F2D5C",
+  "lang": "en-NG",
+  "dir": "ltr",
   "categories": ["finance", "utilities", "business", "productivity"],
+  "prefer_related_applications": false,
+  "related_applications": [],
   "icons": [
     {
       "src": "/favicon.webp",
-      "sizes": "192x192 512x512",
+      "sizes": "192x192",
       "type": "image/webp",
       "purpose": "any"
     },
     {
       "src": "/favicon.webp",
-      "sizes": "192x192 512x512",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.webp",
+      "sizes": "512x512",
       "type": "image/webp",
       "purpose": "maskable"
     },
     {
+      "src": "/logo.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
       "src": "/favicon.webp",
-      "sizes": "any",
-      "type": "image/webp"
+      "sizes": "180x180",
+      "type": "image/webp",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/logo.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "SmartLink NG Portal Dashboard on Desktop"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "SmartLink NG Mobile Identity & Verification Portal"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "NIN Verification",
+      "short_name": "NIN Verify",
+      "description": "Instant NIN lookup, validation and slip print",
+      "url": "/verification",
+      "icons": [{ "src": "/favicon.webp", "sizes": "192x192", "type": "image/webp" }]
+    },
+    {
+      "name": "BVN Validation",
+      "short_name": "BVN Verify",
+      "description": "Instant Bank Verification Number check and wallet slip",
+      "url": "/verification",
+      "icons": [{ "src": "/favicon.webp", "sizes": "192x192", "type": "image/webp" }]
+    },
+    {
+      "name": "Buy Airtime & Data",
+      "short_name": "VTU Data",
+      "description": "MTN SME, Glo, Airtel data bundles and electricity meter tokens",
+      "url": "/bills",
+      "icons": [{ "src": "/favicon.webp", "sizes": "192x192", "type": "image/webp" }]
+    },
+    {
+      "name": "CAC Registration",
+      "short_name": "CAC Business",
+      "description": "Corporate Affairs Commission business name registration and filing",
+      "url": "/cac",
+      "icons": [{ "src": "/favicon.webp", "sizes": "192x192", "type": "image/webp" }]
     }
   ]
 }

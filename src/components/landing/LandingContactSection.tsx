@@ -108,17 +108,17 @@ export const LandingContactSection: React.FC<LandingContactSectionProps> = ({
   return (
     <section
       id="contact-section"
-      className={`py-10 sm:py-14 bg-white border-t border-[#E5E7EB] scroll-mt-20 ${className}`}
+      className={`py-6 sm:py-10 bg-white border-t border-[#E5E7EB] scroll-mt-20 ${className}`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10 space-y-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 text-[11px] font-bold uppercase tracking-wider">
+        <div className="text-center max-w-3xl mx-auto mb-6 sm:mb-8 space-y-1.5">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 text-[10.5px] sm:text-[11px] font-bold uppercase tracking-wider">
             <MessageSquare className="h-3 w-3" />
             Official Communications Desk
           </div>
-          <h2 className="text-2xl sm:text-3.5xl font-bold text-[#111827] tracking-tight">
+          <h2 className="text-lg sm:text-2.5xl lg:text-3xl font-bold text-[#111827] tracking-tight">
             Get in Touch with Our Team
           </h2>
           <p className="text-xs sm:text-sm text-[#4B5563] font-normal leading-relaxed">
@@ -126,37 +126,37 @@ export const LandingContactSection: React.FC<LandingContactSectionProps> = ({
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-8 items-start">
           
           {/* Left Column: Contact Channels & Credentials */}
-          <div className="lg:col-span-5 space-y-4 sm:space-y-5">
+          <div className="lg:col-span-5 space-y-3 sm:space-y-4">
             
             {/* Direct Cards */}
-            <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-4 sm:p-5 space-y-3">
+            <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-3.5 sm:p-5 space-y-2.5">
               <button
                 type="button"
                 onClick={() => setShowChannels(!showChannels)}
-                className="w-full text-sm sm:text-base font-bold text-[#111827] flex items-center justify-between gap-2 cursor-pointer focus:outline-none"
+                className="w-full text-xs sm:text-base font-bold text-[#111827] flex items-center justify-between gap-2 cursor-pointer focus:outline-none"
               >
                 <span className="flex items-center gap-2">
                   <Building2 className="h-4 w-4 text-[#0F2D5C]" />
                   Direct Communication Channels
                 </span>
-                <span className="flex items-center gap-1.5 text-xs font-semibold text-[#0F2D5C] bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-100 shrink-0">
+                <span className="flex items-center gap-1.5 text-[11px] sm:text-xs font-semibold text-[#0F2D5C] bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-100 shrink-0">
                   {showChannels ? "Hide" : "Click to Show"}
-                  {showChannels ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  {showChannels ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
                 </span>
               </button>
 
               {showChannels && (
-                <div className="space-y-3 pt-2 border-t border-[#E2E8F0] animate-fadeIn">
+                <div className="space-y-2.5 pt-2 border-t border-[#E2E8F0] animate-fadeIn">
                   {/* Email Desk */}
-                  <div className="flex items-start gap-3 p-3 bg-white border border-[#E5E7EB] rounded-lg">
-                    <div className="h-8 w-8 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 flex items-center justify-center shrink-0">
-                      <Mail className="h-4 w-4" />
+                  <div className="flex items-start gap-2.5 p-2.5 sm:p-3 bg-white border border-[#E5E7EB] rounded-lg">
+                    <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 flex items-center justify-center shrink-0">
+                      <Mail className="h-3.5 w-3.5" />
                     </div>
                     <div className="space-y-0.5 text-left">
-                      <span className="text-[10px] font-bold text-[#4B5563] uppercase tracking-wider block">
+                      <span className="text-[9.5px] sm:text-[10px] font-bold text-[#4B5563] uppercase tracking-wider block">
                         Support Email
                       </span>
                       <a
@@ -165,19 +165,19 @@ export const LandingContactSection: React.FC<LandingContactSectionProps> = ({
                       >
                         Smartlinkcomputerbusiness@gmail.com
                       </a>
-                      <span className="text-[11px] text-[#4B5563] font-medium block">
+                      <span className="text-[10.5px] sm:text-[11px] text-[#4B5563] font-medium block">
                         Official ticketing &amp; compliance desk
                       </span>
                     </div>
                   </div>
 
                   {/* Telephone */}
-                  <div className="flex items-start gap-3 p-3 bg-white border border-[#E5E7EB] rounded-lg">
-                    <div className="h-8 w-8 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 flex items-center justify-center shrink-0">
-                      <Phone className="h-4 w-4" />
+                  <div className="flex items-start gap-2.5 p-2.5 sm:p-3 bg-white border border-[#E5E7EB] rounded-lg">
+                    <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 flex items-center justify-center shrink-0">
+                      <Phone className="h-3.5 w-3.5" />
                     </div>
                     <div className="space-y-0.5 text-left">
-                      <span className="text-[10px] font-bold text-[#4B5563] uppercase tracking-wider block">
+                      <span className="text-[9.5px] sm:text-[10px] font-bold text-[#4B5563] uppercase tracking-wider block">
                         Phone &amp; Hotlines
                       </span>
                       <a
@@ -186,19 +186,19 @@ export const LandingContactSection: React.FC<LandingContactSectionProps> = ({
                       >
                         +234 808 549 0982
                       </a>
-                      <span className="text-[11px] text-[#4B5563] font-medium block">
+                      <span className="text-[10.5px] sm:text-[11px] text-[#4B5563] font-medium block">
                         Mon – Sat: 8:00 AM – 8:00 PM (GMT+1)
                       </span>
                     </div>
                   </div>
 
                   {/* WhatsApp */}
-                  <div className="flex items-start gap-3.5 p-3.5 bg-white border border-[#E5E7EB] rounded-xl">
-                    <div className="h-10 w-10 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 flex items-center justify-center shrink-0">
-                      <MessageSquare className="h-5 w-5" />
+                  <div className="flex items-start gap-2.5 p-2.5 sm:p-3 bg-white border border-[#E5E7EB] rounded-lg">
+                    <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 flex items-center justify-center shrink-0">
+                      <MessageSquare className="h-3.5 w-3.5" />
                     </div>
                     <div className="space-y-0.5 text-left">
-                      <span className="text-[11px] font-bold text-[#4B5563] uppercase tracking-wider block">
+                      <span className="text-[9.5px] sm:text-[10px] font-bold text-[#4B5563] uppercase tracking-wider block">
                         WhatsApp Live Desk
                       </span>
                       <a
@@ -208,9 +208,9 @@ export const LandingContactSection: React.FC<LandingContactSectionProps> = ({
                         className="text-xs sm:text-sm font-bold text-[#0F2D5C] hover:underline flex items-center gap-1.5"
                       >
                         +234 904 773 8212
-                        <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                       </a>
-                      <span className="text-[11px] text-[#4B5563] font-medium block">
+                      <span className="text-[10.5px] sm:text-[11px] text-[#4B5563] font-medium block">
                         Fast response for registered agents
                       </span>
                     </div>
@@ -223,7 +223,7 @@ export const LandingContactSection: React.FC<LandingContactSectionProps> = ({
 
           {/* Right Column: Contact Form */}
           <div className="lg:col-span-7">
-            <div className="bg-white border border-[#E5E7EB] rounded-3xl p-5 sm:p-7 shadow-sm text-left">
+            <div className="bg-white border border-[#E5E7EB] rounded-2xl sm:rounded-3xl p-4 sm:p-7 shadow-xs text-left">
               <button
                 type="button"
                 onClick={() => setShowForm(!showForm)}

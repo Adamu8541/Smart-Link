@@ -72,6 +72,7 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
     title: "SERVICES & PORTALS",
     items: [
       { id: "NAV_SERVICES", label: "Verification Services", path: "/admin/services", icon: CheckSquare, requiredPermissions: ["MANAGE_SERVICES", "VIEW_SERVICES"] },
+      { id: "NAV_PRICE_CONTROL", label: "Price Control", path: "/admin/prices", icon: DollarSign, requiredPermissions: ["MANAGE_SERVICES", "VIEW_SERVICES", "MANAGE_SETTINGS", "VIEW_DASHBOARD"], badge: "Turso" },
       { id: "NAV_PROVIDERS", label: "API Providers", path: "/admin/providers", icon: Server, requiredPermissions: ["MANAGE_PROVIDERS", "VIEW_PROVIDERS"] },
       { id: "NAV_PORTAL_ROUTING", label: "Multi-Provider Routing", path: "/admin/routing", icon: ArrowRightLeft, requiredPermissions: ["MANAGE_PROVIDERS", "VIEW_PROVIDERS"], badge: "Failover" },
       { id: "NAV_API_BUILDER", label: "API Request Builder", path: "/admin/api-builder", icon: Code, requiredPermissions: ["MANAGE_PROVIDERS", "VIEW_PROVIDERS"] },

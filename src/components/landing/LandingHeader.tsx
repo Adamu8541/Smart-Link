@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { Menu, X, ArrowRight, ShieldCheck, User, LogIn, UserPlus } from "lucide-react";
+import { Menu, X, ArrowRight, ShieldCheck, User, LogIn, UserPlus, Download, Smartphone } from "lucide-react";
 import { useSiteConfig } from "../../context/SiteConfigContext";
 import { DEFAULT_LOGO_URL, handleLogoError } from "../../utils/brandLogo";
 const logoImg = DEFAULT_LOGO_URL;
@@ -110,7 +110,17 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
           </nav>
 
           {/* Right: Actions (Login, Register, Get Started) */}
-          <div id="header-right-actions" className="hidden lg:flex items-center gap-2.5">
+          <div id="header-right-actions" className="hidden lg:flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent("open_pwa_install_modal"))}
+              className="px-3 py-1.5 text-xs font-bold text-[#0F2D5C] bg-amber-100 hover:bg-amber-200 border border-amber-300 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
+              title="Install SmartLink App on your Phone/PC"
+            >
+              <Smartphone className="h-3.5 w-3.5 text-amber-700" />
+              <span>Install App</span>
+            </button>
+
             <button
               id="header-btn-login"
               type="button"
@@ -213,6 +223,24 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
                     </button>
                   );
                 })}
+                <div className="pt-2 border-t border-slate-200">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      window.dispatchEvent(new CustomEvent("open_pwa_install_modal"));
+                    }}
+                    className="w-full text-left px-3.5 py-3 min-h-[44px] text-sm font-bold transition-colors rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300/80 cursor-pointer flex items-center justify-between touch-manipulation"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Smartphone className="w-4 h-4 text-amber-700" />
+                      <span>Install SmartLink App</span>
+                    </span>
+                    <span className="text-[10px] font-extrabold bg-amber-400 text-slate-900 px-2 py-0.5 rounded-full">
+                      Install
+                    </span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>

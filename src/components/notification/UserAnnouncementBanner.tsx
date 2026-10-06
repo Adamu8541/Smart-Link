@@ -95,30 +95,30 @@ export function UserAnnouncementBanner({ variant = "dashboard", className = "", 
   // Variant 1: Homepage Top Bar / Ticker
   if (variant === "homepage") {
     return (
-      <div id="homepage-announcements-container" className={`w-full space-y-2.5 ${className}`}>
+      <div id="homepage-announcements-container" className={`w-full space-y-2 ${className}`}>
         {visibleAnnouncements.map((ann) => (
           <div
             key={ann.id}
             id={`announcement-banner-${ann.id}`}
-            className={`w-full py-3 px-4 sm:px-6 rounded-2xl border shadow-sm transition-all duration-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${getStyleClasses(
+            className={`w-full py-2 sm:py-3 px-3 sm:px-6 rounded-xl sm:rounded-2xl border shadow-2xs transition-all duration-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 ${getStyleClasses(
               ann.bannerStyle,
               ann.priority
             )}`}
           >
-            <div className="flex items-center gap-3 w-full sm:w-auto">
-              <div className="p-1.5 rounded-xl bg-white/80 dark:bg-black/40 border border-black/5 dark:border-white/10 shrink-0">
+            <div className="flex items-center gap-2.5 w-full sm:w-auto">
+              <div className="p-1 sm:p-1.5 rounded-lg bg-white/80 dark:bg-black/40 border border-black/5 dark:border-white/10 shrink-0">
                 {getIcon(ann.type, ann.priority)}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white dark:bg-black/50 border border-black/10 dark:border-white/20 shadow-2xs font-mono">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[9.5px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-white dark:bg-black/50 border border-black/10 dark:border-white/20 shadow-2xs font-mono">
                     {ann.type || "Live Notice"}
                   </span>
                   <span className="font-bold text-xs sm:text-sm tracking-tight text-[#111827] dark:text-white">
                     {ann.title}
                   </span>
                 </div>
-                <p className="text-xs text-[#4B5563] dark:text-[#E5E7EB] mt-0.5 line-clamp-2 leading-relaxed">
+                <p className="text-[11px] sm:text-xs text-[#4B5563] dark:text-[#E5E7EB] mt-0.5 line-clamp-2 leading-relaxed">
                   {ann.content}
                 </p>
               </div>
@@ -128,19 +128,19 @@ export function UserAnnouncementBanner({ variant = "dashboard", className = "", 
               {ann.actionText && (
                 <button
                   onClick={() => handleActionClick(ann.actionUrl || "/")}
-                  className="px-3.5 py-1.5 bg-[#111827] hover:bg-black text-white dark:bg-white dark:hover:bg-[#E5E7EB] dark:text-[#111827] rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1 cursor-pointer shrink-0"
+                  className="px-3 py-1 bg-[#111827] hover:bg-black text-white dark:bg-white dark:hover:bg-[#E5E7EB] dark:text-[#111827] rounded-lg text-[11px] sm:text-xs font-bold transition-all shadow-xs flex items-center gap-1 cursor-pointer shrink-0"
                 >
                   <span>{ann.actionText}</span>
-                  <ChevronRight className="w-3.5 h-3.5" />
+                  <ChevronRight className="w-3 h-3" />
                 </button>
               )}
               <button
                 onClick={() => handleDismiss(ann.id)}
-                className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2.5 hover:bg-black/10 dark:hover:bg-white/10 rounded-xl text-[#6B7280] hover:text-[#111827] dark:text-[#9CA3AF] dark:hover:text-white transition-colors cursor-pointer"
+                className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg text-[#6B7280] hover:text-[#111827] dark:text-[#9CA3AF] dark:hover:text-white transition-colors cursor-pointer"
                 title="Dismiss announcement"
                 aria-label="Dismiss announcement"
               >
-                <X className="w-4 h-4" />
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>

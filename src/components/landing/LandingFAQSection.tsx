@@ -88,17 +88,17 @@ export const LandingFAQSection: React.FC<{ onContactSupport?: () => void; onGetS
   };
 
   return (
-    <section id="faq-section" className="py-10 sm:py-14 bg-[#F8FAFC] border-t border-[#E2E8F0] relative overflow-hidden">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-6 sm:space-y-8">
+    <section id="faq-section" className="py-6 sm:py-10 bg-[#F8FAFC] border-t border-[#E2E8F0] relative overflow-hidden">
+      <div className="max-w-5xl mx-auto px-3.5 sm:px-6 lg:px-8 relative z-10 space-y-4 sm:space-y-6">
         
         {/* Section Header */}
-        <div className="text-center space-y-2 max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EBF3FC] text-[#0F2D5C] text-[11px] font-bold border border-[#D0E2F7]">
+        <div className="text-center space-y-1.5 max-w-3xl mx-auto">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#EBF3FC] text-[#0F2D5C] text-[10.5px] sm:text-[11px] font-bold border border-[#D0E2F7]">
             <HelpCircle className="h-3 w-3" aria-hidden="true" />
             <span>Frequently Asked Questions</span>
           </div>
 
-          <h2 id="faq-heading" className="text-2xl sm:text-3.5xl font-bold text-[#111827] tracking-tight">
+          <h2 id="faq-heading" className="text-lg sm:text-2.5xl font-bold text-[#111827] tracking-tight">
             Everything You Need to Know About SmartLink NG
           </h2>
 
@@ -108,14 +108,14 @@ export const LandingFAQSection: React.FC<{ onContactSupport?: () => void; onGetS
         </div>
 
         {/* Category Filters */}
-        <div className="flex items-center justify-center flex-wrap gap-1.5 pt-1" role="toolbar" aria-label="FAQ category filter">
+        <div className="flex items-center justify-center flex-wrap gap-1.5 pt-0.5" role="toolbar" aria-label="FAQ category filter">
           {categories.map((cat) => (
             <button
               key={cat}
               type="button"
               onClick={() => setActiveCategory(cat)}
               aria-pressed={activeCategory === cat}
-              className={`min-h-[36px] px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer touch-manipulation ${
+              className={`min-h-[32px] sm:min-h-[36px] px-3 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition-colors cursor-pointer touch-manipulation ${
                 activeCategory === cat
                   ? "bg-[#0F2D5C] text-white shadow-xs font-bold"
                   : "bg-white text-[#1E293B] border border-[#E2E8F0] hover:bg-[#F1F5F9] hover:text-[#0F2D5C]"
@@ -127,7 +127,7 @@ export const LandingFAQSection: React.FC<{ onContactSupport?: () => void; onGetS
         </div>
 
         {/* Accordion Questions List */}
-        <div className="space-y-2.5 max-w-4xl mx-auto">
+        <div className="space-y-2 max-w-4xl mx-auto">
           {filteredFaqs.map((faq) => {
             const isOpen = openId === faq.id;
             const Icon = faq.icon;
@@ -143,16 +143,16 @@ export const LandingFAQSection: React.FC<{ onContactSupport?: () => void; onGetS
                   id={`faq-btn-${faq.id}`}
                   type="button"
                   onClick={() => toggleAccordion(faq.id)}
-                  className="w-full p-3.5 sm:p-4 text-left flex items-start justify-between gap-3 cursor-pointer touch-manipulation"
+                  className="w-full p-3 sm:p-4 text-left flex items-start justify-between gap-2.5 cursor-pointer touch-manipulation"
                   aria-expanded={isOpen}
                   aria-controls={`faq-answer-${faq.id}`}
                 >
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-start gap-2.5">
                     <div className={`p-1.5 rounded-lg shrink-0 mt-0.5 ${isOpen ? "bg-[#0F2D5C] text-white" : "bg-[#F1F5F9] text-[#0F2D5C]"}`}>
                       <Icon className="h-3.5 w-3.5" aria-hidden="true" />
                     </div>
                     <div>
-                      <span className="text-[10px] font-bold text-[#0F2D5C] uppercase tracking-wider block mb-0.5">
+                      <span className="text-[9.5px] sm:text-[10px] font-bold text-[#0F2D5C] uppercase tracking-wider block mb-0.5">
                         {faq.category}
                       </span>
                       <h3 className="text-xs sm:text-sm font-bold text-[#111827]">
@@ -173,7 +173,7 @@ export const LandingFAQSection: React.FC<{ onContactSupport?: () => void; onGetS
                     aria-labelledby={`faq-btn-${faq.id}`}
                     className="animate-in fade-in duration-200"
                   >
-                    <div className="px-4 pb-3.5 pt-1 text-xs text-[#4B5563] leading-relaxed border-t border-[#F1F5F9] ml-9 sm:ml-10">
+                    <div className="px-3.5 pb-3 pt-1 text-[11px] sm:text-xs text-[#4B5563] leading-relaxed border-t border-[#F1F5F9] ml-8 sm:ml-10">
                       {faq.answer}
                     </div>
                   </div>
@@ -184,15 +184,15 @@ export const LandingFAQSection: React.FC<{ onContactSupport?: () => void; onGetS
         </div>
 
         {/* Bottom Support CTA */}
-        <div className="p-4 sm:p-5 rounded-xl bg-white border border-[#E2E8F0] shadow-2xs text-center max-w-2xl mx-auto space-y-2.5">
+        <div className="p-3.5 sm:p-5 rounded-xl bg-white border border-[#E2E8F0] shadow-2xs text-center max-w-2xl mx-auto space-y-2">
           <p className="text-xs sm:text-sm font-medium text-[#374151]">
             Have a specific question not covered here? Our support team is active 24/7.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
             <button
               type="button"
               onClick={onContactSupport}
-              className="w-full sm:w-auto min-h-[38px] px-5 py-2 rounded-lg bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white text-xs font-bold transition-colors shadow-xs cursor-pointer flex items-center justify-center gap-1.5 touch-manipulation"
+              className="w-full sm:w-auto min-h-[36px] sm:min-h-[38px] px-4 sm:px-5 py-1.5 sm:py-2 rounded-lg bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white text-xs font-bold transition-colors shadow-xs cursor-pointer flex items-center justify-center gap-1.5 touch-manipulation"
             >
               <span>Chat with Support</span>
               <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -201,7 +201,7 @@ export const LandingFAQSection: React.FC<{ onContactSupport?: () => void; onGetS
               <button
                 type="button"
                 onClick={onGetStarted}
-                className="w-full sm:w-auto min-h-[48px] px-6 py-3 rounded-xl bg-white border border-[#CBD5E1] hover:bg-[#F1F5F9] active:bg-[#E2E8F0] text-[#0F2D5C] text-xs font-bold transition-colors cursor-pointer flex items-center justify-center touch-manipulation"
+                className="w-full sm:w-auto min-h-[36px] sm:min-h-[38px] px-4 sm:px-5 py-1.5 sm:py-2 rounded-lg bg-white border border-[#CBD5E1] hover:bg-[#F1F5F9] active:bg-[#E2E8F0] text-[#0F2D5C] text-xs font-bold transition-colors cursor-pointer flex items-center justify-center touch-manipulation"
               >
                 <span>Create Free Account</span>
               </button>

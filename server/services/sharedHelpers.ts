@@ -3,7 +3,7 @@ import { adminAuthService } from "../../src/services/adminAuthService";
 import { getActiveProviderAndAdapter } from "../../src/services/providerConnector";
 import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
-import { VirtualAccountRepository } from "../turso/repositories";
+import { VirtualAccountRepository, ServicePriceRepository } from "../turso/repositories";
 import { executeTurso } from "../turso/client";
 import { getSupabaseAdmin } from "./supabaseAdmin";
 
@@ -561,16 +561,33 @@ export async function resolveVtuPlanAndPricing(
   let globalSettings: any = db.siteSettings || {};
 
   let markupFee = 20.0;
-  if (typeof globalSettings?.vtuMarkupMargin === "number") {
-    markupFee = globalSettings.vtuMarkupMargin;
-  } else if (typeof globalSettings?.vtuMarkup === "number") {
-    markupFee = globalSettings.vtuMarkup;
-  } else if (typeof globalSettings?.utilityProcessingFee === "number") {
-    markupFee = globalSettings.utilityProcessingFee;
-  } else if (typeof priceMatrix?.utilityProcessingFee === "number") {
-    markupFee = Number(priceMatrix.utilityProcessingFee) || 20.0;
-  } else if (typeof priceMatrix?.telecomMarkup === "number") {
-    markupFee = priceMatrix.telecomMarkup;
+  try {
+    const tursoDataService = await ServicePriceRepository.getPriceByServiceId(isAirtime ? "vtu_airtime" : "vtu_data");
+    if (tursoDataService && tursoDataService.is_active && tursoDataService.service_charge !== undefined) {
+      markupFee = Number(tursoDataService.service_charge);
+    } else if (typeof globalSettings?.vtuMarkupMargin === "number") {
+      markupFee = globalSettings.vtuMarkupMargin;
+    } else if (typeof globalSettings?.vtuMarkup === "number") {
+      markupFee = globalSettings.vtuMarkup;
+    } else if (typeof globalSettings?.utilityProcessingFee === "number") {
+      markupFee = globalSettings.utilityProcessingFee;
+    } else if (typeof priceMatrix?.utilityProcessingFee === "number") {
+      markupFee = Number(priceMatrix.utilityProcessingFee) || 20.0;
+    } else if (typeof priceMatrix?.telecomMarkup === "number") {
+      markupFee = priceMatrix.telecomMarkup;
+    }
+  } catch {
+    if (typeof globalSettings?.vtuMarkupMargin === "number") {
+      markupFee = globalSettings.vtuMarkupMargin;
+    } else if (typeof globalSettings?.vtuMarkup === "number") {
+      markupFee = globalSettings.vtuMarkup;
+    } else if (typeof globalSettings?.utilityProcessingFee === "number") {
+      markupFee = globalSettings.utilityProcessingFee;
+    } else if (typeof priceMatrix?.utilityProcessingFee === "number") {
+      markupFee = Number(priceMatrix.utilityProcessingFee) || 20.0;
+    } else if (typeof priceMatrix?.telecomMarkup === "number") {
+      markupFee = priceMatrix.telecomMarkup;
+    }
   }
 
   let baseCost = 0;

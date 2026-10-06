@@ -30,6 +30,7 @@ import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
 import * as securityStore from "../../src/services/securityStore";
 import * as notificationsStore from "../../src/services/notificationsStore";
+import { ServicePriceRepository } from "../turso/repositories";
 
 
 const router = express.Router();
@@ -276,6 +277,19 @@ app.post("/api/transaction/execute", async (req, res) => {
   let derivedAmount = 0;
   let derivedCharge = 0;
 
+  // 1. Check if Turso has an explicit configured price for this service
+  let tursoPriceResolved = false;
+  try {
+    const tursoPriceItem = await ServicePriceRepository.getPriceByServiceId(service);
+    if (tursoPriceItem && tursoPriceItem.is_active && tursoPriceItem.price > 0) {
+      derivedAmount = Number(tursoPriceItem.price);
+      derivedCharge = Number(tursoPriceItem.service_charge || 0);
+      tursoPriceResolved = true;
+    }
+  } catch (tErr: any) {
+    console.warn("[Transactions] Turso price check note:", tErr?.message);
+  }
+
   const serviceUpper = String(service || "").toUpperCase().trim();
   const catalogItem = (db.servicesCatalog || DEFAULT_SERVICES_CATALOG || []).find(
     (s: any) =>
@@ -284,36 +298,38 @@ app.post("/api/transaction/execute", async (req, res) => {
       String(s.serviceCode || "").toUpperCase().trim() === serviceUpper
   );
 
-  if (serviceUpper.includes("NIN")) {
-    derivedAmount = Number(db.systemSettings?.ninFee || db.priceMatrix?.identityRates?.ninFee || 500);
-    derivedCharge = Number(db.priceMatrix?.identityRates?.serviceCharge || 0);
-  } else if (serviceUpper.includes("BVN")) {
-    derivedAmount = Number(db.systemSettings?.bvnFee || db.priceMatrix?.identityRates?.bvnFee || 500);
-    derivedCharge = 0;
-  } else if (serviceUpper.includes("CAC")) {
-    derivedAmount = Number(db.systemSettings?.cacBaseFee || db.priceMatrix?.cacRates?.businessNameFee || 28000);
-    derivedCharge = 0;
-  } else if (
-    serviceUpper.includes("AIRTIME") ||
-    serviceUpper.includes("DATA") ||
-    serviceUpper.includes("VTU") ||
-    serviceUpper.includes("ELECTRICITY") ||
-    serviceUpper.includes("CABLE")
-  ) {
-    const pricingResult = await resolveVtuPlanAndPricing(db, {
-      type: serviceUpper,
-      provider: provider || metadata?.network || metadata?.provider || "",
-      extra: metadata?.planId || metadata?.packageCode || recipient || "",
-      amount: req.body.amount
-    });
-    derivedAmount = pricingResult.finalCustomerPrice || pricingResult.baseCost || Number(req.body.amount) || 0;
-    derivedCharge = pricingResult.markupFee || 0;
-  } else if (catalogItem) {
-    derivedAmount = Number(catalogItem.sellingFee ?? catalogItem.price ?? catalogItem.amount ?? req.body.amount ?? 0);
-    derivedCharge = Number(catalogItem.serviceCharge ?? catalogItem.fee ?? 0);
-  } else {
-    derivedAmount = Math.max(0, Number(req.body.amount) || 0);
-    derivedCharge = Number(db.priceMatrix?.utilityProcessingFee || db.systemSettings?.serviceCharge || 0);
+  if (!tursoPriceResolved) {
+    if (serviceUpper.includes("NIN")) {
+      derivedAmount = Number(db.systemSettings?.ninFee || db.priceMatrix?.identityRates?.ninFee || 500);
+      derivedCharge = Number(db.priceMatrix?.identityRates?.serviceCharge || 0);
+    } else if (serviceUpper.includes("BVN")) {
+      derivedAmount = Number(db.systemSettings?.bvnFee || db.priceMatrix?.identityRates?.bvnFee || 500);
+      derivedCharge = 0;
+    } else if (serviceUpper.includes("CAC")) {
+      derivedAmount = Number(db.systemSettings?.cacBaseFee || db.priceMatrix?.cacRates?.businessNameFee || 28000);
+      derivedCharge = 0;
+    } else if (
+      serviceUpper.includes("AIRTIME") ||
+      serviceUpper.includes("DATA") ||
+      serviceUpper.includes("VTU") ||
+      serviceUpper.includes("ELECTRICITY") ||
+      serviceUpper.includes("CABLE")
+    ) {
+      const pricingResult = await resolveVtuPlanAndPricing(db, {
+        type: serviceUpper,
+        provider: provider || metadata?.network || metadata?.provider || "",
+        extra: metadata?.planId || metadata?.packageCode || recipient || "",
+        amount: req.body.amount
+      });
+      derivedAmount = pricingResult.finalCustomerPrice || pricingResult.baseCost || Number(req.body.amount) || 0;
+      derivedCharge = pricingResult.markupFee || 0;
+    } else if (catalogItem) {
+      derivedAmount = Number(catalogItem.sellingFee ?? catalogItem.price ?? catalogItem.amount ?? req.body.amount ?? 0);
+      derivedCharge = Number(catalogItem.serviceCharge ?? catalogItem.fee ?? 0);
+    } else {
+      derivedAmount = Math.max(0, Number(req.body.amount) || 0);
+      derivedCharge = Number(db.priceMatrix?.utilityProcessingFee || db.systemSettings?.serviceCharge || 0);
+    }
   }
 
   const totalCost = derivedAmount + derivedCharge;

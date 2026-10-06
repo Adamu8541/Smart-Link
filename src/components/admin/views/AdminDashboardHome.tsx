@@ -200,6 +200,7 @@ export default function AdminDashboardHome({
   ];
 
   const shortcutButtons = [
+    { label: "Price Control", path: "/admin/prices", icon: DollarSign, color: "bg-[#0F2D5C] hover:bg-[#17407E] text-white" },
     { label: "User Directory", path: "/admin/users", icon: UserPlus, color: "bg-[#0F2D5C] hover:bg-[#17407E] text-white" },
     { label: "Wallet Funding", path: "/admin/wallet", icon: Wallet, color: "bg-[#10B981] hover:bg-[#059669] text-white" },
     { label: "Transactions", path: "/admin/transactions", icon: BarChart3, color: "bg-[#0F2D5C] hover:bg-[#17407E] text-white" },

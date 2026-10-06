@@ -53,9 +53,29 @@ export interface NinSlipType3 {
 export function getNinSlipOptions(siteConfig?: any): NinSlipType3[] {
   const priceMatrix = siteConfig?.priceMatrix || {};
   const slipPrices = priceMatrix.slipPrices || siteConfig?.systemSettings?.slipPrices || {};
+  const priceMap = priceMatrix.priceMap || siteConfig?.priceMap || {};
 
-  const regularPrice = typeof slipPrices.REGULAR === "number" ? slipPrices.REGULAR : (typeof slipPrices.regular === "number" ? slipPrices.regular : 180);
-  const premiumPrice = typeof slipPrices.PREMIUM === "number" ? slipPrices.PREMIUM : (typeof slipPrices.premium === "number" ? slipPrices.premium : 250);
+  const regularPrice =
+    typeof slipPrices.REGULAR === "number"
+      ? slipPrices.REGULAR
+      : typeof slipPrices.regular === "number"
+      ? slipPrices.regular
+      : typeof priceMap["slip_regular"] === "number"
+      ? priceMap["slip_regular"]
+      : typeof priceMap["NIN_REGULAR"] === "number"
+      ? priceMap["NIN_REGULAR"]
+      : 180;
+
+  const premiumPrice =
+    typeof slipPrices.PREMIUM === "number"
+      ? slipPrices.PREMIUM
+      : typeof slipPrices.premium === "number"
+      ? slipPrices.premium
+      : typeof priceMap["slip_premium"] === "number"
+      ? priceMap["slip_premium"]
+      : typeof priceMap["NIN_PREMIUM_WHITE"] === "number"
+      ? priceMap["NIN_PREMIUM_WHITE"]
+      : 250;
 
   return [
     {
@@ -390,11 +410,11 @@ export const NinVerificationView: React.FC<NinVerificationViewProps> = ({
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl sm:rounded-2xl py-2.5 px-3 sm:py-3 sm:px-4 text-xs sm:text-sm font-semibold text-slate-800 appearance-none focus:outline-hidden focus:ring-2 focus:ring-[#0F2D5C] shadow-2xs cursor-pointer pr-10"
                 >
                   <option value="">
-                    - choose a slip type -
+                    — Choose a slip / preview format —
                   </option>
                   {availableSlips.map((opt) => (
                     <option key={opt.id} value={opt.id}>
-                      {opt.name}
+                      {opt.name} — {formatNaira(opt.price)}
                     </option>
                   ))}
                 </select>

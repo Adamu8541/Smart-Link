@@ -522,22 +522,43 @@ export default function Dashboards({
   const fetchDynamicServicesAndPricing = async () => {
     setServicesLoading(true);
     try {
-      // 1. Fetch public platform settings & pricing matrices
-      const [settingsRes, servicesRes] = await Promise.all([
+      // 1. Fetch public platform settings, active services & live Turso prices
+      const [settingsRes, servicesRes, tursoPricesRes] = await Promise.all([
         safeFetchJson<any>("/api/public/settings"),
-        safeFetchJson<any>("/api/services")
+        safeFetchJson<any>("/api/services"),
+        safeFetchJson<any>("/api/prices"),
       ]);
 
+      let tursoPriceMap: Record<string, number> = {};
+      let tursoServices: any[] = [];
+      if (tursoPricesRes.ok && tursoPricesRes.data) {
+        tursoPriceMap = tursoPricesRes.data.priceMap || {};
+        tursoServices = tursoPricesRes.data.services || [];
+      }
+
       if (settingsRes.ok && settingsRes.data) {
-        if (settingsRes.data.priceMatrix) {
-          setPriceMatrix(settingsRes.data.priceMatrix);
-        }
+        const rawMatrix = settingsRes.data.priceMatrix || {};
+        setPriceMatrix({
+          ...rawMatrix,
+          ...(tursoPricesRes.data?.priceMatrix || {}),
+          priceMap: {
+            ...(rawMatrix.priceMap || {}),
+            ...tursoPriceMap,
+          },
+          tursoServices: tursoServices.length > 0 ? tursoServices : (rawMatrix.tursoServices || []),
+        });
         if (settingsRes.data.systemSettings || settingsRes.data.general || settingsRes.data.branding) {
           setSystemSettings(settingsRes.data);
         }
         if (Array.isArray(settingsRes.data.servicesCatalog) && settingsRes.data.servicesCatalog.length > 0) {
           setServicesCatalog(settingsRes.data.servicesCatalog);
         }
+      } else if (tursoPricesRes.ok && tursoPricesRes.data) {
+        setPriceMatrix({
+          ...(tursoPricesRes.data.priceMatrix || {}),
+          priceMap: tursoPriceMap,
+          tursoServices,
+        });
       }
 
       if (servicesRes.ok && servicesRes.data) {
@@ -556,6 +577,16 @@ export default function Dashboards({
   useEffect(() => {
     loadData();
     fetchDynamicServicesAndPricing();
+
+    const handlePricesUpdated = () => {
+      fetchDynamicServicesAndPricing();
+    };
+    window.addEventListener("prices_updated", handlePricesUpdated);
+    window.addEventListener("site_config_updated", handlePricesUpdated);
+    return () => {
+      window.removeEventListener("prices_updated", handlePricesUpdated);
+      window.removeEventListener("site_config_updated", handlePricesUpdated);
+    };
   }, [currentUser]);
 
   // Synchronize dashboard tab changes and funding actions with sidebar/navigation events
@@ -810,6 +841,27 @@ export default function Dashboards({
 
   // Dynamic service pricing helper
   const getDynamicServicePrice = (serviceId: string, fallbackPrice?: number) => {
+    // 1. Direct Turso priceMap check (highest priority: always saved & fetched from Turso)
+    if (priceMatrix?.priceMap) {
+      if (typeof priceMatrix.priceMap[serviceId] === "number") return priceMatrix.priceMap[serviceId];
+      if (typeof priceMatrix.priceMap[serviceId.toUpperCase()] === "number") return priceMatrix.priceMap[serviceId.toUpperCase()];
+      if (typeof priceMatrix.priceMap[serviceId.toLowerCase()] === "number") return priceMatrix.priceMap[serviceId.toLowerCase()];
+    }
+
+    // 2. Direct Turso services check
+    if (Array.isArray(priceMatrix?.tursoServices)) {
+      const needle = serviceId.toLowerCase();
+      const found = priceMatrix.tursoServices.find(
+        (s: any) =>
+          String(s.service_id).toLowerCase() === needle ||
+          String(s.service_code).toLowerCase() === needle ||
+          String(s.name).toLowerCase() === needle
+      );
+      if (found && typeof found.price === "number") {
+        return found.price;
+      }
+    }
+
     if (
       serviceId === "cac_scuml" ||
       serviceId === "cac_annual_returns" ||

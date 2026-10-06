@@ -229,7 +229,25 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
 
   const fetchConfig = useCallback(async () => {
     try {
-      const res = await fetch("/api/public/settings");
+      const [res, pricesRes] = await Promise.all([
+        fetch("/api/public/settings"),
+        fetch("/api/prices"),
+      ]);
+
+      let tursoPriceMap: Record<string, number> = {};
+      let tursoServices: any[] = [];
+      if (pricesRes.ok) {
+        try {
+          const pricesData = await pricesRes.json();
+          if (pricesData.success && pricesData.priceMap) {
+            tursoPriceMap = pricesData.priceMap;
+            tursoServices = pricesData.services || [];
+          }
+        } catch (e) {
+          // ignore json parse error
+        }
+      }
+
       if (res.ok) {
         const data = await res.json();
         if (data.success) {
@@ -254,6 +272,27 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
             ...(rawSettings.whatsappNumber ? { whatsappNumber: rawSettings.whatsappNumber } : {}),
             ...(rawSettings.currency ? { currency: rawSettings.currency } : {}),
           };
+
+          const rawPriceMatrix = data.priceMatrix || {};
+          const mergedPriceMatrix = {
+            ...rawPriceMatrix,
+            priceMap: {
+              ...(rawPriceMatrix.priceMap || {}),
+              ...tursoPriceMap,
+            },
+            tursoServices: tursoServices.length > 0 ? tursoServices : (rawPriceMatrix.tursoServices || []),
+          };
+
+          // Overlay Turso prices onto servicesCatalog
+          const rawCatalog = data.servicesCatalog || [];
+          const updatedCatalog = rawCatalog.map((s: any) => {
+            const tursoPrice = tursoPriceMap[s.id] ?? tursoPriceMap[s.code] ?? tursoPriceMap[s.code?.toUpperCase()];
+            if (typeof tursoPrice === "number") {
+              return { ...s, sellingFee: tursoPrice };
+            }
+            return s;
+          });
+
           const merged: SiteConfig = {
             branding: brandingData,
             general: generalData,
@@ -267,9 +306,12 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
             navigation: data.navigation || {},
             seo: data.seo || {},
             social: data.social || {},
-            servicesCatalog: data.servicesCatalog || [],
-            allServices: data.allServices || data.servicesCatalog || [],
-            priceMatrix: data.priceMatrix || {},
+            servicesCatalog: updatedCatalog,
+            allServices: data.allServices ? data.allServices.map((s: any) => {
+              const tp = tursoPriceMap[s.id] ?? tursoPriceMap[s.code] ?? tursoPriceMap[s.code?.toUpperCase()];
+              return typeof tp === "number" ? { ...s, sellingFee: tp } : s;
+            }) : updatedCatalog,
+            priceMatrix: mergedPriceMatrix,
           };
           setConfig(merged);
           applyThemeVariables(merged.branding, merged.general);
@@ -331,12 +373,13 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
 
     window.addEventListener("site_config_updated", handleConfigUpdated);
     window.addEventListener("services_updated", handleConfigUpdated);
+    window.addEventListener("prices_updated", handleConfigUpdated);
     window.addEventListener("theme_changed", handleConfigUpdated);
     window.addEventListener("maintenance_mode_triggered", handleConfigUpdated);
 
     // Broadcast channel / cross-tab storage sync
     const handleStorage = (e: StorageEvent) => {
-      if (e.key === "site_config_sync" || e.key === "maintenance_mode" || e.key === SETTINGS_CACHE_KEY) {
+      if (e.key === "site_config_sync" || e.key === "maintenance_mode" || e.key === SETTINGS_CACHE_KEY || e.key === "prices_updated") {
         fetchConfig();
       }
     };
@@ -364,6 +407,7 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
       window.removeEventListener("keydown", handleInteraction);
       window.removeEventListener("site_config_updated", handleConfigUpdated);
       window.removeEventListener("services_updated", handleConfigUpdated);
+      window.removeEventListener("prices_updated", handleConfigUpdated);
       window.removeEventListener("theme_changed", handleConfigUpdated);
       window.removeEventListener("maintenance_mode_triggered", handleConfigUpdated);
       window.removeEventListener("storage", handleStorage);
@@ -407,13 +451,37 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
 
   const getServicePrice = useCallback(
     (codeOrId: string, defaultPrice: number = 500): number => {
+      if (!codeOrId) return defaultPrice;
+      // 1. Direct Turso priceMap check (highest priority: always saved & fetched from Turso)
+      const pMap = config.priceMatrix?.priceMap;
+      if (pMap) {
+        if (typeof pMap[codeOrId] === "number") return pMap[codeOrId];
+        if (typeof pMap[codeOrId.toUpperCase()] === "number") return pMap[codeOrId.toUpperCase()];
+        if (typeof pMap[codeOrId.toLowerCase()] === "number") return pMap[codeOrId.toLowerCase()];
+      }
+
+      // 2. Direct Turso services check
+      if (Array.isArray(config.priceMatrix?.tursoServices)) {
+        const needle = codeOrId.toLowerCase();
+        const found = config.priceMatrix.tursoServices.find(
+          (s: any) =>
+            String(s.service_id).toLowerCase() === needle ||
+            String(s.service_code).toLowerCase() === needle ||
+            String(s.name).toLowerCase() === needle
+        );
+        if (found && typeof found.price === "number") {
+          return found.price;
+        }
+      }
+
+      // 3. Fallback to catalog item sellingFee
       const item = getServiceItem(codeOrId);
       if (item && typeof item.sellingFee === "number" && !isNaN(item.sellingFee)) {
         return item.sellingFee;
       }
       return defaultPrice;
     },
-    [getServiceItem]
+    [config.priceMatrix, getServiceItem]
   );
 
   const getServiceCharge = useCallback(

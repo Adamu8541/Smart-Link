@@ -36,6 +36,7 @@ import * as securityStore from "../../src/services/securityStore";
 import * as notificationsStore from "../../src/services/notificationsStore";
 import { signQRPayload } from "../services/qrSecurity";
 import { generateIdentitySlipPdf, type IdentitySlipData } from "../../identitySlipPdfOverlay";
+import { ServicePriceRepository } from "../turso/repositories";
 
 
 const router = express.Router();
@@ -142,7 +143,16 @@ app.post("/api/verify/identity", async (req, res) => {
 
   const effectiveUserId = authCheck.isAdmin ? userId : authCheck.authenticatedUid!;
 
-  const verificationFee = 500.0;
+  let verificationFee = 500.0;
+  try {
+    const sId = type === "NIN" ? "id_nin_ver" : "id_bvn_ver";
+    const tursoPrice = await ServicePriceRepository.getPriceByServiceId(sId);
+    if (tursoPrice && tursoPrice.is_active && tursoPrice.price > 0) {
+      verificationFee = Number(tursoPrice.price);
+    }
+  } catch (tpErr: any) {
+    console.warn("[Verification] Turso fee check note:", tpErr?.message);
+  }
   const reference = `SML-VER-${type}-${Math.floor(100000 + Math.random() * 900000)}`;
   const txType = type === "NIN" ? "NIN_VERIFICATION" : "BVN_VERIFICATION";
 
@@ -550,11 +560,40 @@ app.post("/api/verify/engine", async (req, res) => {
     }
 
     const sType = String(service).toUpperCase();
-    let serviceFee = typeof fee === "number" ? fee : 500;
-    if (sType === "CAC" || sType === "PASSPORT") serviceFee = fee || 1000;
-    else if (sType === "DRIVER_LICENSE") serviceFee = fee || 750;
-    else if (sType === "PHONE") serviceFee = fee || 300;
-    else if (sType === "EMAIL") serviceFee = fee || 200;
+    const rawSlipType = String(req.body.slipType || extraFields?.slipType || extraFields?.formatId || req.body.formatId || "").trim();
+    let serviceFee = typeof fee === "number" && fee > 0 ? fee : 500;
+    let appliedSlipName = "";
+
+    try {
+      // 1. If a specific slip, card, or preview format is selected, prioritize its Turso price!
+      if (rawSlipType) {
+        const tursoSlipPrice = await ServicePriceRepository.getPriceByServiceId(rawSlipType);
+        if (tursoSlipPrice && tursoSlipPrice.is_active && tursoSlipPrice.price > 0) {
+          serviceFee = Number(tursoSlipPrice.price);
+          appliedSlipName = tursoSlipPrice.name;
+        }
+      }
+
+      // 2. If no slip-specific price was found, resolve the base service price from Turso
+      if (!appliedSlipName) {
+        const tursoPrice = await ServicePriceRepository.getPriceByServiceId(service);
+        if (tursoPrice && tursoPrice.is_active && tursoPrice.price > 0) {
+          serviceFee = Number(tursoPrice.price);
+          appliedSlipName = tursoPrice.name;
+        } else {
+          if (sType === "CAC" || sType === "PASSPORT") serviceFee = fee || 1000;
+          else if (sType === "DRIVER_LICENSE") serviceFee = fee || 750;
+          else if (sType === "PHONE") serviceFee = fee || 300;
+          else if (sType === "EMAIL") serviceFee = fee || 200;
+        }
+      }
+    } catch (err: any) {
+      console.warn("[/api/verify/engine] Note: Turso pricing resolution fallback:", err?.message);
+      if (sType === "CAC" || sType === "PASSPORT") serviceFee = fee || 1000;
+      else if (sType === "DRIVER_LICENSE") serviceFee = fee || 750;
+      else if (sType === "PHONE") serviceFee = fee || 300;
+      else if (sType === "EMAIL") serviceFee = fee || 200;
+    }
 
     const reference = `SML-VER-${Math.floor(100000 + Math.random() * 900000)}`;
     const receiptNumber = `REC-${reference}`;
@@ -662,6 +701,7 @@ app.post("/api/verify/engine", async (req, res) => {
     }
 
     const resolvedProviderName = portalResult.providerName || "Identity Verification Portal";
+    const slipLabel = appliedSlipName ? ` (${appliedSlipName})` : (rawSlipType ? ` (${rawSlipType})` : "");
 
     // 2. Debit wallet only after provider verification succeeds
     let debitRes;
@@ -669,9 +709,9 @@ app.post("/api/verify/engine", async (req, res) => {
       debitRes = await ServerWalletEngine.debitWallet(db, {
         userId: effectiveUserId,
         amount: serviceFee,
-        serviceName: `${sType} Verification (${resolvedProviderName})`,
+        serviceName: `${sType} Verification${slipLabel}`,
         provider: resolvedProviderName,
-        description: `Central Verification Query: ${sType} ID [${targetId.substring(0, 4)}***]`,
+        description: `Central Verification Query: ${sType} ID [${targetId.substring(0, 4)}***]${slipLabel}`,
         reference,
         fee: 0,
         recipientDetails: `${sType}: ${targetId}`,
@@ -1325,7 +1365,13 @@ app.post("/api/services/cac-verify", async (req, res) => {
     });
   }
 
-  const fee = 1000;
+  let fee = 500;
+  try {
+    const tursoPrice = await ServicePriceRepository.getPriceByServiceId("id_cac_verification");
+    if (tursoPrice && tursoPrice.is_active && tursoPrice.price > 0) {
+      fee = Number(tursoPrice.price);
+    }
+  } catch {}
   const reference = `SML-VER-CAC-${Math.floor(100000 + Math.random() * 900000)}`;
   const targetId = isNameSearch ? (cleanBizName || cleanRegNo) : cleanRegNo;
 

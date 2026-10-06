@@ -479,6 +479,14 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
               <span>Refresh</span>
             </button>
             <button
+              onClick={() => onNavigate ? onNavigate("/admin/prices") : window.location.assign("/admin/prices")}
+              className="py-2.5 px-4 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-xs"
+              title="Manage all service prices directly in Turso database"
+            >
+              <DollarSign className="h-4 w-4" />
+              <span>Turso Price Control</span>
+            </button>
+            <button
               onClick={handleOpenAddModal}
               className="py-2.5 px-5 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold text-xs rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-xs"
             >

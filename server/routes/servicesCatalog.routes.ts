@@ -31,10 +31,52 @@ import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
 import * as securityStore from "../../src/services/securityStore";
 import * as notificationsStore from "../../src/services/notificationsStore";
-
+import { ServicePriceRepository } from "../turso/repositories";
 
 const router = express.Router();
 const app = router;
+
+// Helper to construct dynamic price matrix compatibility payload from Turso service_prices
+function buildPriceMatrixFromTursoPrices(prices: any[]) {
+  const priceMap: Record<string, number> = {};
+  prices.forEach((p) => {
+    priceMap[p.service_id] = p.price;
+    priceMap[p.service_code] = p.price;
+    if (p.service_code) priceMap[p.service_code.toUpperCase()] = p.price;
+  });
+
+  return {
+    slipPrices: {
+      PREMIUM: priceMap["slip_premium"] ?? priceMap["NIN_PREMIUM_WHITE"] ?? priceMap["NIN_PREMIUM"] ?? 250,
+      STANDARD: priceMap["slip_standard"] ?? priceMap["NIN_STANDARD"] ?? 200,
+      REGULAR: priceMap["slip_regular"] ?? priceMap["NIN_REGULAR"] ?? 180,
+      BVN_CARD: priceMap["slip_bvn_card"] ?? priceMap["BVN_CARD"] ?? 250,
+      BVN_SLIP_1: priceMap["slip_bvn_slip"] ?? priceMap["BVN_SLIP_1"] ?? priceMap["BVN_SLIP"] ?? 200,
+      BVN_SLIP: priceMap["slip_bvn_slip"] ?? priceMap["BVN_SLIP_1"] ?? priceMap["BVN_SLIP"] ?? 200,
+      regular: priceMap["slip_regular"] ?? priceMap["NIN_REGULAR"] ?? 180,
+      premium: priceMap["slip_premium"] ?? priceMap["NIN_PREMIUM_WHITE"] ?? 250,
+      standard: priceMap["slip_standard"] ?? 200,
+    },
+    identityRates: {
+      ninFee: priceMap["id_nin_ver"] ?? 500,
+      bvnFee: priceMap["id_bvn_ver"] ?? 500,
+      serviceCharge: 50,
+    },
+    cacRates: {
+      businessNameFee: priceMap["cac_biz_name"] ?? priceMap["id_cac_registration"] ?? 28000,
+      companyFee: priceMap["cac_ltd_co"] ?? 35000,
+    },
+    educationPins: {
+      waec: priceMap["edu_waec"] ?? 3500,
+      neco: priceMap["edu_neco"] ?? 1500,
+      jamb: priceMap["edu_jamb"] ?? 4500,
+      nabteb: priceMap["edu_nabteb"] ?? 1500,
+    },
+    utilityProcessingFee: priceMap["vtu_electricity"] ?? 100,
+    telecomMarkup: 20,
+    priceMap,
+  };
+}
 
 app.post("/api/admin/settings", requireAdmin, async (req, res) => {
   const { settings } = req.body;
@@ -58,33 +100,221 @@ app.post("/api/admin/settings", requireAdmin, async (req, res) => {
   res.json({ success: true, settings: db.siteSettings });
 });
 
-app.get("/api/site/prices", async (req, res) => {
-  const db = readDB();
-  await syncFromStorage(db);
-  res.json({ priceMatrix: db.priceMatrix || {} });
+/**
+ * Public GET /api/prices (and GET /api/site/prices)
+ * Fetches all active service prices directly from Turso database.
+ */
+app.get(["/api/prices", "/api/site/prices"], async (req, res) => {
+  try {
+    const tursoPrices = await ServicePriceRepository.getAllPrices();
+    const priceMap: Record<string, number> = {};
+    tursoPrices.forEach((p) => {
+      priceMap[p.service_id] = p.price;
+      priceMap[p.service_code] = p.price;
+    });
+
+    const priceMatrix = buildPriceMatrixFromTursoPrices(tursoPrices);
+
+    // Also update in-memory DB for legacy consumers
+    const db = readDB();
+    db.priceMatrix = priceMatrix;
+    writeDB(db);
+
+    res.json({
+      success: true,
+      source: "TURSO_DATABASE",
+      services: tursoPrices,
+      priceMap,
+      priceMatrix,
+    });
+  } catch (err: any) {
+    console.error("[Turso Prices API] Failed to fetch prices from Turso:", err);
+    res.status(500).json({ error: "Failed to fetch prices from Turso database: " + err.message });
+  }
 });
 
-app.post("/api/admin/prices", requireAdmin, async (req, res) => {
-  const { priceMatrix } = req.body;
-  const db = readDB();
-  await syncFromStorage(db);
+/**
+ * Admin GET /api/admin/prices
+ * Fetches full pricing matrix directly from Turso for the Admin Price Control dashboard.
+ */
+app.get("/api/admin/prices", requireAdmin, async (req, res) => {
+  try {
+    const tursoPrices = await ServicePriceRepository.getAllPrices();
+    const priceMap: Record<string, number> = {};
+    tursoPrices.forEach((p) => {
+      priceMap[p.service_id] = p.price;
+      priceMap[p.service_code] = p.price;
+    });
 
-  db.priceMatrix = { ...db.priceMatrix, ...priceMatrix };
+    const priceMatrix = buildPriceMatrixFromTursoPrices(tursoPrices);
 
-  if (!db.systemSettings) db.systemSettings = {};
-  if (priceMatrix.identityRates?.ninFee !== undefined) {
-    db.systemSettings.ninFee = priceMatrix.identityRates.ninFee;
+    res.json({
+      success: true,
+      source: "TURSO_DATABASE",
+      totalServices: tursoPrices.length,
+      services: tursoPrices,
+      priceMap,
+      priceMatrix,
+    });
+  } catch (err: any) {
+    console.error("[Turso Admin Prices] Failed to load prices from Turso:", err);
+    res.status(500).json({ error: "Failed to load service prices from Turso: " + err.message });
   }
-  if (priceMatrix.identityRates?.bvnFee !== undefined) {
-    db.systemSettings.bvnFee = priceMatrix.identityRates.bvnFee;
+});
+
+/**
+ * Admin PUT /api/admin/prices/:serviceId
+ * Edits a single service price and saves it strictly to Turso.
+ */
+app.put("/api/admin/prices/:serviceId", requireAdmin, async (req, res) => {
+  try {
+    const { serviceId } = req.params;
+    const adminEmail = (req as any).adminEmail || "Admin";
+    const { price, costPrice, serviceCharge, commissionRate, priceLabel, isActive } = req.body;
+
+    if (price === undefined || isNaN(Number(price))) {
+      return res.status(400).json({ error: "Valid selling price is required." });
+    }
+
+    const updated = await ServicePriceRepository.upsertPrice({
+      service_id: serviceId,
+      price: Number(price),
+      cost_price: costPrice !== undefined ? Number(costPrice) : undefined,
+      service_charge: serviceCharge !== undefined ? Number(serviceCharge) : undefined,
+      commission_rate: commissionRate !== undefined ? Number(commissionRate) : undefined,
+      price_label: priceLabel !== undefined ? String(priceLabel) : undefined,
+      is_active: isActive !== undefined ? Boolean(isActive) : undefined,
+      updated_by: adminEmail,
+    });
+
+    // Record Audit Log in DB
+    const db = readDB();
+    if (!db.auditLogs) db.auditLogs = [];
+    db.auditLogs.unshift({
+      id: "audit_" + Date.now(),
+      adminEmail,
+      action: "UPDATE_SERVICE_PRICE",
+      details: `Updated Turso price for ${updated.name} (${updated.service_id}) to ₦${updated.price}`,
+      timestamp: new Date().toISOString(),
+    });
+    writeDB(db);
+
+    res.json({
+      success: true,
+      message: `Successfully updated price for ${updated.name} in Turso.`,
+      service: updated,
+    });
+  } catch (err: any) {
+    console.error("[Turso Admin Prices] Failed to update service price in Turso:", err);
+    res.status(500).json({ error: "Failed to update price in Turso database: " + err.message });
   }
-  if (priceMatrix.cacRates?.businessNameFee !== undefined) {
-    db.systemSettings.cacBaseFee = priceMatrix.cacRates.businessNameFee;
+});
+
+/**
+ * Admin PUT/POST /api/admin/prices (Bulk Update)
+ * Updates multiple service prices in a single ACID transaction strictly on Turso.
+ */
+app.all(["/api/admin/prices", "/api/admin/prices/bulk"], requireAdmin, async (req, res) => {
+  if (req.method !== "POST" && req.method !== "PUT") {
+    return res.status(405).json({ error: "Method not allowed" });
   }
 
-  writeDB(db);
-  await syncToStorage(db);
-  res.json({ success: true, priceMatrix: db.priceMatrix, systemSettings: db.systemSettings });
+  try {
+    const adminEmail = (req as any).adminEmail || "Admin";
+    const { prices } = req.body;
+
+    if (!Array.isArray(prices) || prices.length === 0) {
+      // Legacy priceMatrix payload support: if priceMatrix object was sent, map it
+      if (req.body.priceMatrix) {
+        const matrix = req.body.priceMatrix;
+        const mappedPrices: any[] = [];
+        if (matrix.identityRates?.ninFee !== undefined) mappedPrices.push({ service_id: "id_nin_ver", price: matrix.identityRates.ninFee });
+        if (matrix.identityRates?.bvnFee !== undefined) mappedPrices.push({ service_id: "id_bvn_ver", price: matrix.identityRates.bvnFee });
+        if (matrix.cacRates?.businessNameFee !== undefined) mappedPrices.push({ service_id: "cac_biz_name", price: matrix.cacRates.businessNameFee });
+        if (matrix.cacRates?.companyFee !== undefined) mappedPrices.push({ service_id: "cac_ltd_co", price: matrix.cacRates.companyFee });
+        if (matrix.slipPrices?.PREMIUM !== undefined) mappedPrices.push({ service_id: "slip_premium", price: matrix.slipPrices.PREMIUM });
+        if (matrix.slipPrices?.STANDARD !== undefined) mappedPrices.push({ service_id: "slip_standard", price: matrix.slipPrices.STANDARD });
+        if (matrix.slipPrices?.REGULAR !== undefined) mappedPrices.push({ service_id: "slip_regular", price: matrix.slipPrices.REGULAR });
+        if (matrix.slipPrices?.BVN_CARD !== undefined) mappedPrices.push({ service_id: "slip_bvn_card", price: matrix.slipPrices.BVN_CARD });
+        if (matrix.slipPrices?.BVN_SLIP_1 !== undefined) mappedPrices.push({ service_id: "slip_bvn_slip", price: matrix.slipPrices.BVN_SLIP_1 });
+        if (matrix.slipPrices?.BVN_SLIP !== undefined && matrix.slipPrices?.BVN_SLIP_1 === undefined) mappedPrices.push({ service_id: "slip_bvn_slip", price: matrix.slipPrices.BVN_SLIP });
+        if (matrix.educationPins?.waec !== undefined) mappedPrices.push({ service_id: "edu_waec", price: matrix.educationPins.waec });
+        if (matrix.educationPins?.neco !== undefined) mappedPrices.push({ service_id: "edu_neco", price: matrix.educationPins.neco });
+        if (matrix.educationPins?.jamb !== undefined) mappedPrices.push({ service_id: "edu_jamb", price: matrix.educationPins.jamb });
+        if (matrix.educationPins?.nabteb !== undefined) mappedPrices.push({ service_id: "edu_nabteb", price: matrix.educationPins.nabteb });
+
+        if (mappedPrices.length > 0) {
+          await ServicePriceRepository.bulkUpdatePrices(mappedPrices, adminEmail);
+          const allTurso = await ServicePriceRepository.getAllPrices();
+          return res.json({
+            success: true,
+            source: "TURSO_DATABASE",
+            message: `Updated ${mappedPrices.length} service prices in Turso.`,
+            services: allTurso,
+          });
+        }
+      }
+      return res.status(400).json({ error: "An array of price objects is required." });
+    }
+
+    await ServicePriceRepository.bulkUpdatePrices(prices, adminEmail);
+    const updatedServices = await ServicePriceRepository.getAllPrices();
+
+    // Audit log
+    const db = readDB();
+    if (!db.auditLogs) db.auditLogs = [];
+    db.auditLogs.unshift({
+      id: "audit_" + Date.now(),
+      adminEmail,
+      action: "BULK_UPDATE_SERVICE_PRICES",
+      details: `Bulk updated ${prices.length} service prices strictly in Turso`,
+      timestamp: new Date().toISOString(),
+    });
+    writeDB(db);
+
+    res.json({
+      success: true,
+      source: "TURSO_DATABASE",
+      message: `Successfully saved ${prices.length} service prices strictly to Turso.`,
+      services: updatedServices,
+    });
+  } catch (err: any) {
+    console.error("[Turso Admin Bulk Prices] Failed to update prices in Turso:", err);
+    res.status(500).json({ error: "Failed to bulk update prices in Turso: " + err.message });
+  }
+});
+
+/**
+ * Admin POST /api/admin/prices/reset
+ * Resets all service prices directly in Turso to project default values.
+ */
+app.post("/api/admin/prices/reset", requireAdmin, async (req, res) => {
+  try {
+    const adminEmail = (req as any).adminEmail || "Admin";
+    await ServicePriceRepository.resetToDefaults(adminEmail);
+    const resetServices = await ServicePriceRepository.getAllPrices();
+
+    const db = readDB();
+    if (!db.auditLogs) db.auditLogs = [];
+    db.auditLogs.unshift({
+      id: "audit_" + Date.now(),
+      adminEmail,
+      action: "RESET_SERVICE_PRICES",
+      details: "Reset all service prices strictly to Turso defaults",
+      timestamp: new Date().toISOString(),
+    });
+    writeDB(db);
+
+    res.json({
+      success: true,
+      source: "TURSO_DATABASE",
+      message: "All service prices have been successfully reset to defaults in Turso.",
+      services: resetServices,
+    });
+  } catch (err: any) {
+    console.error("[Turso Admin Reset Prices] Failed to reset prices in Turso:", err);
+    res.status(500).json({ error: "Failed to reset service prices in Turso: " + err.message });
+  }
 });
 
 // --- USER MANAGEMENT ENDPOINTS ---
@@ -184,14 +414,42 @@ app.get("/api/admin/services", requireAdmin, async (req, res) => {
   });
 });
 
-// Public GET /api/services — List Active Services & Real-Time Pricing (No Auth Required)
+// Public GET /api/services — List Active Services & Real-Time Pricing (Strictly Turso Synced)
 app.get("/api/services", async (req, res) => {
   const db = readDB();
   await syncFromStorage(db);
   seedDefaultServicesCatalogIfEmpty(db);
+
+  try {
+    const tursoPrices = await ServicePriceRepository.getAllPrices();
+    const tursoMap = new Map(tursoPrices.map((p) => [p.service_id, p]));
+    const tursoCodeMap = new Map(tursoPrices.map((p) => [p.service_code.toUpperCase(), p]));
+
+    db.servicesCatalog = (db.servicesCatalog || []).map((s: any) => {
+      const matched =
+        tursoMap.get(s.id) ||
+        tursoCodeMap.get(String(s.code || "").toUpperCase()) ||
+        tursoMap.get(s.code?.toLowerCase());
+      if (matched) {
+        return {
+          ...s,
+          sellingFee: matched.price,
+          costPrice: matched.cost_price,
+          serviceCharge: matched.service_charge,
+          commissionRate: matched.commission_rate,
+          isActive: Boolean(matched.is_active),
+        };
+      }
+      return s;
+    });
+  } catch (err: any) {
+    console.warn("[/api/services] Turso pricing merge note:", err?.message);
+  }
+
   const activeServices = (db.servicesCatalog || []).filter((s: any) => s.isActive);
   res.json({
     success: true,
+    source: "TURSO_DATABASE",
     services: activeServices,
     allServices: db.servicesCatalog,
   });

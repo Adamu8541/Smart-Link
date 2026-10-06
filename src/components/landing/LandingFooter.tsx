@@ -45,40 +45,40 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
   };
 
   return (
-    <footer id="landing-footer" className="bg-white text-[#4B5563] pt-10 sm:pt-12 pb-8 sm:pb-10 border-t border-[#E5E7EB] text-xs">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 sm:space-y-10">
+    <footer id="landing-footer" className="bg-white text-[#4B5563] pt-6 sm:pt-10 pb-6 sm:pb-8 border-t border-[#E5E7EB] text-xs">
+      <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
         
         {/* Top Grid: Logo & 4 Navigation Columns */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 lg:gap-8 text-left">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 sm:gap-6 lg:gap-8 text-left">
           
           {/* Column 1 & 2: Brand Information */}
-          <div className="lg:col-span-2 space-y-3">
+          <div className="lg:col-span-2 space-y-2.5">
             <div className="flex items-center">
               <img
                 src={activeLogo}
                 alt={`${siteName || "SmartLink Nigeria"} - Identity Verification, Utility Bills and Enterprise CAC Filing`}
-                width={190}
-                height={46}
+                width={160}
+                height={38}
                 loading="lazy"
                 decoding="async"
-                style={{ aspectRatio: "190 / 46" }}
-                className="h-10 sm:h-12 w-auto max-w-[190px] object-contain rounded-lg p-0.5 bg-white"
+                style={{ aspectRatio: "160 / 38" }}
+                className="h-8 sm:h-10 w-auto max-w-[150px] sm:max-w-[180px] object-contain rounded-lg p-0.5 bg-white"
                 referrerPolicy="no-referrer"
                 onError={handleLogoError}
               />
             </div>
 
-            <p className="text-xs text-[#4B5563] font-normal leading-relaxed max-w-sm">
+            <p className="text-[11px] sm:text-xs text-[#4B5563] font-normal leading-relaxed max-w-sm">
               Nigeria's premier digital verification and payment platform. Authorized technology provider for NIN/BVN lookups, corporate CAC filings, utility bill settlements, and educational scratch cards.
             </p>
 
-            <div className="space-y-1.5 pt-1 text-[#4B5563]">
-              <div className="flex items-center gap-2 text-xs">
-                <Mail className="h-3.5 w-3.5 text-[#0F2D5C] shrink-0" />
-                <span>Smartlinkcomputerbusiness@gmail.com</span>
+            <div className="space-y-1 pt-0.5 text-[#4B5563]">
+              <div className="flex items-center gap-1.5 text-[11px] sm:text-xs">
+                <Mail className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-[#0F2D5C] shrink-0" />
+                <span className="break-all">Smartlinkcomputerbusiness@gmail.com</span>
               </div>
-              <div className="flex items-center gap-2 text-xs">
-                <Phone className="h-3.5 w-3.5 text-[#0F2D5C] shrink-0" />
+              <div className="flex items-center gap-1.5 text-[11px] sm:text-xs">
+                <Phone className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-[#0F2D5C] shrink-0" />
                 <span>+234 808 549 0982 | WhatsApp: +234 904 773 8212</span>
               </div>
             </div>

@@ -31,6 +31,7 @@ import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
 import * as securityStore from "../../src/services/securityStore";
 import * as notificationsStore from "../../src/services/notificationsStore";
+import { ServicePriceRepository } from "../turso/repositories";
 
 
 const router = express.Router();
@@ -443,7 +444,16 @@ app.post("/api/services/education", async (req, res) => {
   const effectiveUserId = authCheck.isAdmin ? (userId || authCheck.authenticatedUid!) : authCheck.authenticatedUid!;
 
   const qty = parseInt(quantity) || 1;
-  const unitPrice = parseFloat(amount) || (cardType === "JAMB" ? 6200 : cardType === "WAEC" ? 3800 : cardType === "NECO" ? 1200 : 1500);
+  let unitPrice = 0;
+  try {
+    const tursoPrice = await ServicePriceRepository.getPriceByServiceId(`edu_${String(cardType).toLowerCase()}`);
+    if (tursoPrice && tursoPrice.is_active && tursoPrice.price > 0) {
+      unitPrice = Number(tursoPrice.price);
+    }
+  } catch {}
+  if (!unitPrice) {
+    unitPrice = parseFloat(amount) || (cardType === "JAMB" ? 4500 : cardType === "WAEC" ? 3500 : cardType === "NECO" ? 1500 : 1500);
+  }
   const totalCost = unitPrice * qty;
 
   const reference = "SML-EDU-" + Math.floor(100000 + Math.random() * 900000);

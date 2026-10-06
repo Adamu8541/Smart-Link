@@ -89,6 +89,7 @@ class AdminLayoutService {
       "/admin/users": { label: "User Directory & Status", categoryLabel: "User Governance" },
       "/admin/wallet": { label: "Wallet Management & Funding", categoryLabel: "User Governance" },
       "/admin/services": { label: "Verification & VTU Services", categoryLabel: "Services & Products" },
+      "/admin/prices": { label: "Price Control & Turso Margins", categoryLabel: "Services & Products" },
       "/admin/providers": { label: "API Providers", categoryLabel: "Services & Products" },
       "/admin/routing": { label: "Multi-Provider Routing & Failover", categoryLabel: "Services & Products" },
       "/admin/transactions": { label: "Transaction Ledger & Audits", categoryLabel: "Finance & Accounting" },

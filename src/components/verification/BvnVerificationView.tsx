@@ -64,9 +64,27 @@ export interface BvnSlipType3 {
 export function getBvnSlipOptions(siteConfig?: any): BvnSlipType3[] {
   const priceMatrix = siteConfig?.priceMatrix || {};
   const slipPrices = priceMatrix.slipPrices || siteConfig?.systemSettings?.slipPrices || {};
+  const priceMap = priceMatrix.priceMap || siteConfig?.priceMap || {};
 
-  const cardPrice = typeof slipPrices.BVN_CARD === "number" ? slipPrices.BVN_CARD : 250;
-  const slip1Price = typeof slipPrices.BVN_SLIP_1 === "number" ? slipPrices.BVN_SLIP_1 : (typeof slipPrices.BVN_SLIP === "number" ? slipPrices.BVN_SLIP : 200);
+  const cardPrice =
+    typeof slipPrices.BVN_CARD === "number"
+      ? slipPrices.BVN_CARD
+      : typeof priceMap["slip_bvn_card"] === "number"
+      ? priceMap["slip_bvn_card"]
+      : typeof priceMap["BVN_CARD"] === "number"
+      ? priceMap["BVN_CARD"]
+      : 250;
+
+  const slip1Price =
+    typeof slipPrices.BVN_SLIP_1 === "number"
+      ? slipPrices.BVN_SLIP_1
+      : typeof slipPrices.BVN_SLIP === "number"
+      ? slipPrices.BVN_SLIP
+      : typeof priceMap["slip_bvn_slip"] === "number"
+      ? priceMap["slip_bvn_slip"]
+      : typeof priceMap["BVN_SLIP_1"] === "number"
+      ? priceMap["BVN_SLIP_1"]
+      : 200;
 
   return [
     {
@@ -431,11 +449,11 @@ export const BvnVerificationView: React.FC<BvnVerificationViewProps> = ({
                   className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 px-4 text-xs sm:text-sm font-semibold text-slate-800 appearance-none focus:outline-hidden focus:ring-2 focus:ring-[#0F2D5C] shadow-2xs cursor-pointer pr-10"
                 >
                   <option value="">
-                    - choose a slip type -
+                    — Choose a slip / preview format —
                   </option>
                   {availableSlips.map((opt) => (
                     <option key={opt.id} value={opt.id}>
-                      {opt.name}
+                      {opt.name} — {formatNaira(opt.price)}
                     </option>
                   ))}
                 </select>

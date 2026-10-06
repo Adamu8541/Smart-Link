@@ -22,18 +22,18 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
   onExploreServices,
 }) => {
   return (
-    <section id="hero-section" className="relative overflow-hidden bg-white text-[#111827] py-8 sm:py-12 lg:py-16 border-b border-[#E5E7EB]">
+    <section id="hero-section" className="relative overflow-hidden bg-white text-[#111827] py-6 sm:py-10 lg:py-14 border-b border-[#E5E7EB]">
       
       {/* Background Subtle Overlay */}
       <div className="absolute inset-0 bg-[radial-gradient(rgba(15,45,92,0.04)_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none" />
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center w-full">
-        <div className="w-full flex flex-col gap-4 sm:gap-6">
+      <div className="max-w-4xl mx-auto px-3.5 sm:px-6 lg:px-8 relative z-10 text-center w-full">
+        <div className="w-full flex flex-col gap-3.5 sm:gap-5">
           
           {/* Main Semantic H1 Headline */}
           <h1
             id="hero-main-heading"
-            className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight leading-[1.2] text-[#111827]"
+            className="text-lg sm:text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight leading-[1.25] text-[#111827]"
           >
             Instant Identity Verification, Business Filing &amp;{" "}
             <span className="text-[#0F2D5C]">
@@ -52,29 +52,29 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
           {/* 3 Focused Benefit Bullets */}
           <div
             id="hero-benefits-grid"
-            className="grid grid-cols-1 md:grid-cols-3 gap-2.5 sm:gap-3.5 pt-1 text-left max-w-3xl mx-auto w-full"
+            className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-3 pt-0.5 text-left max-w-3xl mx-auto w-full"
           >
-            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] shadow-2xs">
-              <ShieldCheck className="h-4.5 w-4.5 text-[#0F2D5C] shrink-0 mt-0.5" aria-hidden="true" />
+            <div className="flex items-start gap-2 p-2.5 sm:p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] shadow-2xs">
+              <ShieldCheck className="h-4 w-4 text-[#0F2D5C] shrink-0 mt-0.5" aria-hidden="true" />
               <div>
                 <p className="text-xs sm:text-sm font-bold text-[#0F2D5C]">Instant Verification &amp; Slips</p>
-                <p className="text-[11px] text-[#374151] mt-0.5 leading-snug">Regular/premium NIN slips, BVN cards, and CAC reports with QR codes.</p>
+                <p className="text-[10.5px] sm:text-[11px] text-[#374151] mt-0.5 leading-snug">Regular/premium NIN slips, BVN cards, and CAC reports with QR codes.</p>
               </div>
             </div>
 
-            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] shadow-2xs">
-              <Zap className="h-4.5 w-4.5 text-[#0F2D5C] shrink-0 mt-0.5" aria-hidden="true" />
+            <div className="flex items-start gap-2 p-2.5 sm:p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] shadow-2xs">
+              <Zap className="h-4 w-4 text-[#0F2D5C] shrink-0 mt-0.5" aria-hidden="true" />
               <div>
                 <p className="text-xs sm:text-sm font-bold text-[#0F2D5C]">Automated Bills &amp; VTU</p>
-                <p className="text-[11px] text-[#374151] mt-0.5 leading-snug">Zero-delay Disco tokens, cheap SME data bundles, airtime, and exam pins.</p>
+                <p className="text-[10.5px] sm:text-[11px] text-[#374151] mt-0.5 leading-snug">Zero-delay Disco tokens, cheap SME data bundles, airtime, and exam pins.</p>
               </div>
             </div>
 
-            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] shadow-2xs">
-              <Lock className="h-4.5 w-4.5 text-[#0F2D5C] shrink-0 mt-0.5" aria-hidden="true" />
+            <div className="flex items-start gap-2 p-2.5 sm:p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] shadow-2xs">
+              <Lock className="h-4 w-4 text-[#0F2D5C] shrink-0 mt-0.5" aria-hidden="true" />
               <div>
                 <p className="text-xs sm:text-sm font-bold text-[#0F2D5C]">Bank-Grade &amp; 99.9% Uptime</p>
-                <p className="text-[11px] text-[#374151] mt-0.5 leading-snug">Dedicated virtual account funding, encrypted payouts, and REST APIs.</p>
+                <p className="text-[10.5px] sm:text-[11px] text-[#374151] mt-0.5 leading-snug">Dedicated virtual account funding, encrypted payouts, and REST APIs.</p>
               </div>
             </div>
           </div>
@@ -82,28 +82,28 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
           {/* Action Buttons */}
           <div
             id="hero-actions"
-            className="flex flex-col items-center justify-center gap-2 pt-1"
+            className="flex flex-col items-center justify-center gap-1.5 pt-0.5"
           >
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 sm:gap-3.5 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 w-full sm:w-auto">
               <button
                 id="hero-primary-btn"
                 onClick={onGetStarted}
                 type="button"
-                className="w-full sm:w-auto min-h-[42px] px-6 sm:px-7 py-2.5 bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white font-bold rounded-xl text-xs sm:text-sm shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2 touch-manipulation"
+                className="w-full sm:w-auto min-h-[38px] sm:min-h-[42px] px-5 sm:px-7 py-2 sm:py-2.5 bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white font-bold rounded-xl text-xs sm:text-sm shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2 touch-manipulation"
               >
                 <span>Get Started Free</span>
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
               </button>
               <button
                 id="hero-secondary-btn"
                 onClick={onExploreServices}
                 type="button"
-                className="w-full sm:w-auto min-h-[42px] px-6 sm:px-7 py-2.5 bg-white hover:bg-[#F5F7FA] active:bg-[#E5E7EB] text-[#0F2D5C] border border-[#0F2D5C] font-bold rounded-xl text-xs sm:text-sm shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2 touch-manipulation"
+                className="w-full sm:w-auto min-h-[38px] sm:min-h-[42px] px-5 sm:px-7 py-2 sm:py-2.5 bg-white hover:bg-[#F5F7FA] active:bg-[#E5E7EB] text-[#0F2D5C] border border-[#0F2D5C] font-bold rounded-xl text-xs sm:text-sm shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2 touch-manipulation"
               >
                 <span>Explore Services &amp; Pricing</span>
               </button>
             </div>
-            <p className="text-[11px] sm:text-xs text-[#4B5563] pt-1 flex items-center justify-center gap-1.5 flex-wrap">
+            <p className="text-[10px] sm:text-xs text-[#4B5563] pt-0.5 flex items-center justify-center gap-1.5 flex-wrap">
               <span>Instant Automated Processing</span>
               <span aria-hidden="true">•</span>
               <span>Dedicated Virtual Account Funding</span>
