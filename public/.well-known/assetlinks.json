@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "App.smartlinkng.com.ng",
+      "sha256_cert_fingerprints": [
+        "1E:47:21:A1:B8:69:AB:2F:99:97:0C:A5:7B:80:D0:DE:CF:1E:F2:EE:DA:D7:8B:2E:4B:F3:AB:C7:84:50:1A:A0"
+      ]
+    }
+  }
+]

@@ -1727,7 +1727,7 @@ app.post("/api/auth/passkeys/login-options", async (req, res) => {
       challenge,
       timeout: 60000,
       rpId: req.hostname?.split(":")[0] || "localhost",
-      userVerification: "preferred" as const,
+      userVerification: "required" as const,
       allowCredentials,
     };
 

@@ -164,4 +164,14 @@ app.post("/api/admin/maintenance/toggle", async (req, res) => {
 
 
 
+router.get("/.well-known/assetlinks.json", (req, res) => {
+  const assetlinksPath = path.resolve(process.cwd(), "public", ".well-known", "assetlinks.json");
+  if (fs.existsSync(assetlinksPath)) {
+    res.setHeader("Content-Type", "application/json");
+    res.setHeader("Cache-Control", "public, max-age=86400");
+    return res.sendFile(assetlinksPath);
+  }
+  res.status(404).json({ error: "assetlinks.json not found" });
+});
+
 export default router;

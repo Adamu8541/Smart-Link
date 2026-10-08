@@ -104,8 +104,19 @@ export const AuthPortal: React.FC<AuthPortalProps>= ({
 
   const useSupabase = isSupabaseConfigured;
 
-  // Login Form State
-  const [authEmail, setAuthEmail] = useState("");
+  // Login Form State - prefill with saved email for 1-touch fintech experience
+  const [authEmail, setAuthEmail] = useState(() => {
+    try {
+      const saved = localStorage.getItem("smartlink_saved_email");
+      if (saved && saved.trim()) return saved.trim();
+      const rawUser = localStorage.getItem("smart_link_user") || localStorage.getItem("smartlink_user");
+      if (rawUser) {
+        const u = JSON.parse(rawUser);
+        if (u.email) return u.email;
+      }
+    } catch {}
+    return "";
+  });
   const [authPassword, setAuthPassword] = useState("");
   const [showAuthPassword, setShowAuthPassword] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
@@ -125,7 +136,14 @@ export const AuthPortal: React.FC<AuthPortalProps>= ({
     setIsBiometricLoading(true);
     setAuthError(null);
     try {
-      const res = await BiometricAuthService.authenticateWithBiometrics(authEmail);
+      const emailToUse = authEmail.trim() || (() => {
+        try {
+          return localStorage.getItem("smartlink_saved_email") || "";
+        } catch {
+          return "";
+        }
+      })();
+      const res = await BiometricAuthService.authenticateWithBiometrics(emailToUse);
       if (res.success && res.user) {
         setAuthSuccessState("login");
         soundFx.playSuccessSound();
@@ -269,11 +287,11 @@ export const AuthPortal: React.FC<AuthPortalProps>= ({
         }
 
         localStorage.setItem("smart_link_user", JSON.stringify(loginUser));
+        localStorage.setItem("smartlink_saved_email", cleanEmail);
         soundFx.playSuccessSound();
         setAuthSuccessState("login");
 
         onAuthSuccess(loginUser);
-        setAuthEmail("");
         setAuthPassword("");
         setAuthSuccessState(null);
         setToast({
@@ -313,11 +331,11 @@ export const AuthPortal: React.FC<AuthPortalProps>= ({
       }
 
       localStorage.setItem("smart_link_user", JSON.stringify(loginUser));
+      localStorage.setItem("smartlink_saved_email", cleanEmail);
       soundFx.playSuccessSound();
       setAuthSuccessState("login");
 
       onAuthSuccess(loginUser);
-      setAuthEmail("");
       setAuthPassword("");
       setAuthSuccessState(null);
       setToast({

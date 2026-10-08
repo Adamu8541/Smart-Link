@@ -246,11 +246,28 @@ export class BiometricAuthService {
       throw new Error("Biometric sign-in is not supported on this device/browser.");
     }
 
+    // Auto-resolve remembered email if not explicitly provided
+    let targetEmail = email && typeof email === "string" ? email.trim() : undefined;
+    if (!targetEmail) {
+      try {
+        const saved = localStorage.getItem("smartlink_saved_email");
+        if (saved && saved.trim()) {
+          targetEmail = saved.trim();
+        } else {
+          const rawUser = localStorage.getItem("smart_link_user") || localStorage.getItem("smartlink_user");
+          if (rawUser) {
+            const parsed = JSON.parse(rawUser);
+            if (parsed.email) targetEmail = parsed.email.trim();
+          }
+        }
+      } catch {}
+    }
+
     // 1. Request login challenge from backend
     const optRes = await fetch("/api/auth/passkeys/login-options", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: email ? email.trim() : undefined }),
+      body: JSON.stringify({ email: targetEmail }),
     });
 
     if (!optRes.ok) {
@@ -268,7 +285,7 @@ export class BiometricAuthService {
       challenge: base64UrlToBuffer(rawOptions.challenge),
       timeout: rawOptions.timeout || 60000,
       rpId: rawOptions.rpId || window.location.hostname,
-      userVerification: rawOptions.userVerification || "preferred",
+      userVerification: rawOptions.userVerification || "required",
       allowCredentials: rawOptions.allowCredentials?.map((cred: any) => ({
         ...cred,
         id: base64UrlToBuffer(cred.id),
@@ -325,6 +342,10 @@ export class BiometricAuthService {
     }
     if (result.user) {
       localStorage.setItem("smartlink_user", JSON.stringify(result.user));
+      localStorage.setItem("smart_link_user", JSON.stringify(result.user));
+      if (result.user.email) {
+        localStorage.setItem("smartlink_saved_email", result.user.email);
+      }
       const uid = result.user.id || result.user.uid;
       BiometricAuthService.setEnrolled(uid, true);
     }
