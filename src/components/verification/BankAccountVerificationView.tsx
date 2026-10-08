@@ -41,6 +41,7 @@ import { getAuthHeaders } from "../../services/providerService";
 
 interface BankAccountVerificationViewProps {
   userId: string;
+  userEmail?: string;
   onBackToDashboard?: () => void;
   onBalanceUpdate?: () => void;
 }
@@ -49,6 +50,7 @@ export type BankViewTab = "VERIFY" | "HISTORY";
 
 export const BankAccountVerificationView: React.FC<BankAccountVerificationViewProps> = ({
   userId,
+  userEmail = "",
   onBackToDashboard,
   onBalanceUpdate,
 }) => {
@@ -265,7 +267,7 @@ export const BankAccountVerificationView: React.FC<BankAccountVerificationViewPr
       // 3. Advance to 100%: Completed!
       onProgressUpdate({
         id: 6,
-        label: "Verification Complete & Official Slip Auto-Downloaded",
+        label: "Verification Complete & Digital Slip Auto-Downloaded",
         progress: 100,
       });
       setResult(standardizedResult);
@@ -422,7 +424,7 @@ export const BankAccountVerificationView: React.FC<BankAccountVerificationViewPr
                 <ShieldCheck className="h-6 w-6 text-[#0F2D5C] dark:text-[#9CA3AF] shrink-0" />
                 <div className="text-xs">
                   <p className="font-bold text-[#111827] dark:text-[#E5E7EB]">
-                    Official NIBSS (Nigeria Inter-Bank Settlement System) Portal
+                    Central Banking Account Lookup Rails
                   </p>
                   <p className="text-[#6B7280] dark:text-[#9CA3AF]">
                     Confirms verified account holder name, account status, bank code, and BVN linking prior to money transfer or payout.
@@ -638,6 +640,7 @@ export const BankAccountVerificationView: React.FC<BankAccountVerificationViewPr
               providerName="NIBSS NIP Name Enquiry Portal"
               result={result}
               userId={userId}
+              userEmail={userEmail}
               cachedBlob={cachedBlob}
               cachedPdfBytes={cachedPdfBytes}
               cachedFilename={cachedFilename}

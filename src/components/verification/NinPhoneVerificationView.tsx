@@ -199,7 +199,7 @@ export const NinPhoneVerificationView: React.FC<NinPhoneVerificationViewProps> =
         // 3. Advance to 100%: Completed!
         setCurrentStep({
           id: 6,
-          label: "Verification Complete & Official Slip Auto-Downloaded",
+          label: "Verification Complete & Digital Slip Auto-Downloaded",
           progress: 100,
         });
         setResult(enrichedResult);
@@ -451,7 +451,7 @@ export const NinPhoneVerificationView: React.FC<NinPhoneVerificationViewProps> =
               <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 flex items-start gap-3 shadow-2xs">
                 <ShieldCheck className="w-4 h-4 text-[#0F2D5C] shrink-0 mt-0.5" />
                 <p className="text-xs text-slate-600 leading-relaxed">
-                  <strong className="font-bold text-slate-800">Privacy Notice:</strong> Your phone number query is encrypted and securely processed via official NIMC telco registries.
+                  <strong className="font-bold text-slate-800">Privacy Notice:</strong> Your phone number query is encrypted and securely processed via national telecommunication and identity registries.
                 </p>
               </div>
             </div>

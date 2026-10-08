@@ -200,7 +200,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
 
         <div className="flex items-center gap-1.5 justify-center text-[10px] text-[#9CA3AF] dark:text-[#6B7280] font-medium">
           <ShieldCheck className="h-3.5 w-3.5 text-[#0F2D5C] shrink-0" />
-          <span>Secured by SmartLink Central Wallet Engine</span>
+          <span>Secured by SmartLink Automated Payment Portal</span>
         </div>
 
         <div className="flex items-center gap-2.5 pt-1">

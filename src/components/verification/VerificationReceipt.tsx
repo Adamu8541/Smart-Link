@@ -225,10 +225,10 @@ export const VerificationReceipt: React.FC<VerificationReceiptProps> = ({
               type="button"
               onClick={handleQuickEmailDispatch}
               disabled={isSendingEmail}
-              className="w-full py-2.5 px-3 bg-[#F5F7FA] hover:bg-[#E5E7EB] dark:bg-[#0F2D5C]/50 dark:hover:bg-[#0F2D5C]/50 text-[#0F2D5C] dark:text-[#9CA3AF] border border-slate-200 dark:border-slate-700 font-bold rounded-xl text-xs transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full py-3 px-3 bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white font-extrabold rounded-xl text-xs transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 shadow-md shadow-blue-900/20"
             >
-              <Mail className="h-4 w-4" />
-              <span>{isSendingEmail ? "Dispatching..." : "Send Slip to Registered Email"}</span>
+              <Mail className="h-4 w-4 text-white" />
+              <span>{isSendingEmail ? "Dispatching to Email..." : "Send Slip to Registered Email"}</span>
             </button>
           )}
 
@@ -239,7 +239,7 @@ export const VerificationReceipt: React.FC<VerificationReceiptProps> = ({
               className="w-full py-2.5 px-3 bg-[#0F2D5C] hover:bg-[#0F2D5C] active:scale-98 text-white font-bold rounded-xl text-xs transition-all shadow-md shadow-emerald-600/20 cursor-pointer flex items-center justify-center gap-2"
             >
               <CreditCard className="h-4 w-4" />
-              <span>Generate Official Identity Slip (NIN / BVN)</span>
+              <span>Generate Identity Slip (NIN / BVN)</span>
             </button>
           )}
 

@@ -710,7 +710,7 @@ export const LEGAL_DOCUMENTS: LegalDocument[] = [
         title: "4. Registry Discrepancies and Verification Failures",
         content: [
           "• Registry Authority: Verification results returned by SmartLink NG reflect the exact records stored in the respective government databases at the moment of query.",
-          "• Unmatched Records: If an inquiry returns 'Record Not Found', 'Invalid NIN/BVN', or mismatched biometric details, SmartLink NG cannot alter or correct upstream registry records. The user or data subject must visit an official NIMC enrollment center or their banking branch to update their bio-data.",
+          "• Unmatched Records: If an inquiry returns 'Record Not Found', 'Invalid NIN/BVN', or mismatched biometric details, SmartLink NG cannot alter or correct upstream registry records. The user or data subject must visit an accredited enrollment center or their banking branch to update their bio-data.",
         ],
       },
     ],

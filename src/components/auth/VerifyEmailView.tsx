@@ -105,7 +105,7 @@ export const VerifyEmailView: React.FC<VerifyEmailViewProps> = ({
       if (isSupabaseConfigured) {
         await SupabaseAuthService.resendVerificationEmail(targetEmail);
         soundFx.playSuccessSound();
-        setResendSuccess(`Verification link sent by Supabase to ${targetEmail}. Please check your inbox and spam folder.`);
+        setResendSuccess(`Verification link sent to ${targetEmail}. Please check your inbox and spam folder.`);
         return;
       }
 

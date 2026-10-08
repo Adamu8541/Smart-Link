@@ -24,6 +24,8 @@ import { legalConsentService } from "../../services/legalConsentService";
 import { SupabaseAuthService, isSupabaseConfigured } from "../../services/supabaseAuth";
 import { BiometricAuthService } from "../../services/biometricAuthService";
 import { LoginLoaderModal } from "./LoginLoaderModal";
+import { useSiteConfig } from "../../context/SiteConfigContext";
+import { DEFAULT_LOGO_URL, handleLogoError } from "../../utils/brandLogo";
 
 interface PasswordStrength {
   score: number;
@@ -98,6 +100,7 @@ export const AuthPortal: React.FC<AuthPortalProps>= ({
   const [isResetPassword, setIsResetPassword] = useState(false);
   const [isVerifyingEmail, setIsVerifyingEmail] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState("");
+  const { logoUrl, siteName } = useSiteConfig();
 
   const useSupabase = isSupabaseConfigured;
 
@@ -274,7 +277,7 @@ export const AuthPortal: React.FC<AuthPortalProps>= ({
         setAuthPassword("");
         setAuthSuccessState(null);
         setToast({
-          message: "Successfully signed in via Supabase! Welcome to your Smart Link Nigeria portal.",
+          message: "Successfully signed in! Welcome to your Smart Link Nigeria portal.",
           type: "success",
         });
         return;
@@ -403,7 +406,7 @@ export const AuthPortal: React.FC<AuthPortalProps>= ({
 
         const supaUser = supaReg.user;
         if (!supaUser) {
-          throw new Error("Registration failed. Unable to create Supabase user account.");
+          throw new Error("Registration failed. Unable to create user account.");
         }
 
         // Record NDPR legal agreements
@@ -922,12 +925,15 @@ export const AuthPortal: React.FC<AuthPortalProps>= ({
         ) : !isRegistering ? (
           <div className="space-y-2.5 sm:space-y-3.5 animate-fadeIn">
             {/* Header / Brand */}
-            <div className="flex flex-col items-center justify-center space-y-0.5">
-              <div className="flex items-center gap-1.5">
-                <span className="text-lg sm:text-xl font-black tracking-tight text-[#0F2D5C] font-sans text-center">
-                  SmartLink
-                </span>
-                <span className="px-1.5 py-0.5 rounded bg-[#0F2D5C] text-white font-mono text-[9px] font-bold">NIGERIA</span>
+            <div className="flex flex-col items-center justify-center space-y-1 pb-0.5">
+              <div className="flex items-center justify-center">
+                <img
+                  src={logoUrl || DEFAULT_LOGO_URL}
+                  alt={siteName || "Smart Link NG"}
+                  className="h-10 sm:h-12 w-auto max-w-[190px] object-contain shrink-0"
+                  referrerPolicy="no-referrer"
+                  onError={handleLogoError}
+                />
               </div>
               <div className="text-center">
                 <h2 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">Welcome Back</h2>
@@ -1180,12 +1186,15 @@ export const AuthPortal: React.FC<AuthPortalProps>= ({
         ) : (
           <div className="space-y-2 sm:space-y-3 animate-fadeIn">
             {/* Header / Brand */}
-            <div className="flex flex-col items-center justify-center space-y-0.5">
-              <div className="flex items-center gap-1.5">
-                <span className="text-lg sm:text-xl font-black tracking-tight text-[#0F2D5C] font-sans text-center">
-                  SmartLink
-                </span>
-                <span className="px-1.5 py-0.5 rounded bg-[#0F2D5C] text-white font-mono text-[9px] font-bold">NIGERIA</span>
+            <div className="flex flex-col items-center justify-center space-y-1 pb-0.5">
+              <div className="flex items-center justify-center">
+                <img
+                  src={logoUrl || DEFAULT_LOGO_URL}
+                  alt={siteName || "Smart Link NG"}
+                  className="h-10 sm:h-12 w-auto max-w-[190px] object-contain shrink-0"
+                  referrerPolicy="no-referrer"
+                  onError={handleLogoError}
+                />
               </div>
               <div className="text-center">
                 <h2 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">Create Secure Account</h2>

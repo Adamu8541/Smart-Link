@@ -487,7 +487,7 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
     // Footer
     doc.setFontSize(8);
     doc.setTextColor(100, 116, 139);
-    doc.text("This payment was verified and settled via SmartLink Central API Provider Engine.", 15, 185);
+    doc.text("This payment was verified and processed securely via the SmartLink Official Portal.", 15, 185);
     doc.text("For assistance, contact support@smartlinkng.com.ng with your SmartLink Reference.", 15, 190);
 
     doc.save(`SmartLink_Bill_Receipt_${resObj.smartlinkReference}.pdf`);
@@ -545,7 +545,7 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
                 ← Back to Portal
               </button>
               <span className="text-[10px] sm:text-xs font-bold text-[#9CA3AF] bg-[#0F2D5C]/20 px-2 py-0.5 rounded-full border border-[#0F2D5C]/30 flex items-center gap-1">
-                <ShieldCheck className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> Module 7 Payment Engine
+                <ShieldCheck className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> Automated Payment Gateway
               </span>
             </div>
             <h1 className="text-lg sm:text-2xl font-black tracking-tight text-white">Bill Payment Services</h1>

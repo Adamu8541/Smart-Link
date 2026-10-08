@@ -20,6 +20,7 @@ interface LandingHeroProps {
 export const LandingHero: React.FC<LandingHeroProps> = ({
   onGetStarted,
   onExploreServices,
+  onLogin,
 }) => {
   return (
     <section id="hero-section" className="relative overflow-hidden bg-white text-[#111827] py-6 sm:py-10 lg:py-14 border-b border-[#E5E7EB]">
@@ -87,11 +88,11 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
             <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 w-full sm:w-auto">
               <button
                 id="hero-primary-btn"
-                onClick={onGetStarted}
+                onClick={onLogin || onGetStarted}
                 type="button"
                 className="w-full sm:w-auto min-h-[38px] sm:min-h-[42px] px-5 sm:px-7 py-2 sm:py-2.5 bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white font-bold rounded-xl text-xs sm:text-sm shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2 touch-manipulation"
               >
-                <span>Get Started Free</span>
+                <span>Log in</span>
                 <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
               </button>
               <button

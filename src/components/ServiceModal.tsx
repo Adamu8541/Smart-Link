@@ -313,6 +313,7 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
       return renderModalContainer(
         <CacVerificationView
           userId={currentUser.uid}
+          userEmail={currentUser.email}
           onBackToDashboard={onClose}
           onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
         />,
@@ -323,6 +324,7 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
       return renderModalContainer(
         <TinVerificationView
           userId={currentUser.uid}
+          userEmail={currentUser.email}
           onBackToDashboard={onClose}
           onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
         />,
@@ -333,6 +335,7 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
       return renderModalContainer(
         <BankAccountVerificationView
           userId={currentUser.uid}
+          userEmail={currentUser.email}
           onBackToDashboard={onClose}
           onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
         />,
@@ -342,6 +345,7 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
     return renderModalContainer(
       <VerificationEngine
         userId={currentUser.uid}
+        userEmail={currentUser.email}
         initialServiceType={vType}
         onClose={onClose}
         onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
@@ -475,7 +479,7 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
         {/* Modal Header */}
         <div className="bg-[#0F2D5C] text-white px-3.5 py-2.5 sm:px-5 sm:py-3 flex justify-between items-center shrink-0">
           <div>
-            <h3 className="text-[10px] font-mono text-slate-300 uppercase tracking-wider font-semibold">Smart Link Digital Node</h3>
+            <h3 className="text-[10px] font-mono text-slate-300 uppercase tracking-wider font-semibold">Smart Link Services</h3>
             <h2 className="text-sm sm:text-base font-bold text-white truncate max-w-[240px] sm:max-w-xs">{service.name}</h2>
           </div>
           <button onClick={onClose} className="p-1 rounded-full text-slate-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer" aria-label="Close">

@@ -81,15 +81,15 @@ export const LandingServicesPreview: React.FC<LandingServicesPreviewProps> = ({
     },
     {
       title: "Identity & Corporate Verification",
-      benefit: "Official NIMC, NIBSS, CAC, and tax compliance validation rails.",
+      benefit: "Automated NIN, BVN, CAC, and tax compliance validation rails.",
       services: [
         {
           id: "id_nin_ver",
           name: "NIN Verification & Slip",
-          description: "National Identity lookup with official PDF slip download.",
+          description: "National Identity lookup with verifiable PDF slip download.",
           logo: <NimcOfficialCardLogo className="w-full h-full object-contain" />,
           price: "₦500",
-          tag: "Official PDF"
+          tag: "Digital PDF"
         },
         {
           id: "id_bvn_ver",

@@ -23,7 +23,7 @@ export const VERIFICATION_SERVICES: VerificationServiceConfig[] = [
     id: "NIN_DEMOGRAPHY",
     title: "NIN Demography Verification",
     subtitle: "NIMC Demographics Portal",
-    description: "Verify identity records via official NIMC demographic details (First Name, Last Name, Gender & Date of Birth).",
+    description: "Verify identity records via national demographic details (First Name, Last Name, Gender & Date of Birth).",
     icon: "Users",
     category: "IDENTITY",
     fee: 600,
@@ -85,7 +85,7 @@ export const VERIFICATION_SERVICES: VerificationServiceConfig[] = [
   {
     id: "BVN_PHONE",
     title: "BVN Verification with Phone Number",
-    subtitle: "NIBSS Phone Portal",
+    subtitle: "BVN Phone Portal",
     description: "Verify BVN identity records using candidate's 11-digit linked phone number.",
     icon: "Phone",
     category: "IDENTITY",
@@ -224,9 +224,9 @@ export const VERIFICATION_PROGRESS_STEPS: VerificationProgressStep[] = [
   { id: 2, label: "Connecting Securely to Verification Registry...", progress: 35 },
   { id: 3, label: "Sending Verification Query...", progress: 55 },
   { id: 4, label: "Querying Registry Database & Validating...", progress: 75 },
-  { id: 5, label: "Applying Official Security Overlay & Preparing Slip...", progress: 90 },
+  { id: 5, label: "Applying Security Overlay & Preparing Slip...", progress: 90 },
   { id: 6, label: "Finalizing Verification...", progress: 98 },
-  { id: 7, label: "Verification Complete & Official Slip Auto-Downloaded", progress: 100 },
+  { id: 7, label: "Verification Complete & Digital Slip Auto-Downloaded", progress: 100 },
 ];
 
 export class VerificationEngine {

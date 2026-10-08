@@ -40,6 +40,7 @@ import { getAuthHeaders } from "../../services/providerService";
 
 interface TinVerificationViewProps {
   userId: string;
+  userEmail?: string;
   onBackToDashboard?: () => void;
   onBalanceUpdate?: () => void;
 }
@@ -117,6 +118,7 @@ const TIN_TYPE_OPTIONS: TinTypeOptionMeta[] = [
 
 export const TinVerificationView: React.FC<TinVerificationViewProps> = ({
   userId,
+  userEmail = "",
   onBackToDashboard,
   onBalanceUpdate,
 }) => {
@@ -340,7 +342,7 @@ export const TinVerificationView: React.FC<TinVerificationViewProps> = ({
       // 3. Advance to 100%: Completed!
       onProgressUpdate({
         id: 6,
-        label: "Verification Complete & Official Slip Auto-Downloaded",
+        label: "Verification Complete & Digital Slip Auto-Downloaded",
         progress: 100,
       });
       setResult(standardizedResult);
@@ -805,6 +807,7 @@ export const TinVerificationView: React.FC<TinVerificationViewProps> = ({
               providerName="Joint Tax Board (JTB) Portal"
               result={result}
               userId={userId}
+              userEmail={userEmail}
               cachedBlob={cachedBlob}
               cachedPdfBytes={cachedPdfBytes}
               cachedFilename={cachedFilename}

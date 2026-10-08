@@ -1022,8 +1022,7 @@ app.post("/api/admin/payment-providers/:id/test-connection", requireAdmin, async
     testResultStatus = "Invalid Secret Key";
     errorMessage = "Secret Key is missing or empty in configuration.";
   } else if (!provider.webhookUrl || !provider.webhookUrl.trim()) {
-    testResultStatus = "Invalid Credentials";
-    errorMessage = "Webhook URL is missing in configuration.";
+    provider.webhookUrl = "https://smartlinkng.com.ng/api/webhooks/aspfiy";
   }
 
   // Step 2: Use registered adapter if available (e.g. Aspfiy)
@@ -1032,16 +1031,22 @@ app.post("/api/admin/payment-providers/:id/test-connection", requireAdmin, async
     try {
       const adapterResult = await adapter.testConnection(provider);
       if (!adapterResult.ok) {
-        if (adapterResult.message?.toLowerCase().includes("unauthorized") || adapterResult.message?.toLowerCase().includes("rejected")) {
+        if (adapterResult.message?.toLowerCase().includes("merchant keys disabled")) {
+          testResultStatus = "Invalid Credentials";
+          errorMessage = 'Merchant keys disabled on Aspfiy. Please log in to your Aspfiy dashboard (aspfiy.com) under Developer/Settings and toggle "Enable Merchant Keys" to ON.';
+        } else if (adapterResult.message?.toLowerCase().includes("unauthorized") || adapterResult.message?.toLowerCase().includes("rejected")) {
           testResultStatus = "Unauthorized";
+          errorMessage = adapterResult.message;
         } else if (adapterResult.message?.toLowerCase().includes("missing")) {
           testResultStatus = "Invalid Secret Key";
+          errorMessage = adapterResult.message;
         } else if (adapterResult.message?.toLowerCase().includes("unreachable")) {
           testResultStatus = "Server Unreachable";
+          errorMessage = adapterResult.message;
         } else {
           testResultStatus = "Unknown Error";
+          errorMessage = adapterResult.message;
         }
-        errorMessage = adapterResult.message;
       }
     } catch (err: any) {
       testResultStatus = "Unknown Error";
@@ -1459,10 +1464,11 @@ function seedModule6ProvidersIfEmpty(db: any) {
     db.api_providers = [...db.apiProviders];
   }
 
-  if (!db.api_providers.some((p: any) => p.id === "prov_aspfiy" || (p.name || "").toLowerCase().includes("aspfiy"))) {
-    const aspfiySecretKey = String(process.env.ASPFIY_SECRET_KEY || "").trim();
-    const aspfiyPublicKey = String(process.env.ASPFIY_PUBLIC_KEY || "").trim();
+  const aspfiyIndex = db.api_providers.findIndex((p: any) => p.id === "prov_aspfiy" || (p.name || "").toLowerCase().includes("aspfiy"));
+  const aspfiySecretKey = String(process.env.ASPFIY_SECRET_KEY || "").trim();
+  const aspfiyPublicKey = String(process.env.ASPFIY_PUBLIC_KEY || "").trim();
 
+  if (aspfiyIndex === -1) {
     const defaultAspfiy = {
       id: "prov_aspfiy",
       name: "Aspfiy Payment Portal",
@@ -1476,7 +1482,7 @@ function seedModule6ProvidersIfEmpty(db: any) {
       secretKey: aspfiySecretKey,
       publicKey: aspfiyPublicKey,
       apiKey: aspfiySecretKey,
-      webhookUrl: "", // must be filled in by the admin with the real deployed URL
+      webhookUrl: "https://smartlinkng.com.ng/api/webhooks/aspfiy",
       webhookSignatureMethod: "MD5_OF_SECRET",
       webhookSignatureHeaderName: "x-wiaxy-signature",
       webhookSigningSecret: aspfiySecretKey,
@@ -1500,6 +1506,18 @@ function seedModule6ProvidersIfEmpty(db: any) {
     };
 
     db.api_providers.push(defaultAspfiy);
+  } else {
+    // Keep credentials synchronized with server environment
+    const p = db.api_providers[aspfiyIndex];
+    if (aspfiySecretKey && (!p.secretKey || p.secretKey.includes("••••"))) {
+      p.secretKey = aspfiySecretKey;
+      p.apiKey = aspfiySecretKey;
+    }
+    if (aspfiyPublicKey && (!p.publicKey || p.publicKey.includes("••••"))) {
+      p.publicKey = aspfiyPublicKey;
+    }
+    if (!p.baseUrl) p.baseUrl = "https://api-v1.aspfiy.com";
+    if (!p.webhookUrl) p.webhookUrl = "https://smartlinkng.com.ng/api/webhooks/aspfiy";
   }
 
   // Ensure LumiID Sovereign Identity Provider (official base URL & built-in App ID)

@@ -51,33 +51,32 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
   return (
     <header
       id="site-header"
-      className={`sticky top-0 z-40 w-full min-h-[44px] sm:min-h-[52px] transition-colors duration-200 border-b mobile-gpu-layer ${
+      className={`sticky top-0 z-40 w-full min-h-[56px] sm:min-h-[64px] transition-colors duration-200 border-b mobile-gpu-layer ${
         isScrolled
           ? "bg-white/95 backdrop-blur-md shadow-xs border-[#E5E7EB]"
           : "bg-white border-[#E5E7EB]"
       }`}
     >
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-11 sm:h-13">
+        <div className="flex items-center justify-between h-14 sm:h-16 py-1">
           
           {/* Left: SmartLink Logo */}
           <button
             id="header-logo-container"
             type="button"
             onClick={() => handleNavClick("hero-section")}
-            className="flex items-center cursor-pointer group bg-transparent border-none p-0 text-left w-[115px] sm:w-[155px] h-7 sm:h-8 shrink-0"
+            className="flex items-center cursor-pointer group bg-transparent border-none p-0 text-left shrink-0"
             aria-label="Smart Link NG Home"
           >
             <img
               src={activeLogo}
               alt={`${siteName || "Smart Link NG"} - Official Identity Verification & Fintech Portal`}
-              width={140}
-              height={32}
+              width={180}
+              height={48}
               loading="eager"
               fetchPriority="high"
               decoding="async"
-              style={{ aspectRatio: "140 / 32" }}
-              className="h-6 w-auto sm:h-7.5 max-w-[115px] sm:max-w-[155px] object-contain shrink-0"
+              className="h-10 sm:h-12 md:h-13 w-auto max-w-[170px] sm:max-w-[210px] object-contain shrink-0"
               referrerPolicy="no-referrer"
               onError={handleLogoError}
             />
@@ -175,7 +174,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
         <>
           {/* Backdrop Overlay */}
           <div
-            className="lg:hidden fixed inset-0 top-11 sm:top-13 bg-slate-900/40 backdrop-blur-xs z-40 transition-opacity"
+            className="lg:hidden fixed inset-0 top-14 sm:top-16 bg-slate-900/40 backdrop-blur-xs z-40 transition-opacity"
             onClick={() => setMobileMenuOpen(false)}
             aria-hidden="true"
           />
@@ -186,7 +185,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
             role="dialog"
             aria-modal="true"
             aria-label="Mobile Navigation Menu"
-            className="lg:hidden fixed top-11 sm:top-13 right-0 w-3/4 sm:w-1/2 max-w-xs h-[calc(100vh-44px)] sm:h-[calc(100vh-52px)] bg-white border-l border-slate-200 shadow-2xl p-4 transition-all z-50 overflow-y-auto"
+            className="lg:hidden fixed top-14 sm:top-16 right-0 w-3/4 sm:w-1/2 max-w-xs h-[calc(100vh-56px)] sm:h-[calc(100vh-64px)] bg-white border-l border-slate-200 shadow-2xl p-4 transition-all z-50 overflow-y-auto"
           >
             <div className="space-y-4">
               <div className="space-y-1">
@@ -197,50 +196,18 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
                   { id: "api-section", label: "API" },
                   { id: "about-section", label: "About" },
                   { id: "contact-section", label: "Contact" },
-                ].map((item) => {
-                  const isModalLink = item.id === "about-section" || item.id === "contact-section";
-                  return (
-                    <button
-                      key={item.id}
-                      id={`mobile-nav-link-${item.id}`}
-                      type="button"
-                      onClick={() => handleNavClick(item.id)}
-                      className={`w-full text-left px-3.5 py-3 min-h-[44px] text-sm font-semibold transition-colors rounded-xl cursor-pointer flex items-center justify-between touch-manipulation ${
-                        isModalLink
-                          ? "text-[#0F2D5C] bg-blue-50/80 border-l-2 border-[#0F2D5C] rounded-l-none"
-                          : "text-slate-800 hover:bg-slate-50"
-                      }`}
-                    >
-                      <span className="flex items-center gap-2">
-                        <span className="text-sm font-semibold">{item.label}</span>
-                        {isModalLink && (
-                          <span className="text-[9px] font-bold uppercase tracking-wider text-[#0F2D5C] bg-[#0F2D5C]/10 px-2 py-0.5 rounded-full">
-                            Info
-                          </span>
-                        )}
-                      </span>
-                      <ArrowRight className={`h-4 w-4 ${isModalLink ? "text-[#0F2D5C]" : "text-slate-400"}`} />
-                    </button>
-                  );
-                })}
-                <div className="pt-2 border-t border-slate-200">
+                ].map((item) => (
                   <button
+                    key={item.id}
+                    id={`mobile-nav-link-${item.id}`}
                     type="button"
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      window.dispatchEvent(new CustomEvent("open_pwa_install_modal"));
-                    }}
-                    className="w-full text-left px-3.5 py-3 min-h-[44px] text-sm font-bold transition-colors rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300/80 cursor-pointer flex items-center justify-between touch-manipulation"
+                    onClick={() => handleNavClick(item.id)}
+                    className="w-full text-left px-3.5 py-3 min-h-[44px] text-sm font-semibold transition-all rounded-xl cursor-pointer flex items-center justify-between touch-manipulation text-slate-800 hover:bg-slate-50 active:scale-[0.99]"
                   >
-                    <span className="flex items-center gap-2">
-                      <Smartphone className="w-4 h-4 text-amber-700" />
-                      <span>Install SmartLink App</span>
-                    </span>
-                    <span className="text-[10px] font-extrabold bg-amber-400 text-slate-900 px-2 py-0.5 rounded-full">
-                      Install
-                    </span>
+                    <span className="text-sm font-semibold">{item.label}</span>
+                    <ArrowRight className="h-4 w-4 text-slate-400" />
                   </button>
-                </div>
+                ))}
               </div>
             </div>
           </div>

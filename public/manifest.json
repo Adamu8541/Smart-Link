@@ -4,7 +4,7 @@
   "short_name": "SmartLink NG",
   "description": "Nigeria's all-in-one digital portal for NIN Verification & Slip Printing, BVN Validation, CAC Registration, Electricity Disco Tokens, cheap VTU Data & Airtime, and Developer APIs.",
   "id": "https://smartlinkng.com.ng/",
-  "start_url": "/?source=pwa",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone", "minimal-ui", "browser"],
@@ -18,50 +18,50 @@
   "related_applications": [],
   "icons": [
     {
-      "src": "/favicon.webp",
+      "src": "/icon-192.png",
       "sizes": "192x192",
-      "type": "image/webp",
-      "purpose": "any"
-    },
-    {
-      "src": "/favicon.webp",
-      "sizes": "512x512",
-      "type": "image/webp",
-      "purpose": "any"
-    },
-    {
-      "src": "/favicon.webp",
-      "sizes": "512x512",
-      "type": "image/webp",
-      "purpose": "maskable"
-    },
-    {
-      "src": "/logo.png",
-      "sizes": "192x192 512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/favicon.webp",
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
       "sizes": "180x180",
-      "type": "image/webp",
+      "type": "image/png",
       "purpose": "any"
     }
   ],
   "screenshots": [
     {
-      "src": "/logo.png",
+      "src": "/screenshot-wide.png",
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "SmartLink NG Portal Dashboard on Desktop"
+      "label": "Smart Link NG Portal on Desktop"
     },
     {
-      "src": "/logo.png",
+      "src": "/screenshot-narrow.png",
       "sizes": "750x1334",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "SmartLink NG Mobile Identity & Verification Portal"
+      "label": "Smart Link NG Mobile App Screen"
     }
   ],
   "shortcuts": [
@@ -70,28 +70,28 @@
       "short_name": "NIN Verify",
       "description": "Instant NIN lookup, validation and slip print",
       "url": "/verification",
-      "icons": [{ "src": "/favicon.webp", "sizes": "192x192", "type": "image/webp" }]
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "BVN Validation",
       "short_name": "BVN Verify",
       "description": "Instant Bank Verification Number check and wallet slip",
       "url": "/verification",
-      "icons": [{ "src": "/favicon.webp", "sizes": "192x192", "type": "image/webp" }]
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "Buy Airtime & Data",
       "short_name": "VTU Data",
       "description": "MTN SME, Glo, Airtel data bundles and electricity meter tokens",
       "url": "/bills",
-      "icons": [{ "src": "/favicon.webp", "sizes": "192x192", "type": "image/webp" }]
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "CAC Registration",
       "short_name": "CAC Business",
       "description": "Corporate Affairs Commission business name registration and filing",
       "url": "/cac",
-      "icons": [{ "src": "/favicon.webp", "sizes": "192x192", "type": "image/webp" }]
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ]
 }

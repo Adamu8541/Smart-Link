@@ -44,7 +44,7 @@ export const VerificationPublicView: React.FC<VerificationPublicViewProps> = ({
     <div className="min-h-screen flex flex-col bg-[#F9FAFB] font-sans text-[#111827] antialiased">
       <SEOHead
         title="National Identity Verification, NIN Slips, BVN & CAC Portal | Smart Link NG"
-        description="Verify National Identity Numbers (NIN), print official regular & premium plastic ID slips, validate BVN records via NIBSS, and incorporate CAC Business Names & SCUML certificates in Nigeria."
+        description="Verify National Identity Numbers (NIN), print standard regular & premium plastic ID slips, validate BVN records, and register CAC Business Names & SCUML certificates in Nigeria."
         canonicalUrl="https://smartlinkng.com.ng/verification"
       />
 
@@ -150,11 +150,11 @@ export const VerificationPublicView: React.FC<VerificationPublicViewProps> = ({
               <div className="space-y-4">
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-emerald-50 text-emerald-800 text-xs font-bold border border-emerald-200">
                   <CheckCircle2 className="h-3.5 w-3.5" />
-                  <span>NIMC Official Formatting Standard</span>
+                  <span>National Identity Standard Format</span>
                 </div>
 
                 <h2 className="text-2xl sm:text-3xl font-black text-gray-900 leading-snug">
-                  Official NIN Slips &amp; High-Definition Plastic Cards
+                  Standard NIN Slips &amp; High-Definition Plastic Cards
                 </h2>
 
                 <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
@@ -228,7 +228,7 @@ export const VerificationPublicView: React.FC<VerificationPublicViewProps> = ({
           <div className="bg-white rounded-3xl border border-gray-200 p-6 sm:p-10 shadow-sm space-y-6">
             <h2 className="text-2xl font-black text-gray-900">Bank Verification Number (BVN) Validation</h2>
             <p className="text-xs sm:text-sm text-gray-600 max-w-2xl leading-relaxed">
-              Validate customer BVN details against verified NIBSS interbank records in real-time. Generate downloadable digital BVN identity certificates and plastic ID cards.
+              Validate customer BVN details across verified interbank records in real-time. Generate downloadable digital BVN identity certificates and plastic ID cards.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">

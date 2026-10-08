@@ -186,20 +186,19 @@ export interface VirtualAccountResult {
   account?: any;
   virtualAccount?: any;
   isExisting?: boolean;
+  rawResponse?: any;
 }
 
-export function isInvalidPhoneAccount(accNum?: string, phone?: string): boolean {
-  if (!accNum || typeof accNum !== "string") return true;
-  const clean = accNum.replace(/\D/g, "");
-  if (!clean || clean.length < 10) return true;
-  if (clean === "8085490982") return true;
-  if (phone) {
-    const cleanPhone = String(phone).replace(/\D/g, "");
-    if (cleanPhone.length >= 10 && (cleanPhone === clean || cleanPhone.slice(-10) === clean)) {
-      return true;
-    }
-  }
-  return false;
+export function isValidVirtualAccount(accNum?: string): boolean {
+  if (!accNum) return false;
+  const clean = String(accNum).replace(/\D/g, "");
+  if (clean.length !== 10) return false;
+  if (/^0{10}$/.test(clean) || clean === "1234567890") return false;
+  return true;
+}
+
+export function isInvalidPhoneAccount(accNum?: string, _phone?: string): boolean {
+  return !isValidVirtualAccount(accNum);
 }
 
 export async function getOrCreateUserVirtualAccount(
@@ -425,17 +424,14 @@ export async function getOrCreateUserVirtualAccount(
     }
   }
 
-  // If external provider call failed or returned no account number, DO NOT return the phone number!
+  // If external provider call failed or returned no account number, report the failure directly
   if (!result || !result.success || !result.accountNumber || isInvalidPhoneAccount(result.accountNumber, user.phone)) {
-    const errorMsg = result?.error || "Aspfiy provider was unable to generate a reserved virtual account. Please check merchant API keys in Aspfiy dashboard.";
+    const errorMsg = result?.error || "Aspfiy provider was unable to generate a reserved virtual account right now.";
     return {
       success: false,
-      code: "PROVIDER_ERROR",
       error: errorMsg,
-      provider: {
-        name: providerInfo.name || "Aspfiy Payment Portal",
-        id: providerInfo.id || "prov_aspfiy",
-      },
+      code: "NO_VIRTUAL_ACCOUNT",
+      rawResponse: result?.rawResponse,
     };
   }
 

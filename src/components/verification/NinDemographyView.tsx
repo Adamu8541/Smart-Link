@@ -200,7 +200,7 @@ export const NinDemographyView: React.FC<NinDemographyViewProps> = ({
         // 3. Advance to 100%: Completed!
         setCurrentStep({
           id: 6,
-          label: "Verification Complete & Official Slip Auto-Downloaded",
+          label: "Verification Complete & Digital Slip Auto-Downloaded",
           progress: 100,
         });
         setVerificationResult(enrichedResult);

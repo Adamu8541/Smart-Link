@@ -78,10 +78,10 @@ export default function ServicesGrid({ onSelectService }: ServicesGridProps) {
 
   // Quick-action top dock (Identities first, followed by Telecom, Utilities, Education & CAC)
   const quickDockServices = [
-    { id: "id_nin_ver", label: "NIN Identity", sub: "NIMC Slip & Direct", icon: Fingerprint, color: "bg-emerald-500/10 text-emerald-600 border-emerald-200" },
-    { id: "id_bvn_ver", label: "BVN Identity", sub: "NIBSS Validation", icon: ShieldCheck, color: "bg-blue-500/10 text-blue-600 border-blue-200" },
-    { id: "id_slip_gen", label: "NIN Slip & Card", sub: "Official Printout", icon: FileText, color: "bg-teal-500/10 text-teal-600 border-teal-200" },
-    { id: "id_premium_slip", label: "BVN Slip & Card", sub: "Verified NIBSS ID", icon: ShieldCheck, color: "bg-indigo-500/10 text-indigo-600 border-indigo-200" },
+    { id: "id_nin_ver", label: "NIN Identity", sub: "National ID Lookup", icon: Fingerprint, color: "bg-emerald-500/10 text-emerald-600 border-emerald-200" },
+    { id: "id_bvn_ver", label: "BVN Identity", sub: "Bank BVN Lookup", icon: ShieldCheck, color: "bg-blue-500/10 text-blue-600 border-blue-200" },
+    { id: "id_slip_gen", label: "NIN Slip & Card", sub: "Standard Printout", icon: FileText, color: "bg-teal-500/10 text-teal-600 border-teal-200" },
+    { id: "id_premium_slip", label: "BVN Slip & Card", sub: "Verified BVN ID", icon: ShieldCheck, color: "bg-indigo-500/10 text-indigo-600 border-indigo-200" },
     { id: "vtu_airtime", label: "Airtime VTU", sub: "Instant Top-up", icon: Smartphone, color: "bg-amber-500/10 text-amber-600 border-amber-200" },
     { id: "vtu_data", label: "Data Bundles", sub: "SME & Direct", icon: Wifi, color: "bg-sky-500/10 text-sky-600 border-sky-200" },
     { id: "vtu_electricity", label: "Electricity", sub: "Prepaid Tokens", icon: Lightbulb, color: "bg-yellow-500/10 text-yellow-600 border-yellow-200" },
@@ -90,9 +90,9 @@ export default function ServicesGrid({ onSelectService }: ServicesGridProps) {
 
   // Popular Quick Recharge capsules (Identities first)
   const quickRechargePills = [
-    { id: "id_nin_ver", name: "NIN Verification", desc: "NIMC Live Lookup", badge: "Instant" },
-    { id: "id_bvn_ver", name: "BVN Verification", desc: "NIBSS Direct", badge: "Instant" },
-    { id: "id_slip_gen", name: "NIN Standard Slip", desc: "Color PDF Card", badge: "Official" },
+    { id: "id_nin_ver", name: "NIN Verification", desc: "National ID Lookup", badge: "Instant" },
+    { id: "id_bvn_ver", name: "BVN Verification", desc: "Bank BVN Direct", badge: "Instant" },
+    { id: "id_slip_gen", name: "NIN Standard Slip", desc: "Color PDF Card", badge: "Printable" },
     { id: "id_premium_slip", name: "BVN Card / Slip", desc: "Digital ID", badge: "Verified" },
     { id: "vtu_data", name: "Glo / MTN Data", desc: "SME Data", badge: "Hot" },
     { id: "vtu_airtime", name: "Airtime Top-up", desc: "Instant Top-up", badge: "Fast" },

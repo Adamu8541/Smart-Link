@@ -1,9 +1,13 @@
-const CACHE_NAME = "smartlink-v1";
+const CACHE_NAME = "smartlink-v2";
 const STATIC_ASSETS = [
   "/",
-  "/logo.webp",
+  "/manifest.json",
+  "/icon-192.png",
+  "/icon-512.png",
+  "/icon-maskable-512.png",
+  "/apple-touch-icon.png",
   "/favicon.webp",
-  "/manifest.json"
+  "/logo.png"
 ];
 
 // Install: Cache core assets

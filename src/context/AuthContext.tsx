@@ -180,7 +180,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const loginWithSupabase = async (email: string, password: string): Promise<{ user: UserProfile; isVerified: boolean }> => {
     const result = await SupabaseAuthService.signIn(email, password);
     if (!result.user) {
-      throw new Error("Supabase authentication returned no user.");
+      throw new Error("Authentication failed. Please check your email and password.");
     }
 
     setSupabaseUser(result.user);

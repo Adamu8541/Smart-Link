@@ -186,7 +186,7 @@ export default function HeroSection({ onGetStarted }: HeroSectionProps) {
               Simple, Reliable Digital Solutions
             </h2>
             <p className="text-sm sm:text-base text-[#4B5563] leading-relaxed max-w-2xl mx-auto">
-              We help you register businesses, verify official identity documents, purchase educational tokens, 
+              We help you register businesses, verify identity documents, purchase educational tokens, 
               and pay utility bills securely in one easy-to-use platform.
             </p>
           </div>
@@ -203,7 +203,7 @@ export default function HeroSection({ onGetStarted }: HeroSectionProps) {
                   <h3 className="font-bold text-lg text-[#111827] tracking-tight">Identity & Verification</h3>
                 </div>
                 <p className="text-xs text-[#4B5563] leading-relaxed">
-                  Easily check and verify official identity cards, NIN slips, and bank credentials with extreme safety.
+                  Easily check and verify identity records, NIN slips, and bank credentials with extreme safety.
                 </p>
               </div>
               <div className="pt-6 relative z-10">

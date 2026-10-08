@@ -120,7 +120,7 @@ export class EmailSlipService {
   }): string {
     const { serviceType, holderName, maskedId, reference, qrVerificationUrl, customNote } = params;
 
-    let text = `*OFFICIAL IDENTITY VERIFICATION CERTIFICATE*\n\n`;
+    let text = `*IDENTITY VERIFICATION CERTIFICATE*\n\n`;
     text += `*Service:* ${serviceType.toUpperCase()} Identity Verification\n`;
     text += `*Full Name:* ${holderName}\n`;
     text += `*ID Number:* ${maskedId}\n`;
@@ -129,7 +129,7 @@ export class EmailSlipService {
     if (customNote) {
       text += `*Note:* ${customNote}\n\n`;
     }
-    text += `*View & Download Official PDF Slip:*\n${qrVerificationUrl}\n\n`;
+    text += `*View & Download Digital PDF Slip:*\n${qrVerificationUrl}\n\n`;
     text += `_Issued via SmartLink Enterprise Identity Portal_`;
 
     return `https://wa.me/?text=${encodeURIComponent(text)}`;
@@ -146,6 +146,6 @@ export class EmailSlipService {
     qrVerificationUrl: string;
   }): string {
     const { serviceType, holderName, maskedId, reference, qrVerificationUrl } = params;
-    return `SmartLink Verification Confirmed: ${serviceType.toUpperCase()} for ${holderName} (${maskedId}) is VALID. Ref: #${reference}. View Official Slip: ${qrVerificationUrl}`;
+    return `SmartLink Verification Confirmed: ${serviceType.toUpperCase()} for ${holderName} (${maskedId}) is VALID. Ref: #${reference}. View Digital Slip: ${qrVerificationUrl}`;
   }
 }

@@ -80,7 +80,7 @@ export const WalletCard: React.FC<WalletCardProps> = ({
       <div className="pt-4 flex items-center justify-between text-xs text-[#6B7280] dark:text-[#9CA3AF]">
         <div className="flex items-center gap-1.5">
           <ShieldCheck className="h-4 w-4 text-[#0F2D5C]" />
-          <span className="font-medium text-[11px]">256-Bit Encrypted Wallet Engine</span>
+          <span className="font-medium text-[11px]">256-Bit Encrypted Secure Wallet</span>
         </div>
         <div className="flex items-center gap-1 text-[11px] font-mono text-[#9CA3AF]">
           <Lock className="h-3 w-3" />

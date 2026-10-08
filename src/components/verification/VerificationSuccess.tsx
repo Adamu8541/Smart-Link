@@ -36,12 +36,31 @@ export const VerificationSuccess: React.FC<VerificationSuccessProps> = ({
   const [cachedFilename, setCachedFilename] = useState<string>("Official_ID_Card.pdf");
 
   // Email dispatch state
-  const [showEmailForm, setShowEmailForm] = useState(false);
-  const [emailInput, setEmailInput] = useState(userEmail || result.data?.email || "");
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [emailStatus, setEmailStatus] = useState<{ success: boolean; message: string } | null>(null);
 
   const lastProcessedId = useRef<string>("");
+
+  // Helper to reliably resolve user's email without manual entry
+  const resolveTargetEmail = (): string => {
+    if (userEmail && userEmail.includes("@")) return userEmail.trim();
+    if (result?.data && (result.data as any).email && String((result.data as any).email).includes("@")) {
+      return String((result.data as any).email).trim();
+    }
+    try {
+      const raw =
+        localStorage.getItem("smart_link_user") ||
+        localStorage.getItem("smartlink_user") ||
+        localStorage.getItem("user");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed.email && String(parsed.email).includes("@")) return String(parsed.email).trim();
+      }
+    } catch (e) {
+      // ignore JSON parse errors
+    }
+    return "";
+  };
 
   const isBvnSlip =
     (result as any).formatId === "BVN_SLIP_1" ||
@@ -139,13 +158,6 @@ export const VerificationSuccess: React.FC<VerificationSuccessProps> = ({
     };
   }, [result, isRegular]);
 
-  // Keep email input updated if userEmail prop becomes available
-  useEffect(() => {
-    if (userEmail && !emailInput) {
-      setEmailInput(userEmail);
-    }
-  }, [userEmail, emailInput]);
-
   // 2. Action: Download id card again
   const handleDownloadAgain = async () => {
     if (cachedBlob) {
@@ -182,12 +194,15 @@ export const VerificationSuccess: React.FC<VerificationSuccessProps> = ({
     }
   };
 
-  // 3. Action: Send slip to email
-  const handleSendEmail = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    const targetEmail = (emailInput || userEmail).trim();
+  // 3. Action: Auto-dispatch slip to user's registered email
+  const handleAutoSendEmail = async () => {
+    const targetEmail = resolveTargetEmail();
     if (!targetEmail || !targetEmail.includes("@")) {
-      setEmailStatus({ success: false, message: "Please enter a valid email address." });
+      setEmailStatus({
+        success: false,
+        message: "No registered email address found on file to dispatch slip.",
+      });
+      setTimeout(() => setEmailStatus(null), 6000);
       return;
     }
 
@@ -219,7 +234,7 @@ export const VerificationSuccess: React.FC<VerificationSuccessProps> = ({
       if (res.success) {
         setEmailStatus({
           success: true,
-          message: `Official ID slip has been sent successfully to ${targetEmail}`,
+          message: `Official slip automatically dispatched to ${targetEmail}`,
         });
       } else {
         setEmailStatus({
@@ -234,6 +249,7 @@ export const VerificationSuccess: React.FC<VerificationSuccessProps> = ({
       });
     } finally {
       setIsSendingEmail(false);
+      setTimeout(() => setEmailStatus(null), 8000);
     }
   };
 
@@ -249,7 +265,7 @@ export const VerificationSuccess: React.FC<VerificationSuccessProps> = ({
 
           <div className="space-y-2">
             <h3 className="text-xl font-black text-slate-900 tracking-tight">
-              {isRegular ? "Generating Official Regular Slip..." : "Generating Official ID Card..."}
+              {isRegular ? "Generating Standard Regular Slip..." : "Generating Premium ID Card..."}
             </h3>
             <p className="text-xs sm:text-sm text-slate-500 font-medium">
               Applying authentic security overlay and preparing automatic download to your device.
@@ -261,7 +277,7 @@ export const VerificationSuccess: React.FC<VerificationSuccessProps> = ({
           </div>
         </div>
       ) : (
-        /* State B: Downloaded Complete - No Data Preview, Clean Verified Successful with 2 Buttons */
+        /* State B: Downloaded Complete - Clean Verified Successful with 2 Action Buttons */
         <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-xl text-center space-y-6 animate-fade-in">
           {/* Success Checkmark & Verified Header */}
           <div className="space-y-3">
@@ -286,7 +302,7 @@ export const VerificationSuccess: React.FC<VerificationSuccessProps> = ({
             )}
           </div>
 
-          {/* Exactly the 2 Primary Action Buttons */}
+          {/* Exactly the 2 Primary Action Buttons: Auto-send to Email + Download again */}
           <div className="space-y-3 pt-2">
             {/* Button 1: Download id card again */}
             <button
@@ -294,77 +310,59 @@ export const VerificationSuccess: React.FC<VerificationSuccessProps> = ({
               onClick={handleDownloadAgain}
               className="w-full py-4 px-6 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-extrabold rounded-2xl text-sm sm:text-base transition-all shadow-lg shadow-emerald-600/25 cursor-pointer flex items-center justify-center gap-2.5 active:scale-[0.99]"
             >
-              <Download className="w-5 h-5" />
+              <Download className="w-5 h-5 text-white" />
               <span>{isRegular ? "Download Regular Slip again" : "Download id card again"}</span>
             </button>
 
-            {/* Button 2: send slip to my email */}
+            {/* Button 2: Auto-send slip to user's registered email */}
             <button
               type="button"
-              onClick={() => {
-                setShowEmailForm(!showEmailForm);
-                setEmailStatus(null);
-              }}
-              className="w-full py-4 px-6 bg-[#0F2D5C] hover:bg-[#1E3A8A] active:bg-[#0B2144] text-white font-extrabold rounded-2xl text-sm sm:text-base transition-all shadow-md shadow-blue-900/20 cursor-pointer flex items-center justify-center gap-2.5 active:scale-[0.99]"
+              onClick={handleAutoSendEmail}
+              disabled={isSendingEmail}
+              className="w-full py-4 px-6 bg-[#0F2D5C] hover:bg-[#1E3A8A] active:bg-[#0B2144] disabled:opacity-75 text-white font-extrabold rounded-2xl text-sm sm:text-base transition-all shadow-md shadow-blue-900/20 cursor-pointer flex items-center justify-center gap-2.5 active:scale-[0.99]"
             >
-              <Mail className="w-5 h-5" />
-              <span>send slip to my email</span>
+              {isSendingEmail ? (
+                <>
+                  <RefreshCw className="w-5 h-5 text-white animate-spin" />
+                  <span>Dispatching to email...</span>
+                </>
+              ) : (
+                <>
+                  <Mail className="w-5 h-5 text-white" />
+                  <span>send slip to my email</span>
+                </>
+              )}
             </button>
           </div>
 
-          {/* Email Form (Toggled or Triggered by "send slip to my email") */}
-          {showEmailForm && (
-            <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-left space-y-3 animate-in fade-in-50 zoom-in-95">
-              <label className="block text-xs font-bold text-slate-700">
-                Destination Email Address
-              </label>
-
-              <div className="flex gap-2">
-                <input
-                  type="email"
-                  value={emailInput}
-                  onChange={(e) => setEmailInput(e.target.value)}
-                  placeholder="Enter email (e.g. name@gmail.com)"
-                  className="flex-1 bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-[#0F2D5C]"
-                />
-                <button
-                  type="button"
-                  onClick={() => handleSendEmail()}
-                  disabled={isSendingEmail || !emailInput.includes("@")}
-                  className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
-                >
-                  {isSendingEmail ? (
-                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                  ) : (
-                    <Send className="w-3.5 h-3.5" />
-                  )}
-                  <span>Send</span>
-                </button>
-              </div>
-
-              {emailStatus && (
-                <div
-                  className={`text-xs font-semibold p-2.5 rounded-xl ${
-                    emailStatus.success
-                      ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
-                      : "bg-rose-50 text-rose-800 border border-rose-200"
-                  }`}
-                >
-                  {emailStatus.message}
-                </div>
+          {/* Email Dispatch Result Status */}
+          {emailStatus && (
+            <div
+              className={`p-3.5 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 animate-in fade-in zoom-in-95 ${
+                emailStatus.success
+                  ? "bg-emerald-50 text-emerald-900 border border-emerald-300"
+                  : "bg-rose-50 text-rose-900 border border-rose-300"
+              }`}
+            >
+              {emailStatus.success ? (
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              ) : (
+                <ShieldCheck className="w-4 h-4 text-rose-600 shrink-0" />
               )}
+              <span>{emailStatus.message}</span>
             </div>
           )}
 
-          {/* Verification Navigation Option */}
+          {/* Solid Styled Action: Perform another verification button */}
           {onNewVerification && (
             <div className="pt-2">
               <button
                 type="button"
                 onClick={onNewVerification}
-                className="text-xs font-semibold text-slate-400 hover:text-slate-700 underline transition-colors cursor-pointer"
+                className="w-full py-3.5 px-4 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 border border-slate-300 dark:border-slate-600 font-extrabold rounded-xl text-xs sm:text-sm transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs active:scale-[0.98]"
               >
-                Perform another verification
+                <RefreshCw className="w-4 h-4 text-slate-700 dark:text-slate-200" />
+                <span>Perform another verification</span>
               </button>
             </div>
           )}

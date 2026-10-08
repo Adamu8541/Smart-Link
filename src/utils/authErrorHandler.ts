@@ -22,25 +22,25 @@ export function getFriendlyErrorMessage(error: any): string {
 
   const code = error?.code || "";
 
-  // 0. Supabase Configuration & Custom errors
+  // 0. System Authentication & Configuration errors
   if (
     rawMsg.includes("Supabase is not configured") ||
     rawMsg.includes("VITE_SUPABASE_URL") ||
     rawMsg.includes("VITE_SUPABASE_ANON_KEY")
   ) {
-    return "Supabase is not configured. Please define VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in settings or the secrets panel to enable authentication.";
+    return "Authentication service is temporarily undergoing maintenance. Please try again in a few moments.";
   }
 
   if (rawMsg.includes("invalid api key") || rawMsg.includes("Invalid API key") || rawMsg.includes("apiKey") || rawMsg.includes("anon key")) {
-    return "Invalid Supabase API key (VITE_SUPABASE_ANON_KEY). Please check your Supabase dashboard and update your key in settings.";
+    return "Authentication service connection error. Please try again later or contact support.";
   }
 
   if (rawMsg.includes("Email rate limit exceeded") || rawMsg.includes("rate limit") || rawMsg.includes("rate_limit")) {
-    return "Sign-up rate limit exceeded. Supabase free tier limits email sign-ups per hour. Please wait a bit or disable email confirmation in Supabase.";
+    return "Rate limit exceeded. Please wait a few moments before trying again.";
   }
 
   if (rawMsg.includes("Signup is disabled") || rawMsg.includes("signup is disabled")) {
-    return "User registration is currently disabled in your Supabase Auth configuration.";
+    return "New account registration is temporarily unavailable. Please try again shortly.";
   }
 
   if (
@@ -48,7 +48,7 @@ export function getFriendlyErrorMessage(error: any): string {
     rawMsg.toLowerCase().includes("email_not_confirmed") ||
     rawMsg.toLowerCase().includes("not confirmed")
   ) {
-    return "Your email is not verified yet. Please check your email inbox for the confirmation link sent by Supabase, or click send verify to log into your account.";
+    return "Your email is not verified yet. Please check your email inbox for the confirmation link, or click resend verification to proceed.";
   }
 
   if (
@@ -180,7 +180,7 @@ export function getFriendlyErrorMessage(error: any): string {
     rawMsg.includes("unauthorized-domain") ||
     rawMsg.includes("unauthorized domain")
   ) {
-    return "This domain is not authorized for Google Sign-In in Supabase. Please add this domain to Supabase Authentication settings.";
+    return "Google Sign-In is not currently authorized for this domain. Please use email and password or contact support.";
   }
 
   if (
@@ -188,7 +188,7 @@ export function getFriendlyErrorMessage(error: any): string {
     rawMsg.includes("operation-not-allowed") ||
     rawMsg.includes("OPERATION_NOT_ALLOWED")
   ) {
-    return "Google Sign-In is not enabled in Supabase. Please enable Google under Authentication > Providers.";
+    return "Google Sign-In is temporarily unavailable. Please sign in with email and password.";
   }
 
   if (
@@ -197,7 +197,7 @@ export function getFriendlyErrorMessage(error: any): string {
     rawMsg.includes("invalid-api-key") ||
     rawMsg.includes("API key not valid")
   ) {
-    return "Supabase API Key is invalid or restricted. Please check your Supabase project settings.";
+    return "Authentication service error. Please try again later or contact support.";
   }
 
   if (
@@ -205,7 +205,7 @@ export function getFriendlyErrorMessage(error: any): string {
     rawMsg.includes("Invalid request") ||
     rawMsg.includes("request is invalid")
   ) {
-    return "Google Authentication request was invalid. Please ensure Google Sign-In is configured with a valid project support email.";
+    return "Authentication request was invalid. Please try again or sign in with email.";
   }
 
   if (

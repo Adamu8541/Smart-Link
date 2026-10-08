@@ -100,7 +100,7 @@ export function getBvnSlipOptions(siteConfig?: any): BvnSlipType3[] {
       name: "BVN Slip",
       label: "BVN Slip",
       price: slip1Price,
-      badge: "Official Slip",
+      badge: "Digital Slip",
       formatId: "BVN_SLIP_1" as any,
     },
   ];
@@ -112,12 +112,12 @@ export const mapBvnSlipToConfig = (s: BvnSlipType3): SlipOptionConfig => ({
   badge: s.badge,
   badgeColor: "bg-[#0F2D5C] text-white",
   price: s.price,
-  description: `${s.name} generated with official NIBSS banking watermarks & QR verification.`,
+  description: `${s.name} generated with standard banking watermarks & QR verification.`,
   dimensions: s.id === "BVN_CARD" ? "CR80 Plastic Card Size" : "Standard A4 / Letter",
   recommendedFor: "Banking KYC & Identity Verification",
   themeColor: "#0F2D5C",
   bgGradient: "from-[#0F2D5C]/10 via-[#0F2D5C]/5 to-[#111827]/10",
-  features: ["NIBSS Verification Seal", "Scannable 2D QR Code", "Official Tracking ID", "Digital Watermark"],
+  features: ["Banking Verification Seal", "Scannable 2D QR Code", "Digital Tracking ID", "Digital Watermark"],
   sampleLayout: s.id === "BVN_CARD" ? "PREMIUM_CARD" : "STANDARD_SLIP",
 });
 
@@ -273,7 +273,7 @@ export const BvnVerificationView: React.FC<BvnVerificationViewProps> = ({
         // 3. Advance to 100%: Completed!
         setCurrentStep({
           id: 6,
-          label: "Verification Complete & Official Slip Auto-Downloaded",
+          label: "Verification Complete & Digital Slip Auto-Downloaded",
           progress: 100,
         });
         setResult(enrichedResult);

@@ -98,7 +98,17 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
                   <button
                     id={`footer-company-${item.tab}`}
                     type="button"
-                    onClick={() => setActiveInfoTab(item.tab as any)}
+                    onClick={() => {
+                      if (item.tab === "about") {
+                        const el = document.getElementById("about-section");
+                        if (el) {
+                          el.scrollIntoView({ behavior: "smooth" });
+                        }
+                        setActiveInfoTab("about");
+                      } else {
+                        setActiveInfoTab(item.tab as any);
+                      }
+                    }}
                     className="text-[#374151] hover:text-[#0F2D5C] hover:translate-x-0.5 duration-200 transition-all cursor-pointer bg-transparent border-none py-1 px-0.5 text-left font-medium flex items-center gap-1 text-xs"
                   >
                     <ChevronRight className="h-3 w-3 text-[#374151]/60" aria-hidden="true" />
@@ -376,21 +386,41 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
                   <div className="p-4 bg-[#F5F7FA] border border-[#E5E7EB] rounded-2xl space-y-2">
                     <h4 className="font-bold text-[#111827] flex items-center gap-1.5 text-xs">
                       <Sparkles className="h-3.5 w-3.5 text-[#0F2D5C]" />
-                      Core Mission
+                      Core Mission &amp; Purpose
                     </h4>
                     <p className="text-[11px] text-[#4B5563]">
-                      To bridge the digital verification gap for agents, small businesses, and individuals in Nigeria by delivering 99.9% uptime, robust API options, and secure, pre-funded wallet structures for utility disbursements and legal identity compliance.
+                      To bridge the digital verification gap for agents, small businesses, and individuals in Nigeria by delivering 99.95% uptime, robust developer API options, and instant automated wallet funding for utility disbursements and legal identity compliance.
                     </p>
+                  </div>
+
+                  {/* 4 Core Pillars Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1 text-[11px]">
+                    <div className="p-3 bg-white border border-[#E5E7EB] rounded-xl space-y-1">
+                      <span className="font-bold text-[#0F2D5C]">1. Automated Telecoms</span>
+                      <p className="text-slate-600">SME &amp; Corporate data, bulk airtime VTU for MTN, Airtel, Glo &amp; 9mobile with instant auto-delivery.</p>
+                    </div>
+                    <div className="p-3 bg-white border border-[#E5E7EB] rounded-xl space-y-1">
+                      <span className="font-bold text-[#0F2D5C]">2. Electricity &amp; TV</span>
+                      <p className="text-slate-600">24/7 prepaid disco tokens, DStv, GOtv, and StarTimes subscription renewals with zero hidden surcharges.</p>
+                    </div>
+                    <div className="p-3 bg-white border border-[#E5E7EB] rounded-xl space-y-1">
+                      <span className="font-bold text-[#0F2D5C]">3. Identity &amp; KYC</span>
+                      <p className="text-slate-600">NIN, vNIN, BVN, and bank account name verification with high-resolution slip printing.</p>
+                    </div>
+                    <div className="p-3 bg-white border border-[#E5E7EB] rounded-xl space-y-1">
+                      <span className="font-bold text-[#0F2D5C]">4. Corporate Filings</span>
+                      <p className="text-slate-600">CAC Business Name reservations, limited liability registrations, and tax status support.</p>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 text-[11px] pt-2">
                     <div className="p-3 border border-[#E5E7EB] rounded-xl bg-white space-y-1">
                       <span className="font-bold text-[#0F2D5C]">Statutory Name</span>
-                      <p>Smart Link Computer Business</p>
+                      <p className="font-medium text-slate-800">Smart Link Computer Business</p>
                     </div>
                     <div className="p-3 border border-[#E5E7EB] rounded-xl bg-white space-y-1">
                       <span className="font-bold text-[#0F2D5C]">CAC Registration No.</span>
-                      <p>RC 9347502</p>
+                      <p className="font-mono font-bold text-slate-800">RC 9347502</p>
                     </div>
                   </div>
                 </div>

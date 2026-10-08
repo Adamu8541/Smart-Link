@@ -49,6 +49,7 @@ import { getAuthHeaders } from "../../services/providerService";
 
 interface CacVerificationViewProps {
   userId: string;
+  userEmail?: string;
   onBackToDashboard?: () => void;
   onBalanceUpdate?: () => void;
 }
@@ -158,6 +159,7 @@ export const CAC_TYPES: CacTypeConfig[] = [
 
 export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
   userId,
+  userEmail = "",
   onBackToDashboard,
   onBalanceUpdate,
 }) => {
@@ -289,9 +291,9 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
         verificationType: cacType,
         reference: targetResult.reference,
         providerReference: (targetResult as any).providerReference || targetResult.receiptNumber,
-        providerName: "Corporate Affairs Commission National Portal",
+        providerName: "Corporate Affairs Commission Records",
         timestamp: targetResult.timestamp,
-        verifiedBy: "SmartLink Official CAC Gateway",
+        verifiedBy: "SmartLink Corporate Verification Portal",
         rawResponse: d,
       };
       await generateCacVerificationPdf(reportData);
@@ -513,7 +515,7 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-black uppercase tracking-wider text-amber-300">
-                          Official CAC Lookup Fee
+                          CAC Search Filing Fee
                         </span>
                         <span className="text-[10px] bg-white/10 text-slate-200 px-2.5 py-0.5 rounded-full border border-white/20 font-semibold">
                           Instant Search
@@ -736,6 +738,8 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
               currentStep={currentStep}
               serviceTitle={`CAC Verification (${activeTypeConfig.shortName})`}
               providerName="Corporate Affairs Commission Registry"
+              userId={userId}
+              userEmail={userEmail}
             />
           )}
 
@@ -750,10 +754,10 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
                   </div>
                   <div>
                     <h3 className="text-xs font-black text-[#0A5C36] dark:text-emerald-400 uppercase tracking-wider">
-                      Official Search Report PDF Auto-Downloaded
+                      Search Report PDF Auto-Downloaded
                     </h3>
                     <p className="text-[11px] text-slate-700 dark:text-slate-300">
-                      Your 300 DPI Official CAC Status Search Report was generated and downloaded automatically.
+                      Your 300 DPI CAC Status Search Report was generated and downloaded automatically.
                     </p>
                   </div>
                 </div>

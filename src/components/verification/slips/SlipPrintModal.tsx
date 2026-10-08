@@ -536,7 +536,7 @@ export const SlipPrintModal: React.FC<SlipPrintModalProps> = ({
             <div>
               <div className="flex items-center gap-1.5">
                 <h3 className="text-sm sm:text-base font-extrabold text-[#111827] dark:text-white truncate max-w-[220px] sm:max-w-none">
-                  Official Identity Slip Generator &amp; Print Engine
+                  Identity Slip Generator &amp; Print System
                 </h3>
                 <span className="px-1.5 py-0.2 rounded-full text-[9px] font-black bg-blue-50 text-[#0F2D5C] dark:bg-blue-950/50 dark:text-blue-300 border border-slate-200 dark:border-slate-700 shrink-0">
                   REAL VERIFIED

@@ -221,7 +221,7 @@ export class ProviderService {
    */
   static async getVirtualAccount(
     userId: string,
-    userFallback?: { email?: string; fullName?: string; phone?: string }
+    userFallback?: { email?: string; fullName?: string; phone?: string; forceRegenerate?: boolean }
   ): Promise<ProviderResponse> {
     try {
       // If userFallback not supplied, attempt to read from localStorage smart_link_user
@@ -284,7 +284,7 @@ export class ProviderService {
           fullName: resolvedFallback?.fullName,
           phone: resolvedFallback?.phone,
           phoneNumber: resolvedFallback?.phone,
-          forceRegenerate: false,
+          forceRegenerate: Boolean(resolvedFallback?.forceRegenerate),
         }),
       });
       const genData = await genRes.json().catch(() => ({}));
@@ -309,6 +309,7 @@ export class ProviderService {
           fullName: resolvedFallback?.fullName,
           phone: resolvedFallback?.phone,
           phoneNumber: resolvedFallback?.phone,
+          forceRegenerate: Boolean(resolvedFallback?.forceRegenerate),
         }),
       });
       const createData = await createRes.json().catch(() => ({}));

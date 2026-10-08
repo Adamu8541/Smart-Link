@@ -180,15 +180,6 @@ export default function Navigation({
       ]
     },
     {
-      title: "LEGAL & COMPLIANCE",
-      items: [
-        { id: "NAV_LEGAL_CENTER", label: "Legal Center", icon: Scale, viewId: "LEGAL_CENTER" },
-        { id: "NAV_TERMS", label: "Terms & Conditions", icon: FileText, viewId: "LEGAL_DOCUMENT_TERMS" },
-        { id: "NAV_PRIVACY", label: "Privacy Policy", icon: ShieldCheck, viewId: "LEGAL_DOCUMENT_PRIVACY" },
-        { id: "NAV_WALLET", label: "Wallet Terms", icon: Wallet, viewId: "LEGAL_DOCUMENT_WALLET" },
-      ]
-    },
-    {
       title: "ADMIN & GOVERNANCE",
       items: [
         { id: "ADMIN_PORTAL", label: "Admin Portal (Secured)", icon: ShieldCheck, viewId: "ADMIN_LOGIN" },
@@ -314,40 +305,6 @@ export default function Navigation({
                 />
               </div>
 
-              {/* Profile Block */}
-              {currentUser ? (
-                <div className="p-3 rounded-lg bg-[#111827]/40 border border-[#111827]/60 text-left space-y-1">
-                  <div className="text-[9px] text-[#9CA3AF] font-semibold font-mono">AUTHORIZED PARTNER</div>
-                  <p className="font-bold text-xs truncate text-[#E5E7EB]">{currentUser.fullName}</p>
-                  <div className="flex justify-between items-center text-[10px] font-mono text-[#9CA3AF] pt-1">
-                    <div className="flex items-center gap-1.5">
-                      <span>{formatNaira(currentUser.walletBalance)}</span>
-                      {onRefreshUser && (
-                        <button
-                          type="button"
-                          onClick={handleRefreshBalance}
-                          disabled={isRefreshing}
-                          title="Refresh balance"
-                          aria-label="Refresh wallet balance"
-                          id="btn-nav-mobile-refresh"
-                          className="min-h-[32px] min-w-[32px] flex items-center justify-center p-1.5 hover:bg-[#111827]/80 rounded hover:text-white transition-colors cursor-pointer disabled:opacity-40"
-                        >
-                          <RefreshCw className={`h-3 w-3 ${isRefreshing ? "animate-spin text-white" : "text-[#9CA3AF]"}`} />
-                        </button>
-                      )}
-                    </div>
-                    <span className="px-1 py-0.2 rounded bg-[#111827] text-[8px] font-bold text-[#9CA3AF] uppercase">
-                      {currentUser.role}
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <div className="p-3 rounded-lg bg-[#111827]/40 border border-[#111827]/60 text-left">
-                  <span className="text-[9px] text-[#9CA3AF] font-mono">SECURE PORTAL NODE</span>
-                  <p className="text-[10px] text-[#6B7280] font-light mt-1">Authenticate to begin processing identity logs.</p>
-                </div>
-              )}
-
               {/* Categorized Menu Scroll Area */}
               <nav className="flex flex-col gap-4 text-left overflow-y-auto flex-1 pr-1 pb-4 scrollbar-thin">
                 {menuGroups.map((group) => (
@@ -451,41 +408,6 @@ export default function Navigation({
             />
           </div>
 
-          {/* Profile Card */}
-          {currentUser && (
-            <div className="p-3.5 rounded-xl bg-[#17407E]/60 border border-white/10 text-left space-y-2 animate-fadeIn shrink-0">
-              <div className="flex justify-between items-center text-[9px] text-[#9CA3AF] font-mono font-bold tracking-wider">
-                <span>AUTHORIZED PARTNER</span>
-                <span className="inline-block h-1.5 w-1.5 bg-[#0F2D5C] rounded-full animate-pulse"></span>
-              </div>
-              <div>
-                <p className="font-bold text-xs text-white truncate">{currentUser.fullName}</p>
-                <p className="text-[10px] text-[#9CA3AF] font-mono truncate mt-0.5">{currentUser.email}</p>
-              </div>
-              <div className="flex justify-between items-center pt-2 border-t border-white/10">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[11px] font-bold font-mono text-[#9CA3AF]">{formatNaira(currentUser.walletBalance)}</span>
-                  {onRefreshUser && (
-                    <button
-                      type="button"
-                      onClick={handleRefreshBalance}
-                      disabled={isRefreshing}
-                      title="Refresh balance"
-                      aria-label="Refresh wallet balance"
-                      id="btn-nav-sidebar-refresh"
-                      className="min-h-[28px] min-w-[28px] flex items-center justify-center p-1 hover:bg-white/10 rounded text-[#9CA3AF] hover:text-white transition-colors cursor-pointer disabled:opacity-40"
-                    >
-                      <RefreshCw className={`h-3 w-3 ${isRefreshing ? "animate-spin text-white" : ""}`} />
-                    </button>
-                  )}
-                </div>
-                <span className="px-2 py-0.5 rounded bg-white/10 text-[8px] font-mono font-bold text-[#9CA3AF] uppercase">
-                  {currentUser.role}
-                </span>
-              </div>
-            </div>
-          )}
-
           {/* Categorized Desktop Navigation Links */}
           <nav className="flex-1 overflow-y-auto pr-1 flex flex-col gap-3.5 text-left scrollbar-thin pb-4">
             {menuGroups.map((group) => (
@@ -530,18 +452,18 @@ export default function Navigation({
             ))}
 
             {/* Preferences & Session Controls - Joined directly into upper list */}
-            <div className="pt-3 border-t border-white/10 space-y-1.5">
+            <div className="pt-3.5 pb-2 border-t border-white/10 space-y-2 mt-1">
               <div className="px-3 text-[9px] font-bold text-[#9CA3AF]/70 font-sans tracking-wider uppercase">
                 PREFERENCES & SESSION
               </div>
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1.5">
                 {/* Dark Mode Theme */}
                 <button
                   type="button"
                   onClick={onToggleDarkMode}
                   id="btn-nav-desktop-darkmode"
                   title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
-                  className="w-full py-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-xl text-xs font-semibold transition-all flex items-center justify-between px-3 cursor-pointer"
+                  className="w-full min-h-[42px] py-2.5 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-xl text-xs font-semibold transition-all flex items-center justify-between px-3 cursor-pointer shadow-2xs"
                 >
                   <span className="flex items-center gap-3">
                     {isDarkMode ? <Sun className="h-4 w-4 text-amber-300" /> : <Moon className="h-4 w-4 text-blue-300" />}
@@ -558,7 +480,7 @@ export default function Navigation({
                     onClick={onLogout}
                     id="btn-sign-out"
                     title="Sign Out / Exit"
-                    className="w-full py-2 bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 hover:text-rose-200 border border-rose-500/30 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    className="w-full min-h-[42px] py-2.5 bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 hover:text-rose-200 border border-rose-500/30 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
                   >
                     <LogOut className="h-4 w-4 text-rose-400" />
                     <span>Sign Out / Exit</span>

@@ -350,6 +350,10 @@ export default function App() {
     "/developer-api": "PUBLIC_API_DOCS",
     "/docs": "PUBLIC_API_DOCS",
     "/dashboard": "DASHBOARD",
+    "/login": "DASHBOARD",
+    "/signin": "DASHBOARD",
+    "/register": "DASHBOARD",
+    "/signup": "DASHBOARD",
     "/account-security": "ACCOUNT_SECURITY",
     "/security-settings": "ACCOUNT_SECURITY",
     "/services": "SERVICES",
@@ -863,9 +867,8 @@ export default function App() {
     const handleWalletCredited = (e: any) => {
       if (e?.detail?.amount) {
         const amount = Number(e.detail.amount);
-        const portal = e.detail.portal || "Portal Webhook";
         setToast({
-          message: `💳 Real-Time Webhook Alert: ${formatNaira(amount, true)} credited to your digital wallet via ${portal}!`,
+          message: `💳 Wallet Credited: ${formatNaira(amount, true)} has been added to your digital wallet!`,
           type: "success",
         });
       }
@@ -891,7 +894,7 @@ export default function App() {
     if (prevBalanceRef.current !== null && (currentUser.walletBalance ?? 0) > (prevBalanceRef.current ?? 0)) {
       const creditedAmt = (currentUser.walletBalance ?? 0) - (prevBalanceRef.current ?? 0);
       setToast({
-        message: `⚡ Webhook Credit Alert: ${formatNaira(creditedAmt, true)} has been credited to your wallet in real-time!`,
+        message: `💳 Wallet Credited: ${formatNaira(creditedAmt, true)} has been added to your wallet!`,
         type: "success",
       });
     }
@@ -899,7 +902,7 @@ export default function App() {
     prevBalanceRef.current = currentUser.walletBalance;
   }, [currentUser?.walletBalance, currentUser?.uid]);
 
-  // Real-time background poller (polls profile every 3s when logged in to catch incoming webhooks)
+  // Real-time background poller (polls profile every 3s when logged in to catch incoming deposits)
   useEffect(() => {
     if (!currentUser?.uid) return;
 
@@ -923,7 +926,7 @@ export default function App() {
             if (prevBalanceRef.current !== null && (data.user.walletBalance ?? 0) > (prevBalanceRef.current ?? 0)) {
               const creditedAmt = (data.user.walletBalance ?? 0) - (prevBalanceRef.current ?? 0);
               setToast({
-                message: `🎉 Real-Time Webhook Credit: ${formatNaira(creditedAmt, true)} added to your digital wallet!`,
+                message: `🎉 Wallet Credited: ${formatNaira(creditedAmt, true)} added to your digital wallet!`,
                 type: "success",
               });
               prevBalanceRef.current = data.user.walletBalance;
@@ -1027,9 +1030,10 @@ export default function App() {
             <button
               type="button"
               onClick={() => setToast(null)}
-              className="text-xs hover:text-white underline cursor-pointer shrink-0 ml-1 opacity-80 hover:opacity-100 font-bold focus:outline-none"
+              className="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors cursor-pointer shrink-0 ml-1 focus:outline-none"
+              aria-label="Close notification"
             >
-              Dismiss
+              <X className="h-4 w-4" />
             </button>
           </div>
         </div>
@@ -1079,8 +1083,8 @@ export default function App() {
         </Suspense>
       )}
 
-      {/* Top Header for Logged-Out Public Homepage */}
-      {!currentUser && !["HOME", "FORGOT_PASSWORD", "RESET_PASSWORD", "VERIFY_EMAIL", "AUTH_ACTION", "ADMIN_LOGIN", "ADMIN_DASHBOARD"].includes(currentView) && (
+      {/* Top Header for Logged-Out Public Pages (hidden on Login / Sign-up portal, Home, and Auth screens) */}
+      {!currentUser && !["HOME", "DASHBOARD", "FORGOT_PASSWORD", "RESET_PASSWORD", "VERIFY_EMAIL", "AUTH_ACTION", "ADMIN_LOGIN", "ADMIN_DASHBOARD"].includes(currentView) && (
         <header className="w-full bg-white border-b border-[#E5E7EB] py-4 px-6 md:px-12 sticky top-0 z-50 shadow-xs">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             {/* Logo */}

@@ -647,7 +647,7 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps>= ({
                       Code Sent To: {maskedEmail}
                     </span>
                     <p className="text-xs text-slate-600">
-                      Check your inbox or spam folder for the 6-digit code sent via Supabase Reauthentication. Valid for 10 minutes.
+                      Check your inbox or spam folder for the 6-digit security verification code. Valid for 10 minutes.
                     </p>
                   </div>
 
@@ -768,7 +768,7 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps>= ({
                       Target Email: {newEmail}
                     </span>
                     <p className="text-xs text-slate-600">
-                      A 6-digit code has been dispatched to <strong>{maskedEmail}</strong> via Supabase Reauthentication. Enter it below to complete this update.
+                      A 6-digit code has been dispatched to <strong>{maskedEmail}</strong>. Enter it below to complete this update.
                     </p>
                   </div>
 
@@ -890,7 +890,7 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps>= ({
                       Target Phone: {newPhone}
                     </span>
                     <p className="text-xs text-slate-600">
-                      A 6-digit authorization code has been dispatched to <strong>{maskedEmail}</strong> via Supabase Reauthentication. Enter it below to authorize this phone update.
+                      A 6-digit authorization code has been dispatched to <strong>{maskedEmail}</strong>. Enter it below to authorize this phone update.
                     </p>
                   </div>
 
@@ -1044,7 +1044,7 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps>= ({
                     <div className="space-y-1 text-left">
                       <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#0F2D5C]/10 dark:bg-[#0F2D5C]/40 text-[#0F2D5C] dark:text-sky-400">
                         <ShieldCheck className="h-3 w-3" />
-                        <span>Supabase Native Reauthentication</span>
+                        <span>Two-Step Security Verification</span>
                       </div>
                       <h3 className="text-base font-bold text-[#111827] dark:text-white">
                         Confirm PIN Requirement {toggleTargetValue ? "Activation (ON)" : "Deactivation (OFF)"}
@@ -1150,7 +1150,7 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps>= ({
                     {currentUser.hasTransactionPin ? "Change 4-Digit Transaction PIN" : "Configure 4-Digit Transaction PIN"}
                   </h3>
                   <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-0.5">
-                    Your 4-digit PIN is stored securely with bcrypt hashing. Setting or updating your PIN requires Supabase Reauthentication.
+                    Your 4-digit PIN is stored with bank-grade encryption. Setting or updating your PIN requires email security verification.
                   </p>
                 </div>
 
@@ -1219,7 +1219,7 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps>= ({
                         Code Sent To: {maskedEmail}
                       </span>
                       <p className="text-xs text-slate-600 dark:text-slate-300">
-                        Enter the 6-digit confirmation code sent to your email via Supabase Reauthentication to lock in your new 4-digit PIN.
+                        Enter the 6-digit confirmation code sent to your email to lock in your new 4-digit PIN.
                       </p>
                     </div>
 

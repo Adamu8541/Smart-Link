@@ -30,6 +30,7 @@ export type VerificationEngineViewMode =
 
 interface VerificationEngineProps {
   userId: string;
+  userEmail?: string;
   initialServiceType?: VerificationType;
   initialTargetId?: string;
   onClose?: () => void;
@@ -39,6 +40,7 @@ interface VerificationEngineProps {
 
 export const VerificationEngine: React.FC<VerificationEngineProps> = ({
   userId,
+  userEmail = "",
   initialServiceType,
   initialTargetId = "",
   onClose,
@@ -158,7 +160,7 @@ export const VerificationEngine: React.FC<VerificationEngineProps> = ({
       // 3. Advance to 100%: Completed!
       setCurrentStep({
         id: 6,
-        label: "Verification Complete & Official Slip Auto-Downloaded",
+        label: "Verification Complete & Digital Slip Auto-Downloaded",
         progress: 100,
       });
       setResult(res.result);
@@ -232,7 +234,7 @@ export const VerificationEngine: React.FC<VerificationEngineProps> = ({
             </div>
             <div>
               <h2 className="text-sm font-bold text-[#111827] dark:text-white flex items-center gap-1.5">
-                <span>{selectedService ? selectedService.title : "SmartLink Central Verification Engine"}</span>
+                <span>{selectedService ? selectedService.title : "SmartLink Official Verification Portal"}</span>
               </h2>
               <p className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF]">
                 {selectedService ? selectedService.subtitle : "Select an official service portal"}
@@ -425,6 +427,7 @@ export const VerificationEngine: React.FC<VerificationEngineProps> = ({
             providerName={selectedService.providerName}
             result={result}
             userId={userId}
+            userEmail={userEmail}
             cachedBlob={cachedBlob}
             cachedPdfBytes={cachedPdfBytes}
             cachedFilename={cachedFilename}

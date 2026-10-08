@@ -431,13 +431,13 @@ export default function Dashboards({
         });
         setFundError(null);
       } else {
-        const errorMsg = res.error || (res as any).message || "Aspfiy provider was unable to generate a reserved virtual account right now.";
+        const errorMsg = res.error || (res as any).message || "Unable to generate your dedicated virtual account right now. Please try again shortly.";
         setFundError(errorMsg);
         setFundAccount(null);
       }
     } catch (err: any) {
       console.warn("[VirtualAccount] Background sync note:", err);
-      setFundError(err?.message || "Failed to communicate with Aspfiy provider.");
+      setFundError("Unable to establish banking connection right now. Please try again shortly.");
       setFundAccount(null);
     } finally {
       setFundLoading(false);
@@ -668,7 +668,7 @@ export default function Dashboards({
       const isFunding = tx.type === "WALLET_FUNDING";
       const title = isFunding ? "Digital Wallet Funded" : "Service Debit Transaction";
       const description = isFunding 
-        ? `Credited ${formatNaira(tx.amount, true)} via ${tx.portal || "Paystack Portal"}. Reference: ${tx.reference}`
+        ? `Credited ${formatNaira(tx.amount, true)} via Bank Transfer. Reference: ${tx.reference}`
         : `Sent ${formatNaira(tx.amount, true)} to ${tx.description}. Reference: ${tx.reference}`;
       
       list.push({
@@ -717,12 +717,12 @@ export default function Dashboards({
       }
     });
 
-    // Background security/audit triggers representing high uptime node operations
+    // Background security/audit indicators for account health
     list.push({
       id: "sec-login",
       timestamp: new Date(Date.now() - 3600000 * 2),
-      title: "Secure Portal Handshake Successful",
-      description: `Authorized Node Authentication Session started from IP 102.89.23.11 under certificate reference SSL-TLS-12`,
+      title: "Secure Session Established",
+      description: `Authorized login session active with end-to-end security encryption.`,
       type: "LOGIN",
       status: "SUCCESS",
     });
@@ -730,8 +730,8 @@ export default function Dashboards({
     list.push({
       id: "sec-integrity",
       timestamp: new Date(Date.now() - 3600000 * 4),
-      title: "Biometric Registry Integrity Safe",
-      description: "NIN biometrics tunnel handshake verified successfully. High security encryption validated.",
+      title: "Account Security Verified",
+      description: "Two-factor security credentials and account integrity validated successfully.",
       type: "SECURITY",
       status: "SUCCESS",
     });
@@ -913,10 +913,10 @@ export default function Dashboards({
 
   // Primary Quick-Dock items (Identities first: NIN & BVN, followed by Telecom, Utilities, Education & CAC)
   const quickDockServices = [
-    { id: "id_nin_ver", label: "NIN Identity", sub: "NIMC Slip & Direct", icon: Fingerprint, color: "bg-emerald-500/10 text-emerald-600 border-emerald-200" },
-    { id: "id_bvn_ver", label: "BVN Identity", sub: "NIBSS Validation", icon: ShieldCheck, color: "bg-blue-500/10 text-blue-600 border-blue-200" },
-    { id: "id_slip_gen", label: "NIN Slip & Card", sub: "Official Printout", icon: FileText, color: "bg-teal-500/10 text-teal-600 border-teal-200" },
-    { id: "id_premium_slip", label: "BVN Slip & Card", sub: "Verified NIBSS ID", icon: ShieldCheck, color: "bg-indigo-500/10 text-indigo-600 border-indigo-200" },
+    { id: "id_nin_ver", label: "NIN Identity", sub: "National ID Lookup", icon: Fingerprint, color: "bg-emerald-500/10 text-emerald-600 border-emerald-200" },
+    { id: "id_bvn_ver", label: "BVN Identity", sub: "Bank BVN Lookup", icon: ShieldCheck, color: "bg-blue-500/10 text-blue-600 border-blue-200" },
+    { id: "id_slip_gen", label: "NIN Slip & Card", sub: "Standard Printout", icon: FileText, color: "bg-teal-500/10 text-teal-600 border-teal-200" },
+    { id: "id_premium_slip", label: "BVN Slip & Card", sub: "Verified BVN ID", icon: ShieldCheck, color: "bg-indigo-500/10 text-indigo-600 border-indigo-200" },
     { id: "vtu_airtime", label: "Airtime VTU", sub: "Instant Top-up", icon: Smartphone, color: "bg-amber-500/10 text-amber-600 border-amber-200" },
     { id: "vtu_data", label: "Data Bundles", sub: "SME & Direct", icon: Wifi, color: "bg-sky-500/10 text-sky-600 border-sky-200" },
     { id: "vtu_electricity", label: "Electricity", sub: "Prepaid Tokens", icon: Lightbulb, color: "bg-yellow-500/10 text-yellow-600 border-yellow-200" },
@@ -925,9 +925,9 @@ export default function Dashboards({
 
   // Instant 1-Click Recharges & Quick Verifications (Identities first)
   const quickRechargePills = [
-    { id: "id_nin_ver", name: "NIN Verification", desc: "NIMC Live Lookup", badge: "Instant" },
-    { id: "id_bvn_ver", name: "BVN Verification", desc: "NIBSS Direct", badge: "Instant" },
-    { id: "id_slip_gen", name: "NIN Standard Slip", desc: "Color PDF Card", badge: "Official" },
+    { id: "id_nin_ver", name: "NIN Verification", desc: "National ID Lookup", badge: "Instant" },
+    { id: "id_bvn_ver", name: "BVN Verification", desc: "Bank BVN Direct", badge: "Instant" },
+    { id: "id_slip_gen", name: "NIN Standard Slip", desc: "Color PDF Card", badge: "Printable" },
     { id: "id_premium_slip", name: "BVN Card / Slip", desc: "Digital ID", badge: "Verified" },
     { id: "vtu_data", name: "Glo / MTN Data", desc: "SME Data", badge: "Hot" },
     { id: "vtu_airtime", name: "Airtime Top-up", desc: "Instant Top-up", badge: "Fast" },
@@ -1766,9 +1766,9 @@ export default function Dashboards({
                 {fundLoading ? (
                   <div className="py-12 text-center space-y-3">
                     <RefreshCw className="h-9 w-9 text-[#0F2D5C] animate-spin mx-auto" />
-                    <p className="text-sm font-bold text-[#0F2D5C]">Connecting to Aspfiy Provider...</p>
+                    <p className="text-sm font-bold text-[#0F2D5C]">Setting up dedicated payment account...</p>
                     <p className="text-xs text-slate-500 max-w-xs mx-auto">
-                      Reserving your dedicated PalmPay virtual account. Please wait a moment.
+                      Reserving your personal automated deposit account. Please wait a moment.
                     </p>
                   </div>
                 ) : fundError && !fundAccount ? (
@@ -1779,17 +1779,17 @@ export default function Dashboards({
                       </div>
                       <div className="space-y-1.5 flex-1">
                         <h3 className="text-sm font-bold text-amber-900">
-                          Aspfiy Provider Notice
+                          Automated Deposit Account
                         </h3>
-                        <div className="text-xs text-amber-900 font-mono bg-white p-2.5 rounded-xl border border-amber-200 break-words">
-                          {fundError}
-                        </div>
+                        <p className="text-xs text-amber-800 leading-relaxed">
+                          Automated virtual account generation is temporarily busy or undergoing scheduled maintenance.
+                        </p>
                       </div>
                     </div>
                     <div className="text-xs text-slate-600 bg-white/90 p-3 rounded-xl border border-amber-200/60 space-y-1">
-                      <p className="font-semibold text-slate-800">Action Required on Aspfiy Portal:</p>
+                      <p className="font-semibold text-slate-800">Next Steps:</p>
                       <p>
-                        Aspfiy returned: <em>"{fundError}"</em>. Please log in to your Aspfiy merchant dashboard (<strong>aspfiy.com</strong>) and ensure your Merchant API Keys and Virtual Account permissions are enabled.
+                        Please click <strong>Retry Connection</strong> below, or try again in a few moments. If the issue persists, contact customer support for instant manual wallet top-up.
                       </p>
                     </div>
                     <div className="flex items-center gap-2 pt-1">

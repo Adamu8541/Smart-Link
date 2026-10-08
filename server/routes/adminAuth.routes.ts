@@ -386,12 +386,22 @@ app.get("/api/wallet/virtual-account", async (req, res) => {
 
 // Generate Virtual Account Explicitly
 app.post("/api/wallet/virtual-account/generate", async (req, res) => {
-  const { userId, userEmail, userName, amount } = req.body;
+  const { userId, userEmail, email, userName, fullName, phone, phoneNumber, amount, forceRegenerate } = req.body;
   if (!userId) {
     return res.status(400).json({ error: "User ID is required." });
   }
 
-  const result = await getOrCreateUserVirtualAccount(userId, { email: userEmail, fullName: userName }, amount);
+  const result = await getOrCreateUserVirtualAccount(
+    userId,
+    {
+      email: email || userEmail,
+      fullName: fullName || userName,
+      phone: phone || phoneNumber,
+      phoneNumber: phone || phoneNumber,
+    },
+    amount,
+    { forceRegenerate: Boolean(forceRegenerate) }
+  );
   if (!result.success) {
     return res.status(result.code === "NO_ACTIVE_PROVIDER" ? 400 : 502).json(result);
   }

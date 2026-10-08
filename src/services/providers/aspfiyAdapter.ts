@@ -404,7 +404,11 @@ export class AspfiyAdapter implements ProviderAdapter {
             : `Aspfiy upstream service unavailable (HTTP ${res.status}). Please try again later.`;
           break;
         default:
-          errorMessage = backendMsg || `Aspfiy provider did not return an account number (HTTP ${res.status})`;
+          if (backendMsg.toLowerCase().includes("merchant keys disabled")) {
+            errorMessage = `Merchant keys disabled on Aspfiy. Please log in to your Aspfiy dashboard (aspfiy.com) under Developer/Settings and toggle "Enable Merchant Keys" to ON.`;
+          } else {
+            errorMessage = backendMsg || `Aspfiy provider did not return an account number (HTTP ${res.status})`;
+          }
       }
 
       return {
@@ -485,10 +489,21 @@ export class AspfiyAdapter implements ProviderAdapter {
         headers: this.headers(config),
       });
       const responseTimeMs = Date.now() - start;
+      const json: any = await res.json().catch(() => ({}));
+
       if (res.status === 401 || res.status === 403) {
-        return { ok: false, message: "Aspfiy rejected the Secret Key (Unauthorized).", responseTimeMs };
+        return { ok: false, message: "Aspfiy rejected the Secret Key (Unauthorized / Invalid credentials).", responseTimeMs };
       }
-      return { ok: res.ok, message: res.ok ? "Connected" : `Aspfiy returned HTTP ${res.status}`, responseTimeMs };
+
+      if (json?.status === false && json?.message) {
+        return { ok: false, message: `Aspfiy returned: "${json.message}"`, responseTimeMs };
+      }
+
+      if (!res.ok) {
+        return { ok: false, message: `Aspfiy returned HTTP ${res.status}: ${json?.message || "Unknown error"}`, responseTimeMs };
+      }
+
+      return { ok: true, message: "Connected successfully to Aspfiy Payment Portal", responseTimeMs };
     } catch (err: any) {
       return { ok: false, message: err?.message || "Aspfiy unreachable", responseTimeMs: Date.now() - start };
     }

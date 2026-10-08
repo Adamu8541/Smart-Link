@@ -107,7 +107,7 @@ export const VerificationResult: React.FC<VerificationResultProps> = ({
               className="px-3.5 py-2 rounded-xl bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-emerald-600/20 transition-colors cursor-pointer"
             >
               <CreditCard className="h-4 w-4" />
-              <span>Print Official Slip</span>
+              <span>Print Verification Slip</span>
             </button>
           )}
 

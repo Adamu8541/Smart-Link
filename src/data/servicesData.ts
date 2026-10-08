@@ -15,7 +15,7 @@ export const SMART_LINK_SERVICES: ServiceItem[] = [
     id: "id_nin_demography",
     name: "NIN Verification with Name & DOB",
     category: "IDENTITY",
-    description: "Verify identity records via official NIMC demographic details (First Name, Last Name, Gender & Date of Birth). Choose slip type.",
+    description: "Verify identity records via national demographic details (First Name, Last Name, Gender & Date of Birth). Choose slip type.",
     price: 600,
     actionLabel: "Verify Demographics",
     fields: [
@@ -177,7 +177,7 @@ export const SMART_LINK_SERVICES: ServiceItem[] = [
     id: "id_vnin_to_nibss",
     name: "VNIN to NIBSS",
     category: "IDENTITY",
-    description: "Transmit and synchronize Virtual NIN (VNIN) records with official NIBSS banking settlement database.",
+    description: "Transmit and synchronize Virtual NIN (VNIN) records with central banking settlement databases.",
     price: 1500,
     actionLabel: "Sync VNIN to NIBSS",
     fields: [
