@@ -15,6 +15,7 @@ interface LandingFooterProps {
   onRegister: () => void;
   onAdminLogin?: () => void;
   onNavigateLegal?: (docId?: string) => void;
+  onOpenApiDocs?: () => void;
   activeInfoTab?: "about" | "contact" | null;
   setActiveInfoTab?: (tab: "about" | "contact" | null) => void;
 }
@@ -25,6 +26,7 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
   onRegister,
   onAdminLogin,
   onNavigateLegal,
+  onOpenApiDocs,
   activeInfoTab: controlledActiveInfoTab,
   setActiveInfoTab: controlledSetActiveInfoTab,
 }) => {
@@ -135,7 +137,14 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
                   <button
                     id={`footer-services-${item.toLowerCase().replace(/\s+/g, "-")}`}
                     type="button"
-                    onClick={() => onNavigateSection("services-section")}
+                    onClick={() => {
+                      if (item === "APIs") {
+                        if (onOpenApiDocs) onOpenApiDocs();
+                        else window.dispatchEvent(new CustomEvent("navigate_view", { detail: "PUBLIC_API_DOCS" }));
+                      } else {
+                        onNavigateSection("services-section");
+                      }
+                    }}
                     className="text-[#374151] hover:text-[#0F2D5C] transition-colors cursor-pointer bg-transparent border-none py-1 px-0.5 text-left font-medium flex items-center text-xs"
                   >
                     {item}

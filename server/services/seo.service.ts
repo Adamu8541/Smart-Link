@@ -75,7 +75,7 @@ export function resolveSEOMetadata(req: Request): SEOMetadata {
           <li><strong>GET /api/v1/wallet/balance:</strong> Real-time wallet balance and ledger status.</li>
         </ul>
         <h2>Authentication &amp; Security</h2>
-        <p>All API requests require Bearer token authentication via the <code>Authorization: Bearer sk_live_...</code> header. Webhook notifications are secured with HMAC-SHA512 cryptographic signatures.</p>
+        <p>All API requests require Bearer token authentication via the <code>Authorization: Bearer YOUR_SECRET_KEY</code> header. Webhook notifications are secured with HMAC-SHA512 cryptographic signatures.</p>
         <p><a href="/register">Sign up for an Agent / Developer Account</a> to generate your API keys instantly.</p>
       </main>
     `;
@@ -714,7 +714,13 @@ Allow: /.well-known/ard.json
 Allow: /ard.json
 Allow: /og-image.png
 Allow: /logo.webp
+Allow: /logo.png
+Allow: /favicon.ico
+Allow: /favicon.svg
+Allow: /favicon.png
 Allow: /favicon.webp
+Allow: /icon-192.png
+Allow: /icon-512.png
 Allow: /assets/
 
 # Explicit Directives for AI Search Engines, Assistants & Agentic LLMs

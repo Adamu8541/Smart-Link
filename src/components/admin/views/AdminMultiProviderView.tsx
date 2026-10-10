@@ -869,6 +869,8 @@ export const AdminMultiProviderView: React.FC = () => {
                           ? "Identro Portal"
                           : pId === "clubkonnect"
                           ? "Clubkonnect Portal"
+                          : pId === "vtpass"
+                          ? "VTpass Digital Services"
                           : pId === "aspfiy"
                           ? "Aspfiy Payment Portal"
                           : pId === "verifyng"
@@ -883,6 +885,7 @@ export const AdminMultiProviderView: React.FC = () => {
                     <option value="">None (No Provider Assigned)</option>
                     <option value="identro">Identro Portal</option>
                     <option value="clubkonnect">Clubkonnect Portal</option>
+                    <option value="vtpass">VTpass Digital Services</option>
                     <option value="lumiid">LumiID Portal</option>
                     <option value="prembley">Prembley Portal (Identitypass)</option>
                     <option value="verifyng">VerifyNG Portal</option>
@@ -905,6 +908,8 @@ export const AdminMultiProviderView: React.FC = () => {
                           ? "Identro Portal"
                           : pId === "clubkonnect"
                           ? "Clubkonnect Portal"
+                          : pId === "vtpass"
+                          ? "VTpass Digital Services"
                           : pId === "aspfiy"
                           ? "Aspfiy Payment Portal"
                           : pId === "verifyng"
@@ -919,6 +924,7 @@ export const AdminMultiProviderView: React.FC = () => {
                     <option value="">None (No Failover)</option>
                     <option value="identro">Identro Portal</option>
                     <option value="clubkonnect">Clubkonnect Portal</option>
+                    <option value="vtpass">VTpass Digital Services</option>
                     <option value="lumiid">LumiID Portal</option>
                     <option value="prembley">Prembley Portal (Identitypass)</option>
                     <option value="verifyng">VerifyNG Portal</option>

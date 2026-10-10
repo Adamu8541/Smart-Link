@@ -69,7 +69,7 @@ export function generateSalt(): string {
 
 /**
  * Robust regex helper to detect UI masking place-markers
- * (e.g. pure asterisks '********', bullets '••••••••', fragments like 'sk_live_****', 'pk_test_••••••••', '****1234')
+ * (e.g. pure asterisks '********', bullets '••••••••', fragments like 'sec_****', 'test_••••••••', '****1234')
  */
 export function isMaskedValue(val: unknown): boolean {
   if (typeof val !== "string") return false;

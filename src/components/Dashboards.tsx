@@ -70,7 +70,10 @@ import {
   Compass,
   SlidersHorizontal,
   X,
-  AlertTriangle
+  AlertTriangle,
+  Terminal,
+  KeyRound,
+  Code2,
 } from "lucide-react";
 import { UserProfile, UserRole, Transaction, CACApplication } from "../types";
 import { formatNaira, formatNumber, formatSafeDate, formatSafeDateTime } from "../utils/formatUtils";
@@ -1419,6 +1422,43 @@ export default function Dashboards({
                   <span className="text-[10.5px] sm:text-xs font-semibold text-rose-600 group-hover:text-rose-700 leading-tight">
                     Sign out
                   </span>
+                </button>
+              </div>
+            </div>
+
+            {/* Developer REST API & Integration Banner */}
+            <div className="bg-gradient-to-r from-[#0F2D5C] via-[#16386E] to-[#1E40AF] rounded-2xl p-4 sm:p-5 text-white shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border border-[#2563EB]/30">
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-400/20 text-emerald-300 text-[10.5px] font-bold">
+                  <Terminal className="h-3 w-3" />
+                  <span>Developer REST API &amp; Webhooks</span>
+                </div>
+                <h3 className="text-sm sm:text-base font-bold text-white">Integrate Smart Link NG into your App or Website</h3>
+                <p className="text-xs text-blue-100/90 leading-relaxed max-w-xl">
+                  Automate NIN/BVN lookups, telecom VTU airtime/data, and electricity meter recharge with sub-450ms turnaround using your live API key.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    sessionStorage.setItem("account_security_tab", "API_KEYS");
+                    window.dispatchEvent(new Event("account_security_tab_changed"));
+                    onSwitchView("ACCOUNT_SECURITY");
+                  }}
+                  className="px-3.5 py-2 bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+                >
+                  <KeyRound className="h-3.5 w-3.5" />
+                  <span>Get API Key</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onSwitchView("PUBLIC_API_DOCS")}
+                  className="px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl border border-white/20 transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Code2 className="h-3.5 w-3.5" />
+                  <span>API Docs</span>
                 </button>
               </div>
             </div>

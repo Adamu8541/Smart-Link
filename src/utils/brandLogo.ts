@@ -6,9 +6,9 @@
 import type React from "react";
 
 export const DEFAULT_LOGO_URL = "/logo.webp";
-export const PNG_LOGO_URL = "/logo.webp";
-export const DEFAULT_FAVICON_URL = "/favicon.webp";
-export const DEFAULT_APP_ICON_URL = "/favicon.webp";
+export const PNG_LOGO_URL = "/logo.png";
+export const DEFAULT_FAVICON_URL = "/favicon.png";
+export const DEFAULT_APP_ICON_URL = "/icon-192.png";
 
 /**
  * High-resolution embedded vector SVG Data URI of SmartLink Nigeria brand mark.

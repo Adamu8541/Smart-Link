@@ -751,7 +751,7 @@ export default function ApiRequestBuilderView({ session, onNavigate }: ApiReques
                     type="text"
                     value={activeRequest.authorizationHeader || ""}
                     onChange={(e) => setActiveRequest({ ...activeRequest, authorizationHeader: e.target.value })}
-                    placeholder="e.g. Bearer YOUR_API_KEY_HERE or Basic dXNlcjpwYXNz"
+                    placeholder="e.g. Bearer YOUR_API_KEY or Basic base64_auth"
                     className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-white font-mono focus:outline-none focus:border-[#0F2D5C]"
                   />
                 </div>

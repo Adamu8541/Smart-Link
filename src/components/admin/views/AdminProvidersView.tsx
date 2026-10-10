@@ -109,7 +109,7 @@ export function AdminProvidersView() {
   const [addEnvironment, setAddEnvironment] = useState("Production");
   const [addIsDefault, setAddIsDefault] = useState(false);
 
-  const applyProviderPreset = (preset: "clubkonnect" | "aspfiy" | "lumiid" | "verifyng" | "identro" | "prembley") => {
+  const applyProviderPreset = (preset: "clubkonnect" | "aspfiy" | "lumiid" | "verifyng" | "identro" | "prembley" | "vtpass") => {
     if (preset === "clubkonnect") {
       setAddName("Clubkonnect VTU & Bill Payment");
       setAddCategory("TELECOM_VTU");
@@ -128,6 +128,24 @@ export function AdminProvidersView() {
       setAddEnvironment("Production");
       setAddStatus("ENABLED");
       setToast("Clubkonnect preset applied. Please fill in your UserID (Merchant ID) and APIKey in API Credentials.");
+    } else if (preset === "vtpass") {
+      setAddName("VTpass Digital Services");
+      setAddCategory("TELECOM_VTU");
+      setAddDescription("VTpass Multi-Gateway API for Airtime, SME Data Bundles, Electricity Disco Tokens & Cable TV (vtpass.com)");
+      setAddBaseUrl("https://api-service.vtpass.com/api");
+      setAddApiVersion("v1.0");
+      setAddAuthMethod("API_KEY");
+      setAddSupportsWalletFunding(false);
+      setAddSupportsBankTransfer(false);
+      setAddSupportsCardPayment(false);
+      setAddSupportsVirtualAccount(false);
+      setAddSupportsPaymentLink(false);
+      setAddSupportsPayout(false);
+      setAddSupportsRefund(false);
+      setAddSupportsTxVerification(true);
+      setAddEnvironment("Production");
+      setAddStatus("ENABLED");
+      setToast("VTpass preset applied. Please fill in your api-key and secret-key in API Credentials.");
     } else if (preset === "aspfiy") {
       setAddName("Aspfiy Payment Portal");
       setAddCategory("PAYMENT_PROVIDER");
@@ -838,6 +856,13 @@ export function AdminProvidersView() {
                 className="px-2.5 py-1 bg-white border border-amber-300 text-amber-900 rounded-lg font-medium transition cursor-pointer shrink-0 flex items-center gap-1 shadow-xs"
               >
                 ⚡ Clubkonnect (VTU & Bills)
+              </button>
+              <button
+                type="button"
+                onClick={() => applyProviderPreset("vtpass")}
+                className="px-2.5 py-1 bg-white border border-indigo-300 text-indigo-900 rounded-lg font-medium transition cursor-pointer shrink-0 flex items-center gap-1 shadow-xs"
+              >
+                ⚡ VTpass (Airtime, Data & Bills)
               </button>
               <button
                 type="button"

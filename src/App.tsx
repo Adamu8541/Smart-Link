@@ -53,7 +53,6 @@ import { PwaInstallPrompt } from "./components/pwa/PwaInstallPrompt";
 const UserLegalAgreementsModal = lazyWithRetry(() => import("./components/legal").then(m => ({ default: m.UserLegalAgreementsModal })), "UserLegalAgreementsModal");
 const PolicyUpdateReAcceptanceModal = lazyWithRetry(() => import("./components/legal").then(m => ({ default: m.PolicyUpdateReAcceptanceModal })), "PolicyUpdateReAcceptanceModal");
 const AuthPortal = lazyWithRetry(() => import("./components/auth/AuthPortal").then(m => ({ default: m.AuthPortal })), "AuthPortal");
-const MobileAppEntryView = lazyWithRetry(() => import("./components/mobile/MobileAppEntryView").then(m => ({ default: m.MobileAppEntryView })), "MobileAppEntryView");
 const ExploreServicesPublicView = lazyWithRetry(() => import("./components/public/ExploreServicesPublicView").then(m => ({ default: m.ExploreServicesPublicView })), "ExploreServicesPublicView");
 const BillsPublicView = lazyWithRetry(() => import("./components/public/BillsPublicView").then(m => ({ default: m.BillsPublicView })), "BillsPublicView");
 const VerificationPublicView = lazyWithRetry(() => import("./components/public/VerificationPublicView").then(m => ({ default: m.VerificationPublicView })), "VerificationPublicView");
@@ -209,32 +208,16 @@ export default function App() {
       return hasAdmin ? "ADMIN_DASHBOARD" : "DASHBOARD";
     }
 
-    const isAppLaunch =
-      params.get("mode") === "app" ||
-      params.get("source") === "pwa" ||
-      path === "/app" ||
-      path === "/mobile" ||
-      (typeof window !== "undefined" && (
-        window.matchMedia("(display-mode: standalone)").matches ||
-        (window.navigator as any).standalone === true ||
-        document.referrer.includes("android-app://")
-      ));
-
-    if (isAppLaunch && !hasUser && !hasAdmin) {
-      return "APP_ENTRY";
-    }
-
     if (path.startsWith("/verify/slip/") || path === "/validate-slip" || params.get("slipToken")) {
       return "VERIFY_SLIP";
     }
-    if (path === "/app" || path === "/mobile") return "APP_ENTRY";
     if (path === "/forgot-password") return "FORGOT_PASSWORD";
     if (path === "/reset-password") return "RESET_PASSWORD";
     if (path === "/verify-email") return "VERIFY_EMAIL";
     if (
       path.startsWith("/auth/action") ||
       path.startsWith("/__/auth/action") ||
-      (params.get("mode") && params.get("mode") !== "app") ||
+      Boolean(params.get("mode")) ||
       (params.get("oobCode") && !path.includes("reset-password") && !path.includes("verify-email"))
     ) {
       return "AUTH_ACTION";
@@ -350,8 +333,8 @@ export default function App() {
 
   const routeToViewMap: Record<string, string> = {
     "/": "HOME",
-    "/app": "APP_ENTRY",
-    "/mobile": "APP_ENTRY",
+    "/app": "HOME",
+    "/mobile": "HOME",
     "/explore-services": "PUBLIC_EXPLORE_SERVICES",
     "/bills": "PUBLIC_BILLS",
     "/electricity": "PUBLIC_BILLS",
@@ -446,7 +429,6 @@ export default function App() {
 
   const viewToRouteMap: Record<string, string> = {
     HOME: "/",
-    APP_ENTRY: "/app",
     PUBLIC_EXPLORE_SERVICES: "/explore-services",
     PUBLIC_BILLS: "/bills",
     PUBLIC_VERIFICATION: "/verification",
@@ -851,10 +833,19 @@ export default function App() {
     window.addEventListener("open_quick_legal_modal", handleOpenQuickModal);
     window.addEventListener("open_legal_center", handleOpenLegalCenter);
 
+    const handleNavigateView = (e: any) => {
+      const view = e.detail?.view || e.detail;
+      if (view) {
+        navigateToView(view);
+      }
+    };
+    window.addEventListener("navigate_view", handleNavigateView);
+
     return () => {
       window.removeEventListener("open_legal_document", handleOpenLegalDoc);
       window.removeEventListener("open_quick_legal_modal", handleOpenQuickModal);
       window.removeEventListener("open_legal_center", handleOpenLegalCenter);
+      window.removeEventListener("navigate_view", handleNavigateView);
     };
   }, []);
 
@@ -974,15 +965,7 @@ export default function App() {
   }, [currentUser?.uid, currentUser?.walletBalance]);
 
   const handleLogout = () => {
-    const isApp =
-      window.location.search.includes("mode=app") ||
-      window.location.pathname === "/app" ||
-      (typeof window !== "undefined" && (
-        window.matchMedia("(display-mode: standalone)").matches ||
-        (window.navigator as any).standalone === true ||
-        document.referrer.includes("android-app://")
-      ));
-    pendingNavigationRef.current = isApp ? "APP_ENTRY" : "HOME";
+    pendingNavigationRef.current = "HOME";
     setShowLogoutModal(true);
   };
 
@@ -1111,8 +1094,8 @@ export default function App() {
         </Suspense>
       )}
 
-      {/* Top Header for Logged-Out Public Pages (hidden on Login / Sign-up portal, Home, App Entry, and Auth screens) */}
-      {!currentUser && !["HOME", "DASHBOARD", "FORGOT_PASSWORD", "RESET_PASSWORD", "VERIFY_EMAIL", "AUTH_ACTION", "ADMIN_LOGIN", "ADMIN_DASHBOARD", "APP_ENTRY"].includes(currentView) && (
+      {/* Top Header for Logged-Out Public Pages (hidden on Login / Sign-up portal, Home, and Auth screens) */}
+      {!currentUser && !["HOME", "DASHBOARD", "FORGOT_PASSWORD", "RESET_PASSWORD", "VERIFY_EMAIL", "AUTH_ACTION", "ADMIN_LOGIN", "ADMIN_DASHBOARD"].includes(currentView) && (
         <header className="w-full bg-white border-b border-[#E5E7EB] py-4 px-6 md:px-12 sticky top-0 z-50 shadow-xs">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             {/* Logo */}
@@ -1298,35 +1281,7 @@ export default function App() {
       )}
 
       {/* Main Content Area */}
-      {currentView === "APP_ENTRY" ? (
-        <Suspense fallback={<AuthFormSkeleton />}>
-          <MobileAppEntryView
-            onAuthSuccess={async (user) => {
-              setCurrentUser(user);
-              navigateToView("DASHBOARD");
-              setIsRegistering(false);
-              try {
-                const uid = user?.id || (user as any)?.uid;
-                const token = user?.token || (user as any)?.sessionToken;
-                const supported = await BiometricAuthService.isBiometricSupported();
-                if (supported && uid) {
-                  const alreadyEnrolled = (user as any)?.isBiometricEnrolled || (user as any)?.hasPasskeys || (await BiometricAuthService.isEnrolled(uid, token));
-                  const dismissed = BiometricAuthService.isEnrollPromptDismissed(uid);
-                  if (!alreadyEnrolled && !dismissed) {
-                    setTimeout(() => setShowBiometricEnrollPrompt(true), 600);
-                  }
-                }
-              } catch {}
-            }}
-            onNavigateForgotPassword={() => navigateToView("FORGOT_PASSWORD")}
-            onOpenLegalDoc={(docId) => setQuickLegalModalDocId(docId)}
-            setToast={setToast}
-            onSwitchToWebsite={() => {
-              navigateToView("HOME");
-            }}
-          />
-        </Suspense>
-      ) : currentView === "HOME" ? (
+      {currentView === "HOME" ? (
         <SmartLinkLandingPage
           currentUser={currentUser}
           onLogin={() => {
@@ -1360,6 +1315,16 @@ export default function App() {
             }
           }}
           onNavigateLegal={navigateToLegal}
+          onOpenApiDocs={() => navigateToView("PUBLIC_API_DOCS")}
+          onOpenApiKeys={() => {
+            if (currentUser) {
+              sessionStorage.setItem("account_security_tab", "API_KEYS");
+              window.dispatchEvent(new Event("account_security_tab_changed"));
+              navigateToView("ACCOUNT_SECURITY");
+            } else {
+              navigateToView("PUBLIC_API_DOCS");
+            }
+          }}
           siteAnnouncement={{
             showAnnouncement: siteSettings?.showAnnouncement,
             announcementText: siteSettings?.announcementText,
@@ -1650,21 +1615,32 @@ export default function App() {
                   setCurrentView("DASHBOARD");
                 }}
                 onRefreshUser={fetchUserProfile}
+                onNavigateDocs={() => navigateToView("PUBLIC_API_DOCS")}
                 isDarkMode={isDarkMode}
               />
             )}
             {currentView === "ACCOUNT_SECURITY" && !currentUser && (
               <div className="py-16 px-4 max-w-md mx-auto text-center space-y-4">
                 <p className="text-sm text-[#4B5563]">Authentication required to access account security settings.</p>
-                <button
-                  onClick={() => {
-                    window.history.pushState({}, "", "/");
-                    setCurrentView("HOME");
-                  }}
-                  className="px-4 py-2 bg-[#0F2D5C] text-white rounded-xl text-xs font-bold cursor-pointer"
-                >
-                  Sign In to Continue
-                </button>
+                <div className="flex items-center justify-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => navigateToView("PUBLIC_API_DOCS")}
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold cursor-pointer transition-colors"
+                  >
+                    Open API Docs &amp; Sandbox
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      window.history.pushState({}, "", "/");
+                      setCurrentView("HOME");
+                    }}
+                    className="px-4 py-2 bg-[#0F2D5C] hover:bg-[#17407E] text-white rounded-xl text-xs font-bold cursor-pointer transition-colors"
+                  >
+                    Sign In to Continue
+                  </button>
+                </div>
               </div>
             )}
 

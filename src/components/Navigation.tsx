@@ -180,6 +180,13 @@ export default function Navigation({
       ]
     },
     {
+      title: "DEVELOPER CORE",
+      items: [
+        { id: "API_DOCS", label: "API Documentation", icon: Code, viewId: "PUBLIC_API_DOCS" },
+        { id: "DEV_API_KEYS", label: "API Keys & Webhooks", icon: Key, viewId: "ACCOUNT_SECURITY" },
+      ]
+    },
+    {
       title: "ADMIN & GOVERNANCE",
       items: [
         { id: "ADMIN_PORTAL", label: "Admin Portal (Secured)", icon: ShieldCheck, viewId: "ADMIN_LOGIN" },
@@ -199,6 +206,11 @@ export default function Navigation({
     if (item.tabId) {
       sessionStorage.setItem("dashboard_tab", item.tabId);
       window.dispatchEvent(new Event("dashboard_tab_changed"));
+    }
+
+    if (item.id === "DEV_API_KEYS") {
+      sessionStorage.setItem("account_security_tab", "API_KEYS");
+      window.dispatchEvent(new Event("account_security_tab_changed"));
     }
 
     onNavigate(item.viewId);

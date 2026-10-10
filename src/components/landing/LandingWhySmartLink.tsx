@@ -16,7 +16,13 @@ import {
   ArrowUpRight
 } from "lucide-react";
 
-export const LandingWhySmartLink: React.FC = () => {
+interface LandingWhySmartLinkProps {
+  onOpenApiDocs?: () => void;
+}
+
+export const LandingWhySmartLink: React.FC<LandingWhySmartLinkProps> = ({
+  onOpenApiDocs,
+}) => {
   const trustPoints = [
     {
       id: "ndpr-compliance",
@@ -177,13 +183,20 @@ export const LandingWhySmartLink: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
-            <a
-              href="#documentation"
-              className="px-5 py-2.5 rounded-xl bg-[#0F2D5C] hover:bg-[#17407E] text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
+            <button
+              type="button"
+              onClick={() => {
+                if (onOpenApiDocs) {
+                  onOpenApiDocs();
+                } else {
+                  window.dispatchEvent(new CustomEvent("navigate_view", { detail: "PUBLIC_API_DOCS" }));
+                }
+              }}
+              className="px-5 py-2.5 rounded-xl bg-[#0F2D5C] hover:bg-[#17407E] text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
             >
-              <span>View API Specs</span>
+              <span>View API Specs &amp; Sandbox</span>
               <ArrowUpRight className="h-3.5 w-3.5" />
-            </a>
+            </button>
           </div>
         </div>
 

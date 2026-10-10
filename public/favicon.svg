@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <linearGradient id="slBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#17407E"/>
+      <stop offset="100%" stop-color="#0A1933"/>
+    </linearGradient>
+    <linearGradient id="slEmerald" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+  </defs>
+  <!-- Rounded Base Container -->
+  <rect width="128" height="128" rx="28" fill="url(#slBg)"/>
+  <rect x="3" y="3" width="122" height="122" rx="25" fill="none" stroke="#10B981" stroke-width="2.5" stroke-opacity="0.65"/>
+
+  <!-- Interlocking Smart Link Nodes -->
+  <g>
+    <!-- White Link (Left) -->
+    <path d="M48 40 C34 40 24 50 24 64 C24 78 34 88 48 88 H60 C74 88 84 78 84 64" 
+          fill="none" stroke="#FFFFFF" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- Emerald Link (Right) -->
+    <path d="M80 88 C94 88 104 78 104 64 C104 50 94 40 80 40 H68 C54 40 44 50 44 64" 
+          fill="none" stroke="url(#slEmerald)" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- Center Secure Nexus -->
+    <circle cx="64" cy="64" r="6.5" fill="#38BDF8" stroke="#FFFFFF" stroke-width="2"/>
+    
+    <!-- Node accents -->
+    <circle cx="42" cy="64" r="3.5" fill="#FFFFFF"/>
+    <circle cx="86" cy="64" r="3.5" fill="#FFFFFF"/>
+  </g>
+
+  <!-- Mini Bottom Badge "NG" -->
+  <rect x="44" y="101" width="40" height="18" rx="6" fill="#10B981"/>
+  <text x="64" y="114.5" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="900" font-size="11" fill="#FFFFFF" text-anchor="middle" letter-spacing="1.5">NG</text>
+</svg>

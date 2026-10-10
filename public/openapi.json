@@ -1,0 +1,369 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Smart Link NG Developer REST API",
+    "version": "1.4.0",
+    "description": "Enterprise-grade REST APIs for Identity & KYC Verification (NIN, vNIN, BVN, CAC), Automated Telecom VTU (Airtime & SME Data), Disco Electricity Meter Recharge, Cable TV Subscriptions, and Educational Scratch Card PINs.",
+    "contact": {
+      "name": "SmartLink Developer Support",
+      "email": "smartlinkcomputerbusiness@gmail.com",
+      "url": "https://smartlinkng.com.ng"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://smartlinkng.com.ng",
+      "description": "Production Server (Live Rails)"
+    },
+    {
+      "url": "https://smartlinkng.com.ng/api/v1/sandbox",
+      "description": "Sandbox Testing Environment"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "API Key",
+        "description": "Provide your secret API Key prefixed with Bearer: `Authorization: Bearer sk_live_...`"
+      }
+    },
+    "schemas": {
+      "StandardResponse": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "example": "success" },
+          "code": { "type": "integer", "example": 200 },
+          "message": { "type": "string", "example": "Request processed successfully" }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "example": "error" },
+          "code": { "type": "integer", "example": 400 },
+          "error": { "type": "string", "example": "Invalid parameter provided" },
+          "errorCode": { "type": "string", "example": "VALIDATION_FAILED" }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ],
+  "paths": {
+    "/api/v1/nin/verify": {
+      "post": {
+        "summary": "Verify National Identity Number (NIN)",
+        "description": "Validates an 11-digit National Identity Number against NIMC database rails, returning demographic data and PDF slip generation URL.",
+        "tags": ["Identity & KYC"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["nin"],
+                "properties": {
+                  "nin": { "type": "string", "example": "12345678901", "description": "11-digit NIN" },
+                  "generateSlip": { "type": "boolean", "example": true, "description": "Whether to generate official printable PDF slip" },
+                  "format": { "type": "string", "enum": ["standard", "premium"], "default": "standard" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "NIN verification successful" },
+          "400": { "description": "Invalid NIN parameter" },
+          "401": { "description": "Unauthorized - Missing or invalid API key" },
+          "402": { "description": "Insufficient wallet balance" }
+        }
+      }
+    },
+    "/api/v1/vnin/verify": {
+      "post": {
+        "summary": "Verify Virtual NIN (vNIN)",
+        "description": "Validates a 16-character Virtual NIN generated via the NIMC MWS Mobile ID App.",
+        "tags": ["Identity & KYC"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["vnin"],
+                "properties": {
+                  "vnin": { "type": "string", "example": "AB123456789012CD" },
+                  "generateSlip": { "type": "boolean", "example": true }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "vNIN verified successfully" },
+          "400": { "description": "Invalid vNIN format" }
+        }
+      }
+    },
+    "/api/v1/bvn/verify": {
+      "post": {
+        "summary": "Verify Bank Verification Number (BVN)",
+        "description": "Validates 11-digit BVN against NIBSS rails, confirming holder identity and match status.",
+        "tags": ["Identity & KYC"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["bvn"],
+                "properties": {
+                  "bvn": { "type": "string", "example": "22334455667" },
+                  "accountNumber": { "type": "string", "example": "0123456789" },
+                  "bankCode": { "type": "string", "example": "058" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "BVN validation successful" },
+          "400": { "description": "Invalid BVN" }
+        }
+      }
+    },
+    "/api/v1/vtu/airtime": {
+      "post": {
+        "summary": "Purchase VTU Airtime",
+        "description": "Instantly credits mobile airtime across Nigerian telco networks (MTN, Airtel, Glo, 9mobile).",
+        "tags": ["Telecom & VTU"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["network", "phone", "amount"],
+                "properties": {
+                  "network": { "type": "string", "enum": ["MTN", "AIRTEL", "GLO", "9MOBILE"], "example": "MTN" },
+                  "phone": { "type": "string", "example": "08085490982" },
+                  "amount": { "type": "number", "minimum": 50, "maximum": 50000, "example": 1000 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Airtime dispatched successfully" },
+          "400": { "description": "Invalid network or phone number" }
+        }
+      }
+    },
+    "/api/v1/vtu/data": {
+      "post": {
+        "summary": "Purchase SME & Direct Data",
+        "description": "Dispatches instant 30-day mobile data bundles with sub-5s automated delivery.",
+        "tags": ["Telecom & VTU"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["network", "phone", "planId"],
+                "properties": {
+                  "network": { "type": "string", "enum": ["MTN", "AIRTEL", "GLO", "9MOBILE"], "example": "MTN" },
+                  "phone": { "type": "string", "example": "08085490982" },
+                  "planId": { "type": "string", "example": "mtn-sme-1gb" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Data bundle recharged successfully" }
+        }
+      }
+    },
+    "/api/v1/bills/electricity/verify": {
+      "post": {
+        "summary": "Validate Electricity Meter Number",
+        "description": "Queries DISCO billing system to verify customer name and meter status before payment.",
+        "tags": ["Utility Bills"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["disco", "meterNumber", "meterType"],
+                "properties": {
+                  "disco": { "type": "string", "example": "IKEDC" },
+                  "meterNumber": { "type": "string", "example": "01234567891" },
+                  "meterType": { "type": "string", "enum": ["PREPAID", "POSTPAID"], "example": "PREPAID" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Meter validated, customer name returned" }
+        }
+      }
+    },
+    "/api/v1/bills/electricity/pay": {
+      "post": {
+        "summary": "Recharge Electricity Meter Token",
+        "description": "Generates 20-digit prepaid electricity recharge token with VAT receipt breakdown.",
+        "tags": ["Utility Bills"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["disco", "meterNumber", "amount"],
+                "properties": {
+                  "disco": { "type": "string", "example": "IKEDC" },
+                  "meterNumber": { "type": "string", "example": "01234567891" },
+                  "amount": { "type": "number", "minimum": 500, "example": 5000 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Recharge token generated successfully" }
+        }
+      }
+    },
+    "/api/v1/wallet/balance": {
+      "get": {
+        "summary": "Query Developer Node Wallet Balance",
+        "description": "Fetches the current real-time ledger balance and active virtual account for the authenticated developer key.",
+        "tags": ["Wallet & Account"],
+        "responses": {
+          "200": { "description": "Real-time balance returned" }
+        }
+      }
+    },
+    "/api/v1/providers/status": {
+      "get": {
+        "summary": "Upstream Providers & Gateway SLA Health Monitor",
+        "description": "Real-time health ping and SLA latency for all integrated upstream providers (Aspfiy, Clubkonnect, VTpass, LumiID, Identro, Prembley).",
+        "tags": ["Providers & Infrastructure"],
+        "responses": {
+          "200": { "description": "Operational status and latencies for all provider rails" }
+        }
+      }
+    },
+    "/api/v1/vtu/data/plans": {
+      "get": {
+        "summary": "List Available Telecom Data Plans",
+        "description": "Retrieves real-time data plans, sizes, validity, and plan IDs across Nigerian networks.",
+        "tags": ["Telecom & VTU"],
+        "parameters": [
+          {
+            "name": "network",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "example": "MTN" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Available data bundle variations" }
+        }
+      }
+    },
+    "/api/v1/bills/cable/verify": {
+      "post": {
+        "summary": "Verify Cable TV Smartcard / IUC Number",
+        "description": "Queries customer name, current bouquet, and due date for DStv, GOtv, or Startimes.",
+        "tags": ["Utility Bills"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["operator", "smartcardNumber"],
+                "properties": {
+                  "operator": { "type": "string", "example": "GOTV" },
+                  "smartcardNumber": { "type": "string", "example": "2019283019" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Decoder customer profile resolved" }
+        }
+      }
+    },
+    "/api/v1/bills/cable/pay": {
+      "post": {
+        "summary": "Renew Cable TV Bouquet",
+        "description": "Instantly renews or changes cable bouquet for DStv, GOtv, or Startimes.",
+        "tags": ["Utility Bills"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["operator", "smartcardNumber", "amount"],
+                "properties": {
+                  "operator": { "type": "string", "example": "GOTV" },
+                  "smartcardNumber": { "type": "string", "example": "2019283019" },
+                  "amount": { "type": "number", "example": 7200 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Cable bouquet renewed successfully" }
+        }
+      }
+    },
+    "/api/v1/cac/verify": {
+      "post": {
+        "summary": "Verify Corporate Affairs Commission (CAC) Entity",
+        "description": "Queries verified Nigerian company registration details, RC/BN number, head office, and registration status.",
+        "tags": ["Identity & KYC"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["rcNumber"],
+                "properties": {
+                  "rcNumber": { "type": "string", "example": "RC1234567" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "CAC corporate details verified" }
+        }
+      }
+    },
+    "/api/v1/wallet/virtual-account": {
+      "post": {
+        "summary": "Generate Dedicated Automated Virtual Account",
+        "description": "Generates a dedicated Wema / Moniepoint virtual account number for automated wallet top-up.",
+        "tags": ["Wallet & Account"],
+        "responses": {
+          "200": { "description": "Virtual bank account generated" }
+        }
+      }
+    }
+  }
+}

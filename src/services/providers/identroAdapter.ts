@@ -194,7 +194,7 @@ export class IdentroAdapter implements ProviderAdapter {
   private sanitizeError(raw: any): string {
     if (!raw) return "Identro portal request failed.";
     let s = typeof raw === "string" ? raw : JSON.stringify(raw);
-    s = s.replace(/(?:sk_live_|sk_test_|secp256k1|Bearer\s+|x-api-key['"]?:\s*['"]?)[a-zA-Z0-9_\-\.]{15,}/gi, "[REDACTED_SECRET]");
+    s = s.replace(/(?:(?:sk|sec|pk)_(?:live|test)_|secp256k1|Bearer\s+|x-api-key['"]?:\s*['"]?)[a-zA-Z0-9_\-\.]{15,}/gi, "[REDACTED_SECRET]");
     s = s.replace(/\{'id_number':\s*\[?'([^']+)'\]?\}/g, "$1");
     s = s.replace(/\{['"]?(\w+)['"]?:\s*\[?['"]?([^'"\]}]+)['"]?\]?\}/g, "$1: $2");
     s = s.replace(/[\[\]'"{}]/g, "").trim();

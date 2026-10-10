@@ -21,29 +21,45 @@ import {
   Fingerprint,
   Trash2,
   Plus,
+  KeyRound,
 } from "lucide-react";
 import { UserProfile } from "../../types";
 import { SensitiveActionPurpose } from "../../types/auth";
 import { SupabaseAuthService } from "../../services/supabaseAuth";
 import { BiometricAuthService, BiometricDevice } from "../../services/biometricAuthService";
 import { soundFx } from "../../utils/audioEffects";
+import { DeveloperApiKeysSection } from "./DeveloperApiKeysSection";
 
 interface AccountSecurityViewProps {
   currentUser: UserProfile;
   onBack: () => void;
   onRefreshUser: (uid: string) => void;
+  onNavigateDocs?: () => void;
   isDarkMode?: boolean;
 }
 
-type TabType = "PASSWORD" | "EMAIL" | "PHONE" | "PIN" | "BIOMETRIC";
+type TabType = "PASSWORD" | "EMAIL" | "PHONE" | "PIN" | "BIOMETRIC" | "API_KEYS";
 
 export const AccountSecurityView: React.FC<AccountSecurityViewProps>= ({
   currentUser,
   onBack,
   onRefreshUser,
+  onNavigateDocs,
   isDarkMode = false,
 }) => {
-  const [activeTab, setActiveTab] = useState<TabType>("PASSWORD");
+  const [activeTab, setActiveTab] = useState<TabType>(() => {
+    const stored = sessionStorage.getItem("account_security_tab") as TabType;
+    return stored || "PASSWORD";
+  });
+
+  useEffect(() => {
+    const handleTabChange = () => {
+      const stored = sessionStorage.getItem("account_security_tab") as TabType;
+      if (stored) setActiveTab(stored);
+    };
+    window.addEventListener("account_security_tab_changed", handleTabChange);
+    return () => window.removeEventListener("account_security_tab_changed", handleTabChange);
+  }, []);
 
   // Form inputs
   const [newPassword, setNewPassword] = useState("");
@@ -545,6 +561,25 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps>= ({
                 {biometricDevices.length}
               </span>
             )}
+          </button>
+
+          <button
+            id="tab-btn-api-keys"
+            type="button"
+            role="tab"
+            aria-selected={activeTab === "API_KEYS"}
+            onClick={() => handleTabSwitch("API_KEYS")}
+            className={`group relative flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold tracking-tight transition-all duration-200 cursor-pointer ${
+              activeTab === "API_KEYS"
+                ? "bg-[#0F2D5C] text-white shadow-xs ring-1 ring-[#0F2D5C]/30"
+                : "bg-transparent text-slate-600 hover:text-[#0F2D5C] hover:bg-white border border-transparent hover:border-slate-200/80 hover:shadow-2xs"
+            }`}
+          >
+            <KeyRound className={`h-4 w-4 transition-colors ${activeTab === "API_KEYS" ? "text-amber-300" : "text-slate-400 group-hover:text-[#0F2D5C]"}`} />
+            <span>Developer API Keys</span>
+            <span className="px-1.5 py-0.2 rounded-full text-[9px] bg-emerald-500 text-slate-950 font-black">
+              API
+            </span>
           </button>
         </div>
 
@@ -1386,6 +1421,16 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps>= ({
                 </div>
               </div>
             </div>
+          )}
+
+          {/* TAB 6: DEVELOPER API KEYS & WEBHOOKS */}
+          {activeTab === "API_KEYS" && (
+            <DeveloperApiKeysSection
+              currentUser={currentUser}
+              onRefreshUser={onRefreshUser}
+              onNavigateDocs={onNavigateDocs}
+              isDarkMode={isDarkMode}
+            />
           )}
         </div>
       </div>

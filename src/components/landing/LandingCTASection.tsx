@@ -22,6 +22,8 @@ import {
 interface LandingCTASectionProps {
   onRegister: () => void;
   onContactSales: () => void;
+  onOpenApiDocs?: () => void;
+  onOpenApiKeys?: () => void;
 }
 
 type UserCategory = "individuals" | "agents" | "businesses" | "developers";
@@ -29,6 +31,8 @@ type UserCategory = "individuals" | "agents" | "businesses" | "developers";
 export const LandingCTASection: React.FC<LandingCTASectionProps> = ({
   onRegister,
   onContactSales,
+  onOpenApiDocs,
+  onOpenApiKeys,
 }) => {
   const [activeTab, setActiveTab] = useState<UserCategory>("individuals");
 
@@ -183,7 +187,15 @@ export const LandingCTASection: React.FC<LandingCTASectionProps> = ({
                 <button
                   id={`cta-primary-${activeTab}`}
                   type="button"
-                  onClick={onRegister}
+                  onClick={() => {
+                    if (activeTab === "developers") {
+                      if (onOpenApiKeys) onOpenApiKeys();
+                      else if (onOpenApiDocs) onOpenApiDocs();
+                      else onRegister();
+                    } else {
+                      onRegister();
+                    }
+                  }}
                   className="w-full sm:w-auto min-h-[36px] sm:min-h-[40px] px-4 sm:px-5 py-2 sm:py-2.5 bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white font-bold rounded-xl text-xs sm:text-sm shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5 touch-manipulation"
                 >
                   <UserPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" aria-hidden="true" />
@@ -194,7 +206,16 @@ export const LandingCTASection: React.FC<LandingCTASectionProps> = ({
                 <button
                   id={`cta-secondary-${activeTab}`}
                   type="button"
-                  onClick={activeTab === "businesses" ? onContactSales : onRegister}
+                  onClick={() => {
+                    if (activeTab === "developers") {
+                      if (onOpenApiDocs) onOpenApiDocs();
+                      else onRegister();
+                    } else if (activeTab === "businesses") {
+                      onContactSales();
+                    } else {
+                      onRegister();
+                    }
+                  }}
                   className="w-full sm:w-auto min-h-[36px] sm:min-h-[40px] px-4 sm:px-5 py-2 sm:py-2.5 bg-white hover:bg-[#F1F5F9] active:bg-[#E2E8F0] text-[#0F2D5C] border border-[#CBD5E1] font-bold rounded-xl text-xs sm:text-sm transition-colors cursor-pointer flex items-center justify-center gap-1.5 touch-manipulation"
                 >
                   {activeTab === "developers" ? (

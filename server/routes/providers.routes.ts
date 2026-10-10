@@ -28,6 +28,7 @@ import { LumiIDAdapter } from "../../src/services/providers/lumiidAdapter";
 import { ClubkonnectAdapter } from "../../src/services/providers/clubkonnectAdapter";
 import { IdentroAdapter } from "../../src/services/providers/identroAdapter";
 import { PrembleyAdapter } from "../../src/services/providers/prembleyAdapter";
+import { VTpassAdapter } from "../../src/services/providers/vtpassAdapter";
 import { MultiProviderRoutingEngine } from "../../src/services/multiProviderRoutingEngine";
 import { syncFromStorage, syncToStorage } from "../../src/services/settingsStore";
 import { RoutingRuleRepository } from "../turso/repositories";
@@ -1702,6 +1703,45 @@ function seedModule6ProvidersIfEmpty(db: any) {
     });
   }
 
+  // Ensure VTpass Digital Services Provider
+  if (!db.api_providers.some((p: any) => p.id === "prov_vtpass" || (p.name || "").toLowerCase().includes("vtpass"))) {
+    db.api_providers.push({
+      id: "prov_vtpass",
+      name: "VTpass Digital Services",
+      category: "TELECOM_VTU",
+      providerType: "BILL_PAYMENT",
+      description: "VTpass Multi-Service Aggregator for VTU Airtime, SME Data, Electricity Disco Tokens & Cable TV (vtpass.com)",
+      logoUrl: "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=100&auto=format&fit=crop&q=60",
+      baseUrl: "https://api-service.vtpass.com/api",
+      apiVersion: "v1.0",
+      authMethod: "API_KEY",
+      secretKey: String(process.env.VTPASS_SECRET_KEY || "").trim(),
+      apiKey: String(process.env.VTPASS_API_KEY || process.env.VTPASS_PUBLIC_KEY || "").trim(),
+      publicKey: String(process.env.VTPASS_PUBLIC_KEY || process.env.VTPASS_API_KEY || "").trim(),
+      supportsWalletFunding: false,
+      supportsBankTransfer: false,
+      supportsCardPayment: false,
+      supportsVirtualAccount: false,
+      supportsPaymentLink: false,
+      supportsPayout: false,
+      supportsRefund: false,
+      supportsTxVerification: true,
+      supportsAirtime: true,
+      supportsData: true,
+      supportsTelecomVtu: true,
+      supportsElectricity: true,
+      supportsCableTv: true,
+      timeout: 15000,
+      retryAttempts: 3,
+      healthStatus: "ONLINE",
+      priority: 7,
+      environment: "PRODUCTION",
+      status: "ENABLED",
+      enabled: true,
+      isActive: true,
+    });
+  }
+
   db.apiProviders = db.api_providers;
 }
 
@@ -2206,6 +2246,9 @@ app.post("/api/admin/providers/:providerId/test-connection", requireAdmin, async
   } else if (provider.name.toLowerCase().includes("clubkonnect") || provider.name.toLowerCase().includes("club konnect")) {
     const clubkonnectAdapter = new ClubkonnectAdapter();
     testResult = await clubkonnectAdapter.testConnection(provider);
+  } else if (provider.name.toLowerCase().includes("vtpass") || (provider.id && provider.id.toLowerCase().includes("vtpass"))) {
+    const vtpassAdapter = new VTpassAdapter();
+    testResult = await vtpassAdapter.testConnection(provider);
   } else {
     testResult = { ok: false, message: `No integration adapter registered for provider "${provider.name}".`, responseTimeMs: 0 };
   }

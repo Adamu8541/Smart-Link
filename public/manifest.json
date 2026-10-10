@@ -4,7 +4,7 @@
   "short_name": "SmartLink NG",
   "description": "Nigeria's all-in-one digital portal for NIN Verification & Slip Printing, BVN Validation, CAC Registration, Electricity Disco Tokens, cheap VTU Data & Airtime, and Developer APIs.",
   "id": "https://smartlinkng.com.ng/",
-  "start_url": "/?mode=app",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone", "minimal-ui", "browser"],

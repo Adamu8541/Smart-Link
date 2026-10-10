@@ -4,7 +4,7 @@
  * Base URL: https://api.prembly.com (Sandbox: https://sandbox.api.prembly.com)
  *
  * Authentication:
- *   - x-api-key: <apiKey> (e.g. sec_live_... / sk_live_...)
+ *   - x-api-key: <apiKey> (from Prembly dashboard)
  *   - app-id: <appId> (e.g. smartlink_prembly_app)
  *   - Authorization: Bearer <apiKey>
  *   - Content-Type: application/json
@@ -157,7 +157,7 @@ export class PremblyAdapter implements ProviderAdapter {
   private sanitizeError(raw: any): string {
     if (!raw) return "Prembly portal request failed.";
     let s = typeof raw === "string" ? raw : JSON.stringify(raw);
-    s = s.replace(/(?:sk_live_|sec_live_|pk_live_|Bearer\s+|x-api-key['"]?:\s*['"]?)[a-zA-Z0-9_\-\.]{15,}/gi, "[REDACTED_SECRET]");
+    s = s.replace(/(?:(?:sk|sec|pk)_(?:live|test)_|Bearer\s+|x-api-key['"]?:\s*['"]?)[a-zA-Z0-9_\-\.]{15,}/gi, "[REDACTED_SECRET]");
     s = s.replace(/\{'number':\s*\[?'([^']+)'\]?\}/g, "$1");
     s = s.replace(/\{['"]?(\w+)['"]?:\s*\[?['"]?([^'"\]}]+)['"]?\]?\}/g, "$1: $2");
     s = s.replace(/[\[\]'"{}]/g, "").trim();

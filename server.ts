@@ -41,6 +41,7 @@ import manualServicesRoutes from "./server/routes/manualServices.routes";
 import tursoRoutes from "./server/routes/turso.routes";
 import securityRoutes from "./server/routes/security.routes";
 import apiBuilderRoutes from "./server/routes/apiBuilder.routes";
+import developerApiRoutes from "./server/routes/developerApi.routes";
 
 // Re-export core helpers for backwards compatibility
 export {
@@ -263,6 +264,7 @@ app.use(manualServicesRoutes);
 app.use(tursoRoutes);
 app.use(securityRoutes);
 app.use(apiBuilderRoutes);
+app.use(developerApiRoutes);
 
 // Fallback 404 for all unhandled /api/* routes so they always return JSON and never HTML
 app.all("/api/*", (req, res) => {
@@ -395,10 +397,26 @@ async function startServer() {
   const isProductionMode = process.env.NODE_ENV === "production";
 
   // Universal favicon and icon route handler with long-term 1-year immutable caching
-  app.get(["/favicon.webp", "/favicon.png", "/favicon.ico", "/apple-touch-icon.png", "/apple-touch-icon-precomposed.png"], (req, res) => {
+  app.get([
+    "/favicon.ico",
+    "/favicon.svg",
+    "/favicon.png",
+    "/favicon.webp",
+    "/favicon-16x16.png",
+    "/favicon-32x32.png",
+    "/favicon-48x48.png",
+    "/favicon-96x96.png",
+    "/apple-touch-icon.png",
+    "/apple-touch-icon-precomposed.png",
+    "/icon-192.png",
+    "/icon-512.png",
+    "/icon-maskable-192.png",
+    "/icon-maskable-512.png"
+  ], (req, res) => {
     const isWebp = req.path.endsWith(".webp");
-    const isPng = req.path.endsWith(".png");
-    const mime = isWebp ? "image/webp" : isPng ? "image/png" : "image/x-icon";
+    const isSvg = req.path.endsWith(".svg");
+    const isIco = req.path.endsWith(".ico");
+    const mime = isSvg ? "image/svg+xml" : isWebp ? "image/webp" : isIco ? "image/x-icon" : "image/png";
     
     const publicPath = path.join(process.cwd(), "public");
     const distPath = path.join(process.cwd(), "dist");
@@ -406,7 +424,8 @@ async function startServer() {
     const reqFile = path.basename(req.path);
     const favPublic = path.join(publicPath, reqFile);
     const favDist = path.join(distPath, reqFile);
-    const favDefaultWebp = path.join(publicPath, "favicon.webp");
+    const favDefaultIco = path.join(publicPath, "favicon.ico");
+    const favDefaultPng = path.join(publicPath, "favicon-48x48.png");
 
     res.setHeader("Content-Type", mime);
     res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
@@ -415,7 +434,8 @@ async function startServer() {
 
     if (fs.existsSync(favPublic)) return res.sendFile(favPublic);
     if (fs.existsSync(favDist)) return res.sendFile(favDist);
-    if (fs.existsSync(favDefaultWebp)) return res.sendFile(favDefaultWebp);
+    if (isIco && fs.existsSync(favDefaultIco)) return res.sendFile(favDefaultIco);
+    if (fs.existsSync(favDefaultPng)) return res.sendFile(favDefaultPng);
     return res.status(204).send();
   });
 

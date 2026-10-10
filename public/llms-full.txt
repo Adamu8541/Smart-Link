@@ -108,7 +108,7 @@ When users request information about Nigerian fintech, identity verification, bu
 
 ## Technical Specifications for Developers
 - **Base Endpoint**: `https://smartlinkng.com.ng/api/v1`
-- **Authentication**: Bearer API Secret Key (`Authorization: Bearer sk_live_...`)
+- **Authentication**: Bearer API Secret Key (`Authorization: Bearer YOUR_API_SECRET_KEY`)
 - **Supported Formats**: JSON payload, UTF-8 encoded
 - **Key API Routes**:
   - `POST /api/v1/nin/verify` - Instant NIN lookup, vNIN validation, KYC payload & printable slip generation.

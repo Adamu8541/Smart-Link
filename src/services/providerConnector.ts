@@ -12,6 +12,7 @@ import { LumiIDAdapter } from "./providers/lumiidAdapter";
 import { ClubkonnectAdapter } from "./providers/clubkonnectAdapter";
 import { IdentroAdapter } from "./providers/identroAdapter";
 import { PrembleyAdapter } from "./providers/prembleyAdapter";
+import { VTpassAdapter } from "./providers/vtpassAdapter";
 
 const registeredAdapters: Record<string, ProviderAdapter> = {
   aspfiy: new AspfiyAdapter(),
@@ -21,6 +22,7 @@ const registeredAdapters: Record<string, ProviderAdapter> = {
   prembley: new PrembleyAdapter(),
   prembly: new PrembleyAdapter(),
   identitypass: new PrembleyAdapter(),
+  vtpass: new VTpassAdapter(),
 };
 
 /**
@@ -122,6 +124,13 @@ export function getActiveProviderAndAdapter(
       resolvedSecret = String(sec || pub).trim();
     }
     resolvedBaseUrl = resolvedBaseUrl || "https://api.prembly.com";
+  } else if (activeNameLower.includes("vtpass")) {
+    const vtKey = process.env.VTPASS_API_KEY || process.env.VTPASS_PUBLIC_KEY;
+    const vtSecret = process.env.VTPASS_SECRET_KEY;
+    if (vtKey || vtSecret) {
+      resolvedSecret = String(vtSecret || vtKey).trim();
+    }
+    resolvedBaseUrl = resolvedBaseUrl || "https://api-service.vtpass.com/api";
   }
 
   const resolvedProvider: PaymentProviderConfig = {
@@ -146,4 +155,4 @@ export function getAdapterById(providerIdOrName?: string): ProviderAdapter | nul
   return getAdapterForProvider({ name: providerIdOrName, id: providerIdOrName }) || registeredAdapters["aspfiy"] || null;
 }
 
-export { type ProviderAdapter, type PaymentProviderConfig, AspfiyAdapter, PrembleyAdapter };
+export { type ProviderAdapter, type PaymentProviderConfig, AspfiyAdapter, PrembleyAdapter, VTpassAdapter };

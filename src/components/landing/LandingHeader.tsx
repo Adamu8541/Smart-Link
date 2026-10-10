@@ -15,6 +15,7 @@ interface LandingHeaderProps {
   onGetStarted: () => void;
   onAdminLogin?: () => void;
   onNavigateSection: (sectionId: string) => void;
+  onOpenApiDocs?: () => void;
 }
 
 export const LandingHeader: React.FC<LandingHeaderProps> = ({
@@ -23,6 +24,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
   onGetStarted,
   onAdminLogin,
   onNavigateSection,
+  onOpenApiDocs,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -43,6 +45,13 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
   }, []);
 
   const handleNavClick = (sectionId: string) => {
+    if (sectionId === "api-section" || sectionId === "api") {
+      setMobileMenuOpen(false);
+      if (onOpenApiDocs) {
+        onOpenApiDocs();
+        return;
+      }
+    }
     setActiveSection(sectionId);
     setMobileMenuOpen(false);
     onNavigateSection(sectionId);

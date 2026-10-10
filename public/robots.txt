@@ -52,7 +52,13 @@ Allow: /.well-known/ard.json
 Allow: /ard.json
 Allow: /og-image.png
 Allow: /logo.webp
+Allow: /logo.png
+Allow: /favicon.ico
+Allow: /favicon.svg
+Allow: /favicon.png
 Allow: /favicon.webp
+Allow: /icon-192.png
+Allow: /icon-512.png
 Allow: /assets/
 
 # Explicit Directives for AI Search Engines, Assistants, LLMs & Agents

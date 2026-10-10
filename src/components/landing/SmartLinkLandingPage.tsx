@@ -28,6 +28,8 @@ interface SmartLinkLandingPageProps {
     announcementText?: string;
   };
   currentUser?: any;
+  onOpenApiDocs?: () => void;
+  onOpenApiKeys?: () => void;
 }
 
 export const SmartLinkLandingPage: React.FC<SmartLinkLandingPageProps> = ({
@@ -40,10 +42,18 @@ export const SmartLinkLandingPage: React.FC<SmartLinkLandingPageProps> = ({
   onNavigateLegal,
   siteAnnouncement,
   currentUser,
+  onOpenApiDocs,
+  onOpenApiKeys,
 }) => {
   const [activeInfoTab, setActiveInfoTab] = useState<"about" | "contact" | null>(null);
 
   const handleNavigateSection = (sectionId: string) => {
+    if (sectionId === "api-section" || sectionId === "api") {
+      if (onOpenApiDocs) {
+        onOpenApiDocs();
+        return;
+      }
+    }
     if (sectionId === "services-section") {
       onExploreServices();
       return;
@@ -101,6 +111,7 @@ export const SmartLinkLandingPage: React.FC<SmartLinkLandingPageProps> = ({
         onGetStarted={onGetStarted}
         onAdminLogin={onAdminLogin}
         onNavigateSection={handleNavigateSection}
+        onOpenApiDocs={onOpenApiDocs}
       />
 
       {/* Main Content Sections */}
@@ -150,6 +161,8 @@ export const SmartLinkLandingPage: React.FC<SmartLinkLandingPageProps> = ({
           <LandingCTASection
             onRegister={onRegister}
             onContactSales={handleContactSales}
+            onOpenApiDocs={onOpenApiDocs}
+            onOpenApiKeys={onOpenApiKeys}
           />
         </div>
 
@@ -163,6 +176,7 @@ export const SmartLinkLandingPage: React.FC<SmartLinkLandingPageProps> = ({
           onRegister={onRegister}
           onAdminLogin={onAdminLogin}
           onNavigateLegal={onNavigateLegal}
+          onOpenApiDocs={onOpenApiDocs}
           activeInfoTab={activeInfoTab}
           setActiveInfoTab={setActiveInfoTab}
         />

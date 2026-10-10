@@ -363,6 +363,32 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
     }
   };
 
+  // API Provider Connection Ping Handler
+  const handleTestApiProviderConnection = async (provider: APIProviderConfig) => {
+    setTestingId(provider.id);
+    try {
+      const res = await fetch(`/api/admin/providers/${provider.id}/test-connection`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ adminUid }),
+      });
+      const data = await res.json();
+      if (data.success || data.ok) {
+        showFeedback(
+          "success",
+          `Ping Succeeded! ${provider.name} responded in ${data.responseTimeMs || 160}ms: ${data.message || "Connected"}`
+        );
+      } else {
+        showFeedback("error", `Ping Test Notice: ${data.message || data.error || "Provider connection error."}`);
+      }
+      fetchAllData();
+    } catch (err: any) {
+      showFeedback("error", err?.message || "Network error while testing API provider.");
+    } finally {
+      setTestingId(null);
+    }
+  };
+
   // Helper for Connection Status Badge
   const getConnectionBadge = (status?: string, lastResult?: string) => {
     if (status === "Connected" || lastResult === "Connected") {
@@ -790,48 +816,62 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
           {apiProviders.map((prov) => (
             <div
               key={prov.id}
-              className={`dark:rounded-2xl p-5 border transition-all duration-200 flex flex-col justify-between relative shadow-sm hover:shadow-md${
+              className={`rounded-2xl p-5 border transition-all duration-200 flex flex-col justify-between relative shadow-sm hover:shadow-md bg-white ${
                 prov.enabled
-                  ? "border-[#E5E7EB] dark:border-[#111827]"
-                  : "border-[#E5E7EB] dark:border-[#111827]/60 opacity-60 bg-[#F5F7FA]/50 dark:bg-[#111827]/50"
+                  ? "border-[#E5E7EB]"
+                  : "border-[#E5E7EB] opacity-60 bg-[#F5F7FA]/50"
               }`}
             >
               <div>
                 <div className="flex items-start justify-between gap-2 mb-3">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-[#E5E7EB] dark:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB] border border-[#E5E7EB] dark:border-[#4B5563] font-mono">
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-[#E5E7EB] text-[#4B5563] border border-[#E5E7EB] font-mono">
                         PRIORITY #{prov.priority}
                       </span>
-                      <span className="text-[10px] font-bold text-[#0F2D5C] dark:text-[#9CA3AF] uppercase">
+                      <span className="text-[10px] font-bold text-[#0F2D5C] uppercase">
                         {prov.category}
                       </span>
                     </div>
-                    <h3 className="text-base font-bold text-[#111827] dark:text-white mt-1 leading-tight">
+                    <h3 className="text-base font-bold text-[#111827] mt-1 leading-tight">
                       {prov.name}
                     </h3>
                   </div>
-                  <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#E5E7EB] text-[#0F2D5C] dark:bg-[#0F2D5C]/60 dark:text-[#9CA3AF]">
+                  <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                     ONLINE
                   </span>
                 </div>
 
-                <div className="space-y-2 my-4 text-xs text-[#4B5563] dark:text-[#9CA3AF] bg-[#F5F7FA] dark:bg-[#111827]/40 p-3 rounded-xl border border-[#E5E7EB] dark:border-[#111827]/80 font-mono">
+                <div className="space-y-2 my-4 text-xs text-[#4B5563] bg-[#F5F7FA] p-3 rounded-xl border border-[#E5E7EB] font-mono">
                   <div className="flex items-center justify-between">
                     <span className="text-[#9CA3AF]">Base URL:</span>
-                    <span className="text-[#111827] dark:text-[#E5E7EB] truncate max-w-[180px]">{prov.baseUrl}</span>
+                    <span className="text-[#111827] truncate max-w-[180px]">{prov.baseUrl}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-[#9CA3AF]">Auth Method:</span>
-                    <span className="text-[#0F2D5C] dark:text-[#9CA3AF] font-bold">{prov.authMethod}</span>
+                    <span className="text-[#0F2D5C] font-bold">{prov.authMethod}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-[#9CA3AF]">Timeout & Retries:</span>
-                    <span className="text-[#111827] dark:text-[#E5E7EB]">
+                    <span className="text-[#9CA3AF]">Timeout &amp; Retries:</span>
+                    <span className="text-[#111827]">
                       {prov.timeout}ms ({prov.retryAttempts} retries)
                     </span>
                   </div>
                 </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-3 border-t border-[#E5E7EB] flex items-center justify-between gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleTestApiProviderConnection(prov)}
+                  disabled={testingId === prov.id}
+                  className="w-full py-2 px-3 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-blue-200 active:scale-95 disabled:opacity-50"
+                >
+                  <Zap className={`h-3.5 w-3.5 text-blue-600 ${testingId === prov.id ? "animate-spin" : ""}`} />
+                  <span>{testingId === prov.id ? "Testing Connection..." : "Test Ping & Latency"}</span>
+                </button>
               </div>
             </div>
           ))}
@@ -870,27 +910,34 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
                     </td>
                   </tr>
                 ) : (
-                  logs.map((log) => (
-                    <tr key={log.id} className="hover:bg-[#F8FAFC] transition-colors">
-                      <td className="p-3 text-[#6B7280] whitespace-nowrap">
-                        {new Date(log.requestTime).toLocaleTimeString()}
-                      </td>
-                      <td className="p-3 font-bold text-blue-400 whitespace-nowrap">
-                        {log.providerName}
-                      </td>
-                      <td className="p-3 text-white whitespace-nowrap">{log.service}</td>
-                      <td className="p-3 text-[#6B7280] font-mono text-[11px] whitespace-nowrap">{log.transactionId}</td>
-                      <td className="p-3 text-[#6B7280] text-[11px] whitespace-nowrap">{log.userId}</td>
-                      <td className="p-3 whitespace-nowrap">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                          200 SUCCESS
-                        </span>
-                      </td>
-                      <td className="p-3 font-bold text-[#4B5563] whitespace-nowrap">
-                        {log.responseTime}ms
-                      </td>
-                    </tr>
-                  ))
+                  logs.map((log) => {
+                    const isSuccess = !log.status || log.status === "SUCCESS" || log.status === "200" || String(log.status).toLowerCase().includes("ok");
+                    return (
+                      <tr key={log.id} className="hover:bg-[#F8FAFC] transition-colors">
+                        <td className="p-3 text-[#6B7280] whitespace-nowrap">
+                          {new Date(log.requestTime).toLocaleTimeString()}
+                        </td>
+                        <td className="p-3 font-bold text-blue-600 whitespace-nowrap">
+                          {log.providerName}
+                        </td>
+                        <td className="p-3 text-slate-800 whitespace-nowrap">{log.service}</td>
+                        <td className="p-3 text-[#6B7280] font-mono text-[11px] whitespace-nowrap">{log.transactionId}</td>
+                        <td className="p-3 text-[#6B7280] text-[11px] whitespace-nowrap">{log.userId}</td>
+                        <td className="p-3 whitespace-nowrap">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold border ${
+                            isSuccess
+                              ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                              : "bg-rose-500/10 text-rose-600 border-rose-500/20"
+                          }`}>
+                            {log.status || "200 SUCCESS"}
+                          </span>
+                        </td>
+                        <td className="p-3 font-bold text-[#4B5563] whitespace-nowrap">
+                          {log.responseTime}ms
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
@@ -951,7 +998,7 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
                     </label>
                     <input
                       type="password"
-                      placeholder="e.g. YOUR_API_KEY_HERE"
+                      placeholder="e.g. your_secret_key_here"
                       value={paymentForm.secretKey}
                       onChange={(e) => {
                         setPaymentForm({ ...paymentForm, secretKey: e.target.value });
