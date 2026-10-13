@@ -1803,13 +1803,23 @@ export default function App() {
 
             {currentView === "PUBLIC_API_DOCS" && (
               <ApiDocsPublicView
+                currentUser={currentUser}
                 onNavigateHome={() => navigateToView(currentUser ? "DASHBOARD" : "HOME")}
                 onLogin={() => {
-                  navigateToView("DASHBOARD");
+                  navigateToView(currentUser ? "DASHBOARD" : "HOME");
                   setIsRegistering(false);
                 }}
                 onRegister={() => {
                   handleGetStartedWithLoader(true);
+                }}
+                onNavigateToDashboardApiKeys={() => {
+                  if (currentUser) {
+                    sessionStorage.setItem("account_security_tab", "API_KEYS");
+                    window.dispatchEvent(new Event("account_security_tab_changed"));
+                    navigateToView("ACCOUNT_SECURITY");
+                  } else {
+                    handleGetStartedWithLoader(true);
+                  }
                 }}
               />
             )}

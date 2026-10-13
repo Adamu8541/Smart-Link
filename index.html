@@ -457,64 +457,66 @@
     </script>
     <!-- Accessible Landmark Skip Link for Keyboard Navigation & Screen Readers -->
     <a
-      href="#services-section"
+      href="#main-content"
       id="skip-to-content"
       class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2.5 focus:bg-[#0F2D5C] focus:text-white focus:rounded-xl focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0F2D5C] text-xs font-bold"
     >
       Skip to main content
     </a>
-    <div id="root">
+    <div id="root"><!-- SSR_CONTENT_START -->
       <div id="root-container" class="min-h-screen bg-[#F5F7FA] text-[#111827] flex flex-col font-sans transition-colors duration-200 selection:bg-[#0F2D5C] selection:text-white">
         <div id="smartlink-public-homepage" class="w-full flex-1 flex flex-col font-sans">
-          <header id="site-header" class="sticky top-0 z-40 w-full min-h-[80px] sm:min-h-[96px] transition-colors duration-200 bg-white border-b border-[#E5E7EB]">
+          <!-- Banner Header Landmark -->
+          <header id="site-header" role="banner" class="sticky top-0 z-40 w-full min-h-[64px] transition-colors duration-200 bg-white border-b border-[#E5E7EB]">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div class="flex items-center justify-between h-20 sm:h-24">
-                <button
+              <div class="flex items-center justify-between h-16 sm:h-20">
+                <a
                   id="header-logo-container"
-                  type="button"
-                  class="flex items-center cursor-pointer group bg-transparent border-none p-0 text-left w-[224px] sm:w-[280px] h-14 sm:h-16 lg:h-18 shrink-0"
-                  aria-label="SmartLink NG Home"
+                  href="/"
+                  class="flex items-center cursor-pointer group bg-transparent border-none p-0 text-left shrink-0"
+                  aria-label="Smart Link NG Home"
                 >
                   <img
                     src="/logo.webp"
-                    alt="Smart Link NG - Official Identity Verification &amp; Fintech Portal"
-                    width="224"
-                    height="56"
+                    alt="Smart Link NG - Official Identity Verification and Digital Services Portal"
+                    width="180"
+                    height="48"
                     loading="eager"
                     fetchpriority="high"
                     decoding="async"
-                    style="aspect-ratio: 224 / 56; width: 224px; height: 56px;"
-                    class="h-14 w-[224px] sm:h-16 sm:w-[256px] lg:h-18 lg:w-[280px] object-contain shrink-0"
+                    style="aspect-ratio: 180 / 48; width: 180px; height: 48px;"
+                    class="h-10 sm:h-12 w-auto object-contain shrink-0"
                   />
-                </button>
+                </a>
                 <nav id="header-desktop-nav" aria-label="Primary Desktop Navigation" class="hidden md:flex items-center gap-1 lg:gap-2">
-                  <a href="#hero-section" id="nav-link-hero-section" class="px-4 py-2 rounded-lg text-xs font-bold text-[#0F2D5C] bg-[#F5F7FA]">Home</a>
-                  <a href="#services-section" id="nav-link-services-section" class="px-4 py-2 rounded-lg text-xs font-bold text-[#374151] hover:text-[#0F2D5C] hover:bg-[#F5F7FA]">Services</a>
-                  <a href="#pricing-section" id="nav-link-pricing-section" class="px-4 py-2 rounded-lg text-xs font-bold text-[#374151] hover:text-[#0F2D5C] hover:bg-[#F5F7FA]">Pricing</a>
-                  <a href="#api-section" id="nav-link-api-section" class="px-4 py-2 rounded-lg text-xs font-bold text-[#374151] hover:text-[#0F2D5C] hover:bg-[#F5F7FA]">API</a>
-                  <a href="#about-section" id="nav-link-about-section" class="px-4 py-2 rounded-lg text-xs font-bold text-[#374151] hover:text-[#0F2D5C] hover:bg-[#F5F7FA]">About</a>
-                  <a href="#contact-section" id="nav-link-contact-section" class="px-4 py-2 rounded-lg text-xs font-bold text-[#374151] hover:text-[#0F2D5C] hover:bg-[#F5F7FA]">Contact</a>
+                  <a href="/" id="nav-link-home" class="px-3.5 py-2 rounded-lg text-xs font-bold text-[#0F2D5C] bg-[#F5F7FA]">Home</a>
+                  <a href="/explore-services" id="nav-link-services" class="px-3.5 py-2 rounded-lg text-xs font-semibold text-[#374151] hover:text-[#0F2D5C] hover:bg-[#F5F7FA]">Services</a>
+                  <a href="/verification" id="nav-link-verification" class="px-3.5 py-2 rounded-lg text-xs font-semibold text-[#374151] hover:text-[#0F2D5C] hover:bg-[#F5F7FA]">Verification</a>
+                  <a href="/bills" id="nav-link-bills" class="px-3.5 py-2 rounded-lg text-xs font-semibold text-[#374151] hover:text-[#0F2D5C] hover:bg-[#F5F7FA]">Bills &amp; VTU</a>
+                  <a href="/api-docs" id="nav-link-api" class="px-3.5 py-2 rounded-lg text-xs font-semibold text-[#374151] hover:text-[#0F2D5C] hover:bg-[#F5F7FA]">API Docs</a>
+                  <a href="/compliance" id="nav-link-compliance" class="px-3.5 py-2 rounded-lg text-xs font-semibold text-[#374151] hover:text-[#0F2D5C] hover:bg-[#F5F7FA]">Compliance</a>
+                  <a href="#contact-section" id="nav-link-contact" class="px-3.5 py-2 rounded-lg text-xs font-semibold text-[#374151] hover:text-[#0F2D5C] hover:bg-[#F5F7FA]">Contact</a>
                 </nav>
-                <div id="header-right-actions" class="hidden lg:flex items-center gap-3">
-                  <a id="header-btn-admin-login" href="/admin/login" rel="nofollow" class="px-3.5 py-2 text-xs font-bold text-white bg-[#111827] rounded-xl flex items-center gap-1.5">
+                <div id="header-right-actions" class="hidden lg:flex items-center gap-2">
+                  <a id="header-btn-admin-login" href="/admin/login" class="px-3 py-2 text-xs font-bold text-white bg-[#111827] hover:bg-[#0F2D5C] rounded-lg flex items-center gap-1.5 min-h-[38px] transition-colors">
                     <svg class="h-3.5 w-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /><path d="m9 12 2 2 4-4" /></svg>
                     Admin Login
                   </a>
-                  <a id="header-btn-login" href="/login" rel="nofollow" class="px-4 py-2 text-xs font-bold text-white bg-[#111827] rounded-xl flex items-center gap-1.5">
+                  <a id="header-btn-login" href="/login" class="px-3.5 py-2 text-xs font-bold text-white bg-[#111827] hover:bg-[#0F2D5C] rounded-lg flex items-center gap-1.5 min-h-[38px] transition-colors">
                     <svg class="h-3.5 w-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" /><polyline points="10 17 15 12 10 7" /><line x1="15" x2="3" y1="12" y2="12" /></svg>
                     Login
                   </a>
-                  <a id="header-btn-register" href="/register" rel="nofollow" class="px-4 py-2 text-xs font-bold text-white bg-[#111827] rounded-xl flex items-center gap-1.5">
+                  <a id="header-btn-register" href="/register" class="px-3.5 py-2 text-xs font-bold text-white bg-[#111827] hover:bg-[#0F2D5C] rounded-lg flex items-center gap-1.5 min-h-[38px] transition-colors">
                     <svg class="h-3.5 w-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><line x1="19" x2="19" y1="8" y2="14" /><line x1="22" x2="16" y1="11" y2="11" /></svg>
                     Register
                   </a>
-                  <a id="header-btn-get-started" href="/register" rel="nofollow" class="px-5 py-2.5 bg-[#111827] text-white font-bold rounded-xl text-xs shadow-xs flex items-center gap-2">
+                  <a id="header-btn-get-started" href="/register" class="px-4 py-2 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold rounded-lg text-xs shadow-xs flex items-center gap-1.5 min-h-[38px] transition-colors">
                     Get Started
                     <svg class="h-3.5 w-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
                   </a>
                 </div>
                 <div class="flex items-center gap-2 lg:hidden">
-                  <button id="header-mobile-toggle" type="button" class="min-w-[48px] min-h-[48px] flex items-center justify-center p-2.5 rounded-xl text-[#111827]" aria-label="Toggle mobile menu">
+                  <button id="header-mobile-toggle" type="button" aria-expanded="false" aria-controls="header-desktop-nav" aria-label="Toggle mobile menu" class="min-w-[44px] min-h-[44px] flex items-center justify-center p-2 rounded-lg text-[#111827]">
                     <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" x2="20" y1="12" y2="12" /><line x1="4" x2="20" y1="6" y2="6" /><line x1="4" x2="20" y1="18" y2="18" /></svg>
                   </button>
                 </div>
@@ -522,98 +524,293 @@
             </div>
           </header>
 
-          <main class="grow">
-          <section id="hero-section" class="relative overflow-hidden bg-white text-[#111827] py-10 sm:py-16 lg:pt-20 lg:pb-28 border-b border-[#E5E7EB]">
-            <div class="absolute inset-0 bg-[radial-gradient(rgba(15,45,92,0.04)_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none"></div>
-            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center w-full">
-              <div class="w-full flex flex-col gap-6 sm:gap-8">
-                <h1
-                  id="hero-main-heading"
-                  class="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight leading-[1.2] text-[#111827]"
-                >
-                  Instant Identity Verification, Business Filing &amp; <span class="text-[#0F2D5C]">Automated Utility Bills in Nigeria</span>
-                </h1>
+          <!-- Main Content Landmark -->
+          <main id="main-content" tabindex="-1" class="grow focus:outline-none">
+            <!-- 1. Hero Section -->
+            <section id="hero-section" aria-labelledby="hero-main-heading" class="relative overflow-hidden bg-white text-[#111827] py-10 sm:py-16 lg:pt-16 lg:pb-24 border-b border-[#E5E7EB]">
+              <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center w-full">
+                <div class="w-full flex flex-col gap-6 sm:gap-8">
+                  <h1
+                    id="hero-main-heading"
+                    class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight leading-[1.2] text-[#111827]"
+                  >
+                    Instant Identity Verification, Business Filing &amp; <span class="text-[#0F2D5C]">Automated Utility Bills in Nigeria</span>
+                  </h1>
 
-                <p
-                  id="hero-subheading"
-                  class="text-sm sm:text-base md:text-lg text-[#374151] font-normal leading-relaxed max-w-2xl mx-auto"
-                >
-                  Verify NIN and BVN records with slip downloads, register businesses with CAC, and settle electricity, data, and airtime transactions in seconds through one unified portal and developer API.
-                </p>
-
-                <div
-                  id="hero-benefits-grid"
-                  class="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 pt-2 text-left max-w-3xl mx-auto w-full"
-                >
-                  <div class="flex items-start gap-3 p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] shadow-2xs min-h-[72px]">
-                    <svg class="h-5 w-5 text-[#0F2D5C] shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                      <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
-                      <path d="m9 12 2 2 4-4" />
-                    </svg>
-                    <div>
-                      <p class="text-sm font-bold text-[#0F2D5C]">Instant Verification &amp; Slips</p>
-                      <p class="text-xs text-[#374151] mt-0.5">Regular/premium NIN slips, BVN cards, and CAC reports with QR codes.</p>
-                    </div>
-                  </div>
-                  <div class="flex items-start gap-3 p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] shadow-2xs min-h-[72px]">
-                    <svg class="h-5 w-5 text-[#0F2D5C] shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-                    </svg>
-                    <div>
-                      <p class="text-sm font-bold text-[#0F2D5C]">Automated Bills &amp; VTU</p>
-                      <p class="text-xs text-[#374151] mt-0.5">Zero-delay Disco tokens, cheap SME data bundles, airtime, and exam pins.</p>
-                    </div>
-                  </div>
-                  <div class="flex items-start gap-3 p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] shadow-2xs min-h-[72px]">
-                    <svg class="h-5 w-5 text-[#0F2D5C] shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                      <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
-                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                    </svg>
-                    <div>
-                      <p class="text-sm font-bold text-[#0F2D5C]">Bank-Grade &amp; 99.9% Uptime</p>
-                      <p class="text-xs text-[#374151] mt-0.5">Dedicated virtual account funding, encrypted payouts, and REST APIs.</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div
-                  id="hero-actions"
-                  class="flex flex-col items-center justify-center gap-3 pt-2"
-                >
-                  <div class="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 w-full sm:w-auto">
-                    <button
-                      id="hero-primary-btn"
-                      type="button"
-                      class="w-full sm:w-auto min-h-[48px] px-8 py-3.5 bg-[#0F2D5C] text-white font-bold rounded-xl text-sm shadow-xs flex items-center justify-center gap-2.5 cursor-pointer touch-manipulation"
-                    >
-                      <span>Get Started Free</span>
-                      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M5 12h14" />
-                        <path d="m12 5 7 7-7 7" />
-                      </svg>
-                    </button>
-                    <button
-                      id="hero-secondary-btn"
-                      type="button"
-                      class="w-full sm:w-auto min-h-[48px] px-8 py-3.5 bg-white text-[#0F2D5C] border border-[#0F2D5C] font-bold rounded-xl text-sm shadow-xs flex items-center justify-center gap-2.5 cursor-pointer touch-manipulation"
-                    >
-                      <span>Explore Services &amp; Pricing</span>
-                    </button>
-                  </div>
-                  <p class="text-xs text-[#374151] pt-2 flex items-center justify-center gap-1.5 flex-wrap">
-                    <span>Instant Automated Processing</span>
-                    <span aria-hidden="true">•</span>
-                    <span>Dedicated Virtual Account Funding</span>
-                    <span aria-hidden="true">•</span>
-                    <span>No Hidden Setup Fees</span>
+                  <p
+                    id="hero-subheading"
+                    class="text-sm sm:text-base md:text-lg text-[#374151] font-normal leading-relaxed max-w-2xl mx-auto"
+                  >
+                    Verify NIN and BVN records with official slip downloads, register businesses with CAC, and settle electricity, data, and airtime transactions in seconds through one unified portal and developer API.
                   </p>
+
+                  <div
+                    id="hero-benefits-grid"
+                    class="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 pt-2 text-left max-w-3xl mx-auto w-full"
+                  >
+                    <div class="flex items-start gap-3 p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] shadow-2xs min-h-[72px]">
+                      <svg class="h-5 w-5 text-[#0F2D5C] shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
+                        <path d="m9 12 2 2 4-4" />
+                      </svg>
+                      <div>
+                        <h2 class="text-sm font-bold text-[#0F2D5C]">Instant Verification &amp; Slips</h2>
+                        <p class="text-xs text-[#374151] mt-0.5">Regular/premium NIN slips, BVN cards, and CAC reports with QR codes.</p>
+                      </div>
+                    </div>
+                    <div class="flex items-start gap-3 p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] shadow-2xs min-h-[72px]">
+                      <svg class="h-5 w-5 text-[#0F2D5C] shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                      </svg>
+                      <div>
+                        <h2 class="text-sm font-bold text-[#0F2D5C]">Automated Bills &amp; VTU</h2>
+                        <p class="text-xs text-[#374151] mt-0.5">Zero-delay Disco tokens, cheap SME data bundles, airtime, and exam pins.</p>
+                      </div>
+                    </div>
+                    <div class="flex items-start gap-3 p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] shadow-2xs min-h-[72px]">
+                      <svg class="h-5 w-5 text-[#0F2D5C] shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                      </svg>
+                      <div>
+                        <h2 class="text-sm font-bold text-[#0F2D5C]">Bank-Grade &amp; 99.9% Uptime</h2>
+                        <p class="text-xs text-[#374151] mt-0.5">Dedicated virtual account funding, encrypted payouts, and REST APIs.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    id="hero-actions"
+                    class="flex flex-col items-center justify-center gap-3 pt-2"
+                  >
+                    <div class="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 w-full sm:w-auto">
+                      <a
+                        id="hero-primary-btn"
+                        href="/register"
+                        class="w-full sm:w-auto min-h-[48px] px-8 py-3.5 bg-[#0F2D5C] text-white font-bold rounded-xl text-sm shadow-xs flex items-center justify-center gap-2.5 cursor-pointer touch-manipulation hover:bg-[#17407E] transition-colors"
+                      >
+                        <span>Get Started Free</span>
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                          <path d="M5 12h14" />
+                          <path d="m12 5 7 7-7 7" />
+                        </svg>
+                      </a>
+                      <a
+                        id="hero-secondary-btn"
+                        href="/explore-services"
+                        class="w-full sm:w-auto min-h-[48px] px-8 py-3.5 bg-white text-[#0F2D5C] border border-[#0F2D5C] font-bold rounded-xl text-sm shadow-xs flex items-center justify-center gap-2.5 cursor-pointer touch-manipulation hover:bg-[#F5F7FA] transition-colors"
+                      >
+                        <span>Explore Services &amp; Pricing</span>
+                      </a>
+                    </div>
+                    <p class="text-xs text-[#374151] pt-2 flex items-center justify-center gap-1.5 flex-wrap">
+                      <span>Instant Automated Processing</span>
+                      <span aria-hidden="true">•</span>
+                      <span>Dedicated Virtual Account Funding</span>
+                      <span aria-hidden="true">•</span>
+                      <span>No Hidden Setup Fees</span>
+                    </p>
+                  </div>
                 </div>
               </div>
+            </section>
+
+            <!-- 2. Featured Services Catalog Section -->
+            <section id="services-section" aria-labelledby="services-main-heading" class="py-12 sm:py-16 bg-[#F8FAFC] border-b border-[#E5E7EB]">
+              <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center max-w-2xl mx-auto mb-10">
+                  <h2 id="services-main-heading" class="text-xl sm:text-2xl lg:text-3xl font-extrabold text-[#111827]">
+                    Explore 25+ Identity, Corporate &amp; Financial Services
+                  </h2>
+                  <p class="text-sm text-[#4B5563] mt-2">
+                    Official digital verification, utility bill payment, and business registry solutions in Nigeria.
+                  </p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                  <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-2xs hover:shadow-md transition-shadow">
+                    <h3 class="text-base font-bold text-[#0F2D5C]">NIN Verification &amp; Slips</h3>
+                    <p class="text-xs text-[#4B5563] mt-1.5">Verify 11-digit NIN or vNIN and print official regular PDF slips or premium CR80 card formats.</p>
+                    <a href="/verification" class="inline-block mt-3 text-xs font-bold text-[#0F2D5C] hover:underline">Verify NIN &rarr;</a>
+                  </div>
+                  <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-2xs hover:shadow-md transition-shadow">
+                    <h3 class="text-base font-bold text-[#0F2D5C]">BVN Validation &amp; Cards</h3>
+                    <p class="text-xs text-[#4B5563] mt-1.5">Instant Bank Verification Number lookup via central NIBSS rails with double-sided digital identity slips.</p>
+                    <a href="/verification" class="inline-block mt-3 text-xs font-bold text-[#0F2D5C] hover:underline">Validate BVN &rarr;</a>
+                  </div>
+                  <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-2xs hover:shadow-md transition-shadow">
+                    <h3 class="text-base font-bold text-[#0F2D5C]">CAC Business Registration</h3>
+                    <p class="text-xs text-[#4B5563] mt-1.5">Corporate Affairs Commission Business Name reservation, certificate generation, and status reports.</p>
+                    <a href="/verification" class="inline-block mt-3 text-xs font-bold text-[#0F2D5C] hover:underline">Register Business &rarr;</a>
+                  </div>
+                  <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-2xs hover:shadow-md transition-shadow">
+                    <h3 class="text-base font-bold text-[#0F2D5C]">Electricity Disco Tokens</h3>
+                    <p class="text-xs text-[#4B5563] mt-1.5">Zero-convenience-fee prepaid electricity meter tokens for all 11 Discos (IKEDC, EKEDC, AEDC, IBEDC, etc.).</p>
+                    <a href="/bills" class="inline-block mt-3 text-xs font-bold text-[#0F2D5C] hover:underline">Buy Electricity Token &rarr;</a>
+                  </div>
+                  <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-2xs hover:shadow-md transition-shadow">
+                    <h3 class="text-base font-bold text-[#0F2D5C]">Cheap SME Data &amp; VTU Airtime</h3>
+                    <p class="text-xs text-[#4B5563] mt-1.5">Wholesale mobile internet data bundles starting from ₦240/GB across MTN, Airtel, Glo, and 9mobile.</p>
+                    <a href="/bills" class="inline-block mt-3 text-xs font-bold text-[#0F2D5C] hover:underline">Purchase Data Bundle &rarr;</a>
+                  </div>
+                  <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-2xs hover:shadow-md transition-shadow">
+                    <h3 class="text-base font-bold text-[#0F2D5C]">Developer REST APIs</h3>
+                    <p class="text-xs text-[#4B5563] mt-1.5">Sub-450ms JSON verification APIs, automated webhooks, and Postman collections for fintech platforms.</p>
+                    <a href="/api-docs" class="inline-block mt-3 text-xs font-bold text-[#0F2D5C] hover:underline">View API Documentation &rarr;</a>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- 3. Trust & Compliance Section -->
+            <section id="trust-section" aria-labelledby="trust-main-heading" class="py-10 bg-white border-b border-[#E5E7EB]">
+              <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center max-w-xl mx-auto mb-8">
+                  <h2 id="trust-main-heading" class="text-lg sm:text-xl font-bold text-[#111827]">
+                    Regulated, Compliant &amp; Bank-Grade Infrastructure
+                  </h2>
+                  <p class="text-xs text-[#4B5563] mt-1">Operating in strict compliance with the Nigeria Data Protection Act 2023 (NDPA).</p>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+                  <div class="p-3 bg-[#F8FAFC] rounded-lg border border-[#E5E7EB]">
+                    <p class="text-xs font-bold text-[#0F2D5C]">NDPA 2023</p>
+                    <p class="text-[11px] text-[#4B5563] mt-0.5">Compliant Privacy Standards</p>
+                  </div>
+                  <div class="p-3 bg-[#F8FAFC] rounded-lg border border-[#E5E7EB]">
+                    <p class="text-xs font-bold text-[#0F2D5C]">TLS 1.3 &amp; AES-256</p>
+                    <p class="text-[11px] text-[#4B5563] mt-0.5">Bank-Grade Encryption</p>
+                  </div>
+                  <div class="p-3 bg-[#F8FAFC] rounded-lg border border-[#E5E7EB]">
+                    <p class="text-xs font-bold text-[#0F2D5C]">Accredited CAC</p>
+                    <p class="text-[11px] text-[#4B5563] mt-0.5">Certified Agent Filing</p>
+                  </div>
+                  <div class="p-3 bg-[#F8FAFC] rounded-lg border border-[#E5E7EB]">
+                    <p class="text-xs font-bold text-[#0F2D5C]">99.98% SLA</p>
+                    <p class="text-[11px] text-[#4B5563] mt-0.5">High-Availability Uptime</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- 4. Frequently Asked Questions Section -->
+            <section id="faq-section" aria-labelledby="faq-main-heading" class="py-12 sm:py-16 bg-[#F8FAFC] border-b border-[#E5E7EB]">
+              <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-10">
+                  <h2 id="faq-main-heading" class="text-xl sm:text-2xl font-extrabold text-[#111827]">
+                    Frequently Asked Questions
+                  </h2>
+                  <p class="text-xs sm:text-sm text-[#4B5563] mt-1.5">
+                    Clear answers on identity lookups, virtual accounts, and developer tools.
+                  </p>
+                </div>
+                <div class="space-y-4">
+                  <div class="bg-white p-5 rounded-xl border border-[#E5E7EB]">
+                    <h3 class="text-sm font-bold text-[#111827]">How does wallet funding work on SmartLink NG?</h3>
+                    <p class="text-xs text-[#4B5563] mt-2 leading-relaxed">
+                      Every registered user and agent receives automated dedicated virtual bank account numbers (Wema Bank, Moniepoint, Sterling, Providus). Any bank transfer made to your virtual account is credited to your wallet in real time with zero manual delay.
+                    </p>
+                  </div>
+                  <div class="bg-white p-5 rounded-xl border border-[#E5E7EB]">
+                    <h3 class="text-sm font-bold text-[#111827]">How do developers integrate SmartLink's identity verification &amp; VTU APIs?</h3>
+                    <p class="text-xs text-[#4B5563] mt-2 leading-relaxed">
+                      Developers can generate live and sandbox API keys directly from their dashboard. We offer high-performance RESTful JSON endpoints with sub-450ms response latency, complete Postman collections, and automated webhooks.
+                    </p>
+                  </div>
+                  <div class="bg-white p-5 rounded-xl border border-[#E5E7EB]">
+                    <h3 class="text-sm font-bold text-[#111827]">What are the requirements for CAC Business Name &amp; Company Registration?</h3>
+                    <p class="text-xs text-[#4B5563] mt-2 leading-relaxed">
+                      To register a Business Name or Company with CAC, you need: 1) Two proposed business names, 2) Nature of business, 3) Valid government ID, 4) Passport photo, and 5) Official business address. Filings are processed in 48 to 72 hours.
+                    </p>
+                  </div>
+                  <div class="bg-white p-5 rounded-xl border border-[#E5E7EB]">
+                    <h3 class="text-sm font-bold text-[#111827]">How do I verify and download my NIN Slip in Nigeria?</h3>
+                    <p class="text-xs text-[#4B5563] mt-2 leading-relaxed">
+                      Verify your National Identity Number (NIN) instantly by providing your 11-digit NIN or registered phone number. The portal retrieves verified records and generates standard or premium PDF slips with tamper-evident QR codes.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- 5. Contact Section -->
+            <section id="contact-section" aria-labelledby="contact-main-heading" class="py-10 bg-white border-b border-[#E5E7EB]">
+              <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h2 id="contact-main-heading" class="text-xl font-bold text-[#111827]">Official Support &amp; Help Desk</h2>
+                <p class="text-xs text-[#4B5563] mt-1.5">Reach our accredited customer care team for transaction assistance or developer integrations.</p>
+                <div class="mt-4 flex flex-wrap items-center justify-center gap-6 text-xs text-[#374151]">
+                  <span>Email: <a href="mailto:Smartlinkcomputerbusiness@gmail.com" class="font-bold text-[#0F2D5C] hover:underline">Smartlinkcomputerbusiness@gmail.com</a></span>
+                  <span>Phone: <a href="tel:+2348085490982" class="font-bold text-[#0F2D5C] hover:underline">+234 808 549 0982</a></span>
+                  <span>WhatsApp: <a href="https://wa.me/2349047738212" target="_blank" rel="noopener noreferrer" class="font-bold text-[#0F2D5C] hover:underline">+234 904 773 8212</a></span>
+                </div>
+              </div>
+            </section>
+          </main>
+
+          <!-- Contentinfo Footer Landmark -->
+          <footer id="site-footer" role="contentinfo" class="bg-white text-[#4B5563] pt-10 pb-8 border-t border-[#E5E7EB] text-xs">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 text-left">
+                <div class="lg:col-span-2 space-y-2.5">
+                  <a href="/" aria-label="SmartLink NG Home" class="inline-block">
+                    <img
+                      src="/logo.webp"
+                      alt="Smart Link NG Official Logo"
+                      width="160"
+                      height="40"
+                      loading="lazy"
+                      decoding="async"
+                      style="aspect-ratio: 160 / 40; width: 160px; height: 40px;"
+                      class="h-9 w-auto object-contain"
+                    />
+                  </a>
+                  <p class="text-xs text-[#4B5563] leading-relaxed max-w-sm">
+                    Nigeria's premier digital verification and automated payment platform. Authorized provider for NIN/BVN lookups, corporate CAC filings, electricity Disco tokens, and developer APIs.
+                  </p>
+                  <p class="text-[11px] text-[#6B7280]">
+                    Smart Link Computer Business Solutions Ltd • RC: 1849204
+                  </p>
+                </div>
+                <div class="space-y-2">
+                  <h3 class="text-xs font-bold uppercase tracking-wider text-[#111827]">Digital Services</h3>
+                  <ul class="space-y-1.5 font-normal">
+                    <li><a href="/explore-services" class="hover:text-[#0F2D5C] hover:underline">All Services</a></li>
+                    <li><a href="/verification" class="hover:text-[#0F2D5C] hover:underline">NIN Verification</a></li>
+                    <li><a href="/verification" class="hover:text-[#0F2D5C] hover:underline">BVN Validation</a></li>
+                    <li><a href="/verification" class="hover:text-[#0F2D5C] hover:underline">CAC Business Filing</a></li>
+                    <li><a href="/bills" class="hover:text-[#0F2D5C] hover:underline">Electricity Disco Tokens</a></li>
+                    <li><a href="/bills" class="hover:text-[#0F2D5C] hover:underline">Cheap SME Data</a></li>
+                  </ul>
+                </div>
+                <div class="space-y-2">
+                  <h3 class="text-xs font-bold uppercase tracking-wider text-[#111827]">Developers &amp; Portals</h3>
+                  <ul class="space-y-1.5 font-normal">
+                    <li><a href="/api-docs" class="hover:text-[#0F2D5C] hover:underline">REST API Docs</a></li>
+                    <li><a href="/login" class="hover:text-[#0F2D5C] hover:underline">Client Portal</a></li>
+                    <li><a href="/admin/login" class="hover:text-[#0F2D5C] hover:underline">Admin Portal</a></li>
+                    <li><a href="/sitemap.xml" class="hover:text-[#0F2D5C] hover:underline">XML Sitemap</a></li>
+                    <li><a href="/llms.txt" class="hover:text-[#0F2D5C] hover:underline">AI Knowledge (llms.txt)</a></li>
+                  </ul>
+                </div>
+                <div class="space-y-2">
+                  <h3 class="text-xs font-bold uppercase tracking-wider text-[#111827]">Legal &amp; Compliance</h3>
+                  <ul class="space-y-1.5 font-normal">
+                    <li><a href="/privacy" class="hover:text-[#0F2D5C] hover:underline">Privacy Policy (NDPA)</a></li>
+                    <li><a href="/terms" class="hover:text-[#0F2D5C] hover:underline">Terms of Service</a></li>
+                    <li><a href="/refund-policy" class="hover:text-[#0F2D5C] hover:underline">Refund Policy</a></li>
+                    <li><a href="/compliance" class="hover:text-[#0F2D5C] hover:underline">Regulatory Compliance</a></li>
+                    <li><a href="/security" class="hover:text-[#0F2D5C] hover:underline">Security Architecture</a></li>
+                    <li><a href="/sla" class="hover:text-[#0F2D5C] hover:underline">SLA &amp; Uptime</a></li>
+                  </ul>
+                </div>
+              </div>
+              <div class="pt-6 border-t border-[#E5E7EB] flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-[#6B7280]">
+                <p>&copy; 2026 Smart Link NG. All rights reserved.</p>
+                <p>Licensed Financial &amp; Identity Technology Rails • Lagos &amp; Abuja, Nigeria</p>
+              </div>
             </div>
-          </section>
-        </main>
+          </footer>
+        </div>
       </div>
-    </div>
+    <!-- SSR_CONTENT_END --></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
       if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {

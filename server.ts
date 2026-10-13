@@ -223,16 +223,18 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 // Search Engine Crawler & Privacy Directives Middleware
 app.use((req, res, next) => {
   const p = req.path.toLowerCase();
-  if (
-    p.startsWith("/api") ||
-    p.startsWith("/admin") ||
-    p.startsWith("/dashboard") ||
-    p.startsWith("/wallet") ||
+  // Strictly target private backend/session endpoints without matching public pages like /api-docs or /wallet-terms
+  const isPrivateApi = p === "/api" || p.startsWith("/api/");
+  const isPrivateAdmin = p === "/admin" || p.startsWith("/admin/");
+  const isPrivateDashboard = p === "/dashboard" || p.startsWith("/dashboard/");
+  const isPrivateWallet = p === "/wallet" || (p.startsWith("/wallet/") && !p.startsWith("/wallet-terms"));
+  const isPrivateAuthFlow =
     p.startsWith("/reset-password") ||
     p.startsWith("/verify-email") ||
     p.startsWith("/auth/action") ||
-    p.startsWith("/__/auth")
-  ) {
+    p.startsWith("/__/auth");
+
+  if (isPrivateApi || isPrivateAdmin || isPrivateDashboard || isPrivateWallet || isPrivateAuthFlow) {
     res.setHeader("X-Robots-Tag", "noindex, nofollow, noarchive");
   }
   next();

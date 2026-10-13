@@ -1023,6 +1023,249 @@ router.post("/api/v1/sandbox/execute", async (req, res) => {
       });
     }
 
+    case "/api/v1/bank/list": {
+      return res.status(200).json({
+        status: "success",
+        code: 200,
+        banksCount: 8,
+        data: [
+          { name: "Access Bank", code: "044", slug: "access-bank" },
+          { name: "Guaranty Trust Bank (GTBank)", code: "058", slug: "gtbank" },
+          { name: "United Bank for Africa (UBA)", code: "033", slug: "uba" },
+          { name: "Zenith Bank", code: "057", slug: "zenith-bank" },
+          { name: "Wema Bank / ALAT", code: "035", slug: "wema-bank" },
+          { name: "Moniepoint Microfinance Bank", code: "50515", slug: "moniepoint" },
+          { name: "OPay Digital Services", code: "999992", slug: "opay" },
+          { name: "Kuda Microfinance Bank", code: "50211", slug: "kuda" },
+        ],
+        durationMs: Date.now() - startTime,
+      });
+    }
+
+    case "/api/v1/bvn/match": {
+      const { bvn, accountNumber, bankCode } = payload || {};
+      if (!bvn || String(bvn).length !== 11) {
+        return res.status(400).json({
+          status: "error",
+          code: 400,
+          error: "Invalid BVN. Must be 11 numeric digits.",
+          errorCode: "INVALID_BVN",
+          durationMs: Date.now() - startTime,
+        });
+      }
+      return res.status(200).json({
+        status: "success",
+        code: 200,
+        message: "BVN matched successfully against NUBAN record.",
+        data: {
+          bvn: String(bvn),
+          accountNumber: accountNumber || "8085490982",
+          bankCode: bankCode || "035",
+          accountName: "ABUBAKAR MUHAMMAD",
+          bvnMatch: true,
+          matchConfidenceScore: 98.5,
+          status: "VERIFIED_MATCH",
+        },
+        durationMs: Date.now() - startTime,
+      });
+    }
+
+    case "/api/v1/voters-card/verify": {
+      const vin = payload?.vin || payload?.voterIdentificationNumber;
+      if (!vin || String(vin).length < 10) {
+        return res.status(400).json({
+          status: "error",
+          code: 400,
+          error: "Invalid VIN. Expected standard 19-character alphanumeric Voter Identification Number.",
+          errorCode: "INVALID_VIN",
+          durationMs: Date.now() - startTime,
+        });
+      }
+      return res.status(200).json({
+        status: "success",
+        code: 200,
+        message: "INEC Voter Card verified.",
+        data: {
+          vin: String(vin).toUpperCase(),
+          fullName: "ABUBAKAR MUHAMMAD",
+          gender: "M",
+          dob: "1994-05-14",
+          state: "Kano",
+          lga: "Nassarawa",
+          pollingUnit: "004 Gwagwarwa Primary School",
+          status: "REGISTERED_VOTER",
+        },
+        durationMs: Date.now() - startTime,
+      });
+    }
+
+    case "/api/v1/tin/verify": {
+      const tin = payload?.tin;
+      if (!tin || String(tin).length < 8) {
+        return res.status(400).json({
+          status: "error",
+          code: 400,
+          error: "Invalid TIN. Must be at least 8 digits.",
+          errorCode: "INVALID_TIN",
+          durationMs: Date.now() - startTime,
+        });
+      }
+      return res.status(200).json({
+        status: "success",
+        code: 200,
+        message: "Joint Tax Board TIN validated.",
+        data: {
+          tin: String(tin),
+          taxpayerName: "SMART LINK DIGITAL TECH SOLUTIONS LTD",
+          taxOffice: "MSTO Kano",
+          taxpayerType: "CORPORATE",
+          phone: "08085490982",
+          status: "ACTIVE_TAXPAYER",
+        },
+        durationMs: Date.now() - startTime,
+      });
+    }
+
+    case "/api/v1/vtu/airtime-to-cash": {
+      const { network, amount, senderPhone } = payload || {};
+      if (!amount || amount < 500) {
+        return res.status(400).json({
+          status: "error",
+          code: 400,
+          error: "Minimum airtime-to-cash amount is ₦500.",
+          errorCode: "MIN_AMOUNT_EXCEEDED",
+          durationMs: Date.now() - startTime,
+        });
+      }
+      const cashValue = Math.round(Number(amount) * 0.82);
+      return res.status(200).json({
+        status: "success",
+        code: 200,
+        message: "Airtime-to-cash transfer instructions generated.",
+        data: {
+          exchangeReference: `ATC_${Date.now()}`,
+          network: network || "MTN",
+          airtimeAmount: Number(amount),
+          cashPayoutValue: cashValue,
+          discountRate: "18%",
+          transferDestinationPhone: "08085490982",
+          instructions: "Transfer airtime using network share-and-sell to destination number within 15 minutes.",
+          status: "AWAITING_AIRTIME_TRANSFER",
+        },
+        durationMs: Date.now() - startTime,
+      });
+    }
+
+    case "/api/v1/education/waec": {
+      const quantity = Number(payload?.quantity || 1);
+      return res.status(200).json({
+        status: "success",
+        code: 200,
+        message: "WAEC Scratch Card PIN(s) purchased successfully.",
+        reference: `SLN_EDU_WAEC_${Date.now()}`,
+        data: {
+          examType: "WAEC",
+          quantity,
+          unitCost: 3500,
+          totalCost: 3500 * quantity,
+          cards: Array.from({ length: quantity }, (_, i) => ({
+            serialNumber: `WAEC${Date.now() + i}`,
+            pin: `${Math.floor(100000000000 + Math.random() * 900000000000)}`,
+            instructions: "Visit https://www.waecdirect.org to check your result.",
+          })),
+        },
+        durationMs: Date.now() - startTime,
+      });
+    }
+
+    case "/api/v1/education/neco": {
+      const quantity = Number(payload?.quantity || 1);
+      return res.status(200).json({
+        status: "success",
+        code: 200,
+        message: "NECO Result Token(s) generated.",
+        reference: `SLN_EDU_NECO_${Date.now()}`,
+        data: {
+          examType: "NECO",
+          quantity,
+          unitCost: 1200,
+          totalCost: 1200 * quantity,
+          tokens: Array.from({ length: quantity }, () => ({
+            token: `${Math.floor(100000000000 + Math.random() * 900000000000)}`,
+            instructions: "Visit https://result.neco.gov.ng to check your result.",
+          })),
+        },
+        durationMs: Date.now() - startTime,
+      });
+    }
+
+    case "/api/v1/education/nabteb": {
+      return res.status(200).json({
+        status: "success",
+        code: 200,
+        message: "NABTEB Scratch Card generated.",
+        reference: `SLN_EDU_NAB_${Date.now()}`,
+        data: {
+          examType: "NABTEB",
+          pin: `${Math.floor(100000000000 + Math.random() * 900000000000)}`,
+          serialNumber: `NAB${Date.now()}`,
+          unitCost: 1500,
+        },
+        durationMs: Date.now() - startTime,
+      });
+    }
+
+    case "/api/v1/education/jamb": {
+      const { profileCode } = payload || {};
+      if (!profileCode || String(profileCode).length < 10) {
+        return res.status(400).json({
+          status: "error",
+          code: 400,
+          error: "Invalid JAMB Profile Code. Expected 10 digits.",
+          errorCode: "INVALID_PROFILE_CODE",
+          durationMs: Date.now() - startTime,
+        });
+      }
+      return res.status(200).json({
+        status: "success",
+        code: 200,
+        message: "JAMB e-PIN generated successfully.",
+        reference: `SLN_EDU_JAMB_${Date.now()}`,
+        data: {
+          profileCode: String(profileCode),
+          candidateName: "ABUBAKAR MUHAMMAD",
+          epin: `${Math.floor(100000000000 + Math.random() * 900000000000)}`,
+          examType: "UTME_WITH_MOCK",
+          cost: 7700,
+          status: "EPIN_GENERATED",
+        },
+        durationMs: Date.now() - startTime,
+      });
+    }
+
+    case "/api/v1/webhooks/test": {
+      return res.status(200).json({
+        status: "success",
+        code: 200,
+        message: "Mock webhook test payload dispatched successfully.",
+        dispatchedEvent: {
+          event: payload?.event || "charge.success",
+          data: {
+            reference: `SLN_EVT_${Date.now()}`,
+            amount: 5000,
+            currency: "NGN",
+            status: "SUCCESS",
+            customer: {
+              email: "developer@smartlinkng.com.ng",
+              phone: "08085490982",
+            },
+            timestamp: new Date().toISOString(),
+          },
+        },
+        durationMs: Date.now() - startTime,
+      });
+    }
+
     default:
       return res.status(200).json({
         status: "success",

@@ -3,8 +3,31 @@
     "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
+      "package_name": "app.smartlinkng.com.ng",
+      "sha256_cert_fingerprints": [
+        "0E:E2:08:A0:FE:D3:BB:E8:97:1B:28:60:5F:C8:9B:70:6A:BE:24:ED:48:85:C7:23:E7:A1:AB:35:BE:DF:22:D4",
+        "1E:47:21:A1:B8:69:AB:2F:99:97:0C:A5:7B:80:D0:DE:CF:1E:F2:EE:DA:D7:8B:2E:4B:F3:AB:C7:84:50:1A:A0"
+      ]
+    }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
       "package_name": "App.smartlinkng.com.ng",
       "sha256_cert_fingerprints": [
+        "0E:E2:08:A0:FE:D3:BB:E8:97:1B:28:60:5F:C8:9B:70:6A:BE:24:ED:48:85:C7:23:E7:A1:AB:35:BE:DF:22:D4",
+        "1E:47:21:A1:B8:69:AB:2F:99:97:0C:A5:7B:80:D0:DE:CF:1E:F2:EE:DA:D7:8B:2E:4B:F3:AB:C7:84:50:1A:A0"
+      ]
+    }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.smartlinkng.app",
+      "sha256_cert_fingerprints": [
+        "0E:E2:08:A0:FE:D3:BB:E8:97:1B:28:60:5F:C8:9B:70:6A:BE:24:ED:48:85:C7:23:E7:A1:AB:35:BE:DF:22:D4",
         "1E:47:21:A1:B8:69:AB:2F:99:97:0C:A5:7B:80:D0:DE:CF:1E:F2:EE:DA:D7:8B:2E:4B:F3:AB:C7:84:50:1A:A0"
       ]
     }

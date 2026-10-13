@@ -2,9 +2,9 @@
  * @license
  * SPDX-License-Identifier: Apache-2.0
  * 
- * SmartLink NG Developer Hub - Identity Verification & Fintech Rails
- * Designed following LumiID & Identro API Provider Documentation Standards
- * Styled with Smart Link NG Signature Navy (#0F2D5C), Royal Blue (#17407E), and Fintech Green Theme
+ * SmartLink NG Developer Hub - Complete API Documentation Portal
+ * Follows LumiID & Identro Provider Standards with SmartLink NG Navy & Royal Theme
+ * API Keys Generation strictly gated to User Dashboard per security & KYC compliance guidelines
  */
 
 import React, { useState, useMemo, useEffect } from "react";
@@ -43,16 +43,25 @@ import {
   ExternalLink,
   ChevronRight,
   Fingerprint,
+  GraduationCap,
+  FileCheck,
+  BookOpen,
+  ArrowRight,
+  Layers,
+  Cpu,
 } from "lucide-react";
 import SEOHead from "../landing/SEOHead";
 import { useSiteConfig } from "../../context/SiteConfigContext";
 import { DEFAULT_LOGO_URL, handleLogoError } from "../../utils/brandLogo";
+import { UserProfile } from "../../types";
 
 interface ApiDocsPublicViewProps {
+  currentUser?: UserProfile | null;
   onLogin?: () => void;
   onRegister?: () => void;
   onGetStarted?: () => void;
   onNavigateHome: () => void;
+  onNavigateToDashboardApiKeys?: () => void;
   onNavigateLegal?: (docId?: string) => void;
 }
 
@@ -72,7 +81,7 @@ export interface ResponseField {
 
 export interface EndpointDefinition {
   id: string;
-  category: "Identity & KYC" | "Telecom & VTU" | "Utility Bills" | "Wallet & Banking";
+  category: "Identity & KYC" | "Telecom & VTU" | "Utility Bills" | "Education Pins" | "Wallet & Banking";
   method: "GET" | "POST";
   path: string;
   title: string;
@@ -86,10 +95,11 @@ export interface EndpointDefinition {
 }
 
 export const ApiDocsPublicView: React.FC<ApiDocsPublicViewProps> = ({
+  currentUser,
   onLogin,
   onRegister,
-  onGetStarted,
   onNavigateHome,
+  onNavigateToDashboardApiKeys,
 }) => {
   const { config, logoUrl: configuredLogoUrl, siteName } = useSiteConfig();
   const activeLogo =
@@ -108,20 +118,12 @@ export const ApiDocsPublicView: React.FC<ApiDocsPublicViewProps> = ({
   // Environment state (Production vs Sandbox)
   const [activeEnvironment, setActiveEnvironment] = useState<"sandbox" | "production">("sandbox");
 
-  // Instant API Key Generator state
-  const [generatedLiveKey, setGeneratedLiveKey] = useState<string>("YOUR_API_KEY_HERE");
-  const [generatedSandboxKey, setGeneratedSandboxKey] = useState<string>("sk_sandbox_8a0f96b917741156ab5acbc3");
-  const [generatedWebhookSecret, setGeneratedWebhookSecret] = useState<string>("whsec_a2d9a1affd071f6fc0779f377b95a42aad48c7d0");
-  const [isGeneratingKey, setIsGeneratingKey] = useState<boolean>(false);
-  const [keyNotice, setKeyNotice] = useState<string | null>(null);
-
   // Upstream Gateway SLA & health state
   const [providerHealth, setProviderHealth] = useState<any>(null);
   const [isFetchingProviders, setIsFetchingProviders] = useState<boolean>(false);
-  const [providerLastRefreshed, setProviderLastRefreshed] = useState<string | null>(null);
 
-  // Interactive Sandbox console state
-  const [sandboxApiKey, setSandboxApiKey] = useState<string>("sk_sandbox_8a0f96b917741156ab5acbc3");
+  // Interactive Sandbox console state (Trial Demo Key)
+  const [sandboxApiKey, setSandboxApiKey] = useState<string>("sk_sandbox_trial_node");
   const [sandboxPayloadText, setSandboxPayloadText] = useState<string>("");
   const [sandboxIsExecuting, setSandboxIsExecuting] = useState<boolean>(false);
   const [sandboxResponse, setSandboxResponse] = useState<any>(null);
@@ -137,10 +139,9 @@ export const ApiDocsPublicView: React.FC<ApiDocsPublicViewProps> = ({
       if (res.ok) {
         const data = await res.json();
         setProviderHealth(data);
-        setProviderLastRefreshed(new Date().toLocaleTimeString());
       }
     } catch {
-      // Fallback silent
+      // Fallback
     } finally {
       setIsFetchingProviders(false);
     }
@@ -173,43 +174,12 @@ export const ApiDocsPublicView: React.FC<ApiDocsPublicViewProps> = ({
     }
   };
 
-  const handleGenerateInstantKey = async () => {
-    setIsGeneratingKey(true);
-    setKeyNotice(null);
-    try {
-      const res = await fetch("/api/v1/developer/keys/instant", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: "Production Developer Node" }),
-      });
-      const data = await res.json();
-      if (data?.credentials) {
-        setGeneratedLiveKey(data.credentials.liveApiKey);
-        setGeneratedSandboxKey(data.credentials.sandboxApiKey);
-        setGeneratedWebhookSecret(data.credentials.webhookSecret);
-        setSandboxApiKey(data.credentials.sandboxApiKey);
-        setKeyNotice("Fresh credentials provisioned! Live and sandbox keys are active.");
-      }
-    } catch {
-      const mockLive = `sk_live_${Math.random().toString(36).slice(2, 10)}${Math.random().toString(36).slice(2, 10)}`;
-      const mockSand = `sk_sandbox_${Math.random().toString(36).slice(2, 10)}`;
-      const mockWh = `whsec_${Math.random().toString(36).slice(2, 10)}`;
-      setGeneratedLiveKey(mockLive);
-      setGeneratedSandboxKey(mockSand);
-      setGeneratedWebhookSecret(mockWh);
-      setSandboxApiKey(mockSand);
-      setKeyNotice("Fresh test developer keys generated.");
-    } finally {
-      setIsGeneratingKey(false);
-    }
-  };
-
   // =========================================================================
-  // COMPLETE ENDPOINTS REGISTRY (LumiID & Identro Provider Standards)
+  // COMPLETE PRODUCTION ENDPOINTS REGISTRY (28+ Endpoints)
   // =========================================================================
   const endpoints: EndpointDefinition[] = [
     // -----------------------------------------------------------------------
-    // IDENTITY & KYC VERIFICATION (LumiID / Identro Core)
+    // 1. IDENTITY & KYC VERIFICATION (LumiID / Identro Standard)
     // -----------------------------------------------------------------------
     {
       id: "nin_verify",
@@ -268,7 +238,7 @@ export const ApiDocsPublicView: React.FC<ApiDocsPublicViewProps> = ({
       path: "/api/v1/vnin/verify",
       title: "Verify Virtual NIN (vNIN)",
       shortDesc: "Privacy-preserving 16-character virtual identity verification",
-      description: "Queries the 16-character Virtual NIN generated from the NIMC MWS Mobile ID App or USSD code. Ensures maximum privacy compliance by retrieving verified demographics without storing or transmitting raw 11-digit NINs.",
+      description: "Queries the 16-character Virtual NIN generated from the NIMC MWS Mobile ID App or USSD code. Ensures privacy compliance by retrieving verified demographics without exposing raw 11-digit NINs.",
       complianceNote: "Mandatory standard for privacy-compliant Tier-3 customer onboarding under CBN guidelines.",
       parameters: [
         { name: "vnin", type: "string", required: true, description: "16-character vNIN alphanumeric code", example: "AB123456789012CD" },
@@ -340,6 +310,43 @@ export const ApiDocsPublicView: React.FC<ApiDocsPublicViewProps> = ({
       },
     },
     {
+      id: "bvn_match",
+      category: "Identity & KYC",
+      method: "POST",
+      path: "/api/v1/bvn/match",
+      title: "Match BVN with Account Number",
+      shortDesc: "Confirms biometric ownership between BVN and bank account",
+      description: "Performs strict two-way fuzzy matching between customer BVN and 10-digit NUBAN account records. Returns match confidence score and verified account names.",
+      parameters: [
+        { name: "bvn", type: "string", required: true, description: "11-digit Bank Verification Number", example: "22334455667" },
+        { name: "accountNumber", type: "string", required: true, description: "10-digit bank account number", example: "8085490982" },
+        { name: "bankCode", type: "string", required: false, description: "Bank CBN code (e.g. 035)", example: "035" },
+      ],
+      responseFields: [
+        { name: "bvnMatch", type: "boolean", description: "True if biometric BVN matches account record" },
+        { name: "matchConfidenceScore", type: "number", description: "Match percentage (0 - 100)" },
+      ],
+      defaultPayload: {
+        bvn: "22334455667",
+        accountNumber: "8085490982",
+        bankCode: "035",
+      },
+      sampleResponse: {
+        status: "success",
+        code: 200,
+        message: "BVN matched successfully against NUBAN record.",
+        data: {
+          bvn: "22334455667",
+          accountNumber: "8085490982",
+          bankCode: "035",
+          accountName: "ABUBAKAR MUHAMMAD",
+          bvnMatch: true,
+          matchConfidenceScore: 98.5,
+          status: "VERIFIED_MATCH",
+        },
+      },
+    },
+    {
       id: "bank_resolve",
       category: "Identity & KYC",
       method: "POST",
@@ -373,6 +380,34 @@ export const ApiDocsPublicView: React.FC<ApiDocsPublicViewProps> = ({
           bvnMatched: true,
           currency: "NGN",
         },
+      },
+    },
+    {
+      id: "bank_list",
+      category: "Identity & KYC",
+      method: "GET",
+      path: "/api/v1/bank/list",
+      title: "Supported Nigerian Banks Directory",
+      shortDesc: "List all active commercial banks, digital banks, and CBN routing codes",
+      description: "Returns the official directory of all Nigerian financial institutions, CBN bank codes, and settlement slugs supported for account name validation and transfers.",
+      parameters: [],
+      responseFields: [
+        { name: "data", type: "array", description: "Array of financial institutions with name, code, and slug" },
+      ],
+      sampleResponse: {
+        status: "success",
+        code: 200,
+        banksCount: 8,
+        data: [
+          { name: "Access Bank", code: "044", slug: "access-bank" },
+          { name: "Guaranty Trust Bank (GTBank)", code: "058", slug: "gtbank" },
+          { name: "United Bank for Africa (UBA)", code: "033", slug: "uba" },
+          { name: "Zenith Bank", code: "057", slug: "zenith-bank" },
+          { name: "Wema Bank / ALAT", code: "035", slug: "wema-bank" },
+          { name: "Moniepoint Microfinance Bank", code: "50515", slug: "moniepoint" },
+          { name: "OPay Digital Services", code: "999992", slug: "opay" },
+          { name: "Kuda Microfinance Bank", code: "50211", slug: "kuda" },
+        ],
       },
     },
     {
@@ -526,9 +561,78 @@ export const ApiDocsPublicView: React.FC<ApiDocsPublicViewProps> = ({
         },
       },
     },
+    {
+      id: "voters_card",
+      category: "Identity & KYC",
+      method: "POST",
+      path: "/api/v1/voters-card/verify",
+      title: "Verify Voter's Card (VIN / INEC)",
+      shortDesc: "Independent National Electoral Commission voter registry lookup",
+      description: "Validates 19-digit Voter Identification Numbers (VIN) against official INEC polling registers. Confirms voter registration status, polling unit, and resident LGA.",
+      parameters: [
+        { name: "vin", type: "string", required: true, description: "19-character alphanumeric Voter Identification Number", example: "90F5B12345678901234" },
+      ],
+      responseFields: [
+        { name: "vin", type: "string", description: "Verified Voter Identification Number" },
+        { name: "fullName", type: "string", description: "Registered voter full name" },
+        { name: "pollingUnit", type: "string", description: "Designated voting unit address" },
+        { name: "status", type: "string", description: "Voter status" },
+      ],
+      defaultPayload: {
+        vin: "90F5B12345678901234",
+      },
+      sampleResponse: {
+        status: "success",
+        code: 200,
+        message: "INEC Voter Card verified.",
+        data: {
+          vin: "90F5B12345678901234",
+          fullName: "ABUBAKAR MUHAMMAD",
+          gender: "M",
+          dob: "1994-05-14",
+          state: "Kano",
+          lga: "Nassarawa",
+          pollingUnit: "004 Gwagwarwa Primary School",
+          status: "REGISTERED_VOTER",
+        },
+      },
+    },
+    {
+      id: "tin_verify",
+      category: "Identity & KYC",
+      method: "POST",
+      path: "/api/v1/tin/verify",
+      title: "Validate Joint Tax Board (JTB) TIN",
+      shortDesc: "Official Tax Identification Number validation for individuals & companies",
+      description: "Direct lookup against the Joint Tax Board (JTB) National Database. Validates personal and corporate Tax Identification Numbers, tax office assignment, and active taxpayer status.",
+      parameters: [
+        { name: "tin", type: "string", required: true, description: "10-digit or 12-digit Tax Identification Number", example: "1234567890" },
+      ],
+      responseFields: [
+        { name: "tin", type: "string", description: "Tax Identification Number" },
+        { name: "taxpayerName", type: "string", description: "Registered personal or corporate name" },
+        { name: "taxOffice", type: "string", description: "Assigned local tax office" },
+      ],
+      defaultPayload: {
+        tin: "1234567890",
+      },
+      sampleResponse: {
+        status: "success",
+        code: 200,
+        message: "Joint Tax Board TIN validated.",
+        data: {
+          tin: "1234567890",
+          taxpayerName: "SMART LINK DIGITAL TECH SOLUTIONS LTD",
+          taxOffice: "MSTO Kano",
+          taxpayerType: "CORPORATE",
+          phone: "08085490982",
+          status: "ACTIVE_TAXPAYER",
+        },
+      },
+    },
 
     // -----------------------------------------------------------------------
-    // TELECOMS & VTU AIRTIME / DATA
+    // 2. TELECOMS & VTU AIRTIME / DATA
     // -----------------------------------------------------------------------
     {
       id: "vtu_airtime",
@@ -585,9 +689,9 @@ export const ApiDocsPublicView: React.FC<ApiDocsPublicViewProps> = ({
       ],
       responseFields: [
         { name: "reference", type: "string", description: "Unique data transaction reference" },
-        { name: "dataSize", type: "string", description: "Provisioned volume (e.g. '1.0 GB SME Data')", },
-        { name: "validity", type: "string", description: "Bundle validity duration (e.g. '30 Days')", },
-        { name: "status", type: "string", description: "Delivery status: SUCCESS", },
+        { name: "dataSize", type: "string", description: "Provisioned volume (e.g. '1.0 GB SME Data')" },
+        { name: "validity", type: "string", description: "Bundle validity duration (e.g. '30 Days')" },
+        { name: "status", type: "string", description: "Delivery status: SUCCESS" },
       ],
       defaultPayload: {
         network: "MTN",
@@ -636,9 +740,46 @@ export const ApiDocsPublicView: React.FC<ApiDocsPublicViewProps> = ({
         ],
       },
     },
+    {
+      id: "vtu_airtime_to_cash",
+      category: "Telecom & VTU",
+      method: "POST",
+      path: "/api/v1/vtu/airtime-to-cash",
+      title: "Airtime-to-Cash Exchange",
+      shortDesc: "Automated airtime conversion with direct wallet cash payout",
+      description: "Generates destination transfer instructions for converting excess MTN, Airtel, or Glo airtime into cash credited directly to the developer node wallet.",
+      parameters: [
+        { name: "network", type: "string", required: true, description: "Network operator: 'MTN', 'AIRTEL', 'GLO'", example: "MTN" },
+        { name: "amount", type: "number", required: true, description: "Face value airtime amount (Min: 500)", example: "5000" },
+        { name: "senderPhone", type: "string", required: true, description: "Phone number sending the airtime", example: "08085490982" },
+      ],
+      responseFields: [
+        { name: "cashPayoutValue", type: "number", description: "Net cash amount credited to wallet" },
+        { name: "transferDestinationPhone", type: "string", description: "Dedicated SmartLink receiver phone number" },
+      ],
+      defaultPayload: {
+        network: "MTN",
+        amount: 5000,
+        senderPhone: "08085490982",
+      },
+      sampleResponse: {
+        status: "success",
+        code: 200,
+        message: "Airtime-to-cash transfer instructions generated.",
+        data: {
+          exchangeReference: "ATC_1712638330",
+          network: "MTN",
+          airtimeAmount: 5000,
+          cashPayoutValue: 4100,
+          discountRate: "18%",
+          transferDestinationPhone: "08085490982",
+          status: "AWAITING_AIRTIME_TRANSFER",
+        },
+      },
+    },
 
     // -----------------------------------------------------------------------
-    // UTILITIES & BILL PAYMENTS
+    // 3. UTILITIES & BILL PAYMENTS
     // -----------------------------------------------------------------------
     {
       id: "bills_electricity_verify",
@@ -751,9 +892,167 @@ export const ApiDocsPublicView: React.FC<ApiDocsPublicViewProps> = ({
         },
       },
     },
+    {
+      id: "bills_cable_pay",
+      category: "Utility Bills",
+      method: "POST",
+      path: "/api/v1/bills/cable/pay",
+      title: "Renew Cable TV Subscription",
+      shortDesc: "Instant bouquet activation and renewal across DStv, GOtv, Startimes",
+      description: "Submits payment to renew or upgrade cable TV subscriptions. Automatically restores channels within 2 minutes via direct MultiChoice / Startimes API gateways.",
+      parameters: [
+        { name: "provider", type: "string", required: true, description: "'dstv', 'gotv', 'startimes'", example: "gotv" },
+        { name: "smartcardNumber", type: "string", required: true, description: "10-digit Smartcard/IUC number", example: "2020123456" },
+        { name: "packageCode", type: "string", required: true, description: "Bouquet package code", example: "gotv-jolli" },
+      ],
+      responseFields: [
+        { name: "status", type: "string", description: "Subscription status: SUCCESS" },
+        { name: "renewalReference", type: "string", description: "Official operator transaction reference" },
+      ],
+      defaultPayload: {
+        provider: "gotv",
+        smartcardNumber: "2020123456",
+        packageCode: "gotv-jolli",
+      },
+      sampleResponse: {
+        status: "success",
+        code: 200,
+        message: "Cable subscription renewed successfully.",
+        reference: "SLN_CAB_1712638340",
+        data: {
+          provider: "gotv",
+          smartcardNumber: "2020123456",
+          packageName: "GOtv Jolli",
+          amount: 4850,
+          status: "SUCCESS",
+        },
+      },
+    },
 
     // -----------------------------------------------------------------------
-    // WALLET & BANKING RAILS
+    // 4. EDUCATION SCRATCH CARDS & EXAM PINS
+    // -----------------------------------------------------------------------
+    {
+      id: "education_waec",
+      category: "Education Pins",
+      method: "POST",
+      path: "/api/v1/education/waec",
+      title: "Purchase WAEC Result Checker PIN",
+      shortDesc: "Vends official West African Examinations Council scratch cards",
+      description: "Automated generation of official WAEC Result Checker PINs and serial numbers for candidate result verification on waecdirect.org.",
+      parameters: [
+        { name: "quantity", type: "number", required: false, description: "Number of PINs to purchase (Default: 1)", example: "1" },
+      ],
+      responseFields: [
+        { name: "cards", type: "array", description: "Array of serial numbers and PINs" },
+      ],
+      defaultPayload: {
+        quantity: 1,
+      },
+      sampleResponse: {
+        status: "success",
+        code: 200,
+        message: "WAEC Scratch Card PIN(s) purchased successfully.",
+        data: {
+          examType: "WAEC",
+          quantity: 1,
+          unitCost: 3500,
+          cards: [
+            { serialNumber: "WAEC1712638350", pin: "482019283849", instructions: "Visit https://www.waecdirect.org to check your result." },
+          ],
+        },
+      },
+    },
+    {
+      id: "education_neco",
+      category: "Education Pins",
+      method: "POST",
+      path: "/api/v1/education/neco",
+      title: "Purchase NECO Result Token PIN",
+      shortDesc: "National Examinations Council result verification tokens",
+      description: "Generates authentic NECO Result Checker tokens for SSCE (Internal & External) result lookup on result.neco.gov.ng.",
+      parameters: [
+        { name: "quantity", type: "number", required: false, description: "Number of tokens to purchase", example: "1" },
+      ],
+      responseFields: [
+        { name: "tokens", type: "array", description: "Array of generated NECO tokens" },
+      ],
+      defaultPayload: {
+        quantity: 1,
+      },
+      sampleResponse: {
+        status: "success",
+        code: 200,
+        message: "NECO Result Token(s) generated.",
+        data: {
+          examType: "NECO",
+          quantity: 1,
+          unitCost: 1200,
+          tokens: [
+            { token: "982019482012", instructions: "Visit https://result.neco.gov.ng to check your result." },
+          ],
+        },
+      },
+    },
+    {
+      id: "education_nabteb",
+      category: "Education Pins",
+      method: "POST",
+      path: "/api/v1/education/nabteb",
+      title: "Purchase NABTEB Scratch Card",
+      shortDesc: "National Business and Technical Examinations Board result card",
+      description: "Generates genuine NABTEB scratch card PIN and serial number for checking NBC/NTC examination results online.",
+      parameters: [],
+      responseFields: [
+        { name: "pin", type: "string", description: "Recharge PIN" },
+        { name: "serialNumber", type: "string", description: "Serial number" },
+      ],
+      sampleResponse: {
+        status: "success",
+        code: 200,
+        message: "NABTEB Scratch Card generated.",
+        data: {
+          examType: "NABTEB",
+          pin: "782910482910",
+          serialNumber: "NAB1712638360",
+          unitCost: 1500,
+        },
+      },
+    },
+    {
+      id: "education_jamb",
+      category: "Education Pins",
+      method: "POST",
+      path: "/api/v1/education/jamb",
+      title: "Validate JAMB Profile & Vend e-PIN",
+      shortDesc: "UTME / Direct Entry registration e-PIN vending via profile code",
+      description: "Validates 10-digit JAMB Profile Code, resolves candidate registration name, and vends official UTME or Direct Entry registration e-PIN directly.",
+      parameters: [
+        { name: "profileCode", type: "string", required: true, description: "10-digit candidate JAMB Profile Code", example: "1234567890" },
+      ],
+      responseFields: [
+        { name: "candidateName", type: "string", description: "Candidate legal name registered with JAMB" },
+        { name: "epin", type: "string", description: "Official UTME registration e-PIN" },
+      ],
+      defaultPayload: {
+        profileCode: "1234567890",
+      },
+      sampleResponse: {
+        status: "success",
+        code: 200,
+        message: "JAMB e-PIN generated successfully.",
+        data: {
+          profileCode: "1234567890",
+          candidateName: "ABUBAKAR MUHAMMAD",
+          epin: "849201948201",
+          examType: "UTME_WITH_MOCK",
+          cost: 7700,
+        },
+      },
+    },
+
+    // -----------------------------------------------------------------------
+    // 5. WALLET, VIRTUAL ACCOUNTS & FINANCIAL RAILS
     // -----------------------------------------------------------------------
     {
       id: "wallet_balance",
@@ -761,12 +1060,12 @@ export const ApiDocsPublicView: React.FC<ApiDocsPublicViewProps> = ({
       method: "GET",
       path: "/api/v1/wallet/balance",
       title: "Query Developer Ledger Balance",
-      shortDesc: "Real-time ledger balance, ledger currency, and wholesale credit limit",
-      description: "Retrieves the current ledger balance, reserved balance, currency code, and automated overdraft limit of your developer node wallet.",
+      shortDesc: "Real-time ledger balance, currency, and overdraft limit",
+      description: "Retrieves the current available spendable balance, reserved balance, and automated auto-credit status of your developer node wallet.",
       parameters: [],
       responseFields: [
         { name: "walletBalance", type: "number", description: "Available spendable balance in NGN" },
-        { name: "currency", type: "string", description: "Three-letter currency code (NGN)" },
+        { name: "currency", type: "string", description: "Currency code (NGN)" },
       ],
       sampleResponse: {
         status: "success",
@@ -840,6 +1139,38 @@ export const ApiDocsPublicView: React.FC<ApiDocsPublicViewProps> = ({
       },
     },
     {
+      id: "webhooks_test",
+      category: "Wallet & Banking",
+      method: "POST",
+      path: "/api/v1/webhooks/test",
+      title: "Webhook Event Delivery Test",
+      shortDesc: "Simulates test event dispatch with valid HMAC-SHA512 signature",
+      description: "Sends a sample webhook notification payload to your configured server endpoint to verify signature validation and server-side handling.",
+      parameters: [
+        { name: "event", type: "string", required: false, description: "Event type: 'charge.success', 'identity.verified'", example: "charge.success" },
+      ],
+      responseFields: [
+        { name: "dispatchedEvent", type: "object", description: "Full event payload sent to destination" },
+      ],
+      defaultPayload: {
+        event: "charge.success",
+      },
+      sampleResponse: {
+        status: "success",
+        code: 200,
+        message: "Mock webhook test payload dispatched successfully.",
+        dispatchedEvent: {
+          event: "charge.success",
+          data: {
+            reference: "SLN_EVT_1712638380",
+            amount: 5000,
+            currency: "NGN",
+            status: "SUCCESS",
+          },
+        },
+      },
+    },
+    {
       id: "providers_status",
       category: "Wallet & Banking",
       method: "GET",
@@ -868,12 +1199,12 @@ export const ApiDocsPublicView: React.FC<ApiDocsPublicViewProps> = ({
 
   // Guides definition
   const guides = [
-    { id: "guide_overview", label: "Overview & Base URLs", icon: Globe, section: "GETTING STARTED" },
-    { id: "guide_auth", label: "Authentication & Bearer Keys", icon: Lock, section: "GETTING STARTED" },
-    { id: "guide_keys", label: "Instant API Key Generator", icon: KeyRound, section: "GETTING STARTED" },
-    { id: "guide_webhooks", label: "Webhooks & HMAC Signatures", icon: Webhook, section: "GETTING STARTED" },
-    { id: "guide_infrastructure", label: "Upstream Rails SLA (99.98%)", icon: Server, section: "GETTING STARTED" },
-    { id: "guide_errors", label: "Status Codes & Error Standard", icon: AlertTriangle, section: "GETTING STARTED" },
+    { id: "guide_overview", label: "Overview & Architecture", icon: Globe },
+    { id: "guide_auth", label: "Authentication & Security Protocols", icon: Lock },
+    { id: "guide_keys", label: "Dashboard API Keys & Sandbox Access", icon: KeyRound },
+    { id: "guide_webhooks", label: "Webhooks & HMAC Signatures", icon: Webhook },
+    { id: "guide_sdks", label: "SDKs & Code Libraries", icon: Code },
+    { id: "guide_errors", label: "Status Codes & Error Directory", icon: AlertTriangle },
   ];
 
   // Active endpoint calculation
@@ -974,7 +1305,7 @@ export const ApiDocsPublicView: React.FC<ApiDocsPublicViewProps> = ({
   const getDynamicCurl = (ep: EndpointDefinition) => {
     const payloadStr = ep.defaultPayload ? JSON.stringify(ep.defaultPayload, null, 2) : "{}";
     const baseUrl = activeEnvironment === "production" ? "https://smartlinkng.com.ng" : "https://sandbox.smartlinkng.com.ng";
-    const key = activeEnvironment === "production" ? generatedLiveKey : sandboxApiKey;
+    const key = activeEnvironment === "production" ? "YOUR_API_KEY_HERE" : sandboxApiKey;
 
     if (ep.method === "GET") {
       return `curl -X GET "${baseUrl}${ep.path}" \\
@@ -990,7 +1321,7 @@ export const ApiDocsPublicView: React.FC<ApiDocsPublicViewProps> = ({
   const getDynamicNode = (ep: EndpointDefinition) => {
     const payloadStr = ep.defaultPayload ? JSON.stringify(ep.defaultPayload, null, 2) : "{}";
     const baseUrl = activeEnvironment === "production" ? "https://smartlinkng.com.ng" : "https://sandbox.smartlinkng.com.ng";
-    const key = activeEnvironment === "production" ? generatedLiveKey : sandboxApiKey;
+    const key = activeEnvironment === "production" ? "YOUR_API_KEY_HERE" : sandboxApiKey;
 
     if (ep.method === "GET") {
       return `import axios from 'axios';
@@ -1027,7 +1358,7 @@ console.log('Result:', response.data);`;
   const getDynamicPython = (ep: EndpointDefinition) => {
     const payloadStr = ep.defaultPayload ? JSON.stringify(ep.defaultPayload, null, 2) : "{}";
     const baseUrl = activeEnvironment === "production" ? "https://smartlinkng.com.ng" : "https://sandbox.smartlinkng.com.ng";
-    const key = activeEnvironment === "production" ? generatedLiveKey : sandboxApiKey;
+    const key = activeEnvironment === "production" ? "YOUR_API_KEY_HERE" : sandboxApiKey;
 
     if (ep.method === "GET") {
       return `import requests
@@ -1057,7 +1388,7 @@ print(response.json())`;
   const getDynamicPhp = (ep: EndpointDefinition) => {
     const payloadStr = ep.defaultPayload ? JSON.stringify(ep.defaultPayload, null, 2) : "{}";
     const baseUrl = activeEnvironment === "production" ? "https://smartlinkng.com.ng" : "https://sandbox.smartlinkng.com.ng";
-    const key = activeEnvironment === "production" ? generatedLiveKey : sandboxApiKey;
+    const key = activeEnvironment === "production" ? "YOUR_API_KEY_HERE" : sandboxApiKey;
 
     if (ep.method === "GET") {
       return `<?php
@@ -1108,28 +1439,28 @@ echo $response;`;
       default:
         return getDynamicCurl(activeEndpoint);
     }
-  }, [activeEndpoint, selectedLanguage, sandboxApiKey, generatedLiveKey, activeEnvironment]);
+  }, [activeEndpoint, selectedLanguage, sandboxApiKey, activeEnvironment]);
 
-  const categories = ["Identity & KYC", "Telecom & VTU", "Utility Bills", "Wallet & Banking"] as const;
+  const categories = ["Identity & KYC", "Telecom & VTU", "Utility Bills", "Education Pins", "Wallet & Banking"] as const;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#1E293B] flex flex-col font-sans selection:bg-[#0F2D5C] selection:text-white">
+    <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A] flex flex-col font-sans selection:bg-[#0F2D5C] selection:text-white">
       <SEOHead
         title="SmartLink NG Developer Hub | Official Identity Verification & Fintech APIs"
-        description="Statutory Nigerian identity verification (NIN, BVN, CAC, Phone KYC), telecom VTU airtime & data, electricity bills, and developer virtual accounts API documentation modeled on LumiID and Identro provider standards."
+        description="Comprehensive developer REST API documentation with interactive sandbox, live endpoint testing, OpenAPI 3.0 specs, and code snippets for NIN, BVN, VTU airtime, and electricity bills."
         canonicalUrl="https://smartlinkng.com.ng/api-docs"
       />
 
       {/* =========================================================================
-          TOP PERSISTENT DEVELOPER NAV HEADER (Smart Link NG Signature Theme)
+          TOP PERSISTENT DEVELOPER NAV HEADER (High Contrast & SmartLink Navy Theme)
       ========================================================================= */}
-      <header className="sticky top-0 z-40 bg-white border-b border-[#E2E8F0] px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between shadow-xs">
+      <header className="sticky top-0 z-40 bg-white border-b border-[#CBD5E1] px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between shadow-xs">
         {/* Left: Mobile Toggle & Brand Logo */}
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
-            className="lg:hidden p-1.5 rounded-lg text-[#374151] hover:text-[#0F2D5C] hover:bg-[#F3F4F6] cursor-pointer"
+            className="lg:hidden p-1.5 rounded-lg text-[#0F2D5C] hover:bg-[#F1F5F9] cursor-pointer"
             aria-label="Toggle navigation"
           >
             {mobileSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -1146,25 +1477,24 @@ echo $response;`;
               className="h-8 sm:h-9 w-auto object-contain"
               onError={handleLogoError}
             />
-            <div className="hidden sm:block border-l border-[#E2E8F0] pl-3 py-0.5">
+            <div className="hidden sm:block border-l border-[#CBD5E1] pl-3 py-0.5">
               <div className="flex items-center gap-2">
                 <span className="font-extrabold text-sm tracking-tight text-[#0F2D5C] group-hover:text-[#17407E] transition-colors">
                   Developer Portal
                 </span>
-                <span className="text-[10px] font-mono text-[#0F2D5C] bg-[#0F2D5C]/10 border border-[#0F2D5C]/20 px-1.5 py-0.2 rounded font-bold">
+                <span className="text-[10px] font-mono text-[#0F2D5C] bg-[#0F2D5C]/10 border border-[#0F2D5C]/30 px-1.5 py-0.2 rounded font-bold">
                   v1.4.0
                 </span>
               </div>
-              <p className="text-[10.5px] text-[#64748B]">
+              <p className="text-[10.5px] text-[#475569] font-medium">
                 LumiID &amp; Identro Rails Standard
               </p>
             </div>
           </button>
         </div>
 
-        {/* Center: Environment Toggle & Base URL (SmartLink Navy & Slate) */}
+        {/* Center: Environment Toggle & Base URL */}
         <div className="hidden md:flex items-center gap-3">
-          {/* Environment Selector Switch */}
           <div className="flex items-center bg-[#F1F5F9] p-1 rounded-lg border border-[#CBD5E1]">
             <button
               type="button"
@@ -1172,7 +1502,7 @@ echo $response;`;
               className={`px-2.5 py-1 text-xs font-bold rounded-md transition-all cursor-pointer ${
                 activeEnvironment === "sandbox"
                   ? "bg-[#0F2D5C] text-white shadow-xs"
-                  : "text-[#64748B] hover:text-[#0F2D5C]"
+                  : "text-[#475569] hover:text-[#0F2D5C]"
               }`}
             >
               Sandbox Testbed
@@ -1183,17 +1513,16 @@ echo $response;`;
               className={`px-2.5 py-1 text-xs font-bold rounded-md transition-all cursor-pointer ${
                 activeEnvironment === "production"
                   ? "bg-[#0F2D5C] text-white shadow-xs"
-                  : "text-[#64748B] hover:text-[#0F2D5C]"
+                  : "text-[#475569] hover:text-[#0F2D5C]"
               }`}
             >
               Live Production
             </button>
           </div>
 
-          {/* Base URL Indicator */}
-          <div className="flex items-center gap-2 px-3 py-1 bg-[#F8FAFC] rounded-lg border border-[#CBD5E1] text-xs text-[#475569] font-mono">
-            <span className="text-[#64748B] font-semibold">Base:</span>
-            <span className="text-[#0F2D5C] font-bold">
+          <div className="flex items-center gap-2 px-3 py-1 bg-[#F8FAFC] rounded-lg border border-[#CBD5E1] text-xs text-[#0F172A] font-mono font-medium">
+            <span className="text-[#475569] font-bold">Base:</span>
+            <span className="text-[#0F2D5C] font-extrabold">
               {activeEnvironment === "production" ? "https://smartlinkng.com.ng" : "https://sandbox.smartlinkng.com.ng"}
             </span>
             <button
@@ -1202,29 +1531,35 @@ echo $response;`;
                 activeEnvironment === "production" ? "https://smartlinkng.com.ng" : "https://sandbox.smartlinkng.com.ng",
                 "base_url"
               )}
-              className="text-[#64748B] hover:text-[#0F2D5C] cursor-pointer ml-1"
+              className="text-[#475569] hover:text-[#0F2D5C] cursor-pointer ml-1"
               title="Copy Base URL"
             >
-              {copiedField === "base_url" ? <Check className="h-3 w-3 text-emerald-600" /> : <Copy className="h-3 w-3" />}
+              {copiedField === "base_url" ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
             </button>
           </div>
         </div>
 
-        {/* Right Action Controls (SmartLink Brand Colors) */}
+        {/* Right Action Controls */}
         <div className="flex items-center gap-2 sm:gap-2.5">
           <button
             type="button"
-            onClick={() => setSelectedItem("guide_keys")}
+            onClick={() => {
+              if (currentUser && onNavigateToDashboardApiKeys) {
+                onNavigateToDashboardApiKeys();
+              } else {
+                setSelectedItem("guide_keys");
+              }
+            }}
             className="px-3 sm:px-3.5 py-1.5 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold text-xs rounded-lg transition-all shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95"
           >
             <KeyRound className="h-3.5 w-3.5 text-amber-300" />
-            <span>Get API Keys</span>
+            <span>{currentUser ? "My Dashboard Keys" : "Get API Keys"}</span>
           </button>
 
           <button
             type="button"
             onClick={() => handleDownloadFile("/openapi.json", "smartlink-openapi.json")}
-            className="hidden sm:flex px-3 py-1.5 bg-white hover:bg-[#F8FAFC] text-[#334155] font-semibold text-xs rounded-lg border border-[#CBD5E1] transition-all items-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs"
+            className="hidden sm:flex px-3 py-1.5 bg-white hover:bg-[#F8FAFC] text-[#0F2D5C] font-bold text-xs rounded-lg border border-[#CBD5E1] transition-all items-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs"
           >
             <Download className="h-3.5 w-3.5 text-[#0F2D5C]" />
             <span>OpenAPI 3.0</span>
@@ -1233,16 +1568,16 @@ echo $response;`;
           <button
             type="button"
             onClick={() => handleDownloadFile("/api/v1/postman.json", "smartlink-postman-collection.json")}
-            className="hidden lg:flex px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 font-semibold text-xs rounded-lg border border-amber-300 transition-all items-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs"
+            className="hidden lg:flex px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-950 font-bold text-xs rounded-lg border border-amber-300 transition-all items-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs"
           >
-            <Download className="h-3.5 w-3.5 text-amber-600" />
+            <Download className="h-3.5 w-3.5 text-amber-700" />
             <span>Postman</span>
           </button>
 
           <button
             type="button"
             onClick={onNavigateHome}
-            className="p-1.5 text-[#4B5563] hover:text-[#0F2D5C] rounded-lg hover:bg-[#F3F4F6] cursor-pointer transition-colors"
+            className="p-1.5 text-[#0F2D5C] hover:bg-[#F1F5F9] rounded-lg cursor-pointer transition-colors"
             title="Return to Main Portal"
           >
             <Home className="h-4 w-4" />
@@ -1256,29 +1591,29 @@ echo $response;`;
       <div className="flex-1 flex max-w-[1920px] w-full mx-auto relative overflow-hidden">
         
         {/* ========================================================
-            COLUMN 1: LEFT SIDEBAR NAVIGATION (SmartLink Clean Sidebar)
+            COLUMN 1: LEFT SIDEBAR NAVIGATION
         ======================================================== */}
         <aside
-          className={`fixed inset-y-0 left-0 top-14 sm:top-16 z-30 w-72 sm:w-80 bg-white border-r border-[#E2E8F0] flex flex-col transition-transform duration-200 lg:static lg:translate-x-0 shadow-xs ${
+          className={`fixed inset-y-0 left-0 top-14 sm:top-16 z-30 w-72 sm:w-80 bg-white border-r border-[#CBD5E1] flex flex-col transition-transform duration-200 lg:static lg:translate-x-0 shadow-xs ${
             mobileSidebarOpen ? "translate-x-0" : "-translate-x-0 max-lg:-translate-x-full"
           }`}
         >
           {/* Search Bar Input */}
-          <div className="p-3.5 border-b border-[#E2E8F0] bg-[#F8FAFC]">
+          <div className="p-3.5 border-b border-[#CBD5E1] bg-[#F8FAFC]">
             <div className="relative">
-              <Search className="h-3.5 w-3.5 text-[#64748B] absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="h-3.5 w-3.5 text-[#475569] absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search NIN, BVN, VTU endpoints..."
-                className="w-full bg-white text-xs text-[#0F172A] pl-8 pr-3 py-2 rounded-lg border border-[#CBD5E1] focus:outline-none focus:border-[#0F2D5C] focus:ring-1 focus:ring-[#0F2D5C] transition-colors placeholder:text-[#94A3B8] font-sans"
+                placeholder="Search NIN, BVN, VTU, Education..."
+                className="w-full bg-white text-xs text-[#0F172A] pl-8 pr-3 py-2 rounded-lg border border-[#CBD5E1] focus:outline-none focus:border-[#0F2D5C] focus:ring-1 focus:ring-[#0F2D5C] transition-colors placeholder:text-[#64748B] font-sans font-medium"
               />
             </div>
           </div>
 
           {/* Navigation Items Scroll Container */}
-          <div className="flex-1 overflow-y-auto p-3 space-y-5 text-xs select-none scrollbar-thin scrollbar-thumb-slate-200">
+          <div className="flex-1 overflow-y-auto p-3 space-y-5 text-xs select-none scrollbar-thin scrollbar-thumb-slate-300">
             {/* Guides Section */}
             <div>
               <div className="px-2.5 pb-1.5 text-[11px] font-black text-[#0F2D5C] tracking-wider uppercase flex items-center justify-between">
@@ -1296,13 +1631,13 @@ echo $response;`;
                         setSelectedItem(g.id);
                         setMobileSidebarOpen(false);
                       }}
-                      className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-all text-left cursor-pointer font-medium ${
+                      className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-all text-left cursor-pointer font-semibold ${
                         isActive
-                          ? "bg-[#0F2D5C] text-white font-bold shadow-xs"
-                          : "text-[#475569] hover:text-[#0F2D5C] hover:bg-[#F1F5F9]"
+                          ? "bg-[#0F2D5C] text-white shadow-xs"
+                          : "text-[#334155] hover:text-[#0F2D5C] hover:bg-[#F1F5F9]"
                       }`}
                     >
-                      <Icon className={`h-3.5 w-3.5 shrink-0 ${isActive ? "text-amber-300" : "text-[#64748B]"}`} />
+                      <Icon className={`h-3.5 w-3.5 shrink-0 ${isActive ? "text-amber-300" : "text-[#475569]"}`} />
                       <span className="truncate">{g.label}</span>
                     </button>
                   );
@@ -1310,7 +1645,7 @@ echo $response;`;
               </div>
             </div>
 
-            {/* Endpoints Grouped by Category (LumiID / Identro Standard) */}
+            {/* Endpoints Grouped by Category */}
             {categories.map((cat) => {
               const catEndpoints = filteredEndpoints.filter((ep) => ep.category === cat);
               if (catEndpoints.length === 0) return null;
@@ -1319,7 +1654,7 @@ echo $response;`;
                 <div key={cat}>
                   <div className="px-2.5 pb-1.5 text-[11px] font-black text-[#0F2D5C] tracking-wider uppercase flex items-center justify-between">
                     <span>{cat}</span>
-                    <span className="text-[10px] text-[#64748B] font-mono font-normal">
+                    <span className="text-[10px] text-[#475569] font-mono font-bold">
                       {catEndpoints.length}
                     </span>
                   </div>
@@ -1337,7 +1672,7 @@ echo $response;`;
                           className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg transition-all text-left cursor-pointer ${
                             isActive
                               ? "bg-[#0F2D5C] text-white font-bold shadow-xs"
-                              : "text-[#475569] hover:text-[#0F2D5C] hover:bg-[#F1F5F9]"
+                              : "text-[#334155] hover:text-[#0F2D5C] hover:bg-[#F1F5F9]"
                           }`}
                         >
                           <span className="truncate pr-2 font-medium">{ep.title}</span>
@@ -1346,8 +1681,8 @@ echo $response;`;
                               isActive
                                 ? "bg-white/20 text-white"
                                 : ep.method === "GET"
-                                ? "bg-blue-50 text-blue-700 border border-blue-200"
-                                : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                ? "bg-blue-100 text-blue-900 border border-blue-300"
+                                : "bg-emerald-100 text-emerald-950 border border-emerald-300"
                             }`}
                           >
                             {ep.method}
@@ -1361,13 +1696,13 @@ echo $response;`;
             })}
           </div>
 
-          {/* Left Sidebar Footer: SmartLink SLA commitment */}
-          <div className="p-3 border-t border-[#E2E8F0] bg-[#F8FAFC] text-[11px] text-[#64748B] flex items-center justify-between">
+          {/* Left Sidebar Footer: SLA */}
+          <div className="p-3 border-t border-[#CBD5E1] bg-[#F8FAFC] text-[11px] text-[#334155] flex items-center justify-between font-semibold">
             <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="font-semibold text-[#0F2D5C]">SLA: 99.98%</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
+              <span className="text-[#0F2D5C] font-bold">SLA: 99.98%</span>
             </span>
-            <span className="text-[#64748B] font-mono">&lt;350ms p95</span>
+            <span className="text-[#475569] font-mono">&lt;350ms p95</span>
           </div>
         </aside>
 
@@ -1389,74 +1724,80 @@ echo $response;`;
           ======================================================== */}
           {isGuideActive ? (
             <div className="flex-1 p-5 sm:p-8 max-w-5xl mx-auto space-y-8 animate-in fade-in duration-150">
+              
               {/* Guide 1: Overview */}
               {selectedItem === "guide_overview" && (
                 <div className="space-y-6">
-                  {/* Hero Banner for Developer Hub */}
                   <div className="p-6 rounded-2xl bg-gradient-to-r from-[#0F2D5C] via-[#17407E] to-[#0F2D5C] text-white shadow-md space-y-3">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-white text-xs font-semibold backdrop-blur-md border border-white/15">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-white text-xs font-semibold backdrop-blur-md border border-white/20">
                       <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
-                      <span>SmartLink NG Identity &amp; Fintech Developer Hub</span>
+                      <span>SmartLink NG Developer Platform</span>
                     </div>
                     <h1 className="text-2xl sm:text-3xl font-black text-white">
-                      Digital Identity, KYC &amp; Fintech Rails Architecture
+                      Digital Identity, KYC &amp; Fintech Automation Rails
                     </h1>
-                    <p className="text-xs sm:text-sm text-blue-100 max-w-2xl leading-relaxed">
-                      Statutory REST JSON endpoints for instant Nigerian NIN/vNIN identity verification, BVN lookups, corporate CAC entity validation, cheap VTU airtime &amp; SME data bundles, and automated virtual account funding modeled after LumiID and Identro provider standards.
+                    <p className="text-xs sm:text-sm text-slate-100 max-w-2xl leading-relaxed">
+                      Official REST JSON endpoints for instant Nigerian NIN/vNIN identity verification, BVN biometric lookup, corporate CAC entity search, automated VTU airtime &amp; SME data bundles, and electricity STS tokens modeled on LumiID and Identro provider standards.
                     </p>
                   </div>
 
-                  {/* Environments Grid */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-5 rounded-2xl bg-white border border-[#E2E8F0] shadow-2xs space-y-2.5">
+                    <div className="p-5 rounded-2xl bg-white border border-[#CBD5E1] shadow-2xs space-y-2.5">
                       <div className="flex items-center justify-between text-xs font-bold text-[#0F2D5C]">
-                        <span className="text-sm font-extrabold">Production Rails</span>
-                        <span className="text-emerald-700 font-mono text-[10px] bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-bold">
+                        <span className="text-sm font-extrabold text-[#0F2D5C]">Production Rails</span>
+                        <span className="text-emerald-800 font-mono text-[10px] bg-emerald-100 px-2 py-0.5 rounded border border-emerald-300 font-bold">
                           Live Active
                         </span>
                       </div>
-                      <p className="text-xs text-[#64748B] leading-relaxed">
-                        Connect live customer registration flows, instant bill settlements, and official NIMC slip PDF rendering.
+                      <p className="text-xs text-[#334155] leading-relaxed">
+                        Execute live customer KYC verification, debit your wholesale ledger balance, and retrieve official verifiable PDF slips.
                       </p>
-                      <div className="p-2.5 bg-[#F1F5F9] rounded-xl border border-[#CBD5E1] font-mono text-xs text-[#0F2D5C] font-semibold select-all">
+                      <div className="p-2.5 bg-[#F1F5F9] rounded-xl border border-[#CBD5E1] font-mono text-xs text-[#0F2D5C] font-bold select-all">
                         https://smartlinkng.com.ng/api/v1
                       </div>
                     </div>
 
-                    <div className="p-5 rounded-2xl bg-white border border-[#E2E8F0] shadow-2xs space-y-2.5">
+                    <div className="p-5 rounded-2xl bg-white border border-[#CBD5E1] shadow-2xs space-y-2.5">
                       <div className="flex items-center justify-between text-xs font-bold text-[#0F2D5C]">
-                        <span className="text-sm font-extrabold">Sandbox Testbed</span>
-                        <span className="text-amber-800 font-mono text-[10px] bg-amber-50 px-2 py-0.5 rounded border border-amber-300 font-bold">
-                          Zero Cost
+                        <span className="text-sm font-extrabold text-[#0F2D5C]">Sandbox Testbed</span>
+                        <span className="text-amber-900 font-mono text-[10px] bg-amber-100 px-2 py-0.5 rounded border border-amber-300 font-bold">
+                          Zero Cost Simulation
                         </span>
                       </div>
-                      <p className="text-xs text-[#64748B] leading-relaxed">
-                        Execute full request/response lifecycles, test mock responses, and verify webhook signatures without debiting your wallet balance.
+                      <p className="text-xs text-[#334155] leading-relaxed">
+                        Simulate full request and response lifecycles, test mock responses, and verify webhook signatures without debiting your wallet balance.
                       </p>
-                      <div className="p-2.5 bg-[#F1F5F9] rounded-xl border border-[#CBD5E1] font-mono text-xs text-[#0F2D5C] font-semibold select-all">
+                      <div className="p-2.5 bg-[#F1F5F9] rounded-xl border border-[#CBD5E1] font-mono text-xs text-[#0F2D5C] font-bold select-all">
                         https://sandbox.smartlinkng.com.ng/api/v1
                       </div>
                     </div>
                   </div>
 
-                  {/* 3 Steps Integration Plan */}
-                  <div className="p-6 rounded-2xl bg-white border border-[#E2E8F0] shadow-2xs space-y-4">
+                  <div className="p-6 rounded-2xl bg-white border border-[#CBD5E1] shadow-2xs space-y-4">
                     <h3 className="text-sm font-extrabold text-[#0F2D5C] flex items-center gap-2">
                       <Zap className="h-4 w-4 text-amber-500" />
-                      <span>3-Step Quickstart Integration</span>
+                      <span>5-Step Developer Onboarding Roadmap</span>
                     </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-                      <div className="space-y-1.5 p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                        <span className="text-[#0F2D5C] font-mono font-extrabold">01. Provision Key</span>
-                        <p className="text-[#475569]">Generate your live &amp; test bearer credentials in the Keys tab with 1 click.</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 text-xs">
+                      <div className="space-y-1.5 p-3 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1]">
+                        <span className="text-[#0F2D5C] font-mono font-extrabold">01. Register</span>
+                        <p className="text-[#334155]">Create a free account in the SmartLink NG portal.</p>
                       </div>
-                      <div className="space-y-1.5 p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                        <span className="text-[#0F2D5C] font-mono font-extrabold">02. Test in Console</span>
-                        <p className="text-[#475569]">Select any endpoint and fire test calls in the right interactive sandbox pane.</p>
+                      <div className="space-y-1.5 p-3 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1]">
+                        <span className="text-[#0F2D5C] font-mono font-extrabold">02. Dashboard Keys</span>
+                        <p className="text-[#334155]">Navigate to User Dashboard &gt; Security &gt; Developer API Keys.</p>
                       </div>
-                      <div className="space-y-1.5 p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                        <span className="text-[#0F2D5C] font-mono font-extrabold">03. Go Live</span>
-                        <p className="text-[#475569]">Switch to your live API key, fund your node virtual account, and subscribe to webhooks.</p>
+                      <div className="space-y-1.5 p-3 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1]">
+                        <span className="text-[#0F2D5C] font-mono font-extrabold">03. Whitelist IP</span>
+                        <p className="text-[#334155]">Add your production server IP address for security.</p>
+                      </div>
+                      <div className="space-y-1.5 p-3 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1]">
+                        <span className="text-[#0F2D5C] font-mono font-extrabold">04. Fund Ledger</span>
+                        <p className="text-[#334155]">Transfer to your dedicated virtual account NUBAN.</p>
+                      </div>
+                      <div className="space-y-1.5 p-3 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1]">
+                        <span className="text-[#0F2D5C] font-mono font-extrabold">05. Go Live</span>
+                        <p className="text-[#334155]">Call production endpoints with your secret key.</p>
                       </div>
                     </div>
                   </div>
@@ -1471,18 +1812,18 @@ echo $response;`;
                       Security &amp; Protocols
                     </div>
                     <h1 className="text-2xl sm:text-3xl font-black text-[#0F2D5C]">Authentication &amp; Bearer Keys</h1>
-                    <p className="text-sm text-[#475569] mt-2 leading-relaxed max-w-3xl">
-                      Authenticate all HTTP requests to the SmartLink NG API using HTTP Bearer Tokens sent in the <code className="text-[#0F2D5C] font-mono font-bold">Authorization</code> header.
+                    <p className="text-sm text-[#334155] mt-2 leading-relaxed max-w-3xl">
+                      Authenticate all HTTP requests to the SmartLink NG API using HTTP Bearer Tokens sent in the <code className="bg-[#F1F5F9] text-[#0F2D5C] px-1.5 py-0.5 rounded font-mono font-bold border border-[#CBD5E1]">Authorization</code> header.
                     </p>
                   </div>
 
-                  <div className="p-5 rounded-2xl bg-white border border-[#E2E8F0] shadow-2xs space-y-3">
-                    <div className="flex items-center justify-between text-xs text-[#64748B]">
-                      <span className="font-bold text-[#0F2D5C]">Header Format</span>
+                  <div className="p-5 rounded-2xl bg-white border border-[#CBD5E1] shadow-2xs space-y-3">
+                    <div className="flex items-center justify-between text-xs text-[#475569]">
+                      <span className="font-bold text-[#0F2D5C]">Header Specification</span>
                       <button
                         type="button"
                         onClick={() => handleCopy("Authorization: Bearer YOUR_API_KEY_HERE", "auth_header")}
-                        className="text-[#0F2D5C] hover:text-[#17407E] font-semibold flex items-center gap-1 cursor-pointer"
+                        className="text-[#0F2D5C] hover:text-[#17407E] font-bold flex items-center gap-1 cursor-pointer"
                       >
                         {copiedField === "auth_header" ? <Check className="h-3 w-3 text-emerald-600" /> : <Copy className="h-3 w-3" />}
                         <span>Copy Header</span>
@@ -1494,184 +1835,118 @@ Authorization: Bearer YOUR_API_KEY_HERE
                   </div>
 
                   <div className="space-y-3">
-                    <h3 className="text-sm font-bold text-[#0F2D5C]">API Key Types &amp; Prefixes</h3>
+                    <h3 className="text-sm font-bold text-[#0F2D5C]">API Key Types &amp; Security Rules</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                      <div className="p-4 rounded-xl bg-white border border-[#E2E8F0] shadow-2xs space-y-1">
-                        <span className="font-mono text-emerald-700 font-black">sk_live_...</span>
-                        <p className="text-[#0F2D5C] font-bold">Live Production Secret Key</p>
-                        <p className="text-[#64748B]">Deducts wholesale transaction cost from developer node ledger balance.</p>
+                      <div className="p-4 rounded-xl bg-white border border-[#CBD5E1] shadow-2xs space-y-1.5">
+                        <span className="font-mono text-emerald-800 font-extrabold text-sm">sk_live_...</span>
+                        <p className="text-[#0F2D5C] font-extrabold">Live Production Secret Key</p>
+                        <p className="text-[#334155] leading-relaxed">
+                          Used on your backend server only. Never expose this key in client-side applications (React, Android APK, iOS, or frontend websites).
+                        </p>
                       </div>
-                      <div className="p-4 rounded-xl bg-white border border-[#E2E8F0] shadow-2xs space-y-1">
-                        <span className="font-mono text-amber-700 font-black">sk_sandbox_...</span>
-                        <p className="text-[#0F2D5C] font-bold">Sandbox Simulation Key</p>
-                        <p className="text-[#64748B]">Returns realistic test records without debiting your wallet balance.</p>
+                      <div className="p-4 rounded-xl bg-white border border-[#CBD5E1] shadow-2xs space-y-1.5">
+                        <span className="font-mono text-amber-800 font-extrabold text-sm">sk_sandbox_...</span>
+                        <p className="text-[#0F2D5C] font-extrabold">Sandbox Simulation Key</p>
+                        <p className="text-[#334155] leading-relaxed">
+                          Used during development and automated tests. Returns realistic identity and telecom mock data without debiting your wallet balance.
+                        </p>
                       </div>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Guide 3: Instant API Key Generator */}
+              {/* Guide 3: Dashboard API Keys Gated Notice */}
               {selectedItem === "guide_keys" && (
                 <div className="space-y-6">
                   <div>
                     <div className="text-xs font-bold text-[#0F2D5C] uppercase tracking-wider mb-1">
-                      Developer Credentials
+                      Developer Credentials &amp; KYC Compliance
                     </div>
-                    <h1 className="text-2xl sm:text-3xl font-black text-[#0F2D5C]">Instant API Key Generator</h1>
-                    <p className="text-sm text-[#475569] mt-2 leading-relaxed max-w-3xl">
-                      Generate, inspect, and copy live production keys and test keys with a single click. Every key works immediately across all SmartLink NG endpoints without external redirects.
+                    <h1 className="text-2xl sm:text-3xl font-black text-[#0F2D5C]">Dashboard API Key Management</h1>
+                    <p className="text-sm text-[#334155] mt-2 leading-relaxed max-w-3xl">
+                      In compliance with statutory NIMC, NIBSS, and CBN compliance standards, API keys (both Sandbox and Live Production) are issued exclusively within the authenticated User Dashboard. Users must register and log in before accessing credentials.
                     </p>
                   </div>
 
-                  {keyNotice && (
-                    <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-semibold flex items-center justify-between">
-                      <span className="flex items-center gap-2">
-                        <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
-                        {keyNotice}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setKeyNotice(null)}
-                        className="text-emerald-700 hover:text-emerald-900 text-xs cursor-pointer font-bold"
-                      >
-                        Dismiss
-                      </button>
+                  {currentUser ? (
+                    /* User IS logged in: show direct portal access */
+                    <div className="p-6 rounded-2xl bg-white border border-[#CBD5E1] shadow-2xs space-y-4">
+                      <div className="flex items-center gap-3 text-emerald-800 font-bold text-sm bg-emerald-50 p-3 rounded-xl border border-emerald-300">
+                        <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
+                        <span>You are logged in as <strong className="text-[#0F2D5C]">{currentUser.email}</strong></span>
+                      </div>
+                      <p className="text-xs text-[#334155] leading-relaxed">
+                        Your developer keys, IP whitelisting rules, and webhook secrets are securely managed inside your User Security Center.
+                      </p>
+                      <div className="flex flex-wrap items-center gap-3 pt-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (onNavigateToDashboardApiKeys) {
+                              onNavigateToDashboardApiKeys();
+                            }
+                          }}
+                          className="px-4 py-2.5 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-extrabold text-xs rounded-xl shadow-xs transition-all flex items-center gap-2 cursor-pointer active:scale-95"
+                        >
+                          <KeyRound className="h-4 w-4 text-amber-300" />
+                          <span>Open Developer API Keys in Dashboard</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    /* User is NOT logged in: show register / login gate */
+                    <div className="p-6 rounded-2xl bg-white border border-[#CBD5E1] shadow-2xs space-y-5">
+                      <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-300 text-amber-950">
+                        <Lock className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                        <div>
+                          <h3 className="font-extrabold text-sm text-[#0F2D5C]">Registration Required for API Keys</h3>
+                          <p className="text-xs text-[#334155] mt-1 leading-relaxed">
+                            To protect statutory citizen identity data and prevent unauthorized automated queries, every developer must register an account and generate their credentials inside their user dashboard.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                        <button
+                          type="button"
+                          onClick={onRegister}
+                          className="p-4 rounded-xl bg-[#0F2D5C] hover:bg-[#17407E] text-white text-left transition-all cursor-pointer shadow-md shadow-[#0F2D5C]/20 space-y-1 active:scale-98"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-extrabold text-sm">Register Free Developer Account</span>
+                            <ArrowRight className="h-4 w-4 text-amber-300" />
+                          </div>
+                          <p className="text-xs text-slate-200">
+                            Instant onboarding. Generate sandbox &amp; live keys in 60 seconds.
+                          </p>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={onLogin}
+                          className="p-4 rounded-xl bg-white hover:bg-[#F8FAFC] text-[#0F2D5C] border border-[#CBD5E1] text-left transition-all cursor-pointer shadow-2xs space-y-1 active:scale-98"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-extrabold text-sm">Log In to Existing Account</span>
+                            <ArrowRight className="h-4 w-4 text-[#0F2D5C]" />
+                          </div>
+                          <p className="text-xs text-[#475569]">
+                            Already registered? Access your existing production keys immediately.
+                          </p>
+                        </button>
+                      </div>
                     </div>
                   )}
 
-                  <div className="flex flex-wrap items-center gap-3">
-                    <button
-                      type="button"
-                      disabled={isGeneratingKey}
-                      onClick={handleGenerateInstantKey}
-                      className="px-4 py-2.5 bg-[#0F2D5C] hover:bg-[#17407E] disabled:opacity-50 text-white font-black text-xs rounded-xl transition-all cursor-pointer shadow-md shadow-[#0F2D5C]/20 flex items-center gap-2 active:scale-95"
-                    >
-                      {isGeneratingKey ? (
-                        <>
-                          <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                          <span>Generating...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-                          <span>Generate Fresh Keys</span>
-                        </>
-                      )}
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const payload = {
-                          liveApiKey: generatedLiveKey,
-                          sandboxApiKey: generatedSandboxKey,
-                          webhookSecret: generatedWebhookSecret,
-                          baseUrl: "https://smartlinkng.com.ng",
-                          generatedAt: new Date().toISOString(),
-                        };
-                        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement("a");
-                        a.href = url;
-                        a.download = "smartlink-credentials.json";
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                      }}
-                      className="px-3.5 py-2.5 bg-white hover:bg-[#F8FAFC] text-[#0F2D5C] font-bold text-xs rounded-xl border border-[#CBD5E1] transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs"
-                    >
-                      <Download className="h-3.5 w-3.5" />
-                      <span>Export Credentials JSON</span>
-                    </button>
-                  </div>
-
-                  {/* Credentials Cards Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Live Key */}
-                    <div className="p-4 rounded-xl bg-white border border-[#E2E8F0] shadow-2xs space-y-2">
-                      <div className="flex items-center justify-between text-xs font-bold text-[#0F2D5C]">
-                        <span className="flex items-center gap-1.5">
-                          <Shield className="h-4 w-4 text-emerald-600" />
-                          <span>Live Production API Key</span>
-                        </span>
-                        <span className="text-[10px] font-mono text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-bold">
-                          Active
-                        </span>
-                      </div>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          readOnly
-                          value={generatedLiveKey}
-                          className="w-full bg-[#F8FAFC] text-xs text-[#0F2D5C] font-mono font-bold p-3 pr-20 rounded-xl border border-[#CBD5E1] focus:outline-none select-all"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleCopy(generatedLiveKey, "live_key")}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 px-2.5 py-1 text-[11px] font-bold text-[#0F2D5C] bg-white hover:bg-[#F1F5F9] border border-[#CBD5E1] rounded-lg transition-colors cursor-pointer flex items-center gap-1"
-                        >
-                          {copiedField === "live_key" ? <Check className="h-3 w-3 text-emerald-600" /> : <Copy className="h-3 w-3" />}
-                          <span>{copiedField === "live_key" ? "Copied" : "Copy"}</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Sandbox Key */}
-                    <div className="p-4 rounded-xl bg-white border border-[#E2E8F0] shadow-2xs space-y-2">
-                      <div className="flex items-center justify-between text-xs font-bold text-[#0F2D5C]">
-                        <span className="flex items-center gap-1.5">
-                          <Play className="h-4 w-4 text-amber-600" />
-                          <span>Sandbox Simulation Key</span>
-                        </span>
-                        <span className="text-[10px] font-mono text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-300 font-bold">
-                          Zero Cost
-                        </span>
-                      </div>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          readOnly
-                          value={generatedSandboxKey}
-                          className="w-full bg-[#F8FAFC] text-xs text-[#0F2D5C] font-mono font-bold p-3 pr-20 rounded-xl border border-[#CBD5E1] focus:outline-none select-all"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleCopy(generatedSandboxKey, "sand_key")}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 px-2.5 py-1 text-[11px] font-bold text-[#0F2D5C] bg-white hover:bg-[#F1F5F9] border border-[#CBD5E1] rounded-lg transition-colors cursor-pointer flex items-center gap-1"
-                        >
-                          {copiedField === "sand_key" ? <Check className="h-3 w-3 text-emerald-600" /> : <Copy className="h-3 w-3" />}
-                          <span>{copiedField === "sand_key" ? "Copied" : "Copy"}</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Webhook Secret */}
-                    <div className="p-4 rounded-xl bg-white border border-[#E2E8F0] shadow-2xs space-y-2 md:col-span-2">
-                      <div className="flex items-center justify-between text-xs font-bold text-[#0F2D5C]">
-                        <span className="flex items-center gap-1.5">
-                          <Lock className="h-4 w-4 text-[#17407E]" />
-                          <span>Webhook Signature Secret (HMAC-SHA512)</span>
-                        </span>
-                      </div>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          readOnly
-                          value={generatedWebhookSecret}
-                          className="w-full bg-[#F8FAFC] text-xs text-[#0F2D5C] font-mono font-bold p-3 pr-20 rounded-xl border border-[#CBD5E1] focus:outline-none select-all"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleCopy(generatedWebhookSecret, "wh_secret")}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 px-2.5 py-1 text-[11px] font-bold text-[#0F2D5C] bg-white hover:bg-[#F1F5F9] border border-[#CBD5E1] rounded-lg transition-colors cursor-pointer flex items-center gap-1"
-                        >
-                          {copiedField === "wh_secret" ? <Check className="h-3 w-3 text-emerald-600" /> : <Copy className="h-3 w-3" />}
-                          <span>{copiedField === "wh_secret" ? "Copied" : "Copy"}</span>
-                        </button>
-                      </div>
-                    </div>
+                  <div className="p-5 rounded-2xl bg-white border border-[#CBD5E1] shadow-2xs space-y-3">
+                    <h3 className="text-sm font-extrabold text-[#0F2D5C]">Why Keys Are Protected Inside User Dashboards:</h3>
+                    <ul className="text-xs text-[#334155] space-y-2 list-disc pl-5 leading-relaxed">
+                      <li><strong>Statutory NIMC &amp; CBN Compliance:</strong> Mandatory accountability for biometric &amp; identity verifications.</li>
+                      <li><strong>Granular IP Whitelisting:</strong> Restrict API calls strictly to your designated production server IPs.</li>
+                      <li><strong>Instant Key Rotation:</strong> Rotate compromised keys with zero system downtime.</li>
+                      <li><strong>Dedicated Dedicated Webhook Secrets:</strong> Unique HMAC-SHA512 secrets per developer node.</li>
+                    </ul>
                   </div>
                 </div>
               )}
@@ -1684,14 +1959,14 @@ Authorization: Bearer YOUR_API_KEY_HERE
                       Real-Time Callbacks
                     </div>
                     <h1 className="text-2xl sm:text-3xl font-black text-[#0F2D5C]">Webhooks &amp; HMAC-SHA512 Signatures</h1>
-                    <p className="text-sm text-[#475569] mt-2 leading-relaxed max-w-3xl">
+                    <p className="text-sm text-[#334155] mt-2 leading-relaxed max-w-3xl">
                       Receive real-time HTTP POST notifications on your server when transactions succeed, identity slips are generated, or virtual account credits settle.
                     </p>
                   </div>
 
-                  <div className="p-5 rounded-2xl bg-white border border-[#E2E8F0] shadow-2xs space-y-3">
+                  <div className="p-5 rounded-2xl bg-white border border-[#CBD5E1] shadow-2xs space-y-3">
                     <h3 className="text-xs font-bold text-[#0F2D5C] uppercase tracking-wider">Node.js Signature Verification Example</h3>
-                    <pre className="text-xs font-mono text-[#0F2D5C] p-3.5 bg-[#F1F5F9] rounded-xl border border-[#CBD5E1] overflow-x-auto leading-relaxed font-semibold">
+                    <pre className="text-xs font-mono text-[#0F2D5C] p-3.5 bg-[#F1F5F9] rounded-xl border border-[#CBD5E1] overflow-x-auto leading-relaxed font-bold">
 {`const crypto = require('crypto');
 
 function verifySmartLinkSignature(rawBody, signatureHeader, secret) {
@@ -1706,55 +1981,42 @@ function verifySmartLinkSignature(rawBody, signatureHeader, secret) {
                 </div>
               )}
 
-              {/* Guide 5: Upstream Infrastructure & SLA */}
-              {selectedItem === "guide_infrastructure" && (
+              {/* Guide 5: SDKs & Libraries */}
+              {selectedItem === "guide_sdks" && (
                 <div className="space-y-6">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div>
-                      <div className="text-xs font-bold text-[#0F2D5C] uppercase tracking-wider mb-1">
-                        High Availability Architecture
-                      </div>
-                      <h1 className="text-2xl sm:text-3xl font-black text-[#0F2D5C]">Upstream Gateway Rails SLA</h1>
-                      <p className="text-sm text-[#475569] mt-1 max-w-2xl leading-relaxed">
-                        SmartLink NG routes all queries across redundant tier-1 gateways with automated circuit breakers and sub-second failover.
-                      </p>
+                  <div>
+                    <div className="text-xs font-bold text-[#0F2D5C] uppercase tracking-wider mb-1">
+                      Official Client Libraries
                     </div>
-
-                    <button
-                      type="button"
-                      disabled={isFetchingProviders}
-                      onClick={fetchProviderHealth}
-                      className="px-3.5 py-2 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
-                    >
-                      <RefreshCw className={`h-3.5 w-3.5 ${isFetchingProviders ? "animate-spin" : ""}`} />
-                      <span>Refresh Live Ping</span>
-                    </button>
+                    <h1 className="text-2xl sm:text-3xl font-black text-[#0F2D5C]">SDKs &amp; Code Libraries</h1>
+                    <p className="text-sm text-[#334155] mt-2 leading-relaxed max-w-3xl">
+                      Accelerate your integration using ready-to-run code samples and lightweight wrappers for Node.js (TypeScript), Python, and PHP.
+                    </p>
                   </div>
 
-                  {/* Provider Rails Cards Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {(providerHealth?.providers || [
-                      { id: "prov_aspfiy", name: "Aspfiy Payment & Virtual Accounts", status: "OPERATIONAL", latencyMs: 142, uptime: "99.99%" },
-                      { id: "prov_clubkonnect", name: "Clubkonnect VTU & SME Telecom", status: "OPERATIONAL", latencyMs: 310, uptime: "99.95%" },
-                      { id: "prov_vtpass", name: "VTpass Power Discos & Cable TV", status: "OPERATIONAL", latencyMs: 285, uptime: "99.96%" },
-                      { id: "prov_lumiid", name: "LumiID NIMC Identity Gateway", status: "OPERATIONAL", latencyMs: 380, uptime: "99.92%" },
-                      { id: "prov_identro", name: "Identro NIBSS BVN Portal", status: "OPERATIONAL", latencyMs: 340, uptime: "99.94%" },
-                      { id: "prov_prembley", name: "Prembley Multi-KYC & CAC", status: "OPERATIONAL", latencyMs: 295, uptime: "99.97%" },
-                    ]).map((prov: any) => (
-                      <div key={prov.id} className="p-4 rounded-xl bg-white border border-[#E2E8F0] shadow-2xs space-y-2">
-                        <div className="flex items-center justify-between text-xs font-bold text-[#0F2D5C]">
-                          <span>{prov.name}</span>
-                          <span className="flex items-center gap-1 text-emerald-700 text-[10px] font-mono bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
-                            <span>{prov.status}</span>
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between text-xs text-[#64748B] font-mono pt-1">
-                          <span>Latency: {prov.latencyMs}ms</span>
-                          <span>Uptime: {prov.uptime}</span>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="p-5 rounded-2xl bg-white border border-[#CBD5E1] shadow-2xs space-y-3">
+                    <h3 className="text-xs font-bold text-[#0F2D5C] uppercase tracking-wider">Node.js / TypeScript Wrapper</h3>
+                    <pre className="text-xs font-mono text-[#0F2D5C] p-3.5 bg-[#F1F5F9] rounded-xl border border-[#CBD5E1] overflow-x-auto leading-relaxed font-bold">
+{`import axios from 'axios';
+
+export class SmartLinkClient {
+  constructor(private apiKey: string, private baseUrl = 'https://smartlinkng.com.ng') {}
+
+  async verifyNIN(nin: string) {
+    const res = await axios.post(\`\${this.baseUrl}/api/v1/nin/verify\`, { nin }, {
+      headers: { Authorization: \`Bearer \${this.apiKey}\` }
+    });
+    return res.data;
+  }
+
+  async verifyBVN(bvn: string) {
+    const res = await axios.post(\`\${this.baseUrl}/api/v1/bvn/verify\`, { bvn }, {
+      headers: { Authorization: \`Bearer \${this.apiKey}\` }
+    });
+    return res.data;
+  }
+}`}
+                    </pre>
                   </div>
                 </div>
               )}
@@ -1767,50 +2029,50 @@ function verifySmartLinkSignature(rawBody, signatureHeader, secret) {
                       Response Standards
                     </div>
                     <h1 className="text-2xl sm:text-3xl font-black text-[#0F2D5C]">HTTP Status Codes &amp; Errors</h1>
-                    <p className="text-sm text-[#475569] mt-2 leading-relaxed max-w-3xl">
+                    <p className="text-sm text-[#334155] mt-2 leading-relaxed max-w-3xl">
                       SmartLink NG returns standard HTTP status codes along with a consistent JSON envelope on every response.
                     </p>
                   </div>
 
-                  <div className="overflow-x-auto rounded-2xl border border-[#E2E8F0] bg-white shadow-2xs">
+                  <div className="overflow-x-auto rounded-2xl border border-[#CBD5E1] bg-white shadow-2xs">
                     <table className="w-full text-left text-xs">
-                      <thead className="bg-[#F8FAFC] text-[#0F2D5C] font-bold border-b border-[#E2E8F0]">
+                      <thead className="bg-[#EEF2F6] text-[#0F2D5C] font-extrabold border-b border-[#CBD5E1]">
                         <tr>
                           <th className="p-3">HTTP Code</th>
                           <th className="p-3">Status Name</th>
                           <th className="p-3">Meaning &amp; Troubleshooting</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[#E2E8F0] text-[#334155]">
+                      <tbody className="divide-y divide-[#CBD5E1] text-[#1E293B]">
                         <tr>
-                          <td className="p-3 font-mono text-emerald-600 font-bold">200</td>
-                          <td className="p-3 font-semibold text-[#0F2D5C]">OK / Success</td>
-                          <td className="p-3 text-[#64748B]">Request completed successfully; response payload populated.</td>
+                          <td className="p-3 font-mono text-emerald-700 font-extrabold">200</td>
+                          <td className="p-3 font-bold text-[#0F2D5C]">OK / Success</td>
+                          <td className="p-3 text-[#334155]">Request completed successfully; response payload populated.</td>
                         </tr>
                         <tr>
-                          <td className="p-3 font-mono text-amber-600 font-bold">400</td>
-                          <td className="p-3 font-semibold text-[#0F2D5C]">Bad Request</td>
-                          <td className="p-3 text-[#64748B]">Missing required fields or malformed payload JSON.</td>
+                          <td className="p-3 font-mono text-amber-700 font-extrabold">400</td>
+                          <td className="p-3 font-bold text-[#0F2D5C]">Bad Request</td>
+                          <td className="p-3 text-[#334155]">Missing required fields or malformed payload JSON.</td>
                         </tr>
                         <tr>
-                          <td className="p-3 font-mono text-rose-600 font-bold">401</td>
-                          <td className="p-3 font-semibold text-[#0F2D5C]">Unauthorized</td>
-                          <td className="p-3 text-[#64748B]">Missing, invalid, or expired Bearer API token.</td>
+                          <td className="p-3 font-mono text-rose-700 font-extrabold">401</td>
+                          <td className="p-3 font-bold text-[#0F2D5C]">Unauthorized</td>
+                          <td className="p-3 text-[#334155]">Missing, invalid, or expired Bearer API token.</td>
                         </tr>
                         <tr>
-                          <td className="p-3 font-mono text-rose-600 font-bold">402</td>
-                          <td className="p-3 font-semibold text-[#0F2D5C]">Payment Required</td>
-                          <td className="p-3 text-[#64748B]">Developer node ledger balance is insufficient for transaction cost.</td>
+                          <td className="p-3 font-mono text-rose-700 font-extrabold">402</td>
+                          <td className="p-3 font-bold text-[#0F2D5C]">Payment Required</td>
+                          <td className="p-3 text-[#334155]">Developer node ledger balance is insufficient for transaction cost.</td>
                         </tr>
                         <tr>
-                          <td className="p-3 font-mono text-amber-600 font-bold">422</td>
-                          <td className="p-3 font-semibold text-[#0F2D5C]">Unprocessable Entity</td>
-                          <td className="p-3 text-[#64748B]">Record not found in government database (e.g. invalid NIN or BVN).</td>
+                          <td className="p-3 font-mono text-amber-700 font-extrabold">422</td>
+                          <td className="p-3 font-bold text-[#0F2D5C]">Unprocessable Entity</td>
+                          <td className="p-3 text-[#334155]">Record not found in government database (e.g. invalid NIN or BVN).</td>
                         </tr>
                         <tr>
-                          <td className="p-3 font-mono text-rose-600 font-bold">502</td>
-                          <td className="p-3 font-semibold text-[#0F2D5C]">Bad Gateway</td>
-                          <td className="p-3 text-[#64748B]">Upstream statutory NIMC/NIBSS rail downtime or network timeout.</td>
+                          <td className="p-3 font-mono text-rose-700 font-extrabold">502</td>
+                          <td className="p-3 font-bold text-[#0F2D5C]">Bad Gateway</td>
+                          <td className="p-3 text-[#334155]">Upstream statutory NIMC/NIBSS rail downtime or network timeout.</td>
                         </tr>
                       </tbody>
                     </table>
@@ -1823,41 +2085,41 @@ function verifySmartLinkSignature(rawBody, signatureHeader, secret) {
                ENDPOINT VIEW: 2-PANE (CENTER SPECS + RIGHT CODE & SANDBOX)
             ======================================================== */
             <>
-              {/* CENTER COLUMN: ENDPOINT SPECIFICATION & SCHEMA (SmartLink Clean Reading Canvas) */}
+              {/* CENTER COLUMN: ENDPOINT SPECIFICATION & SCHEMA */}
               <div className="flex-1 p-5 sm:p-8 max-w-3xl space-y-6 animate-in fade-in duration-150">
                 {/* Endpoint Header & Breadcrumb */}
                 <div>
-                  <div className="flex items-center gap-1.5 text-xs text-[#64748B] mb-2 font-medium">
+                  <div className="flex items-center gap-1.5 text-xs text-[#475569] mb-2 font-bold">
                     <span>SmartLink Docs</span>
                     <ChevronRight className="h-3 w-3" />
                     <span>{activeEndpoint.category}</span>
                     <ChevronRight className="h-3 w-3" />
-                    <span className="text-[#0F2D5C] font-semibold">{activeEndpoint.title}</span>
+                    <span className="text-[#0F2D5C] font-extrabold">{activeEndpoint.title}</span>
                   </div>
                   <h1 className="text-xl sm:text-2xl font-black text-[#0F2D5C]">{activeEndpoint.title}</h1>
-                  <p className="text-xs sm:text-sm text-[#475569] mt-2 leading-relaxed">
+                  <p className="text-xs sm:text-sm text-[#334155] mt-2 leading-relaxed font-medium">
                     {activeEndpoint.description}
                   </p>
                   {activeEndpoint.complianceNote && (
-                    <div className="mt-3 p-2.5 rounded-lg bg-blue-50/70 border border-blue-200/60 text-[11.5px] text-[#0F2D5C] flex items-center gap-2">
+                    <div className="mt-3 p-3 rounded-lg bg-blue-50 border border-blue-200 text-xs text-[#0F2D5C] font-semibold flex items-center gap-2">
                       <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0" />
                       <span>{activeEndpoint.complianceNote}</span>
                     </div>
                   )}
                 </div>
 
-                {/* HTTP Method & Route Bar (SmartLink Theme) */}
+                {/* HTTP Method & Route Bar */}
                 <div className="flex items-center gap-2 p-3 rounded-xl bg-white border border-[#CBD5E1] text-xs font-mono shadow-2xs">
                   <span
                     className={`px-2 py-0.5 rounded text-[10px] font-bold font-mono ${
                       activeEndpoint.method === "GET"
-                        ? "bg-blue-100 text-blue-800 border border-blue-200"
-                        : "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                        ? "bg-blue-100 text-blue-900 border border-blue-300"
+                        : "bg-emerald-100 text-emerald-950 border border-emerald-300"
                     }`}
                   >
                     {activeEndpoint.method}
                   </span>
-                  <span className="text-[#0F2D5C] font-bold select-all break-all">
+                  <span className="text-[#0F2D5C] font-extrabold select-all break-all">
                     {activeEnvironment === "production" ? "https://smartlinkng.com.ng" : "https://sandbox.smartlinkng.com.ng"}
                     {activeEndpoint.path}
                   </span>
@@ -1867,7 +2129,7 @@ function verifySmartLinkSignature(rawBody, signatureHeader, secret) {
                       `${activeEnvironment === "production" ? "https://smartlinkng.com.ng" : "https://sandbox.smartlinkng.com.ng"}${activeEndpoint.path}`,
                       "ep_url"
                     )}
-                    className="ml-auto text-[#64748B] hover:text-[#0F2D5C] cursor-pointer shrink-0"
+                    className="ml-auto text-[#475569] hover:text-[#0F2D5C] cursor-pointer shrink-0"
                     title="Copy Endpoint URL"
                   >
                     {copiedField === "ep_url" ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
@@ -1876,35 +2138,35 @@ function verifySmartLinkSignature(rawBody, signatureHeader, secret) {
 
                 {/* Required Headers Table */}
                 <div className="space-y-2">
-                  <h3 className="text-xs font-bold text-[#0F2D5C] uppercase tracking-wider">Required Headers</h3>
-                  <div className="overflow-x-auto rounded-xl border border-[#E2E8F0] bg-white shadow-2xs">
+                  <h3 className="text-xs font-extrabold text-[#0F2D5C] uppercase tracking-wider">Required Headers</h3>
+                  <div className="overflow-x-auto rounded-xl border border-[#CBD5E1] bg-white shadow-2xs">
                     <table className="w-full text-left text-xs">
-                      <thead className="bg-[#F8FAFC] text-[#0F2D5C] font-bold border-b border-[#E2E8F0]">
+                      <thead className="bg-[#EEF2F6] text-[#0F2D5C] font-extrabold border-b border-[#CBD5E1]">
                         <tr>
                           <th className="p-2.5">Header</th>
                           <th className="p-2.5">Type</th>
                           <th className="p-2.5">Description</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[#E2E8F0] text-[#334155]">
+                      <tbody className="divide-y divide-[#CBD5E1] text-[#1E293B]">
                         <tr>
                           <td className="p-2.5 font-mono text-[#0F2D5C] font-bold">Authorization</td>
-                          <td className="p-2.5 font-mono text-[#64748B]">string</td>
-                          <td className="p-2.5 text-[#334155]">
-                            Required. Format: <code className="text-[#0F2D5C] font-semibold">Bearer sk_live_...</code>
+                          <td className="p-2.5 font-mono text-[#475569] font-semibold">string</td>
+                          <td className="p-2.5 text-[#1E293B]">
+                            Required. Format: <code className="bg-[#F1F5F9] text-[#0F2D5C] px-1.5 py-0.5 rounded font-mono font-bold border border-[#CBD5E1]">Bearer sk_live_...</code>
                           </td>
                         </tr>
                         <tr>
                           <td className="p-2.5 font-mono text-[#0F2D5C] font-bold">Content-Type</td>
-                          <td className="p-2.5 font-mono text-[#64748B]">string</td>
-                          <td className="p-2.5 text-[#334155]">
-                            Required for POST requests: <code className="text-[#0F2D5C] font-semibold">application/json</code>
+                          <td className="p-2.5 font-mono text-[#475569] font-semibold">string</td>
+                          <td className="p-2.5 text-[#1E293B]">
+                            Required for POST requests: <code className="bg-[#F1F5F9] text-[#0F2D5C] px-1.5 py-0.5 rounded font-mono font-bold border border-[#CBD5E1]">application/json</code>
                           </td>
                         </tr>
                         <tr>
-                          <td className="p-2.5 font-mono text-[#475569] font-medium">X-Idempotency-Key</td>
-                          <td className="p-2.5 font-mono text-[#64748B]">string</td>
-                          <td className="p-2.5 text-[#64748B]">Optional UUID string to prevent duplicate billing charges.</td>
+                          <td className="p-2.5 font-mono text-[#334155] font-bold">X-Idempotency-Key</td>
+                          <td className="p-2.5 font-mono text-[#475569] font-semibold">string</td>
+                          <td className="p-2.5 text-[#475569]">Optional UUID string to prevent duplicate billing charges.</td>
                         </tr>
                       </tbody>
                     </table>
@@ -1913,13 +2175,13 @@ function verifySmartLinkSignature(rawBody, signatureHeader, secret) {
 
                 {/* Parameters & Request Body Table */}
                 <div className="space-y-2">
-                  <h3 className="text-xs font-bold text-[#0F2D5C] uppercase tracking-wider">
+                  <h3 className="text-xs font-extrabold text-[#0F2D5C] uppercase tracking-wider">
                     {activeEndpoint.method === "GET" ? "Query Parameters" : "Request Body Schema"}
                   </h3>
                   {activeEndpoint.parameters.length > 0 ? (
-                    <div className="overflow-x-auto rounded-xl border border-[#E2E8F0] bg-white shadow-2xs">
+                    <div className="overflow-x-auto rounded-xl border border-[#CBD5E1] bg-white shadow-2xs">
                       <table className="w-full text-left text-xs">
-                        <thead className="bg-[#F8FAFC] text-[#0F2D5C] font-bold border-b border-[#E2E8F0]">
+                        <thead className="bg-[#EEF2F6] text-[#0F2D5C] font-extrabold border-b border-[#CBD5E1]">
                           <tr>
                             <th className="p-2.5">Parameter</th>
                             <th className="p-2.5">Type</th>
@@ -1927,25 +2189,25 @@ function verifySmartLinkSignature(rawBody, signatureHeader, secret) {
                             <th className="p-2.5">Description</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#E2E8F0] text-[#334155]">
+                        <tbody className="divide-y divide-[#CBD5E1] text-[#1E293B]">
                           {activeEndpoint.parameters.map((param) => (
                             <tr key={param.name}>
-                              <td className="p-2.5 font-mono font-bold text-[#0F2D5C]">{param.name}</td>
-                              <td className="p-2.5 font-mono text-[#64748B]">{param.type}</td>
+                              <td className="p-2.5 font-mono font-extrabold text-[#0F2D5C]">{param.name}</td>
+                              <td className="p-2.5 font-mono text-[#475569] font-semibold">{param.type}</td>
                               <td className="p-2.5">
                                 {param.required ? (
-                                  <span className="text-[10px] font-bold text-rose-700 bg-rose-50 px-1.5 py-0.2 rounded border border-rose-200">
+                                  <span className="text-[10px] font-bold text-rose-800 bg-rose-100 px-1.5 py-0.2 rounded border border-rose-300">
                                     required
                                   </span>
                                 ) : (
-                                  <span className="text-[10px] text-slate-500 font-medium">optional</span>
+                                  <span className="text-[10px] text-[#475569] font-bold">optional</span>
                                 )}
                               </td>
-                              <td className="p-2.5 text-[#334155]">
-                                {param.description}
+                              <td className="p-2.5 text-[#1E293B]">
+                                <div>{param.description}</div>
                                 {param.example && (
-                                  <div className="text-[11px] text-[#64748B] font-mono mt-0.5">
-                                    Example: <code className="text-[#0F2D5C] font-semibold">{param.example}</code>
+                                  <div className="text-[11px] text-[#475569] font-mono mt-0.5">
+                                    Example: <code className="bg-[#F1F5F9] text-[#0F2D5C] font-bold px-1 rounded">{param.example}</code>
                                   </div>
                                 )}
                               </td>
@@ -1955,7 +2217,7 @@ function verifySmartLinkSignature(rawBody, signatureHeader, secret) {
                       </table>
                     </div>
                   ) : (
-                    <p className="text-xs text-[#64748B] p-3 rounded-xl bg-white border border-[#E2E8F0]">
+                    <p className="text-xs text-[#334155] p-3 rounded-xl bg-white border border-[#CBD5E1]">
                       This endpoint does not require any additional request parameters or payload body.
                     </p>
                   )}
@@ -1964,22 +2226,22 @@ function verifySmartLinkSignature(rawBody, signatureHeader, secret) {
                 {/* Response Schema Breakdown */}
                 {activeEndpoint.responseFields && activeEndpoint.responseFields.length > 0 && (
                   <div className="space-y-2">
-                    <h3 className="text-xs font-bold text-[#0F2D5C] uppercase tracking-wider">Response Attributes (data object)</h3>
-                    <div className="overflow-x-auto rounded-xl border border-[#E2E8F0] bg-white shadow-2xs">
+                    <h3 className="text-xs font-extrabold text-[#0F2D5C] uppercase tracking-wider">Response Attributes (data object)</h3>
+                    <div className="overflow-x-auto rounded-xl border border-[#CBD5E1] bg-white shadow-2xs">
                       <table className="w-full text-left text-xs">
-                        <thead className="bg-[#F8FAFC] text-[#0F2D5C] font-bold border-b border-[#E2E8F0]">
+                        <thead className="bg-[#EEF2F6] text-[#0F2D5C] font-extrabold border-b border-[#CBD5E1]">
                           <tr>
                             <th className="p-2.5">Field</th>
                             <th className="p-2.5">Type</th>
                             <th className="p-2.5">Description</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#E2E8F0] text-[#334155]">
+                        <tbody className="divide-y divide-[#CBD5E1] text-[#1E293B]">
                           {activeEndpoint.responseFields.map((field) => (
                             <tr key={field.name}>
-                              <td className="p-2.5 font-mono font-bold text-[#0F2D5C]">{field.name}</td>
-                              <td className="p-2.5 font-mono text-[#64748B]">{field.type}</td>
-                              <td className="p-2.5 text-[#334155]">{field.description}</td>
+                              <td className="p-2.5 font-mono font-extrabold text-[#0F2D5C]">{field.name}</td>
+                              <td className="p-2.5 font-mono text-[#475569] font-semibold">{field.type}</td>
+                              <td className="p-2.5 text-[#1E293B] font-medium">{field.description}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -1989,23 +2251,23 @@ function verifySmartLinkSignature(rawBody, signatureHeader, secret) {
                 )}
               </div>
 
-              {/* RIGHT COLUMN: SMARTLINK NAVY TERMINAL & EMBEDDED LIVE SANDBOX CONSOLE */}
-              <div className="w-full xl:w-[480px] 2xl:w-[540px] bg-[#0A1C38] border-t xl:border-t-0 xl:border-l border-[#0F2D5C] p-4 sm:p-6 flex flex-col space-y-6 text-slate-100 shadow-xl">
+              {/* RIGHT COLUMN: SMARTLINK NAVY TERMINAL & LIVE TESTBED CONSOLE */}
+              <div className="w-full xl:w-[480px] 2xl:w-[540px] bg-[#07152B] border-t xl:border-t-0 xl:border-l border-[#17407E] p-4 sm:p-6 flex flex-col space-y-6 text-slate-100 shadow-xl">
                 
-                {/* 1. Code Snippets Window (SmartLink Deep Navy Terminal) */}
-                <div className="rounded-2xl border border-[#0F2D5C] bg-[#07152B] overflow-hidden shadow-inner">
-                  {/* Language Tab Switcher */}
-                  <div className="flex items-center justify-between px-3 py-2 bg-[#051024] border-b border-[#0F2D5C]/60 text-xs">
+                {/* 1. Code Snippets Window */}
+                <div className="rounded-2xl border border-[#17407E] bg-[#030B17] overflow-hidden shadow-inner">
+                  {/* Language Switcher */}
+                  <div className="flex items-center justify-between px-3 py-2 bg-[#020710] border-b border-[#17407E] text-xs">
                     <div className="flex items-center gap-1">
                       {(["curl", "node", "python", "php"] as const).map((lang) => (
                         <button
                           key={lang}
                           type="button"
                           onClick={() => setSelectedLanguage(lang)}
-                          className={`px-2.5 py-1 rounded text-xs font-semibold cursor-pointer transition-colors ${
+                          className={`px-2.5 py-1 rounded text-xs font-bold cursor-pointer transition-colors ${
                             selectedLanguage === lang
-                              ? "bg-[#0F2D5C] text-white font-bold shadow-xs"
-                              : "text-slate-300 hover:text-white"
+                              ? "bg-[#0F2D5C] text-white shadow-xs"
+                              : "text-slate-200 hover:text-white"
                           }`}
                         >
                           {lang === "curl" ? "cURL" : lang === "node" ? "Node.js" : lang === "python" ? "Python" : "PHP"}
@@ -2016,7 +2278,7 @@ function verifySmartLinkSignature(rawBody, signatureHeader, secret) {
                     <button
                       type="button"
                       onClick={() => handleCopy(currentCodeSnippet, "code_snippet")}
-                      className="text-slate-300 hover:text-white flex items-center gap-1 cursor-pointer text-xs"
+                      className="text-slate-100 hover:text-white flex items-center gap-1 cursor-pointer text-xs font-bold"
                       title="Copy Code"
                     >
                       {copiedField === "code_snippet" ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
@@ -2031,44 +2293,52 @@ function verifySmartLinkSignature(rawBody, signatureHeader, secret) {
                 </div>
 
                 {/* 2. Embedded Interactive Sandbox ("Try It Out" Console) */}
-                <div className="rounded-2xl border border-[#0F2D5C]/80 bg-[#07152B] p-4 space-y-4 shadow-md">
-                  <div className="flex items-center justify-between border-b border-[#0F2D5C]/60 pb-3">
+                <div className="rounded-2xl border border-[#17407E] bg-[#030B17] p-4 space-y-4 shadow-md">
+                  <div className="flex items-center justify-between border-b border-[#17407E] pb-3">
                     <div className="flex items-center gap-2">
                       <Play className="h-3.5 w-3.5 text-emerald-400" />
-                      <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                      <h3 className="text-xs font-extrabold text-white uppercase tracking-wider">
                         Interactive Testbed (Try It Out)
                       </h3>
                     </div>
-                    <span className="text-[10px] font-mono text-amber-300 bg-amber-500/20 px-2 py-0.5 rounded border border-amber-500/30 font-bold">
-                      Zero Cost Simulation
+                    <span className="text-[10px] font-mono text-amber-300 bg-amber-500/20 px-2 py-0.5 rounded border border-amber-500/40 font-bold">
+                      Trial Simulation Mode
                     </span>
                   </div>
 
                   {/* API Key Input */}
                   <div className="space-y-1">
-                    <div className="flex items-center justify-between text-xs text-slate-300">
+                    <div className="flex items-center justify-between text-xs text-slate-100 font-semibold">
                       <span>Sandbox Authorization Key</span>
-                      <button
-                        type="button"
-                        onClick={() => setSandboxApiKey(`sk_sandbox_${Math.random().toString(36).slice(2, 10)}`)}
-                        className="text-[10px] text-amber-300 hover:underline cursor-pointer font-semibold"
-                      >
-                        Mock Key
-                      </button>
+                      <span className="text-[10px] text-amber-300">
+                        {currentUser ? "Registered Node" : "Trial Mode"}
+                      </span>
                     </div>
                     <input
                       type="text"
                       value={sandboxApiKey}
                       onChange={(e) => setSandboxApiKey(e.target.value)}
                       placeholder="sk_sandbox_..."
-                      className="w-full bg-[#051024] text-xs text-white font-mono px-3 py-2 rounded-lg border border-[#0F2D5C] focus:outline-none focus:border-[#2563EB]"
+                      className="w-full bg-[#020710] text-xs text-white font-mono px-3 py-2 rounded-lg border border-[#17407E] focus:outline-none focus:border-[#2563EB]"
                     />
+                    {!currentUser && (
+                      <p className="text-[10.5px] text-slate-300 pt-0.5">
+                        Permanent keys are managed in your User Dashboard.{" "}
+                        <button
+                          type="button"
+                          onClick={onRegister}
+                          className="text-amber-300 hover:underline font-bold cursor-pointer"
+                        >
+                          Register Free
+                        </button>
+                      </p>
+                    )}
                   </div>
 
                   {/* Request Payload Editor (for POST endpoints) */}
                   {activeEndpoint.method === "POST" && (
                     <div className="space-y-1">
-                      <div className="flex items-center justify-between text-xs text-slate-300">
+                      <div className="flex items-center justify-between text-xs text-slate-100 font-semibold">
                         <span>Payload JSON</span>
                         <div className="flex items-center gap-2">
                           <button
@@ -2082,7 +2352,7 @@ function verifySmartLinkSignature(rawBody, signatureHeader, secret) {
                                 setJsonValidationError("Format error: " + e.message);
                               }
                             }}
-                            className="text-[10px] text-blue-300 hover:text-white cursor-pointer"
+                            className="text-[10px] text-blue-300 hover:text-white cursor-pointer font-bold"
                           >
                             Beautify
                           </button>
@@ -2094,7 +2364,7 @@ function verifySmartLinkSignature(rawBody, signatureHeader, secret) {
                                 setJsonValidationError(null);
                               }
                             }}
-                            className="text-[10px] text-slate-400 hover:text-white flex items-center gap-1 cursor-pointer"
+                            className="text-[10px] text-slate-300 hover:text-white flex items-center gap-1 cursor-pointer font-bold"
                           >
                             <RotateCcw className="h-2.5 w-2.5" />
                             <span>Reset</span>
@@ -2108,16 +2378,16 @@ function verifySmartLinkSignature(rawBody, signatureHeader, secret) {
                           setSandboxPayloadText(e.target.value);
                           if (jsonValidationError) setJsonValidationError(null);
                         }}
-                        className="w-full bg-[#051024] text-xs font-mono text-slate-100 p-3 rounded-lg border border-[#0F2D5C] focus:outline-none focus:border-[#2563EB] resize-none leading-relaxed"
+                        className="w-full bg-[#020710] text-xs font-mono text-slate-100 p-3 rounded-lg border border-[#17407E] focus:outline-none focus:border-[#2563EB] resize-none leading-relaxed"
                         spellCheck={false}
                       />
                       {jsonValidationError && (
-                        <p className="text-[11px] text-rose-400 font-mono">{jsonValidationError}</p>
+                        <p className="text-[11px] text-rose-400 font-mono font-bold">{jsonValidationError}</p>
                       )}
                     </div>
                   )}
 
-                  {/* Send Request Button (SmartLink Navy CTA) */}
+                  {/* Send Request Button */}
                   <button
                     type="button"
                     disabled={sandboxIsExecuting}
@@ -2139,22 +2409,22 @@ function verifySmartLinkSignature(rawBody, signatureHeader, secret) {
 
                   {/* Response Execution Output */}
                   <div className="space-y-1.5 pt-1">
-                    <div className="flex items-center justify-between text-xs text-slate-300">
+                    <div className="flex items-center justify-between text-xs text-slate-100 font-semibold">
                       <div className="flex items-center gap-2">
                         <span>Response Output</span>
                         {sandboxStatusCode && (
                           <span
                             className={`px-1.5 py-0.2 rounded text-[10px] font-mono font-bold ${
                               sandboxStatusCode >= 200 && sandboxStatusCode < 300
-                                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                                : "bg-rose-500/20 text-rose-400 border border-rose-500/30"
+                                ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+                                : "bg-rose-500/20 text-rose-300 border border-rose-500/40"
                             }`}
                           >
                             HTTP {sandboxStatusCode}
                           </span>
                         )}
                         {sandboxLatency !== null && (
-                          <span className="text-[10px] font-mono text-slate-300">{sandboxLatency}ms</span>
+                          <span className="text-[10px] font-mono text-emerald-300">⚡ {sandboxLatency}ms</span>
                         )}
                       </div>
 
@@ -2164,7 +2434,7 @@ function verifySmartLinkSignature(rawBody, signatureHeader, secret) {
                             <button
                               type="button"
                               onClick={() => handleDownloadFile(sandboxResponse.data.slipUrl, "official-slip.pdf")}
-                              className="text-[11px] text-amber-300 hover:text-amber-200 flex items-center gap-1 cursor-pointer"
+                              className="text-[11px] text-amber-300 hover:text-amber-200 flex items-center gap-1 cursor-pointer font-bold"
                             >
                               <Download className="h-3 w-3" />
                               <span>Slip PDF</span>
@@ -2173,7 +2443,7 @@ function verifySmartLinkSignature(rawBody, signatureHeader, secret) {
                           <button
                             type="button"
                             onClick={() => handleCopy(JSON.stringify(sandboxResponse, null, 2), "res_output")}
-                            className="text-[11px] text-slate-300 hover:text-white flex items-center gap-1 cursor-pointer"
+                            className="text-[11px] text-slate-100 hover:text-white flex items-center gap-1 cursor-pointer font-bold"
                           >
                             {copiedField === "res_output" ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
                             <span>Copy</span>
@@ -2182,15 +2452,15 @@ function verifySmartLinkSignature(rawBody, signatureHeader, secret) {
                       )}
                     </div>
 
-                    <div className="w-full h-52 bg-[#051024] text-xs font-mono p-3 rounded-xl border border-[#0F2D5C] overflow-y-auto leading-relaxed">
+                    <div className="w-full h-52 bg-[#020710] text-xs font-mono p-3 rounded-xl border border-[#17407E] overflow-y-auto leading-relaxed">
                       {sandboxResponse ? (
-                        <pre className="text-emerald-300 whitespace-pre-wrap">
+                        <pre className="text-emerald-300 whitespace-pre-wrap font-medium">
                           {JSON.stringify(sandboxResponse, null, 2)}
                         </pre>
                       ) : (
-                        <div className="h-full flex flex-col items-center justify-center text-slate-400 text-center space-y-1">
-                          <Terminal className="h-6 w-6 text-slate-500" />
-                          <p className="text-[11px]">Click &quot;Send Request&quot; to test against live engine</p>
+                        <div className="h-full flex flex-col items-center justify-center text-slate-300 text-center space-y-1">
+                          <Terminal className="h-6 w-6 text-slate-400" />
+                          <p className="text-[11px] text-slate-200 font-medium">Click &quot;Send Request&quot; to test against live engine</p>
                         </div>
                       )}
                     </div>

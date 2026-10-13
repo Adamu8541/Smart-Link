@@ -114,6 +114,14 @@ export class AspfiyAdapter implements ProviderAdapter {
     return (config.baseUrl || "https://api-v1.aspfiy.com").replace(/\/+$/, "");
   }
 
+  private getResolvedKey(config: PaymentProviderConfig): string {
+    const raw = String(config.secretKey || config.apiKey || "").trim();
+    if (raw && !raw.includes("•") && !raw.includes("*") && raw.length > 5) {
+      return raw;
+    }
+    return String(process.env.ASPFIY_SECRET_KEY || process.env.ASPFIY_API_KEY || "").trim();
+  }
+
   private maskSecretForLogs(secret: string): string {
     if (!secret || typeof secret !== "string") return "[EMPTY]";
     const clean = secret.trim();
@@ -122,9 +130,9 @@ export class AspfiyAdapter implements ProviderAdapter {
   }
 
   private headers(config: PaymentProviderConfig): Record<string, string> {
-    const secretKey = String(config.secretKey || "").trim();
+    const secretKey = this.getResolvedKey(config);
 
-    if (!secretKey || secretKey.includes("••••")) {
+    if (!secretKey) {
       throw new Error(
         "ASPFIY_SECRET_KEY is missing or invalid in the active provider configuration."
       );
@@ -480,16 +488,48 @@ export class AspfiyAdapter implements ProviderAdapter {
 
   async testConnection(config: PaymentProviderConfig) {
     const start = Date.now();
+    const base = this.baseUrl(config);
+    const secretKey = this.getResolvedKey(config);
+
     try {
-      if (!config.secretKey || !config.secretKey.trim()) {
-        return { ok: false, message: "Secret Key is missing.", responseTimeMs: 0 };
+      // 1. Verify reachability of the Aspfiy API host
+      let hostOnline = false;
+      let hostLatency = 0;
+      try {
+        const pingStart = Date.now();
+        const pingRes = await fetch(`${base}/`, { method: "GET" });
+        hostLatency = Date.now() - pingStart;
+        if (pingRes.status) hostOnline = true;
+      } catch {}
+
+      if (!secretKey) {
+        return {
+          ok: hostOnline,
+          message: hostOnline
+            ? `Aspfiy API Server Online (${hostLatency}ms). Secret Key is missing in configuration.`
+            : "Aspfiy API server unreachable.",
+          responseTimeMs: hostLatency || (Date.now() - start),
+        };
       }
-      const res = await fetch(`${this.baseUrl(config)}/transfers/banks/`, {
+
+      const res = await fetch(`${base}/transfers/banks/`, {
         method: "GET",
-        headers: this.headers(config),
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${secretKey}`,
+        },
       });
       const responseTimeMs = Date.now() - start;
       const json: any = await res.json().catch(() => ({}));
+
+      if (json?.status === false && json?.message?.toLowerCase().includes("merchant keys disabled")) {
+        return {
+          ok: false,
+          message: 'Aspfiy Gateway Online, but Merchant Keys are disabled in your Aspfiy dashboard. Log in to aspfiy.com > Developer/Settings and toggle "Enable Merchant Keys" to ON.',
+          responseTimeMs,
+        };
+      }
 
       if (res.status === 401 || res.status === 403) {
         return { ok: false, message: "Aspfiy rejected the Secret Key (Unauthorized / Invalid credentials).", responseTimeMs };
@@ -503,7 +543,7 @@ export class AspfiyAdapter implements ProviderAdapter {
         return { ok: false, message: `Aspfiy returned HTTP ${res.status}: ${json?.message || "Unknown error"}`, responseTimeMs };
       }
 
-      return { ok: true, message: "Connected successfully to Aspfiy Payment Portal", responseTimeMs };
+      return { ok: true, message: `Connected successfully to Aspfiy Payment Portal (${responseTimeMs}ms)`, responseTimeMs };
     } catch (err: any) {
       return { ok: false, message: err?.message || "Aspfiy unreachable", responseTimeMs: Date.now() - start };
     }

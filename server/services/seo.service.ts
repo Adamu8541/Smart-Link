@@ -240,18 +240,19 @@ export function resolveSEOMetadata(req: Request): SEOMetadata {
   }
   // 12. Authentication Pages & Private Routes
   let noIndex = false;
-  if (
-    rawPath.startsWith("/admin") ||
-    rawPath.startsWith("/dashboard") ||
-    rawPath.startsWith("/wallet") ||
+  const isPrivateApi = rawPath === "/api" || rawPath.startsWith("/api/");
+  const isPrivateWallet = rawPath === "/wallet" || (rawPath.startsWith("/wallet/") && !rawPath.startsWith("/wallet-terms"));
+  const isPrivateDashboard = rawPath === "/dashboard" || rawPath.startsWith("/dashboard/");
+  const isPrivateAdmin = rawPath === "/admin" || rawPath.startsWith("/admin/");
+  const isPrivateAuthFlow =
     rawPath.startsWith("/reset-password") ||
     rawPath.startsWith("/verify-email") ||
     rawPath.startsWith("/auth/action") ||
     rawPath.startsWith("/__/auth") ||
-    rawPath.startsWith("/api") ||
     rawPath === "/account-security" ||
-    rawPath === "/security-settings"
-  ) {
+    rawPath === "/security-settings";
+
+  if (isPrivateApi || isPrivateWallet || isPrivateDashboard || isPrivateAdmin || isPrivateAuthFlow) {
     noIndex = true;
     title = `Secure Portal | ${siteName}`;
     description = "SmartLink Nigeria Secure Portal.";
@@ -451,6 +452,10 @@ export function resolveSEOMetadata(req: Request): SEOMetadata {
     "@graph": graph
   };
 
+  const finalCrawlableHtml = crawlableContentHtml
+    ? wrapCrawlablePage(crawlableContentHtml, origin, siteName)
+    : "";
+
   return {
     title,
     description,
@@ -463,9 +468,46 @@ export function resolveSEOMetadata(req: Request): SEOMetadata {
     ogImageAlt: `${siteName} - Verification & Fintech Portal`,
     twitterCard: "summary_large_image",
     structuredData,
-    crawlableContentHtml,
+    crawlableContentHtml: finalCrawlableHtml,
     noIndex,
   };
+}
+
+function wrapCrawlablePage(content: string, origin: string = DEFAULT_DOMAIN, siteName: string = "Smart Link NG"): string {
+  return `
+    <div id="root-container" class="min-h-screen bg-[#F5F7FA] text-[#111827] flex flex-col font-sans">
+      <header id="site-header" role="banner" class="sticky top-0 z-40 w-full min-h-[64px] bg-white border-b border-[#E5E7EB]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16 sm:h-20">
+          <a id="header-logo-container" href="/" class="flex items-center" aria-label="${siteName} Home">
+            <img src="/logo.webp" alt="${siteName} - Official Identity Verification and Digital Services Portal" width="180" height="48" class="h-10 sm:h-12 w-auto object-contain" />
+          </a>
+          <nav id="header-desktop-nav" aria-label="Primary Navigation" class="flex items-center gap-2 sm:gap-3 text-xs font-semibold text-[#374151]">
+            <a href="/" class="hover:text-[#0F2D5C]">Home</a>
+            <a href="/explore-services" class="hover:text-[#0F2D5C]">Services</a>
+            <a href="/verification" class="hover:text-[#0F2D5C]">Verification</a>
+            <a href="/bills" class="hover:text-[#0F2D5C]">Bills &amp; VTU</a>
+            <a href="/api-docs" class="hover:text-[#0F2D5C]">API</a>
+            <a href="/compliance" class="hover:text-[#0F2D5C]">Compliance</a>
+            <a href="/login" class="px-3 py-1.5 bg-[#0F2D5C] text-white rounded-lg font-bold">Login</a>
+          </nav>
+        </div>
+      </header>
+      <main id="main-content" tabindex="-1" class="grow max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 focus:outline-none">
+        ${content}
+      </main>
+      <footer id="site-footer" role="contentinfo" class="bg-white text-[#4B5563] pt-8 pb-6 border-t border-[#E5E7EB] text-xs">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+          <p>&copy; 2026 ${siteName}. All rights reserved.</p>
+          <div class="flex items-center gap-4 text-xs font-medium">
+            <a href="/privacy" class="hover:underline">Privacy Policy</a>
+            <a href="/terms" class="hover:underline">Terms of Service</a>
+            <a href="/refund-policy" class="hover:underline">Refund Policy</a>
+            <a href="/sitemap.xml" class="hover:underline">XML Sitemap</a>
+          </div>
+        </div>
+      </footer>
+    </div>
+  `;
 }
 
 /**
@@ -560,20 +602,27 @@ export function injectSEOTags(html: string, metadata: SEOMetadata): string {
     updatedHtml = `${metaTags}\n${updatedHtml}`;
   }
 
-  // If crawlable semantic content is provided, inject it inside <div id="root"> or a <noscript> block
-  // This allows search engine crawlers (Googlebot Wave 1) to parse 100% of the textual content instantly!
+  // If crawlable semantic content is provided, inject it inside <div id="root">
+  // This allows search engine crawlers and assistive technology to parse 100% of the textual content instantly!
   if (metadata.crawlableContentHtml) {
-    if (updatedHtml.includes('<div id="root"></div>')) {
+    if (updatedHtml.includes("<!-- SSR_CONTENT_START -->") && updatedHtml.includes("<!-- SSR_CONTENT_END -->")) {
+      updatedHtml = updatedHtml.replace(
+        /<!-- SSR_CONTENT_START -->[\s\S]*?<!-- SSR_CONTENT_END -->/,
+        `<!-- SSR_CONTENT_START -->\n${metadata.crawlableContentHtml}\n    <!-- SSR_CONTENT_END -->`
+      );
+    } else if (updatedHtml.includes('<div id="root"></div>')) {
       updatedHtml = updatedHtml.replace(
         '<div id="root"></div>',
         `<div id="root">${metadata.crawlableContentHtml}</div>`
       );
     } else if (updatedHtml.includes('<div id="root">')) {
-      // replace root contents if empty or comment
-      updatedHtml = updatedHtml.replace(
-        /<div id="root">[\s\S]*?<\/div>/,
-        `<div id="root">${metadata.crawlableContentHtml}</div>`
-      );
+      const rootIndex = updatedHtml.indexOf('<div id="root">');
+      const scriptIndex = updatedHtml.indexOf('<script type="module" src="/src/main.tsx"></script>');
+      if (rootIndex !== -1 && scriptIndex !== -1 && scriptIndex > rootIndex) {
+        const beforeRoot = updatedHtml.substring(0, rootIndex + '<div id="root">'.length);
+        const afterRoot = updatedHtml.substring(scriptIndex);
+        updatedHtml = `${beforeRoot}\n${metadata.crawlableContentHtml}\n</div>\n    ${afterRoot}`;
+      }
     }
   }
 
@@ -722,6 +771,19 @@ Allow: /favicon.webp
 Allow: /icon-192.png
 Allow: /icon-512.png
 Allow: /assets/
+# Disallow Private Administration, Authentication & Dashboard Endpoints
+Disallow: /admin
+Disallow: /admin/
+Disallow: /admin/*
+Disallow: /api/
+Disallow: /api/*
+Disallow: /dashboard
+Disallow: /dashboard/
+Disallow: /dashboard/*
+Disallow: /wallet/
+Disallow: /wallet/*
+Disallow: /reset-password
+Disallow: /verify-token
 
 # Explicit Directives for AI Search Engines, Assistants & Agentic LLMs
 User-agent: GPTBot
@@ -780,6 +842,16 @@ Allow: /
 Allow: /llms.txt
 Allow: /llms-full.txt
 
+User-agent: DeepSeekBot
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+
+User-agent: GrokBot
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+
 User-agent: Bytespider
 Allow: /
 Allow: /llms.txt
@@ -805,22 +877,7 @@ Allow: /
 Allow: /llms.txt
 Allow: /llms-full.txt
 
-# Disallow Private Administration, Authentication & Dashboard Endpoints
-Disallow: /admin
-Disallow: /admin/
-Disallow: /admin/*
-Disallow: /api/
-Disallow: /api/*
-Disallow: /dashboard
-Disallow: /dashboard/
-Disallow: /dashboard/*
-Disallow: /wallet/
-Disallow: /wallet/*
-Disallow: /reset-password
-Disallow: /verify-token
-
-# Crawl Delay & Sitemap Reference
-Crawl-delay: 1
+# Sitemap Reference
 Sitemap: ${origin}/sitemap.xml
 `;
 }

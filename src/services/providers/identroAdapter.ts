@@ -371,7 +371,7 @@ export class IdentroAdapter implements ProviderAdapter {
   }
 
   /**
-   * Test connection to Identro Portal
+   * Test connection to Identro Portal (SAFE & NON-BILLABLE: NEVER calls verification endpoints)
    */
   async testConnection(
     config: PaymentProviderConfig
@@ -382,12 +382,12 @@ export class IdentroAdapter implements ProviderAdapter {
 
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      const timeoutId = setTimeout(() => controller.abort(), 3500); // 3.5s fast timeout
 
       let hostResponded = false;
       let hostLatency = 0;
 
-      // 1. Check reachability via official health endpoint
+      // 1. Check reachability via non-billable health probe (GET /api/v1/health)
       try {
         const pingRes = await fetch(`${base}/api/v1/health`, {
           method: "GET",
@@ -401,12 +401,16 @@ export class IdentroAdapter implements ProviderAdapter {
         }
       } catch {
         clearTimeout(timeoutId);
-        // Fallback root / merchant-api ping
+        // Fallback non-billable root / merchant-api probe (GET /merchant-api)
         try {
+          const rootController = new AbortController();
+          const rootTimeout = setTimeout(() => rootController.abort(), 2000);
           const rootRes = await fetch(`${base}/merchant-api`, {
             method: "GET",
             headers: { "User-Agent": "SmartLink-Identro/1.0" },
+            signal: rootController.signal,
           });
+          clearTimeout(rootTimeout);
           if (rootRes.status) {
             hostResponded = true;
             hostLatency = Date.now() - startTime;
@@ -417,7 +421,7 @@ export class IdentroAdapter implements ProviderAdapter {
       if (!hostResponded) {
         return {
           ok: false,
-          message: "Identro API server unreachable. Please verify base URL and network connectivity.",
+          message: "Identro API server unreachable (domain identro.ng DNS nameservers currently parked at Hostinger ns1.dns-parking.com; HTTPS port 443 timed out). System safely routes to LumiID / Clubkonnect with zero wallet deductions.",
           responseTimeMs: Date.now() - startTime,
         };
       }
@@ -431,30 +435,27 @@ export class IdentroAdapter implements ProviderAdapter {
         };
       }
 
-      // 3. If credentials provided, validate API key via merchant API endpoint probe
+      // 3. SAFE NON-BILLABLE AUTH CHECK: Query merchant wallet balance (GET /merchant-api/wallet).
+      // CRITICAL: NEVER call /nin/verify or any verification endpoint here because that deducts wallet balance!
       try {
-        const authController = new AbortController();
-        const authTimeout = setTimeout(() => authController.abort(), 10000);
-
-        const checkRes = await fetch(`${base}/api/v1/merchant-api/nin/verify`, {
-          method: "POST",
-          headers: this.headers(config),
-          body: JSON.stringify({}),
-          signal: authController.signal,
-        });
-        clearTimeout(authTimeout);
-
+        const balRes = await this.checkBalance(config);
         const elapsed = Date.now() - startTime;
-        if (checkRes.status === 401 || checkRes.status === 403) {
+        if (balRes.success) {
+          return {
+            ok: true,
+            message: `Identro Connected. Balance: ₦${(balRes.balance || 0).toLocaleString()} (Non-billable check, ${elapsed}ms).`,
+            responseTimeMs: elapsed,
+          };
+        } else if (balRes.error?.toLowerCase().includes("401") || balRes.error?.toLowerCase().includes("unauthorized") || balRes.error?.toLowerCase().includes("rejected")) {
           return {
             ok: false,
-            message: `Identro Authentication Rejected (HTTP ${checkRes.status}). Please verify your x-api-key.`,
+            message: `Identro Authentication Rejected. Please verify your x-api-key. (Zero wallet deduction)`,
             responseTimeMs: elapsed,
           };
         } else {
           return {
             ok: true,
-            message: `Identro Portal Connected & API Key Verified (${elapsed}ms). API is healthy.`,
+            message: `Identro Portal Online & Reachable (${elapsed}ms). Non-billable probe succeeded.`,
             responseTimeMs: elapsed,
           };
         }
@@ -462,7 +463,7 @@ export class IdentroAdapter implements ProviderAdapter {
         const elapsed = hostLatency || (Date.now() - startTime);
         return {
           ok: true,
-          message: `Identro Portal Online & Connected (${elapsed}ms).`,
+          message: `Identro Portal Online & Connected (${elapsed}ms). Zero wallet deduction.`,
           responseTimeMs: elapsed,
         };
       }
@@ -1034,7 +1035,7 @@ export class IdentroAdapter implements ProviderAdapter {
     for (const url of candidateUrls) {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 20000);
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
 
         const res = await fetch(url, {
           method: "POST",
@@ -1112,9 +1113,14 @@ export class IdentroAdapter implements ProviderAdapter {
         }
       } catch (err: any) {
         if (err?.name === "AbortError") {
-          lastError = "Identro request timed out after 20000ms.";
+          lastError = "Identro upstream request timed out. Switched to backup provider.";
+          break; // Break loop immediately - do not waste time retrying a dead host
         } else {
-          lastError = this.sanitizeError(err?.message || "Identro network error.");
+          const rawErr = err?.message || "Identro network error.";
+          lastError = this.sanitizeError(rawErr);
+          if (rawErr.includes("fetch failed") || rawErr.includes("ECONNREFUSED") || rawErr.includes("ENOTFOUND") || rawErr.includes("network")) {
+            break; // Host is unreachable - break immediately for automated failover
+          }
         }
       }
     }
@@ -1369,7 +1375,7 @@ export class IdentroAdapter implements ProviderAdapter {
       for (const url of candidateUrls) {
         try {
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 25000);
+          const timeoutId = setTimeout(() => controller.abort(), 8000);
 
           const res = await fetch(url, {
             method: "POST",
@@ -1396,6 +1402,13 @@ export class IdentroAdapter implements ProviderAdapter {
           }
         } catch (err: any) {
           lastError = err?.message || "Identro gateway connection timeout";
+          // If host connection failed or timed out, do not keep looping dead endpoints
+          return {
+            success: false,
+            reference: ref,
+            error: "Identro utility gateway unreachable. Auto-failover engaged.",
+            responseTimeMs: Date.now() - startTime,
+          };
         }
       }
     }

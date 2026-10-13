@@ -348,9 +348,63 @@
   "adminLogs": [],
   "webhooks": [],
   "webhookLogs": [],
-  "admin_sessions": [],
+  "admin_sessions": [
+    {
+      "sessionToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3MzQ5Y2Y2MC04MzBjLTQ4NTktYTczOC02MzBjMDc1MWI0MjEiLCJ1aWQiOiI3MzQ5Y2Y2MC04MzBjLTQ4NTktYTczOC02MzBjMDc1MWI0MjEiLCJlbWFpbCI6ImFkYW11YW11aGFtbWFkODU0MUBnbWFpbC5jb20iLCJyb2xlIjoiU1VQRVJfQURNSU4iLCJwZXJtaXNzaW9ucyI6WyIqIl0sImlhdCI6MTc5MTgwOTQ5NiwiZXhwIjoxNzkxODExMjk2LCJleHBpcmVzQXQiOiIyMDI2LTEwLTEyVDEzOjIxOjM2LjQ4OFoiLCJpc3MiOiJzbWFydGxpbmstYWRtaW4ifQ.y-som-0Esa6IQLjxiAVmuhaxJaImjJuc1NyyTZ6abQ8",
+      "uid": "7349cf60-830c-4859-a738-630c0751b421",
+      "email": "adamuamuhammad8541@gmail.com",
+      "fullName": "Adamu Muhammad",
+      "role": "SUPER_ADMIN",
+      "permissions": [
+        "*"
+      ],
+      "loginTime": "2026-10-12T12:51:36.488Z",
+      "expiresAt": "2026-10-12T13:21:36.488Z",
+      "lastActive": "2026-10-12T12:51:36.488Z",
+      "status": "ACTIVE"
+    },
+    {
+      "sessionToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3MzQ5Y2Y2MC04MzBjLTQ4NTktYTczOC02MzBjMDc1MWI0MjEiLCJ1aWQiOiI3MzQ5Y2Y2MC04MzBjLTQ4NTktYTczOC02MzBjMDc1MWI0MjEiLCJlbWFpbCI6ImFkYW11YW11aGFtbWFkODU0MUBnbWFpbC5jb20iLCJyb2xlIjoiU1VQRVJfQURNSU4iLCJwZXJtaXNzaW9ucyI6WyIqIl0sImlhdCI6MTc5MTgwNjc4NiwiZXhwIjoxNzkxODA4NTg2LCJleHBpcmVzQXQiOiIyMDI2LTEwLTEyVDEyOjM2OjI2LjU1NloiLCJpc3MiOiJzbWFydGxpbmstYWRtaW4ifQ.fZjsImgIO5DbGWaMFgw3bnygPOLxmB1ZG_FR-7xZdCI",
+      "uid": "7349cf60-830c-4859-a738-630c0751b421",
+      "email": "adamuamuhammad8541@gmail.com",
+      "fullName": "Adamu Muhammad",
+      "role": "SUPER_ADMIN",
+      "permissions": [
+        "*"
+      ],
+      "loginTime": "2026-10-12T12:06:26.556Z",
+      "expiresAt": "2026-10-12T12:36:26.556Z",
+      "lastActive": "2026-10-12T12:06:26.556Z",
+      "status": "ACTIVE"
+    }
+  ],
   "admin_users": [],
-  "admin_activity_logs": [],
+  "admin_activity_logs": [
+    {
+      "id": "ADM_LOG_1791809496489_850",
+      "logId": "ADM_LOG_1791809496489_850",
+      "adminUid": "7349cf60-830c-4859-a738-630c0751b421",
+      "adminEmail": "adamuamuhammad8541@gmail.com",
+      "adminRole": "SUPER_ADMIN",
+      "action": "LOGIN",
+      "ipAddress": "169.254.169.126",
+      "details": "Admin user Adamu Muhammad (SUPER_ADMIN) logged in successfully.",
+      "status": "SUCCESS",
+      "timestamp": "2026-10-12T12:51:36.489Z"
+    },
+    {
+      "id": "ADM_LOG_1791806786557_61",
+      "logId": "ADM_LOG_1791806786557_61",
+      "adminUid": "7349cf60-830c-4859-a738-630c0751b421",
+      "adminEmail": "adamuamuhammad8541@gmail.com",
+      "adminRole": "SUPER_ADMIN",
+      "action": "LOGIN",
+      "ipAddress": "169.254.169.126",
+      "details": "Admin user Adamu Muhammad (SUPER_ADMIN) logged in successfully.",
+      "status": "SUCCESS",
+      "timestamp": "2026-10-12T12:06:26.557Z"
+    }
+  ],
   "virtualAccounts": [],
   "api_providers": [
     {
@@ -1619,6 +1673,101 @@
       "webhookSecret": "whsec_858204d413e07836bcd9f13fe18fda80e9a0b452",
       "walletBalance": 250000,
       "createdAt": "2026-10-10T07:19:57.548Z"
+    }
+  ],
+  "provider_health_metrics": [
+    {
+      "providerId": "aspfiy",
+      "providerName": "Aspfiy Payment Portal",
+      "category": "PAYMENT_PROVIDER",
+      "baseUrl": "https://api-v1.aspfiy.com",
+      "status": "DEGRADED",
+      "uptimePercentage": 99.98,
+      "avgLatencyMs": 310,
+      "totalQueries": 28410,
+      "successfulQueries": 28392,
+      "failedQueries": 18,
+      "failoverTriggeredCount": 2,
+      "consecutiveFailures": 0,
+      "circuitBreakerTripped": false,
+      "lastPingAt": "2026-10-12T13:40:43.000Z",
+      "lastPingStatus": "FAILED",
+      "lastPingLatencyMs": 310,
+      "lastError": "Aspfiy Gateway Online, but Merchant Keys are disabled in your Aspfiy dashboard. Log in to aspfiy.com > Developer/Settings and toggle \"Enable Merchant Keys\" to ON."
+    },
+    {
+      "providerId": "lumiid",
+      "providerName": "LumiID Identity Portal",
+      "category": "IDENTITY_API",
+      "baseUrl": "https://api.lumiid.com",
+      "status": "ONLINE",
+      "uptimePercentage": 99.85,
+      "avgLatencyMs": 160,
+      "totalQueries": 9540,
+      "successfulQueries": 9520,
+      "failedQueries": 20,
+      "failoverTriggeredCount": 1,
+      "consecutiveFailures": 0,
+      "circuitBreakerTripped": false,
+      "lastPingAt": "2026-10-12T12:54:23.534Z",
+      "lastPingStatus": "SUCCESS",
+      "lastPingLatencyMs": 273
+    },
+    {
+      "providerId": "identro",
+      "providerName": "Identro Portal (identro.ng)",
+      "category": "IDENTITY_API",
+      "baseUrl": "https://api.identro.ng",
+      "status": "ONLINE",
+      "uptimePercentage": 99.85,
+      "avgLatencyMs": 170,
+      "totalQueries": 8403,
+      "successfulQueries": 8380,
+      "failedQueries": 23,
+      "failoverTriggeredCount": 1,
+      "consecutiveFailures": 0,
+      "circuitBreakerTripped": true,
+      "lastPingAt": "2026-10-12T12:54:45.962Z",
+      "lastPingStatus": "SUCCESS",
+      "lastPingLatencyMs": 298,
+      "lastError": "Identro API server unreachable (domain identro.ng nameservers parked on Hostinger ns1.dns-parking.com; HTTPS port 443 timed out). Auto-failover safely engaged with zero wallet deductions."
+    },
+    {
+      "providerId": "prembley",
+      "providerName": "Prembley Portal (Identitypass)",
+      "category": "IDENTITY_API",
+      "baseUrl": "https://api.prembly.com",
+      "status": "ONLINE",
+      "uptimePercentage": 99.92,
+      "avgLatencyMs": 155,
+      "totalQueries": 11200,
+      "successfulQueries": 11185,
+      "failedQueries": 15,
+      "failoverTriggeredCount": 1,
+      "consecutiveFailures": 0,
+      "circuitBreakerTripped": false,
+      "lastPingAt": "2026-10-12T12:55:17.742Z",
+      "lastPingStatus": "SUCCESS",
+      "lastPingLatencyMs": 216
+    },
+    {
+      "providerId": "clubkonnect",
+      "providerName": "Clubkonnect VTU Portal",
+      "category": "VTU_PROVIDER",
+      "baseUrl": "https://www.clubkonnect.com/API",
+      "status": "DEGRADED",
+      "uptimePercentage": 99.9,
+      "avgLatencyMs": 190,
+      "totalQueries": 14500,
+      "successfulQueries": 14470,
+      "failedQueries": 30,
+      "failoverTriggeredCount": 2,
+      "consecutiveFailures": 1,
+      "circuitBreakerTripped": false,
+      "lastPingAt": "2026-10-12T12:09:43.811Z",
+      "lastPingStatus": "FAILED",
+      "lastPingLatencyMs": 349,
+      "lastError": "Clubkonnect Authentication: INVALID_CREDENTIALS"
     }
   ]
 }
