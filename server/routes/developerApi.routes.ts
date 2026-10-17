@@ -855,6 +855,16 @@ router.post("/api/v1/sandbox/execute", async (req, res) => {
             supportedFeatures: ["Card Checkout", "Virtual NUBANs", "Instant Settlements"],
           },
           {
+            id: "prov_bigisub",
+            name: "Bigisub Digital Gateway (VTU, Bills & Utilities)",
+            category: "TELECOM_VTU",
+            status: "OPERATIONAL",
+            health: "HEALTHY",
+            latencyMs: 240,
+            uptime: "99.97%",
+            supportedFeatures: ["MTN / Glo / Airtel / 9mobile", "SME Data", "Electricity Discos", "Cable TV (DStv, GOtv, Startimes)"],
+          },
+          {
             id: "prov_clubkonnect",
             name: "Clubkonnect VTU & SME Telecom Rails",
             category: "TELECOM_VTU",

@@ -47,7 +47,7 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
   };
 
   return (
-    <footer id="landing-footer" className="bg-white text-[#4B5563] pt-6 sm:pt-10 pb-6 sm:pb-8 border-t border-[#E5E7EB] text-xs">
+    <footer id="landing-footer" role="contentinfo" className="bg-white text-[#374151] pt-6 sm:pt-10 pb-6 sm:pb-8 border-t border-[#E5E7EB] text-xs">
       <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
         
         {/* Top Grid: Logo & 4 Navigation Columns */}
@@ -216,8 +216,8 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
 
         {/* Middle Row: Social Media Icons */}
         <div className="pt-6 border-t border-[#E5E7EB] flex flex-col md:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-[#6B7280] font-semibold mr-1">Follow Us:</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs text-[#1E293B] font-bold mr-1">Follow Us:</span>
             {[
               { name: "Facebook", icon: Facebook, href: "https://facebook.com/smartlinkng" },
               { name: "X (Twitter)", icon: Twitter, href: "https://twitter.com/smartlinkng" },
@@ -233,10 +233,10 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="h-8 w-8 flex items-center justify-center rounded-lg bg-[#F5F7FA] text-[#4B5563] border border-[#E5E7EB] hover:bg-[#0F2D5C] hover:text-white transition-colors cursor-pointer"
+                  className="min-w-[44px] min-h-[44px] sm:min-w-[48px] sm:min-h-[48px] flex items-center justify-center rounded-xl bg-[#F5F7FA] text-[#1E293B] border border-[#E5E7EB] hover:bg-[#0F2D5C] hover:text-white transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0F2D5C]"
                   aria-label={social.name}
                 >
-                  <IconComp className="h-3.5 w-3.5" aria-hidden="true" />
+                  <IconComp className="h-4 w-4" aria-hidden="true" />
                 </a>
               );
             })}

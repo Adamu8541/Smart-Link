@@ -111,22 +111,21 @@ export class AspfiyAdapter implements ProviderAdapter {
   name = "Aspfiy Payment Portal";
 
   private baseUrl(config: PaymentProviderConfig): string {
-    return (config.baseUrl || "https://api-v1.aspfiy.com").replace(/\/+$/, "");
+    const envBase = String(process.env.ASPFIY_BASE_URL || "").trim();
+    if (envBase) return envBase.replace(/\/+$/, "");
+    return String(config.baseUrl || "https://api-v1.aspfiy.com").replace(/\/+$/, "");
   }
 
   private getResolvedKey(config: PaymentProviderConfig): string {
-    const raw = String(config.secretKey || config.apiKey || "").trim();
-    if (raw && !raw.includes("•") && !raw.includes("*") && raw.length > 5) {
-      return raw;
-    }
-    return String(process.env.ASPFIY_SECRET_KEY || process.env.ASPFIY_API_KEY || "").trim();
+    const envKey = String(process.env.ASPFIY_SECRET_KEY || process.env.ASPFIY_API_KEY || "").trim();
+    return envKey.replace(/^bearer\s+/i, "").trim();
   }
 
   private maskSecretForLogs(secret: string): string {
     if (!secret || typeof secret !== "string") return "[EMPTY]";
     const clean = secret.trim();
     if (clean.length <= 8) return "••••";
-    return `${clean.substring(0, 4)}...${clean.substring(clean.length - 4)}`;
+    return `${clean.substring(0, 4)}...${clean.substring(clean.length - 4)} (len: ${clean.length})`;
   }
 
   private headers(config: PaymentProviderConfig): Record<string, string> {
@@ -134,11 +133,10 @@ export class AspfiyAdapter implements ProviderAdapter {
 
     if (!secretKey) {
       throw new Error(
-        "ASPFIY_SECRET_KEY is missing or invalid in the active provider configuration."
+        "ASPFIY_SECRET_KEY is missing or invalid. Please check your Aspfiy Secret Key in Admin Portal → API Portal."
       );
     }
 
-    // Safe diagnostic logging before request without exposing the full secret
     console.log(
       `[AspfiyAdapter] Prepared request to Aspfiy Portal. Key preview: ${this.maskSecretForLogs(secretKey)}`
     );
@@ -147,6 +145,9 @@ export class AspfiyAdapter implements ProviderAdapter {
       "Content-Type": "application/json",
       Accept: "application/json",
       Authorization: `Bearer ${secretKey}`,
+      "X-Api-Key": secretKey,
+      "ApiKey": secretKey,
+      "X-Merchant-Key": secretKey,
     };
   }
 
@@ -181,6 +182,8 @@ export class AspfiyAdapter implements ProviderAdapter {
 
       console.log(`[AspfiyAdapter] Requesting virtual account from Aspfiy for user ${userId} (${email})`);
 
+      console.log(`[AspfiyAdapter] Requesting virtual account from Aspfiy (/reserve-palmpay/) for user ${userId} (${email})`);
+
       let res = await fetch(`${this.baseUrl(config)}/reserve-palmpay/`, {
         method: "POST",
         headers: this.headers(config),
@@ -190,47 +193,24 @@ export class AspfiyAdapter implements ProviderAdapter {
       let json: any = await res.json().catch(() => ({}));
       console.log(`[AspfiyAdapter] Aspfiy /reserve-palmpay/ response status ${res.status}:`, JSON.stringify(json));
 
-      // If reserve-palmpay failed, try /reserve-paga/ (official Aspfiy Paga endpoint) and /reserve-account/
+      // If reserve-account or others needed
       if (json?.status === false || (!json?.account_number && !json?.accountNumber && !json?.data?.account_number)) {
         try {
-          const resPaga = await fetch(`${this.baseUrl(config)}/reserve-paga/`, {
+          const resAlt = await fetch(`${this.baseUrl(config)}/reserve-account/`, {
             method: "POST",
             headers: this.headers(config),
             body: JSON.stringify(requestPayload),
           });
-          const jsonPaga: any = await resPaga.json().catch(() => ({}));
-          console.log(`[AspfiyAdapter] Aspfiy /reserve-paga/ response status ${resPaga.status}:`, JSON.stringify(jsonPaga));
-          if (jsonPaga?.status === true || jsonPaga?.account_number || jsonPaga?.data?.account_number) {
-            res = resPaga;
-            json = jsonPaga;
-            if (!json.bank_name && !json.bankName) {
-              json.bank_name = "Paga";
-            }
-          } else if (jsonPaga?.message && (!json?.message || json?.message.includes("Cannot reserve"))) {
-            json = jsonPaga;
+          const jsonAlt: any = await resAlt.json().catch(() => ({}));
+          console.log(`[AspfiyAdapter] Aspfiy /reserve-account/ response status ${resAlt.status}:`, JSON.stringify(jsonAlt));
+          if (jsonAlt?.status === true || jsonAlt?.account_number || jsonAlt?.data?.account_number) {
+            res = resAlt;
+            json = jsonAlt;
+          } else if (jsonAlt?.message && (!json?.message || json?.message.includes("Cannot reserve"))) {
+            json = jsonAlt;
           }
-        } catch (pagaErr) {
-          console.warn("[AspfiyAdapter] Reserve Paga check note:", pagaErr);
-        }
-
-        if (json?.status === false || (!json?.account_number && !json?.accountNumber && !json?.data?.account_number)) {
-          try {
-            const resAlt = await fetch(`${this.baseUrl(config)}/reserve-account/`, {
-              method: "POST",
-              headers: this.headers(config),
-              body: JSON.stringify(requestPayload),
-            });
-            const jsonAlt: any = await resAlt.json().catch(() => ({}));
-            console.log(`[AspfiyAdapter] Aspfiy /reserve-account/ response status ${resAlt.status}:`, JSON.stringify(jsonAlt));
-            if (jsonAlt?.status === true || jsonAlt?.account_number || jsonAlt?.data?.account_number) {
-              res = resAlt;
-              json = jsonAlt;
-            } else if (jsonAlt?.message && (!json?.message || json?.message.includes("Cannot reserve"))) {
-              json = jsonAlt;
-            }
-          } catch (altErr) {
-            console.warn("[AspfiyAdapter] Alt endpoint check note:", altErr);
-          }
+        } catch (altErr) {
+          console.warn("[AspfiyAdapter] Alt endpoint check note:", altErr);
         }
       }
 

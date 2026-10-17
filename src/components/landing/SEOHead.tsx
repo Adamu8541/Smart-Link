@@ -54,6 +54,17 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
     setMetaTag("http-equiv", "content-language", "en-NG");
     setMetaTag("name", "language", "English");
 
+    // Agentic AI & WebMCP Discovery Standards
+    setMetaTag("name", "ai-agent", "enabled; declarative-actions=true; webmcp=1.0");
+    setMetaTag("name", "agent-rules", `${canonicalUrl}/llms.txt`);
+    setMetaTag("name", "model-context-protocol", `${canonicalUrl}/.well-known/mcp.json`);
+    setLinkTag("alternate", `${canonicalUrl}/llms.txt`, { type: "text/markdown", title: "SmartLink LLM Summary" });
+    setLinkTag("alternate", `${canonicalUrl}/llms-full.txt`, { type: "text/markdown", title: "SmartLink LLM Knowledge Base" });
+    setLinkTag("alternate", `${canonicalUrl}/.well-known/mcp.json`, { type: "application/json", title: "Model Context Protocol (MCP) Manifest" });
+    setLinkTag("alternate", `${canonicalUrl}/mcp.json`, { type: "application/json", title: "WebMCP Tools Specification" });
+    setLinkTag("alternate", `${canonicalUrl}/.well-known/ai-plugin.json`, { type: "application/json", title: "AI Plugin Manifest" });
+    setLinkTag("alternate", `${canonicalUrl}/.well-known/agent.json`, { type: "application/json", title: "Agent Specification" });
+
     // Canonical & Localization Links
     setLinkTag("canonical", canonicalUrl);
     setLinkTag("alternate", canonicalUrl, { hreflang: "en-NG" });

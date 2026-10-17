@@ -29,6 +29,7 @@ import { ClubkonnectAdapter } from "../../src/services/providers/clubkonnectAdap
 import { IdentroAdapter } from "../../src/services/providers/identroAdapter";
 import { PrembleyAdapter } from "../../src/services/providers/prembleyAdapter";
 import { VTpassAdapter } from "../../src/services/providers/vtpassAdapter";
+import { BigisubAdapter } from "../../src/services/providers/bigisubAdapter";
 import { MultiProviderRoutingEngine } from "../../src/services/multiProviderRoutingEngine";
 import { syncFromStorage, syncToStorage } from "../../src/services/settingsStore";
 import { RoutingRuleRepository } from "../turso/repositories";
@@ -1742,6 +1743,46 @@ function seedModule6ProvidersIfEmpty(db: any) {
     });
   }
 
+  // Ensure Bigisub.ng VTU & Utilities Gateway Provider
+  if (!db.api_providers.some((p: any) => p.id === "prov_bigisub" || (p.name || "").toLowerCase().includes("bigisub"))) {
+    db.api_providers.push({
+      id: "prov_bigisub",
+      name: "Bigisub Digital Gateway",
+      category: "TELECOM_VTU",
+      providerType: "BILL_PAYMENT",
+      description: "Bigisub.ng Wholesale Provider for Automated Airtime VTU, SME/Corporate Data, Electricity Disco Tokens & Cable TV Subscriptions (bigisub.ng)",
+      logoUrl: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=100&auto=format&fit=crop&q=60",
+      baseUrl: "https://bigisub.ng/api/v2",
+      apiVersion: "v2.0",
+      authMethod: "API_TOKEN",
+      apiToken: String(process.env.BIGISUB_API_TOKEN || "").trim(),
+      secretKey: String(process.env.BIGISUB_API_TOKEN || "").trim(),
+      apiKey: String(process.env.BIGISUB_API_TOKEN || "").trim(),
+      supportsWalletFunding: false,
+      supportsBankTransfer: false,
+      supportsCardPayment: false,
+      supportsVirtualAccount: false,
+      supportsPaymentLink: false,
+      supportsPayout: false,
+      supportsRefund: false,
+      supportsTxVerification: true,
+      supportsAirtime: true,
+      supportsData: true,
+      supportsTelecomVtu: true,
+      supportsElectricity: true,
+      supportsCableTv: true,
+      supportsExamPins: true,
+      timeout: 15000,
+      retryAttempts: 3,
+      healthStatus: "ONLINE",
+      priority: 8,
+      environment: "PRODUCTION",
+      status: "ENABLED",
+      enabled: true,
+      isActive: true,
+    });
+  }
+
   db.apiProviders = db.api_providers;
 }
 
@@ -2249,6 +2290,9 @@ app.post("/api/admin/providers/:providerId/test-connection", requireAdmin, async
   } else if (provider.name.toLowerCase().includes("vtpass") || (provider.id && provider.id.toLowerCase().includes("vtpass"))) {
     const vtpassAdapter = new VTpassAdapter();
     testResult = await vtpassAdapter.testConnection(provider);
+  } else if (provider.name.toLowerCase().includes("bigisub") || (provider.id && provider.id.toLowerCase().includes("bigisub"))) {
+    const bigisubAdapter = new BigisubAdapter();
+    testResult = await bigisubAdapter.testConnection(provider);
   } else {
     testResult = { ok: false, message: `No integration adapter registered for provider "${provider.name}".`, responseTimeMs: 0 };
   }

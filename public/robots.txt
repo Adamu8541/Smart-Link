@@ -46,6 +46,8 @@ Allow: /llms.txt
 Allow: /llms-full.txt
 Allow: /.well-known/ai-plugin.json
 Allow: /.well-known/agent.json
+Allow: /.well-known/mcp.json
+Allow: /mcp.json
 Allow: /.well-known/ai-catalog.json
 Allow: /ai-catalog.json
 Allow: /.well-known/ard.json

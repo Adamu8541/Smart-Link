@@ -50,7 +50,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
             Verify NIN and BVN records with slip downloads, register businesses with CAC, and settle electricity, data, and airtime transactions in seconds through one unified portal and developer API.
           </p>
 
-          {/* 3 Focused Benefit Bullets */}
+          {/* 3 Focused Benefit Cards */}
           <div
             id="hero-benefits-grid"
             className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-3 pt-0.5 text-left max-w-3xl mx-auto w-full"
@@ -58,7 +58,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
             <div className="flex items-start gap-2 p-2.5 sm:p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] shadow-2xs">
               <ShieldCheck className="h-4 w-4 text-[#0F2D5C] shrink-0 mt-0.5" aria-hidden="true" />
               <div>
-                <p className="text-xs sm:text-sm font-bold text-[#0F2D5C]">Instant Verification &amp; Slips</p>
+                <h2 className="text-xs sm:text-sm font-bold text-[#0F2D5C]">Instant Verification &amp; Slips</h2>
                 <p className="text-[10.5px] sm:text-[11px] text-[#374151] mt-0.5 leading-snug">Regular/premium NIN slips, BVN cards, and CAC reports with QR codes.</p>
               </div>
             </div>
@@ -66,7 +66,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
             <div className="flex items-start gap-2 p-2.5 sm:p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] shadow-2xs">
               <Zap className="h-4 w-4 text-[#0F2D5C] shrink-0 mt-0.5" aria-hidden="true" />
               <div>
-                <p className="text-xs sm:text-sm font-bold text-[#0F2D5C]">Automated Bills &amp; VTU</p>
+                <h2 className="text-xs sm:text-sm font-bold text-[#0F2D5C]">Automated Bills &amp; VTU</h2>
                 <p className="text-[10.5px] sm:text-[11px] text-[#374151] mt-0.5 leading-snug">Zero-delay Disco tokens, cheap SME data bundles, airtime, and exam pins.</p>
               </div>
             </div>
@@ -74,7 +74,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
             <div className="flex items-start gap-2 p-2.5 sm:p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] shadow-2xs">
               <Lock className="h-4 w-4 text-[#0F2D5C] shrink-0 mt-0.5" aria-hidden="true" />
               <div>
-                <p className="text-xs sm:text-sm font-bold text-[#0F2D5C]">Bank-Grade &amp; 99.9% Uptime</p>
+                <h2 className="text-xs sm:text-sm font-bold text-[#0F2D5C]">Bank-Grade &amp; 99.9% Uptime</h2>
                 <p className="text-[10.5px] sm:text-[11px] text-[#374151] mt-0.5 leading-snug">Dedicated virtual account funding, encrypted payouts, and REST APIs.</p>
               </div>
             </div>
@@ -83,28 +83,36 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
           {/* Action Buttons */}
           <div
             id="hero-actions"
-            className="flex flex-col items-center justify-center gap-1.5 pt-0.5"
+            className="flex flex-col items-center justify-center gap-2 pt-1"
           >
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 sm:gap-3 w-full sm:w-auto">
               <button
                 id="hero-primary-btn"
                 onClick={onLogin || onGetStarted}
                 type="button"
-                className="w-full sm:w-auto min-h-[38px] sm:min-h-[42px] px-5 sm:px-7 py-2 sm:py-2.5 bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white font-bold rounded-xl text-xs sm:text-sm shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2 touch-manipulation"
+                data-tool-name="login"
+                data-tool-description="Authenticate user or agent to access client portal"
+                data-agent-action="login"
+                data-agent-target="auth-portal"
+                className="w-full sm:w-auto min-h-[48px] px-6 sm:px-8 py-3 bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white font-bold rounded-xl text-xs sm:text-sm shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2 touch-manipulation focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0F2D5C]"
               >
                 <span>Log in</span>
-                <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </button>
               <button
                 id="hero-secondary-btn"
                 onClick={onExploreServices}
                 type="button"
-                className="w-full sm:w-auto min-h-[38px] sm:min-h-[42px] px-5 sm:px-7 py-2 sm:py-2.5 bg-white hover:bg-[#F5F7FA] active:bg-[#E5E7EB] text-[#0F2D5C] border border-[#0F2D5C] font-bold rounded-xl text-xs sm:text-sm shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2 touch-manipulation"
+                data-tool-name="explore_services"
+                data-tool-description="Browse catalog of 25+ identity verification, CAC registration, and utility services"
+                data-agent-action="explore_services"
+                data-agent-target="services-catalog"
+                className="w-full sm:w-auto min-h-[48px] px-6 sm:px-8 py-3 bg-white hover:bg-[#F5F7FA] active:bg-[#E5E7EB] text-[#0F2D5C] border border-[#0F2D5C] font-bold rounded-xl text-xs sm:text-sm shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2 touch-manipulation focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0F2D5C]"
               >
                 <span>Explore Services &amp; Pricing</span>
               </button>
             </div>
-            <p className="text-[10px] sm:text-xs text-[#4B5563] pt-0.5 flex items-center justify-center gap-1.5 flex-wrap">
+            <p className="text-[11px] sm:text-xs text-[#374151] pt-1 flex items-center justify-center gap-1.5 flex-wrap">
               <span>Instant Automated Processing</span>
               <span aria-hidden="true">•</span>
               <span>Dedicated Virtual Account Funding</span>

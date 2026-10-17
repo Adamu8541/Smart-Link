@@ -5,6 +5,7 @@ import { SiteConfigProvider } from './context/SiteConfigContext.tsx';
 import { AuthProvider } from './context/AuthContext.tsx';
 import { RootErrorBoundary } from './components/common/RootErrorBoundary.tsx';
 import './index.css';
+import './services/webmcp.ts';
 
 // Initialize Sentry dynamically
 if (import.meta.env.VITE_SENTRY_DSN) {

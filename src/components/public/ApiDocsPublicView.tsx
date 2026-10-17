@@ -1184,9 +1184,10 @@ export const ApiDocsPublicView: React.FC<ApiDocsPublicViewProps> = ({
         code: 200,
         overallStatus: "ALL_SYSTEMS_OPERATIONAL",
         uptimePercentage: 99.98,
-        providersCount: 6,
+        providersCount: 7,
         providers: [
           { id: "prov_aspfiy", name: "Aspfiy Payment & Virtual Accounts", status: "OPERATIONAL", latencyMs: 142, uptime: "99.99%" },
+          { id: "prov_bigisub", name: "Bigisub Wholesale VTU & Utilities", status: "OPERATIONAL", latencyMs: 240, uptime: "99.97%" },
           { id: "prov_clubkonnect", name: "Clubkonnect VTU & SME Telecom", status: "OPERATIONAL", latencyMs: 310, uptime: "99.95%" },
           { id: "prov_vtpass", name: "VTpass Power Discos & Cable TV", status: "OPERATIONAL", latencyMs: 285, uptime: "99.96%" },
           { id: "prov_lumiid", name: "LumiID NIMC Identity Gateway", status: "OPERATIONAL", latencyMs: 380, uptime: "99.92%" },

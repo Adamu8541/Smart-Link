@@ -60,6 +60,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
   return (
     <header
       id="site-header"
+      role="banner"
       className={`sticky top-0 z-40 w-full min-h-[56px] sm:min-h-[64px] transition-colors duration-200 border-b mobile-gpu-layer ${
         isScrolled
           ? "bg-white/95 backdrop-blur-md shadow-xs border-[#E5E7EB]"
@@ -74,7 +75,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
             id="header-logo-container"
             type="button"
             onClick={() => handleNavClick("hero-section")}
-            className="flex items-center cursor-pointer group bg-transparent border-none p-0 text-left shrink-0"
+            className="flex items-center cursor-pointer group bg-transparent border-none p-0 text-left shrink-0 min-h-[48px]"
             aria-label="Smart Link NG Home"
           >
             <img
@@ -106,10 +107,10 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
                 id={`nav-link-${item.id}`}
                 type="button"
                 onClick={() => handleNavClick(item.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                className={`min-h-[40px] px-3.5 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                   activeSection === item.id
                     ? "text-[#0F2D5C] bg-[#F5F7FA] font-bold"
-                    : "text-[#374151] hover:text-[#0F2D5C] hover:bg-[#F5F7FA]"
+                    : "text-[#1E293B] hover:text-[#0F2D5C] hover:bg-[#F5F7FA]"
                 }`}
               >
                 {item.label}
@@ -122,10 +123,11 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
             <button
               type="button"
               onClick={() => window.dispatchEvent(new CustomEvent("open_pwa_install_modal"))}
-              className="px-3 py-1.5 text-xs font-bold text-[#0F2D5C] bg-amber-100 hover:bg-amber-200 border border-amber-300 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
+              className="min-h-[40px] px-3 py-2 text-xs font-bold text-[#0F2D5C] bg-amber-100 hover:bg-amber-200 border border-amber-300 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
               title="Install SmartLink App on your Phone/PC"
+              aria-label="Install SmartLink Application"
             >
-              <Smartphone className="h-3.5 w-3.5 text-amber-700" />
+              <Smartphone className="h-3.5 w-3.5 text-amber-700" aria-hidden="true" />
               <span>Install App</span>
             </button>
 
@@ -133,45 +135,45 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
               id="header-btn-login"
               type="button"
               onClick={onLogin}
-              className="px-3.5 py-1.5 text-xs font-bold text-white bg-[#111827] hover:bg-[#0F2D5C] focus:ring-2 focus:ring-offset-2 focus:ring-[#0F2D5C] rounded-lg transition-all cursor-pointer flex items-center gap-1.5"
+              className="min-h-[40px] px-3.5 py-2 text-xs font-bold text-white bg-[#111827] hover:bg-[#0F2D5C] focus:ring-2 focus:ring-offset-2 focus:ring-[#0F2D5C] rounded-lg transition-all cursor-pointer flex items-center gap-1.5"
             >
               <LogIn className="h-3.5 w-3.5 text-white" aria-hidden="true" />
-              Login
+              <span>Login</span>
             </button>
 
             <button
               id="header-btn-register"
               type="button"
               onClick={onRegister}
-              className="px-3.5 py-1.5 text-xs font-bold text-white bg-[#111827] hover:bg-[#0F2D5C] focus:ring-2 focus:ring-offset-2 focus:ring-[#0F2D5C] rounded-lg transition-all cursor-pointer flex items-center gap-1.5"
+              className="min-h-[40px] px-3.5 py-2 text-xs font-bold text-white bg-[#111827] hover:bg-[#0F2D5C] focus:ring-2 focus:ring-offset-2 focus:ring-[#0F2D5C] rounded-lg transition-all cursor-pointer flex items-center gap-1.5"
             >
               <UserPlus className="h-3.5 w-3.5 text-white" aria-hidden="true" />
-              Register
+              <span>Register</span>
             </button>
 
             <button
               id="header-btn-get-started"
               type="button"
               onClick={onGetStarted}
-              className="px-4 py-1.5 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold rounded-lg text-xs shadow-xs focus:ring-2 focus:ring-offset-2 focus:ring-[#0F2D5C] transition-all active:scale-98 cursor-pointer flex items-center gap-1.5"
+              className="min-h-[40px] px-4 py-2 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold rounded-lg text-xs shadow-xs focus:ring-2 focus:ring-offset-2 focus:ring-[#0F2D5C] transition-all active:scale-98 cursor-pointer flex items-center gap-1.5"
             >
-              Get Started
+              <span>Get Started</span>
               <ArrowRight className="h-3.5 w-3.5 text-white" aria-hidden="true" />
             </button>
           </div>
 
-          {/* Mobile Hamburger Toggle with compact touch target */}
+          {/* Mobile Hamburger Toggle with compliant 48x48px touch target */}
           <div className="flex items-center gap-1.5 lg:hidden">
             <button
               id="header-mobile-toggle"
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="min-w-[34px] min-h-[34px] flex items-center justify-center p-1.5 rounded-lg text-[#111827] hover:bg-[#F5F7FA] active:bg-[#E5E7EB] transition-colors cursor-pointer touch-manipulation"
+              className="min-w-[48px] min-h-[48px] flex items-center justify-center p-2 rounded-lg text-[#111827] hover:bg-[#F5F7FA] active:bg-[#E5E7EB] transition-colors cursor-pointer touch-manipulation focus:outline-none focus:ring-2 focus:ring-[#0F2D5C]"
               aria-label="Toggle mobile menu"
               aria-expanded={mobileMenuOpen}
               aria-controls="mobile-drawer-overlay"
             >
-              {mobileMenuOpen ? <X className="h-4.5 w-4.5" aria-hidden="true" /> : <Menu className="h-4.5 w-4.5" aria-hidden="true" />}
+              {mobileMenuOpen ? <X className="h-5 w-5" aria-hidden="true" /> : <Menu className="h-5 w-5" aria-hidden="true" />}
             </button>
           </div>
 

@@ -388,10 +388,16 @@ export class ProviderExecutor {
           p.supportsData === true ||
           p.supportsTelecomVtu === true ||
           p.supportsBills === true ||
+          p.supportsElectricity === true ||
+          p.supportsCableTv === true ||
           nameLower.includes("identro") ||
           nameLower.includes("club") ||
+          nameLower.includes("vtpass") ||
+          nameLower.includes("bigisub") ||
           idLower.includes("identro") ||
-          idLower.includes("club")
+          idLower.includes("club") ||
+          idLower.includes("vtpass") ||
+          idLower.includes("bigisub")
         ) && !nameLower.includes("aspfiy");
       }
       if (catUpper === "PAYMENT_PROVIDER" || catUpper === "PAYMENT" || catUpper === "WALLET_ENGINE") {
@@ -793,14 +799,62 @@ export class ProviderExecutor {
           },
           provider
         );
+        if (res.success) {
+          return {
+            success: true,
+            providerName,
+            providerCode,
+            providerReference: res.orderId || res.reference,
+            transactionId: res.orderId,
+            message: res.message || "Cable Subscription Successful",
+            error: res.error,
+            rawResponse: res.rawResponse,
+            responseTimeMs: Date.now() - startTime,
+          };
+        }
+
+        // Automatic failover for Cable TV
+        for (const altProvider of getFallbackProviders()) {
+          const altAdapter = getAdapterForProvider(altProvider);
+          if (altAdapter && typeof (altAdapter as any).payCableTV === "function") {
+            try {
+              const altRes = await (altAdapter as any).payCableTV(
+                {
+                  cableProvider: cable,
+                  packageCode: pkg,
+                  smartCardNo: targetCustomerId,
+                  phoneNumber: targetPhoneNumber,
+                  reference: params.smartlinkReference,
+                },
+                altProvider
+              );
+              if (altRes.success) {
+                return {
+                  success: true,
+                  providerName: altProvider.name || "Fallback Cable Provider",
+                  providerCode: altProvider.id || "FALLBACK_PROV",
+                  providerReference: altRes.orderId || altRes.reference,
+                  transactionId: altRes.orderId,
+                  message: altRes.message || "Cable Subscription Successful",
+                  error: altRes.error,
+                  rawResponse: altRes.rawResponse,
+                  responseTimeMs: Date.now() - startTime,
+                };
+              }
+            } catch (altErr) {
+              console.warn(`[ProviderExecutor] Failover cable payment to ${altProvider.name} failed:`, altErr);
+            }
+          }
+        }
+
         return {
-          success: res.success,
+          success: false,
           providerName,
           providerCode,
           providerReference: res.orderId || res.reference,
           transactionId: res.orderId,
-          message: res.message || (res.success ? "Cable Subscription Successful" : "Failed"),
-          error: res.error,
+          message: res.message || "Cable Subscription Failed",
+          error: res.error || "Cable payment could not be completed by provider gateway.",
           rawResponse: res.rawResponse,
           responseTimeMs: Date.now() - startTime,
         };

@@ -134,13 +134,13 @@ export const LandingCTASection: React.FC<LandingCTASectionProps> = ({
                   aria-selected={isActive}
                   aria-controls={`cta-panel-${tabKey}`}
                   onClick={() => setActiveTab(tabKey)}
-                  className={`min-h-[34px] sm:min-h-[38px] flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg text-[11px] sm:text-xs font-semibold transition-colors cursor-pointer touch-manipulation ${
+                  className={`min-h-[44px] flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-semibold transition-colors cursor-pointer touch-manipulation focus:outline-none focus:ring-2 focus:ring-[#0F2D5C] ${
                     isActive
                       ? "bg-[#0F2D5C] text-white shadow-xs font-bold"
                       : "text-[#1E293B] hover:text-[#0F2D5C] hover:bg-white/60"
                   }`}
                 >
-                  <TabIcon className={`h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0 ${isActive ? "text-white" : "text-[#0F2D5C]"}`} aria-hidden="true" />
+                  <TabIcon className={`h-4 w-4 shrink-0 ${isActive ? "text-white" : "text-[#0F2D5C]"}`} aria-hidden="true" />
                   <span className="truncate">{seg.title}</span>
                 </button>
               );
@@ -196,11 +196,11 @@ export const LandingCTASection: React.FC<LandingCTASectionProps> = ({
                       onRegister();
                     }
                   }}
-                  className="w-full sm:w-auto min-h-[36px] sm:min-h-[40px] px-4 sm:px-5 py-2 sm:py-2.5 bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white font-bold rounded-xl text-xs sm:text-sm shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5 touch-manipulation"
+                  className="w-full sm:w-auto min-h-[48px] px-6 sm:px-7 py-3 bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white font-bold rounded-xl text-xs sm:text-sm shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2 touch-manipulation focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0F2D5C]"
                 >
-                  <UserPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" aria-hidden="true" />
+                  <UserPlus className="h-4 w-4 text-white" aria-hidden="true" />
                   <span>{current.primaryCTA}</span>
-                  <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" aria-hidden="true" />
+                  <ArrowRight className="h-4 w-4 text-white" aria-hidden="true" />
                 </button>
 
                 <button
@@ -216,14 +216,14 @@ export const LandingCTASection: React.FC<LandingCTASectionProps> = ({
                       onRegister();
                     }
                   }}
-                  className="w-full sm:w-auto min-h-[36px] sm:min-h-[40px] px-4 sm:px-5 py-2 sm:py-2.5 bg-white hover:bg-[#F1F5F9] active:bg-[#E2E8F0] text-[#0F2D5C] border border-[#CBD5E1] font-bold rounded-xl text-xs sm:text-sm transition-colors cursor-pointer flex items-center justify-center gap-1.5 touch-manipulation"
+                  className="w-full sm:w-auto min-h-[48px] px-6 sm:px-7 py-3 bg-white hover:bg-[#F1F5F9] active:bg-[#E2E8F0] text-[#0F2D5C] border border-[#CBD5E1] font-bold rounded-xl text-xs sm:text-sm transition-colors cursor-pointer flex items-center justify-center gap-2 touch-manipulation focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0F2D5C]"
                 >
                   {activeTab === "developers" ? (
-                    <Code2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#0F2D5C]" aria-hidden="true" />
+                    <Code2 className="h-4 w-4 text-[#0F2D5C]" aria-hidden="true" />
                   ) : activeTab === "businesses" ? (
-                    <Headphones className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#0F2D5C]" aria-hidden="true" />
+                    <Headphones className="h-4 w-4 text-[#0F2D5C]" aria-hidden="true" />
                   ) : (
-                    <CreditCard className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#0F2D5C]" aria-hidden="true" />
+                    <CreditCard className="h-4 w-4 text-[#0F2D5C]" aria-hidden="true" />
                   )}
                   <span>{current.secondaryCTA}</span>
                 </button>

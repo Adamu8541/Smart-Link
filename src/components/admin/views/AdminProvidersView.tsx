@@ -109,8 +109,33 @@ export function AdminProvidersView() {
   const [addEnvironment, setAddEnvironment] = useState("Production");
   const [addIsDefault, setAddIsDefault] = useState(false);
 
-  const applyProviderPreset = (preset: "clubkonnect" | "aspfiy" | "lumiid" | "verifyng" | "identro" | "prembley" | "vtpass") => {
-    if (preset === "clubkonnect") {
+  const applyProviderPreset = (preset: "clubkonnect" | "vtpass" | "bigisub" | "aspfiy" | "lumiid" | "verifyng" | "identro" | "prembley") => {
+    if (preset === "bigisub") {
+      setAddName("Bigisub Digital Gateway");
+      setAddCategory("TELECOM_VTU");
+      setAddDescription("Bigisub.ng Wholesale Provider for Airtime VTU, SME/Corporate Data, Electricity Disco Tokens & Cable TV (bigisub.ng)");
+      setAddBaseUrl("https://bigisub.ng/api/v2");
+      setAddApiVersion("v2.0");
+      setAddAuthMethod("API_TOKEN");
+      setAddSupportsWalletFunding(false);
+      setAddSupportsBankTransfer(false);
+      setAddSupportsCardPayment(false);
+      setAddSupportsVirtualAccount(false);
+      setAddSupportsPaymentLink(false);
+      setAddSupportsPayout(false);
+      setAddSupportsRefund(false);
+      setAddSupportsTxVerification(true);
+      setAddEnvironment("Production");
+      setAddStatus("ENABLED");
+      // Clear multi-key fields so only the Token is stored
+      setAddPublicKey("");
+      setAddPrivateKey("");
+      setAddClientId("");
+      setAddClientSecret("");
+      setAddMerchantId("");
+      setAddBusinessId("");
+      setToast("Bigisub preset applied: Only the API Token is required (no secret key, public key, or app ID needed).");
+    } else if (preset === "clubkonnect") {
       setAddName("Clubkonnect VTU & Bill Payment");
       setAddCategory("TELECOM_VTU");
       setAddDescription("Clubkonnect Airtime, Data Bundles, Cable TV, Electricity Bills & Exam PINs API");
@@ -852,6 +877,13 @@ export function AdminProvidersView() {
               <span className="text-[#6B7280] font-bold shrink-0">Quick Presets:</span>
               <button
                 type="button"
+                onClick={() => applyProviderPreset("bigisub")}
+                className="px-2.5 py-1 bg-white border border-emerald-400 text-emerald-950 rounded-lg font-bold transition cursor-pointer shrink-0 flex items-center gap-1 shadow-xs hover:bg-emerald-50"
+              >
+                ⚡ Bigisub.ng (Airtime, Data, TV, Electric)
+              </button>
+              <button
+                type="button"
                 onClick={() => applyProviderPreset("clubkonnect")}
                 className="px-2.5 py-1 bg-white border border-amber-300 text-amber-900 rounded-lg font-medium transition cursor-pointer shrink-0 flex items-center gap-1 shadow-xs"
               >
@@ -1016,38 +1048,67 @@ export function AdminProvidersView() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <label className="text-[10px] font-bold uppercase text-[#6B7280] block mb-1">API Key</label>
-                      <input
-                        type="password"
-                        value={addApiKey}
-                        onChange={(e) => setAddApiKey(e.target.value)}
-                        placeholder="API Key"
-                        className="w-full bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl px-3 py-2 text-xs font-mono text-[#111827] focus:outline-none focus:border-[#0F2D5C] focus:bg-white"
-                      />
+                  {addName.toLowerCase().includes("bigisub") ? (
+                    <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl space-y-3">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+                        <h4 className="text-xs font-bold text-emerald-950 uppercase">Bigisub.ng Single-Token Authentication</h4>
+                      </div>
+                      <p className="text-xs text-emerald-900 leading-relaxed">
+                        Bigisub.ng requires <strong>only an API Token</strong> (found in your Bigisub dashboard developer section). No public key, secret key, client ID, business ID, or app ID is required.
+                      </p>
+                      <div>
+                        <label className="text-[10px] font-bold uppercase text-emerald-900 block mb-1">
+                          Bigisub API Token *
+                        </label>
+                        <input
+                          type="password"
+                          value={addSecretKey || addApiKey}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setAddSecretKey(val);
+                            setAddApiKey(val);
+                          }}
+                          placeholder="Paste your Bigisub API Token (e.g. 7f8d...)"
+                          required
+                          className="w-full bg-white border border-emerald-300 rounded-xl px-3 py-2 text-xs font-mono text-[#111827] focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <label className="text-[10px] font-bold uppercase text-[#6B7280] block mb-1">Secret Key</label>
-                      <input
-                        type="password"
-                        value={addSecretKey}
-                        onChange={(e) => setAddSecretKey(e.target.value)}
-                        placeholder="Secret Key"
-                        className="w-full bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl px-3 py-2 text-xs font-mono text-[#111827] focus:outline-none focus:border-[#0F2D5C] focus:bg-white"
-                      />
+                  ) : (
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <label className="text-[10px] font-bold uppercase text-[#6B7280] block mb-1">API Key</label>
+                        <input
+                          type="password"
+                          value={addApiKey}
+                          onChange={(e) => setAddApiKey(e.target.value)}
+                          placeholder="API Key"
+                          className="w-full bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl px-3 py-2 text-xs font-mono text-[#111827] focus:outline-none focus:border-[#0F2D5C] focus:bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold uppercase text-[#6B7280] block mb-1">Secret Key</label>
+                        <input
+                          type="password"
+                          value={addSecretKey}
+                          onChange={(e) => setAddSecretKey(e.target.value)}
+                          placeholder="Secret Key"
+                          className="w-full bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl px-3 py-2 text-xs font-mono text-[#111827] focus:outline-none focus:border-[#0F2D5C] focus:bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold uppercase text-[#6B7280] block mb-1">Public Key</label>
+                        <input
+                          type="text"
+                          value={addPublicKey}
+                          onChange={(e) => setAddPublicKey(e.target.value)}
+                          placeholder="Public Key"
+                          className="w-full bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl px-3 py-2 text-xs font-mono text-[#111827] focus:outline-none focus:border-[#0F2D5C] focus:bg-white"
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <label className="text-[10px] font-bold uppercase text-[#6B7280] block mb-1">Public Key</label>
-                      <input
-                        type="text"
-                        value={addPublicKey}
-                        onChange={(e) => setAddPublicKey(e.target.value)}
-                        placeholder="Public Key"
-                        className="w-full bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl px-3 py-2 text-xs font-mono text-[#111827] focus:outline-none focus:border-[#0F2D5C] focus:bg-white"
-                      />
-                    </div>
-                  </div>
+                  )}
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>

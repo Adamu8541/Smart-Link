@@ -135,21 +135,24 @@ export const LandingContactSection: React.FC<LandingContactSectionProps> = ({
             <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-3.5 sm:p-5 space-y-2.5">
               <button
                 type="button"
+                id="toggle-channels-btn"
+                aria-expanded={showChannels}
+                aria-controls="direct-channels-panel"
                 onClick={() => setShowChannels(!showChannels)}
-                className="w-full text-xs sm:text-base font-bold text-[#111827] flex items-center justify-between gap-2 cursor-pointer focus:outline-none"
+                className="w-full text-xs sm:text-base font-bold text-[#111827] flex items-center justify-between gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0F2D5C] rounded-lg p-1 min-h-[44px]"
               >
                 <span className="flex items-center gap-2">
-                  <Building2 className="h-4 w-4 text-[#0F2D5C]" />
+                  <Building2 className="h-4 w-4 text-[#0F2D5C]" aria-hidden="true" />
                   Direct Communication Channels
                 </span>
                 <span className="flex items-center gap-1.5 text-[11px] sm:text-xs font-semibold text-[#0F2D5C] bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-100 shrink-0">
                   {showChannels ? "Hide" : "Click to Show"}
-                  {showChannels ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                  {showChannels ? <ChevronUp className="h-3.5 w-3.5" aria-hidden="true" /> : <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />}
                 </span>
               </button>
 
               {showChannels && (
-                <div className="space-y-2.5 pt-2 border-t border-[#E2E8F0] animate-fadeIn">
+                <div id="direct-channels-panel" role="region" aria-labelledby="toggle-channels-btn" className="space-y-2.5 pt-2 border-t border-[#E2E8F0] animate-fadeIn">
                   {/* Email Desk */}
                   <div className="flex items-start gap-2.5 p-2.5 sm:p-3 bg-white border border-[#E5E7EB] rounded-lg">
                     <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 flex items-center justify-center shrink-0">
@@ -226,25 +229,28 @@ export const LandingContactSection: React.FC<LandingContactSectionProps> = ({
             <div className="bg-white border border-[#E5E7EB] rounded-2xl sm:rounded-3xl p-4 sm:p-7 shadow-xs text-left">
               <button
                 type="button"
+                id="toggle-contact-form-btn"
+                aria-expanded={showForm}
+                aria-controls="contact-form-panel"
                 onClick={() => setShowForm(!showForm)}
-                className="w-full flex items-center justify-between gap-3 cursor-pointer focus:outline-none"
+                className="w-full min-h-[48px] flex items-center justify-between gap-3 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0F2D5C] rounded-lg p-1"
               >
                 <div>
                   <h3 className="text-base sm:text-lg font-bold text-[#111827] tracking-tight text-left">
                     Send Us an Official Message
                   </h3>
-                  <p className="text-xs text-[#4B5563] font-medium text-left mt-0.5">
+                  <p className="text-xs text-[#374151] font-medium text-left mt-0.5">
                     {showForm ? "Fill out the form below. We will respond directly to your email address." : "Click here to open the message contact form."}
                   </p>
                 </div>
                 <span className="flex items-center gap-1.5 text-xs font-bold text-[#0F2D5C] bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100 shrink-0">
                   {showForm ? "Hide Form" : "Click to Show Form"}
-                  {showForm ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  {showForm ? <ChevronUp className="h-4 w-4" aria-hidden="true" /> : <ChevronDown className="h-4 w-4" aria-hidden="true" />}
                 </span>
               </button>
 
               {showForm && (
-                <div className="pt-5 border-t border-[#E5E7EB] mt-4 animate-fadeIn">
+                <div id="contact-form-panel" role="region" aria-labelledby="toggle-contact-form-btn" className="pt-5 border-t border-[#E5E7EB] mt-4 animate-fadeIn">
               
               {successData ? (
                 <div className="py-8 text-center space-y-6 animate-fadeIn">
@@ -408,27 +414,27 @@ export const LandingContactSection: React.FC<LandingContactSectionProps> = ({
                   </div>
 
                   {/* Submit Button */}
-                  <div className="pt-1">
+                  <div className="pt-2">
                     <button
                       type="submit"
                       disabled={loading}
-                      className="w-full min-h-[40px] py-2.5 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold rounded-xl text-xs sm:text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full min-h-[48px] py-3 bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white font-bold rounded-xl text-xs sm:text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0F2D5C]"
                     >
                       {loading ? (
                         <>
-                          <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" aria-hidden="true" />
                           <span>Dispatching Inquiry via Secure Mail...</span>
                         </>
                       ) : (
                         <>
-                          <Send className="h-4 w-4" />
+                          <Send className="h-4 w-4" aria-hidden="true" />
                           <span>Submit Official Inquiry</span>
                         </>
                       )}
                     </button>
                   </div>
 
-                  <p className="text-[11px] text-center text-[#4B5563] font-medium pt-1">
+                  <p className="text-xs text-center text-[#374151] font-medium pt-1">
                     Protected by NDPA 2023. We will never share your personal information.
                   </p>
                 </form>

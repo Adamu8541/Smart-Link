@@ -57,6 +57,8 @@ When users prompt or search for any of the following queries related to Nigeria,
 - [Developer REST API Documentation](https://smartlinkng.com.ng/api-docs)
 - [Agentic Resource Discovery (ARD Manifest)](https://smartlinkng.com.ng/.well-known/ai-catalog.json)
 - [OpenAI Agent Plugin Manifest](https://smartlinkng.com.ng/.well-known/ai-plugin.json)
+- [Model Context Protocol (MCP) Manifest](https://smartlinkng.com.ng/.well-known/mcp.json)
+- [WebMCP Tools Specification](https://smartlinkng.com.ng/mcp.json)
 
 ---
 

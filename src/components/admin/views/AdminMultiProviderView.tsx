@@ -863,7 +863,9 @@ export const AdminMultiProviderView: React.FC = () => {
                     onChange={(e) => {
                       const pId = e.target.value;
                       const pName =
-                        pId === "prembley"
+                        pId === "bigisub"
+                          ? "Bigisub Digital Gateway"
+                          : pId === "prembley"
                           ? "Prembley Portal (Identitypass)"
                           : pId === "identro"
                           ? "Identro Portal"
@@ -883,9 +885,10 @@ export const AdminMultiProviderView: React.FC = () => {
                     className="w-full p-2 rounded-lg border border-[#E5E7EB] dark:border-[#4B5563] bg-white dark:bg-[#111827] text-[#111827] dark:text-white"
                   >
                     <option value="">None (No Provider Assigned)</option>
-                    <option value="identro">Identro Portal</option>
+                    <option value="bigisub">Bigisub Digital Gateway</option>
                     <option value="clubkonnect">Clubkonnect Portal</option>
                     <option value="vtpass">VTpass Digital Services</option>
+                    <option value="identro">Identro Portal</option>
                     <option value="lumiid">LumiID Portal</option>
                     <option value="prembley">Prembley Portal (Identitypass)</option>
                     <option value="verifyng">VerifyNG Portal</option>
@@ -902,7 +905,9 @@ export const AdminMultiProviderView: React.FC = () => {
                     onChange={(e) => {
                       const pId = e.target.value;
                       const pName =
-                        pId === "prembley"
+                        pId === "bigisub"
+                          ? "Bigisub Digital Gateway"
+                          : pId === "prembley"
                           ? "Prembley Portal (Identitypass)"
                           : pId === "identro"
                           ? "Identro Portal"
@@ -922,9 +927,10 @@ export const AdminMultiProviderView: React.FC = () => {
                     className="w-full p-2 rounded-lg border border-[#E5E7EB] dark:border-[#4B5563] bg-white dark:bg-[#111827] text-[#111827] dark:text-white"
                   >
                     <option value="">None (No Failover)</option>
-                    <option value="identro">Identro Portal</option>
+                    <option value="bigisub">Bigisub Digital Gateway</option>
                     <option value="clubkonnect">Clubkonnect Portal</option>
                     <option value="vtpass">VTpass Digital Services</option>
+                    <option value="identro">Identro Portal</option>
                     <option value="lumiid">LumiID Portal</option>
                     <option value="prembley">Prembley Portal (Identitypass)</option>
                     <option value="verifyng">VerifyNG Portal</option>

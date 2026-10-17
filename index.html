@@ -19,9 +19,14 @@
     <meta http-equiv="content-language" content="en" />
     <meta name="language" content="English" />
     
-    <!-- Agentic AI & LLM Discovery Standards -->
+    <!-- Agentic AI, WebMCP & LLM Discovery Standards -->
+    <meta name="ai-agent" content="enabled; declarative-actions=true; webmcp=1.0" />
+    <meta name="agent-rules" content="https://smartlinkng.com.ng/llms.txt" />
+    <meta name="model-context-protocol" content="https://smartlinkng.com.ng/.well-known/mcp.json" />
     <link rel="alternate" type="text/markdown" href="https://smartlinkng.com.ng/llms.txt" title="SmartLink LLM Summary" />
     <link rel="alternate" type="text/markdown" href="https://smartlinkng.com.ng/llms-full.txt" title="SmartLink LLM Knowledge Base" />
+    <link rel="alternate" type="application/json" href="https://smartlinkng.com.ng/.well-known/mcp.json" title="Model Context Protocol (MCP) Manifest" />
+    <link rel="alternate" type="application/json" href="https://smartlinkng.com.ng/mcp.json" title="WebMCP Tools Specification" />
     <link rel="alternate" type="application/json" href="https://smartlinkng.com.ng/.well-known/ai-plugin.json" title="AI Plugin Manifest" />
     <link rel="alternate" type="application/json" href="https://smartlinkng.com.ng/.well-known/agent.json" title="Agent Specification" />
 
@@ -250,6 +255,36 @@
           if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
         }
       }, true);
+    </script>
+    <!-- Early WebMCP (Web Model Context Protocol) Bootstrap for Agentic AI Browsers -->
+    <script>
+      (function() {
+        var tools = [
+          { name: "explore_services", description: "List all 25+ digital identity verification, business registration, and utility services on SmartLink NG" },
+          { name: "verify_identity", description: "Verify Nigerian National Identity Number (NIN), vNIN, or Bank Verification Number (BVN)" },
+          { name: "verify_electricity_meter", description: "Validate Nigerian electricity prepaid or postpaid meter number before payment" },
+          { name: "purchase_data_bundle", description: "Purchase SME mobile data bundle on MTN, Airtel, Glo, 9mobile in Nigeria" },
+          { name: "get_platform_info", description: "Retrieve NDPA compliance, SLA uptime, and contact information for SmartLink NG" }
+        ];
+        var ctx = {
+          siteName: "SmartLink NG",
+          version: "1.0.0",
+          canonicalUrl: "https://smartlinkng.com.ng",
+          description: "Nigeria's all-in-one digital portal for identity verification, CAC registration, and automated utility vending.",
+          tools: tools,
+          provideContext: function() { return this; }
+        };
+        try {
+          if (!document.modelContext) document.modelContext = ctx;
+          if (!navigator.modelContext) navigator.modelContext = ctx;
+          window.modelContext = ctx;
+          window.__WEBMCP__ = ctx;
+          if (document.documentElement) {
+            document.documentElement.setAttribute('data-webmcp-ready', 'true');
+            document.documentElement.setAttribute('data-agentic-browsing', 'v1');
+          }
+        } catch(e) {}
+      })();
     </script>
     <!-- Performance Resource Hints: High-Priority Asset Preloads -->
     <link rel="preload" href="/favicon.ico" as="image" />
@@ -498,25 +533,25 @@
                   <a href="#contact-section" id="nav-link-contact" class="px-3.5 py-2 rounded-lg text-xs font-semibold text-[#374151] hover:text-[#0F2D5C] hover:bg-[#F5F7FA]">Contact</a>
                 </nav>
                 <div id="header-right-actions" class="hidden lg:flex items-center gap-2">
-                  <a id="header-btn-admin-login" href="/admin/login" class="px-3 py-2 text-xs font-bold text-white bg-[#111827] hover:bg-[#0F2D5C] rounded-lg flex items-center gap-1.5 min-h-[38px] transition-colors">
+                  <a id="header-btn-admin-login" href="/admin/login" toolname="admin_login" tooldescription="Access administrator portal" data-tool-name="admin_login" data-action="admin_login" class="px-3 py-2 text-xs font-bold text-white bg-[#111827] hover:bg-[#0F2D5C] rounded-lg flex items-center gap-1.5 min-h-[38px] transition-colors">
                     <svg class="h-3.5 w-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /><path d="m9 12 2 2 4-4" /></svg>
                     Admin Login
                   </a>
-                  <a id="header-btn-login" href="/login" class="px-3.5 py-2 text-xs font-bold text-white bg-[#111827] hover:bg-[#0F2D5C] rounded-lg flex items-center gap-1.5 min-h-[38px] transition-colors">
+                  <a id="header-btn-login" href="/login" toolname="client_login" tooldescription="Access client account and wallet" data-tool-name="client_login" data-action="client_login" class="px-3.5 py-2 text-xs font-bold text-white bg-[#111827] hover:bg-[#0F2D5C] rounded-lg flex items-center gap-1.5 min-h-[38px] transition-colors">
                     <svg class="h-3.5 w-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" /><polyline points="10 17 15 12 10 7" /><line x1="15" x2="3" y1="12" y2="12" /></svg>
                     Login
                   </a>
-                  <a id="header-btn-register" href="/register" class="px-3.5 py-2 text-xs font-bold text-white bg-[#111827] hover:bg-[#0F2D5C] rounded-lg flex items-center gap-1.5 min-h-[38px] transition-colors">
+                  <a id="header-btn-register" href="/register" toolname="register_account" tooldescription="Register a new personal or agent account" data-tool-name="register_account" data-action="register_account" class="px-3.5 py-2 text-xs font-bold text-white bg-[#111827] hover:bg-[#0F2D5C] rounded-lg flex items-center gap-1.5 min-h-[38px] transition-colors">
                     <svg class="h-3.5 w-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><line x1="19" x2="19" y1="8" y2="14" /><line x1="22" x2="16" y1="11" y2="11" /></svg>
                     Register
                   </a>
-                  <a id="header-btn-get-started" href="/register" class="px-4 py-2 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold rounded-lg text-xs shadow-xs flex items-center gap-1.5 min-h-[38px] transition-colors">
+                  <a id="header-btn-get-started" href="/register" toolname="get_started" tooldescription="Create free account and get automated virtual account" data-tool-name="get_started" data-action="get_started" class="px-4 py-2 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold rounded-lg text-xs shadow-xs flex items-center gap-1.5 min-h-[38px] transition-colors">
                     Get Started
                     <svg class="h-3.5 w-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
                   </a>
                 </div>
                 <div class="flex items-center gap-2 lg:hidden">
-                  <button id="header-mobile-toggle" type="button" aria-expanded="false" aria-controls="header-desktop-nav" aria-label="Toggle mobile menu" class="min-w-[44px] min-h-[44px] flex items-center justify-center p-2 rounded-lg text-[#111827]">
+                  <button id="header-mobile-toggle" type="button" aria-expanded="false" aria-controls="header-desktop-nav" aria-label="Toggle mobile menu" class="min-w-[48px] min-h-[48px] flex items-center justify-center p-2 rounded-lg text-[#111827]">
                     <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" x2="20" y1="12" y2="12" /><line x1="4" x2="20" y1="6" y2="6" /><line x1="4" x2="20" y1="18" y2="18" /></svg>
                   </button>
                 </div>
@@ -587,6 +622,12 @@
                       <a
                         id="hero-primary-btn"
                         href="/register"
+                        toolname="get_started"
+                        tooldescription="Create free SmartLink account and receive dedicated virtual account"
+                        data-tool-name="get_started"
+                        data-action="register"
+                        data-agent-action="register"
+                        data-agent-target="registration-portal"
                         class="w-full sm:w-auto min-h-[48px] px-8 py-3.5 bg-[#0F2D5C] text-white font-bold rounded-xl text-sm shadow-xs flex items-center justify-center gap-2.5 cursor-pointer touch-manipulation hover:bg-[#17407E] transition-colors"
                       >
                         <span>Get Started Free</span>
@@ -598,6 +639,12 @@
                       <a
                         id="hero-secondary-btn"
                         href="/explore-services"
+                        toolname="explore_services"
+                        tooldescription="Browse catalog of 25+ identity verification, CAC registration, and utility services"
+                        data-tool-name="explore_services"
+                        data-action="explore_services"
+                        data-agent-action="explore_services"
+                        data-agent-target="services-catalog"
                         class="w-full sm:w-auto min-h-[48px] px-8 py-3.5 bg-white text-[#0F2D5C] border border-[#0F2D5C] font-bold rounded-xl text-sm shadow-xs flex items-center justify-center gap-2.5 cursor-pointer touch-manipulation hover:bg-[#F5F7FA] transition-colors"
                       >
                         <span>Explore Services &amp; Pricing</span>
