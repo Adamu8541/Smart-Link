@@ -354,14 +354,16 @@ export function resolveSEOMetadata(req: Request): SEOMetadata {
         "highPrice": "50000",
         "offerCount": "25"
       },
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": "4.9",
-        "reviewCount": "1420",
-        "ratingCount": "1580",
-        "bestRating": "5",
-        "worstRating": "1"
-      }
+      "featureList": [
+        "Instant National Identity Number (NIN) verification & PDF slip printing",
+        "Bank Verification Number (BVN) validation & premium ID card formatting",
+        "Corporate Affairs Commission (CAC) business name registration & filing",
+        "SCUML Anti-Money Laundering certificate application processing",
+        "Automated Electricity Disco token recharge (IKEDC, EKEDC, AEDC, IBEDC, etc.)",
+        "VTU Airtime & cheap data bundles across MTN, Airtel, Glo, and 9mobile",
+        "DSTV, GOtv & StarTimes cable TV subscription renewal",
+        "High-performance REST API portal for fintechs, agents, and business platforms"
+      ]
     },
     {
       "@type": "FAQPage",
@@ -580,7 +582,7 @@ export function injectSEOTags(html: string, metadata: SEOMetadata): string {
     <meta name="twitter:image:alt" content="${escapeHtml(metadata.ogImageAlt)}" />
 
     <!-- Structured Data (JSON-LD) -->
-    <script type="application/ld+json">
+    <script type="application/ld+json" id="smartlink-nigeria-rich-schema">
       ${JSON.stringify(metadata.structuredData)}
     </script>
   `;
@@ -588,12 +590,13 @@ export function injectSEOTags(html: string, metadata: SEOMetadata): string {
   // Remove existing <title> from HTML if present to prevent duplication
   let updatedHtml = html.replace(/<title>[\s\S]*?<\/title>/gi, "");
 
-  // Remove existing dynamic meta tags if any
+  // Remove existing dynamic meta tags and any existing application/ld+json scripts to prevent duplicates
   updatedHtml = updatedHtml
     .replace(/<meta\s+name=["']description["'][^>]*>/gi, "")
     .replace(/<meta\s+property=["']og:[^"']*["'][^>]*>/gi, "")
     .replace(/<meta\s+name=["']twitter:[^"']*["'][^>]*>/gi, "")
-    .replace(/<link\s+rel=["']canonical["'][^>]*>/gi, "");
+    .replace(/<link\s+rel=["']canonical["'][^>]*>/gi, "")
+    .replace(/<script\s+type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/gi, "");
 
   // Inject meta tags right before </head>
   if (updatedHtml.includes("</head>")) {

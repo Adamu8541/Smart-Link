@@ -367,6 +367,7 @@ export class BigisubAdapter implements ProviderAdapter {
     const headers = this.getHeaders(config);
 
     const candidateEndpoints = [
+      `${baseUrl}/user/profile/`,
       `${baseUrl}/user/`,
       `${baseUrl}/wallet/balance/`,
       `${baseUrl}/balance/`,
@@ -380,7 +381,8 @@ export class BigisubAdapter implements ProviderAdapter {
           res.data?.balance ??
           res.data?.wallet_balance ??
           res.data?.user?.balance ??
-          res.data?.data?.balance;
+          res.data?.data?.balance ??
+          res.data?.data?.walletBalance;
         if (bal !== undefined && bal !== null) {
           return {
             success: true,
@@ -751,6 +753,7 @@ export class BigisubAdapter implements ProviderAdapter {
     };
 
     const candidateEndpoints = [
+      `${baseUrl}/vtu/cable/verify/`,
       `${baseUrl}/cable/verify/`,
       `${baseUrl}/cable/validate/`,
       `${baseUrl}/cable-verification/`,
@@ -837,6 +840,7 @@ export class BigisubAdapter implements ProviderAdapter {
     };
 
     const candidateEndpoints = [
+      `${baseUrl}/vtu/cable/purchase/`,
       `${baseUrl}/cable/purchase/`,
       `${baseUrl}/cable/pay/`,
       `${baseUrl}/cable-subscription/`,

@@ -133,7 +133,7 @@ export class AspfiyAdapter implements ProviderAdapter {
 
     if (!secretKey) {
       throw new Error(
-        "ASPFIY_SECRET_KEY is missing or invalid. Please check your Aspfiy Secret Key in Admin Portal → API Portal."
+        "ASPFIY_SECRET_KEY is missing or invalid. Please check your ASPFIY_SECRET_KEY server-side environment variable."
       );
     }
 
@@ -164,7 +164,7 @@ export class AspfiyAdapter implements ProviderAdapter {
       const [firstName, ...rest] = fullName.split(/\s+/);
       const lastName = rest.join(" ") || firstName || "Customer";
 
-      const userId = user?.uid || user?.id || `usr_${Date.now()}`;
+      const userId = String(user?.uid || user?.id || `usr_${Date.now()}`);
       const reference = `SL-${userId.replace(/[^a-zA-Z0-9_-]/g, "")}-${Date.now().toString().slice(-4)}`;
       const normalizedPhone = normalizeNigerianPhone(rawPhone);
       const webhookUrl = (config.webhookUrl || "").trim() || "https://smartlinkng.com.ng/api/webhooks/aspfiy";
@@ -182,35 +182,66 @@ export class AspfiyAdapter implements ProviderAdapter {
 
       console.log(`[AspfiyAdapter] Requesting virtual account from Aspfiy for user ${userId} (${email})`);
 
-      console.log(`[AspfiyAdapter] Requesting virtual account from Aspfiy (/reserve-palmpay/) for user ${userId} (${email})`);
+      console.log(`[AspfiyAdapter] Primary target: Requesting virtual account from Aspfiy PalmPay (/reserve-palmpay/) for user ${userId} (${email})`);
 
-      let res = await fetch(`${this.baseUrl(config)}/reserve-palmpay/`, {
-        method: "POST",
-        headers: this.headers(config),
-        body: JSON.stringify(requestPayload),
-      });
+      let targetBank = "PalmPay";
+      let res: Response | null = null;
+      let json: any = null;
 
-      let json: any = await res.json().catch(() => ({}));
-      console.log(`[AspfiyAdapter] Aspfiy /reserve-palmpay/ response status ${res.status}:`, JSON.stringify(json));
+      // 1. Primary Target: Aspfiy PalmPay endpoint
+      try {
+        res = await fetch(`${this.baseUrl(config)}/reserve-palmpay/`, {
+          method: "POST",
+          headers: this.headers(config),
+          body: JSON.stringify(requestPayload),
+        });
+        json = await res.json().catch(() => ({}));
+        console.log(`[AspfiyAdapter] Aspfiy /reserve-palmpay/ response status ${res.status}:`, JSON.stringify(json));
+      } catch (palmpayErr: any) {
+        console.warn(`[AspfiyAdapter] PalmPay request exception: ${palmpayErr?.message}. Initiating immediate fallback to Paga.`);
+        json = { status: false, message: palmpayErr?.message || "PalmPay network exception" };
+      }
 
-      // If reserve-account or others needed
-      if (json?.status === false || (!json?.account_number && !json?.accountNumber && !json?.data?.account_number)) {
+      // Check if PalmPay returned a valid account number
+      const palmpayHasAccount = json?.status === true && (
+        json?.account_number ||
+        json?.accountNumber ||
+        json?.data?.account_number ||
+        json?.data?.account?.account_number
+      );
+
+      // 2. Automatic Fallback: If PalmPay failed, returned error ("Cannot reserve account right now"), or returned no account
+      if (!palmpayHasAccount) {
+        const failureReason = json?.message || (res ? `HTTP ${res.status}` : "Network failure");
+        console.warn(`[AspfiyAdapter] PalmPay reservation unavailable (${failureReason}). Automatically falling back to Aspfiy Paga (/reserve-paga/)...`);
+
         try {
-          const resAlt = await fetch(`${this.baseUrl(config)}/reserve-account/`, {
+          const resAlt = await fetch(`${this.baseUrl(config)}/reserve-paga/`, {
             method: "POST",
             headers: this.headers(config),
             body: JSON.stringify(requestPayload),
           });
           const jsonAlt: any = await resAlt.json().catch(() => ({}));
-          console.log(`[AspfiyAdapter] Aspfiy /reserve-account/ response status ${resAlt.status}:`, JSON.stringify(jsonAlt));
-          if (jsonAlt?.status === true || jsonAlt?.account_number || jsonAlt?.data?.account_number) {
+          console.log(`[AspfiyAdapter] Aspfiy /reserve-paga/ response status ${resAlt.status}:`, JSON.stringify(jsonAlt));
+
+          const pagaHasAccount = jsonAlt?.status === true && (
+            jsonAlt?.account_number ||
+            jsonAlt?.accountNumber ||
+            jsonAlt?.data?.account_number ||
+            jsonAlt?.data?.account?.account_number
+          );
+
+          if (pagaHasAccount || jsonAlt?.status === true) {
             res = resAlt;
             json = jsonAlt;
+            targetBank = "Paga";
+            console.log(`[AspfiyAdapter] Paga fallback succeeded! Virtual account acquired from Paga.`);
           } else if (jsonAlt?.message && (!json?.message || json?.message.includes("Cannot reserve"))) {
+            res = resAlt;
             json = jsonAlt;
           }
         } catch (altErr) {
-          console.warn("[AspfiyAdapter] Alt endpoint check note:", altErr);
+          console.warn("[AspfiyAdapter] /reserve-paga/ check note:", altErr);
         }
       }
 
@@ -341,7 +372,7 @@ export class AspfiyAdapter implements ProviderAdapter {
       const data = json.data || json.result || json.response || json.details || json;
       const backendMsg = String(json?.message || json?.error || json?.msg || "");
 
-      // Extract bank name from nested account object or root data
+      // Extract bank name from nested account object or root data, falling back to targetBank
       const bankName =
         data?.account?.bank_name ||
         data?.account?.bankName ||
@@ -349,6 +380,7 @@ export class AspfiyAdapter implements ProviderAdapter {
         data?.bankName ||
         json?.bank_name ||
         json?.bankName ||
+        targetBank ||
         "PalmPay";
 
       const providerRef = data?.reference || data?.providerReference || json?.reference || reference;
@@ -549,11 +581,11 @@ export class AspfiyAdapter implements ProviderAdapter {
       }
 
       // Check if secret key is available for server-to-server query
-      const secretKey = String(config.secretKey || "").trim();
-      if (!secretKey || secretKey.includes("••••")) {
+      const secretKey = this.getResolvedKey(config);
+      if (!secretKey) {
         return {
           verified: false,
-          error: "ASPFIY API credentials missing for server verification.",
+          error: "ASPFIY_SECRET_KEY server-side environment variable is missing for server verification.",
         };
       }
 
@@ -595,12 +627,13 @@ export class AspfiyAdapter implements ProviderAdapter {
   }
 
   // Aspfiy signs webhooks with header "x-wiaxy-signature" = MD5(secret key).
-  // Verify this against a real sandbox webhook before trusting it in production.
   verifyWebhookSignature(headers: Record<string, any>, rawBody: string, config: PaymentProviderConfig): boolean {
     const sigHeader = headers["x-wiaxy-signature"];
     const sig = Array.isArray(sigHeader) ? sigHeader[0] : sigHeader;
     if (!sig) return false;
-    const expected = crypto.createHash("md5").update(config.secretKey).digest("hex");
+    const secretKey = this.getResolvedKey(config);
+    if (!secretKey) return false;
+    const expected = crypto.createHash("md5").update(secretKey).digest("hex");
     return sig === expected;
   }
 }

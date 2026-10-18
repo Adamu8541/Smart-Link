@@ -910,28 +910,9 @@ app.post("/api/bills/validate-customer", async (req, res) => {
     }
   }
 
-  // Fallback simulated response
-  let customerName = "ALHAJI BABATUNDE KOLAWOLE";
-  let customerAddress = "NO 14 ADEMOLA ADETOKUNBO CRESCENT, VICTORIA ISLAND, LAGOS";
-  let currentPlan = "PREPAID STANDARD RESIDENTIAL";
-
-  if (category === "CABLE_TV") {
-    customerName = "CHIEF EMMANUEL OKONKWO";
-    customerAddress = "";
-    currentPlan = `${providerCode} COMPACT MONTHLY`;
-  } else if (category === "BETTING") {
-    customerName = "DANJUMA ABUBAKAR (BET-USER)";
-    customerAddress = "";
-    currentPlan = "VERIFIED PLAYER ACCOUNT";
-  }
-
-  res.json({
-    valid: true,
-    customerName,
-    customerAddress,
-    accountStatus: "ACTIVE",
-    currentPlan,
-    minimumAmount: 1000,
+  return res.status(422).json({
+    valid: false,
+    error: `Customer validation failed for ${category} (${providerCode}). Unable to verify account/meter/smartcard "${customerId}" with provider gateway.`,
   });
 });
 

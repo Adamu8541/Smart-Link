@@ -110,7 +110,17 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
 
     // Rich Structured Data Graph (JSON-LD)
     const schemaId = "smartlink-nigeria-rich-schema";
-    let scriptElement = document.getElementById(schemaId) as HTMLScriptElement | null;
+    const existingScripts = document.querySelectorAll('script[type="application/ld+json"]');
+    let scriptElement: HTMLScriptElement | null = null;
+
+    existingScripts.forEach((el) => {
+      if (el.id === schemaId && !scriptElement) {
+        scriptElement = el as HTMLScriptElement;
+      } else {
+        el.remove();
+      }
+    });
+
     if (!scriptElement) {
       scriptElement = document.createElement("script");
       scriptElement.id = schemaId;
@@ -229,6 +239,24 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
           }
         },
         {
+          "@type": "WebSite",
+          "@id": `${canonicalUrl}/#website`,
+          "url": canonicalUrl,
+          "name": "Smart Link NG",
+          "description": description,
+          "publisher": {
+            "@id": `${canonicalUrl}/#organization`
+          },
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": `${canonicalUrl}/explore-services?search={search_term_string}`
+            },
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
           "@type": "SoftwareApplication",
           "@id": `${canonicalUrl}/#software`,
           "name": "SmartLink Nigeria Digital Hub",
@@ -241,13 +269,16 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
             "highPrice": "50000",
             "offerCount": "25"
           },
-          "aggregateRating": {
-            "@type": "AggregateRating",
-            "ratingValue": "4.9",
-            "reviewCount": "1420",
-            "ratingCount": "1580",
-            "bestRating": "5"
-          }
+          "featureList": [
+            "Instant National Identity Number (NIN) verification & PDF slip printing",
+            "Bank Verification Number (BVN) validation & premium ID card formatting",
+            "Corporate Affairs Commission (CAC) business name registration & filing",
+            "SCUML Anti-Money Laundering certificate application processing",
+            "Automated Electricity Disco token recharge (IKEDC, EKEDC, AEDC, IBEDC, etc.)",
+            "VTU Airtime & cheap data bundles across MTN, Airtel, Glo, and 9mobile",
+            "DSTV, GOtv & StarTimes cable TV subscription renewal",
+            "High-performance REST API portal for fintechs, agents, and business platforms"
+          ]
         },
         {
           "@type": "FAQPage",
