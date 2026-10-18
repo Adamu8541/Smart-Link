@@ -83,9 +83,9 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
           {/* Action Buttons */}
           <div
             id="hero-actions"
-            className="flex flex-col items-center justify-center gap-2 pt-1"
+            className="flex flex-col items-center justify-center gap-2.5 pt-2"
           >
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 sm:gap-3 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full sm:w-auto">
               <button
                 id="hero-primary-btn"
                 onClick={onLogin || onGetStarted}
@@ -94,7 +94,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                 data-tool-description="Authenticate user or agent to access client portal"
                 data-agent-action="login"
                 data-agent-target="auth-portal"
-                className="w-full sm:w-auto min-h-[48px] px-6 sm:px-8 py-3 bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white font-bold rounded-xl text-xs sm:text-sm shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2 touch-manipulation focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0F2D5C]"
+                className="w-full sm:w-auto min-h-[48px] px-8 py-3.5 bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white font-bold rounded-xl text-xs sm:text-sm shadow-md transition-all cursor-pointer flex items-center justify-center gap-2 touch-manipulation focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0F2D5C]"
               >
                 <span>Log in</span>
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -107,12 +107,12 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                 data-tool-description="Browse catalog of 25+ identity verification, CAC registration, and utility services"
                 data-agent-action="explore_services"
                 data-agent-target="services-catalog"
-                className="w-full sm:w-auto min-h-[48px] px-6 sm:px-8 py-3 bg-white hover:bg-[#F5F7FA] active:bg-[#E5E7EB] text-[#0F2D5C] border border-[#0F2D5C] font-bold rounded-xl text-xs sm:text-sm shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2 touch-manipulation focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0F2D5C]"
+                className="w-full sm:w-auto min-h-[48px] px-8 py-3.5 bg-white hover:bg-[#F5F7FA] active:bg-[#E5E7EB] text-[#0F2D5C] border border-[#0F2D5C] font-bold rounded-xl text-xs sm:text-sm shadow-xs transition-all cursor-pointer flex items-center justify-center gap-2 touch-manipulation focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0F2D5C]"
               >
                 <span>Explore Services &amp; Pricing</span>
               </button>
             </div>
-            <p className="text-[11px] sm:text-xs text-[#374151] pt-1 flex items-center justify-center gap-1.5 flex-wrap">
+            <p className="text-[11px] sm:text-xs text-[#374151] pt-1.5 flex items-center justify-center gap-1.5 flex-wrap">
               <span>Instant Automated Processing</span>
               <span aria-hidden="true">•</span>
               <span>Dedicated Virtual Account Funding</span>

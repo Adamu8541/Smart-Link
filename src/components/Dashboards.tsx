@@ -1882,16 +1882,16 @@ export default function Dashboards({
                       </div>
 
                       {/* Bank Details Grid */}
-                      <div className="grid grid-cols-2 gap-3 pt-1 border-t border-white/10 text-xs">
-                        <div>
+                      <div className="flex flex-col sm:grid sm:grid-cols-2 gap-3 pt-1 border-t border-white/10 text-xs text-left">
+                        <div className="text-left">
                           <p className="text-[10px] text-slate-300 uppercase font-medium">Bank Name</p>
-                          <p className="font-bold text-white text-sm">
+                          <p className="font-bold text-white text-base sm:text-sm break-words">
                             {fundAccount.bankName || "PalmPay"}
                           </p>
                         </div>
-                        <div>
+                        <div className="text-left">
                           <p className="text-[10px] text-slate-300 uppercase font-medium">Account Name</p>
-                          <p className="font-bold text-white text-sm truncate">
+                          <p className="font-bold text-white text-xs sm:text-sm break-words">
                             {fundAccount.accountName || currentUser.fullName || "SMARTLINK CUSTOMER"}
                           </p>
                         </div>
