@@ -149,18 +149,14 @@ export default function Navigation({
       title: "IDENTITY VERIFICATION",
       items: [
         { id: "SRV_nin_ver", label: "NIN Verification", icon: Fingerprint, viewId: "DASHBOARD", serviceId: "id_nin_ver" },
-        { id: "SRV_nin_phone", label: "NIN with Phone Number", icon: Phone, viewId: "DASHBOARD", serviceId: "id_nin_phone" },
         { id: "SRV_slip_gen", label: "NIN Card & Slip Generation", icon: Printer, viewId: "DASHBOARD", serviceId: "id_slip_gen" },
-        { id: "SRV_nin_demo", label: "NIN with Name & DOB", icon: Users, viewId: "DASHBOARD", serviceId: "id_nin_demography" },
       ]
     },
     {
       title: "BANKING & BVN",
       items: [
         { id: "SRV_bvn_ver", label: "BVN Verification", icon: ShieldCheck, viewId: "DASHBOARD", serviceId: "id_bvn_ver" },
-        { id: "SRV_bvn_demo", label: "BVN with Name & DOB", icon: User, viewId: "DASHBOARD", serviceId: "id_bvn_demography" },
         { id: "SRV_premium_slip", label: "BVN Card & Slip Generation", icon: Lock, viewId: "DASHBOARD", serviceId: "id_premium_slip" },
-        { id: "SRV_bvn_phone", label: "BVN with Phone Number", icon: Phone, viewId: "DASHBOARD", serviceId: "id_bvn_phone" },
       ]
     },
     {

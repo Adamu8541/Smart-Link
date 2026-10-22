@@ -1235,61 +1235,7 @@ export default function Dashboards({
                 </h2>
               </div>
               <div className="grid grid-cols-4 gap-y-3.5 sm:gap-y-6 gap-x-2 sm:gap-x-3">
-                {/* Row 1 */}
-                {/* 1. NIN Verification with Phone Number */}
-                <button
-                  onClick={() => handleServiceCardClick("id_nin_phone")}
-                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-1"
-                >
-                  <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-xl sm:rounded-2xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-1 sm:mb-1.5 transition-transform group-hover:scale-105 shadow-2xs">
-                    <Phone className="h-5 w-5 sm:h-6 sm:w-6 stroke-[2]" />
-                  </div>
-                  <span className="text-[10.5px] sm:text-xs font-semibold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
-                    NIN Phone Search
-                  </span>
-                </button>
-
-                {/* 2. BVN Verification with Phone Number */}
-                <button
-                  onClick={() => handleServiceCardClick("id_bvn_phone")}
-                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-1"
-                >
-                  <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-xl sm:rounded-2xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-1 sm:mb-1.5 transition-transform group-hover:scale-105 shadow-2xs">
-                    <Phone className="h-5 w-5 sm:h-6 sm:w-6 stroke-[2]" />
-                  </div>
-                  <span className="text-[10.5px] sm:text-xs font-semibold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
-                    BVN Phone Search
-                  </span>
-                </button>
-
-                {/* 3. BVN Demographic */}
-                <button
-                  onClick={() => handleServiceCardClick("id_bvn_demography")}
-                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-1"
-                >
-                  <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-xl sm:rounded-2xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-1 sm:mb-1.5 transition-transform group-hover:scale-105 shadow-2xs">
-                    <User className="h-5 w-5 sm:h-6 sm:w-6 stroke-[2]" />
-                  </div>
-                  <span className="text-[10.5px] sm:text-xs font-semibold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
-                    BVN Demographic
-                  </span>
-                </button>
-
-                {/* 4. NIN Demographic */}
-                <button
-                  onClick={() => handleServiceCardClick("id_nin_demography")}
-                  className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-1"
-                >
-                  <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-xl sm:rounded-2xl bg-[#0F2D5C]/10 text-[#0F2D5C] flex items-center justify-center mb-1 sm:mb-1.5 transition-transform group-hover:scale-105 shadow-2xs">
-                    <Users className="h-5 w-5 sm:h-6 sm:w-6 stroke-[2]" />
-                  </div>
-                  <span className="text-[10.5px] sm:text-xs font-semibold text-[#1E293B] group-hover:text-[#0F2D5C] leading-tight">
-                    NIN Demographic
-                  </span>
-                </button>
-
-                {/* Row 2 */}
-                {/* 5. CAC Registration */}
+                {/* 1. CAC Registration */}
                 <button
                   onClick={() => handleServiceCardClick("id_cac_registration")}
                   className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-1"
@@ -1302,7 +1248,7 @@ export default function Dashboards({
                   </span>
                 </button>
 
-                {/* 6. TIN Verification */}
+                {/* 2. TIN Verification */}
                 <button
                   onClick={() => handleServiceCardClick("id_tax_id_search")}
                   className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-1"
@@ -1315,7 +1261,7 @@ export default function Dashboards({
                   </span>
                 </button>
 
-                {/* 7. SCUML Registration */}
+                {/* 3. SCUML Registration */}
                 <button
                   onClick={() => handleServiceCardClick("cac_scuml")}
                   className="flex flex-col items-center justify-start relative group active:scale-95 cursor-pointer text-center select-none py-1"
@@ -1328,7 +1274,7 @@ export default function Dashboards({
                   </span>
                 </button>
 
-                {/* 8. More */}
+                {/* 4. More */}
                 <button
                   onClick={() => {
                     setShowMoreServicesModal(true);

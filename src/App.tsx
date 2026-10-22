@@ -29,6 +29,7 @@ const ApiRequestBuilderView = lazyWithRetry(() => import("./components/admin/vie
 const ApiResponseMapperView = lazyWithRetry(() => import("./components/admin/views/ApiResponseMapperView"), "ApiResponseMapperView");
 const AdminSettingsView = lazyWithRetry(() => import("./components/admin/views/AdminSettingsView").then(m => ({ default: m.AdminSettingsView })), "AdminSettingsView");
 const AdminNotificationsView = lazyWithRetry(() => import("./components/admin/views/AdminNotificationsView").then(m => ({ default: m.AdminNotificationsView })), "AdminNotificationsView");
+const AdminEmailBroadcastsView = lazyWithRetry(() => import("./components/admin/views/AdminEmailBroadcastsView").then(m => ({ default: m.default })), "AdminEmailBroadcastsView");
 const UserNotificationCenter = lazyWithRetry(() => import("./components/notification/UserNotificationCenter").then(m => ({ default: m.UserNotificationCenter })), "UserNotificationCenter");
 const AdminSecurityView = lazyWithRetry(() => import("./components/admin/views/AdminSecurityView").then(m => ({ default: m.AdminSecurityView })), "AdminSecurityView");
 const AdminServicesView = lazyWithRetry(() => import("./components/admin/views/AdminServicesView").then(m => ({ default: m.AdminServicesView })), "AdminServicesView");
@@ -388,6 +389,7 @@ export default function App() {
     "/admin/legal": "ADMIN_LEGAL",
     "/admin/system": "ADMIN_SYSTEM",
     "/admin/notifications": "ADMIN_NOTIFICATIONS",
+    "/admin/emails": "ADMIN_EMAIL_BROADCASTS",
     "/forgot-password": "FORGOT_PASSWORD",
     "/reset-password": "RESET_PASSWORD",
     "/verify-email": "VERIFY_EMAIL",
@@ -452,6 +454,7 @@ export default function App() {
     ADMIN_LEGAL: "/admin/legal",
     ADMIN_SYSTEM: "/admin/system",
     ADMIN_NOTIFICATIONS: "/admin/notifications",
+    ADMIN_EMAIL_BROADCASTS: "/admin/emails",
     FORGOT_PASSWORD: "/forgot-password",
     RESET_PASSWORD: "/reset-password",
     VERIFY_EMAIL: "/verify-email",
@@ -1584,6 +1587,16 @@ export default function App() {
                       {currentView === "ADMIN_NOTIFICATIONS" && (
                         <AdminNotificationsView
                           session={adminSession}
+                          onNavigate={(routePath) => {
+                            const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
+                            setCurrentView(targetView);
+                          }}
+                        />
+                      )}
+
+                      {currentView === "ADMIN_EMAIL_BROADCASTS" && (
+                        <AdminEmailBroadcastsView
+                          session={adminSession!}
                           onNavigate={(routePath) => {
                             const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
                             setCurrentView(targetView);

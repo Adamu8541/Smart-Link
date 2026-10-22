@@ -992,9 +992,7 @@ export function getRealServiceIcon(serviceId: string, className = "h-14 w-14") {
   const sid = (serviceId || "").toLowerCase();
 
   // 1. Specific NIMC & Identity Services
-  if (sid === "id_nin_demography") return <NinDemographyIcon className={className} />;
   if (sid === "id_nin_ver") return <NinVerificationIcon className={className} />;
-  if (sid === "id_nin_phone") return <NinPhoneIcon className={className} />;
   if (sid === "id_nin_val") return <NinValidationIcon className={className} />;
   if (sid === "id_slip_gen") return <NinSlipGenIcon className={className} />;
   if (sid === "id_vnin_slip") return <VninSlipIcon className={className} />;

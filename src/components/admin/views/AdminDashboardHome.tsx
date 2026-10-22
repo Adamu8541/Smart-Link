@@ -202,11 +202,11 @@ export default function AdminDashboardHome({
   const shortcutButtons = [
     { label: "Price Control", path: "/admin/prices", icon: DollarSign, color: "bg-[#0F2D5C] hover:bg-[#17407E] text-white" },
     { label: "User Directory", path: "/admin/users", icon: UserPlus, color: "bg-[#0F2D5C] hover:bg-[#17407E] text-white" },
-    { label: "Wallet Funding", path: "/admin/wallet", icon: Wallet, color: "bg-[#10B981] hover:bg-[#059669] text-white" },
+    { label: "Wallet Funding", path: "/admin/wallet", icon: Wallet, color: "bg-[#0F2D5C] hover:bg-[#17407E] text-white" },
     { label: "Transactions", path: "/admin/transactions", icon: BarChart3, color: "bg-[#0F2D5C] hover:bg-[#17407E] text-white" },
-    { label: "Refunds Portal", path: "/admin/refunds", icon: RotateCcw, color: "bg-amber-600 hover:bg-amber-700 text-white" },
-    { label: "Financial Reports", path: "/admin/reports", icon: FileText, color: "bg-[#1E40AF] hover:bg-[#1D4ED8] text-white" },
-    { label: "System Health", path: "/admin/system", icon: Settings, color: "bg-[#374151] hover:bg-[#1F2937] text-white" },
+    { label: "Refunds Portal", path: "/admin/refunds", icon: RotateCcw, color: "bg-[#0F2D5C] hover:bg-[#17407E] text-white" },
+    { label: "Financial Reports", path: "/admin/reports", icon: FileText, color: "bg-[#0F2D5C] hover:bg-[#17407E] text-white" },
+    { label: "System Health", path: "/admin/system", icon: Settings, color: "bg-[#0F2D5C] hover:bg-[#17407E] text-white" },
   ];
 
   return (

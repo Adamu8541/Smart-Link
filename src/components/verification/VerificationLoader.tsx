@@ -325,7 +325,7 @@ export const VerificationLoader: React.FC<VerificationLoaderProps> = ({
             <button
               type="button"
               onClick={handleDownloadAgain}
-              className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-extrabold rounded-xl text-xs sm:text-sm transition-all shadow-md shadow-emerald-600/20 cursor-pointer flex items-center justify-center gap-2 active:scale-[0.98]"
+              className="w-full py-3.5 px-4 bg-[#0F2D5C] hover:bg-[#1E3A8A] active:bg-[#0B2144] text-white font-extrabold rounded-xl text-xs sm:text-sm transition-all shadow-md shadow-blue-900/20 cursor-pointer flex items-center justify-center gap-2 active:scale-[0.98]"
             >
               <Download className="w-4 h-4 text-white shrink-0" />
               <span>Download again</span>

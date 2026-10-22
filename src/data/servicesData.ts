@@ -12,20 +12,6 @@ export interface ServiceItem {
 export const SMART_LINK_SERVICES: ServiceItem[] = [
   // 1. IDENTITY & KYC
   {
-    id: "id_nin_demography",
-    name: "NIN Verification with Name & DOB",
-    category: "IDENTITY",
-    description: "Verify identity records via national demographic details (First Name, Last Name, Gender & Date of Birth). Choose slip type.",
-    price: 600,
-    actionLabel: "Verify Demographics",
-    fields: [
-      { name: "firstName", label: "First Name", type: "text", placeholder: "e.g. Shile", required: true },
-      { name: "lastName", label: "Last Name", type: "text", placeholder: "e.g. Ademurewa", required: true },
-      { name: "gender", label: "Gender", type: "select", placeholder: "Select Gender", required: true, options: ["MALE", "FEMALE"] },
-      { name: "dateOfBirth", label: "Date of Birth", type: "date", placeholder: "YYYY-MM-DD", required: true }
-    ]
-  },
-  {
     id: "id_nin_ver",
     name: "NIN Verification",
     category: "IDENTITY",
@@ -35,17 +21,6 @@ export const SMART_LINK_SERVICES: ServiceItem[] = [
     fields: [
       { name: "idNumber", label: "National Identification Number (NIN)", type: "text", placeholder: "e.g. 12345678901", required: true },
       { name: "fullName", label: "Full Name (as on card)", type: "text", placeholder: "e.g. Abubakar Muhammad", required: true }
-    ]
-  },
-  {
-    id: "id_nin_phone",
-    name: "NIN Verification with Phone Number",
-    category: "IDENTITY",
-    description: "Verify NIN records using the candidate's registered 11-digit mobile phone number.",
-    price: 500,
-    actionLabel: "Verify Phone Number",
-    fields: [
-      { name: "phoneNumber", label: "Phone Number", type: "text", placeholder: "e.g. 08012345678", required: true }
     ]
   },
   {
@@ -135,19 +110,6 @@ export const SMART_LINK_SERVICES: ServiceItem[] = [
     ]
   },
   {
-    id: "id_bvn_demography",
-    name: "BVN Verification with Name & DOB",
-    category: "IDENTITY",
-    description: "Confirm and validate Bank Verification Number (BVN) records via registered Name and Date of Birth.",
-    price: 500,
-    actionLabel: "Verify BVN Demographics",
-    fields: [
-      { name: "idNumber", label: "Bank Verification Number (BVN)", type: "text", placeholder: "e.g. 22233344455", required: true },
-      { name: "fullName", label: "Full Name (as registered on BVN)", type: "text", placeholder: "e.g. Abubakar Muhammad", required: true },
-      { name: "dateOfBirth", label: "Date of Birth", type: "date", placeholder: "YYYY-MM-DD", required: true }
-    ]
-  },
-  {
     id: "id_nin_bvn",
     name: "NIN-BVN Linkage",
     category: "IDENTITY",
@@ -234,17 +196,6 @@ export const SMART_LINK_SERVICES: ServiceItem[] = [
       { name: "fullName", label: "Full Name (First, Middle, Surname)", type: "text", placeholder: "e.g. Abubakar Muhammad", required: true },
       { name: "phone", label: "Registered Phone Number", type: "text", placeholder: "e.g. 08031234567", required: true },
       { name: "dob", label: "Date of Birth", type: "text", placeholder: "DD/MM/YYYY or YYYY-MM-DD", required: true }
-    ]
-  },
-  {
-    id: "id_bvn_phone",
-    name: "BVN Verification with Phone Number",
-    category: "IDENTITY",
-    description: "Confirm and validate Bank Verification Number (BVN) records using the registered phone number.",
-    price: 500,
-    actionLabel: "Verify BVN with Phone",
-    fields: [
-      { name: "phoneNumber", label: "Registered Phone Number", type: "text", placeholder: "e.g. 08012345678", required: true }
     ]
   },
   {

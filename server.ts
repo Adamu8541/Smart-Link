@@ -42,6 +42,7 @@ import tursoRoutes from "./server/routes/turso.routes";
 import securityRoutes from "./server/routes/security.routes";
 import apiBuilderRoutes from "./server/routes/apiBuilder.routes";
 import developerApiRoutes from "./server/routes/developerApi.routes";
+import emailCampaignsRoutes from "./server/routes/emailCampaigns.routes";
 
 // Re-export core helpers for backwards compatibility
 export {
@@ -267,6 +268,7 @@ app.use(tursoRoutes);
 app.use(securityRoutes);
 app.use(apiBuilderRoutes);
 app.use(developerApiRoutes);
+app.use(emailCampaignsRoutes);
 
 // Fallback 404 for all unhandled /api/* routes so they always return JSON and never HTML
 app.all("/api/*", (req, res) => {

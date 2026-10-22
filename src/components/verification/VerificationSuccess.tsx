@@ -308,7 +308,7 @@ export const VerificationSuccess: React.FC<VerificationSuccessProps> = ({
             <button
               type="button"
               onClick={handleDownloadAgain}
-              className="w-full py-4 px-6 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-extrabold rounded-2xl text-sm sm:text-base transition-all shadow-lg shadow-emerald-600/25 cursor-pointer flex items-center justify-center gap-2.5 active:scale-[0.99]"
+              className="w-full py-4 px-6 bg-[#0F2D5C] hover:bg-[#1E3A8A] active:bg-[#0B2144] text-white font-extrabold rounded-2xl text-sm sm:text-base transition-all shadow-lg shadow-blue-900/25 cursor-pointer flex items-center justify-center gap-2.5 active:scale-[0.99]"
             >
               <Download className="w-5 h-5 text-white" />
               <span>{isRegular ? "Download Regular Slip again" : "Download id card again"}</span>

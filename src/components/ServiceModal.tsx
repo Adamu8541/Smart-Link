@@ -11,11 +11,7 @@ import { UserProfile } from "../types";
 import { SmartLinkLogoMark } from "./ui/SmartLinkLogoMark";
 import { VerificationEngine } from "./verification/VerificationEngine";
 import { NinVerificationView } from "./verification/NinVerificationView";
-import { NinDemographyView } from "./verification/NinDemographyView";
-import { NinPhoneVerificationView } from "./verification/NinPhoneVerificationView";
 import { BvnVerificationView } from "./verification/BvnVerificationView";
-import { BvnDemographyView } from "./verification/BvnDemographyView";
-import { BvnPhoneVerificationView } from "./verification/BvnPhoneVerificationView";
 import { CacVerificationView } from "./verification/CacVerificationView";
 import { TinVerificationView } from "./verification/TinVerificationView";
 import { BankAccountVerificationView } from "./verification/BankAccountVerificationView";
@@ -197,75 +193,7 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
   };
 
   if (isVerificationService && currentUser) {
-    // 1. BVN Phone Verification
-    if (
-      service.id === "id_bvn_phone" ||
-      (service.id.includes("bvn") && service.id.includes("phone")) ||
-      (service.name.toLowerCase().includes("bvn") && service.name.toLowerCase().includes("phone"))
-    ) {
-      return renderModalContainer(
-        <BvnPhoneVerificationView
-          userId={currentUser.uid}
-          userEmail={currentUser.email}
-          serviceTitle={service.name}
-          onBackToDashboard={onClose}
-          onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
-        />,
-        "max-w-xl"
-      );
-    }
-
-    // 2. NIN Phone Verification
-    if (
-      service.id === "id_nin_phone" ||
-      service.id.includes("nin_phone") ||
-      service.name.toLowerCase().includes("nin with phone") ||
-      (service.name.toLowerCase().includes("nin") && service.name.toLowerCase().includes("phone"))
-    ) {
-      return renderModalContainer(
-        <NinPhoneVerificationView
-          userId={currentUser.uid}
-          userEmail={currentUser.email}
-          serviceTitle={service.name}
-          onBackToDashboard={onClose}
-          onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
-        />,
-        "max-w-xl"
-      );
-    }
-
-    // 3. BVN Demographic Verification (Name & DOB)
-    if (
-      service.id === "id_bvn_demography" ||
-      (service.id.includes("bvn") && (service.id.includes("demography") || service.name.toLowerCase().includes("demography") || service.name.toLowerCase().includes("dob") || service.name.toLowerCase().includes("name & dob"))) ||
-      (service.name.toLowerCase().includes("bvn") && (service.name.toLowerCase().includes("demography") || service.name.toLowerCase().includes("name & dob") || service.name.toLowerCase().includes("dob")))
-    ) {
-      return renderModalContainer(
-        <BvnDemographyView
-          userId={currentUser.uid}
-          userEmail={currentUser.email}
-          serviceTitle={service.name}
-          onBackToDashboard={onClose}
-          onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
-        />,
-        "max-w-xl"
-      );
-    }
-
-    // 4. NIN Demographic Verification
-    if (service.id.includes("demography") || service.name.toLowerCase().includes("demography") || service.name.toLowerCase().includes("name & dob")) {
-      return renderModalContainer(
-        <NinDemographyView
-          userId={currentUser.uid}
-          userEmail={currentUser.email}
-          onBackToDashboard={onClose}
-          onBalanceUpdate={() => onRefreshUser(currentUser.uid)}
-        />,
-        "max-w-xl"
-      );
-    }
-
-    // 5. BVN Slip & ID Card Generation or other BVN services
+    // BVN Slip & ID Card Generation or other BVN services
     if (
       service.id === "id_premium_slip" ||
       service.id === "id_bvn_ver" ||

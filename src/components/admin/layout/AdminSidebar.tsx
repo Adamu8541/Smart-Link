@@ -25,7 +25,8 @@ import {
   ArrowRightLeft,
   KeyRound,
   RotateCcw,
-  ShieldCheck
+  ShieldCheck,
+  Mail
 } from "lucide-react";
 import { AdminSession, ADMIN_ROLES_CONFIG } from "../../../services/adminAuthTypes";
 const logoImg = "/logo.webp";
@@ -85,6 +86,12 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
       { id: "NAV_TRANSACTIONS", label: "Transactions Ledger", path: "/admin/transactions", icon: BarChart3, requiredPermissions: ["MANAGE_TRANSACTIONS", "VIEW_TRANSACTIONS"] },
       { id: "NAV_REFUNDS", label: "Refunds Portal", path: "/admin/refunds", icon: RotateCcw, requiredPermissions: ["MANAGE_REFUNDS", "VIEW_FINANCE"] },
       { id: "NAV_REPORTS", label: "Financial Reports", path: "/admin/reports", icon: FileText, requiredPermissions: ["MANAGE_REPORTS", "VIEW_REPORTS"] },
+    ],
+  },
+  {
+    title: "COMMUNICATIONS",
+    items: [
+      { id: "NAV_EMAIL_BROADCASTS", label: "Email Broadcasts", path: "/admin/emails", icon: Mail, requiredPermissions: ["MANAGE_SETTINGS", "VIEW_DASHBOARD"], badge: "Gmail" },
     ],
   },
   {
