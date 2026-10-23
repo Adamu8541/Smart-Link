@@ -1051,12 +1051,9 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                 <div className="p-4 bg-[#111827] border border-[#111827] rounded-xl space-y-3">
                   <div className="flex items-center justify-between">
                     <img
-                      src={brandingSettings.logoUrl || "/logo.webp"}
+                      src={brandingSettings.logoUrl || "/logo.png"}
                       alt="Logo Preview"
                       className="h-20 max-w-[200px] object-contain rounded-xl border-2 border-[#4B5563] bg-white p-1.5 shadow-md"
-                      onError={(e: any) => {
-                        e.target.src = "/logo.webp";
-                      }}
                     />
                     <span className="text-[10px] font-mono bg-[#111827] text-[#E5E7EB] py-0.5 px-2 rounded-full">
                       Preview

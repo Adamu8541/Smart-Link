@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { SmartLinkLogoMark } from "../ui/SmartLinkLogoMark";
 import { useSiteConfig } from "../../context/SiteConfigContext";
-import { DEFAULT_LOGO_URL, handleLogoError } from "../../utils/brandLogo";
+import { DEFAULT_LOGO_URL } from "../../utils/brandLogo";
 import { LoginLoaderModal } from "../auth/LoginLoaderModal";
 const logoImg = DEFAULT_LOGO_URL;
 
@@ -181,7 +181,6 @@ export default function AdminLogin({ onLoginSuccess, onNavigateHome }: AdminLogi
               src={activeLogo}
               alt={siteName || "SmartLink Logo"}
               className="h-12 md:h-14 w-auto max-w-[200px] object-contain"
-              onError={handleLogoError}
             />
           </div>
           <div>

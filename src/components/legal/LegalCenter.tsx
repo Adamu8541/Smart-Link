@@ -32,7 +32,7 @@ import {
 } from "lucide-react";
 import { LEGAL_CATEGORIES, LEGAL_DOCUMENTS, LegalDocument } from "./legalData";
 import { useSiteConfig } from "../../context/SiteConfigContext";
-import { DEFAULT_LOGO_URL, handleLogoError } from "../../utils/brandLogo";
+import { DEFAULT_LOGO_URL } from "../../utils/brandLogo";
 const logoImg = DEFAULT_LOGO_URL;
 
 interface LegalCenterProps {
@@ -134,7 +134,6 @@ export const LegalCenter: React.FC<LegalCenterProps> = ({
                 decoding="async"
                 className="h-10 sm:h-12 w-auto max-w-[200px] object-contain"
                 referrerPolicy="no-referrer"
-                onError={handleLogoError}
               />
             </div>
           </div>

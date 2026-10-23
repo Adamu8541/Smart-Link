@@ -32,10 +32,11 @@ export function extractAuthToken(req: express.Request | any): string | null {
   return null;
 }
 
-export const SUPER_ADMIN_EMAILS = [
+export const SUPER_ADMIN_EMAILS = Array.from(new Set([
   (process.env.SUPER_ADMIN_EMAIL || "").toLowerCase().trim(),
+  (process.env.ADMIN_EMAIL || "").toLowerCase().trim(),
   (SUPER_ADMIN_EMAIL || "").toLowerCase().trim(),
-].filter(Boolean);
+].filter(Boolean)));
 
 export interface AuthenticatedUserPayload {
   uid: string;

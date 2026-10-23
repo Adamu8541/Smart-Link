@@ -132,7 +132,7 @@ export const PwaInstallPrompt: React.FC = () => {
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-2xl bg-white p-1 flex items-center justify-center shadow-md border border-white/30 shrink-0">
                   <img
-                    src="/favicon.webp"
+                    src="/logo.png"
                     alt="Smart Link NG"
                     className="w-full h-full object-contain rounded-xl"
                     onError={(e) => {

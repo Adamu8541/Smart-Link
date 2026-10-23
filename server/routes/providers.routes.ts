@@ -1597,7 +1597,7 @@ function seedModule6ProvidersIfEmpty(db: any) {
     });
   }
 
-  // Ensure Clubkonnect Provider (official base URL & built-in App ID)
+  // Ensure Clubkonnect Provider (official base URL & built-in App ID) - NOT default
   if (!db.api_providers.some((p: any) => p.id === "prov_clubkonnect" || (p.name || "").toLowerCase().includes("clubkonnect"))) {
     db.api_providers.push({
       id: "prov_clubkonnect",
@@ -1624,7 +1624,8 @@ function seedModule6ProvidersIfEmpty(db: any) {
       timeout: 15000,
       retryAttempts: 3,
       healthStatus: "ONLINE",
-      priority: 5,
+      priority: 15,
+      isDefault: false,
       environment: "PRODUCTION",
       status: "ENABLED",
       enabled: true,
@@ -1781,6 +1782,25 @@ function seedModule6ProvidersIfEmpty(db: any) {
       status: "ENABLED",
       enabled: true,
       isActive: true,
+    });
+  }
+
+  // Normalize defaults: ensure Bigisub is default and Clubkonnect is not default
+  if (Array.isArray(db.api_providers)) {
+    db.api_providers.forEach((p: any) => {
+      const pName = String(p.name || "").toLowerCase();
+      const pId = String(p.id || "").toLowerCase();
+      if (pId === "prov_bigisub" || pName.includes("bigisub")) {
+        p.isDefault = true;
+        p.priority = 1;
+        p.enabled = true;
+        p.isActive = true;
+      } else if (pId === "prov_clubkonnect" || pName.includes("clubkonnect")) {
+        p.isDefault = false;
+        p.priority = 15;
+      } else {
+        p.isDefault = false;
+      }
     });
   }
 

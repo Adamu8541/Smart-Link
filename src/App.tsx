@@ -69,7 +69,7 @@ import { navigationManager, useModalBackHandler } from "./services/navigationMan
 import { Sparkles, Lock, Check, AlertCircle, LogOut, X } from "lucide-react";
 import { SmartLinkLogoMark } from "./components/ui/SmartLinkLogoMark";
 import { FaviconLoader } from "./components/ui/FaviconLoader";
-import { DEFAULT_LOGO_URL, handleLogoError } from "./utils/brandLogo";
+import { DEFAULT_LOGO_URL } from "./utils/brandLogo";
 const logoImg = DEFAULT_LOGO_URL;
 import { getFriendlyErrorMessage, safeFetchJson } from "./utils/authErrorHandler";
 import { AuthFormSkeleton } from "./components/ui/AuthSkeleton";
@@ -1108,7 +1108,6 @@ export default function App() {
                 alt="Smart Link Nigeria"
                 className="h-14 sm:h-16 w-auto max-w-[240px] object-contain"
                 referrerPolicy="no-referrer"
-                onError={handleLogoError}
               />
             </div>
 
@@ -1956,13 +1955,13 @@ export default function App() {
         isOpen={showBiometricEnrollPrompt}
         onClose={() => {
           setShowBiometricEnrollPrompt(false);
-          const uid = currentUser?.id || (currentUser as any)?.uid;
+          const uid = currentUser?.uid;
           if (uid) {
             BiometricAuthService.dismissEnrollPrompt(uid);
           }
         }}
         onSuccess={() => {
-          const uid = currentUser?.id || (currentUser as any)?.uid;
+          const uid = currentUser?.uid;
           if (uid) {
             BiometricAuthService.setEnrolled(uid, true);
           }

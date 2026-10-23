@@ -96,8 +96,8 @@ const DEFAULT_CONFIG: SiteConfig = {
   branding: {
     siteName: "Smart Link NG",
     tagline: "Enterprise Identity & Corporate Compliance Platform",
-    logoUrl: "",
-    faviconUrl: "/favicon.webp",
+    logoUrl: "/logo.png",
+    faviconUrl: "/logo.png",
     primaryColor: "#0F2D5C",
     secondaryColor: "#17407E",
     accentColor: "#2563EB",
@@ -208,7 +208,7 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
     document.title = `${name}${tagline}`;
 
     // Update favicon and apple-touch-icon (website and app icons)
-    const activeFavicon = branding.faviconUrl || "/favicon.webp";
+    const activeFavicon = branding.faviconUrl || "/logo.png";
     let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
     if (!link) {
       link = document.createElement("link");

@@ -1,6 +1,0 @@
-{
-  "summary": "Implementation plan for adding the Email Broadcasts & Messaging center under Communications in the admin navigation, leveraging the existing Gmail SMTP configuration with a modern newsletter layout, individual/selected/all user targeting, and pre-built operational templates.",
-  "updatedAt": "2026-10-19T09:29:14.717052843Z",
-  "requestFeedback": true,
-  "userFacing": true
-}

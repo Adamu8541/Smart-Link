@@ -47,7 +47,7 @@ import {
 import { UserProfile, UserRole } from "../types";
 import { SMART_LINK_SERVICES } from "../data/servicesData";
 import { useSiteConfig } from "../context/SiteConfigContext";
-import { DEFAULT_LOGO_URL, handleLogoError } from "../utils/brandLogo";
+import { DEFAULT_LOGO_URL } from "../utils/brandLogo";
 const defaultLogoImg = DEFAULT_LOGO_URL;
 
 interface NavigationProps {
@@ -277,8 +277,8 @@ export default function Navigation({
 
         <div className="flex items-center shrink-0">
           <img
-            src={logoUrl}
-            alt={`${siteName} Portal Portal`}
+            src={logoUrl || "/logo.png"}
+            alt={`${siteName} Portal`}
             width={150}
             height={48}
             loading="eager"
@@ -286,7 +286,9 @@ export default function Navigation({
             style={{ aspectRatio: "150 / 48" }}
             className="h-10 sm:h-12 w-auto max-w-[150px] object-contain rounded-lg bg-white p-1 shadow-sm border border-[#E5E7EB]"
             referrerPolicy="no-referrer"
-            onError={handleLogoError}
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).src = "/logo.png";
+            }}
           />
         </div>
       </header>
@@ -305,11 +307,13 @@ export default function Navigation({
               {/* Logo / Brand */}
               <div className="flex items-center justify-center bg-white p-2 rounded-xl border-b border-white/10">
                 <img
-                  src={logoUrl}
+                  src={logoUrl || "/logo.png"}
                   alt={siteName}
                   className="h-10 w-auto max-w-[180px] object-contain shrink-0"
                   referrerPolicy="no-referrer"
-                  onError={handleLogoError}
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).src = "/logo.png";
+                  }}
                 />
               </div>
 
@@ -412,7 +416,6 @@ export default function Navigation({
               decoding="async"
               className="h-12 w-auto max-w-[200px] object-contain hover:scale-102 transition-transform"
               referrerPolicy="no-referrer"
-              onError={handleLogoError}
             />
           </div>
 

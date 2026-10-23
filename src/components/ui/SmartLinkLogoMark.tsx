@@ -1,6 +1,6 @@
 import React from "react";
 import { useSiteConfig } from "../../context/SiteConfigContext";
-import { DEFAULT_LOGO_URL, handleLogoError } from "../../utils/brandLogo";
+import { DEFAULT_LOGO_URL } from "../../utils/brandLogo";
 const logoImg = DEFAULT_LOGO_URL;
 
 export interface SmartLinkLogoMarkProps {
@@ -23,12 +23,15 @@ export const SmartLinkLogoMark: React.FC<SmartLinkLogoMarkProps> = ({
   animating = true,
   className = "",
   label,
-  useFavicon = true,
+  useFavicon = false,
 }) => {
   const { config, logoUrl: configuredLogoUrl, siteName } = useSiteConfig();
-  const activeLogo = useFavicon
-    ? (config.branding?.faviconUrl || "/favicon.webp")
-    : config.branding?.logoUrl || config.branding?.lightLogoUrl || configuredLogoUrl || logoImg;
+  const activeLogo =
+    config.branding?.logoUrl ||
+    config.branding?.lightLogoUrl ||
+    configuredLogoUrl ||
+    logoImg ||
+    "/logo.png";
 
   // Map size helper to pixel dimension
   const getPxHeight = () => {
@@ -57,18 +60,20 @@ export const SmartLinkLogoMark: React.FC<SmartLinkLogoMarkProps> = ({
         className={`relative flex items-center justify-center shrink-0 transition-opacity duration-200 ${
           animating ? "animate-pulse" : ""
         }`}
-        style={{ height: pxHeight, width: useFavicon ? pxHeight : "auto" }}
+        style={{ height: pxHeight, width: "auto" }}
       >
         <img
           src={activeLogo}
           alt={`${siteName || "SmartLink"} Official Brand Logo`}
-          width={useFavicon ? pxHeight : 180}
+          width={180}
           height={pxHeight}
           loading="eager"
           decoding="async"
           className="h-full w-auto object-contain max-w-full"
           referrerPolicy="no-referrer"
-          onError={handleLogoError}
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).src = "/logo.png";
+          }}
         />
       </div>
 

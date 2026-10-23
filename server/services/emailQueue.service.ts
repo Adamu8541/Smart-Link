@@ -78,11 +78,11 @@ export function renderNewsletterHtml(options: {
       <div style="max-width: 680px; margin: 0 auto; background-color: #FFFFFF; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid #E5E7EB;">
         <div style="background-color: #0F2D5C; color: #FFFFFF; padding: 24px; text-align: left;">
           <h1 style="margin: 0 0 6px 0; font-size: 20px; letter-spacing: -0.5px; font-weight: bold; text-transform: uppercase;">Smart Link NG</h1>
-          <p style="margin: 0; font-size: 13px; color: #93C5FD; font-weight: 500;">${senderName ? `${senderName} • Official Communication` : "Official Customer Notice"}</p>
+          <p style="margin: 0; font-size: 13px; color: #93C5FD; font-weight: 500;">${senderName ? `${senderName}` : "Customer Notice"}</p>
         </div>
         ${bannerHeadline ? `
         <div style="background-color: #EFF6FF; border-left: 4px solid #2563EB; padding: 14px 20px;">
-          <p style="margin: 0; font-size: 14px; color: #1E40AF; font-weight: bold;">📢 ${bannerHeadline}</p>
+          <p style="margin: 0; font-size: 14px; color: #1E40AF; font-weight: bold;">${bannerHeadline}</p>
           <p style="margin: 4px 0 0 0; font-size: 12px; color: #4B5563;">Dispatched: ${timestamp}</p>
         </div>
         ` : ""}
@@ -90,11 +90,9 @@ export function renderNewsletterHtml(options: {
           ${formattedBody}
           ${ctaButtonHtml}
         </div>
-        <div style="margin: 0 24px 24px 24px; background-color: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 8px; padding: 12px; text-align: center;">
-          <p style="margin: 0; font-size: 12.5px; color: #166534; font-weight: 600;">✓ Securely dispatched via SmartLink Verified Digital Services</p>
-        </div>
+        
         <div style="background-color: #F9FAFB; padding: 20px 24px; border-top: 1px solid #E5E7EB; text-align: center; font-size: 12px; color: #6B7280;">
-          <p style="margin: 0; font-weight: 600;">SmartLink Digital Services • Customer Communications Engine</p>
+          <p style="margin: 0; font-weight: 600;">SmartLink Digital Services</p>
           <p style="margin: 6px 0 0 0;">© ${new Date().getFullYear()} ${senderName || "SmartLink Digital Services"}. All rights reserved.</p>
           <p style="margin: 10px 0 0 0;">Don't want to receive these emails? <a href="${unsubscribeUrl}" style="color: #2563EB; text-decoration: underline;">Unsubscribe here</a>.</p>
         </div>

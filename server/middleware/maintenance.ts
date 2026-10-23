@@ -133,7 +133,7 @@ export function sanitizePublicSettings(db: any, maintenanceDetails?: any) {
   const maintenance = maintenanceDetails || getMaintenanceDetails(db);
   const sysGeneral = db.system_settings?.general || {};
   const rawLogo = branding.logoUrl || branding.lightLogoUrl || "";
-  const resolvedLogoUrl = rawLogo || "/logo.webp";
+  const resolvedLogoUrl = rawLogo || "/logo.png";
   const rawSys = db.system_settings || db.systemSettings || {};
   const safeSystemSettings = {
     general: {

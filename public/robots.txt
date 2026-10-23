@@ -53,7 +53,7 @@ Allow: /ai-catalog.json
 Allow: /.well-known/ard.json
 Allow: /ard.json
 Allow: /og-image.png
-Allow: /logo.webp
+Allow: /logo.png
 Allow: /logo.png
 Allow: /favicon.ico
 Allow: /favicon.svg

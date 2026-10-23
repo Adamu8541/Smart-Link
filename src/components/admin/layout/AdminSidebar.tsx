@@ -29,7 +29,7 @@ import {
   Mail
 } from "lucide-react";
 import { AdminSession, ADMIN_ROLES_CONFIG } from "../../../services/adminAuthTypes";
-const logoImg = "/logo.webp";
+const logoImg = "/logo.png";
 import { useSiteConfig } from "../../../context/SiteConfigContext";
 
 interface AdminSidebarProps {
@@ -143,9 +143,6 @@ export default function AdminSidebar({
               src={activeLogo}
               alt={siteName || "SmartLink Logo"}
               className="h-10 w-auto max-w-[130px] rounded-lg object-contain bg-white border border-[#17407E] p-1 shadow-sm"
-              onError={(e: any) => {
-                e.currentTarget.src = "/logo.webp";
-              }}
             />
             <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 bg-emerald-400 rounded-full border-2 border-[#0B2144]" />
           </div>

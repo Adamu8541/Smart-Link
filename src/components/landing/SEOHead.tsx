@@ -136,7 +136,7 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
           "@id": `${canonicalUrl}/#organization`,
           "name": "SmartLink Nigeria Digital Platform",
           "url": canonicalUrl,
-          "logo": `${canonicalUrl}/logo.webp`,
+          "logo": `${canonicalUrl}/logo.png`,
           "image": `${canonicalUrl}/og-image.png`,
           "description": description,
           "telephone": "+234 808 549 0982",

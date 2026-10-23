@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from "react";
 import { Menu, X, ArrowRight, ShieldCheck, User, LogIn, UserPlus, Download, Smartphone } from "lucide-react";
 import { useSiteConfig } from "../../context/SiteConfigContext";
-import { DEFAULT_LOGO_URL, handleLogoError } from "../../utils/brandLogo";
+import { DEFAULT_LOGO_URL } from "../../utils/brandLogo";
 const logoImg = DEFAULT_LOGO_URL;
 
 interface LandingHeaderProps {
@@ -88,7 +88,6 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
               decoding="async"
               className="h-10 sm:h-12 md:h-13 w-auto max-w-[170px] sm:max-w-[210px] object-contain shrink-0"
               referrerPolicy="no-referrer"
-              onError={handleLogoError}
             />
           </button>
 

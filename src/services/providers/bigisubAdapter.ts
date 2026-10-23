@@ -428,6 +428,7 @@ export class BigisubAdapter implements ProviderAdapter {
     const payload = {
       network: networkId,
       phone,
+      phone_number: phone,
       mobile_number: phone,
       amount: params.amount,
       airtime_type: "vtu",
@@ -507,6 +508,7 @@ export class BigisubAdapter implements ProviderAdapter {
     const payload = {
       network: networkId,
       phone,
+      phone_number: phone,
       mobile_number: phone,
       plan: params.planCode,
       plan_id: params.planCode,

@@ -25,7 +25,7 @@ import { SupabaseAuthService, isSupabaseConfigured } from "../../services/supaba
 import { BiometricAuthService } from "../../services/biometricAuthService";
 import { LoginLoaderModal } from "./LoginLoaderModal";
 import { useSiteConfig } from "../../context/SiteConfigContext";
-import { DEFAULT_LOGO_URL, handleLogoError } from "../../utils/brandLogo";
+import { DEFAULT_LOGO_URL } from "../../utils/brandLogo";
 
 interface PasswordStrength {
   score: number;
@@ -950,7 +950,9 @@ export const AuthPortal: React.FC<AuthPortalProps>= ({
                   alt={siteName || "Smart Link NG"}
                   className="h-10 sm:h-12 w-auto max-w-[190px] object-contain shrink-0"
                   referrerPolicy="no-referrer"
-                  onError={handleLogoError}
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).src = "/logo.png";
+                  }}
                 />
               </div>
               <div className="text-center">
@@ -1211,7 +1213,9 @@ export const AuthPortal: React.FC<AuthPortalProps>= ({
                   alt={siteName || "Smart Link NG"}
                   className="h-10 sm:h-12 w-auto max-w-[190px] object-contain shrink-0"
                   referrerPolicy="no-referrer"
-                  onError={handleLogoError}
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).src = "/logo.png";
+                  }}
                 />
               </div>
               <div className="text-center">

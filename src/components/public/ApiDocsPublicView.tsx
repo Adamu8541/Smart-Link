@@ -52,7 +52,7 @@ import {
 } from "lucide-react";
 import SEOHead from "../landing/SEOHead";
 import { useSiteConfig } from "../../context/SiteConfigContext";
-import { DEFAULT_LOGO_URL, handleLogoError } from "../../utils/brandLogo";
+import { DEFAULT_LOGO_URL } from "../../utils/brandLogo";
 import { UserProfile } from "../../types";
 
 interface ApiDocsPublicViewProps {
@@ -1476,7 +1476,6 @@ echo $response;`;
               src={activeLogo}
               alt={siteName || "Smart Link NG"}
               className="h-8 sm:h-9 w-auto object-contain"
-              onError={handleLogoError}
             />
             <div className="hidden sm:block border-l border-[#CBD5E1] pl-3 py-0.5">
               <div className="flex items-center gap-2">

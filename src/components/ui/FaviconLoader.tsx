@@ -48,13 +48,16 @@ export const FaviconLoader: React.FC<FaviconLoaderProps> = ({
         style={{ width: pxSize, height: pxSize }}
       >
         <img
-          src="/favicon.webp"
+          src="/logo.png"
           alt="Loading..."
           width={pxSize}
           height={pxSize}
           className="w-full h-full object-contain filter drop-shadow-sm"
           loading="eager"
           decoding="async"
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).src = "/logo.png";
+          }}
         />
       </div>
 

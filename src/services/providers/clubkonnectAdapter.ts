@@ -523,6 +523,9 @@ export class ClubkonnectAdapter implements ProviderAdapter {
   /**
    * 3. Execute Airtime Top-Up
    */
+  /**
+   * 3. Execute Airtime Top-Up (DISABLED)
+   */
   public async purchaseAirtime(
     params: {
       network: string;
@@ -540,58 +543,9 @@ export class ClubkonnectAdapter implements ProviderAdapter {
     rawResponse?: any;
     error?: string;
   }> {
-    const { userId, apiKey } = this.getCredentials(config);
-    if (!userId || !apiKey) {
-      return { success: false, error: "Missing Clubkonnect UserID or APIKey" };
-    }
-
-    const networkCode = ClubkonnectAdapter.resolveNetworkCode(params.network);
-    const phone = normalizeNigerianPhone(params.phoneNumber);
-    const base = this.baseUrl(config);
-
-    const cb = params.callbackUrl || config.webhookUrl || config.callbackUrl || "";
-    const callbackParam = cb ? `&CallBackURL=${encodeURIComponent(cb)}` : "";
-
-    const candidateUrls = [
-      `https://www.nellobytesystems.com/APIAirtimeV1.asp?UserID=${encodeURIComponent(userId)}&APIKey=${encodeURIComponent(apiKey)}&MobileNetwork=${networkCode}&Amount=${params.amount}&MobileNumber=${phone}&RequestID=${encodeURIComponent(params.reference)}${callbackParam}`,
-      `https://www.nellobytesystems.com/APIAirTimeV1.asp?UserID=${encodeURIComponent(userId)}&APIKey=${encodeURIComponent(apiKey)}&MobileNetwork=${networkCode}&Amount=${params.amount}&MobileNumber=${phone}&RequestID=${encodeURIComponent(params.reference)}${callbackParam}`,
-      `${base}/APIAirTimeV1.asp?UserID=${encodeURIComponent(userId)}&APIKey=${encodeURIComponent(apiKey)}&MobileNetwork=${networkCode}&Amount=${params.amount}&MobileNumber=${phone}&RequestID=${encodeURIComponent(params.reference)}${callbackParam}`,
-      `${base}/AirTimeAPI.asp?UserID=${encodeURIComponent(userId)}&APIKey=${encodeURIComponent(apiKey)}&MobileNetwork=${networkCode}&Amount=${params.amount}&MobileNumber=${phone}&RequestID=${encodeURIComponent(params.reference)}${callbackParam}`,
-    ];
-
-    let lastRaw: any = {};
-    for (const url of candidateUrls) {
-      const res = await this.fetchClubkonnect(url, 15000);
-      if (res.status === 404) continue;
-      const raw = res.data;
-      lastRaw = raw;
-      const isSuccess = this.isSuccessResponse(raw);
-      const orderId = raw.orderid || raw.orderId || raw.order_id || raw.requestid || params.reference;
-      const msg = this.resolveStatusMessage(raw, isSuccess ? "Airtime Top-Up Successful" : "Airtime purchase failed");
-
-      if (isSuccess || res.ok) {
-        return {
-          success: isSuccess,
-          reference: params.reference,
-          orderId: String(orderId),
-          message: msg,
-          rawResponse: raw,
-          error: isSuccess ? undefined : msg,
-        };
-      }
-    }
-
-    const isSuccess = this.isSuccessResponse(lastRaw);
-    const orderId = lastRaw.orderid || lastRaw.orderId || lastRaw.order_id || lastRaw.requestid || params.reference;
-    const msg = this.resolveStatusMessage(lastRaw, isSuccess ? "Airtime Top-Up Successful" : "Airtime purchase failed");
-
     return {
-      success: isSuccess,
-      reference: params.reference,
-      orderId: String(orderId),
-      message: msg,
-      rawResponse: lastRaw,
-      error: isSuccess ? undefined : msg,
+      success: false,
+      error: "Direct Clubkonnect airtime purchase is disabled.",
     };
   }
 

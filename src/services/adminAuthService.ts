@@ -414,12 +414,8 @@ export class AdminAuthService {
       const usersStore = await import("./usersStore");
       const uStoreDoc = await usersStore.getUserByEmail(email);
       if (uStoreDoc) {
-        const superAdminEmail = (process.env.SUPER_ADMIN_EMAIL || "").toLowerCase().trim();
-        const isSuperAdminEmail = Boolean(
-          (superAdminEmail && email === superAdminEmail) ||
-          email === "info.smartlinkng@gmail.com" ||
-          email === "adamuamuhammad8541@gmail.com"
-        );
+        const superAdminEmail = (process.env.SUPER_ADMIN_EMAIL || process.env.ADMIN_EMAIL || "").toLowerCase().trim();
+        const isSuperAdminEmail = Boolean(superAdminEmail && email === superAdminEmail);
         const adminRoles = ["SUPER_ADMIN", "ADMIN", "SUB_ADMIN", "STAFF", "FINANCE_MANAGER", "VERIFICATION_OFFICER", "READ_ONLY_AUDITOR"];
         
         if (adminRoles.includes(uStoreDoc.role || "") || isSuperAdminEmail) {
@@ -502,12 +498,8 @@ export class AdminAuthService {
     if (!adminUser && db && db.users) {
       const uData = db.users.find((u: any) => u.email && u.email.toLowerCase() === email);
       if (uData) {
-        const superAdminEmail = (process.env.SUPER_ADMIN_EMAIL || "").toLowerCase().trim();
-        const isSuperAdminEmail = Boolean(
-          (superAdminEmail && email === superAdminEmail) ||
-          email === "info.smartlinkng@gmail.com" ||
-          email === "adamuamuhammad8541@gmail.com"
-        );
+        const superAdminEmail = (process.env.SUPER_ADMIN_EMAIL || process.env.ADMIN_EMAIL || "").toLowerCase().trim();
+        const isSuperAdminEmail = Boolean(superAdminEmail && email === superAdminEmail);
         const adminRoles = ["SUPER_ADMIN", "ADMIN", "SUB_ADMIN", "STAFF", "FINANCE_MANAGER", "VERIFICATION_OFFICER", "READ_ONLY_AUDITOR"];
 
         if (adminRoles.includes(uData.role) || isSuperAdminEmail) {

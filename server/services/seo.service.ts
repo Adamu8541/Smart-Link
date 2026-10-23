@@ -268,7 +268,7 @@ export function resolveSEOMetadata(req: Request): SEOMetadata {
       "name": siteName,
       "legalName": "Smart Link Computer Business Solutions Ltd",
       "url": origin,
-      "logo": `${origin}/logo.webp`,
+      "logo": `${origin}/logo.png`,
       "image": ogImageUrl,
       "description": siteDescription,
       "telephone": "+234 808 549 0982",
@@ -481,7 +481,7 @@ function wrapCrawlablePage(content: string, origin: string = DEFAULT_DOMAIN, sit
       <header id="site-header" role="banner" class="sticky top-0 z-40 w-full min-h-[64px] bg-white border-b border-[#E5E7EB]">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16 sm:h-20">
           <a id="header-logo-container" href="/" class="flex items-center" aria-label="${siteName} Home">
-            <img src="/logo.webp" alt="${siteName} - Official Identity Verification and Digital Services Portal" width="180" height="48" class="h-10 sm:h-12 w-auto object-contain" />
+            <img src="/logo.png" alt="${siteName} - Official Identity Verification and Digital Services Portal" width="180" height="48" class="h-10 sm:h-12 w-auto object-contain" />
           </a>
           <nav id="header-desktop-nav" aria-label="Primary Navigation" class="flex items-center gap-2 sm:gap-3 text-xs font-semibold text-[#374151]">
             <a href="/" class="hover:text-[#0F2D5C]">Home</a>

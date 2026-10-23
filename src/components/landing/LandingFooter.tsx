@@ -6,7 +6,7 @@
 import React, { useState } from "react";
 import { Facebook, Twitter, Instagram, Linkedin, Youtube, Mail, Phone, MapPin, ShieldCheck, X, Building2, Briefcase, BookOpen, MessageSquare, Calendar, ChevronRight, Clock, Sparkles } from "lucide-react";
 import { useSiteConfig } from "../../context/SiteConfigContext";
-import { DEFAULT_LOGO_URL, handleLogoError } from "../../utils/brandLogo";
+import { DEFAULT_LOGO_URL } from "../../utils/brandLogo";
 const logoImg = DEFAULT_LOGO_URL;
 
 interface LandingFooterProps {
@@ -66,7 +66,6 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({
                 style={{ aspectRatio: "160 / 38" }}
                 className="h-8 sm:h-10 w-auto max-w-[150px] sm:max-w-[180px] object-contain rounded-lg p-0.5 bg-white"
                 referrerPolicy="no-referrer"
-                onError={handleLogoError}
               />
             </div>
 

@@ -597,34 +597,7 @@ export class ProviderExecutor {
           };
         }
 
-        // Automatic failover to other active providers supporting Airtime
-        for (const altProvider of getFallbackProviders()) {
-          const altAdapter = getAdapterForProvider(altProvider);
-          if (altAdapter && typeof (altAdapter as any).purchaseAirtime === "function") {
-            try {
-              const altRes = await (altAdapter as any).purchaseAirtime(
-                { network: resolvedNet, phoneNumber: targetPhoneNumber, amount: params.amount, reference: params.smartlinkReference },
-                altProvider
-              );
-              if (altRes.success) {
-                return {
-                  success: true,
-                  providerName: altProvider.name || "Fallback Airtime Provider",
-                  providerCode: altProvider.id || "FALLBACK_PROV",
-                  providerReference: altRes.orderId || altRes.reference,
-                  transactionId: altRes.orderId,
-                  message: altRes.message || "Airtime Top-Up Successful",
-                  error: altRes.error,
-                  rawResponse: altRes.rawResponse,
-                  responseTimeMs: Date.now() - startTime,
-                };
-              }
-            } catch (altErr) {
-              console.warn(`[ProviderExecutor] Failover airtime purchase to ${altProvider.name} failed:`, altErr);
-            }
-          }
-        }
-
+        // No automatic failover allowed: Only Bigisub VTU is authorized.
         return {
           success: false,
           providerName,
@@ -661,34 +634,7 @@ export class ProviderExecutor {
           };
         }
 
-        // Automatic failover for Data
-        for (const altProvider of getFallbackProviders()) {
-          const altAdapter = getAdapterForProvider(altProvider);
-          if (altAdapter && typeof (altAdapter as any).purchaseData === "function") {
-            try {
-              const altRes = await (altAdapter as any).purchaseData(
-                { network: resolvedNet, phoneNumber: targetPhoneNumber, planCode: plan, reference: params.smartlinkReference },
-                altProvider
-              );
-              if (altRes.success) {
-                return {
-                  success: true,
-                  providerName: altProvider.name || "Fallback Data Provider",
-                  providerCode: altProvider.id || "FALLBACK_PROV",
-                  providerReference: altRes.orderId || altRes.reference,
-                  transactionId: altRes.orderId,
-                  message: altRes.message || "Data Purchase Successful",
-                  error: altRes.error,
-                  rawResponse: altRes.rawResponse,
-                  responseTimeMs: Date.now() - startTime,
-                };
-              }
-            } catch (altErr) {
-              console.warn(`[ProviderExecutor] Failover data purchase to ${altProvider.name} failed:`, altErr);
-            }
-          }
-        }
-
+        // No automatic failover allowed: Only Bigisub VTU is authorized.
         return {
           success: false,
           providerName,
