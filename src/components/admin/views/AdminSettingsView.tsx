@@ -442,9 +442,9 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
 
   if (loading) {
     return (
-      <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-12 text-center text-[#9CA3AF] space-y-4">
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-xs p-12 text-center text-slate-500 space-y-4">
         <RefreshCw className="h-8 w-8 animate-spin mx-auto text-[#0F2D5C]" />
-        <p className="text-sm font-medium">Loading SmartLink System & Platform Configuration...</p>
+        <p className="text-sm font-medium text-slate-700">Loading SmartLink System & Platform Configuration...</p>
       </div>
     );
   }
@@ -452,25 +452,25 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
   return (
     <div className="space-y-6">
       {/* Top Header Card */}
-      <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-6 md:p-8 space-y-6">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-[#111827] pb-6">
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-xs p-6 md:p-8 space-y-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-slate-200 pb-6">
           <div className="flex items-center gap-4">
-            <div className="p-3.5 bg-[#0F2D5C]/80 border border-[#0F2D5C]/80 rounded-2xl text-[#9CA3AF]">
+            <div className="p-3.5 bg-blue-50 border border-blue-200 rounded-2xl text-[#0F2D5C]">
               <Settings className="h-7 w-7" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#9CA3AF]">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
                   System Architecture & Governance
                 </span>
-                <span className="py-0.5 px-2 bg-[#0F2D5C]/50 border border-[#0F2D5C]/50 text-[10px] font-semibold text-[#9CA3AF] rounded-full">
+                <span className="py-0.5 px-2 bg-blue-50 border border-blue-200 text-[10px] font-semibold text-blue-800 rounded-full">
                   v2.4.0
                 </span>
               </div>
-              <h1 className="text-2xl font-bold text-white tracking-tight">
+              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
                 System Settings & Platform Configuration
               </h1>
-              <p className="text-xs text-[#9CA3AF] mt-1">
+              <p className="text-xs text-slate-600 mt-1">
                 Centralized control panel to configure platform rules, branding, portal thresholds, maintenance & security policies.
               </p>
             </div>
@@ -480,66 +480,66 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
             <button
               type="button"
               onClick={handleRunSelfTest}
-              className="py-2.5 px-4 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-lg shadow-none"
+              className="py-2.5 px-4 bg-[#0F2D5C] hover:bg-blue-900 text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-sm"
             >
               <Play className="h-3.5 w-3.5 fill-current" /> Run Module 7 Self-Test
             </button>
             <button
               type="button"
               onClick={handleExportJson}
-              className=" py-2.5 px-4 text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition border border-[#4B5563]"
+              className="py-2.5 px-4 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition border border-slate-300"
             >
-              <Download className="h-3.5 w-3.5" /> Export Config
+              <Download className="h-3.5 w-3.5 text-slate-600" /> Export Config
             </button>
             {session.role === "SUPER_ADMIN" && (
               <button
                 type="button"
                 onClick={() => setShowImportModal(true)}
-                className=" py-2.5 px-4 border border-[#0F2D5C]/60 text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition"
+                className="py-2.5 px-4 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition border border-slate-300"
               >
-                <Upload className="h-3.5 w-3.5" /> Import Config
+                <Upload className="h-3.5 w-3.5 text-slate-600" /> Import Config
               </button>
             )}
             <button
               type="button"
               onClick={() => onNavigate("/admin/dashboard")}
-              className=" py-2.5 px-4 text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition border border-[#4B5563]"
+              className="py-2.5 px-4 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition border border-slate-300"
             >
-              <ArrowLeft className="h-3.5 w-3.5" /> Dashboard
+              <ArrowLeft className="h-3.5 w-3.5 text-slate-600" /> Dashboard
             </button>
           </div>
         </div>
 
         {/* Status banner */}
         {!canEdit && (
-          <div className="p-4 bg-[#0F2D5C]/40 border border-[#0F2D5C]/60 rounded-2xl flex items-center gap-3 text-xs text-[#9CA3AF]">
-            <Lock className="h-4 w-4 text-[#9CA3AF] shrink-0" />
+          <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-center gap-3 text-xs text-amber-900">
+            <Lock className="h-4 w-4 text-amber-700 shrink-0" />
             <span>
-              <strong>Read-Only Mode:</strong> Your current admin role (<strong className="text-white">{session.role}</strong>) permits viewing, but only <strong>Super Admins</strong> can save system setting updates.
+              <strong>Read-Only Mode:</strong> Your current admin role (<strong className="text-amber-950">{session.role}</strong>) permits viewing, but only <strong>Super Admins</strong> can save system setting updates.
             </span>
           </div>
         )}
 
         {message && (
           <div
-            className={`p-4 rounded-2xl border flex items-center justify-between text-xs font-medium${
+            className={`p-4 rounded-2xl border flex items-center justify-between text-xs font-medium ${
               message.type === "success"
-                ? "bg-emerald-950/40 border-emerald-800/80 text-emerald-200"
-                : "bg-red-950/40 border-red-800/80 text-red-200"
+                ? "bg-emerald-50 border-emerald-300 text-emerald-900"
+                : "bg-rose-50 border-rose-300 text-rose-900"
             }`}
           >
             <div className="flex items-center gap-2.5">
               {message.type === "success" ? (
-                <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
               ) : (
-                <AlertTriangle className="h-4 w-4 text-red-400 shrink-0" />
+                <AlertTriangle className="h-4 w-4 text-rose-600 shrink-0" />
               )}
               <span>{message.text}</span>
             </div>
             <button
               type="button"
               onClick={() => setMessage(null)}
-              className=" text-xs cursor-pointer font-bold ml-4"
+              className="text-xs cursor-pointer font-bold ml-4 underline"
             >
               Dismiss
             </button>
@@ -548,18 +548,18 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
 
         {/* Global Maintenance Active Warning */}
         {maintenanceSettings.maintenanceMode && (
-          <div className="p-4 bg-[#0F2D5C]/60 border border-[#0F2D5C] rounded-2xl flex items-center justify-between gap-3 text-xs text-[#9CA3AF]">
+          <div className="p-4 bg-rose-50 border border-rose-300 rounded-2xl flex items-center justify-between gap-3 text-xs text-rose-950">
             <div className="flex items-center gap-3">
-              <ShieldAlert className="h-5 w-5 text-[#9CA3AF] shrink-0 animate-pulse" />
+              <ShieldAlert className="h-5 w-5 text-rose-600 shrink-0 animate-pulse" />
               <div>
-                <strong className="text-white font-bold block">🚨 GLOBAL MAINTENANCE MODE IS CURRENTLY ACTIVE</strong>
-                <span className="text-[#9CA3AF]">{maintenanceSettings.maintenanceMessage}</span>
+                <strong className="text-rose-950 font-bold block">🚨 GLOBAL MAINTENANCE MODE IS CURRENTLY ACTIVE</strong>
+                <span className="text-rose-800">{maintenanceSettings.maintenanceMessage}</span>
               </div>
             </div>
             <button
               type="button"
               onClick={() => setActiveTab("maintenance")}
-              className="py-1.5 px-3 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white font-bold rounded-lg cursor-pointer text-[11px] shrink-0"
+              className="py-1.5 px-3 bg-rose-700 hover:bg-rose-800 text-white font-bold rounded-lg cursor-pointer text-[11px] shrink-0"
             >
               Manage Maintenance
             </button>
@@ -567,7 +567,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
         )}
 
         {/* Tabs Scrollable Container */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-[#111827] scrollbar-thin scrollbar-thumb-slate-800">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-slate-200 scrollbar-thin">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -576,13 +576,13 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`py-2.5 px-3.5 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap cursor-pointer${
+                className={`py-2.5 px-3.5 rounded-xl text-xs font-bold transition flex items-center gap-2 whitespace-nowrap cursor-pointer ${
                   isActive
-                    ? "bg-[#0F2D5C] text-white shadow-md shadow-none"
-                    : "bg-[#111827]/60 hover:bg-[#111827] text-[#9CA3AF] hover:text-[#E5E7EB] border border-[#111827]/80"
+                    ? "bg-[#0F2D5C] text-white shadow-sm"
+                    : "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200"
                 }`}
               >
-                <Icon className={`h-3.5 w-3.5 ${isActive ? "text-white" : "text-[#9CA3AF]"}`} />
+                <Icon className={`h-3.5 w-3.5 ${isActive ? "text-white" : "text-slate-500"}`} />
                 <span>{tab.label}</span>
               </button>
             );
@@ -591,7 +591,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
       </div>
 
       {/* Main Tab Panels Container */}
-      <div className=" border border-[#111827] rounded-3xl p-6 md:p-8">
+      <div className="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm">
         {/* 1. GENERAL SETTINGS */}
         {activeTab === "general" && (
           <form
@@ -601,18 +601,18 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
             }}
             className="space-y-6"
           >
-            <div className="flex items-center justify-between border-b border-[#111827] pb-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-4">
               <div>
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Globe className="h-5 w-5 text-[#9CA3AF]" /> General Platform Identity
+                <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <Globe className="h-5 w-5 text-blue-600" /> General Platform Identity
                 </h2>
-                <p className="text-xs text-[#9CA3AF]">Configure corporate details, support endpoints, and local timezone formats.</p>
+                <p className="text-xs text-slate-500">Configure corporate details, support endpoints, and local timezone formats.</p>
               </div>
               {canEdit && (
                 <button
                   type="submit"
                   disabled={saving}
-                  className="py-2 px-5 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition disabled:opacity-50"
+                  className="py-2 px-5 bg-[#0F2D5C] hover:bg-blue-900 text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-sm disabled:opacity-50"
                 >
                   <Save className="h-3.5 w-3.5" /> {saving ? "Saving..." : "Save General Settings"}
                 </button>
@@ -621,7 +621,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">Platform Name</label>
+                <label className="block text-xs font-bold text-slate-800 mb-1.5">Platform Name</label>
                 <input
                   type="text"
                   value={systemSettings.general?.platformName || ""}
@@ -632,12 +632,12 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                     })
                   }
                   disabled={!canEdit}
-                  className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">Registered Company Name</label>
+                <label className="block text-xs font-bold text-slate-800 mb-1.5">Registered Company Name</label>
                 <input
                   type="text"
                   value={systemSettings.general?.companyName || ""}
@@ -648,12 +648,12 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                     })
                   }
                   disabled={!canEdit}
-                  className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">Official Support Email</label>
+                <label className="block text-xs font-bold text-slate-800 mb-1.5">Official Support Email</label>
                 <input
                   type="email"
                   value={systemSettings.general?.supportEmail || ""}
@@ -664,12 +664,12 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                     })
                   }
                   disabled={!canEdit}
-                  className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">Official Support Phone</label>
+                <label className="block text-xs font-bold text-slate-800 mb-1.5">Official Support Phone</label>
                 <input
                   type="text"
                   value={systemSettings.general?.supportPhone || ""}
@@ -680,12 +680,12 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                     })
                   }
                   disabled={!canEdit}
-                  className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">Official WhatsApp Support Number</label>
+                <label className="block text-xs font-bold text-slate-800 mb-1.5">Official WhatsApp Support Number</label>
                 <input
                   type="text"
                   value={systemSettings.general?.whatsappNumber || ""}
@@ -697,12 +697,12 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                   }
                   disabled={!canEdit}
                   placeholder="+234 808 549 0982"
-                  className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition"
                 />
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">Headquarters Address</label>
+                <label className="block text-xs font-bold text-slate-800 mb-1.5">Headquarters Address</label>
                 <input
                   type="text"
                   value={systemSettings.general?.companyAddress || ""}
@@ -713,12 +713,12 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                     })
                   }
                   disabled={!canEdit}
-                  className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">Website URL</label>
+                <label className="block text-xs font-bold text-slate-800 mb-1.5">Website URL</label>
                 <input
                   type="text"
                   value={systemSettings.general?.websiteUrl || ""}
@@ -729,12 +729,12 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                     })
                   }
                   disabled={!canEdit}
-                  className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">Platform Time Zone</label>
+                <label className="block text-xs font-bold text-slate-800 mb-1.5">Platform Time Zone</label>
                 <select
                   value={systemSettings.general?.timeZone || "Africa/Lagos (WAT, UTC+1)"}
                   onChange={(e) =>
@@ -744,7 +744,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                     })
                   }
                   disabled={!canEdit}
-                  className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition"
                 >
                   <option value="Africa/Lagos (WAT, UTC+1)">Africa/Lagos (WAT, UTC+1)</option>
                   <option value="UTC">UTC (Coordinated Universal Time)</option>
@@ -753,17 +753,17 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">Primary Currency</label>
+                <label className="block text-xs font-bold text-slate-800 mb-1.5">Primary Currency</label>
                 <input
                   type="text"
                   value={systemSettings.general?.currency || "NGN (₦)"}
                   disabled
-                  className="w-full bg-[#111827]/60 border border-[#111827] rounded-xl px-3.5 py-2.5 text-xs text-[#9CA3AF] font-mono"
+                  className="w-full bg-slate-100 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-600 font-mono font-bold"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">Date Format</label>
+                <label className="block text-xs font-bold text-slate-800 mb-1.5">Date Format</label>
                 <select
                   value={systemSettings.general?.dateFormat || "DD/MM/YYYY"}
                   onChange={(e) =>
@@ -773,7 +773,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                     })
                   }
                   disabled={!canEdit}
-                  className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition"
                 >
                   <option value="DD/MM/YYYY">DD/MM/YYYY (e.g. 31/07/2026)</option>
                   <option value="YYYY-MM-DD">YYYY-MM-DD (ISO 8601)</option>
@@ -782,12 +782,12 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
               </div>
             </div>
 
-            <div className="pt-4 border-t border-[#111827] flex justify-end">
+            <div className="pt-4 border-t border-slate-200 flex justify-end">
               {canEdit && (
                 <button
                   type="submit"
                   disabled={saving}
-                  className="py-2.5 px-6 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-lg shadow-none"
+                  className="py-2.5 px-6 bg-[#0F2D5C] hover:bg-blue-900 text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-md"
                 >
                   <Save className="h-4 w-4" /> Save Changes (v{systemSettings.general?.versionNumber || 1})
                 </button>
@@ -805,18 +805,18 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
             }}
             className="space-y-6"
           >
-            <div className="flex items-center justify-between border-b border-[#111827] pb-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-4">
               <div>
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Palette className="h-5 w-5 text-[#9CA3AF]" /> Branding & Visual Identity
+                <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <Palette className="h-5 w-5 text-blue-600" /> Branding & Visual Identity
                 </h2>
-                <p className="text-xs text-[#9CA3AF]">Configure visual assets, light/dark logos, theme palette, and typography.</p>
+                <p className="text-xs text-slate-500">Configure visual assets, light/dark logos, theme palette, and typography.</p>
               </div>
               {canEdit && (
                 <button
                   type="submit"
                   disabled={saving}
-                  className="py-2 px-5 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-lg shadow-none"
+                  className="py-2 px-5 bg-[#0F2D5C] hover:bg-blue-900 text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-sm"
                 >
                   <Save className="h-3.5 w-3.5" /> Save Branding Settings
                 </button>
@@ -827,18 +827,18 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
               {/* Asset URLs & Image Uploads */}
               <div className="lg:col-span-2 space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">Main Logo URL</label>
+                  <label className="block text-xs font-bold text-slate-800 mb-1.5">Main Logo URL</label>
                   <div className="flex items-center gap-2">
                     <input
                       type="text"
                       value={brandingSettings.logoUrl || ""}
                       onChange={(e) => setBrandingSettings({ ...brandingSettings, logoUrl: e.target.value })}
                       disabled={!canEdit}
-                      className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C] font-mono"
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600 font-mono"
                     />
                     {canEdit && (
-                      <label className="py-2.5 px-3 bg-[#111827] hover:bg-[#4B5563] text-xs font-bold text-[#E5E7EB] rounded-xl cursor-pointer flex items-center gap-1.5 shrink-0 border border-[#4B5563]">
-                        <Upload className="h-3.5 w-3.5" /> Upload
+                      <label className="py-2.5 px-3.5 bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-800 rounded-xl cursor-pointer flex items-center gap-1.5 shrink-0 border border-slate-300 transition">
+                        <Upload className="h-3.5 w-3.5 text-slate-600" /> Upload
                         <input
                           type="file"
                           accept="image/*"
@@ -852,18 +852,18 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">Light Mode Logo URL</label>
+                    <label className="block text-xs font-bold text-slate-800 mb-1.5">Light Mode Logo URL</label>
                     <div className="flex items-center gap-2">
                       <input
                         type="text"
                         value={brandingSettings.lightLogoUrl || ""}
                         onChange={(e) => setBrandingSettings({ ...brandingSettings, lightLogoUrl: e.target.value })}
                         disabled={!canEdit}
-                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none font-mono"
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none font-mono"
                       />
                       {canEdit && (
-                        <label className="py-2 px-2.5 bg-[#111827] hover:bg-[#4B5563] text-xs font-bold text-[#E5E7EB] rounded-xl cursor-pointer flex items-center gap-1 shrink-0 border border-[#4B5563]">
-                          <Upload className="h-3 w-3" />
+                        <label className="py-2 px-2.5 bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-800 rounded-xl cursor-pointer flex items-center gap-1 shrink-0 border border-slate-300 transition">
+                          <Upload className="h-3 w-3 text-slate-600" />
                           <input
                             type="file"
                             accept="image/*"
@@ -876,18 +876,18 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">Dark Mode Logo URL</label>
+                    <label className="block text-xs font-bold text-slate-800 mb-1.5">Dark Mode Logo URL</label>
                     <div className="flex items-center gap-2">
                       <input
                         type="text"
                         value={brandingSettings.darkLogoUrl || ""}
                         onChange={(e) => setBrandingSettings({ ...brandingSettings, darkLogoUrl: e.target.value })}
                         disabled={!canEdit}
-                        className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none font-mono"
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none font-mono"
                       />
                       {canEdit && (
-                        <label className="py-2 px-2.5 bg-[#111827] hover:bg-[#4B5563] text-xs font-bold text-[#E5E7EB] rounded-xl cursor-pointer flex items-center gap-1 shrink-0 border border-[#4B5563]">
-                          <Upload className="h-3 w-3" />
+                        <label className="py-2 px-2.5 bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-800 rounded-xl cursor-pointer flex items-center gap-1 shrink-0 border border-slate-300 transition">
+                          <Upload className="h-3 w-3 text-slate-600" />
                           <input
                             type="file"
                             accept="image/*"
@@ -901,7 +901,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">Favicon URL</label>
+                  <label className="block text-xs font-bold text-slate-800 mb-1.5">Favicon URL</label>
                   <div className="flex items-center gap-2">
                     <input
                       type="text"
@@ -909,11 +909,11 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                       value={brandingSettings.faviconUrl || ""}
                       onChange={(e) => setBrandingSettings({ ...brandingSettings, faviconUrl: e.target.value })}
                       disabled={!canEdit}
-                      className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C] font-mono"
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600 font-mono"
                     />
                     {canEdit && (
-                      <label className="py-2.5 px-3 bg-[#111827] hover:bg-[#4B5563] text-xs font-bold text-[#E5E7EB] rounded-xl cursor-pointer flex items-center gap-1.5 shrink-0 border border-[#4B5563]">
-                        <Upload className="h-3.5 w-3.5" /> Upload
+                      <label className="py-2.5 px-3.5 bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-800 rounded-xl cursor-pointer flex items-center gap-1.5 shrink-0 border border-slate-300 transition">
+                        <Upload className="h-3.5 w-3.5 text-slate-600" /> Upload
                         <input
                           type="file"
                           accept="image/*"
@@ -1817,7 +1817,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
           </form>
         )}
 
-        {/* 4. VERIFICATION SERVICES SETTINGS */}
+        {/* 4. VERIFICATION MATRIX */}
         {activeTab === "verification" && (
           <form
             onSubmit={(e) => {
@@ -1826,18 +1826,18 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
             }}
             className="space-y-6"
           >
-            <div className="flex items-center justify-between border-b border-[#111827] pb-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-4">
               <div>
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <CheckSquare className="h-5 w-5 text-[#9CA3AF]" /> Identity & Verification Services Matrix
+                <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <CheckSquare className="h-5 w-5 text-blue-600" /> Identity & Verification Services Matrix
                 </h2>
-                <p className="text-xs text-[#9CA3AF]">Toggle active verification endpoints, enable per-service maintenance, and configure pricing fees.</p>
+                <p className="text-xs text-slate-500">Toggle active verification endpoints, enable per-service maintenance, and configure pricing fees.</p>
               </div>
               {canEdit && (
                 <button
                   type="submit"
                   disabled={saving}
-                  className="py-2 px-5 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-lg shadow-none"
+                  className="py-2 px-5 bg-[#0F2D5C] hover:bg-blue-900 text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-sm"
                 >
                   <Save className="h-3.5 w-3.5" /> Save Verification Matrix
                 </button>
@@ -1861,24 +1861,24 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                   fee: 100,
                 };
                 return (
-                  <div key={svc.key} className="p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs space-y-3">
+                  <div key={svc.key} className="p-4 bg-slate-50 border border-slate-200 rounded-2xl shadow-xs space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-white">{svc.label}</span>
+                      <span className="text-xs font-bold text-slate-900">{svc.label}</span>
                       <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full${
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                           svcData.enabled
                             ? svcData.maintenance
-                              ? "bg-[#0F2D5C] border border-[#0F2D5C] text-[#9CA3AF]"
-                              : "bg-[#0F2D5C] border border-[#0F2D5C] text-[#9CA3AF]"
-                            : "bg-[#111827] border border-[#111827] text-[#6B7280]"
+                              ? "bg-amber-100 border border-amber-300 text-amber-900"
+                              : "bg-emerald-100 border border-emerald-300 text-emerald-900"
+                            : "bg-slate-200 border border-slate-300 text-slate-700"
                         }`}
                       >
                         {svcData.enabled ? (svcData.maintenance ? "MAINTENANCE" : "ACTIVE") : "DISABLED"}
                       </span>
                     </div>
 
-                    <div className="space-y-2 pt-1 border-t border-[#111827]">
-                      <div className="flex items-center justify-between text-xs text-[#E5E7EB]">
+                    <div className="space-y-2 pt-1 border-t border-slate-200">
+                      <div className="flex items-center justify-between text-xs text-slate-800">
                         <span>Service Status:</span>
                         <input
                           type="checkbox"
@@ -1893,11 +1893,11 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                             })
                           }
                           disabled={!canEdit}
-                          className="h-4 w-4 rounded accent-cyan-500 cursor-pointer"
+                          className="h-4 w-4 rounded accent-blue-600 cursor-pointer"
                         />
                       </div>
 
-                      <div className="flex items-center justify-between text-xs text-[#E5E7EB]">
+                      <div className="flex items-center justify-between text-xs text-slate-800">
                         <span>Maintenance Mode:</span>
                         <input
                           type="checkbox"
@@ -1917,7 +1917,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                       </div>
 
                       <div>
-                        <label className="block text-[10px] text-[#9CA3AF] mb-1">Fee per Lookup (₦)</label>
+                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Fee per Lookup (₦)</label>
                         <input
                           type="number"
                           value={svcData.fee ?? 100}
@@ -1931,7 +1931,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                             })
                           }
                           disabled={!canEdit}
-                          className="w-full bg-[#111827] border border-[#111827] rounded-lg px-2.5 py-1.5 text-xs text-white"
+                          className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 focus:border-blue-600"
                         />
                       </div>
                     </div>
@@ -1940,12 +1940,12 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
               })}
             </div>
 
-            <div className="pt-4 border-t border-[#111827] flex justify-end">
+            <div className="pt-4 border-t border-slate-200 flex justify-end">
               {canEdit && (
                 <button
                   type="submit"
                   disabled={saving}
-                  className="py-2.5 px-6 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-lg shadow-none"
+                  className="py-2.5 px-6 bg-[#0F2D5C] hover:bg-blue-900 text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-md"
                 >
                   <Save className="h-4 w-4" /> Save Verification Matrix
                 </button>
@@ -1963,18 +1963,18 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
             }}
             className="space-y-6"
           >
-            <div className="flex items-center justify-between border-b border-[#111827] pb-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-4">
               <div>
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Zap className="h-5 w-5 text-[#9CA3AF]" /> Bill Payments & VTU Services
+                <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <Zap className="h-5 w-5 text-blue-600" /> Bill Payments & VTU Services
                 </h2>
-                <p className="text-xs text-[#9CA3AF]">Configure bill payment service toggles, convenience fees, and default provider routes.</p>
+                <p className="text-xs text-slate-500">Configure bill payment service toggles, convenience fees, and default provider routes.</p>
               </div>
               {canEdit && (
                 <button
                   type="submit"
                   disabled={saving}
-                  className="py-2 px-5 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-lg shadow-none"
+                  className="py-2 px-5 bg-[#0F2D5C] hover:bg-blue-900 text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-sm"
                 >
                   <Save className="h-3.5 w-3.5" /> Save Bill Payments Config
                 </button>
@@ -1998,10 +1998,10 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                   serviceCharge: 50,
                 };
                 return (
-                  <div key={bill.key} className="p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs space-y-3">
+                  <div key={bill.key} className="p-4 bg-slate-50 border border-slate-200 rounded-2xl shadow-xs space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-white">{bill.label}</span>
-                      <label className="flex items-center gap-2 cursor-pointer text-xs text-[#E5E7EB]">
+                      <span className="text-xs font-bold text-slate-900">{bill.label}</span>
+                      <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-800">
                         <input
                           type="checkbox"
                           checked={billData.enabled !== false}
@@ -2015,7 +2015,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                             })
                           }
                           disabled={!canEdit}
-                          className="h-4 w-4 rounded accent-amber-500"
+                          className="h-4 w-4 rounded accent-blue-600"
                         />
                         <span>Enabled</span>
                       </label>
@@ -2023,7 +2023,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
 
                     <div className="grid grid-cols-2 gap-3 pt-2">
                       <div>
-                        <label className="block text-[10px] text-[#9CA3AF] mb-1">Default Provider Route</label>
+                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Default Provider Route</label>
                         <input
                           type="text"
                           value={billData.defaultProvider || ""}
@@ -2037,12 +2037,12 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                             })
                           }
                           disabled={!canEdit}
-                          className="w-full bg-[#111827] border border-[#111827] rounded-lg px-2.5 py-1.5 text-xs text-white"
+                          className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 focus:border-blue-600"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-[10px] text-[#9CA3AF] mb-1">Convenience Fee (₦)</label>
+                        <label className="block text-[10px] text-slate-600 mb-1 font-semibold">Convenience Fee (₦)</label>
                         <input
                           type="number"
                           value={billData.serviceCharge ?? 0}
@@ -2056,7 +2056,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                             })
                           }
                           disabled={!canEdit}
-                          className="w-full bg-[#111827] border border-[#111827] rounded-lg px-2.5 py-1.5 text-xs text-white"
+                          className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 focus:border-blue-600"
                         />
                       </div>
                     </div>
@@ -2065,12 +2065,12 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
               })}
             </div>
 
-            <div className="pt-4 border-t border-[#111827] flex justify-end">
+            <div className="pt-4 border-t border-slate-200 flex justify-end">
               {canEdit && (
                 <button
                   type="submit"
                   disabled={saving}
-                  className="py-2.5 px-6 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-lg shadow-none"
+                  className="py-2.5 px-6 bg-[#0F2D5C] hover:bg-blue-900 text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-md"
                 >
                   <Save className="h-4 w-4" /> Save Bill Payments Config
                 </button>
@@ -2088,18 +2088,18 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
             }}
             className="space-y-6"
           >
-            <div className="flex items-center justify-between border-b border-[#111827] pb-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-4">
               <div>
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Bell className="h-5 w-5 text-[#9CA3AF]" /> System Notification Dispatch Channels
+                <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <Bell className="h-5 w-5 text-blue-600" /> System Notification Dispatch Channels
                 </h2>
-                <p className="text-xs text-[#9CA3AF]">Manage dispatch triggers for transaction alerts and broadcasts.</p>
+                <p className="text-xs text-slate-500">Manage dispatch triggers for transaction alerts and broadcasts.</p>
               </div>
               {canEdit && (
                 <button
                   type="submit"
                   disabled={saving}
-                  className="py-2 px-5 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-lg shadow-none"
+                  className="py-2 px-5 bg-[#0F2D5C] hover:bg-blue-900 text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-sm"
                 >
                   <Save className="h-3.5 w-3.5" /> Save Notification Rules
                 </button>
@@ -2113,8 +2113,8 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                 { key: "pushNotifications", label: "Mobile Push Notifications" },
                 { key: "inAppNotifications", label: "In-App Bell Alerts & Banner Cards" },
               ].map((notif) => (
-                <div key={notif.key} className="p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs flex items-center justify-between">
-                  <span className="text-xs font-bold text-[#E5E7EB]">{notif.label}</span>
+                <div key={notif.key} className="p-4 bg-slate-50 border border-slate-200 rounded-2xl shadow-xs flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-800">{notif.label}</span>
                   <input
                     type="checkbox"
                     checked={systemSettings.notifications?.[notif.key] !== false}
@@ -2125,18 +2125,18 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                       })
                     }
                     disabled={!canEdit}
-                    className="h-5 w-5 rounded accent-blue-500 cursor-pointer"
+                    className="h-5 w-5 rounded accent-blue-600 cursor-pointer"
                   />
                 </div>
               ))}
             </div>
 
-            <div className="pt-4 border-t border-[#111827] flex justify-end">
+            <div className="pt-4 border-t border-slate-200 flex justify-end">
               {canEdit && (
                 <button
                   type="submit"
                   disabled={saving}
-                  className="py-2.5 px-6 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-lg shadow-none"
+                  className="py-2.5 px-6 bg-[#0F2D5C] hover:bg-blue-900 text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-md"
                 >
                   <Save className="h-4 w-4" /> Save Notification Rules
                 </button>
@@ -2154,18 +2154,18 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
             }}
             className="space-y-6"
           >
-            <div className="flex items-center justify-between border-b border-[#111827] pb-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-4">
               <div>
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Shield className="h-5 w-5 text-[#9CA3AF]" /> Security & Access Controls
+                <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-blue-600" /> Security & Access Controls
                 </h2>
-                <p className="text-xs text-[#9CA3AF]">Configure session lifetimes, password strength rules, 2FA enforcement, and IP restrictions.</p>
+                <p className="text-xs text-slate-500">Configure session lifetimes, password strength rules, 2FA enforcement, and IP restrictions.</p>
               </div>
               {canEdit && (
                 <button
                   type="submit"
                   disabled={saving}
-                  className="py-2 px-5 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-lg shadow-none"
+                  className="py-2 px-5 bg-[#0F2D5C] hover:bg-blue-900 text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-sm"
                 >
                   <Save className="h-3.5 w-3.5" /> Save Security Policies
                 </button>
@@ -2174,7 +2174,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">Admin Session Timeout (Minutes)</label>
+                <label className="block text-xs font-bold text-slate-800 mb-1.5">Admin Session Timeout (Minutes)</label>
                 <input
                   type="number"
                   value={systemSettings.security?.sessionTimeoutMinutes ?? 30}
@@ -2185,12 +2185,12 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                     })
                   }
                   disabled={!canEdit}
-                  className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">Minimum Password Length</label>
+                <label className="block text-xs font-bold text-slate-800 mb-1.5">Minimum Password Length</label>
                 <input
                   type="number"
                   value={systemSettings.security?.passwordMinLength ?? 8}
@@ -2201,12 +2201,12 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                     })
                   }
                   disabled={!canEdit}
-                  className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">Max Failed Login Attempts Before Lock</label>
+                <label className="block text-xs font-bold text-slate-800 mb-1.5">Max Failed Login Attempts Before Lock</label>
                 <input
                   type="number"
                   value={systemSettings.security?.loginAttemptLimits ?? 5}
@@ -2217,12 +2217,12 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                     })
                   }
                   disabled={!canEdit}
-                  className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">Account Lock Duration (Minutes)</label>
+                <label className="block text-xs font-bold text-slate-800 mb-1.5">Account Lock Duration (Minutes)</label>
                 <input
                   type="number"
                   value={systemSettings.security?.accountLockDurationMinutes ?? 15}
@@ -2233,12 +2233,12 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                     })
                   }
                   disabled={!canEdit}
-                  className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
                 />
               </div>
 
-              <div className="md:col-span-2 flex flex-wrap items-center gap-6 p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs">
-                <label className="flex items-center gap-2 cursor-pointer text-xs text-[#E5E7EB]">
+              <div className="md:col-span-2 flex flex-wrap items-center gap-6 p-4 bg-slate-50 border border-slate-200 rounded-2xl shadow-xs">
+                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-800">
                   <input
                     type="checkbox"
                     checked={systemSettings.security?.requireSpecialChars !== false}
@@ -2249,12 +2249,12 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                       })
                     }
                     disabled={!canEdit}
-                    className="h-4 w-4 rounded accent-rose-500"
+                    className="h-4 w-4 rounded accent-blue-600"
                   />
                   <span>Require Special Characters in Passwords</span>
                 </label>
 
-                <label className="flex items-center gap-2 cursor-pointer text-xs text-[#E5E7EB]">
+                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-800">
                   <input
                     type="checkbox"
                     checked={systemSettings.security?.requireTwoFactor !== false}
@@ -2265,19 +2265,19 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                       })
                     }
                     disabled={!canEdit}
-                    className="h-4 w-4 rounded accent-rose-500"
+                    className="h-4 w-4 rounded accent-blue-600"
                   />
                   <span>Require 2FA for All Admins</span>
                 </label>
               </div>
             </div>
 
-            <div className="pt-4 border-t border-[#111827] flex justify-end">
+            <div className="pt-4 border-t border-slate-200 flex justify-end">
               {canEdit && (
                 <button
                   type="submit"
                   disabled={saving}
-                  className="py-2.5 px-6 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-lg shadow-none"
+                  className="py-2.5 px-6 bg-[#0F2D5C] hover:bg-blue-900 text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-md"
                 >
                   <Save className="h-4 w-4" /> Save Security Policies
                 </button>
@@ -2295,26 +2295,26 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
             }}
             className="space-y-6"
           >
-            <div className="flex items-center justify-between border-b border-[#111827] pb-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-4">
               <div>
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Mail className="h-5 w-5 text-[#9CA3AF]" /> Email Portal & SMTP Server Config
+                <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <Mail className="h-5 w-5 text-blue-600" /> Email Portal & SMTP Server Config
                 </h2>
-                <p className="text-xs text-[#9CA3AF]">Configure outbound SMTP server credentials for email transaction dispatches.</p>
+                <p className="text-xs text-slate-500">Configure outbound SMTP server credentials for email transaction dispatches.</p>
               </div>
               <div className="flex items-center gap-3">
                 <button
                   type="button"
                   onClick={() => setShowTestEmailModal(true)}
-                  className=" py-2 px-4 border border-[#0F2D5C]/80 text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition"
+                  className="py-2 px-4 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition"
                 >
-                  <Send className="h-3.5 w-3.5" /> Test Email Dispatch
+                  <Send className="h-3.5 w-3.5 text-blue-600" /> Test Email Dispatch
                 </button>
                 {canEdit && (
                   <button
                     type="submit"
                     disabled={saving}
-                    className="py-2 px-5 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-lg shadow-none"
+                    className="py-2 px-5 bg-[#0F2D5C] hover:bg-blue-900 text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-sm"
                   >
                     <Save className="h-3.5 w-3.5" /> Save Email Config
                   </button>
@@ -2324,7 +2324,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">Sender Name</label>
+                <label className="block text-xs font-bold text-slate-800 mb-1.5">Sender Name</label>
                 <input
                   type="text"
                   value={systemSettings.email?.senderName || ""}
@@ -2335,12 +2335,12 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                     })
                   }
                   disabled={!canEdit}
-                  className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">Reply-To Address</label>
+                <label className="block text-xs font-bold text-slate-800 mb-1.5">Reply-To Address</label>
                 <input
                   type="email"
                   value={systemSettings.email?.replyToAddress || ""}
@@ -2351,12 +2351,12 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                     })
                   }
                   disabled={!canEdit}
-                  className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">SMTP Host</label>
+                <label className="block text-xs font-bold text-slate-800 mb-1.5">SMTP Host</label>
                 <input
                   type="text"
                   value={systemSettings.email?.smtpHost || ""}
@@ -2367,12 +2367,12 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                     })
                   }
                   disabled={!canEdit}
-                  className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C] font-mono"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600 font-mono"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">SMTP Port</label>
+                <label className="block text-xs font-bold text-slate-800 mb-1.5">SMTP Port</label>
                 <input
                   type="number"
                   value={systemSettings.email?.smtpPort ?? 587}
@@ -2383,12 +2383,12 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                     })
                   }
                   disabled={!canEdit}
-                  className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C] font-mono"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600 font-mono"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">SMTP Username</label>
+                <label className="block text-xs font-bold text-slate-800 mb-1.5">SMTP Username</label>
                 <input
                   type="text"
                   value={systemSettings.email?.smtpUsername || ""}
@@ -2399,12 +2399,12 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                     })
                   }
                   disabled={!canEdit}
-                  className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C] font-mono"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600 font-mono"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">SMTP Password / API Key</label>
+                <label className="block text-xs font-bold text-slate-800 mb-1.5">SMTP Password / API Key</label>
                 <input
                   type="password"
                   value={systemSettings.email?.smtpPasswordMasked || "••••••••••••••••"}
@@ -2415,17 +2415,17 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                     })
                   }
                   disabled={!canEdit}
-                  className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C] font-mono"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600 font-mono"
                 />
               </div>
             </div>
 
-            <div className="pt-4 border-t border-[#111827] flex justify-end">
+            <div className="pt-4 border-t border-slate-200 flex justify-end">
               {canEdit && (
                 <button
                   type="submit"
                   disabled={saving}
-                  className="py-2.5 px-6 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-lg shadow-none"
+                  className="py-2.5 px-6 bg-[#0F2D5C] hover:bg-blue-900 text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-md"
                 >
                   <Save className="h-4 w-4" /> Save Email Config
                 </button>
@@ -2437,12 +2437,12 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
         {/* 8B. MANUAL SERVICES EMAIL ROUTING */}
         {activeTab === "manual_services" && (
           <form onSubmit={handleSaveManualRoutes} className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-[#111827] pb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 pb-4">
               <div>
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-[#9CA3AF]" /> Manual Services Submission & Email Dispatch Routing
+                <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-blue-600" /> Manual Services Submission & Email Dispatch Routing
                 </h2>
-                <p className="text-xs text-[#9CA3AF] mt-0.5">
+                <p className="text-xs text-slate-500 mt-0.5">
                   Route submissions and user-uploaded file attachments for offline/manual services directly to dedicated officer Gmail/work emails.
                 </p>
               </div>
@@ -2450,7 +2450,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                 <button
                   type="submit"
                   disabled={savingManualRoutes}
-                  className="py-2 px-5 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-lg shadow-none shrink-0"
+                  className="py-2 px-5 bg-[#0F2D5C] hover:bg-blue-900 text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-sm shrink-0"
                 >
                   <Save className="h-3.5 w-3.5" /> {savingManualRoutes ? "Saving..." : "Save Email Routes"}
                 </button>
@@ -2459,65 +2459,65 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
 
             {manualRoutesMessage && (
               <div
-                className={`p-4 rounded-2xl border flex items-center gap-2.5 text-xs font-medium${
+                className={`p-4 rounded-2xl border flex items-center gap-2.5 text-xs font-medium ${
                   manualRoutesMessage.type === "success"
-                    ? "bg-emerald-950/40 border-emerald-800/80 text-emerald-200"
-                    : "bg-red-950/40 border-red-800/80 text-red-200"
+                    ? "bg-emerald-50 border-emerald-300 text-emerald-900"
+                    : "bg-rose-50 border-rose-300 text-rose-900"
                 }`}
               >
                 {manualRoutesMessage.type === "success" ? (
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
                 ) : (
-                  <AlertTriangle className="h-4 w-4 text-red-400 shrink-0" />
+                  <AlertTriangle className="h-4 w-4 text-rose-600 shrink-0" />
                 )}
                 <span>{manualRoutesMessage.text}</span>
               </div>
             )}
 
             {/* Architecture Highlights Banner */}
-            <div className="p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs">
+            <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs">
               <div className="space-y-1">
-                <span className="font-bold text-white flex items-center gap-1.5">
-                  <ShieldCheck className="w-4 h-4 text-emerald-400" /> Storage Bypass & Zero Data Loss Guarantee
+                <span className="font-bold text-slate-900 flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" /> Storage Bypass & Zero Data Loss Guarantee
                 </span>
-                <p className="text-[#9CA3AF] leading-relaxed">
+                <p className="text-slate-600 leading-relaxed">
                   All user-uploaded photos, PDF documents, and form data are stored safely on the server's local storage and forwarded directly as high-resolution email attachments. If a submission fails, the user's form is restored locally without losing a single character.
                 </p>
               </div>
-              <div className="shrink-0 flex items-center gap-2 px-3 py-1.5 bg-[#111827] border border-[#374151] rounded-xl text-[11px] text-gray-300 font-mono">
+              <div className="shrink-0 flex items-center gap-2 px-3 py-1.5 bg-slate-200 border border-slate-300 rounded-xl text-[11px] text-slate-800 font-mono">
                 <span>Default:</span>
-                <span className="text-emerald-400 font-bold">{DEFAULT_MANUAL_ADMIN_EMAIL}</span>
+                <span className="text-emerald-700 font-bold">{DEFAULT_MANUAL_ADMIN_EMAIL}</span>
               </div>
             </div>
 
             {/* Global Default Recipient Email */}
-            <div className="p-5 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs space-y-3">
+            <div className="p-5 bg-slate-50 border border-slate-200 rounded-2xl shadow-xs space-y-3">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
-                  <label className="block text-xs font-bold text-white">
+                  <label className="block text-xs font-bold text-slate-900">
                     Primary / Fallback Destination Email Address
                   </label>
-                  <p className="text-[11px] text-[#9CA3AF]">
+                  <p className="text-[11px] text-slate-600">
                     All manual services that do not have an individual override will be dispatched to this email.
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setManualDefaultEmail(DEFAULT_MANUAL_ADMIN_EMAIL)}
-                  className=" text-[11px] underline font-medium self-start sm:self-auto cursor-pointer"
+                  className="text-[11px] text-blue-600 underline font-semibold self-start sm:self-auto cursor-pointer"
                 >
                   Reset to {DEFAULT_MANUAL_ADMIN_EMAIL}
                 </button>
               </div>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-3 h-4 w-4 text-gray-500" />
+                <Mail className="absolute left-3.5 top-3 h-4 w-4 text-slate-500" />
                 <input
                   type="email"
                   value={manualDefaultEmail}
                   onChange={(e) => setManualDefaultEmail(e.target.value)}
                   disabled={!canEdit}
                   placeholder="e.g. admin@smartlink.ng"
-                  className="w-full bg-[#111827] border border-[#374151] rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C] font-mono"
+                  className="w-full bg-white border border-slate-300 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600 font-mono"
                   required
                 />
               </div>
@@ -2526,10 +2526,10 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
             {/* Per-Service Routing Overrides */}
             <div className="space-y-3">
               <div>
-                <h3 className="text-sm font-bold text-white">
+                <h3 className="text-sm font-bold text-slate-900">
                   Individual Service Dispatch Routes
                 </h3>
-                <p className="text-xs text-[#9CA3AF]">
+                <p className="text-xs text-slate-500">
                   Set a specific recipient email for each service (e.g. assign CAC filings to your legal officer and Passports to immigration support). Leave blank to use the primary default email.
                 </p>
               </div>
@@ -2542,35 +2542,35 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                   return (
                     <div
                       key={svc.id}
-                      className="p-4 bg-[#111827] border border-[#111827] hover:border-[#374151] rounded-2xl space-y-3 transition-colors"
+                      className="p-4 bg-slate-50 border border-slate-200 hover:border-blue-300 rounded-2xl space-y-3 transition-colors"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div>
                           <div className="flex items-center gap-1.5 mb-1">
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#0F2D5C] text-blue-300 uppercase font-mono">
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 border border-blue-200 text-blue-900 uppercase font-mono">
                               {svc.category}
                             </span>
-                            <span className="text-[10px] text-gray-400">
-                              Fee: <strong className="text-emerald-400">₦{svc.price.toLocaleString()}</strong>
+                            <span className="text-[10px] text-slate-500">
+                              Fee: <strong className="text-emerald-700">₦{svc.price.toLocaleString()}</strong>
                             </span>
                           </div>
-                          <h4 className="text-xs font-bold text-white leading-snug">
+                          <h4 className="text-xs font-bold text-slate-900 leading-snug">
                             {svc.name}
                           </h4>
-                          <span className="text-[10px] text-gray-400 font-mono block mt-0.5">
+                          <span className="text-[10px] text-slate-500 font-mono block mt-0.5">
                             ID: {svc.id}
                           </span>
                         </div>
                         <div className="text-right shrink-0">
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-950/80 border border-blue-800 text-blue-300 font-mono">
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-blue-800 font-mono">
                             {svc.processingTime}
                           </span>
                         </div>
                       </div>
 
-                      <div className="space-y-1.5 pt-2 border-t border-[#1F2937]">
+                      <div className="space-y-1.5 pt-2 border-t border-slate-200">
                         <div className="flex items-center justify-between text-[11px]">
-                          <span className="text-gray-300 font-medium">Destination Email:</span>
+                          <span className="text-slate-700 font-medium">Destination Email:</span>
                           {currentOverride && (
                             <button
                               type="button"
@@ -2579,7 +2579,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                                 delete copy[svc.id];
                                 setManualServiceRoutes(copy);
                               }}
-                              className=" text-[10px] underline cursor-pointer"
+                              className="text-xs text-rose-600 underline cursor-pointer font-medium"
                             >
                               Clear Override
                             </button>
@@ -2598,21 +2598,21 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                             }
                             disabled={!canEdit}
                             placeholder={`Inherit (${manualDefaultEmail})`}
-                            className="w-full bg-[#111827] border border-[#374151] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#0F2D5C] font-mono text-[11px]"
+                            className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600 font-mono text-[11px]"
                           />
                         </div>
 
-                        <div className="flex items-center gap-1.5 text-[10.5px] text-gray-400">
+                        <div className="flex items-center gap-1.5 text-[10.5px] text-slate-500">
                           <span>Delivers to:</span>
-                          <span className="font-mono text-emerald-400 font-medium truncate">
+                          <span className="font-mono text-blue-700 font-bold truncate">
                             {activeTarget}
                           </span>
                           {currentOverride.trim() ? (
-                            <span className="text-[9px] px-1.5 py-0.2 bg-amber-500/20 text-amber-300 rounded font-bold">
+                            <span className="text-[9px] px-1.5 py-0.2 bg-amber-100 text-amber-900 border border-amber-300 rounded font-bold">
                               CUSTOM
                             </span>
                           ) : (
-                            <span className="text-[9px] px-1.5 py-0.2 bg-gray-700 text-gray-300 rounded">
+                            <span className="text-[9px] px-1.5 py-0.2 bg-slate-200 text-slate-800 rounded">
                               DEFAULT
                             </span>
                           )}
@@ -2624,12 +2624,12 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
               </div>
             </div>
 
-            <div className="pt-4 border-t border-[#111827] flex justify-end">
+            <div className="pt-4 border-t border-slate-200 flex justify-end">
               {canEdit && (
                 <button
                   type="submit"
                   disabled={savingManualRoutes}
-                  className="py-2.5 px-6 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-lg shadow-none"
+                  className="py-2.5 px-6 bg-[#0F2D5C] hover:bg-blue-900 text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-md"
                 >
                   <Save className="h-4 w-4" /> {savingManualRoutes ? "Saving Changes..." : "Save All Service Email Routes"}
                 </button>
@@ -2647,26 +2647,26 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
             }}
             className="space-y-6"
           >
-            <div className="flex items-center justify-between border-b border-[#111827] pb-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-4">
               <div>
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5 text-[#9CA3AF]" /> SMS Provider Configuration
+                <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5 text-blue-600" /> SMS Provider Configuration
                 </h2>
-                <p className="text-xs text-[#9CA3AF]">Configure SMS Portal route (Termii / Twilio) and Sender ID.</p>
+                <p className="text-xs text-slate-500">Configure SMS Portal route (Termii / Twilio) and Sender ID.</p>
               </div>
               <div className="flex items-center gap-3">
                 <button
                   type="button"
                   onClick={() => setShowTestSmsModal(true)}
-                  className=" py-2 px-4 border border-[#0F2D5C]/80 text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition"
+                  className="py-2 px-4 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition"
                 >
-                  <Send className="h-3.5 w-3.5" /> Test SMS Dispatch
+                  <Send className="h-3.5 w-3.5 text-blue-600" /> Test SMS Dispatch
                 </button>
                 {canEdit && (
                   <button
                     type="submit"
                     disabled={saving}
-                    className="py-2 px-5 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-lg shadow-none"
+                    className="py-2 px-5 bg-[#0F2D5C] hover:bg-blue-900 text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-sm"
                   >
                     <Save className="h-3.5 w-3.5" /> Save SMS Portal
                   </button>
@@ -2676,7 +2676,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">Primary SMS Provider</label>
+                <label className="block text-xs font-bold text-slate-800 mb-1.5">Primary SMS Provider</label>
                 <select
                   value={systemSettings.sms?.smsProvider || "Termii"}
                   onChange={(e) =>
@@ -2686,7 +2686,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                     })
                   }
                   disabled={!canEdit}
-                  className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
                 >
                   <option value="Termii">Termii (Direct Nigeria Telco Integration)</option>
                   <option value="Twilio">Twilio Global SMS</option>
@@ -2695,7 +2695,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">Registered Sender ID</label>
+                <label className="block text-xs font-bold text-slate-800 mb-1.5">Registered Sender ID</label>
                 <input
                   type="text"
                   value={systemSettings.sms?.senderId || "SmartLink"}
@@ -2706,17 +2706,17 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                     })
                   }
                   disabled={!canEdit}
-                  className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C] font-mono"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600 font-mono"
                 />
               </div>
             </div>
 
-            <div className="pt-4 border-t border-[#111827] flex justify-end">
+            <div className="pt-4 border-t border-slate-200 flex justify-end">
               {canEdit && (
                 <button
                   type="submit"
                   disabled={saving}
-                  className="py-2.5 px-6 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-lg shadow-none"
+                  className="py-2.5 px-6 bg-[#0F2D5C] hover:bg-blue-900 text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-md"
                 >
                   <Save className="h-4 w-4" /> Save SMS Portal
                 </button>
@@ -2795,12 +2795,12 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
               }}
               className="space-y-6"
             >
-              <div className="flex items-center justify-between border-b border-[#111827] pb-4">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-4">
                 <div>
-                  <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                    <Wrench className="h-5 w-5 text-amber-500" /> Platform Maintenance & Service Lockdown Control
+                  <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <Wrench className="h-5 w-5 text-amber-600" /> Platform Maintenance & Service Lockdown Control
                   </h2>
-                  <p className="text-xs text-[#9CA3AF]">
+                  <p className="text-xs text-slate-500">
                     Only the Super Administrator can configure platform maintenance modes, service locks, schedules, and login blocks.
                   </p>
                 </div>
@@ -2808,7 +2808,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                   <button
                     type="submit"
                     disabled={saving}
-                    className="py-2.5 px-6 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-lg shadow-blue-900/30"
+                    className="py-2.5 px-6 bg-[#0F2D5C] hover:bg-blue-900 text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-md"
                   >
                     <Save className="h-4 w-4" /> Save Maintenance Settings
                   </button>
@@ -2817,10 +2817,10 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
 
               {/* Requirement 1: Super Admin Access Warning Banner */}
               {!isSuperAdmin && (
-                <div className="p-4 rounded-2xl bg-rose-950/60 border border-rose-800/80 text-rose-200 text-xs flex items-center gap-3">
-                  <Lock className="w-5 h-5 text-rose-400 shrink-0" />
+                <div className="p-4 rounded-2xl bg-rose-50 border border-rose-300 text-rose-900 text-xs flex items-center gap-3">
+                  <Lock className="w-5 h-5 text-rose-600 shrink-0" />
                   <div>
-                    <strong className="block font-bold text-white uppercase tracking-wider">
+                    <strong className="block font-bold text-rose-950 uppercase tracking-wider">
                       🔒 Super Admin Restriction Active
                     </strong>
                     Only Super Administrators have permission to toggle or modify platform Maintenance Mode settings.
@@ -2831,15 +2831,15 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
               {/* Master Toggles Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* 1. Global Platform Maintenance */}
-                <div className={`p-5 rounded-2xl border transition-all${maintenanceSettings.maintenanceMode ? "bg-rose-950/40 border-rose-500/60" : "bg-[#111827] border-[#111827]"}`}>
+                <div className={`p-5 rounded-2xl border transition-all ${maintenanceSettings.maintenanceMode ? "bg-rose-50 border-rose-300" : "bg-slate-50 border-slate-200"}`}>
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <div className="p-2 rounded-xl bg-rose-500/20 text-rose-400">
+                      <div className="p-2 rounded-xl bg-rose-100 text-rose-700">
                         <Wrench className="w-5 h-5" />
                       </div>
                       <div>
-                        <h3 className="text-sm font-bold text-white">Full Platform Maintenance</h3>
-                        <p className="text-[11px] text-[#9CA3AF]">Blocks entire website for regular users</p>
+                        <h3 className="text-sm font-bold text-slate-900">Full Platform Maintenance</h3>
+                        <p className="text-[11px] text-slate-500">Blocks entire website for regular users</p>
                       </div>
                     </div>
                     <input
@@ -2849,24 +2849,24 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                         setMaintenanceSettings({ ...maintenanceSettings, maintenanceMode: e.target.checked })
                       }
                       disabled={!isMaintenanceEditable}
-                      className="h-6 w-6 rounded accent-rose-500 cursor-pointer"
+                      className="h-6 w-6 rounded accent-rose-600 cursor-pointer"
                     />
                   </div>
-                  <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase font-mono ${maintenanceSettings.maintenanceMode ? "bg-rose-500/20 text-rose-300 border border-rose-500/40" : "bg-[#111827] text-[#9CA3AF]"}`}>
+                  <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase font-mono ${maintenanceSettings.maintenanceMode ? "bg-rose-200 text-rose-900 border border-rose-300" : "bg-slate-200 text-slate-700"}`}>
                     {maintenanceSettings.maintenanceMode ? "FULL LOCKDOWN ACTIVE" : "OFF (SYSTEM ONLINE)"}
                   </span>
                 </div>
 
                 {/* 2. Website Login Maintenance */}
-                <div className={`p-5 rounded-2xl border transition-all ${maintenanceSettings.loginMaintenanceMode ? "bg-amber-950/40 border-amber-500/60" : "bg-[#111827] border-[#111827]"}`}>
+                <div className={`p-5 rounded-2xl border transition-all ${maintenanceSettings.loginMaintenanceMode ? "bg-amber-50 border-amber-300" : "bg-slate-50 border-slate-200"}`}>
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <div className="p-2 rounded-xl bg-amber-500/20 text-amber-400">
+                      <div className="p-2 rounded-xl bg-amber-100 text-amber-700">
                         <Lock className="w-5 h-5" />
                       </div>
                       <div>
-                        <h3 className="text-sm font-bold text-white">Website Login Maintenance</h3>
-                        <p className="text-[11px] text-[#9CA3AF]">Blocks user sign-in (Admins exempt)</p>
+                        <h3 className="text-sm font-bold text-slate-900">Website Login Maintenance</h3>
+                        <p className="text-[11px] text-slate-500">Blocks user sign-in (Admins exempt)</p>
                       </div>
                     </div>
                     <input
@@ -2876,24 +2876,24 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                         setMaintenanceSettings({ ...maintenanceSettings, loginMaintenanceMode: e.target.checked })
                       }
                       disabled={!isMaintenanceEditable}
-                      className="h-6 w-6 rounded accent-amber-500 cursor-pointer"
+                      className="h-6 w-6 rounded accent-amber-600 cursor-pointer"
                     />
                   </div>
-                  <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase font-mono ${maintenanceSettings.loginMaintenanceMode ? "bg-amber-500/20 text-amber-300 border border-amber-500/40" : "bg-[#111827] text-[#9CA3AF]"}`}>
+                  <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase font-mono ${maintenanceSettings.loginMaintenanceMode ? "bg-amber-200 text-amber-900 border border-amber-300" : "bg-slate-200 text-slate-700"}`}>
                     {maintenanceSettings.loginMaintenanceMode ? "LOGIN BLOCKED" : "OFF (LOGIN OPEN)"}
                   </span>
                 </div>
 
                 {/* 3. User Registration / Signup Maintenance */}
-                <div className={`p-5 rounded-2xl border transition-all ${maintenanceSettings.signupMaintenanceMode ? "bg-amber-950/40 border-amber-500/60" : "bg-[#111827] border-[#111827]"}`}>
+                <div className={`p-5 rounded-2xl border transition-all ${maintenanceSettings.signupMaintenanceMode ? "bg-blue-50 border-blue-300" : "bg-slate-50 border-slate-200"}`}>
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <div className="p-2 rounded-xl bg-blue-500/20 text-blue-400">
+                      <div className="p-2 rounded-xl bg-blue-100 text-blue-700">
                         <ShieldAlert className="w-5 h-5" />
                       </div>
                       <div>
-                        <h3 className="text-sm font-bold text-white">Registration Maintenance</h3>
-                        <p className="text-[11px] text-[#9CA3AF]">Blocks new account creation / signup</p>
+                        <h3 className="text-sm font-bold text-slate-900">Registration Maintenance</h3>
+                        <p className="text-[11px] text-slate-500">Blocks new account creation / signup</p>
                       </div>
                     </div>
                     <input
@@ -2903,24 +2903,24 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                         setMaintenanceSettings({ ...maintenanceSettings, signupMaintenanceMode: e.target.checked })
                       }
                       disabled={!isMaintenanceEditable}
-                      className="h-6 w-6 rounded accent-blue-500 cursor-pointer"
+                      className="h-6 w-6 rounded accent-blue-600 cursor-pointer"
                     />
                   </div>
-                  <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase font-mono ${maintenanceSettings.signupMaintenanceMode ? "bg-blue-500/20 text-blue-300 border border-blue-500/40" : "bg-[#111827] text-[#9CA3AF]"}`}>
+                  <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase font-mono ${maintenanceSettings.signupMaintenanceMode ? "bg-blue-200 text-blue-900 border border-blue-300" : "bg-slate-200 text-slate-700"}`}>
                     {maintenanceSettings.signupMaintenanceMode ? "REGISTRATION BLOCKED" : "OFF (SIGNUP OPEN)"}
                   </span>
                 </div>
 
                 {/* 4. Services Maintenance Master */}
-                <div className={`p-5 rounded-2xl border transition-all ${maintenanceSettings.servicesMaintenanceMode ? "bg-purple-950/40 border-purple-500/60" : "bg-[#111827] border-[#111827]"}`}>
+                <div className={`p-5 rounded-2xl border transition-all ${maintenanceSettings.servicesMaintenanceMode ? "bg-purple-50 border-purple-300" : "bg-slate-50 border-slate-200"}`}>
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <div className="p-2 rounded-xl bg-purple-500/20 text-purple-400">
+                      <div className="p-2 rounded-xl bg-purple-100 text-purple-700">
                         <ZapOff className="w-5 h-5" />
                       </div>
                       <div>
-                        <h3 className="text-sm font-bold text-white">Services Granular Maintenance</h3>
-                        <p className="text-[11px] text-[#9CA3AF]">Lock selected individual services below</p>
+                        <h3 className="text-sm font-bold text-slate-900">Services Granular Maintenance</h3>
+                        <p className="text-[11px] text-slate-500">Lock selected individual services below</p>
                       </div>
                     </div>
                     <input
@@ -2930,37 +2930,37 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                         setMaintenanceSettings({ ...maintenanceSettings, servicesMaintenanceMode: e.target.checked })
                       }
                       disabled={!isMaintenanceEditable}
-                      className="h-6 w-6 rounded accent-purple-500 cursor-pointer"
+                      className="h-6 w-6 rounded accent-purple-600 cursor-pointer"
                     />
                   </div>
-                  <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase font-mono ${maintenanceSettings.servicesMaintenanceMode ? "bg-purple-500/20 text-purple-300 border border-purple-500/40" : "bg-[#111827] text-[#9CA3AF]"}`}>
+                  <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase font-mono ${maintenanceSettings.servicesMaintenanceMode ? "bg-purple-200 text-purple-900 border border-purple-300" : "bg-slate-200 text-slate-700"}`}>
                     {maintenanceSettings.servicesMaintenanceMode ? "SERVICES LOCK ACTIVE" : "OFF"}
                   </span>
                 </div>
               </div>
 
               {/* Requirement 2: Granular Services Multi-Select Grid (One, Many, All) */}
-              <div className="p-6 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs space-y-4">
-                <div className="flex items-center justify-between border-b border-[#111827] pb-3">
+              <div className="p-6 bg-slate-50 border border-slate-200 rounded-2xl shadow-xs space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-200 pb-3">
                   <div>
-                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                       <span>🛠️ Affected Services Selector</span>
-                      <span className="text-xs font-normal text-[#9CA3AF]">
+                      <span className="text-xs font-normal text-slate-500">
                         ({currentSelectedServices.length} of {MAINTENANCE_SERVICES_LIST.length} selected)
                       </span>
                     </h3>
-                    <p className="text-xs text-[#9CA3AF]">
+                    <p className="text-xs text-slate-500">
                       Select one, many, or all individual service portals to put under maintenance.
                     </p>
                   </div>
 
-                  <label className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#111827] border border-[#111827] text-xs font-bold text-white cursor-pointer hover:bg-[#111827]">
+                  <label className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-xs font-bold text-slate-800 cursor-pointer hover:bg-slate-100">
                     <input
                       type="checkbox"
                       checked={maintenanceSettings.maintenanceModeAllServices === true || currentSelectedServices.length === MAINTENANCE_SERVICES_LIST.length}
                       onChange={(e) => handleToggleAllServices(e.target.checked)}
                       disabled={!isMaintenanceEditable}
-                      className="h-4 w-4 rounded accent-purple-500 cursor-pointer"
+                      className="h-4 w-4 rounded accent-purple-600 cursor-pointer"
                     />
                     <span>Select All Services</span>
                   </label>
@@ -2973,21 +2973,21 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                       <div
                         key={srv.code}
                         onClick={() => handleToggleServiceCode(srv.code)}
-                        className={`p-3.5 rounded-xl border text-left cursor-pointer transition-all flex items-start justify-between gap-2.5 ${isSelected ? "bg-purple-950/40 border-purple-500/60 shadow-md" : "bg-[#111827] border-[#111827] opacity-80 hover:opacity-100"}`}
+                        className={`p-3.5 rounded-xl border text-left cursor-pointer transition-all flex items-start justify-between gap-2.5 ${isSelected ? "bg-purple-50 border-purple-300 shadow-sm" : "bg-white border-slate-200 hover:bg-slate-100"}`}
                       >
                         <div className="space-y-0.5">
-                          <div className="flex items-center gap-1.5 text-xs font-bold text-white">
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
                             <span>{srv.icon}</span>
                             <span>{srv.name}</span>
                           </div>
-                          <p className="text-[10px] text-[#9CA3AF] leading-tight">{srv.desc}</p>
+                          <p className="text-[10px] text-slate-500 leading-tight">{srv.desc}</p>
                         </div>
                         <input
                           type="checkbox"
                           checked={isSelected}
                           onChange={() => handleToggleServiceCode(srv.code)}
                           disabled={!isMaintenanceEditable}
-                          className="h-4 w-4 rounded accent-purple-500 shrink-0 mt-0.5 cursor-pointer"
+                          className="h-4 w-4 rounded accent-purple-600 shrink-0 mt-0.5 cursor-pointer"
                         />
                       </div>
                     );
@@ -2996,15 +2996,15 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
               </div>
 
               {/* Requirement 8: Maintenance Schedule & Details Inputs */}
-              <div className="p-6 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs space-y-5">
-                <h3 className="text-sm font-bold text-white border-b border-[#111827] pb-3">
+              <div className="p-6 bg-slate-50 border border-slate-200 rounded-2xl shadow-xs space-y-5">
+                <h3 className="text-sm font-bold text-slate-900 border-b border-slate-200 pb-3">
                   📅 Maintenance Schedule, Reason & Emergency Support Details
                 </h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Start Date & Time */}
                   <div>
-                    <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">
+                    <label className="block text-xs font-bold text-slate-800 mb-1.5">
                       Maintenance Started Date & Time
                     </label>
                     <input
@@ -3014,13 +3014,13 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                         setMaintenanceSettings({ ...maintenanceSettings, startDate: e.target.value })
                       }
                       disabled={!isMaintenanceEditable}
-                      className="w-full bg-[#111827] border border-[#111827] rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
+                      className="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
                     />
                   </div>
 
                   {/* Finish / End Date & Time */}
                   <div>
-                    <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">
+                    <label className="block text-xs font-bold text-slate-800 mb-1.5">
                       Expected Completion / End Date & Time
                     </label>
                     <input
@@ -3030,14 +3030,14 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                         setMaintenanceSettings({ ...maintenanceSettings, scheduledEndTime: e.target.value })
                       }
                       disabled={!isMaintenanceEditable}
-                      className="w-full bg-[#111827] border border-[#111827] rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
+                      className="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
                     />
                   </div>
                 </div>
 
                 {/* Reason for Maintenance */}
                 <div>
-                  <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">
+                  <label className="block text-xs font-bold text-slate-800 mb-1.5">
                     Official Reason for Maintenance (User Announcement)
                   </label>
                   <textarea
@@ -3048,14 +3048,14 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                       setMaintenanceSettings({ ...maintenanceSettings, maintenanceMessage: e.target.value })
                     }
                     disabled={!isMaintenanceEditable}
-                    className="w-full bg-[#111827] border border-[#111827] rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
+                    className="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Emergency Support WhatsApp / Contact */}
                   <div>
-                    <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">
+                    <label className="block text-xs font-bold text-slate-800 mb-1.5">
                       Emergency Support Phone / WhatsApp Number
                     </label>
                     <input
@@ -3066,12 +3066,12 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                         setMaintenanceSettings({ ...maintenanceSettings, supportContact: e.target.value })
                       }
                       disabled={!isMaintenanceEditable}
-                      className="w-full bg-[#111827] border border-[#111827] rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
+                      className="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
                     />
                   </div>
 
                   {/* Admin Bypass Toggle */}
-                  <div className="flex items-center gap-3 self-end p-3.5 bg-[#111827] border border-[#111827] rounded-xl">
+                  <div className="flex items-center gap-3 self-end p-3.5 bg-white border border-slate-300 rounded-xl">
                     <input
                       type="checkbox"
                       checked={maintenanceSettings.allowAdminBypass !== false}
@@ -3079,29 +3079,29 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                         setMaintenanceSettings({ ...maintenanceSettings, allowAdminBypass: e.target.checked })
                       }
                       disabled={!isMaintenanceEditable}
-                      className="h-5 w-5 rounded accent-blue-500 cursor-pointer"
+                      className="h-5 w-5 rounded accent-blue-600 cursor-pointer"
                     />
                     <div>
-                      <span className="text-xs font-bold text-white block">Allow Admin Session Bypass</span>
-                      <span className="text-[10px] text-[#9CA3AF]">Super Admins & Admins bypass maintenance screens</span>
+                      <span className="text-xs font-bold text-slate-900 block">Allow Admin Session Bypass</span>
+                      <span className="text-[10px] text-slate-500">Super Admins & Admins bypass maintenance screens</span>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Live Overlay Preview */}
-              <div className="p-5 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs space-y-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#9CA3AF] block font-mono">
+              <div className="p-5 bg-slate-50 border border-slate-200 rounded-2xl shadow-xs space-y-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block font-mono">
                   User-Facing Full-Page Maintenance Live Preview
                 </span>
-                <div className="p-6 bg-white border border-[#0F2D5C]/60 rounded-xl text-center space-y-3 relative overflow-hidden">
+                <div className="p-6 bg-slate-900 border border-slate-800 rounded-xl text-center space-y-3 relative overflow-hidden text-white">
                   <div className="absolute top-0 left-0 bottom-0 w-1 bg-amber-500" />
                   <Wrench className="h-8 w-8 text-amber-400 mx-auto animate-spin" style={{ animationDuration: "12s" }} />
                   <h3 className="text-base font-bold text-white">System Under Scheduled Maintenance</h3>
-                  <p className="text-xs text-[#E5E7EB] max-w-md mx-auto">
+                  <p className="text-xs text-slate-300 max-w-md mx-auto">
                     {maintenanceSettings.maintenanceMessage || "SmartLink is currently undergoing scheduled infrastructure upgrades. Core services will resume shortly."}
                   </p>
-                  <div className="flex flex-wrap items-center justify-center gap-2 text-[10px] text-[#9CA3AF]">
+                  <div className="flex flex-wrap items-center justify-center gap-2 text-[10px] text-slate-400">
                     <span>Started: <strong>{maintenanceSettings.startDate || "Now"}</strong></span>
                     <span>•</span>
                     <span>Expected Finish: <strong>{maintenanceSettings.scheduledEndTime || "TBA"}</strong></span>
@@ -3109,12 +3109,12 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-[#111827] flex justify-end">
+              <div className="pt-4 border-t border-slate-200 flex justify-end">
                 {isMaintenanceEditable && (
                   <button
                     type="submit"
                     disabled={saving}
-                    className="py-2.5 px-6 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-lg shadow-blue-900/30"
+                    className="py-2.5 px-6 bg-[#0F2D5C] hover:bg-blue-900 text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-md"
                   >
                     <Save className="h-4 w-4" /> Save Maintenance Settings
                   </button>
@@ -3133,18 +3133,18 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
             }}
             className="space-y-6"
           >
-            <div className="flex items-center justify-between border-b border-[#111827] pb-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-4">
               <div>
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Server className="h-5 w-5 text-[#9CA3AF]" /> API Portal & Rate Limits
+                <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <Server className="h-5 w-5 text-blue-600" /> API Portal & Rate Limits
                 </h2>
-                <p className="text-xs text-[#9CA3AF]">Configure global request timeouts, retry thresholds, and QPS throttling.</p>
+                <p className="text-xs text-slate-500">Configure global request timeouts, retry thresholds, and QPS throttling.</p>
               </div>
               {canEdit && (
                 <button
                   type="submit"
                   disabled={saving}
-                  className="py-2 px-5 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-lg shadow-none"
+                  className="py-2 px-5 bg-[#0F2D5C] hover:bg-blue-900 text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-sm"
                 >
                   <Save className="h-3.5 w-3.5" /> Save API Config
                 </button>
@@ -3153,7 +3153,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">Portal Request Timeout (ms)</label>
+                <label className="block text-xs font-bold text-slate-800 mb-1.5">Portal Request Timeout (ms)</label>
                 <input
                   type="number"
                   value={systemSettings.api?.portalTimeoutMs ?? 10000}
@@ -3164,12 +3164,12 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                     })
                   }
                   disabled={!canEdit}
-                  className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C] font-mono"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600 font-mono"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">Default Retry Attempts on 5xx Error</label>
+                <label className="block text-xs font-bold text-slate-800 mb-1.5">Default Retry Attempts on 5xx Error</label>
                 <input
                   type="number"
                   value={systemSettings.api?.defaultRetryLimit ?? 3}
@@ -3180,12 +3180,12 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                     })
                   }
                   disabled={!canEdit}
-                  className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C] font-mono"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600 font-mono"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">Global Rate Limit (Queries Per Second)</label>
+                <label className="block text-xs font-bold text-slate-800 mb-1.5">Global Rate Limit (Queries Per Second)</label>
                 <input
                   type="number"
                   value={systemSettings.api?.rateLimitQPS ?? 50}
@@ -3196,27 +3196,27 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                     })
                   }
                   disabled={!canEdit}
-                  className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C] font-mono"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600 font-mono"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">Portal Webhook Secret Reference</label>
+                <label className="block text-xs font-bold text-slate-800 mb-1.5">Portal Webhook Secret Reference</label>
                 <input
                   type="text"
                   value={systemSettings.api?.webhookSecretRef || "WH_SEC_****89a2"}
                   disabled
-                  className="w-full bg-[#111827]/60 border border-[#111827] rounded-xl px-3.5 py-2.5 text-xs text-[#9CA3AF] font-mono"
+                  className="w-full bg-slate-100 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-600 font-mono font-bold"
                 />
               </div>
             </div>
 
-            <div className="pt-4 border-t border-[#111827] flex justify-end">
+            <div className="pt-4 border-t border-slate-200 flex justify-end">
               {canEdit && (
                 <button
                   type="submit"
                   disabled={saving}
-                  className="py-2.5 px-6 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-lg shadow-none"
+                  className="py-2.5 px-6 bg-[#0F2D5C] hover:bg-blue-900 text-white text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-md"
                 >
                   <Save className="h-4 w-4" /> Save API Config
                 </button>
@@ -3228,63 +3228,63 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
         {/* 12. BACKUP & RESTORE */}
         {activeTab === "backup" && (
           <div className="space-y-6">
-            <div className="flex items-center justify-between border-b border-[#111827] pb-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-4">
               <div>
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Database className="h-5 w-5 text-[#9CA3AF]" /> System Backup & Disaster Recovery
+                <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <Database className="h-5 w-5 text-blue-600" /> System Backup & Disaster Recovery
                 </h2>
-                <p className="text-xs text-[#9CA3AF]">Export platform settings, import snapshot configurations, and schedule backups.</p>
+                <p className="text-xs text-slate-500">Export platform settings, import snapshot configurations, and schedule backups.</p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Export Panel */}
-              <div className="p-6 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs space-y-4">
-                <div className="p-3 bg-[#0F2D5C]/60 border border-[#0F2D5C]/80 rounded-xl text-[#9CA3AF] w-fit">
+              <div className="p-6 bg-slate-50 border border-slate-200 rounded-2xl shadow-xs space-y-4">
+                <div className="p-3 bg-blue-100 border border-blue-200 rounded-xl text-blue-800 w-fit">
                   <Download className="h-6 w-6" />
                 </div>
-                <h3 className="text-sm font-bold text-white">Export Platform Settings JSON</h3>
-                <p className="text-xs text-[#9CA3AF]">
+                <h3 className="text-sm font-bold text-slate-900">Export Platform Settings JSON</h3>
+                <p className="text-xs text-slate-600">
                   Generates a full snapshot of all 13 settings categories in JSON format. All sensitive passwords and private keys are scrubbed automatically before download.
                 </p>
                 <button
                   type="button"
                   onClick={handleExportJson}
-                  className="w-full py-2.5 px-4 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 cursor-pointer transition"
+                  className="w-full py-2.5 px-4 bg-[#0F2D5C] hover:bg-blue-900 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 cursor-pointer transition shadow-md"
                 >
                   <Download className="h-4 w-4" /> Download Config Snapshot
                 </button>
               </div>
 
               {/* Import Panel */}
-              <div className="p-6 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs space-y-4">
-                <div className="p-3 bg-[#0F2D5C]/60 border border-[#0F2D5C]/80 rounded-xl text-[#9CA3AF] w-fit">
+              <div className="p-6 bg-slate-50 border border-slate-200 rounded-2xl shadow-xs space-y-4">
+                <div className="p-3 bg-blue-100 border border-blue-200 rounded-xl text-blue-800 w-fit">
                   <Upload className="h-6 w-6" />
                 </div>
-                <h3 className="text-sm font-bold text-white">Restore / Import Settings</h3>
-                <p className="text-xs text-[#9CA3AF]">
+                <h3 className="text-sm font-bold text-slate-900">Restore / Import Settings</h3>
+                <p className="text-xs text-slate-600">
                   Upload a previously exported platform configuration JSON file to restore settings. Restricted to Super Admins.
                 </p>
                 <button
                   type="button"
                   disabled={session.role !== "SUPER_ADMIN"}
                   onClick={() => setShowImportModal(true)}
-                  className="w-full py-2.5 px-4 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 cursor-pointer transition disabled:opacity-50"
+                  className="w-full py-2.5 px-4 bg-[#0F2D5C] hover:bg-blue-900 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 cursor-pointer transition disabled:opacity-50 shadow-md"
                 >
                   <Upload className="h-4 w-4" /> Upload Settings File
                 </button>
               </div>
 
               {/* Clear Local Records & Backups Panel */}
-              <div className="md:col-span-2 p-6 bg-[#111827] border border-rose-900/40 rounded-2xl space-y-4">
+              <div className="md:col-span-2 p-6 bg-rose-50 border border-rose-200 rounded-2xl space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="p-3 bg-rose-950/60 border border-rose-800/80 rounded-xl text-rose-400 w-fit">
+                    <div className="p-3 bg-rose-100 border border-rose-300 rounded-xl text-rose-700 w-fit">
                       <Trash2 className="h-6 w-6" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-bold text-white">Clear All Local Records & Backup Record</h3>
-                      <p className="text-xs text-[#9CA3AF]">
+                      <h3 className="text-sm font-bold text-rose-950">Clear All Local Records & Backup Record</h3>
+                      <p className="text-xs text-rose-800">
                         Wipes test records, transactions, activity logs, and snapshots from local databases while maintaining your Super Admin account.
                       </p>
                     </div>
@@ -3293,7 +3293,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                     type="button"
                     disabled={session.role !== "SUPER_ADMIN" || clearingRecords}
                     onClick={handleClearLocalRecords}
-                    className=" py-2.5 px-5 disabled:opacity-50 text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition"
+                    className="py-2.5 px-5 bg-rose-600 hover:bg-rose-700 text-white disabled:opacity-50 text-xs font-bold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-md"
                   >
                     {clearingRecords ? (
                       <>
@@ -3307,7 +3307,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                   </button>
                 </div>
                 {clearStatus && (
-                  <div className="p-3 rounded-xl text-xs font-medium bg-white/90 border border-[#E5E7EB] text-white">
+                  <div className="p-3 rounded-xl text-xs font-medium bg-white border border-rose-300 text-rose-950">
                     {clearStatus}
                   </div>
                 )}
@@ -3319,29 +3319,29 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
         {/* 13. AUDIT LOGS TAB */}
         {activeTab === "audit" && (
           <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#111827] pb-4 gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-4 gap-3">
               <div>
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <History className="h-5 w-5 text-[#9CA3AF]" /> Settings Modification History Log
+                <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <History className="h-5 w-5 text-blue-600" /> Settings Modification History Log
                 </h2>
-                <p className="text-xs text-[#9CA3AF]">Trace every change made to system settings, including administrator email and previous values.</p>
+                <p className="text-xs text-slate-500">Trace every change made to system settings, including administrator email and previous values.</p>
               </div>
 
               <div className="relative">
-                <Search className="h-3.5 w-3.5 text-[#9CA3AF] absolute left-3 top-2.5" />
+                <Search className="h-3.5 w-3.5 text-slate-400 absolute left-3 top-2.5" />
                 <input
                   type="text"
                   placeholder="Search setting logs..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-[#111827] border border-[#111827] rounded-xl pl-9 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-[#0F2D5C] w-full sm:w-64"
+                  className="bg-slate-50 border border-slate-300 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600 w-full sm:w-64"
                 />
               </div>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-[#E5E7EB]">
-                <thead className="bg-[#111827] text-[#9CA3AF] font-semibold uppercase tracking-wider text-[10px] border-b border-[#111827]">
+            <div className="overflow-x-auto border border-slate-200 rounded-xl">
+              <table className="w-full text-left text-xs text-slate-800">
+                <thead className="bg-slate-100 text-slate-600 font-semibold uppercase tracking-wider text-[10px] border-b border-slate-200">
                   <tr>
                     <th className="p-3">Category</th>
                     <th className="p-3">Setting Modified</th>
@@ -3351,7 +3351,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                     <th className="p-3">Timestamp</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#6B7280] font-mono text-[11px]">
+                <tbody className="divide-y divide-slate-200 font-mono text-[11px] bg-white">
                   {auditLogs
                     .filter((log) => {
                       if (!searchQuery) return true;
@@ -3363,24 +3363,24 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                       );
                     })
                     .map((log) => (
-                      <tr key={log.id} className="hover:bg-[#111827]/60 transition">
+                      <tr key={log.id} className="hover:bg-slate-50 transition">
                         <td className="p-3">
-                          <span className="py-0.5 px-2 bg-[#0F2D5C]/80 border border-[#0F2D5C]/80 text-[#9CA3AF] rounded-md font-sans font-bold text-[10px]">
+                          <span className="py-0.5 px-2 bg-blue-50 border border-blue-200 text-blue-800 rounded-md font-sans font-bold text-[10px]">
                             {log.category}
                           </span>
                         </td>
-                        <td className="p-3 text-white font-bold font-sans">{log.settingName}</td>
-                        <td className="p-3 text-[#9CA3AF] truncate max-w-[150px]">{log.previousValue}</td>
-                        <td className="p-3 text-[#9CA3AF] truncate max-w-[150px]">{log.newValue}</td>
-                        <td className="p-3 text-[#9CA3AF] font-sans">{log.adminEmail}</td>
-                        <td className="p-3 text-[#9CA3AF] font-sans">
+                        <td className="p-3 text-slate-900 font-bold font-sans">{log.settingName}</td>
+                        <td className="p-3 text-slate-600 truncate max-w-[150px]">{log.previousValue}</td>
+                        <td className="p-3 text-slate-600 truncate max-w-[150px]">{log.newValue}</td>
+                        <td className="p-3 text-slate-600 font-sans">{log.adminEmail}</td>
+                        <td className="p-3 text-slate-500 font-sans">
                           {new Date(log.timestamp).toLocaleString("en-GB")}
                         </td>
                       </tr>
                     ))}
                   {auditLogs.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="p-6 text-center text-[#6B7280] font-sans text-xs">
+                      <td colSpan={6} className="p-6 text-center text-slate-500 font-sans text-xs">
                         No settings audit logs found.
                       </td>
                     </tr>
@@ -3394,11 +3394,11 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
 
       {/* MODAL: TEST EMAIL */}
       {showTestEmailModal && (
-        <div className="fixed inset-0 z-50 bg-[#111827]/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-6 max-w-md w-full space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-[#111827] pb-3">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <Mail className="h-4 w-4 text-[#9CA3AF]" /> Send Test SMTP Email
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl shadow-2xl p-6 max-w-md w-full space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <Mail className="h-4 w-4 text-blue-600" /> Send Test SMTP Email
               </h3>
               <button
                 type="button"
@@ -3406,43 +3406,43 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                   setShowTestEmailModal(false);
                   setTestEmailStatus(null);
                 }}
-                className=" cursor-pointer"
+                className="text-slate-400 hover:text-slate-600 cursor-pointer font-bold text-lg"
               >
                 ✕
               </button>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">Recipient Email</label>
+              <label className="block text-xs font-bold text-slate-800 mb-1.5">Recipient Email</label>
               <input
                 type="email"
                 value={testEmailRecipient}
                 onChange={(e) => setTestEmailRecipient(e.target.value)}
-                className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#0F2D5C]"
+                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
               />
             </div>
 
             {testEmailStatus && (
-              <div className="p-3 bg-[#111827] border border-[#111827] rounded-xl text-xs text-[#9CA3AF] font-mono">
+              <div className="p-3 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-800 font-mono">
                 {testEmailStatus}
               </div>
             )}
 
-            <div className="flex justify-end gap-2 pt-2">
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-200">
               <button
                 type="button"
                 onClick={() => {
                   setShowTestEmailModal(false);
                   setTestEmailStatus(null);
                 }}
-                className=" py-2 px-4 text-xs font-bold rounded-xl cursor-pointer"
+                className="py-2 px-4 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl cursor-pointer transition border border-slate-300"
               >
                 Close
               </button>
               <button
                 type="button"
                 onClick={handleSendTestEmail}
-                className="py-2 px-4 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer"
+                className="py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer transition shadow-sm"
               >
                 <Send className="h-3.5 w-3.5" /> Dispatch Test Email
               </button>
@@ -3453,11 +3453,11 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
 
       {/* MODAL: TEST SMS */}
       {showTestSmsModal && (
-        <div className="fixed inset-0 z-50 bg-[#111827]/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-6 max-w-md w-full space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-[#111827] pb-3">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <MessageSquare className="h-4 w-4 text-[#9CA3AF]" /> Send Test SMS Message
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl shadow-2xl p-6 max-w-md w-full space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <MessageSquare className="h-4 w-4 text-blue-600" /> Send Test SMS Message
               </h3>
               <button
                 type="button"
@@ -3465,43 +3465,43 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                   setShowTestSmsModal(false);
                   setTestSmsStatus(null);
                 }}
-                className=" cursor-pointer"
+                className="text-slate-400 hover:text-slate-600 cursor-pointer font-bold text-lg"
               >
                 ✕
               </button>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">Recipient Phone (+234...)</label>
+              <label className="block text-xs font-bold text-slate-800 mb-1.5">Recipient Phone (+234...)</label>
               <input
                 type="text"
                 value={testSmsRecipient}
                 onChange={(e) => setTestSmsRecipient(e.target.value)}
-                className="w-full bg-[#111827] border border-[#111827] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#0F2D5C] font-mono"
+                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600 font-mono"
               />
             </div>
 
             {testSmsStatus && (
-              <div className="p-3 bg-[#111827] border border-[#111827] rounded-xl text-xs text-[#9CA3AF] font-mono">
+              <div className="p-3 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-800 font-mono">
                 {testSmsStatus}
               </div>
             )}
 
-            <div className="flex justify-end gap-2 pt-2">
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-200">
               <button
                 type="button"
                 onClick={() => {
                   setShowTestSmsModal(false);
                   setTestSmsStatus(null);
                 }}
-                className=" py-2 px-4 text-xs font-bold rounded-xl cursor-pointer"
+                className="py-2 px-4 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl cursor-pointer transition border border-slate-300"
               >
                 Close
               </button>
               <button
                 type="button"
                 onClick={handleSendTestSms}
-                className="py-2 px-4 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer"
+                className="py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer transition shadow-sm"
               >
                 <Send className="h-3.5 w-3.5" /> Dispatch Test SMS
               </button>
@@ -3512,33 +3512,33 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
 
       {/* MODAL: IMPORT CONFIG */}
       {showImportModal && (
-        <div className="fixed inset-0 z-50 bg-[#111827]/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-6 max-w-lg w-full space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-[#111827] pb-3">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <Upload className="h-4 w-4 text-[#9CA3AF]" /> Import Platform Configuration JSON
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl shadow-2xl p-6 max-w-lg w-full space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <Upload className="h-4 w-4 text-blue-600" /> Import Platform Configuration JSON
               </h3>
               <button
                 type="button"
                 onClick={() => setShowImportModal(false)}
-                className=" cursor-pointer"
+                className="text-slate-400 hover:text-slate-600 cursor-pointer font-bold text-lg"
               >
                 ✕
               </button>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">Upload JSON File</label>
+              <label className="block text-xs font-bold text-slate-800 mb-1.5">Upload JSON File</label>
               <input
                 type="file"
                 accept=".json"
                 onChange={handleFileImportChange}
-                className="w-full bg-[#111827] border border-[#111827] rounded-xl p-2 text-xs text-[#E5E7EB] file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#0F2D5C] file:text-[#9CA3AF] cursor-pointer"
+                className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-xs text-slate-800 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 cursor-pointer"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#E5E7EB] mb-1">Or Paste JSON Content</label>
+              <label className="block text-xs font-bold text-slate-800 mb-1.5">Or Paste JSON Content</label>
               <textarea
                 rows={5}
                 value={importJsonText}
@@ -3551,21 +3551,21 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                   }
                 }}
                 placeholder='{"exportVersion": "2.4.0", "collections": {...}}'
-                className="w-full bg-[#111827] border border-[#111827] rounded-xl p-3 text-xs text-white font-mono focus:outline-none focus:border-[#0F2D5C]"
+                className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs text-slate-900 font-mono focus:outline-none focus:border-blue-600"
               />
             </div>
 
             {importParsedData && (
-              <div className="p-3 bg-[#0F2D5C]/50 border border-[#0F2D5C] rounded-xl text-xs text-[#9CA3AF]">
+              <div className="p-3 bg-emerald-50 border border-emerald-300 rounded-xl text-xs text-emerald-900">
                 ✅ Valid Config JSON Detected! Exported by: <strong>{importParsedData.exportedBy || "System Admin"}</strong>
               </div>
             )}
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-[#111827]">
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-200">
               <button
                 type="button"
                 onClick={() => setShowImportModal(false)}
-                className=" py-2 px-4 text-xs font-bold rounded-xl cursor-pointer"
+                className="py-2 px-4 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl cursor-pointer transition border border-slate-300"
               >
                 Cancel
               </button>
@@ -3573,7 +3573,7 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
                 type="button"
                 disabled={!importParsedData || saving}
                 onClick={handleConfirmImport}
-                className="py-2 px-5 bg-[#0F2D5C] hover:bg-[#0F2D5C] text-white text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                className="py-2 px-5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer disabled:opacity-50 transition shadow-sm"
               >
                 <Upload className="h-3.5 w-3.5" /> Confirm Import & Restore
               </button>
@@ -3584,63 +3584,63 @@ export function AdminSettingsView({ session, onNavigate }: AdminSettingsViewProp
 
       {/* MODAL: MODULE 7 SELF-TEST SUITE */}
       {showTestPanelModal && (
-        <div className="fixed inset-0 z-50 bg-[#111827]/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-xs p-6 max-w-2xl w-full max-h-[85vh] overflow-y-auto space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-[#111827] pb-3">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Play className="h-5 w-5 text-[#9CA3AF] fill-current" /> Module 7 — System Settings 10-Point Self-Test
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl shadow-2xl p-6 max-w-2xl w-full max-h-[85vh] overflow-y-auto space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <Play className="h-5 w-5 text-blue-600 fill-current" /> Module 7 — System Settings 10-Point Self-Test
               </h3>
               <button
                 type="button"
                 onClick={() => setShowTestPanelModal(false)}
-                className=" cursor-pointer text-sm"
+                className="text-slate-400 hover:text-slate-600 cursor-pointer text-sm font-bold"
               >
                 ✕
               </button>
             </div>
 
             {runningTest && (
-              <div className="py-8 text-center text-[#9CA3AF] space-y-2">
-                <RefreshCw className="h-6 w-6 animate-spin mx-auto text-[#9CA3AF]" />
-                <p className="text-xs font-medium">Executing 10-Point System Settings & Platform Config Test Suite...</p>
+              <div className="py-8 text-center text-slate-500 space-y-2">
+                <RefreshCw className="h-6 w-6 animate-spin mx-auto text-blue-600" />
+                <p className="text-xs font-medium text-slate-700">Executing 10-Point System Settings & Platform Config Test Suite...</p>
               </div>
             )}
 
             {testResults && (
               <div className="space-y-4">
-                <div className="p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs flex items-center justify-between">
+                <div className="p-4 bg-emerald-50 border border-emerald-300 rounded-2xl flex items-center justify-between">
                   <div>
-                    <h4 className="text-sm font-bold text-[#9CA3AF]">{testResults.summary}</h4>
-                    <p className="text-xs text-[#9CA3AF] mt-0.5">
+                    <h4 className="text-sm font-bold text-emerald-950">{testResults.summary}</h4>
+                    <p className="text-xs text-emerald-800 mt-0.5">
                       Completed in {testResults.metrics?.durationMs}ms | Categories: {testResults.metrics?.categoriesConfigured}
                     </p>
                   </div>
-                  <span className="py-1 px-3 bg-[#0F2D5C] text-[#9CA3AF] border border-[#0F2D5C] rounded-full text-xs font-bold font-mono">
+                  <span className="py-1 px-3 bg-emerald-600 text-white rounded-full text-xs font-bold font-mono">
                     10 / 10 PASSED
                   </span>
                 </div>
 
                 <div className="space-y-2">
                   {testResults.testResults?.map((test: any, idx: number) => (
-                    <div key={idx} className="p-3 bg-[#111827] border border-[#111827]/80 rounded-xl space-y-1">
+                    <div key={idx} className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-white">{test.testName}</span>
-                        <span className="text-[10px] font-bold text-[#9CA3AF] bg-[#0F2D5C] border border-[#0F2D5C] py-0.5 px-2 rounded-full">
+                        <span className="text-xs font-bold text-slate-900">{test.testName}</span>
+                        <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 border border-emerald-300 py-0.5 px-2 rounded-full">
                           {test.status} ({test.durationMs}ms)
                         </span>
                       </div>
-                      <p className="text-[11px] text-[#9CA3AF] font-mono">{test.details}</p>
+                      <p className="text-[11px] text-slate-600 font-mono">{test.details}</p>
                     </div>
                   ))}
                 </div>
               </div>
             )}
 
-            <div className="flex justify-end pt-2 border-t border-[#111827]">
+            <div className="flex justify-end pt-2 border-t border-slate-200">
               <button
                 type="button"
                 onClick={() => setShowTestPanelModal(false)}
-                className=" py-2 px-5 text-xs font-bold rounded-xl cursor-pointer"
+                className="py-2 px-5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl cursor-pointer transition border border-slate-300"
               >
                 Close Test Window
               </button>

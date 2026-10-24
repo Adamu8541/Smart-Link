@@ -49,7 +49,7 @@ export function resetSmtpTransporterCache() {
 }
 
 /**
- * Helper to resolve active SMTP configuration from database or environment variables
+ * Helper to resolve active SMTP configuration from environment variables (Primary) or database (Fallback)
  */
 export function getResolvedSmtpConfig(customDb?: any): {
   transporter: Transporter | null;
@@ -57,55 +57,80 @@ export function getResolvedSmtpConfig(customDb?: any): {
   fromAddress: string;
   error?: string;
 } {
-  const db = customDb || readDB();
+  let db: any = {};
+  try {
+    db = customDb || readDB();
+  } catch (e) {
+    db = {};
+  }
   const emailSettings: SmtpConfig = db.system_settings?.email || {};
 
-  const rawHost = process.env.SMTP_HOST || process.env.AUTH_SMTP_HOST || emailSettings.smtpHost || "smtp.gmail.com";
-  
-  // Resolve username/email
-  let smtpUser = 
-    process.env.SMTP_USER || 
-    process.env.AUTH_SMTP_USER || 
-    emailSettings.smtpUser || 
-    emailSettings.smtpUsername || 
+  // 1. Resolve User / Email from Environment Variables FIRST (Independent of Admin DB)
+  let rawEnvUser =
+    process.env.AUTH_EMAIL ||
+    process.env.AUTH_SMTP_USER ||
+    process.env.SMTP_USER ||
+    process.env.GMAIL_USER ||
+    process.env.AUTH_EMAIL_FROM ||
+    process.env.SUPPORT_EMAIL ||
     "";
-  const replyTo = emailSettings.replyToAddress || (emailSettings as any).fromAddress || process.env.AUTH_EMAIL_FROM || process.env.SUPPORT_EMAIL || "";
-  
-  if (!smtpUser || !smtpUser.includes("@")) {
-    if (replyTo && replyTo.includes("@")) {
-      smtpUser = replyTo;
-    }
+
+  // Extract email if formatted as "Name <email@domain.com>"
+  if (rawEnvUser.includes("<") && rawEnvUser.includes(">")) {
+    const match = rawEnvUser.match(/<([^>]+)>/);
+    if (match) rawEnvUser = match[1];
   }
 
-  // Auto-normalize typos in host (e.g. gmtp@gmail.com, smatp@gmail.com -> smtp.gmail.com)
+  const smtpUser = (rawEnvUser.trim() || emailSettings.smtpUser || emailSettings.smtpUsername || "").trim();
+
+  // 2. Resolve Host - Defaults to smtp.gmail.com
+  const rawHost =
+    process.env.SMTP_HOST ||
+    process.env.AUTH_SMTP_HOST ||
+    emailSettings.smtpHost ||
+    "smtp.gmail.com";
   const smtpHost = normalizeSmtpHost(rawHost, smtpUser);
-  const smtpPort = Number(process.env.SMTP_PORT || process.env.AUTH_SMTP_PORT || emailSettings.smtpPort || 587);
 
-  // Resolve password / app password
-  let smtpPass = 
-    process.env.SMTP_PASS || 
-    process.env.SMTP_PASSWORD || 
-    process.env.AUTH_SMTP_PASS || 
-    process.env.AUTH_SMTP_PASSWORD || 
-    process.env.GMAIL_APP_PASSWORD || 
-    emailSettings.smtpPassword || 
-    emailSettings.smtpPass || 
-    emailSettings.smtpPasswordMasked || 
+  // 3. Resolve Port - Defaults to 465 or 587
+  const rawPort =
+    process.env.SMTP_PORT ||
+    process.env.AUTH_SMTP_PORT ||
+    emailSettings.smtpPort ||
+    "465";
+  const smtpPort = Number(rawPort) || 465;
+
+  // 4. Resolve Password / App Password from Environment Variables FIRST (Independent of Admin DB)
+  let rawEnvPass =
+    process.env.AUTH_APP_PASSWORD ||
+    process.env.AUTH_SMTP_PASS ||
+    process.env.AUTH_SMTP_PASSWORD ||
+    process.env.SMTP_PASS ||
+    process.env.SMTP_PASSWORD ||
+    process.env.GMAIL_APP_PASSWORD ||
     "";
 
-  if (smtpPass) {
-    smtpPass = smtpPass.trim();
-  }
+  let smtpPass = (rawEnvPass.trim() || emailSettings.smtpPassword || emailSettings.smtpPass || "").trim();
 
-  const senderName = emailSettings.senderName || db.system_settings?.general?.appName || "SmartLink NG";
-  const fromAddress = `"${senderName}" <${smtpUser || replyTo}>`;
+  // Clean spaces from Google App Passwords (e.g. "abcd efgh ijkl mnop" -> "abcdefghijklmnop")
+  const cleanPass = smtpPass.replace(/\s+/g, "");
 
-  if (!smtpPass || smtpPass === "••••••••••••••••" || smtpPass === "dummy-pass") {
+  // 5. Resolve Sender Name
+  const senderName =
+    process.env.AUTH_EMAIL_SENDER_NAME ||
+    process.env.APP_NAME ||
+    emailSettings.senderName ||
+    db.system_settings?.general?.appName ||
+    "SmartLink NG";
+
+  const replyTo = emailSettings.replyToAddress || smtpUser;
+  const fromAddress = `"${senderName}" <${smtpUser}>`;
+
+  if (!cleanPass || cleanPass === "••••••••••••••••" || cleanPass === "dummy-pass") {
     return {
       transporter: null,
       config: { ...emailSettings, smtpHost, smtpPort, smtpUser, smtpPass },
       fromAddress,
-      error: "SMTP Password or Google App Password is missing or masked. Please enter the App Password in System Settings > Email Portal.",
+      error: "SMTP Password or Google App Password is missing. Please set AUTH_APP_PASSWORD or AUTH_SMTP_PASS in server environment variables.",
     };
   }
 
@@ -114,23 +139,22 @@ export function getResolvedSmtpConfig(customDb?: any): {
       transporter: null,
       config: { ...emailSettings, smtpHost, smtpPort, smtpUser, smtpPass },
       fromAddress,
-      error: "SMTP Username / Sender Email is missing or not a valid email address.",
+      error: "SMTP Email account is missing or invalid. Please set AUTH_EMAIL or AUTH_SMTP_USER in server environment variables.",
     };
   }
 
-  const cleanPass = smtpPass.replace(/\s+/g, "");
   const currentConfigHash = `${smtpHost}:${smtpPort}:${smtpUser}:${cleanPass}`;
 
   // Reuse pooled transporter if configuration hasn't changed
   if (cachedTransporter && cachedConfigHash === currentConfigHash) {
     return {
       transporter: cachedTransporter,
-      config: { ...emailSettings, smtpHost, smtpPort, smtpUser, smtpPass },
+      config: { ...emailSettings, smtpHost, smtpPort, smtpUser, smtpPass, replyToAddress: replyTo },
       fromAddress,
     };
   }
 
-  // Config changed or not cached: reset old pool
+  // Reset cached transporter if config changed
   if (cachedTransporter) {
     resetSmtpTransporterCache();
   }
@@ -142,11 +166,14 @@ export function getResolvedSmtpConfig(customDb?: any): {
     if (isGmail) {
       transporter = nodemailer.createTransport({
         service: "gmail",
-        pool: true,             // Enable connection pooling
-        maxConnections: 5,      // Max 5 simultaneous TCP sockets
-        maxMessages: 100,       // Reuse connection up to 100 messages
-        rateDelta: 1000,        // 1 sec window
-        rateLimit: 8,           // Safe max 8 emails/sec to prevent Gmail 421 drop errors
+        host: "smtp.gmail.com",
+        port: smtpPort,
+        secure: smtpPort === 465,
+        pool: true,
+        maxConnections: 5,
+        maxMessages: 100,
+        rateDelta: 1000,
+        rateLimit: 10,
         auth: {
           user: smtpUser,
           pass: cleanPass,
@@ -157,7 +184,7 @@ export function getResolvedSmtpConfig(customDb?: any): {
         host: smtpHost,
         port: smtpPort,
         secure: smtpPort === 465,
-        pool: true,             // Enable connection pooling
+        pool: true,
         maxConnections: 5,
         maxMessages: 100,
         rateDelta: 1000,
@@ -177,13 +204,13 @@ export function getResolvedSmtpConfig(customDb?: any): {
 
     return {
       transporter,
-      config: { ...emailSettings, smtpHost, smtpPort, smtpUser, smtpPass },
+      config: { ...emailSettings, smtpHost, smtpPort, smtpUser, smtpPass, replyToAddress: replyTo },
       fromAddress,
     };
   } catch (err: any) {
     return {
       transporter: null,
-      config: { ...emailSettings, smtpHost, smtpPort, smtpUser, smtpPass },
+      config: { ...emailSettings, smtpHost, smtpPort, smtpUser, smtpPass, replyToAddress: replyTo },
       fromAddress,
       error: err.message || "Failed to initialize Nodemailer transporter",
     };
