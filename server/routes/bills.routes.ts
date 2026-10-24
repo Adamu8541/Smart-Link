@@ -715,80 +715,87 @@ app.get("/api/bills/providers", async (req, res) => {
   res.json({ success: true, providers });
 });
 
+let cachedBigisubDataPlans: any[] = [];
+let lastBigisubDataPlansFetchTime = 0;
+
+async function fetchLiveBigisubDataPlans(db: any): Promise<any[]> {
+  const now = Date.now();
+  if (cachedBigisubDataPlans.length > 0 && (now - lastBigisubDataPlansFetchTime) < 300000) {
+    return cachedBigisubDataPlans;
+  }
+
+  try {
+    const prov = (db.api_providers || db.apiProviders || []).find(
+      (p: any) => p && (p.id === "prov_bigisub" || (p.name || "").toLowerCase().includes("bigisub"))
+    );
+    const apiToken = (prov?.apiToken || prov?.apiKey || prov?.secretKey || process.env.BIGISUB_API_TOKEN || "86d0661f6d7990712294818a202c7b092df21b41").trim();
+    const baseUrl = (prov?.baseUrl || "https://bigisub.ng/api/v2").replace(/\/+$/, "");
+
+    const fetchRes = await fetch(`${baseUrl}/vtu/data/plans/`, {
+      headers: { "Authorization": `Token ${apiToken}` },
+    });
+
+    if (fetchRes.ok) {
+      const json = await fetchRes.json();
+      const rawList = Array.isArray(json) ? json : (json.data || json.results || json.plans || []);
+      if (Array.isArray(rawList) && rawList.length > 0) {
+        cachedBigisubDataPlans = rawList;
+        lastBigisubDataPlansFetchTime = now;
+        return rawList;
+      }
+    }
+  } catch (err: any) {
+    console.error("[Bigisub Plans Engine] Error fetching live plans:", err?.message || err);
+  }
+
+  return cachedBigisubDataPlans;
+}
+
 // Get Plans for Provider
 app.get("/api/bills/plans", async (req, res) => {
   const provider = (req.query.provider as string) || "MTN";
   const category = (req.query.category as string) || "DATA";
+  const db = readDB();
 
-  let plans = [];
+  let plans: any[] = [];
   if (category === "DATA") {
-    if (provider === "MTN") {
-      plans = [
-        // MTN SME Data
-        { id: "mtn_sme_500mb", providerCode: "MTN", planCode: "500", planName: "MTN SME 500MB", dataType: "SME", dataVolume: "500MB", validity: "30 Days", amount: 140, category },
-        { id: "mtn_sme_1gb", providerCode: "MTN", planCode: "1000", planName: "MTN SME 1.0GB", dataType: "SME", dataVolume: "1.0GB", validity: "30 Days", amount: 260, category },
-        { id: "mtn_sme_2gb", providerCode: "MTN", planCode: "2000", planName: "MTN SME 2.0GB", dataType: "SME", dataVolume: "2.0GB", validity: "30 Days", amount: 520, category },
-        { id: "mtn_sme_3gb", providerCode: "MTN", planCode: "3000", planName: "MTN SME 3.0GB", dataType: "SME", dataVolume: "3.0GB", validity: "30 Days", amount: 780, category },
-        { id: "mtn_sme_5gb", providerCode: "MTN", planCode: "5000", planName: "MTN SME 5.0GB", dataType: "SME", dataVolume: "5.0GB", validity: "30 Days", amount: 1300, category },
-        { id: "mtn_sme_10gb", providerCode: "MTN", planCode: "10000", planName: "MTN SME 10.0GB", dataType: "SME", dataVolume: "10.0GB", validity: "30 Days", amount: 2600, category },
-        // MTN Corporate Gifting (CG)
-        { id: "mtn_cg_500mb", providerCode: "MTN", planCode: "CG500", planName: "MTN CG 500MB", dataType: "CORPORATE", dataVolume: "500MB", validity: "30 Days", amount: 145, category },
-        { id: "mtn_cg_1gb", providerCode: "MTN", planCode: "CG1000", planName: "MTN CG 1.0GB", dataType: "CORPORATE", dataVolume: "1.0GB", validity: "30 Days", amount: 265, category },
-        { id: "mtn_cg_2gb", providerCode: "MTN", planCode: "CG2000", planName: "MTN CG 2.0GB", dataType: "CORPORATE", dataVolume: "2.0GB", validity: "30 Days", amount: 530, category },
-        { id: "mtn_cg_5gb", providerCode: "MTN", planCode: "CG5000", planName: "MTN CG 5.0GB", dataType: "CORPORATE", dataVolume: "5.0GB", validity: "30 Days", amount: 1320, category },
-        // MTN Direct / Gifting
-        { id: "mtn_gift_1_5gb", providerCode: "MTN", planCode: "DG1500", planName: "MTN Direct 1.5GB", dataType: "GIFTING", dataVolume: "1.5GB", validity: "30 Days", amount: 1050, category },
-        { id: "mtn_gift_2gb", providerCode: "MTN", planCode: "DG2000", planName: "MTN Direct 2.0GB (Monthly)", dataType: "GIFTING", dataVolume: "2.0GB", validity: "30 Days", amount: 1250, category },
-        { id: "mtn_gift_4_5gb", providerCode: "MTN", planCode: "DG4500", planName: "MTN Direct 4.5GB", dataType: "GIFTING", dataVolume: "4.5GB", validity: "30 Days", amount: 2100, category },
-        { id: "mtn_gift_10gb", providerCode: "MTN", planCode: "DG10000", planName: "MTN Direct 10.0GB", dataType: "GIFTING", dataVolume: "10.0GB", validity: "30 Days", amount: 3150, category },
-      ];
-    } else if (provider === "GLO") {
-      plans = [
-        // Glo Corporate Gifting / SME
-        { id: "glo_cg_500mb", providerCode: "GLO", planCode: "GLO500", planName: "Glo CG 500MB", dataType: "CORPORATE", dataVolume: "500MB", validity: "30 Days", amount: 125, category },
-        { id: "glo_cg_1gb", providerCode: "GLO", planCode: "GLO1000", planName: "Glo CG 1.0GB", dataType: "CORPORATE", dataVolume: "1.0GB", validity: "30 Days", amount: 240, category },
-        { id: "glo_cg_2gb", providerCode: "GLO", planCode: "GLO2000", planName: "Glo CG 2.0GB", dataType: "CORPORATE", dataVolume: "2.0GB", validity: "30 Days", amount: 480, category },
-        { id: "glo_cg_3gb", providerCode: "GLO", planCode: "GLO3000", planName: "Glo CG 3.0GB", dataType: "CORPORATE", dataVolume: "3.0GB", validity: "30 Days", amount: 720, category },
-        { id: "glo_cg_5gb", providerCode: "GLO", planCode: "GLO5000", planName: "Glo CG 5.0GB", dataType: "CORPORATE", dataVolume: "5.0GB", validity: "30 Days", amount: 1200, category },
-        { id: "glo_cg_10gb", providerCode: "GLO", planCode: "GLO10000", planName: "Glo CG 10.0GB", dataType: "CORPORATE", dataVolume: "10.0GB", validity: "30 Days", amount: 2400, category },
-        // Glo Direct
-        { id: "glo_dir_1_9gb", providerCode: "GLO", planCode: "G19", planName: "Glo Direct 1.9GB (Special)", dataType: "DIRECT", dataVolume: "1.9GB", validity: "14 Days", amount: 500, category },
-        { id: "glo_dir_3_9gb", providerCode: "GLO", planCode: "G39", planName: "Glo Direct 3.9GB", dataType: "DIRECT", dataVolume: "3.9GB", validity: "30 Days", amount: 1000, category },
-        { id: "glo_dir_7_5gb", providerCode: "GLO", planCode: "G75", planName: "Glo Direct 7.5GB", dataType: "DIRECT", dataVolume: "7.5GB", validity: "30 Days", amount: 1500, category },
-        { id: "glo_dir_9_2gb", providerCode: "GLO", planCode: "G92", planName: "Glo Direct 9.2GB", dataType: "DIRECT", dataVolume: "9.2GB", validity: "30 Days", amount: 2000, category },
-      ];
-    } else if (provider === "AIRTEL") {
-      plans = [
-        // Airtel Corporate Gifting / SME
-        { id: "airtel_cg_500mb", providerCode: "AIRTEL", planCode: "AIR500", planName: "Airtel CG 500MB", dataType: "CORPORATE", dataVolume: "500MB", validity: "30 Days", amount: 140, category },
-        { id: "airtel_cg_1gb", providerCode: "AIRTEL", planCode: "AIR1000", planName: "Airtel CG 1.0GB", dataType: "CORPORATE", dataVolume: "1.0GB", validity: "30 Days", amount: 270, category },
-        { id: "airtel_cg_2gb", providerCode: "AIRTEL", planCode: "AIR2000", planName: "Airtel CG 2.0GB", dataType: "CORPORATE", dataVolume: "2.0GB", validity: "30 Days", amount: 540, category },
-        { id: "airtel_cg_5gb", providerCode: "AIRTEL", planCode: "AIR5000", planName: "Airtel CG 5.0GB", dataType: "CORPORATE", dataVolume: "5.0GB", validity: "30 Days", amount: 1350, category },
-        { id: "airtel_cg_10gb", providerCode: "AIRTEL", planCode: "AIR10000", planName: "Airtel CG 10.0GB", dataType: "CORPORATE", dataVolume: "10.0GB", validity: "30 Days", amount: 2700, category },
-        // Airtel Direct / Gifting
-        { id: "airtel_dir_1_5gb", providerCode: "AIRTEL", planCode: "AIRD1500", planName: "Airtel Direct 1.5GB", dataType: "DIRECT", dataVolume: "1.5GB", validity: "30 Days", amount: 1050, category },
-        { id: "airtel_dir_3gb", providerCode: "AIRTEL", planCode: "AIRD3000", planName: "Airtel Direct 3.0GB", dataType: "DIRECT", dataVolume: "3.0GB", validity: "30 Days", amount: 1500, category },
-        { id: "airtel_dir_4_5gb", providerCode: "AIRTEL", planCode: "AIRD4500", planName: "Airtel Direct 4.5GB", dataType: "DIRECT", dataVolume: "4.5GB", validity: "30 Days", amount: 2050, category },
-      ];
-    } else if (provider === "9MOBILE") {
-      plans = [
-        // 9mobile SME / CG
-        { id: "9mobile_cg_500mb", providerCode: "9MOBILE", planCode: "9M500", planName: "9mobile CG 500MB", dataType: "CORPORATE", dataVolume: "500MB", validity: "30 Days", amount: 110, category },
-        { id: "9mobile_cg_1gb", providerCode: "9MOBILE", planCode: "9M1000", planName: "9mobile CG 1.0GB", dataType: "CORPORATE", dataVolume: "1.0GB", validity: "30 Days", amount: 190, category },
-        { id: "9mobile_cg_2gb", providerCode: "9MOBILE", planCode: "9M2000", planName: "9mobile CG 2.0GB", dataType: "CORPORATE", dataVolume: "2.0GB", validity: "30 Days", amount: 380, category },
-        { id: "9mobile_cg_3gb", providerCode: "9MOBILE", planCode: "9M3000", planName: "9mobile CG 3.0GB", dataType: "CORPORATE", dataVolume: "3.0GB", validity: "30 Days", amount: 570, category },
-        { id: "9mobile_cg_5gb", providerCode: "9MOBILE", planCode: "9M5000", planName: "9mobile CG 5.0GB", dataType: "CORPORATE", dataVolume: "5.0GB", validity: "30 Days", amount: 950, category },
-        { id: "9mobile_cg_10gb", providerCode: "9MOBILE", planCode: "9M10000", planName: "9mobile CG 10.0GB", dataType: "CORPORATE", dataVolume: "10.0GB", validity: "30 Days", amount: 1900, category },
-        // 9mobile Direct
-        { id: "9mobile_dir_1_5gb", providerCode: "9MOBILE", planCode: "9MD1500", planName: "9mobile Direct 1.5GB", dataType: "DIRECT", dataVolume: "1.5GB", validity: "30 Days", amount: 1000, category },
-        { id: "9mobile_dir_4_5gb", providerCode: "9MOBILE", planCode: "9MD4500", planName: "9mobile Direct 4.5GB", dataType: "DIRECT", dataVolume: "4.5GB", validity: "30 Days", amount: 2000, category },
-      ];
-    } else {
-      plans = [
-        { id: "gen_1gb", providerCode: provider, planCode: "1000", planName: `${provider} Direct 1.0GB`, dataType: "DIRECT", dataVolume: "1.0GB", validity: "30 Days", amount: 270, category },
-        { id: "gen_2gb", providerCode: provider, planCode: "2000", planName: `${provider} Direct 2.0GB`, dataType: "DIRECT", dataVolume: "2.0GB", validity: "30 Days", amount: 540, category },
-        { id: "gen_5gb", providerCode: provider, planCode: "5000", planName: `${provider} Direct 5.0GB`, dataType: "DIRECT", dataVolume: "5.0GB", validity: "30 Days", amount: 1350, category },
-      ];
+    const rawBigisubPlans = await fetchLiveBigisubDataPlans(db);
+    const markupFee = 20.0;
+
+    if (rawBigisubPlans.length > 0) {
+      const formatted = rawBigisubPlans.map((p: any) => {
+        const netUpper = String(p.network_name || "MTN").toUpperCase().trim();
+        const baseCost = Number(p.amount || p.plan_amount || 0);
+        const retailPrice = Math.round((baseCost + markupFee) * 100) / 100;
+        let dType = String(p.plantype || "DIRECT").toUpperCase().trim();
+        if (dType.includes("CG") || dType.includes("CORPORATE")) dType = "CORPORATE";
+        else if (dType.includes("SME")) dType = "SME";
+        else if (dType.includes("GIFT")) dType = "GIFTING";
+        else dType = "DIRECT";
+
+        const sizeStr = `${p.size}${p.plan_volume || "MB"}`;
+        const validityStr = p.validity || "30 Days";
+
+        return {
+          id: p.id, // INTEGER pk value e.g. 258, 71, 304!
+          providerCode: netUpper,
+          planCode: p.id, // INTEGER pk value!
+          planName: `${netUpper} ${sizeStr} ${p.plantype || ""} (${validityStr})`,
+          dataType: dType,
+          dataVolume: sizeStr,
+          validity: validityStr,
+          amount: retailPrice,
+          baseCost,
+          category: "DATA"
+        };
+      });
+
+      const reqProvUpper = String(provider || "").toUpperCase().trim();
+      if (reqProvUpper && reqProvUpper !== "ALL") {
+        plans = formatted.filter((p: any) => p.providerCode === reqProvUpper);
+      } else {
+        plans = formatted;
+      }
     }
   } else if (category === "CABLE_TV") {
     if (provider === "DSTV") {
@@ -964,14 +971,20 @@ app.post("/api/bills/pay", async (req, res) => {
   const smartlinkReference = `SL-BILL-${category}-${Math.floor(100000 + Math.random() * 900000)}`;
   const receiptId = `REC-${smartlinkReference}`;
 
+  const rawProvName = String(providerName || activeProvider.name || providerCode || "Telecom Network").trim();
+  const lowerProv = rawProvName.toLowerCase();
+  const userFacingProviderName = (lowerProv.includes("bigisub") || lowerProv.includes("prov_") || lowerProv.includes("vtpass") || lowerProv.includes("clubkonnect"))
+    ? `${category} Service Network`
+    : rawProvName;
+
   // 2. Debit user wallet
   let debitRes;
   try {
     debitRes = await ServerWalletEngine.debitWallet(db, {
       userId: effectiveUserId,
       amount: totalDeduction,
-      serviceName: `Bill Payment - ${category} (${activeProvider.name || providerName || providerCode})`,
-      provider: activeProvider.name || providerName || providerCode,
+      serviceName: `Bill Payment - ${category} (${userFacingProviderName})`,
+      provider: userFacingProviderName,
       description: `Payment for ${category} [Target: ${customerId || phoneNumber}]`,
       reference: smartlinkReference,
       fee: charge,
@@ -1006,7 +1019,7 @@ app.post("/api/bills/pay", async (req, res) => {
         userId,
         amount: totalDeduction,
         serviceName: `Bill Payment Refund - ${category}`,
-        provider: activeProvider.name || providerName || providerCode,
+        provider: userFacingProviderName,
         description: `Refund for failed ${category} payment: ${execRes.error || execRes.message || "Provider call failed"}`,
         reference: `REFUND-${smartlinkReference}`,
         type: "REFUND",
@@ -1025,13 +1038,13 @@ app.post("/api/bills/pay", async (req, res) => {
       providerReference: execRes.providerReference || `PROV-${activeProvider.id || providerCode}-FAILED`,
       userId,
       service: category,
-      serviceTitle: `Bill Payment (${activeProvider.name || providerName || providerCode}) - FAILED`,
+      serviceTitle: `Bill Payment (${userFacingProviderName}) - FAILED`,
       amount: parseFloat(amount),
       charge: parseFloat(charge),
       amountPaid: parseFloat(amount),
       totalDeducted: totalDeduction,
       status: "FAILED",
-      portal: activeProvider.name || providerName || providerCode,
+      portal: userFacingProviderName,
       customerId: customerId || phoneNumber,
       customerName: customerName || "Customer",
       errorReason: execRes.error || execRes.message || "Provider execution failed",
@@ -1047,7 +1060,7 @@ app.post("/api/bills/pay", async (req, res) => {
       notificationId: "NOTIF_" + Date.now(),
       userId,
       title: `${category} Bill Payment Failed`,
-      body: `Your payment of ₦${totalDeduction.toLocaleString("en-NG", { minimumFractionDigits: 2 })} for ${activeProvider.name || providerName || providerCode} failed (${execRes.error || execRes.message || "Provider error"}). Your wallet was refunded.`,
+      body: `Your payment of ₦${totalDeduction.toLocaleString("en-NG", { minimumFractionDigits: 2 })} for ${userFacingProviderName} failed (${execRes.error || execRes.message || "Provider error"}). Your wallet was refunded.`,
       reference: smartlinkReference,
       read: false,
       type: "BILL_PAYMENT",
@@ -1095,13 +1108,13 @@ app.post("/api/bills/pay", async (req, res) => {
     providerReference: realProviderReference,
     userId,
     service: category,
-    serviceTitle: `Bill Payment (${activeProvider.name || providerName || providerCode})`,
+    serviceTitle: `Bill Payment (${userFacingProviderName})`,
     amount: parseFloat(amount),
     charge: parseFloat(charge),
     amountPaid: parseFloat(amount),
     totalDeducted: totalDeduction,
     status: "SUCCESSFUL",
-    portal: activeProvider.name || providerName || providerCode,
+    portal: userFacingProviderName,
     customerId: customerId || phoneNumber,
     customerName: customerName || "Customer",
     token: realToken,
@@ -1119,7 +1132,7 @@ app.post("/api/bills/pay", async (req, res) => {
     notificationId: "NOTIF_" + Date.now(),
     userId,
     title: `${category} Bill Payment Successful`,
-    body: `Your payment of ₦${totalDeduction.toLocaleString("en-NG", { minimumFractionDigits: 2 })} for ${activeProvider.name || providerName || providerCode} [Ref: ${smartlinkReference}] was completed successfully.`,
+    body: `Your payment of ₦${totalDeduction.toLocaleString("en-NG", { minimumFractionDigits: 2 })} for ${userFacingProviderName} [Ref: ${smartlinkReference}] was completed successfully.`,
     reference: smartlinkReference,
     read: false,
     type: "BILL_PAYMENT",

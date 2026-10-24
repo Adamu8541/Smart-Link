@@ -85,6 +85,7 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
   const [plans, setPlans] = useState<BillPlan[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<BillPlan | null>(null);
   const [selectedDataType, setSelectedDataType] = useState<string>("ALL");
+  const [selectedDurationFilter, setSelectedDurationFilter] = useState<string>("ALL");
 
   // Form inputs
   const [phoneNumber, setPhoneNumber] = useState<string>(currentUser.phoneNumber || "");
@@ -851,51 +852,89 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
                     2. Select Plan / Package
                   </label>
 
-                  {/* Data Type Sub-Category Filter Tabs (e.g. All, SME, Corporate Gifting, Direct) */}
+                  {/* Data Type & Validity Filter Bar */}
                   {selectedCategory.id === "DATA" && (
-                    <div className="flex items-center gap-1.5 overflow-x-auto text-[11px] font-bold bg-[#F5F7FA] dark:bg-[#111827]/70 p-1 rounded-xl border border-[#E5E7EB] dark:border-[#4B5563]">
-                      {[
-                        { id: "ALL", label: "All Plans" },
-                        { id: "SME", label: "💼 SME Data" },
-                        { id: "CORPORATE", label: "🏢 Corporate (CG)" },
-                        { id: "GIFTING", label: "🎁 Gifting" },
-                        { id: "DIRECT", label: "⚡ Direct" },
-                      ].map((tab) => {
-                        const hasPlansForTab =
-                          tab.id === "ALL" || plans.some((p) => p.dataType === tab.id);
-                        if (!hasPlansForTab && tab.id !== "ALL") return null;
-
-                        const active = selectedDataType === tab.id;
-                        return (
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 overflow-x-auto text-[11px] font-bold">
+                      {/* Validity Duration Filters */}
+                      <div className="flex items-center gap-1 bg-[#F5F7FA] dark:bg-[#111827]/70 p-1 rounded-xl border border-[#E5E7EB] dark:border-[#4B5563]">
+                        {[
+                          { id: "ALL", label: "All Durations" },
+                          { id: "DAILY", label: "⚡ Daily (1-3 Days)" },
+                          { id: "WEEKLY", label: "📅 Weekly (7-14 Days)" },
+                          { id: "MONTHLY", label: "📆 Monthly (30+ Days)" },
+                        ].map((dur) => (
                           <button
-                            key={tab.id}
+                            key={dur.id}
                             type="button"
-                            onClick={() => setSelectedDataType(tab.id)}
-                            className={`px-3 py-1 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
-                              active
-                                ? "bg-[#0F2D5C] text-white shadow-sm"
+                            onClick={() => setSelectedDurationFilter(dur.id)}
+                            className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
+                              selectedDurationFilter === dur.id
+                                ? "bg-[#0F2D5C] text-white shadow-xs"
                                 : "text-[#6B7280] dark:text-[#9CA3AF] hover:text-[#111827] dark:hover:text-white"
                             }`}
                           >
-                            {tab.label}
+                            {dur.label}
                           </button>
-                        );
-                      })}
+                        ))}
+                      </div>
+
+                      {/* Plan Type Sub-Category Filter Tabs */}
+                      <div className="flex items-center gap-1 bg-[#F5F7FA] dark:bg-[#111827]/70 p-1 rounded-xl border border-[#E5E7EB] dark:border-[#4B5563]">
+                        {[
+                          { id: "ALL", label: "All Types" },
+                          { id: "SME", label: "💼 SME" },
+                          { id: "CORPORATE", label: "🏢 Corporate (CG)" },
+                          { id: "GIFTING", label: "🎁 Gifting" },
+                          { id: "DIRECT", label: "⚡ Direct" },
+                        ].map((tab) => {
+                          const active = selectedDataType === tab.id;
+                          return (
+                            <button
+                              key={tab.id}
+                              type="button"
+                              onClick={() => setSelectedDataType(tab.id)}
+                              className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
+                                active
+                                  ? "bg-[#0F2D5C] text-white shadow-xs"
+                                  : "text-[#6B7280] dark:text-[#9CA3AF] hover:text-[#111827] dark:hover:text-white"
+                              }`}
+                            >
+                              {tab.label}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
                 </div>
 
                 {/* Filtered Plans Grid */}
                 {(() => {
-                  const filteredPlans =
-                    selectedCategory.id === "DATA" && selectedDataType !== "ALL"
-                      ? plans.filter((p) => p.dataType === selectedDataType)
-                      : plans;
+                  const filteredPlans = plans.filter((p) => {
+                    if (selectedCategory.id !== "DATA") return true;
+                    // Filter by plan type
+                    const matchesType = selectedDataType === "ALL" || p.dataType === selectedDataType;
+                    
+                    // Filter by validity duration
+                    let matchesDuration = true;
+                    if (selectedDurationFilter !== "ALL") {
+                      const v = String(p.validity || "").toLowerCase();
+                      const isDaily = v.includes("1 day") || v.includes("1day") || v.includes("2 day") || v.includes("2day") || v.includes("3 day") || v.includes("3day") || v.includes("night") || v.includes("hrs");
+                      const isWeekly = v.includes("7") || v.includes("10") || v.includes("14") || v.includes("week");
+                      const isMonthly = v.includes("30") || v.includes("month") || v.includes("60") || v.includes("90");
+
+                      if (selectedDurationFilter === "DAILY") matchesDuration = isDaily;
+                      else if (selectedDurationFilter === "WEEKLY") matchesDuration = isWeekly;
+                      else if (selectedDurationFilter === "MONTHLY") matchesDuration = isMonthly || (!isDaily && !isWeekly);
+                    }
+
+                    return matchesType && matchesDuration;
+                  });
 
                   if (filteredPlans.length === 0) {
                     return (
                       <div className="p-6 text-center rounded-2xl border border-dashed border-[#E5E7EB] dark:border-[#4B5563] text-xs text-[#6B7280]">
-                        No data plans found for this category. Please choose "All Plans".
+                        No matching data plans found for this filter combination. Please reset filters or select "All Durations".
                       </div>
                     );
                   }
@@ -1356,8 +1395,19 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
                   <p className="font-bold text-[#111827] dark:text-white mt-0.5">{paymentResult.serviceName}</p>
                 </div>
                 <div>
-                  <span className="text-[10px] text-[#9CA3AF] uppercase">Provider</span>
-                  <p className="font-bold text-[#111827] dark:text-white mt-0.5">{paymentResult.providerName}</p>
+                  <span className="text-[10px] text-[#9CA3AF] uppercase">Provider / Network</span>
+                  <p className="font-bold text-[#111827] dark:text-white mt-0.5">
+                    {(() => {
+                      const pName = paymentResult.providerName || "";
+                      const lower = pName.toLowerCase();
+                      if (lower.includes("bigisub") || lower.includes("prov_") || lower.includes("vtpass") || lower.includes("clubkonnect")) {
+                        return selectedProvider?.name && !selectedProvider.name.toLowerCase().includes("bigisub")
+                          ? selectedProvider.name
+                          : "SmartLink Telecom Network";
+                      }
+                      return pName || "SmartLink Telecom Network";
+                    })()}
+                  </p>
                 </div>
                 <div>
                   <span className="text-[10px] text-[#9CA3AF] uppercase">Account / Phone</span>

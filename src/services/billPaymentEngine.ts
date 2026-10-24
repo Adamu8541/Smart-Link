@@ -304,8 +304,15 @@ export class BillPaymentEngine {
 
   private static getDefaultProviders(category: BillCategoryType): BillProvider[] {
     switch (category) {
-      case "AIRTIME":
       case "DATA":
+        return [
+          { id: "all_networks", code: "ALL", name: "All Networks", category, status: "ACTIVE" },
+          { id: "mtn", code: "MTN", name: "MTN Nigeria", category, status: "ACTIVE" },
+          { id: "glo", code: "GLO", name: "Glo Nigeria", category, status: "ACTIVE" },
+          { id: "airtel", code: "AIRTEL", name: "Airtel Nigeria", category, status: "ACTIVE" },
+          { id: "9mobile", code: "9MOBILE", name: "9mobile Nigeria", category, status: "ACTIVE" },
+        ];
+      case "AIRTIME":
         return [
           { id: "mtn", code: "MTN", name: "MTN Nigeria", category, status: "ACTIVE" },
           { id: "glo", code: "GLO", name: "Glo Nigeria", category, status: "ACTIVE" },

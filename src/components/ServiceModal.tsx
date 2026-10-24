@@ -356,20 +356,49 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
           profileCode: formData["profileCode"] || formData["examNumber"] || formData["phoneNumber"],
           phoneNumber: formData["phoneNumber"] || currentUser?.phoneNumber,
         };
-      } else if (service.category === "VTU") {
+      } else if (service.id === "vtu_airtime") {
         endpoint = "/api/services/vtu";
         payload = {
           ...payload,
-          type: service.id === "vtu_airtime" ? "AIRTIME" : "DATA",
+          type: "AIRTIME",
+          provider: formData["provider"],
+          phoneNumber: formData["phoneNumber"],
+          amount: totalCost,
+        };
+      } else if (service.id === "vtu_data") {
+        endpoint = "/api/services/vtu";
+        payload = {
+          ...payload,
+          type: "DATA",
           provider: formData["provider"],
           phoneNumber: formData["phoneNumber"],
           amount: totalCost,
           extra: formData["extra"] || "1GB SME",
         };
+      } else if (service.id === "vtu_electricity") {
+        endpoint = "/api/services/bill";
+        payload = {
+          ...payload,
+          category: "ELECTRICITY",
+          provider: formData["provider"],
+          customerId: formData["customerId"],
+          meterType: formData["meterType"] || "PREPAID",
+          amount: totalCost,
+          phoneNumber: formData["phoneNumber"] || currentUser?.phoneNumber,
+        };
+      } else if (service.id === "vtu_cable") {
+        endpoint = "/api/services/bill";
+        payload = {
+          ...payload,
+          category: "CABLE_TV",
+          provider: formData["provider"],
+          customerId: formData["customerId"],
+          plan: formData["plan"],
+          amount: totalCost,
+          phoneNumber: formData["phoneNumber"] || currentUser?.phoneNumber,
+        };
       } else {
-        // Fallback simulation
-        endpoint = "/api/services/vtu";
-        payload = { ...payload, provider: "ICT Design Hub", phoneNumber: "Consultation", amount: totalCost };
+        throw new Error(`Automated purchasing is only supported for verified API services (Airtime, Data, Electricity, Cable TV, and Exam PINs). Please contact support for ${service.name}.`);
       }
 
       const authHeaders = await getAuthHeaders(currentUser.uid);

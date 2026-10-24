@@ -210,11 +210,33 @@ export class BigisubAdapter implements ProviderAdapter {
   }
 
   /**
+   * Helper to extract friendly human-readable error from Bigisub API response
+   */
+  public static extractErrorMessage(data: any, fallback = "Transaction failed"): string {
+    if (!data) return fallback;
+    if (data.errors && typeof data.errors === "object") {
+      const messages: string[] = [];
+      for (const [key, val] of Object.entries(data.errors)) {
+        if (Array.isArray(val)) {
+          messages.push(val.join(", "));
+        } else if (typeof val === "string") {
+          messages.push(val);
+        } else if (val) {
+          messages.push(`${key}: ${JSON.stringify(val)}`);
+        }
+      }
+      if (messages.length > 0) return messages.join(" | ");
+    }
+    return data.message || data.msg || data.detail || data.error || fallback;
+  }
+
+  /**
    * Helper to determine success from response payload
    */
   private isSuccessResponse(data: BigisubResponse): boolean {
     if (!data || typeof data !== "object") return false;
     if (data.success === true) return true;
+    if (data.errors && Object.keys(data.errors).length > 0) return false;
     const status = String(data.status || "").toLowerCase();
     if (status === "success" || status === "successful" || status === "delivered" || status === "ok" || status === "true" || status === "200") {
       return true;
@@ -419,7 +441,15 @@ export class BigisubAdapter implements ProviderAdapter {
     const token = this.getApiToken(config);
 
     if (!token) {
-      return { success: false, error: "Missing Bigisub API Token" };
+      return { success: false, error: "Missing Bigisub API Token. Configure in Provider Settings." };
+    }
+
+    const pin = this.getTransactionPin(config);
+    if (!pin) {
+      return {
+        success: false,
+        error: "Bigisub Transaction PIN is required to authorize purchases. Please configure your Bigisub PIN in Provider Settings.",
+      };
     }
 
     const networkId = BigisubAdapter.resolveNetworkId(params.network);
@@ -432,51 +462,25 @@ export class BigisubAdapter implements ProviderAdapter {
       mobile_number: phone,
       amount: params.amount,
       airtime_type: "vtu",
-      pin: this.getTransactionPin(config),
+      pin,
       ported_number: true,
       reference: params.reference,
       request_id: params.reference,
     };
 
-    const candidateEndpoints = [
-      `${baseUrl}/vtu/airtime/purchase/`,
-      `${baseUrl}/airtime/`,
-      `${baseUrl}/topup/`,
-    ];
-
-    let lastRaw: any = {};
-    for (const endpoint of candidateEndpoints) {
-      const res = await this.executeFetch(endpoint, "POST", payload, headers, 15000);
-      if (res.status === 404) continue;
-
-      lastRaw = res.data;
-      const isSuccess = this.isSuccessResponse(res.data);
-      const orderId = res.data?.orderid || res.data?.order_id || res.data?.transaction_id || params.reference;
-      const msg = res.data?.message || res.data?.msg || (isSuccess ? "Airtime Top-Up Successful" : "Airtime purchase failed");
-
-      if (isSuccess || res.ok) {
-        return {
-          success: isSuccess,
-          reference: params.reference,
-          orderId: String(orderId),
-          message: msg,
-          rawResponse: res.data,
-          error: isSuccess ? undefined : msg,
-        };
-      }
-    }
-
-    const isSuccess = this.isSuccessResponse(lastRaw);
-    const orderId = lastRaw.orderid || lastRaw.order_id || lastRaw.transaction_id || params.reference;
-    const msg = lastRaw.message || lastRaw.msg || (isSuccess ? "Airtime Top-Up Successful" : (lastRaw.detail || "Airtime purchase failed"));
+    const res = await this.executeFetch(`${baseUrl}/vtu/airtime/purchase/`, "POST", payload, headers, 20000);
+    const isSuccess = this.isSuccessResponse(res.data);
+    const orderId = res.data?.orderid || res.data?.order_id || res.data?.transaction_id || params.reference;
+    const errorMsg = !isSuccess ? BigisubAdapter.extractErrorMessage(res.data, res.error || "Airtime purchase failed on Bigisub") : undefined;
+    const msg = isSuccess ? (res.data?.message || res.data?.msg || "Airtime Top-Up Successful") : errorMsg;
 
     return {
       success: isSuccess,
       reference: params.reference,
       orderId: String(orderId),
       message: msg,
-      rawResponse: lastRaw,
-      error: isSuccess ? undefined : msg,
+      rawResponse: res.data,
+      error: errorMsg,
     };
   }
 
@@ -499,10 +503,22 @@ export class BigisubAdapter implements ProviderAdapter {
     const token = this.getApiToken(config);
 
     if (!token) {
-      return { success: false, error: "Missing Bigisub API Token" };
+      return { success: false, error: "Missing Bigisub API Token. Configure in Provider Settings." };
+    }
+
+    const pin = this.getTransactionPin(config);
+    if (!pin) {
+      return {
+        success: false,
+        error: "Bigisub Transaction PIN is required to authorize purchases. Please configure your Bigisub PIN in Provider Settings.",
+      };
     }
 
     const networkId = BigisubAdapter.resolveNetworkId(params.network);
+    const rawPlanStr = String(params.planCode || "").trim();
+    const parsedPlanPk = parseInt(rawPlanStr, 10);
+    const planVal = !isNaN(parsedPlanPk) && parsedPlanPk > 0 ? parsedPlanPk : params.planCode;
+
     const phone = normalizeNigerianPhone(params.phoneNumber);
 
     const payload = {
@@ -510,54 +526,28 @@ export class BigisubAdapter implements ProviderAdapter {
       phone,
       phone_number: phone,
       mobile_number: phone,
-      plan: params.planCode,
-      plan_id: params.planCode,
-      data_plan: params.planCode,
-      pin: this.getTransactionPin(config),
+      plan: planVal,
+      plan_id: planVal,
+      data_plan: planVal,
+      pin,
       ported_number: true,
       reference: params.reference,
       request_id: params.reference,
     };
 
-    const candidateEndpoints = [
-      `${baseUrl}/vtu/data/purchase/`,
-      `${baseUrl}/data/`,
-      `${baseUrl}/data/purchase/`,
-    ];
-
-    let lastRaw: any = {};
-    for (const endpoint of candidateEndpoints) {
-      const res = await this.executeFetch(endpoint, "POST", payload, headers, 15000);
-      if (res.status === 404) continue;
-
-      lastRaw = res.data;
-      const isSuccess = this.isSuccessResponse(res.data);
-      const orderId = res.data?.orderid || res.data?.order_id || res.data?.transaction_id || params.reference;
-      const msg = res.data?.message || res.data?.msg || (isSuccess ? "Data Bundle Purchase Successful" : "Data purchase failed");
-
-      if (isSuccess || res.ok) {
-        return {
-          success: isSuccess,
-          reference: params.reference,
-          orderId: String(orderId),
-          message: msg,
-          rawResponse: res.data,
-          error: isSuccess ? undefined : msg,
-        };
-      }
-    }
-
-    const isSuccess = this.isSuccessResponse(lastRaw);
-    const orderId = lastRaw.orderid || lastRaw.order_id || lastRaw.transaction_id || params.reference;
-    const msg = lastRaw.message || lastRaw.msg || (isSuccess ? "Data Bundle Purchase Successful" : (lastRaw.detail || "Data purchase failed"));
+    const res = await this.executeFetch(`${baseUrl}/vtu/data/purchase/`, "POST", payload, headers, 20000);
+    const isSuccess = this.isSuccessResponse(res.data);
+    const orderId = res.data?.orderid || res.data?.order_id || res.data?.transaction_id || params.reference;
+    const errorMsg = !isSuccess ? BigisubAdapter.extractErrorMessage(res.data, res.error || "Data purchase failed on Bigisub") : undefined;
+    const msg = isSuccess ? (res.data?.message || res.data?.msg || "Data Bundle Purchase Successful") : errorMsg;
 
     return {
       success: isSuccess,
       reference: params.reference,
       orderId: String(orderId),
       message: msg,
-      rawResponse: lastRaw,
-      error: isSuccess ? undefined : msg,
+      rawResponse: res.data,
+      error: errorMsg,
     };
   }
 
@@ -583,45 +573,35 @@ export class BigisubAdapter implements ProviderAdapter {
     const payload = {
       company: discoId,
       disco_name: discoId,
-      disco: discoId,
       meter_no: params.meterNo,
       meter_number: params.meterNo,
       meter_type: meterType,
     };
 
-    const candidateEndpoints = [
-      `${baseUrl}/bills/electricity/verify/`,
-      `${baseUrl}/electricity/verify/`,
-      `${baseUrl}/bill/verify/`,
-      `${baseUrl}/electricity/validate/`,
-    ];
+    const res = await this.executeFetch(`${baseUrl}/bills/electricity/verify/`, "POST", payload, headers, 15000);
+    const raw = res.data;
+    const name =
+      raw?.customer_name ||
+      raw?.customerName ||
+      raw?.Customer_Name ||
+      raw?.name ||
+      raw?.data?.customer_name ||
+      raw?.data?.name;
 
-    for (const endpoint of candidateEndpoints) {
-      const res = await this.executeFetch(endpoint, "POST", payload, headers, 12000);
-      if (res.status === 404) continue;
-
-      const raw = res.data;
-      const name =
-        raw.customer_name ||
-        raw.customerName ||
-        raw.Customer_Name ||
-        raw.name ||
-        raw.data?.customer_name ||
-        raw.data?.name;
-
-      if (name && String(name).trim().length > 1 && !String(name).toLowerCase().includes("invalid")) {
-        return {
-          valid: true,
-          customerName: String(name).trim(),
-          customerAddress: raw.address || raw.customer_address || raw.data?.address || "",
-          rawResponse: raw,
-        };
-      }
+    if (name && String(name).trim().length > 1 && !String(name).toLowerCase().includes("invalid")) {
+      return {
+        valid: true,
+        customerName: String(name).trim(),
+        customerAddress: raw.address || raw.customer_address || raw.data?.address || "",
+        rawResponse: raw,
+      };
     }
 
+    const errorMsg = BigisubAdapter.extractErrorMessage(raw, res.error || "Unable to verify meter number. Please check and try again.");
     return {
       valid: false,
-      error: "Invalid Meter Number or Electricity Disco",
+      error: errorMsg,
+      rawResponse: raw,
     };
   }
 
@@ -654,7 +634,15 @@ export class BigisubAdapter implements ProviderAdapter {
     const token = this.getApiToken(config);
 
     if (!token) {
-      return { success: false, error: "Missing Bigisub API Token" };
+      return { success: false, error: "Missing Bigisub API Token. Configure in Provider Settings." };
+    }
+
+    const pin = this.getTransactionPin(config);
+    if (!pin) {
+      return {
+        success: false,
+        error: "Bigisub Transaction PIN is required to authorize purchases. Please configure your Bigisub PIN in Provider Settings.",
+      };
     }
 
     const discoId = BigisubAdapter.resolveDiscoId(params.electricCompany);
@@ -664,56 +652,24 @@ export class BigisubAdapter implements ProviderAdapter {
     const payload = {
       company: discoId,
       disco_name: discoId,
-      disco: discoId,
       meter_no: params.meterNo,
       meter_number: params.meterNo,
       meter_type: meterType,
       amount: params.amount,
       phone,
       mobile_number: phone,
-      pin: this.getTransactionPin(config),
+      pin,
       reference: params.reference,
       request_id: params.reference,
     };
 
-    const candidateEndpoints = [
-      `${baseUrl}/bills/electricity/pay/`,
-      `${baseUrl}/electricity/purchase/`,
-      `${baseUrl}/electricity/pay/`,
-      `${baseUrl}/bill/pay/`,
-    ];
-
-    let lastRaw: any = {};
-    for (const endpoint of candidateEndpoints) {
-      const res = await this.executeFetch(endpoint, "POST", payload, headers, 15000);
-      if (res.status === 404) continue;
-
-      lastRaw = res.data;
-      const isSuccess = this.isSuccessResponse(res.data);
-      const orderId = res.data?.orderid || res.data?.order_id || res.data?.transaction_id || params.reference;
-      const tokenCode = res.data?.token || res.data?.purchased_code || res.data?.meter_token || res.data?.data?.token;
-      const units = res.data?.units || res.data?.data?.units || "";
-      const msg = res.data?.message || res.data?.msg || (isSuccess ? "Electricity Recharge Successful" : "Recharge failed");
-
-      if (isSuccess || res.ok) {
-        return {
-          success: isSuccess,
-          reference: params.reference,
-          orderId: String(orderId),
-          token: tokenCode ? String(tokenCode) : undefined,
-          units: units ? String(units) : undefined,
-          message: msg,
-          rawResponse: res.data,
-          error: isSuccess ? undefined : msg,
-        };
-      }
-    }
-
-    const isSuccess = this.isSuccessResponse(lastRaw);
-    const orderId = lastRaw.orderid || lastRaw.order_id || lastRaw.transaction_id || params.reference;
-    const tokenCode = lastRaw.token || lastRaw.purchased_code || lastRaw.meter_token || lastRaw.data?.token;
-    const units = lastRaw.units || lastRaw.data?.units || "";
-    const msg = lastRaw.message || lastRaw.msg || (isSuccess ? "Electricity Recharge Successful" : (lastRaw.detail || "Electricity payment failed"));
+    const res = await this.executeFetch(`${baseUrl}/bills/electricity/pay/`, "POST", payload, headers, 20000);
+    const isSuccess = this.isSuccessResponse(res.data);
+    const orderId = res.data?.orderid || res.data?.order_id || res.data?.transaction_id || params.reference;
+    const tokenCode = res.data?.token || res.data?.purchased_code || res.data?.meter_token || res.data?.data?.token;
+    const units = res.data?.units || res.data?.data?.units || "";
+    const errorMsg = !isSuccess ? BigisubAdapter.extractErrorMessage(res.data, res.error || "Electricity bill payment failed on Bigisub") : undefined;
+    const msg = isSuccess ? (res.data?.message || res.data?.msg || "Electricity Recharge Successful") : errorMsg;
 
     return {
       success: isSuccess,
@@ -722,8 +678,8 @@ export class BigisubAdapter implements ProviderAdapter {
       token: tokenCode ? String(tokenCode) : undefined,
       units: units ? String(units) : undefined,
       message: msg,
-      rawResponse: lastRaw,
-      error: isSuccess ? undefined : msg,
+      rawResponse: res.data,
+      error: errorMsg,
     };
   }
 
@@ -747,46 +703,34 @@ export class BigisubAdapter implements ProviderAdapter {
 
     const payload = {
       cable_name: cableId,
-      cablename: cableId,
-      cable: cableId,
       card_no: params.smartCardNo,
       smart_card_number: params.smartCardNo,
-      iuc_number: params.smartCardNo,
     };
 
-    const candidateEndpoints = [
-      `${baseUrl}/vtu/cable/verify/`,
-      `${baseUrl}/cable/verify/`,
-      `${baseUrl}/cable/validate/`,
-      `${baseUrl}/cable-verification/`,
-    ];
+    const res = await this.executeFetch(`${baseUrl}/vtu/cable/verify/`, "POST", payload, headers, 15000);
+    const raw = res.data;
+    const name =
+      raw?.customer_name ||
+      raw?.customerName ||
+      raw?.Customer_Name ||
+      raw?.name ||
+      raw?.data?.customer_name ||
+      raw?.data?.name;
 
-    for (const endpoint of candidateEndpoints) {
-      const res = await this.executeFetch(endpoint, "POST", payload, headers, 12000);
-      if (res.status === 404) continue;
-
-      const raw = res.data;
-      const name =
-        raw.customer_name ||
-        raw.customerName ||
-        raw.Customer_Name ||
-        raw.name ||
-        raw.data?.customer_name ||
-        raw.data?.name;
-
-      if (name && String(name).trim().length > 1 && !String(name).toLowerCase().includes("invalid")) {
-        return {
-          valid: true,
-          customerName: String(name).trim(),
-          currentPlan: raw.current_package || raw.package || `${params.cableProvider.toUpperCase()} ACTIVE SUBSCRIPTION`,
-          rawResponse: raw,
-        };
-      }
+    if (name && String(name).trim().length > 1 && !String(name).toLowerCase().includes("invalid")) {
+      return {
+        valid: true,
+        customerName: String(name).trim(),
+        currentPlan: raw.current_package || raw.package || `${params.cableProvider.toUpperCase()} ACTIVE SUBSCRIPTION`,
+        rawResponse: raw,
+      };
     }
 
+    const errorMsg = BigisubAdapter.extractErrorMessage(raw, res.error || "Unable to verify smartcard number. Please check and try again.");
     return {
       valid: false,
-      error: "Invalid SmartCard / IUC Number or Cable Provider",
+      error: errorMsg,
+      rawResponse: raw,
     };
   }
 
@@ -817,7 +761,15 @@ export class BigisubAdapter implements ProviderAdapter {
     const token = this.getApiToken(config);
 
     if (!token) {
-      return { success: false, error: "Missing Bigisub API Token" };
+      return { success: false, error: "Missing Bigisub API Token. Configure in Provider Settings." };
+    }
+
+    const pin = this.getTransactionPin(config);
+    if (!pin) {
+      return {
+        success: false,
+        error: "Bigisub Transaction PIN is required to authorize purchases. Please configure your Bigisub PIN in Provider Settings.",
+      };
     }
 
     const cableId = BigisubAdapter.resolveCableId(params.cableProvider);
@@ -825,62 +777,29 @@ export class BigisubAdapter implements ProviderAdapter {
 
     const payload = {
       cable_name: cableId,
-      cablename: cableId,
-      cable: cableId,
-      cableplan: params.packageCode,
-      plan: params.packageCode,
-      amount: params.amount || 0,
       card_no: params.smartCardNo,
-      smart_card_number: params.smartCardNo,
-      iuc_number: params.smartCardNo,
-      customer_name: "Customer",
-      customer: "Customer",
+      plan: params.packageCode,
+      cableplan: params.packageCode,
+      amount: params.amount || 0,
       phone,
-      pin: this.getTransactionPin(config),
+      pin,
       reference: params.reference,
       request_id: params.reference,
     };
 
-    const candidateEndpoints = [
-      `${baseUrl}/vtu/cable/purchase/`,
-      `${baseUrl}/cable/purchase/`,
-      `${baseUrl}/cable/pay/`,
-      `${baseUrl}/cable-subscription/`,
-    ];
-
-    let lastRaw: any = {};
-    for (const endpoint of candidateEndpoints) {
-      const res = await this.executeFetch(endpoint, "POST", payload, headers, 15000);
-      if (res.status === 404) continue;
-
-      lastRaw = res.data;
-      const isSuccess = this.isSuccessResponse(res.data);
-      const orderId = res.data?.orderid || res.data?.order_id || res.data?.transaction_id || params.reference;
-      const msg = res.data?.message || res.data?.msg || (isSuccess ? "Cable Subscription Successful" : "Cable payment failed");
-
-      if (isSuccess || res.ok) {
-        return {
-          success: isSuccess,
-          reference: params.reference,
-          orderId: String(orderId),
-          message: msg,
-          rawResponse: res.data,
-          error: isSuccess ? undefined : msg,
-        };
-      }
-    }
-
-    const isSuccess = this.isSuccessResponse(lastRaw);
-    const orderId = lastRaw.orderid || lastRaw.order_id || lastRaw.transaction_id || params.reference;
-    const msg = lastRaw.message || lastRaw.msg || (isSuccess ? "Cable Subscription Successful" : (lastRaw.detail || "Cable payment failed"));
+    const res = await this.executeFetch(`${baseUrl}/vtu/cable/purchase/`, "POST", payload, headers, 20000);
+    const isSuccess = this.isSuccessResponse(res.data);
+    const orderId = res.data?.orderid || res.data?.order_id || res.data?.transaction_id || params.reference;
+    const errorMsg = !isSuccess ? BigisubAdapter.extractErrorMessage(res.data, res.error || "Cable payment failed on Bigisub") : undefined;
+    const msg = isSuccess ? (res.data?.message || res.data?.msg || "Cable Subscription Successful") : errorMsg;
 
     return {
       success: isSuccess,
       reference: params.reference,
       orderId: String(orderId),
       message: msg,
-      rawResponse: lastRaw,
-      error: isSuccess ? undefined : msg,
+      rawResponse: res.data,
+      error: errorMsg,
     };
   }
 

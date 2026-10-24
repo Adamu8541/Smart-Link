@@ -681,7 +681,7 @@ export const ApiDocsPublicView: React.FC<ApiDocsPublicViewProps> = ({
       path: "/api/v1/vtu/data",
       title: "Purchase Mobile SME & Direct Data",
       shortDesc: "Instant SME, corporate gifting, and direct mobile data provisioning",
-      description: "Delivers SME, Corporate, or Direct mobile data bundles with real-time telco delivery validation and automatic retry logic across Clubkonnect and telecom provider rails.",
+      description: "Delivers SME, Corporate, or Direct mobile data bundles with real-time telco delivery validation and automatic retry logic across Bigisub and telecom provider rails.",
       parameters: [
         { name: "network", type: "string", required: true, description: "Network identifier: 'MTN', 'AIRTEL', 'GLO', '9MOBILE'", example: "MTN" },
         { name: "phone", type: "string", required: true, description: "11-digit recipient phone number", example: "08085490982" },
@@ -1188,7 +1188,6 @@ export const ApiDocsPublicView: React.FC<ApiDocsPublicViewProps> = ({
         providers: [
           { id: "prov_aspfiy", name: "Aspfiy Payment & Virtual Accounts", status: "OPERATIONAL", latencyMs: 142, uptime: "99.99%" },
           { id: "prov_bigisub", name: "Bigisub Wholesale VTU & Utilities", status: "OPERATIONAL", latencyMs: 240, uptime: "99.97%" },
-          { id: "prov_clubkonnect", name: "Clubkonnect VTU & SME Telecom", status: "OPERATIONAL", latencyMs: 310, uptime: "99.95%" },
           { id: "prov_vtpass", name: "VTpass Power Discos & Cable TV", status: "OPERATIONAL", latencyMs: 285, uptime: "99.96%" },
           { id: "prov_lumiid", name: "LumiID NIMC Identity Gateway", status: "OPERATIONAL", latencyMs: 380, uptime: "99.92%" },
           { id: "prov_identro", name: "Identro NIBSS BVN Portal", status: "OPERATIONAL", latencyMs: 340, uptime: "99.94%" },

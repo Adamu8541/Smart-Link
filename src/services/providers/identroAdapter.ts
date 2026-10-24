@@ -421,7 +421,7 @@ export class IdentroAdapter implements ProviderAdapter {
       if (!hostResponded) {
         return {
           ok: false,
-          message: "Identro API server unreachable (domain identro.ng DNS nameservers currently parked at Hostinger ns1.dns-parking.com; HTTPS port 443 timed out). System safely routes to LumiID / Clubkonnect with zero wallet deductions.",
+          message: "Identro API server unreachable (domain identro.ng DNS nameservers currently parked at Hostinger ns1.dns-parking.com; HTTPS port 443 timed out). System safely routes to active Identity providers with zero wallet deductions.",
           responseTimeMs: Date.now() - startTime,
         };
       }

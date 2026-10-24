@@ -428,15 +428,66 @@ export const SMART_LINK_SERVICES: ServiceItem[] = [
   },
   {
     id: "vtu_electricity",
-    name: "Prepaid Electricity Token",
+    name: "Prepaid & Postpaid Electricity Token",
     category: "VTU",
-    description: "Instant energy tokens for Jos (JEDC), Kaduna, Central (AEDC), Ikeja, and Eko electricity distribution companies.",
+    description: "Instant energy tokens and bill payments for Ikeja, Eko, Abuja, Kano, Port Harcourt, Jos, Ibadan, Kaduna, Enugu, Benin, Yola, and Aba DisCos.",
     priceLabel: "Pay bill value",
     actionLabel: "Generate Power Token",
     fields: [
-      { name: "provider", label: "Electricity DisCo Office", type: "select", placeholder: "Select Office", required: true, options: ["JEDC - Jos Electricity", "AEDC - Central Electricity", "KAEDCO - Kaduna Electricity", "IKEDC - Ikeja Electricity"] },
-      { name: "customerId", label: "Meter Number / Account ID", type: "text", placeholder: "e.g. 0130987123", required: true },
-      { name: "amount", label: "Token Purchase Amount (₦)", type: "number", placeholder: "e.g. 5000", required: true }
+      {
+        name: "provider",
+        label: "Electricity DisCo Office",
+        type: "select",
+        placeholder: "Select Office",
+        required: true,
+        options: [
+          "ikeja-electric (IKEDC)",
+          "eko-electric (EKEDC)",
+          "abuja-electric (AEDC)",
+          "kano-electric (KEDCO)",
+          "portharcourt-electric (PHED)",
+          "jos-electric (JEDC)",
+          "ibadan-electric (IBEDC)",
+          "kaduna-electric (KAEDCO)",
+          "enugu-electric (EEDC)",
+          "benin-electric (BEDC)",
+          "yola-electric (YEDC)",
+          "aba-electric (APLE)"
+        ]
+      },
+      {
+        name: "meterType",
+        label: "Meter Type",
+        type: "select",
+        placeholder: "Select Meter Type",
+        required: true,
+        options: ["PREPAID", "POSTPAID"]
+      },
+      { name: "customerId", label: "Meter Number", type: "text", placeholder: "e.g. 0130987123", required: true },
+      { name: "phoneNumber", label: "Customer Phone Number", type: "text", placeholder: "e.g. 08031234567", required: true },
+      { name: "amount", label: "Token Purchase Amount (₦)", type: "number", placeholder: "e.g. 2000", required: true }
+    ]
+  },
+  {
+    id: "vtu_cable",
+    name: "Cable TV Subscription",
+    category: "VTU",
+    description: "Instant decoder renewal and bouquet activation for GOtv, DStv, StarTimes, and Showmax via Bigisub wholesale gateway.",
+    priceLabel: "Select package",
+    actionLabel: "Renew Cable Subscription",
+    fields: [
+      {
+        name: "provider",
+        label: "Cable TV Provider",
+        type: "select",
+        placeholder: "Select Provider",
+        required: true,
+        options: ["gotv", "dstv", "startimes", "showmax"]
+      },
+      { name: "customerId", label: "Smartcard / IUC / UIC Number", type: "text", placeholder: "e.g. 1029384756", required: true },
+      { name: "plan", label: "Package / Bouquet Code or Name", type: "text", placeholder: "e.g. gotv-jinja, gotv-jolli, dstv-compact", required: true },
+      { name: "phoneNumber", label: "Customer Phone Number", type: "text", placeholder: "e.g. 08031234567", required: true },
+      { name: "amount", label: "Subscription Amount (₦)", type: "number", placeholder: "e.g. 3300", required: true }
     ]
   },
 

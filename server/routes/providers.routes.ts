@@ -25,7 +25,6 @@ import { PaymentVerificationReconciliationEngine } from "../../src/services/paym
 import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerConnector";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
 import { LumiIDAdapter } from "../../src/services/providers/lumiidAdapter";
-import { ClubkonnectAdapter } from "../../src/services/providers/clubkonnectAdapter";
 import { IdentroAdapter } from "../../src/services/providers/identroAdapter";
 import { PrembleyAdapter } from "../../src/services/providers/prembleyAdapter";
 import { VTpassAdapter } from "../../src/services/providers/vtpassAdapter";
@@ -590,10 +589,12 @@ function getCentralActivePaymentProvider(db: any, isAdmin = false) {
     activeProvider.publicKey = activeProvider.publicKey || String(process.env.PREMBLEY_PUBLIC_KEY || process.env.PREMBLEY_API_KEY || process.env.IDENTITYPASS_PUBLIC_KEY || process.env.IDENTITYPASS_API_KEY || "").trim();
     activeProvider.apiKey = activeProvider.publicKey || activeProvider.secretKey;
     activeProvider.baseUrl = activeProvider.baseUrl || "https://api.prembly.com";
-  } else if (activeProvName.includes("clubkonnect")) {
-    activeProvider.secretKey = activeProvider.secretKey || String(process.env.CLUBKONNECT_API_KEY || "").trim();
-    activeProvider.clientId = activeProvider.clientId || String(process.env.CLUBKONNECT_USER_ID || "smartlink_vtu").trim();
-    activeProvider.baseUrl = activeProvider.baseUrl || "https://www.clubkonnect.com/API";
+  } else if (activeProvName.includes("bigisub")) {
+    activeProvider.apiToken = activeProvider.apiToken || activeProvider.secretKey || activeProvider.apiKey || String(process.env.BIGISUB_API_TOKEN || "").trim();
+    activeProvider.apiKey = activeProvider.apiToken;
+    activeProvider.secretKey = activeProvider.apiToken;
+    activeProvider.pin = activeProvider.pin || String(process.env.BIGISUB_PIN || "").trim();
+    activeProvider.baseUrl = activeProvider.baseUrl || "https://bigisub.ng/api/v2";
   }
 
   const keyVal = activeProvider.secretKey || activeProvider.apiKey;
@@ -998,10 +999,12 @@ app.post("/api/admin/payment-providers/:id/test-connection", requireAdmin, async
     provider.publicKey = provider.publicKey || String(process.env.PREMBLEY_PUBLIC_KEY || process.env.PREMBLEY_API_KEY || process.env.IDENTITYPASS_PUBLIC_KEY || process.env.IDENTITYPASS_API_KEY || "").trim();
     provider.apiKey = provider.publicKey || provider.secretKey;
     provider.baseUrl = provider.baseUrl || "https://api.prembly.com";
-  } else if (testProvName.includes("clubkonnect")) {
-    provider.secretKey = provider.secretKey || String(process.env.CLUBKONNECT_API_KEY || "").trim();
-    provider.clientId = provider.clientId || String(process.env.CLUBKONNECT_USER_ID || "smartlink_vtu").trim();
-    provider.baseUrl = provider.baseUrl || "https://www.clubkonnect.com/API";
+  } else if (testProvName.includes("bigisub")) {
+    provider.apiToken = provider.apiToken || provider.secretKey || provider.apiKey || String(process.env.BIGISUB_API_TOKEN || "").trim();
+    provider.apiKey = provider.apiToken;
+    provider.secretKey = provider.apiToken;
+    provider.pin = provider.pin || String(process.env.BIGISUB_PIN || "").trim();
+    provider.baseUrl = provider.baseUrl || "https://bigisub.ng/api/v2";
   }
 
   let testResultStatus:
@@ -1597,40 +1600,11 @@ function seedModule6ProvidersIfEmpty(db: any) {
     });
   }
 
-  // Ensure Clubkonnect Provider (official base URL & built-in App ID) - NOT default
-  if (!db.api_providers.some((p: any) => p.id === "prov_clubkonnect" || (p.name || "").toLowerCase().includes("clubkonnect"))) {
-    db.api_providers.push({
-      id: "prov_clubkonnect",
-      name: "Clubkonnect VTU & Bill Payment",
-      category: "TELECOM_VTU",
-      providerType: "BILL_PAYMENT",
-      description: "Clubkonnect VTU, Data Bundles, Cable TV, Electricity Bills & Exam PINs API (clubkonnect.com)",
-      logoUrl: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=100&auto=format&fit=crop&q=60",
-      baseUrl: "https://www.clubkonnect.com/API",
-      apiVersion: "v1.0",
-      authMethod: "API_KEY",
-      secretKey: String(process.env.CLUBKONNECT_API_KEY || "").trim(),
-      apiKey: String(process.env.CLUBKONNECT_API_KEY || "").trim(),
-      clientId: String(process.env.CLUBKONNECT_USER_ID || process.env.CLUBKONNECT_USERID || "smartlink_vtu").trim(),
-      appId: String(process.env.CLUBKONNECT_USER_ID || process.env.CLUBKONNECT_USERID || "smartlink_vtu").trim(),
-      supportsWalletFunding: false,
-      supportsBankTransfer: false,
-      supportsCardPayment: false,
-      supportsVirtualAccount: false,
-      supportsPaymentLink: false,
-      supportsPayout: false,
-      supportsRefund: false,
-      supportsTxVerification: true,
-      timeout: 15000,
-      retryAttempts: 3,
-      healthStatus: "ONLINE",
-      priority: 15,
-      isDefault: false,
-      environment: "PRODUCTION",
-      status: "ENABLED",
-      enabled: true,
-      isActive: true,
-    });
+  // Purge Clubkonnect provider row
+  if (Array.isArray(db.api_providers)) {
+    db.api_providers = db.api_providers.filter(
+      (p: any) => p && p.id !== "prov_clubkonnect" && !String(p.name || "").toLowerCase().includes("clubkonnect")
+    );
   }
 
   // Ensure Identro Portal Provider (official base URL & built-in App ID)
@@ -1966,7 +1940,7 @@ app.put("/api/admin/providers/:providerId", requireAdmin, async (req, res) => {
     "encryptionKey", "signatureKey", "rsaPublicKey", "rsaPrivateKey", "hmacSecret",
     "supportsWalletFunding", "supportsBankTransfer", "supportsCardPayment", "supportsVirtualAccount",
     "supportsPaymentLink", "supportsPayout", "supportsRefund", "supportsTxVerification",
-    "environment", "status", "enabled", "isActive", "isDefault", "priority", "timeout", "retryAttempts"
+    "environment", "status", "enabled", "isActive", "isDefault", "priority", "timeout", "retryAttempts", "pin"
   ];
 
   const sensitiveFields = [
@@ -2190,6 +2164,7 @@ app.post("/api/admin/providers/add", requireAdmin, async (req, res) => {
     enabled: providerData.status === "ENABLED" || providerData.status === "Active" || providerData.enabled === true,
     isActive: providerData.status === "ENABLED" || providerData.status === "Active" || providerData.enabled === true,
     isDefault: providerData.isDefault || false,
+    pin: providerData.pin || "",
     createdAt: nowISO,
     updatedAt: nowISO
   };
@@ -2278,10 +2253,12 @@ app.post("/api/admin/providers/:providerId/test-connection", requireAdmin, async
       provider.publicKey = process.env.PREMBLEY_PUBLIC_KEY || process.env.PREMBLEY_API_KEY || process.env.IDENTITYPASS_PUBLIC_KEY || process.env.IDENTITYPASS_API_KEY || provider.publicKey;
     }
     provider.apiKey = provider.publicKey || provider.secretKey;
-  } else if (pName.includes("clubkonnect") || pId.includes("clubkonnect")) {
-    provider.baseUrl = provider.baseUrl || "https://www.clubkonnect.com/API";
-    provider.secretKey = provider.secretKey || process.env.CLUBKONNECT_API_KEY;
-    provider.clientId = provider.clientId || process.env.CLUBKONNECT_USER_ID;
+  } else if (pName.includes("bigisub") || pId.includes("bigisub")) {
+    provider.baseUrl = provider.baseUrl || "https://bigisub.ng/api/v2";
+    provider.apiToken = provider.apiToken || process.env.BIGISUB_API_TOKEN || provider.apiToken;
+    provider.apiKey = provider.apiToken || provider.apiKey;
+    provider.secretKey = provider.apiToken || provider.secretKey;
+    provider.pin = provider.pin || process.env.BIGISUB_PIN || provider.pin;
   } else if (pName.includes("aspfiy") || pId.includes("aspfiy")) {
     provider.baseUrl = provider.baseUrl || "https://api-v1.aspfiy.com";
     provider.secretKey = provider.secretKey || process.env.ASPFIY_SECRET_KEY || process.env.ASPFIY_API_KEY;
@@ -2305,9 +2282,6 @@ app.post("/api/admin/providers/:providerId/test-connection", requireAdmin, async
   } else if (provider.name.toLowerCase().includes("prembley") || (provider.id && provider.id.toLowerCase().includes("prembley")) || provider.name.toLowerCase().includes("identitypass") || (provider.id && provider.id.toLowerCase().includes("identitypass"))) {
     const prembleyAdapter = new PrembleyAdapter();
     testResult = await prembleyAdapter.testConnection(provider);
-  } else if (provider.name.toLowerCase().includes("clubkonnect") || provider.name.toLowerCase().includes("club konnect")) {
-    const clubkonnectAdapter = new ClubkonnectAdapter();
-    testResult = await clubkonnectAdapter.testConnection(provider);
   } else if (provider.name.toLowerCase().includes("vtpass") || (provider.id && provider.id.toLowerCase().includes("vtpass"))) {
     const vtpassAdapter = new VTpassAdapter();
     testResult = await vtpassAdapter.testConnection(provider);

@@ -9,7 +9,6 @@
 
 import { AspfiyAdapter, ProviderAdapter, PaymentProviderConfig } from "./providers/aspfiyAdapter";
 import { LumiIDAdapter } from "./providers/lumiidAdapter";
-import { ClubkonnectAdapter } from "./providers/clubkonnectAdapter";
 import { IdentroAdapter } from "./providers/identroAdapter";
 import { PrembleyAdapter } from "./providers/prembleyAdapter";
 import { VTpassAdapter } from "./providers/vtpassAdapter";
@@ -18,7 +17,6 @@ import { BigisubAdapter } from "./providers/bigisubAdapter";
 const registeredAdapters: Record<string, ProviderAdapter> = {
   aspfiy: new AspfiyAdapter(),
   lumiid: new LumiIDAdapter(),
-  clubkonnect: new ClubkonnectAdapter(),
   identro: new IdentroAdapter(),
   prembley: new PrembleyAdapter(),
   prembly: new PrembleyAdapter(),
@@ -42,14 +40,58 @@ export function getAdapterForProvider(provider: { name?: string; id?: string }):
 
 /**
  * Gets the single currently-Active provider row from the canonical collection (db.api_providers)
- * plus its matching adapter, ready to call. Returns null if none configured.
- * ASPFIY or any other provider must be explicitly Enabled/Active and not in Draft status.
+ * plus its matching adapter, ready to call.
  */
 export function getActiveProviderAndAdapter(
   db: any,
   preferredCategoryOrService?: string
 ): { provider: PaymentProviderConfig; adapter: ProviderAdapter } | null {
-  // Configuration sourced exclusively from server-side environment variables (Turso runtime env)
+  // If caller requests Telecom VTU, Airtime, Data, Electricity, or Cable TV, route exclusively to Bigisub
+  if (preferredCategoryOrService) {
+    const pCat = preferredCategoryOrService.toUpperCase();
+    if (
+      pCat.includes("VTU") ||
+      pCat.includes("AIRTIME") ||
+      pCat.includes("DATA") ||
+      pCat.includes("ELECTRIC") ||
+      pCat.includes("CABLE") ||
+      pCat.includes("BILL")
+    ) {
+      const allProviders = (Array.isArray(db?.api_providers) && db.api_providers.length > 0)
+        ? db.api_providers
+        : (Array.isArray(db?.apiProviders) ? db.apiProviders : []);
+      const bigiRow = allProviders.find((p: any) =>
+        p && (p.id === "prov_bigisub" || String(p.name || "").toLowerCase().includes("bigisub"))
+      );
+      const apiToken = String(
+        bigiRow?.apiToken ||
+        bigiRow?.apiKey ||
+        bigiRow?.secretKey ||
+        process.env.BIGISUB_API_TOKEN ||
+        ""
+      ).trim();
+      const pin = String(bigiRow?.pin || bigiRow?.transactionPin || process.env.BIGISUB_PIN || "").trim();
+      const baseUrl = String(bigiRow?.baseUrl || process.env.BIGISUB_BASE_URL || "https://bigisub.ng/api/v2").trim();
+
+      const bigiProvider: PaymentProviderConfig = {
+        id: "prov_bigisub",
+        name: "Bigisub Digital Gateway",
+        apiToken,
+        apiKey: apiToken,
+        secretKey: apiToken,
+        pin,
+        baseUrl,
+        status: "ACTIVE",
+        isActive: true,
+      };
+      const bigiAdapter = registeredAdapters["bigisub"];
+      if (bigiAdapter) {
+        return { provider: bigiProvider, adapter: bigiAdapter };
+      }
+    }
+  }
+
+  // Default payment provider (Aspfiy) for banking, virtual accounts, and checkout
   const secretKey = String(process.env.ASPFIY_SECRET_KEY || process.env.ASPFIY_API_KEY || "").trim();
   const publicKey = String(process.env.ASPFIY_PUBLIC_KEY || "").trim();
   const baseUrl = String(process.env.ASPFIY_BASE_URL || "https://api-v1.aspfiy.com").trim();

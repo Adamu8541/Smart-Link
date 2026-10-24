@@ -230,15 +230,15 @@ export class MultiProviderRoutingEngine {
         strategy: "PRIORITY_ORDER",
         primaryProviderId: "prov_bigisub",
         primaryProviderName: "Bigisub Digital Gateway",
-        secondaryProviderId: "vtpass",
-        secondaryProviderName: "VTpass Gateway",
-        tertiaryProviderId: "identro",
-        tertiaryProviderName: "Identro Portal",
+        secondaryProviderId: "",
+        secondaryProviderName: "",
+        tertiaryProviderId: "",
+        tertiaryProviderName: "",
         fallbackProviderId: "",
         fallbackProviderName: "",
         timeoutMs: 15000,
         maxRetries: 2,
-        autoFailover: true,
+        autoFailover: false,
         circuitBreakerThreshold: 3,
         circuitBreakerResetMs: 60000,
         enabled: true,
@@ -251,15 +251,15 @@ export class MultiProviderRoutingEngine {
         strategy: "PRIORITY_ORDER",
         primaryProviderId: "prov_bigisub",
         primaryProviderName: "Bigisub Digital Gateway",
-        secondaryProviderId: "vtpass",
-        secondaryProviderName: "VTpass Gateway",
-        tertiaryProviderId: "identro",
-        tertiaryProviderName: "Identro Portal",
+        secondaryProviderId: "",
+        secondaryProviderName: "",
+        tertiaryProviderId: "",
+        tertiaryProviderName: "",
         fallbackProviderId: "",
         fallbackProviderName: "",
         timeoutMs: 15000,
         maxRetries: 2,
-        autoFailover: true,
+        autoFailover: false,
         circuitBreakerThreshold: 3,
         circuitBreakerResetMs: 60000,
         enabled: true,
@@ -272,15 +272,15 @@ export class MultiProviderRoutingEngine {
         strategy: "PRIORITY_ORDER",
         primaryProviderId: "prov_bigisub",
         primaryProviderName: "Bigisub Digital Gateway",
-        secondaryProviderId: "vtpass",
-        secondaryProviderName: "VTpass Gateway",
-        tertiaryProviderId: "identro",
-        tertiaryProviderName: "Identro Portal",
+        secondaryProviderId: "",
+        secondaryProviderName: "",
+        tertiaryProviderId: "",
+        tertiaryProviderName: "",
         fallbackProviderId: "",
         fallbackProviderName: "",
         timeoutMs: 20000,
         maxRetries: 2,
-        autoFailover: true,
+        autoFailover: false,
         circuitBreakerThreshold: 3,
         circuitBreakerResetMs: 60000,
         enabled: true,
@@ -293,15 +293,15 @@ export class MultiProviderRoutingEngine {
         strategy: "PRIORITY_ORDER",
         primaryProviderId: "prov_bigisub",
         primaryProviderName: "Bigisub Digital Gateway",
-        secondaryProviderId: "vtpass",
-        secondaryProviderName: "VTpass Gateway",
-        tertiaryProviderId: "identro",
-        tertiaryProviderName: "Identro Portal",
+        secondaryProviderId: "",
+        secondaryProviderName: "",
+        tertiaryProviderId: "",
+        tertiaryProviderName: "",
         fallbackProviderId: "",
         fallbackProviderName: "",
         timeoutMs: 20000,
         maxRetries: 2,
-        autoFailover: true,
+        autoFailover: false,
         circuitBreakerThreshold: 3,
         circuitBreakerResetMs: 60000,
         enabled: true,
@@ -394,7 +394,7 @@ export class MultiProviderRoutingEngine {
     if (clean === "prembley" || clean === "prembly" || clean === "prov_prembly" || clean === "identitypass") return "Prembley Portal (Identitypass)";
     if (clean === "aspfiy") return "Aspfiy Payment Portal";
     if (clean === "verifyng" || clean === "verify-ng") return "VerifyNG Portal";
-    if (clean === "clubkonnect") return "Clubkonnect Portal";
+    if (clean === "bigisub" || clean === "prov_bigisub") return "Bigisub Digital Gateway";
     return `${clean.toUpperCase()} Portal`;
   }
 
@@ -533,22 +533,22 @@ export class MultiProviderRoutingEngine {
           lastPingLatencyMs: 150,
         },
         {
-          providerId: "clubkonnect",
-          providerName: "Clubkonnect VTU Portal",
+          providerId: "bigisub",
+          providerName: "Bigisub Digital Gateway",
           category: "VTU_PROVIDER",
-          baseUrl: "https://www.clubkonnect.com/API",
+          baseUrl: "https://bigisub.ng/api/v2",
           status: "ONLINE",
-          uptimePercentage: 99.90,
-          avgLatencyMs: 190,
+          uptimePercentage: 99.98,
+          avgLatencyMs: 160,
           totalQueries: 14500,
-          successfulQueries: 14470,
-          failedQueries: 30,
-          failoverTriggeredCount: 2,
+          successfulQueries: 14485,
+          failedQueries: 15,
+          failoverTriggeredCount: 0,
           consecutiveFailures: 0,
           circuitBreakerTripped: false,
           lastPingAt: new Date().toISOString(),
           lastPingStatus: "SUCCESS",
-          lastPingLatencyMs: 180,
+          lastPingLatencyMs: 160,
         },
       ];
     }
@@ -621,10 +621,12 @@ export class MultiProviderRoutingEngine {
         providerRow.publicKey = envPub || providerRow.publicKey;
       }
       providerRow.apiKey = providerRow.publicKey || providerRow.secretKey;
-    } else if (normalizedKey.includes("clubkonnect")) {
-      providerRow.baseUrl = providerRow.baseUrl || "https://www.clubkonnect.com/API";
-      providerRow.secretKey = providerRow.secretKey || process.env.CLUBKONNECT_API_KEY;
-      providerRow.clientId = providerRow.clientId || process.env.CLUBKONNECT_USER_ID;
+    } else if (normalizedKey.includes("bigisub")) {
+      providerRow.baseUrl = providerRow.baseUrl || "https://bigisub.ng/api/v2";
+      providerRow.apiToken = providerRow.apiToken || process.env.BIGISUB_API_TOKEN;
+      providerRow.apiKey = providerRow.apiToken || providerRow.apiKey;
+      providerRow.secretKey = providerRow.apiToken || providerRow.secretKey;
+      providerRow.pin = providerRow.pin || process.env.BIGISUB_PIN;
     } else if (normalizedKey.includes("aspfiy")) {
       providerRow.baseUrl = providerRow.baseUrl || "https://api-v1.aspfiy.com";
       providerRow.secretKey = providerRow.secretKey || process.env.ASPFIY_SECRET_KEY || process.env.ASPFIY_API_KEY;
@@ -649,7 +651,7 @@ export class MultiProviderRoutingEngine {
       metrics.push({
         providerId: cleanId,
         providerName: providerRow.name || `${normalizedKey.toUpperCase()} Portal`,
-        category: normalizedKey.includes("aspfiy") ? "PAYMENT_PROVIDER" : normalizedKey.includes("clubkonnect") ? "VTU_PROVIDER" : "IDENTITY_API",
+        category: normalizedKey.includes("aspfiy") ? "PAYMENT_PROVIDER" : (normalizedKey.includes("bigisub") || normalizedKey.includes("vtu")) ? "VTU_PROVIDER" : "IDENTITY_API",
         baseUrl: providerRow.baseUrl,
         status: result.ok ? "ONLINE" : "DEGRADED",
         uptimePercentage: result.ok ? 99.9 : 95.0,
@@ -890,15 +892,16 @@ export class MultiProviderRoutingEngine {
         }
         pConfig.apiKey = pConfig.publicKey || pConfig.secretKey;
         pConfig.baseUrl = pConfig.baseUrl || "https://api.prembly.com";
-      } else if (keyId.includes("clubkonnect") || keyId.includes("club konnect")) {
-        if (isMaskedOrEmpty(pConfig.secretKey)) {
-          pConfig.secretKey = process.env.CLUBKONNECT_API_KEY || pConfig.secretKey;
+      } else if (keyId.includes("bigisub") || keyId.includes("bigi")) {
+        pConfig.baseUrl = pConfig.baseUrl || "https://bigisub.ng/api/v2";
+        if (isMaskedOrEmpty(pConfig.apiToken)) {
+          pConfig.apiToken = process.env.BIGISUB_API_TOKEN || pConfig.apiToken;
         }
-        if (isMaskedOrEmpty(pConfig.clientId) || pConfig.clientId === "smartlink_vtu") {
-          pConfig.clientId = process.env.CLUBKONNECT_USER_ID || process.env.CLUBKONNECT_USERID || pConfig.clientId || "smartlink_vtu";
+        if (isMaskedOrEmpty(pConfig.pin)) {
+          pConfig.pin = process.env.BIGISUB_PIN || pConfig.pin;
         }
-        pConfig.appId = pConfig.clientId;
-        pConfig.baseUrl = pConfig.baseUrl || "https://www.clubkonnect.com/API";
+        pConfig.apiKey = pConfig.apiToken || pConfig.apiKey;
+        pConfig.secretKey = pConfig.apiToken || pConfig.secretKey;
       }
 
       const result = await this.callSingleProvider(sType, params.targetId, params.extraData || {}, pConfig, currentProvider.id, db);

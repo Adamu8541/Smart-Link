@@ -404,6 +404,9 @@ export class ProviderExecutor {
         catUpper === "CABLE_TV" ||
         catUpper === "EDUCATION"
       ) {
+        // Bigisub Digital Gateway is the exclusive designated provider for all VTU, telecom, electricity, and cable operations
+        const isBigisub = idLower === "prov_bigisub" || idLower === "bigisub" || nameLower.includes("bigisub");
+        if (isBigisub) return true;
         return (
           pCat === "VTU_API" ||
           pCat === "AIRTIME_API" ||
@@ -414,15 +417,7 @@ export class ProviderExecutor {
           p.supportsTelecomVtu === true ||
           p.supportsBills === true ||
           p.supportsElectricity === true ||
-          p.supportsCableTv === true ||
-          nameLower.includes("identro") ||
-          nameLower.includes("club") ||
-          nameLower.includes("vtpass") ||
-          nameLower.includes("bigisub") ||
-          idLower.includes("identro") ||
-          idLower.includes("club") ||
-          idLower.includes("vtpass") ||
-          idLower.includes("bigisub")
+          p.supportsCableTv === true
         ) && !nameLower.includes("aspfiy");
       }
       if (catUpper === "PAYMENT_PROVIDER" || catUpper === "PAYMENT" || catUpper === "WALLET_ENGINE") {
@@ -478,7 +473,7 @@ export class ProviderExecutor {
     const providerName = provider.name || params.providerName || "Provider";
     const providerCode = provider.id || params.providerCode || "PROV";
 
-    // 2. Check if there's a specialized ProviderAdapter for IDENTITY_API (LumiID, Identro, VerifyNG, etc.) or VTU/Bills (Clubkonnect)
+    // 2. Check if there's a specialized ProviderAdapter for IDENTITY_API (LumiID, Identro, VerifyNG, etc.) or VTU/Bills (Bigisub)
     const registeredAdapter = getAdapterForProvider(provider);
     const apiRequests = db.api_requests || [];
     const requestTemplate = apiRequests.find((r: any) =>
@@ -559,7 +554,7 @@ export class ProviderExecutor {
       };
     }
 
-    // Direct routing for Identro, Clubkonnect or similar adapters when no explicit custom request template is defined
+    // Direct routing for Identro, Bigisub or similar adapters when no explicit custom request template is defined
     if (registeredAdapter && !requestTemplate) {
       const cat = (params.category || "").toUpperCase().trim();
       const targetCustomerId = params.customerId || params.phoneNumber || "";
@@ -639,7 +634,7 @@ export class ProviderExecutor {
       // Data Bundle
       const isData = cat === "DATA" || (cat === "TELECOM_VTU" && (params.extraData?.planId || params.extraData?.type === "DATA" || (params as any).type === "DATA"));
       if (isData && typeof (registeredAdapter as any).purchaseData === "function") {
-        const plan = params.planId || params.extraData?.planCode || "1000";
+        const plan = params.planId || params.extraData?.planId || params.extraData?.planCode || "1000";
         const res = await (registeredAdapter as any).purchaseData(
           { network: resolvedNet, phoneNumber: targetPhoneNumber, planCode: plan, reference: params.smartlinkReference },
           provider
@@ -704,43 +699,7 @@ export class ProviderExecutor {
           };
         }
 
-        // Automatic failover for Electricity
-        for (const altProvider of getFallbackProviders()) {
-          const altAdapter = getAdapterForProvider(altProvider);
-          if (altAdapter && typeof (altAdapter as any).payElectricity === "function") {
-            try {
-              const altRes = await (altAdapter as any).payElectricity(
-                {
-                  electricCompany: disco,
-                  meterType: params.meterType || "PREPAID",
-                  meterNo: targetCustomerId,
-                  amount: params.amount,
-                  phoneNumber: targetPhoneNumber,
-                  reference: params.smartlinkReference,
-                },
-                altProvider
-              );
-              if (altRes.success) {
-                return {
-                  success: true,
-                  providerName: altProvider.name || "Fallback Electricity Provider",
-                  providerCode: altProvider.id || "FALLBACK_PROV",
-                  providerReference: altRes.orderId || altRes.reference,
-                  transactionId: altRes.orderId,
-                  token: altRes.token,
-                  units: altRes.units,
-                  message: altRes.message || "Electricity Payment Successful",
-                  error: altRes.error,
-                  rawResponse: altRes.rawResponse,
-                  responseTimeMs: Date.now() - startTime,
-                };
-              }
-            } catch (altErr) {
-              console.warn(`[ProviderExecutor] Failover electricity payment to ${altProvider.name} failed:`, altErr);
-            }
-          }
-        }
-
+        // Direct return of Bigisub electricity response without failover
         return {
           success: false,
           providerName,
@@ -784,40 +743,7 @@ export class ProviderExecutor {
           };
         }
 
-        // Automatic failover for Cable TV
-        for (const altProvider of getFallbackProviders()) {
-          const altAdapter = getAdapterForProvider(altProvider);
-          if (altAdapter && typeof (altAdapter as any).payCableTV === "function") {
-            try {
-              const altRes = await (altAdapter as any).payCableTV(
-                {
-                  cableProvider: cable,
-                  packageCode: pkg,
-                  smartCardNo: targetCustomerId,
-                  phoneNumber: targetPhoneNumber,
-                  reference: params.smartlinkReference,
-                },
-                altProvider
-              );
-              if (altRes.success) {
-                return {
-                  success: true,
-                  providerName: altProvider.name || "Fallback Cable Provider",
-                  providerCode: altProvider.id || "FALLBACK_PROV",
-                  providerReference: altRes.orderId || altRes.reference,
-                  transactionId: altRes.orderId,
-                  message: altRes.message || "Cable Subscription Successful",
-                  error: altRes.error,
-                  rawResponse: altRes.rawResponse,
-                  responseTimeMs: Date.now() - startTime,
-                };
-              }
-            } catch (altErr) {
-              console.warn(`[ProviderExecutor] Failover cable payment to ${altProvider.name} failed:`, altErr);
-            }
-          }
-        }
-
+        // Direct return of Bigisub cable response without failover
         return {
           success: false,
           providerName,

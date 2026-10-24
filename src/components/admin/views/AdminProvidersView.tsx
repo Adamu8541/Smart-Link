@@ -81,6 +81,7 @@ export function AdminProvidersView() {
   const [addClientId, setAddClientId] = useState("");
   const [addClientSecret, setAddClientSecret] = useState("");
   const [addBusinessId, setAddBusinessId] = useState("");
+  const [addPin, setAddPin] = useState("");
 
   const [addWebhookUrl, setAddWebhookUrl] = useState("");
   const [addCallbackUrl, setAddCallbackUrl] = useState("");
@@ -109,7 +110,7 @@ export function AdminProvidersView() {
   const [addEnvironment, setAddEnvironment] = useState("Production");
   const [addIsDefault, setAddIsDefault] = useState(false);
 
-  const applyProviderPreset = (preset: "clubkonnect" | "vtpass" | "bigisub" | "aspfiy" | "lumiid" | "verifyng" | "identro" | "prembley") => {
+  const applyProviderPreset = (preset: "vtpass" | "bigisub" | "aspfiy" | "lumiid" | "verifyng" | "identro" | "prembley") => {
     if (preset === "bigisub") {
       setAddName("Bigisub Digital Gateway");
       setAddCategory("TELECOM_VTU");
@@ -135,24 +136,6 @@ export function AdminProvidersView() {
       setAddMerchantId("");
       setAddBusinessId("");
       setToast("Bigisub preset applied: Only the API Token is required (no secret key, public key, or app ID needed).");
-    } else if (preset === "clubkonnect") {
-      setAddName("Clubkonnect VTU & Bill Payment");
-      setAddCategory("TELECOM_VTU");
-      setAddDescription("Clubkonnect Airtime, Data Bundles, Cable TV, Electricity Bills & Exam PINs API");
-      setAddBaseUrl("https://www.clubkonnect.com/API");
-      setAddApiVersion("v1.0");
-      setAddAuthMethod("API_KEY");
-      setAddSupportsWalletFunding(false);
-      setAddSupportsBankTransfer(false);
-      setAddSupportsCardPayment(false);
-      setAddSupportsVirtualAccount(false);
-      setAddSupportsPaymentLink(false);
-      setAddSupportsPayout(false);
-      setAddSupportsRefund(false);
-      setAddSupportsTxVerification(true);
-      setAddEnvironment("Production");
-      setAddStatus("ENABLED");
-      setToast("Clubkonnect preset applied. Please fill in your UserID (Merchant ID) and APIKey in API Credentials.");
     } else if (preset === "vtpass") {
       setAddName("VTpass Digital Services");
       setAddCategory("TELECOM_VTU");
@@ -881,13 +864,6 @@ export function AdminProvidersView() {
                 className="px-2.5 py-1 bg-white border border-emerald-400 text-emerald-950 rounded-lg font-bold transition cursor-pointer shrink-0 flex items-center gap-1 shadow-xs hover:bg-emerald-50"
               >
                 ⚡ Bigisub.ng (Airtime, Data, TV, Electric)
-              </button>
-              <button
-                type="button"
-                onClick={() => applyProviderPreset("clubkonnect")}
-                className="px-2.5 py-1 bg-white border border-amber-300 text-amber-900 rounded-lg font-medium transition cursor-pointer shrink-0 flex items-center gap-1 shadow-xs"
-              >
-                ⚡ Clubkonnect (VTU & Bills)
               </button>
               <button
                 type="button"

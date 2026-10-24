@@ -388,7 +388,7 @@ export const LEGAL_DOCUMENTS: LegalDocument[] = [
           "• API Key Confidentiality: You are strictly responsible for keeping your secret API keys (sk_live_*) confidential. You must never commit secret keys to public source code repositories or expose them in client-side mobile/browser applications.",
           "• Sandbox Testing: You agree to utilize the sandbox environment (sk_sandbox_*) for testing, mocking, and quality assurance prior to executing live, billable transactions on production rails.",
           "• Idempotency & Rate Limits: You must implement unique idempotency keys (X-Idempotency-Key) on non-idempotent financial operations and adhere to documented rate limits to prevent double-charging or service throttling.",
-          "• Automated Multi-Provider Routing: You acknowledge that SmartLink NG employs intelligent routing across licensed providers (e.g., LumiID, Clubkonnect, Aspfiy, Prembley) for maximum uptime. In the event of upstream registry downtime, automated failover protects availability, and zero wallet deductions occur on failed verifications.",
+          "• Automated Multi-Provider Routing: You acknowledge that SmartLink NG employs intelligent routing across licensed providers (e.g., LumiID, Bigisub, Aspfiy, Prembley) for maximum uptime. In the event of upstream registry downtime, automated failover protects availability, and zero wallet deductions occur on failed verifications.",
         ],
         callout: {
           type: "warning",

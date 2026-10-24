@@ -67,6 +67,7 @@ export function ProviderDetailDrawer({
   const [clientId, setClientId] = useState("");
   const [clientSecret, setClientSecret] = useState("");
   const [businessId, setBusinessId] = useState("");
+  const [pin, setPin] = useState("");
   const [timeoutMs, setTimeoutMs] = useState(5000);
   const [retryLimit, setRetryLimit] = useState(3);
 
@@ -162,6 +163,7 @@ export function ProviderDetailDrawer({
         setClientId(p.clientId || "");
         setClientSecret(p.clientSecret || "");
         setBusinessId(p.businessId || "");
+        setPin(p.pin || "");
         setTimeoutMs(p.timeoutMs || p.timeout || 5000);
         setRetryLimit(p.retryLimit || p.retryAttempts || 3);
 
@@ -271,6 +273,7 @@ export function ProviderDetailDrawer({
           isActive: status === "ENABLED",
           environment,
           isDefault,
+          pin,
         }),
       });
 
@@ -686,6 +689,22 @@ export function ProviderDetailDrawer({
                           required
                           className="w-full bg-white border border-emerald-300 rounded-xl px-3 py-2 text-xs font-mono text-[#111827] focus:outline-none focus:ring-2 focus:ring-emerald-500"
                         />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold uppercase text-emerald-900 block mb-1">
+                          Bigisub 4-Digit Transaction PIN
+                        </label>
+                        <input
+                          type="password"
+                          maxLength={6}
+                          value={pin}
+                          onChange={(e) => setPin(e.target.value)}
+                          placeholder="4-digit PIN configured on bigisub.ng (e.g. 1234)"
+                          className="w-full bg-white border border-emerald-300 rounded-xl px-3 py-2 text-xs font-mono text-[#111827] focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        />
+                        <span className="text-[10px] text-emerald-700 mt-0.5 block">
+                          Required by Bigisub API v2 to authorize live purchases of Airtime, Data, Electricity, and Cable TV.
+                        </span>
                       </div>
                     </div>
                   ) : (

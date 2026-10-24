@@ -869,8 +869,6 @@ export const AdminMultiProviderView: React.FC = () => {
                           ? "Prembley Portal (Identitypass)"
                           : pId === "identro"
                           ? "Identro Portal"
-                          : pId === "clubkonnect"
-                          ? "Clubkonnect Portal"
                           : pId === "vtpass"
                           ? "VTpass Digital Services"
                           : pId === "aspfiy"
@@ -886,7 +884,6 @@ export const AdminMultiProviderView: React.FC = () => {
                   >
                     <option value="">None (No Provider Assigned)</option>
                     <option value="bigisub">Bigisub Digital Gateway</option>
-                    <option value="clubkonnect">Clubkonnect Portal</option>
                     <option value="vtpass">VTpass Digital Services</option>
                     <option value="identro">Identro Portal</option>
                     <option value="lumiid">LumiID Portal</option>
@@ -911,8 +908,6 @@ export const AdminMultiProviderView: React.FC = () => {
                           ? "Prembley Portal (Identitypass)"
                           : pId === "identro"
                           ? "Identro Portal"
-                          : pId === "clubkonnect"
-                          ? "Clubkonnect Portal"
                           : pId === "vtpass"
                           ? "VTpass Digital Services"
                           : pId === "aspfiy"
@@ -928,7 +923,6 @@ export const AdminMultiProviderView: React.FC = () => {
                   >
                     <option value="">None (No Failover)</option>
                     <option value="bigisub">Bigisub Digital Gateway</option>
-                    <option value="clubkonnect">Clubkonnect Portal</option>
                     <option value="vtpass">VTpass Digital Services</option>
                     <option value="identro">Identro Portal</option>
                     <option value="lumiid">LumiID Portal</option>

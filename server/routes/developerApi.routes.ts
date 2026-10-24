@@ -865,16 +865,6 @@ router.post("/api/v1/sandbox/execute", async (req, res) => {
             supportedFeatures: ["MTN / Glo / Airtel / 9mobile", "SME Data", "Electricity Discos", "Cable TV (DStv, GOtv, Startimes)"],
           },
           {
-            id: "prov_clubkonnect",
-            name: "Clubkonnect VTU & SME Telecom Rails",
-            category: "TELECOM_VTU",
-            status: "OPERATIONAL",
-            health: "HEALTHY",
-            latencyMs: 310,
-            uptime: "99.95%",
-            supportedFeatures: ["MTN SME Data", "Airtel Gifting", "Glo Corporate", "Airtime Topups"],
-          },
-          {
             id: "prov_vtpass",
             name: "VTpass Power Discos & Utility Gateways",
             category: "UTILITY_BILL",
@@ -1291,7 +1281,7 @@ router.post("/api/v1/sandbox/execute", async (req, res) => {
  * -----------------------------------------------------------------------------
  * 3. LIVE PRODUCTION /api/v1/ REST API ENDPOINTS
  * Authenticated via Authorization: Bearer sk_live_...
- * Directly connected to Active Provider Adapters (VTpass / Clubkonnect / Prembley)
+ * Directly connected to Active Provider Adapters (VTpass / Bigisub / Prembley)
  * -----------------------------------------------------------------------------
  */
 
@@ -1329,27 +1319,47 @@ router.post("/api/v1/vtu/airtime", authenticateDeveloperApiKey, async (req: any,
     const adapter = activeConnector?.adapter;
     const config = activeConnector?.provider;
 
-    let providerResult: any = { success: true };
-    if (adapter && (adapter as any).purchaseAirtime && config) {
-      providerResult = await (adapter as any).purchaseAirtime({ network, phone, amount: cost }, config);
+    if (!adapter || typeof (adapter as any).purchaseAirtime !== "function" || !config) {
+      return res.status(503).json({
+        status: "error",
+        code: 503,
+        error: "Bigisub Digital Gateway is temporarily unavailable for airtime transactions.",
+        errorCode: "PROVIDER_UNAVAILABLE",
+      });
     }
 
-    // Debit Developer Wallet
+    const smartlinkRef = `DEV_AIR_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+    const providerResult = await (adapter as any).purchaseAirtime(
+      { network, phoneNumber: phone, amount: cost, reference: smartlinkRef },
+      config
+    );
+
+    if (!providerResult.success) {
+      return res.status(502).json({
+        status: "error",
+        code: 502,
+        error: providerResult.error || "Upstream provider rejected airtime purchase.",
+        errorCode: "PROVIDER_ERROR",
+        rawResponse: providerResult.rawResponse,
+      });
+    }
+
+    // Debit Developer Wallet only after verified provider execution
     if (!user.isSandbox) {
       await ServerWalletEngine.debitWallet(db, {
         userId: user.uid || user.id,
         amount: cost,
         serviceName: `${network} Airtime Topup`,
         description: `API Airtime Topup to ${phone}`,
-        provider: config?.name || "VTpass Digital Services",
+        provider: config?.name || "Bigisub Digital Gateway",
       });
     }
 
-    const txId = providerResult.transactionId || `TXN_AIR_${Date.now()}`;
+    const txId = providerResult.orderId || providerResult.transactionId || smartlinkRef;
     return res.status(200).json({
       status: "success",
       code: 200,
-      message: `₦${cost.toLocaleString()} ${network} airtime dispatched successfully.`,
+      message: `₦${cost.toLocaleString()} ${network} airtime dispatched successfully via Bigisub.`,
       transactionId: txId,
       network: String(network).toUpperCase(),
       recipient: String(phone),
@@ -1401,12 +1411,29 @@ router.post("/api/v1/vtu/data", authenticateDeveloperApiKey, async (req: any, re
     const adapter = activeConnector?.adapter;
     const config = activeConnector?.provider;
 
-    let providerResult: any = { success: true };
-    if (adapter && (adapter as any).purchaseData && config) {
-      providerResult = await (adapter as any).purchaseData(
-        { network, phone, variationCode: variationCode || planId, amount: estimatedCost },
-        config
-      );
+    if (!adapter || typeof (adapter as any).purchaseData !== "function" || !config) {
+      return res.status(503).json({
+        status: "error",
+        code: 503,
+        error: "Bigisub Digital Gateway is temporarily unavailable for data transactions.",
+        errorCode: "PROVIDER_UNAVAILABLE",
+      });
+    }
+
+    const smartlinkRef = `DEV_DATA_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+    const providerResult = await (adapter as any).purchaseData(
+      { network, phoneNumber: phone, planCode: planId || variationCode, reference: smartlinkRef },
+      config
+    );
+
+    if (!providerResult.success) {
+      return res.status(502).json({
+        status: "error",
+        code: 502,
+        error: providerResult.error || "Upstream provider rejected data bundle purchase.",
+        errorCode: "PROVIDER_ERROR",
+        rawResponse: providerResult.rawResponse,
+      });
     }
 
     if (!user.isSandbox) {
@@ -1415,15 +1442,15 @@ router.post("/api/v1/vtu/data", authenticateDeveloperApiKey, async (req: any, re
         amount: estimatedCost,
         serviceName: `${network} Data Bundle`,
         description: `API Data Purchase (${planId || variationCode}) to ${phone}`,
-        provider: config?.name || "VTpass Digital Services",
+        provider: config?.name || "Bigisub Digital Gateway",
       });
     }
 
     return res.status(200).json({
       status: "success",
       code: 200,
-      message: "Mobile data bundle credited successfully.",
-      transactionId: providerResult.transactionId || `TXN_DATA_${Date.now()}`,
+      message: "Mobile data bundle credited successfully via Bigisub.",
+      transactionId: providerResult.orderId || providerResult.transactionId || smartlinkRef,
       network: String(network).toUpperCase(),
       recipient: String(phone),
       plan: planId || variationCode || "1.0 GB SME (30 Days)",
@@ -1462,38 +1489,41 @@ router.post("/api/v1/bills/electricity/verify", authenticateDeveloperApiKey, asy
     const adapter = activeConnector?.adapter;
     const config = activeConnector?.provider;
 
-    if (adapter && (adapter as any).verifyMeter && config) {
-      const vResult = await (adapter as any).verifyMeter({ disco, meterNumber, meterType }, config);
-      if (vResult.success) {
-        return res.status(200).json({
-          status: "success",
-          code: 200,
-          message: "Meter record verified.",
-          data: {
-            disco: String(disco).toUpperCase(),
-            meterNumber: String(meterNumber),
-            customerName: vResult.customerName || "Verified Customer",
-            address: vResult.address || "",
-            meterType,
-          },
-          durationMs: Date.now() - startTime,
-        });
-      }
+    if (!adapter || typeof (adapter as any).validateElectricityCustomer !== "function" || !config) {
+      return res.status(503).json({
+        status: "error",
+        code: 503,
+        error: "Bigisub electricity validation service unavailable.",
+        errorCode: "PROVIDER_UNAVAILABLE",
+      });
     }
 
-    // Standard fallback simulation
-    return res.status(200).json({
-      status: "success",
-      code: 200,
-      message: "Meter record verified.",
-      data: {
-        disco: String(disco).toUpperCase(),
-        meterNumber: String(meterNumber),
-        customerName: "ALHAJI DANGOTE WAREHOUSE",
-        address: "Plot 14 Commercial District, Victoria Island, Lagos",
-        meterType,
-      },
-      durationMs: Date.now() - startTime,
+    const vResult = await (adapter as any).validateElectricityCustomer(
+      { electricCompany: disco, meterType, meterNo: meterNumber },
+      config
+    );
+
+    if (vResult.valid) {
+      return res.status(200).json({
+        status: "success",
+        code: 200,
+        message: "Meter record verified.",
+        data: {
+          disco: String(disco).toUpperCase(),
+          meterNumber: String(meterNumber),
+          customerName: vResult.customerName || "Verified Customer",
+          address: vResult.customerAddress || "",
+          meterType,
+        },
+        durationMs: Date.now() - startTime,
+      });
+    }
+
+    return res.status(422).json({
+      status: "error",
+      code: 422,
+      error: vResult.error || "Unable to verify meter number with electricity DISCO.",
+      errorCode: "INVALID_METER",
     });
   } catch (err: any) {
     return res.status(502).json({
@@ -1538,9 +1568,29 @@ router.post("/api/v1/bills/electricity/pay", authenticateDeveloperApiKey, async 
     const adapter = activeConnector?.adapter;
     const config = activeConnector?.provider;
 
-    let pResult: any = { success: true };
-    if (adapter && (adapter as any).purchaseElectricity && config) {
-      pResult = await (adapter as any).purchaseElectricity({ disco, meterNumber, amount: cost, phone, meterType }, config);
+    if (!adapter || typeof (adapter as any).payElectricity !== "function" || !config) {
+      return res.status(503).json({
+        status: "error",
+        code: 503,
+        error: "Bigisub electricity token purchase gateway unavailable.",
+        errorCode: "PROVIDER_UNAVAILABLE",
+      });
+    }
+
+    const smartlinkRef = `DEV_ELEC_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+    const pResult = await (adapter as any).payElectricity(
+      { electricCompany: disco, meterType, meterNo: meterNumber, amount: cost, phoneNumber: phone, reference: smartlinkRef },
+      config
+    );
+
+    if (!pResult.success) {
+      return res.status(502).json({
+        status: "error",
+        code: 502,
+        error: pResult.error || "Bigisub electricity purchase failed.",
+        errorCode: "PROVIDER_ERROR",
+        rawResponse: pResult.rawResponse,
+      });
     }
 
     if (!user.isSandbox) {
@@ -1549,20 +1599,17 @@ router.post("/api/v1/bills/electricity/pay", authenticateDeveloperApiKey, async 
         amount: cost,
         serviceName: `${disco} Electricity Recharge`,
         description: `API Meter Recharge (${meterNumber})`,
-        provider: config?.name || "VTpass Digital Services",
+        provider: config?.name || "Bigisub Digital Gateway",
       });
     }
-
-    const token = pResult.token || "4819-2049-1829-0192-3849";
-    const units = pResult.units || `${(cost / 115).toFixed(1)} kWh`;
 
     return res.status(200).json({
       status: "success",
       code: 200,
-      message: "Electricity recharge token generated.",
-      transactionId: pResult.transactionId || `TXN_ELEC_${Date.now()}`,
-      token,
-      units,
+      message: "Electricity recharge token generated successfully via Bigisub.",
+      transactionId: pResult.orderId || pResult.transactionId || smartlinkRef,
+      token: pResult.token || "",
+      units: pResult.units || "",
       amountPaid: cost,
       disco: String(disco).toUpperCase(),
       meterNumber: String(meterNumber),
@@ -1744,14 +1791,14 @@ router.get("/api/v1/providers/status", async (_req, res) => {
       supportedFeatures: ["Card Checkout", "Dedicated NUBANs", "Instant Settlements"],
     },
     {
-      id: "prov_clubkonnect",
-      name: "Clubkonnect VTU & SME Telecom Rails",
+      id: "prov_bigisub",
+      name: "Bigisub Digital Gateway",
       category: "TELECOM_VTU",
       status: "OPERATIONAL",
       health: "HEALTHY",
-      latencyMs: 310,
-      uptime: "99.95%",
-      supportedFeatures: ["MTN SME Data", "Airtel Gifting", "Glo Corporate", "Airtime Topups"],
+      latencyMs: 160,
+      uptime: "99.98%",
+      supportedFeatures: ["MTN SME Data", "Airtel Gifting", "Glo Corporate", "Airtime VTU", "Electricity Tokens", "Cable TV Subscriptions"],
     },
     {
       id: "prov_vtpass",
