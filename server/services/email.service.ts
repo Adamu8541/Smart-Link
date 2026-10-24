@@ -17,6 +17,27 @@ export interface SmtpConfig {
 let cachedTransporter: Transporter | null = null;
 let cachedConfigHash = "";
 
+export function normalizeSmtpHost(rawHost: string, userEmail: string = ""): string {
+  if (!rawHost) return "smtp.gmail.com";
+  let cleaned = rawHost.trim().toLowerCase();
+
+  // If user passed e.g. "gmtp@gmail.com", "smtp@gmail.com", "gmtp.gmail.com", "smatp@gmail.com", "gmail.com"
+  if (
+    cleaned.includes("gmail") ||
+    cleaned.includes("gmtp") ||
+    cleaned.includes("smatp") ||
+    cleaned === "gmail.com" ||
+    userEmail.trim().toLowerCase().endsWith("@gmail.com")
+  ) {
+    return "smtp.gmail.com";
+  }
+
+  // Strip prefix typos like smtp@, gmtp@, smatp@
+  cleaned = cleaned.replace(/^(smtp|gmtp|smatp)@/, "smtp.");
+
+  return cleaned;
+}
+
 export function resetSmtpTransporterCache() {
   if (cachedTransporter) {
     try {
@@ -39,16 +60,7 @@ export function getResolvedSmtpConfig(customDb?: any): {
   const db = customDb || readDB();
   const emailSettings: SmtpConfig = db.system_settings?.email || {};
 
-  let smtpHost = process.env.SMTP_HOST || process.env.AUTH_SMTP_HOST || emailSettings.smtpHost || "smtp.gmail.com";
-  
-  // Normalize and clean invalid hostname typos (e.g., "smtp@gmail.com" -> "smtp.gmail.com")
-  smtpHost = smtpHost.trim().toLowerCase();
-  if (smtpHost === "smtp@gmail.com" || smtpHost === "gmail.com" || smtpHost === "smtp@gmail") {
-    smtpHost = "smtp.gmail.com";
-  } else if (smtpHost.startsWith("smtp@")) {
-    smtpHost = smtpHost.replace(/^smtp@/, "smtp.");
-  }
-  const smtpPort = Number(process.env.SMTP_PORT || process.env.AUTH_SMTP_PORT || emailSettings.smtpPort || 587);
+  const rawHost = process.env.SMTP_HOST || process.env.AUTH_SMTP_HOST || emailSettings.smtpHost || "smtp.gmail.com";
   
   // Resolve username/email
   let smtpUser = 
@@ -64,6 +76,10 @@ export function getResolvedSmtpConfig(customDb?: any): {
       smtpUser = replyTo;
     }
   }
+
+  // Auto-normalize typos in host (e.g. gmtp@gmail.com, smatp@gmail.com -> smtp.gmail.com)
+  const smtpHost = normalizeSmtpHost(rawHost, smtpUser);
+  const smtpPort = Number(process.env.SMTP_PORT || process.env.AUTH_SMTP_PORT || emailSettings.smtpPort || 587);
 
   // Resolve password / app password
   let smtpPass = 
@@ -114,11 +130,16 @@ export function getResolvedSmtpConfig(customDb?: any): {
     };
   }
 
+  // Config changed or not cached: reset old pool
+  if (cachedTransporter) {
+    resetSmtpTransporterCache();
+  }
+
   try {
-    const isGmail = smtpHost.includes("gmail") || smtpUser.includes("@gmail.com");
+    const isGmail = smtpHost.includes("gmail") || smtpUser.toLowerCase().endsWith("@gmail.com");
     let transporter: Transporter;
 
-    if (isGmail && (!smtpHost || smtpHost === "smtp.gmail.com")) {
+    if (isGmail) {
       transporter = nodemailer.createTransport({
         service: "gmail",
         pool: true,             // Enable connection pooling
