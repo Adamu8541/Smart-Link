@@ -1,5 +1,39 @@
 import nodemailer, { type Transporter } from "nodemailer";
+import dns from "dns";
 import { readDB } from "../db";
+
+// Force Node.js global DNS resolver to prioritize IPv4
+try {
+  if (dns.setDefaultResultOrder) {
+    dns.setDefaultResultOrder("ipv4first");
+  }
+} catch (e) {}
+
+/**
+ * Custom DNS lookup handler that strictly returns IPv4 addresses (family: 4).
+ * This prevents Node.js from attempting unreachable IPv6 sockets on cloud hosts like Render.
+ */
+function forceIpv4Lookup(hostname: string, options: any, callback: any) {
+  if (typeof options === "function") {
+    callback = options;
+    options = {};
+  }
+  const opts = typeof options === "number" ? { family: 4 } : { ...(options || {}), family: 4 };
+
+  dns.lookup(hostname, opts, (err, address, family) => {
+    if (err || !address || (typeof address === "string" && address.includes(":"))) {
+      // If IPv6 returned or primary lookup failed, attempt explicit IPv4 resolution
+      dns.resolve4(hostname, (resErr, addresses) => {
+        if (!resErr && addresses && addresses.length > 0) {
+          return callback(null, addresses[0], 4);
+        }
+        return callback(err || new Error("IPv4 resolution failed"), address, family);
+      });
+      return;
+    }
+    return callback(null, address, 4);
+  });
+}
 
 export interface SmtpConfig {
   senderName?: string;
@@ -111,8 +145,8 @@ export function getResolvedSmtpConfig(customDb?: any): {
 
   let smtpPass = (rawEnvPass.trim() || emailSettings.smtpPassword || emailSettings.smtpPass || "").trim();
 
-  // Clean spaces from Google App Passwords (e.g. "abcd efgh ijkl mnop" -> "abcdefghijklmnop")
-  const cleanPass = smtpPass.replace(/\s+/g, "");
+  // Clean spaces and quotes from Google App Passwords
+  const cleanPass = smtpPass.replace(/\s+/g, "").replace(/['"]/g, "");
 
   // 5. Resolve Sender Name
   const senderName =
@@ -165,25 +199,11 @@ export function getResolvedSmtpConfig(customDb?: any): {
 
     if (isGmail) {
       transporter = nodemailer.createTransport({
-        service: "gmail",
         host: "smtp.gmail.com",
-        port: smtpPort,
-        secure: smtpPort === 465,
-        pool: true,
-        maxConnections: 5,
-        maxMessages: 100,
-        rateDelta: 1000,
-        rateLimit: 10,
-        auth: {
-          user: smtpUser,
-          pass: cleanPass,
-        },
-      });
-    } else {
-      transporter = nodemailer.createTransport({
-        host: smtpHost,
-        port: smtpPort,
-        secure: smtpPort === 465,
+        port: smtpPort === 587 ? 587 : 465,
+        secure: smtpPort !== 587,
+        lookup: forceIpv4Lookup,
+        family: 4, // Enforce IPv4 socket connection
         pool: true,
         maxConnections: 5,
         maxMessages: 100,
@@ -195,8 +215,31 @@ export function getResolvedSmtpConfig(customDb?: any): {
         },
         tls: {
           rejectUnauthorized: false,
+          minVersion: "TLSv1.2",
+          servername: "smtp.gmail.com",
         },
-      });
+      } as any);
+    } else {
+      transporter = nodemailer.createTransport({
+        host: smtpHost,
+        port: smtpPort,
+        secure: smtpPort === 465,
+        lookup: forceIpv4Lookup,
+        family: 4, // Enforce IPv4 socket connection
+        pool: true,
+        maxConnections: 5,
+        maxMessages: 100,
+        rateDelta: 1000,
+        rateLimit: 10,
+        auth: {
+          user: smtpUser,
+          pass: cleanPass,
+        },
+        tls: {
+          rejectUnauthorized: false,
+          servername: smtpHost,
+        },
+      } as any);
     }
 
     cachedTransporter = transporter;
@@ -218,7 +261,7 @@ export function getResolvedSmtpConfig(customDb?: any): {
 }
 
 /**
- * Global helper to send an email with robust error handling
+ * Global helper to send an email with robust error handling and automatic port fallback (465 <-> 587)
  */
 export async function sendPlatformEmail(
   options: {
@@ -261,7 +304,6 @@ export async function sendPlatformEmail(
   if (Array.isArray(options.attachments) && options.attachments.length > 0) {
     resolvedAttachments = options.attachments.map((att) => {
       if (att.base64Content) {
-        // Strip data:mime;base64, prefix if present
         const pureBase64 = att.base64Content.replace(/^data:[^;]+;base64,/, "");
         return {
           filename: att.filename,
@@ -273,24 +315,72 @@ export async function sendPlatformEmail(
     });
   }
 
-  try {
-    const info = await transporter.sendMail({
-      from: activeFrom,
-      to: options.to,
-      subject: options.subject,
-      html: options.html,
-      text: options.text,
-      replyTo: options.replyTo || config.replyToAddress || config.smtpUser,
-      attachments: resolvedAttachments,
-    });
+  const mailData = {
+    from: activeFrom,
+    to: options.to,
+    subject: options.subject,
+    html: options.html,
+    text: options.text,
+    replyTo: options.replyTo || config.replyToAddress || config.smtpUser,
+    attachments: resolvedAttachments,
+  };
 
+  try {
+    const info = await transporter.sendMail(mailData);
     return {
       success: true,
       messageId: info.messageId,
       message: `Email successfully sent to ${options.to}`,
     };
   } catch (err: any) {
-    console.error("[EmailService] Failed to send email:", err);
+    const errMsg = err.message || "";
+    console.error("[EmailService] Primary dispatch attempt failed:", errMsg);
+
+    // If socket error or connection error (ENETUNREACH, ETIMEDOUT, ECONNREFUSED), try fallback port (587 or 465)
+    if (
+      errMsg.includes("ENETUNREACH") ||
+      errMsg.includes("ETIMEDOUT") ||
+      errMsg.includes("ECONNREFUSED") ||
+      errMsg.includes("connect")
+    ) {
+      console.warn("[EmailService] Triggering fallback IPv4 transporter on alternate port...");
+      try {
+        const fallbackPort = Number(config.smtpPort) === 587 ? 465 : 587;
+        const cleanPass = (config.smtpPass || "").replace(/\s+/g, "").replace(/['"]/g, "");
+
+        const fallbackTransporter = nodemailer.createTransport({
+          host: config.smtpHost || "smtp.gmail.com",
+          port: fallbackPort,
+          secure: fallbackPort === 465,
+          lookup: forceIpv4Lookup,
+          family: 4,
+          auth: {
+            user: config.smtpUser,
+            pass: cleanPass,
+          },
+          tls: {
+            rejectUnauthorized: false,
+            minVersion: "TLSv1.2",
+            servername: config.smtpHost || "smtp.gmail.com",
+          },
+        } as any);
+
+        const fallbackInfo = await fallbackTransporter.sendMail(mailData);
+        return {
+          success: true,
+          messageId: fallbackInfo.messageId,
+          message: `Email successfully sent to ${options.to} via fallback port ${fallbackPort}`,
+        };
+      } catch (fallbackErr: any) {
+        console.error("[EmailService] Fallback dispatch also failed:", fallbackErr.message);
+        return {
+          success: false,
+          message: `Failed to dispatch email: ${fallbackErr.message}`,
+          error: fallbackErr.message,
+        };
+      }
+    }
+
     return {
       success: false,
       message: `Failed to dispatch email: ${err.message}`,
