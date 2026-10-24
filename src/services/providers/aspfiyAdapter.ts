@@ -117,8 +117,15 @@ export class AspfiyAdapter implements ProviderAdapter {
   }
 
   private getResolvedKey(config: PaymentProviderConfig): string {
-    const envKey = String(process.env.ASPFIY_SECRET_KEY || process.env.ASPFIY_API_KEY || "").trim();
-    return envKey.replace(/^bearer\s+/i, "").trim();
+    const rawKey = String(
+      process.env.ASPFIY_SECRET_KEY ||
+      process.env.ASPFIY_API_KEY ||
+      config?.secretKey ||
+      config?.apiKey ||
+      config?.api_key ||
+      ""
+    ).trim();
+    return rawKey.replace(/^bearer\s+/i, "").trim();
   }
 
   private maskSecretForLogs(secret: string): string {

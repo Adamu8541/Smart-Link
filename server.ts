@@ -166,8 +166,14 @@ const transactionLimiter = rateLimit({
   }
 });
 
-// Mount Rate Limiters
-app.use("/api", generalApiLimiter);
+// Mount Rate Limiters (webhooks exempted from strict client rate limits)
+app.use((req, res, next) => {
+  const p = req.path.toLowerCase();
+  if (p.includes("webhook") || p.includes("reconcil")) {
+    return next();
+  }
+  return generalApiLimiter(req, res, next);
+});
 app.use([
   "/api/auth/login",
   "/api/auth/register",
@@ -205,18 +211,32 @@ app.use(
 
 // Body parser error handler: Ensure API requests never receive raw HTML 413 or 400 error pages
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  if (err && req.path.startsWith("/api/")) {
-    console.warn(`[API Body Error] ${req.method} ${req.path}:`, err.message || err);
-    if (err.type === "entity.too.large" || err.status === 413) {
-      return res.status(413).json({
-        success: false,
-        error: "The uploaded file(s) or submission payload is too large. Please upload smaller documents or photos.",
+  if (err) {
+    const p = req.path.toLowerCase();
+    if (p.includes("webhook") || p.includes("reconcil")) {
+      console.warn(`[Webhook Body Error] ${req.method} ${req.path}:`, err.message || err);
+      return res.status(200).json({
+        status: "SUCCESS",
+        success: true,
+        responseCode: "0",
+        message: "Webhook payload received and acknowledged safely.",
+        warning: err.message || "Malformed payload handled safely.",
       });
     }
-    return res.status(err.status || 400).json({
-      success: false,
-      error: err.message || "Invalid submission payload.",
-    });
+
+    if (req.path.startsWith("/api/")) {
+      console.warn(`[API Body Error] ${req.method} ${req.path}:`, err.message || err);
+      if (err.type === "entity.too.large" || err.status === 413) {
+        return res.status(413).json({
+          success: false,
+          error: "The uploaded file(s) or submission payload is too large. Please upload smaller documents or photos.",
+        });
+      }
+      return res.status(err.status || 400).json({
+        success: false,
+        error: err.message || "Invalid submission payload.",
+      });
+    }
   }
   next(err);
 });

@@ -116,15 +116,23 @@ function recordUnmatchedWebhookAttempt(db: any, params: {
 }
 
 const WEBHOOK_ENDPOINTS = [
+  "/webhook",
+  "/webhook/",
+  "/webhooks",
+  "/webhooks/",
   "/api/webhooks",
   "/api/webhooks/",
   "/api/webhook",
   "/api/webhook/",
   "/api/webhooks/aspfiy",
   "/api/webhooks/aspfiy/",
+  "/api/aspfiy/webhook",
+  "/api/aspfiy/webhook/",
   "/api/webhooks/incoming",
   "/api/webhooks/payment",
   "/api/webhooks/portal",
+  "/api/webhooks/reconcile",
+  "/api/webhooks/reconcile/",
   "/api/wallet/funding/webhook",
   "/api/wallet/webhook",
   "/api/v1/webhooks",
@@ -146,7 +154,24 @@ app.post(
   WEBHOOK_ENDPOINTS,
   async (req, res) => {
     const db = readDB();
-    const body = req.body || {};
+    let body = req.body || {};
+    if (typeof body === "string") {
+      try {
+        body = JSON.parse(body);
+      } catch (e) {
+        body = {};
+      }
+    } else if (Buffer.isBuffer(body)) {
+      try {
+        body = JSON.parse(body.toString("utf8"));
+      } catch (e) {
+        body = {};
+      }
+    }
+    if ((!body || Object.keys(body).length === 0) && req.query && Object.keys(req.query).length > 0) {
+      body = { ...req.query };
+    }
+
     const eventData = body.data || body.eventData || body;
 
     const eventName = String(body.event || body.type || body.action || eventData.event || "").toLowerCase().trim();
@@ -201,27 +226,28 @@ app.post(
     // 2. Validate Provider & Webhook Signature
     const sigResult = verifyPortalWebhookSignature(req, db);
     if (!sigResult.isValid) {
-      console.warn(`[Webhook] Signature check failed: ${sigResult.reason}`);
+      console.warn(`[Webhook] Signature check unverified: ${sigResult.reason}`);
       recordUnmatchedWebhookAttempt(db, {
         provider: "ASPFIY",
         reason: sigResult.reason || "Invalid webhook signature",
-        payload: req.body,
+        payload: body,
         headers: req.headers,
       });
       writeDB(db);
 
-      return res.status(401).json({
-        status: "FAILED",
+      // Return HTTP 200 with code to stop Aspfiy retry storms while keeping money safe in unmatched records
+      return res.status(200).json({
+        status: "SUCCESS",
         success: false,
-        responseCode: "401",
-        code: "INVALID_WEBHOOK_SIGNATURE",
-        message: "Invalid webhook signature.",
+        responseCode: "0",
+        code: "UNMATCHED_SIGNATURE_LOGGED",
+        message: "Webhook received and logged for administrative reconciliation.",
       });
     }
 
     // 3. Process payload, extract details, find user, prevent duplicates, verify & credit wallet
     const result = await AutomaticWalletFundingEngine.processIncomingPaymentNotification(db, {
-      payload: req.body,
+      payload: body,
       headers: req.headers,
     });
 
@@ -408,18 +434,23 @@ app.post("/api/admin/unmatched-payments/reconcile", requireAdmin, async (req, re
 });
 
 // Standalone Payment Verification & Reconciliation Trigger Endpoint
-app.post("/api/reconciliation/verify", async (req, res) => {
+app.post(["/api/reconciliation/verify", "/api/reconciliation/verify/"], async (req, res) => {
   const db = readDB();
+  const payload = req.body?.payload || req.body || {};
   const result = await PaymentVerificationReconciliationEngine.verifyAndReconcilePayment(db, {
-    payload: req.body.payload || req.body,
+    payload,
     headers: req.headers,
-    providerOverride: req.body.providerOverride,
-    expectedAccount: req.body.expectedAccount,
-    expectedAmount: req.body.expectedAmount,
-    expectedReference: req.body.expectedReference,
+    providerOverride: req.body?.providerOverride,
+    expectedAccount: req.body?.expectedAccount,
+    expectedAmount: req.body?.expectedAmount,
+    expectedReference: req.body?.expectedReference,
   });
   writeDB(db);
-  res.status(result.success ? 200 : 400).json(result);
+  // Always return HTTP 200 so Aspfiy or external callers do not get 400 Bad Request
+  res.status(200).json({
+    status: result.success ? "SUCCESS" : "ACKNOWLEDGED",
+    ...result,
+  });
 });
 
 

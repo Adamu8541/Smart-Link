@@ -42,6 +42,27 @@
       "recipientDetails": "smartlinkcomputerbusiness@gmail.com",
       "type": "WALLET_FUNDING",
       "idempotencyKey": "ASP-MATCHED-1792825646"
+    },
+    {
+      "id": "tx_2yptr8d",
+      "transactionId": "tx_2yptr8d",
+      "reference": "TEST_DEV_ASP_99",
+      "userId": "usr_smartlink_demo",
+      "userEmail": "smartlinkcomputerbusiness@gmail.com",
+      "serviceName": "Automated Virtual Account Top-Up",
+      "amount": 350,
+      "currency": "NGN",
+      "fee": 0,
+      "walletBalanceBefore": 2750,
+      "walletBalanceAfter": 3100,
+      "status": "SUCCESS",
+      "provider": "Aspfiy Payment Portal",
+      "description": "Verified deposit received via Aspfiy Payment Portal (Ref: TEST_DEV_ASP_99)",
+      "createdAt": "2026-10-24T07:39:26.523Z",
+      "updatedAt": "2026-10-24T07:39:26.523Z",
+      "recipientDetails": "smartlinkcomputerbusiness@gmail.com",
+      "type": "WALLET_FUNDING",
+      "idempotencyKey": "TEST_DEV_ASP_99"
     }
   ],
   "cacApplications": [],
@@ -189,8 +210,8 @@
       "baseUrl": "https://api-v1.aspfiy.com",
       "apiVersion": "v1.0",
       "authMethod": "BEARER_TOKEN",
-      "publicKey": "",
-      "apiKey": "",
+      "publicKey": "Aspfiy-PUB-KEY-b33e9ab1feffe36fd00ff44ad1fba21fd88ffe45f1e6d1da",
+      "apiKey": "Aspfiy-SEC-KEY-f3a18caa07137555b7cb6ce794e36e075a3eaf7f6340ab44",
       "webhookUrl": "https://smartlinkng.com.ng/api/webhooks/aspfiy",
       "webhookSignatureMethod": "MD5_OF_SECRET",
       "webhookSignatureHeaderName": "x-wiaxy-signature",
@@ -206,7 +227,7 @@
       "supportsTxVerification": true,
       "timeout": 10000,
       "retryAttempts": 3,
-      "healthStatus": "OFFLINE",
+      "healthStatus": "ONLINE",
       "priority": 1,
       "environment": "PRODUCTION",
       "status": "ENABLED",
@@ -221,11 +242,11 @@
       "failedUrl": "",
       "cancelUrl": "",
       "isDefault": false,
-      "updatedAt": "2026-10-17T22:05:56.684Z",
-      "lastTested": "2026-10-08T07:06:06.569Z",
-      "avgResponseTimeMs": 0,
-      "connectionStatus": "Disconnected",
-      "secretKey": "",
+      "updatedAt": "2026-10-24T06:55:43.407Z",
+      "lastTested": "2026-10-24T07:48:42.926Z",
+      "avgResponseTimeMs": 2316,
+      "connectionStatus": "Connected",
+      "secretKey": "Aspfiy-SEC-KEY-f3a18caa07137555b7cb6ce794e36e075a3eaf7f6340ab44",
       "keySource": "SERVER_ENVIRONMENT_VARIABLE"
     },
     {
@@ -257,7 +278,8 @@
       "environment": "PRODUCTION",
       "status": "ENABLED",
       "enabled": true,
-      "isActive": true
+      "isActive": true,
+      "isDefault": false
     },
     {
       "id": "prov_verifyng",
@@ -288,7 +310,8 @@
       "environment": "PRODUCTION",
       "status": "ENABLED",
       "enabled": true,
-      "isActive": true
+      "isActive": true,
+      "isDefault": false
     },
     {
       "id": "prov_clubkonnect",
@@ -315,11 +338,12 @@
       "timeout": 15000,
       "retryAttempts": 3,
       "healthStatus": "ONLINE",
-      "priority": 5,
+      "priority": 15,
       "environment": "PRODUCTION",
       "status": "ENABLED",
       "enabled": true,
-      "isActive": true
+      "isActive": true,
+      "isDefault": false
     },
     {
       "id": "prov_identro",
@@ -350,7 +374,8 @@
       "environment": "PRODUCTION",
       "status": "ENABLED",
       "enabled": true,
-      "isActive": true
+      "isActive": true,
+      "isDefault": false
     },
     {
       "id": "prov_prembley",
@@ -380,7 +405,8 @@
       "environment": "PRODUCTION",
       "status": "ENABLED",
       "enabled": true,
-      "isActive": true
+      "isActive": true,
+      "isDefault": false
     },
     {
       "id": "prov_vtpass",
@@ -415,7 +441,8 @@
       "environment": "PRODUCTION",
       "status": "ENABLED",
       "enabled": true,
-      "isActive": true
+      "isActive": true,
+      "isDefault": false
     },
     {
       "id": "prov_bigisub",
@@ -447,7 +474,7 @@
       "timeout": 15000,
       "retryAttempts": 3,
       "healthStatus": "ONLINE",
-      "priority": 8,
+      "priority": 1,
       "environment": "PRODUCTION",
       "status": "ENABLED",
       "enabled": true,
@@ -473,7 +500,7 @@
       "rsaPublicKey": "",
       "rsaPrivateKey": "",
       "hmacSecret": "",
-      "isDefault": false,
+      "isDefault": true,
       "updatedAt": "2026-10-15T13:42:25.391Z"
     }
   ],
@@ -630,8 +657,8 @@
       "baseUrl": "https://api-v1.aspfiy.com",
       "apiVersion": "v1.0",
       "authMethod": "BEARER_TOKEN",
-      "publicKey": "",
-      "apiKey": "",
+      "publicKey": "Aspfiy-PUB-KEY-b33e9ab1feffe36fd00ff44ad1fba21fd88ffe45f1e6d1da",
+      "apiKey": "Aspfiy-SEC-KEY-f3a18caa07137555b7cb6ce794e36e075a3eaf7f6340ab44",
       "webhookUrl": "https://smartlinkng.com.ng/api/webhooks/aspfiy",
       "webhookSignatureMethod": "MD5_OF_SECRET",
       "webhookSignatureHeaderName": "x-wiaxy-signature",
@@ -647,7 +674,7 @@
       "supportsTxVerification": true,
       "timeout": 10000,
       "retryAttempts": 3,
-      "healthStatus": "OFFLINE",
+      "healthStatus": "ONLINE",
       "priority": 1,
       "environment": "PRODUCTION",
       "status": "ENABLED",
@@ -662,11 +689,11 @@
       "failedUrl": "",
       "cancelUrl": "",
       "isDefault": false,
-      "updatedAt": "2026-10-17T22:05:56.684Z",
-      "lastTested": "2026-10-08T07:06:06.569Z",
-      "avgResponseTimeMs": 0,
-      "connectionStatus": "Disconnected",
-      "secretKey": "",
+      "updatedAt": "2026-10-24T06:55:43.407Z",
+      "lastTested": "2026-10-24T07:48:42.926Z",
+      "avgResponseTimeMs": 2316,
+      "connectionStatus": "Connected",
+      "secretKey": "Aspfiy-SEC-KEY-f3a18caa07137555b7cb6ce794e36e075a3eaf7f6340ab44",
       "keySource": "SERVER_ENVIRONMENT_VARIABLE"
     },
     {
@@ -698,7 +725,8 @@
       "environment": "PRODUCTION",
       "status": "ENABLED",
       "enabled": true,
-      "isActive": true
+      "isActive": true,
+      "isDefault": false
     },
     {
       "id": "prov_verifyng",
@@ -729,7 +757,8 @@
       "environment": "PRODUCTION",
       "status": "ENABLED",
       "enabled": true,
-      "isActive": true
+      "isActive": true,
+      "isDefault": false
     },
     {
       "id": "prov_clubkonnect",
@@ -756,11 +785,12 @@
       "timeout": 15000,
       "retryAttempts": 3,
       "healthStatus": "ONLINE",
-      "priority": 5,
+      "priority": 15,
       "environment": "PRODUCTION",
       "status": "ENABLED",
       "enabled": true,
-      "isActive": true
+      "isActive": true,
+      "isDefault": false
     },
     {
       "id": "prov_identro",
@@ -791,7 +821,8 @@
       "environment": "PRODUCTION",
       "status": "ENABLED",
       "enabled": true,
-      "isActive": true
+      "isActive": true,
+      "isDefault": false
     },
     {
       "id": "prov_prembley",
@@ -821,7 +852,8 @@
       "environment": "PRODUCTION",
       "status": "ENABLED",
       "enabled": true,
-      "isActive": true
+      "isActive": true,
+      "isDefault": false
     },
     {
       "id": "prov_vtpass",
@@ -856,7 +888,8 @@
       "environment": "PRODUCTION",
       "status": "ENABLED",
       "enabled": true,
-      "isActive": true
+      "isActive": true,
+      "isDefault": false
     },
     {
       "id": "prov_bigisub",
@@ -888,7 +921,7 @@
       "timeout": 15000,
       "retryAttempts": 3,
       "healthStatus": "ONLINE",
-      "priority": 8,
+      "priority": 1,
       "environment": "PRODUCTION",
       "status": "ENABLED",
       "enabled": true,
@@ -914,7 +947,7 @@
       "rsaPublicKey": "",
       "rsaPrivateKey": "",
       "hmacSecret": "",
-      "isDefault": false,
+      "isDefault": true,
       "updatedAt": "2026-10-15T13:42:25.391Z"
     }
   ],
@@ -2155,13 +2188,57 @@
   ],
   "processed_payment_references": [
     "ASP-TEST-1792825507",
-    "ASP-MATCHED-1792825646"
+    "ASP-MATCHED-1792825646",
+    "TEST_DEV_ASP_99"
   ],
   "processed_provider_tx_ids": [
     "ASP-TEST-1792825507",
-    "ASP-MATCHED-1792825646"
+    "ASP-MATCHED-1792825646",
+    "TEST_DEV_ASP_99"
   ],
   "reconciliation_records": [
+    {
+      "id": "rec_1792827566523_9179",
+      "paymentReference": "TEST_DEV_ASP_99",
+      "providerTransactionId": "TEST_DEV_ASP_99",
+      "provider": "Aspfiy Payment Portal",
+      "amount": 350,
+      "accountNumber": "2616561719",
+      "status": "VERIFIED",
+      "userId": "usr_smartlink_demo",
+      "userEmail": "smartlinkcomputerbusiness@gmail.com",
+      "walletId": "wlt_usr_smartlink_demo",
+      "date": "2026-10-24T07:39:26.523Z",
+      "verificationResult": {
+        "verified": true,
+        "matched": true,
+        "providerName": "Aspfiy Payment Portal",
+        "providerResponseCode": "CHARGE.COMPLETED",
+        "comparisonDetails": {
+          "amountMatch": true,
+          "referenceMatch": true,
+          "accountMatch": true,
+          "providerTxIdMatch": true,
+          "statusMatch": true,
+          "verifiedAmount": 350,
+          "verifiedReference": "TEST_DEV_ASP_99",
+          "verifiedAccount": "2616561719"
+        },
+        "message": "Payment verified and matched successfully."
+      },
+      "rawPayload": {
+        "event": "charge.completed",
+        "data": {
+          "reference": "TEST_DEV_ASP_99",
+          "amount": 350,
+          "account": {
+            "account_number": "2616561719"
+          }
+        }
+      },
+      "createdAt": "2026-10-24T07:39:26.523Z",
+      "updatedAt": "2026-10-24T07:39:26.523Z"
+    },
     {
       "id": "rec_1792825647411_5230",
       "paymentReference": "ASP-MATCHED-1792825646",
@@ -2461,6 +2538,43 @@
       "recipientDetails": "smartlinkcomputerbusiness@gmail.com",
       "type": "WALLET_FUNDING",
       "idempotencyKey": "ASP-MATCHED-1792825646"
+    },
+    {
+      "id": "tx_2yptr8d",
+      "transactionId": "tx_2yptr8d",
+      "reference": "TEST_DEV_ASP_99",
+      "userId": "usr_smartlink_demo",
+      "userEmail": "smartlinkcomputerbusiness@gmail.com",
+      "serviceName": "Automated Virtual Account Top-Up",
+      "amount": 350,
+      "currency": "NGN",
+      "fee": 0,
+      "walletBalanceBefore": 2750,
+      "walletBalanceAfter": 3100,
+      "status": "SUCCESS",
+      "provider": "Aspfiy Payment Portal",
+      "description": "Verified deposit received via Aspfiy Payment Portal (Ref: TEST_DEV_ASP_99)",
+      "createdAt": "2026-10-24T07:39:26.523Z",
+      "updatedAt": "2026-10-24T07:39:26.523Z",
+      "recipientDetails": "smartlinkcomputerbusiness@gmail.com",
+      "type": "WALLET_FUNDING",
+      "idempotencyKey": "TEST_DEV_ASP_99"
     }
-  ]
+  ],
+  "provider_health": [],
+  "provider_logs": [
+    {
+      "id": "PING_1792828122926",
+      "providerId": "prov_aspfiy",
+      "providerName": "Aspfiy Payment Portal",
+      "adminEmail": "admin@smartlink.ng",
+      "action": "CONNECTION_TEST",
+      "result": "SUCCESS",
+      "latencyMs": 2316,
+      "endpointTested": "https://api-v1.aspfiy.com",
+      "details": "Connected successfully to Aspfiy Payment Portal (2316ms)",
+      "timestamp": "2026-10-24T07:48:42.926Z"
+    }
+  ],
+  "provider_failovers": []
 }
