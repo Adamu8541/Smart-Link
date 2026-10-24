@@ -112,17 +112,47 @@ export async function getFilteredRecipients(criteria: {
     }
   }
 
+  // Build map of registered platform users for fast metadata enrichment
+  const userMap = new Map<string, RecipientUser>();
+  for (const u of allRecipients) {
+    if (u.email) userMap.set(u.email.toLowerCase().trim(), u);
+  }
+
+  if (criteria.mode === "individual" || criteria.mode === "selective") {
+    const results: RecipientUser[] = [];
+    const seen = new Set<string>();
+
+    for (const rawEmail of criteria.selectedEmails || []) {
+      const cleanEmail = rawEmail.toLowerCase().trim();
+      if (!cleanEmail || !cleanEmail.includes("@") || unsubscribedSet.has(cleanEmail) || seen.has(cleanEmail)) {
+        continue;
+      }
+      seen.add(cleanEmail);
+
+      const existingUser = userMap.get(cleanEmail);
+      if (existingUser) {
+        results.push(existingUser);
+      } else {
+        // Retain custom typed or uploaded email addresses
+        results.push({
+          email: cleanEmail,
+          name: cleanEmail.split("@")[0],
+          walletBalance: 0,
+          isVerified: true,
+          createdAt: new Date().toISOString(),
+          source: "json",
+        });
+      }
+    }
+    return results;
+  }
+
   const validRecipients = allRecipients.filter((u) => {
     const email = u.email.toLowerCase().trim();
     if (!email || !email.includes("@")) return false;
     if (unsubscribedSet.has(email)) return false;
     return true;
   });
-
-  if (criteria.mode === "individual" || criteria.mode === "selective") {
-    const targetSet = new Set((criteria.selectedEmails || []).map((e) => e.toLowerCase().trim()));
-    return validRecipients.filter((u) => targetSet.has(u.email.toLowerCase().trim()));
-  }
 
   const now = Date.now();
   const ONE_DAY = 24 * 60 * 60 * 1000;

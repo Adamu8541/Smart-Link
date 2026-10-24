@@ -49,8 +49,8 @@ router.get("/api/admin/emails/recipients", async (req, res) => {
   }
 });
 
-// 2. GET /api/admin/emails/directory - Get user directory
-router.get("/api/admin/emails/directory", async (req, res) => {
+// 2. GET /api/admin/emails/directory & /recipients-list - Get user directory
+router.get(["/api/admin/emails/directory", "/api/admin/emails/recipients-list"], async (req, res) => {
   const auth = await verifyAdmin(req, res);
   if (!auth.valid) return res.status(401).json({ success: false, message: auth.error });
 
@@ -59,48 +59,115 @@ router.get("/api/admin/emails/directory", async (req, res) => {
     return res.json({
       success: true,
       users: allUsers,
+      count: allUsers.length,
     });
   } catch (err: any) {
     return res.status(500).json({ success: false, message: err.message || "Failed to fetch user directory" });
   }
 });
 
-// 3. POST /api/admin/emails/campaigns - Create & dispatch email campaign
-router.post("/api/admin/emails/campaigns", async (req, res) => {
+// 3. POST /api/admin/emails/send & /api/admin/emails/campaigns - Unified dispatch endpoint
+router.post(["/api/admin/emails/send", "/api/admin/emails/campaigns", "/api/admin/emails/dispatch"], async (req, res) => {
   const auth = await verifyAdmin(req, res);
   if (!auth.valid) return res.status(401).json({ success: false, message: auth.error });
 
   const {
+    isTest,
+    testEmail,
     title,
     subject,
     senderName = "SmartLink NG",
     recipientMode = "all",
     filterType = "all",
     selectedEmails = [],
+    recipients = [],
     templateId,
     body,
+    message,
     bannerHeadline,
     ctaLabel,
     ctaUrl,
     attachments = [],
   } = req.body;
 
-  if (!subject || !subject.trim()) {
-    return res.status(400).json({ success: false, message: "Email subject is required." });
+  const emailSubject = (subject || title || "").trim();
+  const emailBody = (body || message || "").trim();
+
+  if (!emailSubject) {
+    return res.status(400).json({ success: false, message: "Email subject line is required." });
   }
-  if (!body || !body.trim()) {
+  if (!emailBody) {
     return res.status(400).json({ success: false, message: "Email message body is required." });
   }
 
+  // Handle single test email dispatch mode
+  if (isTest || testEmail) {
+    const targetEmail = (testEmail || auth.email || "").trim();
+    if (!targetEmail || !targetEmail.includes("@")) {
+      return res.status(400).json({ success: false, message: "Valid test email address is required." });
+    }
+
+    try {
+      const html = renderNewsletterHtml({
+        subject: emailSubject,
+        body: emailBody,
+        senderName,
+        bannerHeadline: bannerHeadline || "Test Broadcast Notice",
+        ctaLabel: ctaLabel || "View Dashboard",
+        ctaUrl: ctaUrl || "https://smartlinkng.com.ng/dashboard",
+        recipientName: "Admin Tester",
+        recipientEmail: targetEmail,
+        walletBalance: 25000.0,
+      });
+
+      const formattedAttachments = Array.isArray(attachments) ? attachments.map((att: any) => ({
+        filename: att.filename || att.name || "attachment",
+        base64Content: att.base64Content || att.data || att.content || "",
+        contentType: att.contentType || att.type || "application/octet-stream",
+      })).filter(att => att.base64Content) : [];
+
+      const result = await sendPlatformEmail({
+        to: targetEmail,
+        subject: `[TEST] ${emailSubject}`,
+        html,
+        senderName,
+        attachments: formattedAttachments,
+      });
+
+      if (result.success) {
+        return res.json({
+          success: true,
+          message: `Test email successfully dispatched to ${targetEmail}. Check your inbox!`,
+          messageId: result.messageId,
+        });
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: result.message || result.error || "Failed to dispatch test email.",
+        });
+      }
+    } catch (err: any) {
+      return res.status(500).json({ success: false, message: err.message || "Failed to send test email" });
+    }
+  }
+
+  // Handle main campaign broadcast
   try {
-    const recipients = await getFilteredRecipients({
+    let rawRecipients: string[] = [];
+    if (Array.isArray(recipients) && recipients.length > 0) {
+      rawRecipients = recipients.map((r: any) => (typeof r === "string" ? r : r.email || "")).filter(Boolean);
+    } else if (Array.isArray(selectedEmails) && selectedEmails.length > 0) {
+      rawRecipients = selectedEmails;
+    }
+
+    const filteredRecipients = await getFilteredRecipients({
       mode: recipientMode,
-      selectedEmails,
+      selectedEmails: rawRecipients,
       filterType,
     });
 
-    if (recipients.length === 0) {
-      return res.status(400).json({ success: false, message: "No valid recipients found matching the criteria." });
+    if (filteredRecipients.length === 0) {
+      return res.status(400).json({ success: false, message: "No valid recipients found matching the specified criteria." });
     }
 
     const campaignId = `CAMP_${Date.now()}`;
@@ -109,19 +176,19 @@ router.post("/api/admin/emails/campaigns", async (req, res) => {
     if (supaAdmin) {
       await supaAdmin.from("email_campaigns").insert({
         id: campaignId,
-        title: title || subject,
-        subject,
+        title: emailSubject,
+        subject: emailSubject,
         sender_name: senderName,
         recipient_mode: recipientMode,
-        filter_criteria: { filterType, selectedCount: selectedEmails.length },
-        recipients_list: selectedEmails,
+        filter_criteria: { filterType, count: filteredRecipients.length },
+        recipients_list: rawRecipients,
         template_id: templateId || null,
-        body,
+        body: emailBody,
         banner_headline: bannerHeadline || null,
         cta_label: ctaLabel || null,
         cta_url: ctaUrl || null,
         status: "processing",
-        total_count: recipients.length,
+        total_count: filteredRecipients.length,
         sent_count: 0,
         failed_count: 0,
       });
@@ -131,11 +198,11 @@ router.post("/api/admin/emails/campaigns", async (req, res) => {
     if (!db.email_campaigns) db.email_campaigns = [];
     db.email_campaigns.unshift({
       id: campaignId,
-      title: title || subject,
-      subject,
+      title: emailSubject,
+      subject: emailSubject,
       senderName,
       recipientMode,
-      totalCount: recipients.length,
+      totalCount: filteredRecipients.length,
       sentCount: 0,
       failedCount: 0,
       status: "processing",
@@ -151,30 +218,31 @@ router.post("/api/admin/emails/campaigns", async (req, res) => {
 
     dispatchEmailCampaign({
       campaignId,
-      subject,
-      body,
+      subject: emailSubject,
+      body: emailBody,
       senderName,
       bannerHeadline,
       ctaLabel,
       ctaUrl,
-      recipients,
+      recipients: filteredRecipients,
       attachments: formattedAttachments,
     });
 
     return res.json({
       success: true,
-      message: `Email campaign successfully queued for ${recipients.length} recipients.`,
+      message: `Email campaign successfully queued for ${filteredRecipients.length} recipients.`,
       campaignId,
-      totalRecipients: recipients.length,
+      totalRecipients: filteredRecipients.length,
+      sentCount: filteredRecipients.length,
     });
   } catch (err: any) {
-    console.error("[EmailCampaigns] Create campaign error:", err);
-    return res.status(500).json({ success: false, message: err.message || "Failed to create campaign" });
+    console.error("[EmailCampaigns] Dispatch error:", err);
+    return res.status(500).json({ success: false, message: err.message || "Failed to dispatch email campaign" });
   }
 });
 
-// 4. GET /api/admin/emails/campaigns - List campaigns
-router.get("/api/admin/emails/campaigns", async (req, res) => {
+// 4. GET /api/admin/emails/campaigns & /history - List campaigns
+router.get(["/api/admin/emails/campaigns", "/api/admin/emails/history"], async (req, res) => {
   const auth = await verifyAdmin(req, res);
   if (!auth.valid) return res.status(401).json({ success: false, message: auth.error });
 
@@ -183,14 +251,35 @@ router.get("/api/admin/emails/campaigns", async (req, res) => {
     if (supaAdmin) {
       const { data, error } = await supaAdmin.from("email_campaigns").select("*").order("created_at", { ascending: false });
       if (!error && data) {
-        return res.json({ success: true, campaigns: data });
+        const historyList = data.map((c: any) => ({
+          id: c.id,
+          subject: c.subject,
+          recipientMode: c.recipient_mode,
+          targetCount: c.total_count,
+          sentCount: c.sent_count,
+          failedCount: c.failed_count,
+          senderName: c.sender_name,
+          timestamp: c.created_at || c.updated_at,
+        }));
+        return res.json({ success: true, campaigns: data, history: historyList });
       }
     }
 
     const db = readDB();
-    return res.json({ success: true, campaigns: db.email_campaigns || [] });
+    const historyList = (db.email_campaigns || []).map((c: any) => ({
+      id: c.id,
+      subject: c.subject,
+      recipientMode: c.recipientMode || "all",
+      targetCount: c.totalCount || 0,
+      sentCount: c.sentCount || 0,
+      failedCount: c.failedCount || 0,
+      senderName: c.senderName || "SmartLink NG",
+      timestamp: c.timestamp || new Date().toISOString(),
+    }));
+
+    return res.json({ success: true, campaigns: db.email_campaigns || [], history: historyList });
   } catch (err: any) {
-    return res.status(500).json({ success: false, message: err.message || "Failed to fetch campaigns" });
+    return res.status(500).json({ success: false, message: err.message || "Failed to fetch campaigns history" });
   }
 });
 
