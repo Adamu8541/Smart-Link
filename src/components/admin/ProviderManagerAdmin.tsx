@@ -911,7 +911,7 @@ export default function ProviderManagerAdmin({ adminUid, isDarkMode = false }: P
                   </tr>
                 ) : (
                   logs.map((log) => {
-                    const isSuccess = !log.status || log.status === "SUCCESS" || log.status === "200" || String(log.status).toLowerCase().includes("ok");
+                    const isSuccess = !log.status || log.status === "SUCCESS" || (log.status as any) === "200" || String(log.status).toLowerCase().includes("ok");
                     return (
                       <tr key={log.id} className="hover:bg-[#F8FAFC] transition-colors">
                         <td className="p-3 text-[#6B7280] whitespace-nowrap">

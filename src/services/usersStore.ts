@@ -33,9 +33,7 @@ function sanitizeUserRecord(row: any): UserDoc {
     ? Boolean(row.has_transaction_pin)
     : (row.hasTransactionPin !== undefined ? Boolean(row.hasTransactionPin) : Boolean(row.transaction_pin_hash || row.transactionPinHash));
   const pinHash = row.transaction_pin_hash || row.transactionPinHash || undefined;
-  const pinRequired = row.pin_required_for_transactions !== undefined && row.pin_required_for_transactions !== null
-    ? (row.pin_required_for_transactions === 1 || row.pin_required_for_transactions === true)
-    : (row.pinRequiredForTransactions !== undefined ? Boolean(row.pinRequiredForTransactions) : true);
+  const pinRequired = false;
 
   const pwdHash = row.password_hash || row.passwordHash || undefined;
   const salt = row.salt || undefined;
@@ -315,6 +313,33 @@ export async function seedUsersIfEmpty(initialUsers: UserDoc[] = []): Promise<vo
   }
 }
 
+export async function getVirtualAccountByNumber(accountNumber: string): Promise<any | null> {
+  if (!accountNumber) return null;
+  const clean = String(accountNumber).replace(/\D/g, "");
+  try {
+    const res = await executeTurso(
+      `SELECT * FROM user_virtual_accounts WHERE account_number = ? OR account_number LIKE ? LIMIT 1;`,
+      [clean, `%${clean}%`]
+    );
+    return res.rows?.[0] || null;
+  } catch (err) {
+    return null;
+  }
+}
+
+export async function getVirtualAccountByReference(reference: string): Promise<any | null> {
+  if (!reference) return null;
+  try {
+    const res = await executeTurso(
+      `SELECT * FROM user_virtual_accounts WHERE reference = ? OR reference LIKE ? LIMIT 1;`,
+      [reference, `%${reference}%`]
+    );
+    return res.rows?.[0] || null;
+  } catch (err) {
+    return null;
+  }
+}
+
 export const usersStore = {
   getAllUsers,
   getUserByUid,
@@ -326,6 +351,8 @@ export const usersStore = {
   updateUser,
   deleteUser,
   seedUsersIfEmpty,
+  getVirtualAccountByNumber,
+  getVirtualAccountByReference,
 };
 
 export default usersStore;

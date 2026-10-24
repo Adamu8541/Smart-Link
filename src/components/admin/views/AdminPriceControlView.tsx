@@ -382,8 +382,8 @@ export default function AdminPriceControlView({ session, onNavigate }: AdminPric
         const bVal = editedPrices[b.service_id] || b;
 
         let diff = 0;
-        if (sortField === "name") diff = a.name.localeCompare(b.name);
-        else if (sortField === "category") diff = a.category.localeCompare(b.category);
+        if (sortField === "name") diff = (a?.name || "").localeCompare(b?.name || "");
+        else if (sortField === "category") diff = (a?.category || "").localeCompare(b?.category || "");
         else if (sortField === "price") diff = aVal.price - bVal.price;
         else if (sortField === "cost_price") diff = aVal.cost_price - bVal.cost_price;
         else if (sortField === "profit") {

@@ -182,24 +182,33 @@ export class PaymentVerificationReconciliationEngine {
 
     const reference = String(
       payload.reference ||
+        payload.tx_ref ||
         payload.transactionReference ||
         payload.paymentReference ||
         payload.merchant_reference ||
         payload.merchantReference ||
         payload.aspfiy_ref ||
         payload.transaction_ref ||
+        payload.transaction_id ||
         payload.transRef ||
         payload.orderNo ||
+        payload.order_id ||
         payload.ref ||
+        payload.id ||
         eventData.reference ||
+        eventData.tx_ref ||
         eventData.merchant_reference ||
         eventData.merchantReference ||
         eventData.aspfiy_ref ||
         eventData.transaction_ref ||
+        eventData.transaction_id ||
         eventData.trans_id ||
         eventData.transRef ||
         eventData.transactionReference ||
         eventData.paymentReference ||
+        eventData.orderNo ||
+        eventData.order_id ||
+        eventData.id ||
         params.expectedReference ||
         ""
     ).trim();
@@ -392,8 +401,10 @@ export class PaymentVerificationReconciliationEngine {
     }
 
     // 5. User & Wallet Matching Strategy
+    // 5. User & Wallet Matching Strategy (Option 1: Account Number + Email & Phone Fallback)
     let matchedUser: any = null;
 
+    // Strategy 5A: Account Number Lookup
     if (accountNumber) {
       const cleanAcc = accountNumber.replace(/\D/g, "");
       const allAccounts = (db.virtualAccounts || []).concat(db.walletAccounts || []);
@@ -425,6 +436,54 @@ export class PaymentVerificationReconciliationEngine {
       }
     }
 
+    // Strategy 5B: Customer Email Fallback Lookup (Option 1)
+    if (!matchedUser) {
+      const extractedEmail = String(
+        payload.email ||
+          payload.customerEmail ||
+          (payload.customer && (payload.customer.email || payload.customer.customerEmail)) ||
+          eventData.email ||
+          eventData.customerEmail ||
+          (eventData.customer && (eventData.customer.email || eventData.customer.customerEmail)) ||
+          ""
+      ).trim().toLowerCase();
+
+      if (extractedEmail && extractedEmail.includes("@")) {
+        matchedUser =
+          (db.users || []).find((u: any) => u.email && u.email.toLowerCase() === extractedEmail) ||
+          (await usersStore.getUserByEmail(extractedEmail));
+      }
+    }
+
+    // Strategy 5C: Customer Phone Number Fallback Lookup (Option 1)
+    if (!matchedUser) {
+      const extractedPhoneRaw = String(
+        payload.phone ||
+          payload.phoneNumber ||
+          payload.customerPhone ||
+          (payload.customer && (payload.customer.phone || payload.customer.phoneNumber)) ||
+          eventData.phone ||
+          eventData.phoneNumber ||
+          eventData.palmpay_account ||
+          (eventData.customer && (eventData.customer.phone || eventData.customer.phoneNumber)) ||
+          ""
+      ).replace(/\D/g, "");
+
+      if (extractedPhoneRaw && extractedPhoneRaw.length >= 10) {
+        const phoneTail = extractedPhoneRaw.slice(-10); // Last 10 digits (e.g. 8085490982)
+        try {
+          const allUsers = (db.users || []).concat(await usersStore.getAllUsers().catch(() => []));
+          matchedUser = allUsers.find((u: any) => {
+            const uPhone = String(u.phone || u.phoneNumber || "").replace(/\D/g, "");
+            return uPhone && uPhone.slice(-10) === phoneTail;
+          });
+        } catch (err) {
+          console.warn(`[ReconciliationEngine] Phone lookup error: ${err}`);
+        }
+      }
+    }
+
+    // Strategy 5D: User Reference / Merchant Reference Lookup
     if (!matchedUser && userReference) {
       if (userReference.startsWith("SL-")) {
         const potentialUid = userReference.substring(3).trim();
@@ -464,9 +523,11 @@ export class PaymentVerificationReconciliationEngine {
     if (!matchedUser && reference) {
       if (reference.startsWith("SL-")) {
         const potentialUid = reference.substring(3).trim();
+        const stemUid = potentialUid.includes("-") ? potentialUid.slice(0, potentialUid.lastIndexOf("-")) : potentialUid;
         matchedUser =
-          (db.users || []).find((u: any) => u.uid === potentialUid || u.id === potentialUid) ||
-          (await usersStore.getUserById(potentialUid));
+          (db.users || []).find((u: any) => u.uid === potentialUid || u.id === potentialUid || u.uid === stemUid || u.id === stemUid) ||
+          (await usersStore.getUserById(potentialUid)) ||
+          (await usersStore.getUserById(stemUid));
       }
 
       if (!matchedUser && (db.virtualAccounts || db.walletAccounts)) {

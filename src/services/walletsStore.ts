@@ -60,10 +60,26 @@ export async function getAllWallets(): Promise<WalletDbRecord[]> {
  */
 export async function getWalletByUserId(userId: string): Promise<WalletDbRecord | null> {
   if (!userId) return null;
-  const res = await executeTurso("SELECT * FROM wallets WHERE user_id = ? OR wallet_id = ? OR id = ? LIMIT 1;", [userId, userId, userId]);
+  const cleanId = String(userId).trim();
+  let res = await executeTurso("SELECT * FROM wallets WHERE user_id = ? OR wallet_id = ? OR id = ? LIMIT 1;", [cleanId, cleanId, cleanId]);
   if (res.rows && res.rows.length > 0) {
-    return sanitizeWalletRecord(userId, res.rows[0]);
+    return sanitizeWalletRecord(cleanId, res.rows[0]);
   }
+
+  // Resolve user aliases (uid, id, email) if initial query yielded no row
+  try {
+    const user = (await usersStore.getUserByUid(cleanId)) || (await usersStore.getUserById(cleanId)) || (await usersStore.getUserByEmail(cleanId));
+    if (user) {
+      const candidates = [user.uid, user.id, user.email].filter((c): c is string => Boolean(c && typeof c === "string" && c !== cleanId));
+      for (const cand of candidates) {
+        res = await executeTurso("SELECT * FROM wallets WHERE user_id = ? OR wallet_id = ? OR id = ? LIMIT 1;", [cand, cand, cand]);
+        if (res.rows && res.rows.length > 0) {
+          return sanitizeWalletRecord(user.uid || cand, res.rows[0]);
+        }
+      }
+    }
+  } catch {}
+
   return null;
 }
 

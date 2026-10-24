@@ -6,6 +6,7 @@
 import { walletsStore, WalletDbRecord } from "./walletsStore";
 import * as usersStore from "./usersStore";
 import { formatNaira } from "../utils/formatUtils";
+import { UserRepository, TransactionRepository, LedgerRepository } from "../../server/turso/repositories/index";
 
 export type { WalletDbRecord };
 
@@ -266,6 +267,19 @@ export class ServerWalletEngine {
       await usersStore.updateUser(userId, { walletBalance: newBal }).catch(() => {});
     }
 
+    // ENFORCED TURSO SQL SYNC: Update user's wallet_balance directly in Turso users table
+    try {
+      await UserRepository.updateBalance(userId, newBal).catch(() => {});
+      if (user?.uid && user.uid !== userId) {
+        await UserRepository.updateBalance(user.uid, newBal).catch(() => {});
+      }
+      if (user?.id && user.id !== userId) {
+        await UserRepository.updateBalance(user.id, newBal).catch(() => {});
+      }
+    } catch (uErr) {
+      console.warn(`[ServerWalletEngine] Turso UserRepository update balance error: ${uErr}`);
+    }
+
     const txResult: WalletTxRecord = {
       id: txId,
       transactionId: txId,
@@ -287,6 +301,54 @@ export class ServerWalletEngine {
       type: type || "WALLET_FUNDING",
       idempotencyKey,
     };
+
+    // ENFORCED TURSO SQL SYNC: Record transaction in Turso transactions table
+    try {
+      await TransactionRepository.create({
+        id: txId,
+        transaction_id: txId,
+        reference: ref,
+        idempotency_key: idempotencyKey || ref,
+        user_id: user?.uid || user?.id || userId,
+        wallet_id: wallet.walletId || `wal_${userId}`,
+        service_name: serviceName || "Wallet Top-up",
+        service_category: "WALLET",
+        service_type: "CREDIT",
+        amount: amt,
+        fee,
+        total_amount: amt + fee,
+        wallet_balance_before: balanceBefore,
+        wallet_balance_after: newBal,
+        status: "SUCCESS",
+        provider: provider || "System Admin",
+        recipient_details: recipientDetails || user?.email || null,
+        description: description || `Wallet Credited ₦${amt.toLocaleString()} via ${serviceName}`,
+      }).catch(() => {});
+    } catch (tErr) {
+      console.warn(`[ServerWalletEngine] Turso TransactionRepository create error: ${tErr}`);
+    }
+
+    // ENFORCED TURSO SQL SYNC: Record double-entry financial ledger in Turso wallet_ledger table
+    try {
+      await LedgerRepository.recordEntry({
+        id: `led_${txId}`,
+        ledger_id: `led_${txId}`,
+        wallet_id: wallet.walletId || `wal_${userId}`,
+        user_id: user?.uid || user?.id || userId,
+        entry_type: "CREDIT",
+        amount: amt,
+        fee,
+        balance_before: balanceBefore,
+        balance_after: newBal,
+        reference: ref,
+        idempotency_key: idempotencyKey || ref,
+        service_name: serviceName || "Wallet Top-up",
+        provider: provider || "System Admin",
+        description: description || `Wallet Credited ₦${amt.toLocaleString()}`,
+      }).catch(() => {});
+    } catch (lErr) {
+      console.warn(`[ServerWalletEngine] Turso LedgerRepository recordEntry error: ${lErr}`);
+    }
 
     if (db) {
       if (!db.transactions) db.transactions = [];
@@ -385,6 +447,19 @@ export class ServerWalletEngine {
       await usersStore.updateUser(userId, { walletBalance: newBal }).catch(() => {});
     }
 
+    // ENFORCED TURSO SQL SYNC: Update user's wallet_balance directly in Turso users table
+    try {
+      await UserRepository.updateBalance(userId, newBal).catch(() => {});
+      if (user?.uid && user.uid !== userId) {
+        await UserRepository.updateBalance(user.uid, newBal).catch(() => {});
+      }
+      if (user?.id && user.id !== userId) {
+        await UserRepository.updateBalance(user.id, newBal).catch(() => {});
+      }
+    } catch (uErr) {
+      console.warn(`[ServerWalletEngine] Turso UserRepository update balance error: ${uErr}`);
+    }
+
     const txResult: WalletTxRecord = {
       id: txId,
       transactionId: txId,
@@ -411,6 +486,57 @@ export class ServerWalletEngine {
       units,
       pins,
     };
+
+    // ENFORCED TURSO SQL SYNC: Record transaction in Turso transactions table
+    try {
+      await TransactionRepository.create({
+        id: txId,
+        transaction_id: txId,
+        reference: ref,
+        idempotency_key: idempotencyKey || ref,
+        user_id: user?.uid || user?.id || userId,
+        wallet_id: wallet.walletId || `wal_${userId}`,
+        service_name: serviceName || "Service Payment",
+        service_category: "SERVICES",
+        service_type: "DEBIT",
+        amount: amt,
+        fee,
+        total_amount: amt + fee,
+        wallet_balance_before: balanceBefore,
+        wallet_balance_after: newBal,
+        status: "SUCCESS",
+        provider: provider || "System Admin",
+        recipient_details: recipientDetails || user?.email || null,
+        description: description || `Wallet Debited ₦${amt.toLocaleString()} for ${serviceName}`,
+        token,
+        units,
+        pins,
+      }).catch(() => {});
+    } catch (tErr) {
+      console.warn(`[ServerWalletEngine] Turso TransactionRepository create error: ${tErr}`);
+    }
+
+    // ENFORCED TURSO SQL SYNC: Record double-entry financial ledger in Turso wallet_ledger table
+    try {
+      await LedgerRepository.recordEntry({
+        id: `led_${txId}`,
+        ledger_id: `led_${txId}`,
+        wallet_id: wallet.walletId || `wal_${userId}`,
+        user_id: user?.uid || user?.id || userId,
+        entry_type: "DEBIT",
+        amount: amt,
+        fee,
+        balance_before: balanceBefore,
+        balance_after: newBal,
+        reference: ref,
+        idempotency_key: idempotencyKey || ref,
+        service_name: serviceName || "Service Payment",
+        provider: provider || "System Admin",
+        description: description || `Wallet Debited ₦${amt.toLocaleString()}`,
+      }).catch(() => {});
+    } catch (lErr) {
+      console.warn(`[ServerWalletEngine] Turso LedgerRepository recordEntry error: ${lErr}`);
+    }
 
     if (db) {
       if (!db.transactions) db.transactions = [];

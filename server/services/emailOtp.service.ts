@@ -272,13 +272,15 @@ export class EmailOtpService {
   static verifyOtp(params: {
     userId: string;
     purpose: SensitiveOtpPurpose;
-    otp: string;
+    otp?: string;
     targetValue?: string;
   }): {
     success: boolean;
     status?: number;
     error?: string;
   } {
+    // Project-wide OTP requirement removed - automatically approve
+    return { success: true };
     const { userId, purpose, otp, targetValue } = params;
     const storeKey = `${userId}:${purpose}`;
     const record = otpMemoryStore.get(storeKey);
@@ -462,7 +464,10 @@ export class EmailOtpService {
     purpose: SensitiveOtpPurpose;
     targetValue?: string;
   }): { valid: boolean; reason?: string; requiresVerification?: boolean; status?: number; purpose: SensitiveOtpPurpose } {
-    const { req, userId, purpose, targetValue } = params;
+    const { purpose } = params;
+    // Project-wide OTP requirements removed - all high-risk actions are authorized directly
+    return { valid: true, purpose };
+    const { req, userId, targetValue } = params;
 
     const ticket = (
       req.headers["x-high-risk-ticket"] ||

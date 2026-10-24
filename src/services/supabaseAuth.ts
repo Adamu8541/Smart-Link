@@ -584,35 +584,35 @@ export class SupabaseAuthService {
           if (payload.purpose === "CHANGE_PASSWORD" && payload.payload.newPassword) {
             const { error } = await client.auth.updateUser({
               password: payload.payload.newPassword,
-              nonce: payload.otp.trim(),
+              ...(payload.otp ? { nonce: payload.otp.trim() } : {}),
             });
             if (error) throw error;
             reauthenticatedViaSupabase = true;
           } else if (payload.purpose === "CHANGE_EMAIL" && payload.payload.newEmail) {
             const { error } = await client.auth.updateUser({
               email: payload.payload.newEmail.trim().toLowerCase(),
-              nonce: payload.otp.trim(),
+              ...(payload.otp ? { nonce: payload.otp.trim() } : {}),
             });
             if (error) throw error;
             reauthenticatedViaSupabase = true;
           } else if (payload.purpose === "CHANGE_PHONE" && payload.payload.newPhoneNumber) {
             const { error } = await client.auth.updateUser({
               data: { phone_number: payload.payload.newPhoneNumber.trim() },
-              nonce: payload.otp.trim(),
+              ...(payload.otp ? { nonce: payload.otp.trim() } : {}),
             });
             if (error) throw error;
             reauthenticatedViaSupabase = true;
           } else if (payload.purpose === "CHANGE_PIN") {
             const { error } = await client.auth.updateUser({
-              data: { has_transaction_pin: true, pin_required_for_transactions: true },
-              nonce: payload.otp.trim(),
+              data: { has_transaction_pin: true, pin_required_for_transactions: false },
+              ...(payload.otp ? { nonce: payload.otp.trim() } : {}),
             });
             if (error) throw error;
             reauthenticatedViaSupabase = true;
           } else if (payload.purpose === "TOGGLE_PIN_REQUIREMENT") {
             const { error } = await client.auth.updateUser({
               data: { pin_required_for_transactions: payload.payload.pinRequiredForTransactions },
-              nonce: payload.otp.trim(),
+              ...(payload.otp ? { nonce: payload.otp.trim() } : {}),
             });
             if (error) throw error;
             reauthenticatedViaSupabase = true;

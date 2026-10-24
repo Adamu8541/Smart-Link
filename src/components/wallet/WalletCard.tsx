@@ -1,5 +1,5 @@
 import React from "react";
-import { Wallet as WalletIcon, Plus, History, ShieldCheck, Lock } from "lucide-react";
+import { Wallet as WalletIcon, Plus, History, ShieldCheck, Lock, RefreshCw } from "lucide-react";
 import { Wallet } from "../../types";
 import { WalletBalance } from "./WalletBalance";
 
@@ -53,14 +53,27 @@ export const WalletCard: React.FC<WalletCardProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
+          {onRefresh && (
+            <button
+              type="button"
+              onClick={onRefresh}
+              disabled={isLoading}
+              className="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 active:scale-95 text-slate-700 dark:text-slate-200 font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              title="Sync Wallet Balance"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? "animate-spin text-[#0F2D5C]" : ""}`} />
+              <span className="hidden sm:inline">Sync</span>
+            </button>
+          )}
+
           {onFundWallet && (
             <button
               type="button"
               onClick={onFundWallet}
-              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0F2D5C] hover:bg-[#0F2D5C] active:scale-98 text-white font-semibold text-xs transition-all shadow-md shadow-blue-600/20 cursor-pointer"
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0F2D5C] hover:bg-[#17407E] active:scale-95 text-white font-bold text-xs transition-all shadow-sm shadow-[#0F2D5C]/20 cursor-pointer"
             >
               <Plus className="h-4 w-4" />
-              <span>Fund Wallet</span>
+              <span>Add Funds</span>
             </button>
           )}
 
@@ -68,10 +81,11 @@ export const WalletCard: React.FC<WalletCardProps> = ({
             <button
               type="button"
               onClick={onViewHistory}
-              className="p-2.5 rounded-xl bg-[#E5E7EB] dark:bg-[#111827] hover:bg-[#E5E7EB] dark:hover:bg-[#4B5563] text-[#4B5563] dark:text-[#E5E7EB] font-semibold text-xs transition-colors cursor-pointer"
-              title="Transaction History"
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 active:scale-95 text-slate-700 dark:text-slate-200 font-bold text-xs transition-all cursor-pointer"
+              title="View History"
             >
               <History className="h-4 w-4" />
+              <span className="hidden sm:inline">History</span>
             </button>
           )}
         </div>

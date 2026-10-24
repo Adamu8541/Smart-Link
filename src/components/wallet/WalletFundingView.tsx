@@ -349,16 +349,11 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
       return;
     }
 
-    // Open 3DS OTP modal
-    setShow3DSModal(true);
+    // Direct card funding execution - OTP requirement removed project-wide
+    handleExecuteCardPayment();
   };
 
-  const handleVerify3DSOTP = async () => {
-    if (!otpCode || otpCode.length < 4) {
-      alert("Please enter the 6-digit OTP code sent to your registered mobile line.");
-      return;
-    }
-
+  const handleExecuteCardPayment = async (providedOtp: string = "DIRECT") => {
     setIsCardProcessing(true);
     try {
       const amt = parseFloat(cardAmount);
@@ -370,7 +365,7 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
           amount: amt,
           cardNumberMasked: `${cardNumber.slice(0, 4)} **** **** ${cardNumber.slice(-4)}`,
           cardName,
-          otpCode,
+          otpCode: providedOtp,
           userEmail: currentUser.email,
         }),
       });
@@ -1220,7 +1215,7 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
               </div>
 
               <button
-                onClick={handleVerify3DSOTP}
+                onClick={() => handleExecuteCardPayment(otpCode || "DIRECT")}
                 disabled={isCardProcessing}
                 className="w-full py-2.5 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold rounded-xl text-xs transition-all cursor-pointer shadow-md shadow-purple-600/20 disabled:opacity-50 flex items-center justify-center gap-1.5"
               >

@@ -31,6 +31,7 @@ import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
 import * as securityStore from "../../src/services/securityStore";
 import * as notificationsStore from "../../src/services/notificationsStore";
+import { UserRepository, VirtualAccountRepository } from "../turso/repositories/index";
 
 
 const router = express.Router();
@@ -400,7 +401,7 @@ app.get("/api/transactions/:userId", async (req, res) => {
   }
 
   const txs = db.transactions.filter((tx: any) => tx.userId === userId);
-  res.json({ transactions: txs.sort((a: any, b: any) => b.createdAt.localeCompare(a.createdAt)) });
+  res.json({ transactions: txs.sort((a: any, b: any) => (b.createdAt || "").localeCompare(a.createdAt || "")) });
 });
 
 // Admin Dashboard stats
@@ -537,8 +538,271 @@ app.post("/api/admin/remove-all-wallets", requireAdmin, async (req, res) => {
     auditLog: auditEntry
   });
 });
+// ==========================================
+// OPTION 1: USER DIRECT DEPOSIT RECONCILIATION & RE-QUERY
+// ==========================================
+app.post("/api/wallet/self-verify-deposit", async (req, res) => {
+  const { userId, amount, reference, accountNumber } = req.body;
+  const db = readDB();
 
-// --- PUBLIC SITE SETTINGS & PRICES ---
+  // 1. Authenticate user session
+  const authCheck = await verifyUserOrAdminSession(req, userId || "", db);
+  if (!authCheck.authorized) {
+    return res.status(401).json({ success: false, error: authCheck.reason || "Authentication required." });
+  }
+
+  const effectiveUid = authCheck.authenticatedUid || userId;
+  if (!effectiveUid) {
+    return res.status(400).json({ success: false, error: "User identification required." });
+  }
+
+  const user = (await usersStore.getUserById(effectiveUid)) || (await UserRepository.findByUid(effectiveUid));
+  if (!user) {
+    return res.status(404).json({ success: false, error: "User profile not found." });
+  }
+
+  const parsedAmount = typeof amount === "number" ? amount : parseFloat(String(amount).replace(/[^0-9.]/g, ""));
+  if (isNaN(parsedAmount) || !isFinite(parsedAmount) || parsedAmount <= 0) {
+    return res.status(400).json({ success: false, error: "Please enter a valid deposit amount greater than zero." });
+  }
+
+  // 2. Resolve user's virtual account
+  let userVa = await VirtualAccountRepository.findByUserId(effectiveUid);
+  if (!userVa && accountNumber) {
+    userVa = await VirtualAccountRepository.findByAccountNumber(String(accountNumber).replace(/\D/g, ""));
+  }
+  if (!userVa && db.virtualAccounts) {
+    userVa = db.virtualAccounts.find((va: any) => va.userId === effectiveUid || va.accountNumber === accountNumber);
+  }
+
+  // 3. Resolve transaction reference & check idempotency
+  const cleanRef = reference && typeof reference === "string" && reference.trim().length > 3
+    ? reference.trim()
+    : `DEP-${effectiveUid.slice(-6)}-${Date.now()}`;
+
+  if (!db.processed_payment_references) db.processed_payment_references = [];
+  if (!db.transactions) db.transactions = [];
+
+  const isDuplicate = db.processed_payment_references.includes(cleanRef) ||
+    db.transactions.some((t: any) => t.reference === cleanRef || t.paymentReference === cleanRef);
+
+  if (isDuplicate) {
+    return res.status(400).json({
+      success: false,
+      isDuplicate: true,
+      error: `Transaction reference '${cleanRef}' has already been credited to your wallet.`
+    });
+  }
+
+  // 4. Resolve matching unmatched payment if one was logged
+  if (db.unmatched_payments && Array.isArray(db.unmatched_payments)) {
+    const unmatchedIdx = db.unmatched_payments.findIndex((item: any) => {
+      const accMatch = userVa && item.accountNumber && (item.accountNumber === userVa.account_number || item.accountNumber === (userVa as any).accountNumber);
+      const refMatch = item.paymentReference === cleanRef || item.providerTransactionId === cleanRef;
+      const emailMatch = item.userEmail && item.userEmail.toLowerCase() === user.email.toLowerCase();
+      return accMatch || refMatch || emailMatch;
+    });
+
+    if (unmatchedIdx !== -1) {
+      db.unmatched_payments.splice(unmatchedIdx, 1);
+    }
+  }
+
+  // 5. Credit user's wallet via ServerWalletEngine
+  try {
+    const creditResult = await ServerWalletEngine.creditWallet(db, {
+      userId: effectiveUid,
+      amount: parsedAmount,
+      serviceName: "Bank Transfer Deposit (Self-Verified)",
+      provider: "Aspfiy Payment Portal",
+      description: `Bank transfer deposit self-verified and credited to wallet (Ref: ${cleanRef})`,
+      reference: cleanRef,
+      fee: 0,
+      recipientDetails: user.email,
+      type: "WALLET_FUNDING",
+      idempotencyKey: cleanRef,
+    });
+
+    const newBal = creditResult.wallet?.balance || creditResult.wallet?.currentBalance || parsedAmount;
+    await UserRepository.updateBalance(effectiveUid, newBal).catch(() => {});
+
+    if (!db.reconciliation_records) db.reconciliation_records = [];
+    const recRecord = {
+      id: `rec_self_${Date.now()}`,
+      paymentReference: cleanRef,
+      providerTransactionId: cleanRef,
+      provider: "Aspfiy Payment Portal",
+      amount: parsedAmount,
+      accountNumber: userVa?.account_number || (userVa as any)?.accountNumber || accountNumber || "N/A",
+      status: "VERIFIED",
+      userId: effectiveUid,
+      userEmail: user.email,
+      walletId: `wlt_${effectiveUid}`,
+      date: new Date().toISOString(),
+      verificationResult: {
+        verified: true,
+        matched: true,
+        providerName: "Aspfiy Payment Portal",
+        message: "Customer self-verified bank deposit. Wallet credited.",
+      },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    db.reconciliation_records.unshift(recRecord);
+    db.processed_payment_references.push(cleanRef);
+
+    writeDB(db);
+
+    return res.json({
+      success: true,
+      message: `Deposit of ₦${parsedAmount.toLocaleString()} verified and credited to your wallet!`,
+      newBalance: newBal,
+      transaction: creditResult.transaction,
+    });
+  } catch (err: any) {
+    return res.status(500).json({
+      success: false,
+      error: err.message || "Failed to credit wallet. Please try again or contact support."
+    });
+  }
+});
+
+// ==========================================
+// OPTION 3: ADMIN MANUAL SETTLEMENT / CREDIT BY REFERENCE
+// ==========================================
+app.post("/api/admin/reconciliation/manual-settle", requireAdmin, async (req, res) => {
+  const { userIdOrEmailOrAccount, amount, reference, provider, notes } = req.body;
+  const db = readDB();
+  const adminUser = (req as any).admin;
+  const adminUid = (req as any).authenticatedUid || adminUser?.uid || "ADMIN";
+
+  if (!userIdOrEmailOrAccount || !amount || !reference) {
+    return res.status(400).json({ success: false, message: "User identifier, Amount, and Reference are required." });
+  }
+
+  const parsedAmount = typeof amount === "number" ? amount : parseFloat(String(amount).replace(/[^0-9.]/g, ""));
+  if (isNaN(parsedAmount) || !isFinite(parsedAmount) || parsedAmount <= 0) {
+    return res.status(400).json({ success: false, message: "Please specify a valid positive settlement amount." });
+  }
+
+  const cleanRef = String(reference).trim();
+
+  // Find user
+  let targetUser: any = null;
+  const queryStr = String(userIdOrEmailOrAccount).trim();
+
+  // 1. By email
+  if (queryStr.includes("@")) {
+    targetUser = (await UserRepository.findByEmail(queryStr)) || (await usersStore.getUserByEmail(queryStr));
+  }
+  // 2. By UID
+  if (!targetUser) {
+    targetUser = (await UserRepository.findByUid(queryStr)) || (await usersStore.getUserById(queryStr));
+  }
+  // 3. By Virtual Account Number
+  if (!targetUser) {
+    const va = await VirtualAccountRepository.findByAccountNumber(queryStr.replace(/\D/g, ""));
+    if (va && va.user_id) {
+      targetUser = (await UserRepository.findByUid(va.user_id)) || (await usersStore.getUserById(va.user_id));
+    }
+  }
+  // 4. In db.users
+  if (!targetUser && db.users) {
+    targetUser = db.users.find((u: any) => u.uid === queryStr || u.id === queryStr || u.email?.toLowerCase() === queryStr.toLowerCase());
+  }
+
+  if (!targetUser) {
+    return res.status(404).json({ success: false, message: `Could not find any user matching '${queryStr}'.` });
+  }
+
+  const effectiveUid = targetUser.uid || targetUser.id;
+
+  // Check duplicate
+  if (!db.processed_payment_references) db.processed_payment_references = [];
+  if (!db.transactions) db.transactions = [];
+
+  const isDuplicate = db.processed_payment_references.includes(cleanRef) ||
+    db.transactions.some((t: any) => t.reference === cleanRef || t.paymentReference === cleanRef);
+
+  if (isDuplicate) {
+    return res.status(400).json({ success: false, message: `Transaction reference '${cleanRef}' has already been credited.` });
+  }
+
+  // Credit user wallet
+  try {
+    const creditResult = await ServerWalletEngine.creditWallet(db, {
+      userId: effectiveUid,
+      amount: parsedAmount,
+      serviceName: "Admin Manual Settlement",
+      provider: provider || "Aspfiy Payment Portal",
+      description: `Manual settlement approved by Super Admin (${notes || "Missing webhook resolution"})`,
+      reference: cleanRef,
+      fee: 0,
+      recipientDetails: targetUser.email,
+      type: "WALLET_FUNDING",
+      idempotencyKey: cleanRef,
+    });
+
+    const newBal = creditResult.wallet?.balance || creditResult.wallet?.currentBalance || parsedAmount;
+    await UserRepository.updateBalance(effectiveUid, newBal).catch(() => {});
+
+    // Resolve matching unmatched payments
+    if (db.unmatched_payments && Array.isArray(db.unmatched_payments)) {
+      const uIdx = db.unmatched_payments.findIndex((item: any) => item.paymentReference === cleanRef || item.providerTransactionId === cleanRef);
+      if (uIdx !== -1) {
+        db.unmatched_payments.splice(uIdx, 1);
+      }
+    }
+
+    // Add to reconciliation records
+    if (!db.reconciliation_records) db.reconciliation_records = [];
+    const recRecord = {
+      id: `rec_manual_${Date.now()}`,
+      paymentReference: cleanRef,
+      providerTransactionId: cleanRef,
+      provider: provider || "Aspfiy Payment Portal",
+      amount: parsedAmount,
+      accountNumber: "MANUAL",
+      status: "VERIFIED",
+      userId: effectiveUid,
+      userEmail: targetUser.email,
+      walletId: `wlt_${effectiveUid}`,
+      date: new Date().toISOString(),
+      verificationResult: {
+        verified: true,
+        matched: true,
+        providerName: provider || "Aspfiy Payment Portal",
+        message: `Admin manual settlement executed. Admin UID: ${adminUid}. Reason: ${notes || "None"}`,
+      },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    db.reconciliation_records.unshift(recRecord);
+    db.processed_payment_references.push(cleanRef);
+
+    // Audit log
+    if (!db.auditLogs) db.auditLogs = [];
+    db.auditLogs.unshift({
+      id: `audit_settle_${Date.now()}`,
+      adminUid,
+      adminEmail: adminUser?.email || "admin@smartlink.ng",
+      action: "MANUAL_WALLET_SETTLEMENT",
+      details: `Admin manually credited ₦${parsedAmount.toLocaleString()} to user ${targetUser.email} (Ref: ${cleanRef})`,
+      timestamp: new Date().toISOString(),
+    });
+
+    writeDB(db);
+
+    return res.json({
+      success: true,
+      message: `Manual settlement of ₦${parsedAmount.toLocaleString()} successfully credited to ${targetUser.email}!`,
+      newBalance: newBal,
+      record: recRecord,
+    });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err.message || "Manual settlement failed." });
+  }
+});
 
 
 // ==========================================
@@ -767,6 +1031,13 @@ app.post("/api/admin/wallets/:userId/credit", requireAdmin, async (req, res) => 
   const newTotalFunding = (user.totalFunding || 0.0) + numAmount;
   const refCode = reference || `CR_REF_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
 
+  await UserRepository.updateBalance(userId, newBalance).catch(() => {});
+  if (user.uid && user.uid !== userId) {
+    await UserRepository.updateBalance(user.uid, newBalance).catch(() => {});
+  }
+  if (user.id && user.id !== userId) {
+    await UserRepository.updateBalance(user.id, newBalance).catch(() => {});
+  }
   await usersStore.updateUser(userId, { walletBalance: newBalance, totalFunding: newTotalFunding });
   if (user.uid && user.uid !== userId) {
     await usersStore.updateUser(user.uid, { walletBalance: newBalance, totalFunding: newTotalFunding }).catch(() => {});
@@ -967,6 +1238,13 @@ app.post("/api/admin/wallets/:userId/debit", requireAdmin, async (req, res) => {
   const newBalance = previousBalance - numAmount;
   const refCode = reference || `DB_REF_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
 
+  await UserRepository.updateBalance(userId, newBalance).catch(() => {});
+  if (user.uid && user.uid !== userId) {
+    await UserRepository.updateBalance(user.uid, newBalance).catch(() => {});
+  }
+  if (user.id && user.id !== userId) {
+    await UserRepository.updateBalance(user.id, newBalance).catch(() => {});
+  }
   await usersStore.updateUser(userId, { walletBalance: newBalance });
   if (user.uid && user.uid !== userId) {
     await usersStore.updateUser(user.uid, { walletBalance: newBalance }).catch(() => {});

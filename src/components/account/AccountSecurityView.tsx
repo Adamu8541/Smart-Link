@@ -181,27 +181,37 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps>= ({
   const handleInitiateTogglePinRequirement = async () => {
     const currentRequirement = localPinRequired;
     const targetState = !currentRequirement;
-    setToggleTargetValue(targetState);
-    setToggleOtp("");
-    setToggleNewPin("");
-    setToggleError(null);
-    setShowToggleModal(true);
+    const targetUid = currentUser?.uid || (currentUser as any)?.id || "";
     setIsTogglingOtpRequest(true);
 
-    const targetUid = currentUser?.uid || (currentUser as any)?.id || "";
-
     try {
-      const res = await SupabaseAuthService.requestSensitiveActionOtp(
-        "TOGGLE_PIN_REQUIREMENT",
-        String(targetState),
+      const res = await SupabaseAuthService.verifySensitiveActionOtp(
+        {
+          purpose: "TOGGLE_PIN_REQUIREMENT",
+          otp: "BYPASS",
+          payload: {
+            pinRequiredForTransactions: targetState,
+          },
+        },
         targetUid
       );
-      setToggleResendCooldown(res.resendCooldownSeconds || 60);
-      setToggleMaskedEmail(res.emailMasked || currentUser.email || "");
+
       soundFx.playSuccessSound();
+      setLocalPinRequired(targetState);
+      setStatusMessage({
+        type: "success",
+        text: res.message || `Transaction PIN requirement has been successfully turned ${targetState ? "ON" : "OFF"}!`,
+      });
+
+      if (onRefreshUser) {
+        onRefreshUser(targetUid);
+      }
     } catch (err: any) {
-      setToggleError(err.message || "Failed to dispatch reauthentication code.");
       soundFx.playErrorSound();
+      setStatusMessage({
+        type: "error",
+        text: err.message || "Failed to update PIN requirement setting.",
+      });
     } finally {
       setIsTogglingOtpRequest(false);
     }
@@ -298,11 +308,11 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps>= ({
     }
   };
 
-  // Step 1: Request 6-digit Email OTP
+  // Direct Update - OTP requirement removed project-wide
   const handleRequestOtp = async () => {
     setStatusMessage(null);
 
-    // Validation before requesting OTP
+    // Validation before updating
     if (activeTab === "PASSWORD") {
       if (!newPassword || newPassword.length < 6) {
         setStatusMessage({ type: "error", text: "New password must be at least 6 characters long." });
@@ -349,43 +359,6 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps>= ({
 
     setIsRequestingOtp(true);
     const purpose = getPurposeForTab(activeTab);
-    const targetValue =
-      activeTab === "EMAIL" ? newEmail.trim().toLowerCase() : activeTab === "PHONE" ? newPhone.trim() : undefined;
-    const targetUid = currentUser?.uid || (currentUser as any)?.id || "";
-
-    try {
-      const res = await SupabaseAuthService.requestSensitiveActionOtp(purpose, targetValue, targetUid);
-      setOtpStep(true);
-      setResendCooldown(res.resendCooldownSeconds || 60);
-      setMaskedEmail(res.emailMasked || currentUser.email || "");
-      setStatusMessage({
-        type: "info",
-        text: res.message || "A 6-digit verification code has been dispatched to your email.",
-      });
-      soundFx.playSuccessSound();
-    } catch (err: any) {
-      setStatusMessage({
-        type: "error",
-        text: err.message || "Failed to dispatch verification code. Please check your network connection.",
-      });
-      soundFx.playErrorSound();
-    } finally {
-      setIsRequestingOtp(false);
-    }
-  };
-
-  // Step 2: Verify 6-digit OTP & apply sensitive update
-  const handleVerifyAndApply = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!otpCode || !/^\d{6}$/.test(otpCode.trim())) {
-      setStatusMessage({ type: "error", text: "Please enter the complete 6-digit verification code." });
-      return;
-    }
-
-    setIsVerifying(true);
-    setStatusMessage(null);
-
-    const purpose = getPurposeForTab(activeTab);
     const payload: any = {};
     if (activeTab === "PASSWORD") payload.newPassword = newPassword;
     if (activeTab === "EMAIL") payload.newEmail = newEmail.trim().toLowerCase();
@@ -396,30 +369,38 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps>= ({
     try {
       const res = await SupabaseAuthService.verifySensitiveActionOtp({
         purpose,
-        otp: otpCode.trim(),
+        otp: "BYPASS",
         payload,
       }, targetUid);
 
       soundFx.playSuccessSound();
       setStatusMessage({
         type: "success",
-        text: res.message || "Account security changes successfully verified and applied!",
+        text: res.message || "Account security changes successfully updated!",
       });
 
       // Reset form and refresh user profile
       setTimeout(() => {
         resetFormStates();
-        onRefreshUser(targetUid);
-      }, 1500);
+        if (onRefreshUser) {
+          onRefreshUser(targetUid);
+        }
+      }, 1200);
     } catch (err: any) {
       soundFx.playErrorSound();
       setStatusMessage({
         type: "error",
-        text: err.message || "Verification failed. Please ensure your code is accurate.",
+        text: err.message || "Update failed. Please try again.",
       });
     } finally {
-      setIsVerifying(false);
+      setIsRequestingOtp(false);
     }
+  };
+
+  // Step 2: Fallback direct applier if form submitted
+  const handleVerifyAndApply = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await handleRequestOtp();
   };
 
   return (
@@ -656,7 +637,7 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps>= ({
                     />
                   </div>
 
-                  <button
+                    <button
                     type="button"
                     onClick={handleRequestOtp}
                     disabled={isRequestingOtp || !newPassword || !confirmPassword}
@@ -665,12 +646,12 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps>= ({
                     {isRequestingOtp ? (
                       <>
                         <RefreshCw className="h-4 w-4 animate-spin" />
-                        Requesting Code...
+                        Updating Password...
                       </>
                     ) : (
                       <>
-                        <Mail className="h-4 w-4" />
-                        Send Reauthentication Code
+                        <KeyRound className="h-4 w-4" />
+                        Update Password
                       </>
                     )}
                   </button>
@@ -786,12 +767,12 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps>= ({
                     {isRequestingOtp ? (
                       <>
                         <RefreshCw className="h-4 w-4 animate-spin" />
-                        Requesting Code...
+                        Updating Email...
                       </>
                     ) : (
                       <>
-                        <Mail className="h-4 w-4" />
-                        Send Reauthentication Code
+                        <CheckCircle2 className="h-4 w-4" />
+                        Update Email Address
                       </>
                     )}
                   </button>
@@ -908,12 +889,12 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps>= ({
                     {isRequestingOtp ? (
                       <>
                         <RefreshCw className="h-4 w-4 animate-spin" />
-                        Requesting Code...
+                        Updating Phone Number...
                       </>
                     ) : (
                       <>
-                        <Mail className="h-4 w-4" />
-                        Send Reauthentication Code
+                        <CheckCircle2 className="h-4 w-4" />
+                        Update Phone Number
                       </>
                     )}
                   </button>
@@ -1237,12 +1218,12 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps>= ({
                       {isRequestingOtp ? (
                         <>
                           <RefreshCw className="h-4 w-4 animate-spin" />
-                          Requesting Code...
+                          Saving PIN...
                         </>
                       ) : (
                         <>
-                          <Mail className="h-4 w-4" />
-                          Send Reauthentication Code
+                          <Lock className="h-4 w-4" />
+                          Save 4-Digit PIN
                         </>
                       )}
                     </button>

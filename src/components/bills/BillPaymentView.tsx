@@ -339,13 +339,7 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
   const handleConfirmPayment = async () => {
     if (!selectedCategory || !selectedProvider) return;
 
-    const isPinRequired = (currentUser?.pinRequiredForTransactions !== false) && Boolean(currentUser?.hasTransactionPin);
-    if (isPinRequired) {
-      if (!paymentPin || paymentPin.length !== 4) {
-        setPaymentPinError("Please enter your 4-digit transaction authorization PIN.");
-        return;
-      }
-    }
+    const isPinRequired = false;
 
     setIsProcessingPayment(true);
     setPaymentPinError(null);
@@ -1223,46 +1217,11 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
                 </div>
               </div>
 
-              {/* PIN Authorization Section */}
-              {(currentUser?.pinRequiredForTransactions !== false && Boolean(currentUser?.hasTransactionPin)) ? (
-                <div className="p-2.5 sm:p-3 bg-slate-50 dark:bg-[#0A1A33] rounded-xl sm:rounded-2xl border border-slate-200 dark:border-slate-800 space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <label className="text-[11px] sm:text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
-                      <Lock className="h-3.5 w-3.5 text-[#0F2D5C] dark:text-sky-400" />
-                      <span>Enter 4-Digit Transaction PIN</span>
-                    </label>
-                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">PIN Required</span>
-                  </div>
-                  <div className="relative">
-                    <input
-                      type={showPaymentPin ? "text" : "password"}
-                      maxLength={4}
-                      value={paymentPin}
-                      onChange={(e) => {
-                        setPaymentPin(e.target.value.replace(/\D/g, ""));
-                        setPaymentPinError(null);
-                      }}
-                      placeholder="••••"
-                      className="w-full px-3 py-2 text-center text-base sm:text-lg font-mono tracking-widest font-bold bg-white dark:bg-slate-900 rounded-lg sm:rounded-xl border border-slate-300 dark:border-slate-700 text-[#0F2D5C] dark:text-white focus:ring-2 focus:ring-[#0F2D5C] focus:outline-none shadow-inner"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPaymentPin(!showPaymentPin)}
-                      className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
-                    >
-                      {showPaymentPin ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                  {paymentPinError && (
-                    <p className="text-[11px] text-rose-500 font-medium text-center">{paymentPinError}</p>
-                  )}
-                </div>
-              ) : (
-                <div className="flex items-center justify-center gap-1.5 py-1.5 px-2.5 bg-emerald-50/80 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 text-[11px] font-medium rounded-lg sm:rounded-xl border border-emerald-200/80 dark:border-emerald-800/50">
-                  <Zap className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-                  <span>Fast 1-Click Checkout Active • PIN Disabled</span>
-                </div>
-              )}
+              {/* Direct Authorization Section - PIN requirement removed */}
+              <div className="flex items-center justify-center gap-1.5 py-2 px-2.5 bg-emerald-50/80 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 text-[11px] font-medium rounded-lg sm:rounded-xl border border-emerald-200/80 dark:border-emerald-800/50">
+                <Zap className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                <span>Fast 1-Click Checkout Active • No PIN Required</span>
+              </div>
 
               <div className="flex items-center gap-2 pt-1.5">
                 <button
@@ -1276,7 +1235,7 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
                 <button
                   type="button"
                   onClick={handleConfirmPayment}
-                  disabled={isProcessingPayment || ((currentUser?.pinRequiredForTransactions !== false && Boolean(currentUser?.hasTransactionPin)) && paymentPin.length !== 4)}
+                  disabled={isProcessingPayment}
                   className="flex-1 py-2 sm:py-2.5 px-3 rounded-lg sm:rounded-xl bg-[#0F2D5C] hover:bg-[#17407E] text-white font-bold text-xs transition-all shadow-md shadow-indigo-600/20 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5"
                 >
                   {isProcessingPayment ? (

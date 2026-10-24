@@ -422,14 +422,11 @@ app.post("/api/wallet/fund/card", async (req, res) => {
     return res.status(400).json({ error: "Invalid payment parameters." });
   }
 
-  if (!otpCode) {
-    return res.status(400).json({ error: "3D Secure OTP verification required." });
-  }
-
+  // OTP requirement removed project-wide - allow card funding directly
   const db = readDB();
   const reference = `CARD-FUND-${Math.floor(100000 + Math.random() * 900000)}`;
   const receiptNumber = `REC-${reference}`;
-  const portalName = "Debit Card Portal (3D Secure)";
+  const portalName = "Debit Card Portal (Direct)";
 
   let creditRes;
   try {
@@ -438,7 +435,7 @@ app.post("/api/wallet/fund/card", async (req, res) => {
       amount: parseFloat(amount),
       serviceName: "Wallet Funding via Card",
       provider: portalName,
-      description: `Card deposit (${cardNumberMasked}) authorized by OTP`,
+      description: `Card deposit (${cardNumberMasked || "Card"}) authorized`,
       reference,
       fee: 0,
       recipientDetails: `Cardholder: ${cardName || "Customer"}`,

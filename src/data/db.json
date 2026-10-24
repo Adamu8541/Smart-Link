@@ -1,6 +1,49 @@
 {
   "users": [],
-  "transactions": [],
+  "transactions": [
+    {
+      "id": "tx_9m9k0ej",
+      "transactionId": "tx_9m9k0ej",
+      "reference": "ASP-TEST-1792825507",
+      "userId": "usr_smartlink_demo",
+      "userEmail": "smartlinkcomputerbusiness@gmail.com",
+      "serviceName": "Automated Virtual Account Top-Up",
+      "amount": 500,
+      "currency": "NGN",
+      "fee": 0,
+      "walletBalanceBefore": 0,
+      "walletBalanceAfter": 500,
+      "status": "SUCCESS",
+      "provider": "Aspfiy Payment Portal",
+      "description": "Verified deposit received via Aspfiy Payment Portal (Ref: ASP-TEST-1792825507)",
+      "createdAt": "2026-10-24T07:05:08.480Z",
+      "updatedAt": "2026-10-24T07:05:08.480Z",
+      "recipientDetails": "smartlinkcomputerbusiness@gmail.com",
+      "type": "WALLET_FUNDING",
+      "idempotencyKey": "ASP-TEST-1792825507"
+    },
+    {
+      "id": "tx_c2rtm7r",
+      "transactionId": "tx_c2rtm7r",
+      "reference": "ASP-MATCHED-1792825646",
+      "userId": "usr_smartlink_demo",
+      "userEmail": "smartlinkcomputerbusiness@gmail.com",
+      "serviceName": "Automated Virtual Account Top-Up",
+      "amount": 750,
+      "currency": "NGN",
+      "fee": 0,
+      "walletBalanceBefore": 500,
+      "walletBalanceAfter": 1250,
+      "status": "SUCCESS",
+      "provider": "Aspfiy Payment Portal",
+      "description": "Verified deposit received via Aspfiy Payment Portal (Ref: ASP-MATCHED-1792825646)",
+      "createdAt": "2026-10-24T07:07:27.413Z",
+      "updatedAt": "2026-10-24T07:07:27.413Z",
+      "recipientDetails": "smartlinkcomputerbusiness@gmail.com",
+      "type": "WALLET_FUNDING",
+      "idempotencyKey": "ASP-MATCHED-1792825646"
+    }
+  ],
   "cacApplications": [],
   "vendorServices": [],
   "auditLogs": [],
@@ -18,7 +61,7 @@
       "PREMIUM": 200,
       "STANDARD": 200,
       "REGULAR": 180,
-      "BVN_CARD": 250,
+      "BVN_CARD": 200,
       "BVN_SLIP_1": 200,
       "BVN_SLIP": 200,
       "regular": 180,
@@ -115,6 +158,8 @@
       "ID_NIN_VER": 200,
       "id_premium_slip": 200,
       "ID_PREMIUM_SLIP": 200,
+      "slip_bvn_card": 200,
+      "SLIP_BVN_CARD": 200,
       "slip_premium": 200,
       "SLIP_PREMIUM": 200,
       "slip_regular": 180,
@@ -123,8 +168,6 @@
       "SLIP_STANDARD": 200,
       "slip_bvn_slip": 200,
       "BVN_SLIP_1": 200,
-      "slip_bvn_card": 250,
-      "BVN_CARD": 250,
       "vtu_cable": 100,
       "VTU_CABLE": 100,
       "vtu_electricity": 100,
@@ -2108,6 +2151,316 @@
       "lastPingStatus": "FAILED",
       "lastPingLatencyMs": 349,
       "lastError": "Clubkonnect Authentication: INVALID_CREDENTIALS"
+    }
+  ],
+  "processed_payment_references": [
+    "ASP-TEST-1792825507",
+    "ASP-MATCHED-1792825646"
+  ],
+  "processed_provider_tx_ids": [
+    "ASP-TEST-1792825507",
+    "ASP-MATCHED-1792825646"
+  ],
+  "reconciliation_records": [
+    {
+      "id": "rec_1792825647411_5230",
+      "paymentReference": "ASP-MATCHED-1792825646",
+      "providerTransactionId": "ASP-MATCHED-1792825646",
+      "provider": "Aspfiy Payment Portal",
+      "amount": 750,
+      "accountNumber": "2616561719",
+      "status": "VERIFIED",
+      "userId": "usr_smartlink_demo",
+      "userEmail": "smartlinkcomputerbusiness@gmail.com",
+      "walletId": "wlt_usr_smartlink_demo",
+      "date": "2026-10-24T07:07:27.411Z",
+      "verificationResult": {
+        "verified": true,
+        "matched": true,
+        "providerName": "Aspfiy Payment Portal",
+        "providerResponseCode": "CHARGE.SUCCESS",
+        "comparisonDetails": {
+          "amountMatch": true,
+          "referenceMatch": true,
+          "accountMatch": true,
+          "providerTxIdMatch": true,
+          "statusMatch": true,
+          "verifiedAmount": 750,
+          "verifiedReference": "ASP-MATCHED-1792825646",
+          "verifiedAccount": "2616561719"
+        },
+        "message": "Payment verified and matched successfully."
+      },
+      "rawPayload": {
+        "event": "charge.success",
+        "data": {
+          "reference": "ASP-MATCHED-1792825646",
+          "amount": 750,
+          "account": {
+            "account_number": "2616561719"
+          },
+          "customer": {
+            "email": "smartlinkcomputerbusiness@gmail.com"
+          }
+        }
+      },
+      "createdAt": "2026-10-24T07:07:27.411Z",
+      "updatedAt": "2026-10-24T07:07:27.411Z"
+    },
+    {
+      "id": "rec_1792825640901_3854",
+      "paymentReference": "ASP-UNMATCHED-1792825639",
+      "providerTransactionId": "ASP-UNMATCHED-1792825639",
+      "provider": "Aspfiy Payment Portal",
+      "amount": 2500,
+      "accountNumber": "9999999999",
+      "status": "UNMATCHED",
+      "userId": "UNMATCHED",
+      "userEmail": "unmatched@smartlink.com",
+      "walletId": "N/A",
+      "date": "2026-10-24T07:07:20.901Z",
+      "verificationResult": {
+        "verified": false,
+        "matched": false,
+        "providerName": "Aspfiy Payment Portal",
+        "providerResponseCode": "CHARGE.SUCCESS",
+        "comparisonDetails": {
+          "amountMatch": true,
+          "referenceMatch": true,
+          "accountMatch": true,
+          "providerTxIdMatch": true,
+          "statusMatch": true,
+          "verifiedAmount": 2500,
+          "verifiedReference": "ASP-UNMATCHED-1792825639",
+          "verifiedAccount": "9999999999"
+        },
+        "message": "Payment verified through active provider but could not be matched to a user or wallet.",
+        "failureReason": "No matching user account found for account 9999999999."
+      },
+      "rawPayload": {
+        "event": "charge.success",
+        "data": {
+          "reference": "ASP-UNMATCHED-1792825639",
+          "amount": 2500,
+          "account": {
+            "account_number": "9999999999"
+          }
+        }
+      },
+      "createdAt": "2026-10-24T07:07:20.901Z",
+      "updatedAt": "2026-10-24T07:07:20.901Z"
+    },
+    {
+      "id": "rec_1792825508480_6936",
+      "paymentReference": "ASP-TEST-1792825507",
+      "providerTransactionId": "ASP-TEST-1792825507",
+      "provider": "Aspfiy Payment Portal",
+      "amount": 500,
+      "accountNumber": "2616561719",
+      "status": "VERIFIED",
+      "userId": "usr_smartlink_demo",
+      "userEmail": "smartlinkcomputerbusiness@gmail.com",
+      "walletId": "wlt_usr_smartlink_demo",
+      "date": "2026-10-24T07:05:08.480Z",
+      "verificationResult": {
+        "verified": true,
+        "matched": true,
+        "providerName": "Aspfiy Payment Portal",
+        "providerResponseCode": "CHARGE.SUCCESS",
+        "comparisonDetails": {
+          "amountMatch": true,
+          "referenceMatch": true,
+          "accountMatch": true,
+          "providerTxIdMatch": true,
+          "statusMatch": true,
+          "verifiedAmount": 500,
+          "verifiedReference": "ASP-TEST-1792825507",
+          "verifiedAccount": "2616561719"
+        },
+        "message": "Payment verified and matched successfully."
+      },
+      "rawPayload": {
+        "event": "charge.success",
+        "data": {
+          "reference": "ASP-TEST-1792825507",
+          "amount": 500,
+          "account": {
+            "account_number": "2616561719"
+          },
+          "customer": {
+            "email": "smartlinkcomputerbusiness@gmail.com"
+          }
+        }
+      },
+      "createdAt": "2026-10-24T07:05:08.480Z",
+      "updatedAt": "2026-10-24T07:05:08.480Z"
+    },
+    {
+      "id": "rec_1792825485248_7743",
+      "paymentReference": "test-ref-001",
+      "providerTransactionId": "test-ref-001",
+      "provider": "Aspfiy Payment Portal",
+      "amount": 1000,
+      "accountNumber": "N/A",
+      "status": "UNMATCHED",
+      "userId": "UNMATCHED",
+      "userEmail": "unmatched@smartlink.com",
+      "walletId": "N/A",
+      "date": "2026-10-24T07:04:45.248Z",
+      "verificationResult": {
+        "verified": false,
+        "matched": false,
+        "providerName": "Aspfiy Payment Portal",
+        "providerResponseCode": "CHARGE.SUCCESS",
+        "comparisonDetails": {
+          "amountMatch": true,
+          "referenceMatch": true,
+          "accountMatch": true,
+          "providerTxIdMatch": true,
+          "statusMatch": true,
+          "verifiedAmount": 1000,
+          "verifiedReference": "test-ref-001",
+          "verifiedAccount": ""
+        },
+        "message": "Payment verified through active provider but could not be matched to a user or wallet.",
+        "failureReason": "No matching user account found for account N/A."
+      },
+      "rawPayload": {
+        "event": "charge.success",
+        "data": {
+          "reference": "test-ref-001",
+          "amount": 1000
+        }
+      },
+      "createdAt": "2026-10-24T07:04:45.248Z",
+      "updatedAt": "2026-10-24T07:04:45.248Z"
+    }
+  ],
+  "unmatched_payments": [
+    {
+      "id": "rec_1792825640901_3854",
+      "paymentReference": "ASP-UNMATCHED-1792825639",
+      "providerTransactionId": "ASP-UNMATCHED-1792825639",
+      "provider": "Aspfiy Payment Portal",
+      "amount": 2500,
+      "accountNumber": "9999999999",
+      "status": "UNMATCHED",
+      "userId": "UNMATCHED",
+      "userEmail": "unmatched@smartlink.com",
+      "walletId": "N/A",
+      "date": "2026-10-24T07:07:20.901Z",
+      "verificationResult": {
+        "verified": false,
+        "matched": false,
+        "providerName": "Aspfiy Payment Portal",
+        "providerResponseCode": "CHARGE.SUCCESS",
+        "comparisonDetails": {
+          "amountMatch": true,
+          "referenceMatch": true,
+          "accountMatch": true,
+          "providerTxIdMatch": true,
+          "statusMatch": true,
+          "verifiedAmount": 2500,
+          "verifiedReference": "ASP-UNMATCHED-1792825639",
+          "verifiedAccount": "9999999999"
+        },
+        "message": "Payment verified through active provider but could not be matched to a user or wallet.",
+        "failureReason": "No matching user account found for account 9999999999."
+      },
+      "rawPayload": {
+        "event": "charge.success",
+        "data": {
+          "reference": "ASP-UNMATCHED-1792825639",
+          "amount": 2500,
+          "account": {
+            "account_number": "9999999999"
+          }
+        }
+      },
+      "createdAt": "2026-10-24T07:07:20.901Z"
+    },
+    {
+      "id": "rec_1792825485248_7743",
+      "paymentReference": "test-ref-001",
+      "providerTransactionId": "test-ref-001",
+      "provider": "Aspfiy Payment Portal",
+      "amount": 1000,
+      "accountNumber": "N/A",
+      "status": "UNMATCHED",
+      "userId": "UNMATCHED",
+      "userEmail": "unmatched@smartlink.com",
+      "walletId": "N/A",
+      "date": "2026-10-24T07:04:45.248Z",
+      "verificationResult": {
+        "verified": false,
+        "matched": false,
+        "providerName": "Aspfiy Payment Portal",
+        "providerResponseCode": "CHARGE.SUCCESS",
+        "comparisonDetails": {
+          "amountMatch": true,
+          "referenceMatch": true,
+          "accountMatch": true,
+          "providerTxIdMatch": true,
+          "statusMatch": true,
+          "verifiedAmount": 1000,
+          "verifiedReference": "test-ref-001",
+          "verifiedAccount": ""
+        },
+        "message": "Payment verified through active provider but could not be matched to a user or wallet.",
+        "failureReason": "No matching user account found for account N/A."
+      },
+      "rawPayload": {
+        "event": "charge.success",
+        "data": {
+          "reference": "test-ref-001",
+          "amount": 1000
+        }
+      },
+      "createdAt": "2026-10-24T07:04:45.248Z"
+    }
+  ],
+  "wallet_transactions": [
+    {
+      "id": "tx_9m9k0ej",
+      "transactionId": "tx_9m9k0ej",
+      "reference": "ASP-TEST-1792825507",
+      "userId": "usr_smartlink_demo",
+      "userEmail": "smartlinkcomputerbusiness@gmail.com",
+      "serviceName": "Automated Virtual Account Top-Up",
+      "amount": 500,
+      "currency": "NGN",
+      "fee": 0,
+      "walletBalanceBefore": 0,
+      "walletBalanceAfter": 500,
+      "status": "SUCCESS",
+      "provider": "Aspfiy Payment Portal",
+      "description": "Verified deposit received via Aspfiy Payment Portal (Ref: ASP-TEST-1792825507)",
+      "createdAt": "2026-10-24T07:05:08.480Z",
+      "updatedAt": "2026-10-24T07:05:08.480Z",
+      "recipientDetails": "smartlinkcomputerbusiness@gmail.com",
+      "type": "WALLET_FUNDING",
+      "idempotencyKey": "ASP-TEST-1792825507"
+    },
+    {
+      "id": "tx_c2rtm7r",
+      "transactionId": "tx_c2rtm7r",
+      "reference": "ASP-MATCHED-1792825646",
+      "userId": "usr_smartlink_demo",
+      "userEmail": "smartlinkcomputerbusiness@gmail.com",
+      "serviceName": "Automated Virtual Account Top-Up",
+      "amount": 750,
+      "currency": "NGN",
+      "fee": 0,
+      "walletBalanceBefore": 500,
+      "walletBalanceAfter": 1250,
+      "status": "SUCCESS",
+      "provider": "Aspfiy Payment Portal",
+      "description": "Verified deposit received via Aspfiy Payment Portal (Ref: ASP-MATCHED-1792825646)",
+      "createdAt": "2026-10-24T07:07:27.413Z",
+      "updatedAt": "2026-10-24T07:07:27.413Z",
+      "recipientDetails": "smartlinkcomputerbusiness@gmail.com",
+      "type": "WALLET_FUNDING",
+      "idempotencyKey": "ASP-MATCHED-1792825646"
     }
   ]
 }

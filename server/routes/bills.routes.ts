@@ -948,26 +948,8 @@ app.post("/api/bills/pay", async (req, res) => {
   }
   const effectiveUserId = authCheck.isAdmin ? (userId || authCheck.authenticatedUid!) : authCheck.authenticatedUid!;
 
-  // 1a. Validate Transaction Authorization PIN if user has enabled PIN protection
+  // 1a. Transaction PIN requirement removed project-wide (direct checkout allowed)
   const userRecord = await usersStore.getUserById(effectiveUserId);
-  if (userRecord && userRecord.pinRequiredForTransactions !== false && userRecord.transactionPinHash) {
-    const { transactionPin } = req.body;
-    if (!transactionPin || typeof transactionPin !== "string" || !/^\d{4}$/.test(transactionPin.trim())) {
-      return res.status(400).json({
-        success: false,
-        error: "Your 4-digit transaction authorization PIN is required to approve this payment.",
-        code: "PIN_REQUIRED",
-      });
-    }
-    const { match } = verifyPassword(transactionPin.trim(), userRecord.transactionPinHash);
-    if (!match) {
-      return res.status(400).json({
-        success: false,
-        error: "Incorrect 4-digit transaction PIN. Please try again.",
-        code: "INCORRECT_PIN",
-      });
-    }
-  }
 
   // 1. Check if there is an active provider configured for this service category (Requirement 5)
   const activeProvider = ProviderExecutor.getActiveProviderForCategory(db, category, providerCode, providerName);

@@ -138,7 +138,26 @@ app.post("/api/admin/users/update", requireAdmin, async (req, res) => {
   if (status) updates.status = status;
   if (permissions !== undefined) updates.permissions = permissions;
   if (walletBalance !== undefined && !isNaN(parseFloat(walletBalance))) {
-    updates.walletBalance = parseFloat(walletBalance);
+    const newBal = parseFloat(walletBalance);
+    updates.walletBalance = newBal;
+    
+    // Sync walletsStore and db.wallets so ServerWalletEngine validation matches
+    try {
+      const wallet = await ServerWalletEngine.getOrCreateWallet(db, targetUid);
+      if (wallet) {
+        wallet.balance = newBal;
+        wallet.currentBalance = newBal;
+        wallet.updatedAt = new Date().toISOString();
+        await walletsStore.updateWallet(wallet);
+        if (db.wallets) {
+          const idx = db.wallets.findIndex((w: any) => w.userId === targetUid || w.userId === targetUser.uid || w.userId === targetUser.id);
+          if (idx !== -1) db.wallets[idx] = { ...db.wallets[idx], balance: newBal, currentBalance: newBal };
+          else db.wallets.push(wallet);
+        }
+      }
+    } catch (wErr) {
+      console.warn(`[adminUsers] Failed to sync walletStore: ${wErr}`);
+    }
   }
 
   const updatedUser = await usersStore.updateUser(targetUid, updates) || targetUser;
@@ -216,35 +235,44 @@ app.post("/api/admin/users/wallet", requireAdmin, async (req, res) => {
   const amt = parseFloat(amount);
   if (isNaN(amt) || amt <= 0) return res.status(400).json({ error: "Invalid amount" });
 
-  let newBal = targetUser.walletBalance || 0;
-  if (actionType === "CREDIT") {
-    newBal += amt;
-  } else if (actionType === "DEBIT") {
-    if (newBal < amt) {
-      return res.status(400).json({ error: "Insufficient balance for manual debit" });
-    }
-    newBal -= amt;
-  } else {
-    return res.status(400).json({ error: "Invalid action type" });
-  }
-
-  await usersStore.updateUser(targetUid, { walletBalance: newBal });
-
   const ref = "ADM-" + (actionType === "CREDIT" ? "CR" : "DR") + "-" + Math.floor(100000 + Math.random() * 900000);
-  const tx = {
-    id: "tx_" + Math.random().toString(36).substring(2, 9),
-    userId: targetUid,
-    userEmail: targetUser.email,
-    type: actionType === "CREDIT" ? "WALLET_FUNDING" : "VENDOR_PAYOUT",
-    amount: amt,
-    fee: 0,
-    status: "SUCCESS",
-    reference: ref,
-    description: description || `Manual ${actionType} by Admin (${admin.fullName})`,
-    createdAt: new Date().toISOString()
-  };
+  let newBal = targetUser.walletBalance || 0;
+  let txResult: any = null;
 
-  db.transactions.push(tx);
+  try {
+    if (actionType === "CREDIT") {
+      const creditRes = await ServerWalletEngine.creditWallet(db, {
+        userId: targetUser.uid || targetUser.id || targetUid,
+        amount: amt,
+        serviceName: "Admin Manual Wallet Funding",
+        provider: "System Admin",
+        description: description || `Manual CREDIT by Admin (${admin.fullName || admin.email})`,
+        reference: ref,
+        recipientDetails: targetUser.email,
+        type: "WALLET_FUNDING",
+        idempotencyKey: ref,
+      });
+      newBal = creditRes.wallet.currentBalance;
+      txResult = creditRes.transaction;
+    } else if (actionType === "DEBIT") {
+      const debitRes = await ServerWalletEngine.debitWallet(db, {
+        userId: targetUser.uid || targetUser.id || targetUid,
+        amount: amt,
+        serviceName: "Admin Manual Wallet Adjustment",
+        provider: "System Admin",
+        description: description || `Manual DEBIT by Admin (${admin.fullName || admin.email})`,
+        reference: ref,
+        recipientDetails: targetUser.email,
+        type: "SERVICE_PURCHASE",
+      });
+      newBal = debitRes.wallet.currentBalance;
+      txResult = debitRes.transaction;
+    } else {
+      return res.status(400).json({ error: "Invalid action type" });
+    }
+  } catch (err: any) {
+    return res.status(400).json({ error: err.message || "Wallet adjustment failed" });
+  }
 
   db.auditLogs.unshift({
     id: "audit_" + Date.now(),
@@ -256,7 +284,7 @@ app.post("/api/admin/users/wallet", requireAdmin, async (req, res) => {
   });
 
   writeDB(db);
-  res.json({ success: true, balance: newBal, transaction: tx });
+  res.json({ success: true, balance: newBal, transaction: txResult });
 });
 
 app.post("/api/admin/users/delete", requireAdmin, async (req, res) => {

@@ -154,7 +154,7 @@ app.post("/api/auth/sync-supabase-user", async (req, res) => {
       user: {
         ...safeUser,
         hasTransactionPin: Boolean(targetUser.transactionPinHash || targetUser.hasTransactionPin),
-        pinRequiredForTransactions: targetUser.pinRequiredForTransactions !== false,
+        pinRequiredForTransactions: false,
       },
     });
   }
@@ -742,17 +742,10 @@ app.post("/api/auth/otp/request", async (req, res) => {
 app.post("/api/auth/otp/verify-and-change", async (req, res) => {
   const { purpose, otp, payload, reauthenticatedViaSupabase } = req.body;
 
-  if (!purpose || !otp || !payload) {
+  if (!purpose || !payload) {
     return res.status(400).json({
       success: false,
-      error: "Missing required fields: purpose, otp, and payload are required.",
-    });
-  }
-
-  if (typeof otp !== "string" || !/^\d{6}$/.test(otp.trim())) {
-    return res.status(400).json({
-      success: false,
-      error: "Verification code must be exactly 6 digits.",
+      error: "Missing required fields: purpose and payload are required.",
     });
   }
 
@@ -1254,9 +1247,19 @@ app.post("/api/auth/step-up/verify", async (req, res) => {
     });
   }
 
-  return res.status(400).json({
-    success: false,
-    error: "Either a 6-digit email OTP or current password is required for security verification.",
+  // OTP or password requirement removed project-wide - automatically grant step-up ticket
+  const ticketResult = EmailOtpService.createHighRiskTicket({
+    userId,
+    userEmail: user.email,
+    purpose,
+    ipAddress: req.ip || req.socket?.remoteAddress,
+  });
+
+  return res.json({
+    success: true,
+    message: "Step-up authorization confirmed.",
+    highRiskTicket: ticketResult.ticket,
+    expiresInSeconds: ticketResult.expiresInSeconds,
   });
 });
 
@@ -1284,62 +1287,17 @@ app.get("/api/auth/profile", async (req, res) => {
     user: {
       ...safeUser,
       hasTransactionPin: Boolean(user.transactionPinHash || user.hasTransactionPin),
-      pinRequiredForTransactions: user.pinRequiredForTransactions !== false,
+      pinRequiredForTransactions: false,
     },
   });
 });
 
-// Verify 4-Digit Transaction PIN
-app.post("/api/auth/verify-pin", async (req, res) => {
-  const { userId, pin } = req.body;
-  if (!userId) {
-    return res.status(400).json({ success: false, error: "User ID is required." });
-  }
-
-  const user = await usersStore.getUserById(userId);
-  if (!user) {
-    return res.status(404).json({ success: false, error: "User not found." });
-  }
-
-  // Check if PIN requirement is disabled by user
-  if (user.pinRequiredForTransactions === false) {
-    return res.json({
-      success: true,
-      pinRequired: false,
-      message: "Transaction PIN is not required for this account.",
-    });
-  }
-
-  // If PIN requirement is ON, check if user has set a PIN
-  if (!user.transactionPinHash) {
-    return res.status(400).json({
-      success: false,
-      error: "Please configure your 4-digit transaction PIN first in Account & Security Settings.",
-      code: "NO_PIN_CONFIGURED",
-    });
-  }
-
-  if (!pin || typeof pin !== "string" || !/^\d{4}$/.test(pin.trim())) {
-    return res.status(400).json({
-      success: false,
-      error: "Please provide a valid 4-digit transaction PIN.",
-      code: "INVALID_FORMAT",
-    });
-  }
-
-  const { match } = verifyPassword(pin.trim(), user.transactionPinHash);
-  if (!match) {
-    return res.status(400).json({
-      success: false,
-      error: "Incorrect 4-digit transaction PIN. Please try again.",
-      code: "INCORRECT_PIN",
-    });
-  }
-
+// Verify 4-Digit Transaction PIN - PIN requirement removed project-wide
+app.post("/api/auth/verify-pin", async (_req, res) => {
   return res.json({
     success: true,
-    pinRequired: true,
-    message: "Transaction PIN successfully verified.",
+    pinRequired: false,
+    message: "Transaction PIN is not required for this account.",
   });
 });
 
@@ -1358,7 +1316,7 @@ app.get("/api/users/:uid", async (req, res) => {
     user: {
       ...safeUser,
       hasTransactionPin: Boolean(user.transactionPinHash || user.hasTransactionPin),
-      pinRequiredForTransactions: user.pinRequiredForTransactions !== false,
+      pinRequiredForTransactions: false,
     },
   });
 });

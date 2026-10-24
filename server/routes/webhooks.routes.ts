@@ -146,19 +146,62 @@ app.post(
   WEBHOOK_ENDPOINTS,
   async (req, res) => {
     const db = readDB();
+    const body = req.body || {};
+    const eventData = body.data || body.eventData || body;
+
+    const eventName = String(body.event || body.type || body.action || eventData.event || "").toLowerCase().trim();
+    const rawRef = String(
+      eventData.reference ||
+      body.reference ||
+      eventData.tx_ref ||
+      body.tx_ref ||
+      eventData.aspfiy_ref ||
+      body.aspfiy_ref ||
+      eventData.paymentReference ||
+      body.paymentReference ||
+      ""
+    ).trim();
 
     console.log(`[Webhook] Received incoming webhook on ${req.originalUrl || req.url}:`, {
-      event: req.body?.event,
-      ref: req.body?.data?.reference || req.body?.reference || req.body?.paymentReference,
-      amount: req.body?.data?.amount || req.body?.amount,
-      account: req.body?.data?.account?.account_number || req.body?.accountNumber,
+      event: body?.event || body?.type,
+      ref: rawRef,
+      amount: eventData.amount || body.amount,
+      account: eventData.account?.account_number || eventData.account_number || body.accountNumber,
     });
 
-    // 1. Validate Provider & Webhook Signature before processing any payment
+    // 1. Detect Aspfiy dashboard test, ping, handshake, or health-check events
+    const isTestOrPing =
+      body.test === true ||
+      body.is_test === true ||
+      body.ping === true ||
+      eventName === "test" ||
+      eventName === "ping" ||
+      eventName === "pong" ||
+      eventName === "handshake" ||
+      eventName === "test_notification" ||
+      eventName === "webhook_test" ||
+      eventName === "verification" ||
+      Object.keys(body).length === 0 ||
+      (rawRef.toLowerCase().startsWith("test") && (!eventData.amount || eventData.amount === 0));
+
+    if (isTestOrPing) {
+      console.log(`[Webhook] Handled Aspfiy test/ping event on ${req.originalUrl || req.url}`);
+      return res.status(200).json({
+        status: "SUCCESS",
+        success: true,
+        responseCode: "0",
+        responseMessage: "Aspfiy webhook endpoint is active, verified, and listening for payment events.",
+        message: "Aspfiy webhook endpoint is active, verified, and listening for payment events.",
+        provider: "ASPFIY",
+        endpoint: req.originalUrl || req.url,
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    // 2. Validate Provider & Webhook Signature
     const sigResult = verifyPortalWebhookSignature(req, db);
     if (!sigResult.isValid) {
       console.warn(`[Webhook] Signature check failed: ${sigResult.reason}`);
-      // Record suspicious attempt in security audit ledger and unmatched payments
       recordUnmatchedWebhookAttempt(db, {
         provider: "ASPFIY",
         reason: sigResult.reason || "Invalid webhook signature",
@@ -168,13 +211,15 @@ app.post(
       writeDB(db);
 
       return res.status(401).json({
+        status: "FAILED",
         success: false,
+        responseCode: "401",
         code: "INVALID_WEBHOOK_SIGNATURE",
         message: "Invalid webhook signature.",
       });
     }
 
-    // 2. Process payload, extract details, find user, prevent duplicates, verify & credit wallet exactly once
+    // 3. Process payload, extract details, find user, prevent duplicates, verify & credit wallet
     const result = await AutomaticWalletFundingEngine.processIncomingPaymentNotification(db, {
       payload: req.body,
       headers: req.headers,
@@ -185,20 +230,36 @@ app.post(
     if (result.isDuplicate) {
       return res.status(200).json({
         status: "SUCCESS",
+        success: true,
         responseCode: "0",
         responseMessage: "Duplicate transaction acknowledged. Wallet already credited.",
-        success: true,
         code: "DUPLICATE_TRANSACTION_ACKNOWLEDGED",
+        isDuplicate: true,
       });
     }
 
-    res.status(result.success ? 200 : 400).json({
-      status: result.success ? "SUCCESS" : "FAILED",
-      responseCode: result.success ? "0" : "99",
-      responseMessage: result.message,
-      data: result,
-      ...result,
-    });
+    // Return HTTP 200 to acknowledge webhook receipt to Aspfiy.
+    // If unmatched, transaction is logged into Admin Reconciliation Ledger for Super Admin review without causing Aspfiy retry storms.
+    if (result.success) {
+      return res.status(200).json({
+        status: "SUCCESS",
+        success: true,
+        responseCode: "0",
+        responseMessage: result.message || "Payment successfully verified and credited to wallet.",
+        data: result,
+        ...result,
+      });
+    } else {
+      return res.status(200).json({
+        status: "SUCCESS",
+        success: true,
+        responseCode: "0",
+        responseMessage: result.message || "Webhook received and logged for reconciliation.",
+        code: result.code || "UNMATCHED_PAYMENT_LOGGED",
+        unmatchedPaymentId: result.unmatchedPaymentId,
+        data: result,
+      });
+    }
   }
 );
 
@@ -219,6 +280,131 @@ app.get("/api/admin/reconciliations", requireAdmin, async (req, res) => {
   };
   const records = PaymentVerificationReconciliationEngine.getReconciliationRecords(db, filters);
   res.json({ success: true, reconciliations: records });
+});
+
+// Admin Manual Reconcile & Credit Endpoint (Option 2) - Guarantees Single Credit (Prevents duplicate crediting)
+app.post("/api/admin/unmatched-payments/reconcile", requireAdmin, async (req, res) => {
+  const { recordId, targetUserId, notes } = req.body;
+  const db = readDB();
+  const adminUser = (req as any).admin;
+  const adminUid = (req as any).authenticatedUid;
+
+  if (!recordId || !targetUserId) {
+    return res.status(400).json({ success: false, message: "Record ID and Target User ID/Email are required." });
+  }
+
+  // Find record in reconciliation_records or unmatched_payments
+  if (!db.reconciliation_records) db.reconciliation_records = [];
+  if (!db.unmatched_payments) db.unmatched_payments = [];
+  if (!db.processed_payment_references) db.processed_payment_references = [];
+  if (!db.processed_provider_tx_ids) db.processed_provider_tx_ids = [];
+
+  const recIdx = db.reconciliation_records.findIndex((r: any) => r.id === recordId || r.paymentReference === recordId);
+  const record = recIdx !== -1 ? db.reconciliation_records[recIdx] : db.unmatched_payments.find((u: any) => u.id === recordId);
+
+  if (!record) {
+    return res.status(404).json({ success: false, message: "Reconciliation record not found." });
+  }
+
+  const paymentRef = record.paymentReference || record.id;
+  const providerTxId = record.providerTransactionId;
+
+  // STRICT DUPLICATE GUARD: Check if already credited or reconciled
+  const isAlreadyCredited =
+    record.status === "VERIFIED" ||
+    record.status === "CREDITED" ||
+    record.status === "RECONCILED" ||
+    db.processed_payment_references.includes(paymentRef) ||
+    (providerTxId && db.processed_provider_tx_ids.includes(providerTxId));
+
+  if (isAlreadyCredited) {
+    return res.status(400).json({
+      success: false,
+      code: "DUPLICATE_CREDIT_PREVENTED",
+      message: `Transaction ${paymentRef} has ALREADY been credited to a user wallet. Double crediting is strictly blocked.`,
+    });
+  }
+
+  // Locate target user
+  let targetUser = (db.users || []).find((u: any) => u.uid === targetUserId || u.id === targetUserId || (u.email && u.email.toLowerCase() === targetUserId.toLowerCase()));
+  if (!targetUser) {
+    targetUser = (await usersStore.getUserById(targetUserId)) || (await usersStore.getUserByEmail(targetUserId));
+  }
+
+  if (!targetUser) {
+    return res.status(404).json({ success: false, message: `Target user '${targetUserId}' not found.` });
+  }
+
+  const amountToCredit = Number(record.amount || 0);
+  if (isNaN(amountToCredit) || amountToCredit <= 0) {
+    return res.status(400).json({ success: false, message: "Invalid amount on reconciliation record." });
+  }
+
+  // Credit Wallet safely with idempotency key
+  try {
+    const creditResult = await ServerWalletEngine.creditWallet(db, {
+      userId: targetUser.uid,
+      amount: amountToCredit,
+      serviceName: "Admin Manual Reconciliation",
+      provider: record.provider || "Aspfiy Payment Portal",
+      description: `Manual admin reconciliation credit (Ref: ${paymentRef}${notes ? ` - ${notes}` : ""})`,
+      reference: paymentRef,
+      fee: 0,
+      recipientDetails: targetUser.email,
+      type: "WALLET_FUNDING",
+      idempotencyKey: `recon_admin_${record.id}_${paymentRef}`,
+    });
+
+    // Mark reference as processed to prevent any duplicate processing forever
+    db.processed_payment_references.push(paymentRef);
+    if (providerTxId && !db.processed_provider_tx_ids.includes(providerTxId)) {
+      db.processed_provider_tx_ids.push(providerTxId);
+    }
+
+    // Update reconciliation record
+    const updatedRecord = {
+      ...record,
+      status: "CREDITED",
+      userId: targetUser.uid,
+      userEmail: targetUser.email,
+      walletId: `wlt_${targetUser.uid}`,
+      reconciledAt: new Date().toISOString(),
+      reconciledBy: adminUser.email || adminUid,
+      reconciliationNotes: notes || "Manually reconciled by Super Admin",
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (recIdx !== -1) {
+      db.reconciliation_records[recIdx] = updatedRecord;
+    } else {
+      db.reconciliation_records.unshift(updatedRecord);
+    }
+
+    // Remove from unmatched payments list
+    db.unmatched_payments = db.unmatched_payments.filter((u: any) => u.id !== record.id && u.paymentReference !== paymentRef);
+
+    // Audit Log
+    if (!db.auditLogs) db.auditLogs = [];
+    db.auditLogs.unshift({
+      id: "audit_recon_" + Date.now(),
+      adminUid,
+      adminEmail: adminUser.email || "admin",
+      action: "MANUAL_WALLET_RECONCILIATION",
+      details: `Reconciled ₦${amountToCredit} for payment ${paymentRef} to user ${targetUser.email}`,
+      timestamp: new Date().toISOString(),
+    });
+
+    writeDB(db);
+
+    return res.json({
+      success: true,
+      message: `Successfully reconciled and credited ₦${amountToCredit.toLocaleString()} to ${targetUser.email}`,
+      newBalance: creditResult.wallet.currentBalance,
+      record: updatedRecord,
+    });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: `Failed to credit wallet: ${err.message}` });
+  }
 });
 
 // Standalone Payment Verification & Reconciliation Trigger Endpoint

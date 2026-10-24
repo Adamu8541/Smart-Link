@@ -265,7 +265,7 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
     if (!targetResult) return;
     setIsDownloadingPdf(true);
     try {
-      const d = targetResult.data || {};
+      const d: any = targetResult.data || {};
       const reportData: CacReportData = {
         companyName: d.companyName || d.name || d.businessName || targetResult.verifiedId || "CAC REGISTERED ENTITY",
         rcNumber: d.rcNumber || d.registrationNumber || targetResult.verifiedId || "",
@@ -744,8 +744,10 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
           )}
 
           {/* SUCCESS MODE: Formatted CAC Profile & PDF Auto-Download Notice */}
-          {stepMode === "SUCCESS" && result && (
-            <div className="space-y-5">
+          {stepMode === "SUCCESS" && result && (() => {
+            const cacData: any = result.data || {};
+            return (
+              <div className="space-y-5">
               {/* PDF Auto-Download Banner */}
               <div className="p-4 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
                 <div className="flex items-center gap-3">
@@ -808,17 +810,17 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
                       Registered Corporate Entity Name
                     </span>
                     <h4 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white uppercase">
-                      {result.data?.companyName || result.data?.name || result.verifiedId}
+                      {cacData.companyName || cacData.name || result.verifiedId}
                     </h4>
                     <p className="text-xs font-mono font-bold text-slate-700 dark:text-slate-300">
-                      REGISTRATION NO: <span className="text-[#0F2D5C] dark:text-blue-400 font-extrabold">{result.data?.rcNumber || result.verifiedId}</span>
+                      REGISTRATION NO: <span className="text-[#0F2D5C] dark:text-blue-400 font-extrabold">{cacData.rcNumber || result.verifiedId}</span>
                     </p>
                   </div>
 
                   <div className="shrink-0">
                     <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-black bg-blue-100 text-[#0F2D5C] dark:bg-blue-950 dark:text-blue-300 border border-blue-300 dark:border-blue-700">
                       <Award className="h-4 w-4 text-[#0F2D5C] dark:text-blue-400" />
-                      <span>{result.data?.companyStatus || result.data?.status || "ACTIVE"}</span>
+                      <span>{cacData.companyStatus || cacData.status || "ACTIVE"}</span>
                     </span>
                   </div>
                 </div>
@@ -832,7 +834,7 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
                         <span>Registration Number</span>
                       </span>
                       <p className="font-mono text-xs font-extrabold text-slate-900 dark:text-white">
-                        {result.data?.rcNumber || result.verifiedId}
+                        {cacData.rcNumber || result.verifiedId}
                       </p>
                     </div>
 
@@ -842,7 +844,7 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
                         <span>Incorporation Date</span>
                       </span>
                       <p className="text-xs font-bold text-slate-900 dark:text-white">
-                        {result.data?.registrationDate || result.data?.incorporationDate || "Officially Registered"}
+                        {cacData.registrationDate || cacData.incorporationDate || "Officially Registered"}
                       </p>
                     </div>
 
@@ -852,7 +854,7 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
                         <span>Entity Classification</span>
                       </span>
                       <p className="text-xs font-bold text-slate-900 dark:text-white">
-                        {result.data?.companyType || result.data?.classification || "Private Limited Company (LTD)"}
+                        {cacData.companyType || cacData.classification || "Private Limited Company (LTD)"}
                       </p>
                     </div>
 
@@ -862,7 +864,7 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
                         <span>Registered Office Address</span>
                       </span>
                       <p className="text-xs font-semibold text-slate-900 dark:text-white">
-                        {result.data?.address || result.data?.headOffice || "Federal Republic of Nigeria"}
+                        {cacData.address || cacData.headOffice || "Federal Republic of Nigeria"}
                       </p>
                     </div>
 
@@ -872,25 +874,25 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
                         <span>Tax ID Number (TIN)</span>
                       </span>
                       <p className="font-mono text-xs font-extrabold text-slate-900 dark:text-white">
-                        {result.data?.tin || "FIRS / JTB Integrated"}
+                        {cacData.tin || "FIRS / JTB Integrated"}
                       </p>
                     </div>
                   </div>
 
                   {/* Registered Objectives */}
-                  {result.data?.natureOfBusiness && (
+                  {cacData.natureOfBusiness && (
                     <div className="p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl space-y-1.5">
                       <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase block">
                         Principal Business Activities & Objectives
                       </span>
                       <p className="text-xs font-medium text-slate-800 dark:text-slate-200 leading-relaxed">
-                        {result.data.natureOfBusiness}
+                        {cacData.natureOfBusiness}
                       </p>
                     </div>
                   )}
 
                   {/* Directors & Officers Table */}
-                  {result.data?.directors && result.data.directors.length > 0 && (
+                  {cacData.directors && cacData.directors.length > 0 && (
                     <div className="space-y-2">
                       <span className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wide flex items-center gap-1.5">
                         <Users className="h-4 w-4 text-[#0F2D5C]" />
@@ -906,7 +908,7 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                            {result.data.directors.map((dir: any, idx: number) => (
+                            {cacData.directors.map((dir: any, idx: number) => (
                               <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
                                 <td className="p-3 font-bold text-slate-900 dark:text-white">{dir.name || "OFFICER"}</td>
                                 <td className="p-3 font-medium text-slate-700 dark:text-slate-300">{dir.designation || dir.role || "DIRECTOR"}</td>
@@ -954,7 +956,8 @@ export const CacVerificationView: React.FC<CacVerificationViewProps> = ({
                 </div>
               </div>
             </div>
-          )}
+            );
+          })()}
 
           {/* Error View */}
           {stepMode === "ERROR" && errorState && (

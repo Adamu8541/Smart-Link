@@ -31,6 +31,45 @@ export function AdminReconciliationView({ session, onNavigate }: AdminReconcilia
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [search, setSearch] = useState("");
   const [selectedRecord, setSelectedRecord] = useState<any | null>(null);
+  const [reconcileTargetUser, setReconcileTargetUser] = useState("");
+  const [isReconciling, setIsReconciling] = useState(false);
+  const [reconcileFeedback, setReconcileFeedback] = useState<{ type: "success" | "error"; msg: string } | null>(null);
+
+  const handleManualReconcile = async (recordId: string, targetUserId: string) => {
+    if (!recordId || !targetUserId.trim()) return;
+    setIsReconciling(true);
+    setReconcileFeedback(null);
+
+    try {
+      const token = session?.sessionToken || getStoredAdminSession()?.sessionToken || "";
+      const res = await fetch("/api/admin/unmatched-payments/reconcile", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-token": token,
+        },
+        body: JSON.stringify({
+          recordId,
+          targetUserId: targetUserId.trim(),
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setReconcileFeedback({ type: "success", msg: data.message || "Wallet credited successfully!" });
+        fetchReconciliations(true);
+        if (selectedRecord && selectedRecord.id === recordId) {
+          setSelectedRecord({ ...selectedRecord, status: "CREDITED", userId: targetUserId, userEmail: targetUserId });
+        }
+      } else {
+        setReconcileFeedback({ type: "error", msg: data.message || "Failed to reconcile transfer." });
+      }
+    } catch (err: any) {
+      setReconcileFeedback({ type: "error", msg: err.message || "Network error occurred." });
+    } finally {
+      setIsReconciling(false);
+    }
+  };
 
   useEffect(() => {
     fetchReconciliations();
@@ -210,7 +249,21 @@ export function AdminReconciliationView({ session, onNavigate }: AdminReconcilia
                       <td className="p-4 text-[#6B7280] text-[11px]">
                         {new Date(rec.date).toLocaleString()}
                       </td>
-                      <td className="p-4 text-right font-sans">
+                      <td className="p-4 text-right font-sans flex items-center justify-end gap-1.5">
+                        {rec.status !== "CREDITED" && rec.status !== "VERIFIED" && rec.status !== "RECONCILED" && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedRecord(rec);
+                              setReconcileTargetUser(rec.userEmail !== "unmatched@smartlink.com" && rec.userEmail !== "suspicious@smartlink.ng" ? rec.userEmail : "");
+                            }}
+                            className="px-2.5 py-1.5 bg-[#0F2D5C] hover:bg-[#17407E] active:scale-95 text-white font-bold rounded-lg text-[10px] transition-all shadow-xs cursor-pointer flex items-center gap-1 shrink-0"
+                            title="1-Click Reconcile & Credit"
+                          >
+                            <Wallet className="h-3 w-3" />
+                            <span>Credit Wallet</span>
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={() => setSelectedRecord(rec)}
@@ -229,23 +282,37 @@ export function AdminReconciliationView({ session, onNavigate }: AdminReconcilia
         </div>
       </div>
 
-      {/* Verification Result Inspection Modal */}
+      {/* Verification Result Inspection & Manual Reconciliation Modal */}
       {selectedRecord && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white border border-[#E5E7EB] rounded-2xl max-w-2xl w-full p-6 md:p-8 space-y-6 max-h-[90vh] overflow-y-auto shadow-2xl text-[#111827]">
             <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-4">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-5 w-5 text-[#0F2D5C]" />
-                <h3 className="text-lg font-bold text-[#111827]">Verification & Comparison Result</h3>
+                <h3 className="text-lg font-bold text-[#111827]">Verification & Reconciliation Inspection</h3>
               </div>
               <button
                 type="button"
-                onClick={() => setSelectedRecord(null)}
+                onClick={() => {
+                  setSelectedRecord(null);
+                  setReconcileFeedback(null);
+                }}
                 className="p-1.5 rounded-lg hover:bg-gray-100 text-[#6B7280] hover:text-[#111827] transition-colors cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
+
+            {reconcileFeedback && (
+              <div className={`p-4 rounded-xl border text-xs flex items-center gap-2 font-medium ${
+                reconcileFeedback.type === "success" 
+                  ? "bg-emerald-50 border-emerald-300 text-emerald-800" 
+                  : "bg-rose-50 border-rose-300 text-rose-800"
+              }`}>
+                {reconcileFeedback.type === "success" ? <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" /> : <AlertTriangle className="h-4 w-4 shrink-0 text-rose-600" />}
+                <span>{reconcileFeedback.msg}</span>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-4 text-xs font-mono">
               <div className="p-3 bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl space-y-1">
@@ -281,6 +348,38 @@ export function AdminReconciliationView({ session, onNavigate }: AdminReconcilia
                 <p className="text-[10px] text-[#6B7280]">{selectedRecord.walletId}</p>
               </div>
             </div>
+
+            {/* 1-Click Manual Reconciliation Action Box for Uncredited Records */}
+            {selectedRecord.status !== "CREDITED" && selectedRecord.status !== "VERIFIED" && selectedRecord.status !== "RECONCILED" && (
+              <div className="p-4 bg-blue-50/70 border border-blue-200 rounded-2xl space-y-3">
+                <div className="flex items-center gap-2 text-[#0F2D5C]">
+                  <Wallet className="h-4 w-4" />
+                  <h4 className="text-xs font-bold uppercase tracking-wider">1-Click Manual Wallet Reconciliation</h4>
+                </div>
+                <p className="text-xs text-[#4B5563]">
+                  Assign and credit <strong>₦{(selectedRecord.amount || 0).toLocaleString()}</strong> directly to a user's wallet. Duplicate credit prevention is enforced automatically.
+                </p>
+
+                <div className="flex flex-col sm:flex-row items-center gap-2">
+                  <input
+                    type="text"
+                    value={reconcileTargetUser}
+                    onChange={(e) => setReconcileTargetUser(e.target.value)}
+                    placeholder="Target User Email or User UID..."
+                    className="flex-1 w-full bg-white border border-[#E5E7EB] rounded-xl px-3.5 py-2.5 text-xs text-[#111827] focus:ring-2 focus:ring-[#0F2D5C]/20 focus:border-[#0F2D5C]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleManualReconcile(selectedRecord.id, reconcileTargetUser)}
+                    disabled={isReconciling || !reconcileTargetUser.trim()}
+                    className="w-full sm:w-auto px-5 py-2.5 bg-[#0F2D5C] hover:bg-[#17407E] active:scale-95 disabled:opacity-50 text-white font-bold text-xs rounded-xl transition-all shadow-xs cursor-pointer flex items-center justify-center gap-2 shrink-0"
+                  >
+                    <CheckCircle2 className="h-4 w-4" />
+                    <span>{isReconciling ? "Crediting..." : "Reconcile & Credit"}</span>
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Comparison Details Section */}
             {selectedRecord.verificationResult && (
@@ -326,7 +425,10 @@ export function AdminReconciliationView({ session, onNavigate }: AdminReconcilia
             <div className="flex justify-end pt-2">
               <button
                 type="button"
-                onClick={() => setSelectedRecord(null)}
+                onClick={() => {
+                  setSelectedRecord(null);
+                  setReconcileFeedback(null);
+                }}
                 className="py-2 px-5 bg-gray-100 hover:bg-gray-200 text-[#111827] border border-[#E5E7EB] text-xs font-bold rounded-xl cursor-pointer transition-colors"
               >
                 Close

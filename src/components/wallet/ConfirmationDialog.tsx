@@ -57,41 +57,9 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   const safeAmount = Number(amount) || 0;
   const safeCurrentBalance = Number(currentBalance) || 0;
   const balanceAfter = Math.max(0, safeCurrentBalance - safeAmount);
-  const isPinRequired = (resolvedUser?.pinRequiredForTransactions !== false) && Boolean(resolvedUser?.hasTransactionPin);
+  const isPinRequired = false;
 
   const handleAuthorize = async () => {
-    if (isPinRequired) {
-      if (!pin || pin.length !== 4) {
-        setPinError("Please enter your 4-digit transaction PIN.");
-        return;
-      }
-
-      setIsVerifyingPin(true);
-      setPinError(null);
-
-      try {
-        const res = await fetch("/api/auth/verify-pin", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            userId: resolvedUser?.uid || (resolvedUser as any)?.id,
-            pin: pin.trim(),
-          }),
-        });
-        const data = await res.json();
-        if (!res.ok || !data.success) {
-          setPinError(data.error || "Incorrect 4-digit transaction PIN. Please try again.");
-          setIsVerifyingPin(false);
-          return;
-        }
-      } catch (err: any) {
-        setPinError("Failed to verify transaction PIN. Check connection.");
-        setIsVerifyingPin(false);
-        return;
-      }
-      setIsVerifyingPin(false);
-    }
-
     onConfirm(pin);
   };
 
@@ -216,7 +184,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
           <button
             type="button"
             onClick={handleAuthorize}
-            disabled={isLoading || isVerifyingPin || (isPinRequired && pin.length !== 4)}
+            disabled={isLoading || isVerifyingPin}
             className="flex-1 py-2.5 px-4 bg-[#0F2D5C] hover:bg-[#17407E] active:scale-98 text-white font-semibold rounded-xl text-xs transition-all shadow-md shadow-blue-600/20 cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50"
           >
             {isLoading || isVerifyingPin ? (

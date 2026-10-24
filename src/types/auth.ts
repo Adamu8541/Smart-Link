@@ -93,7 +93,7 @@ export interface OtpRequestResponse {
 
 export interface OtpVerifyAndChangePayload {
   purpose: SensitiveActionPurpose;
-  otp: string;
+  otp?: string;
   payload: {
     newPassword?: string;
     newEmail?: string;
