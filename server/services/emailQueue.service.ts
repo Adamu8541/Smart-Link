@@ -102,6 +102,27 @@ export function renderNewsletterHtml(options: {
   `;
 }
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function isPermanentSmtpError(errMsg: string): boolean {
+  if (!errMsg) return false;
+  const lower = errMsg.toLowerCase();
+  return (
+    lower.includes("550") ||
+    lower.includes("501") ||
+    lower.includes("553") ||
+    lower.includes("552") ||
+    lower.includes("554") ||
+    lower.includes("user unknown") ||
+    lower.includes("recipient address rejected") ||
+    lower.includes("mailbox unavailable") ||
+    lower.includes("does not exist") ||
+    lower.includes("invalid recipient") ||
+    lower.includes("syntax error") ||
+    lower.includes("invalid email format")
+  );
+}
+
 export async function dispatchEmailCampaign(job: CampaignJob): Promise<{ campaignId: string; total: number }> {
   const { campaignId, subject, body, senderName, bannerHeadline, ctaLabel, ctaUrl, recipients, attachments } = job;
   const supaAdmin = getSupabaseAdmin();
@@ -111,11 +132,14 @@ export async function dispatchEmailCampaign(job: CampaignJob): Promise<{ campaig
   setImmediate(async () => {
     let sentCount = 0;
     let failedCount = 0;
-    const BATCH_SIZE = 15;
-    const BATCH_DELAY_MS = 2000;
+    
+    // Optimized batching parameters for SMTP connection pool
+    const BATCH_SIZE = 25;
+    const BATCH_DELAY_MS = 100;
 
     for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
       const batch = recipients.slice(i, i + BATCH_SIZE);
+      const batchLogs: any[] = [];
 
       await Promise.all(
         batch.map(async (recipient) => {
@@ -125,6 +149,24 @@ export async function dispatchEmailCampaign(job: CampaignJob): Promise<{ campaig
           let attempts = 0;
           const MAX_RETRIES = 2;
 
+          const recipientEmail = (recipient.email || "").trim();
+
+          // 1. Fast path validation for invalid email syntax
+          if (!recipientEmail || !EMAIL_REGEX.test(recipientEmail)) {
+            failedCount++;
+            batchLogs.push({
+              campaign_id: campaignId,
+              recipient_email: recipientEmail || "invalid@address",
+              recipient_name: recipient.name || "Recipient",
+              status: "failed",
+              error_reason: "Invalid email address format",
+              message_id: "",
+              retry_count: 0,
+              sent_at: null,
+            });
+            return;
+          }
+
           const htmlContent = renderNewsletterHtml({
             subject,
             body,
@@ -133,7 +175,7 @@ export async function dispatchEmailCampaign(job: CampaignJob): Promise<{ campaig
             ctaLabel,
             ctaUrl,
             recipientName: recipient.name,
-            recipientEmail: recipient.email,
+            recipientEmail: recipientEmail,
             walletBalance: recipient.walletBalance,
           });
 
@@ -141,7 +183,7 @@ export async function dispatchEmailCampaign(job: CampaignJob): Promise<{ campaig
             attempts++;
             try {
               const res = await sendPlatformEmail({
-                to: recipient.email,
+                to: recipientEmail,
                 subject,
                 html: htmlContent,
                 senderName,
@@ -159,8 +201,13 @@ export async function dispatchEmailCampaign(job: CampaignJob): Promise<{ campaig
               errorMessage = err.message || "Exception during send";
             }
 
+            // If success or error is permanent (550 User Unknown), don't retry!
+            if (success || isPermanentSmtpError(errorMessage)) {
+              break;
+            }
+
             if (!success && attempts <= MAX_RETRIES) {
-              await new Promise((r) => setTimeout(r, attempts * 1500));
+              await new Promise((r) => setTimeout(r, attempts * 1000));
             }
           }
 
@@ -168,24 +215,27 @@ export async function dispatchEmailCampaign(job: CampaignJob): Promise<{ campaig
             failedCount++;
           }
 
-          if (supaAdmin) {
-            try {
-              await supaAdmin.from("email_logs").insert({
-                campaign_id: campaignId,
-                recipient_email: recipient.email,
-                recipient_name: recipient.name,
-                status: success ? "sent" : "failed",
-                error_reason: success ? null : errorMessage,
-                message_id: messageId,
-                retry_count: attempts - 1,
-                sent_at: success ? new Date().toISOString() : null,
-              });
-            } catch (supaErr) {
-              console.warn("[EmailQueue] Failed to record email log in Supabase:", supaErr);
-            }
-          }
+          batchLogs.push({
+            campaign_id: campaignId,
+            recipient_email: recipientEmail,
+            recipient_name: recipient.name || recipientEmail.split("@")[0],
+            status: success ? "sent" : "failed",
+            error_reason: success ? null : errorMessage,
+            message_id: messageId,
+            retry_count: attempts - 1,
+            sent_at: success ? new Date().toISOString() : null,
+          });
         })
       );
+
+      // Bulk record email logs to Supabase in a single DB query
+      if (supaAdmin && batchLogs.length > 0) {
+        try {
+          await supaAdmin.from("email_logs").insert(batchLogs);
+        } catch (supaErr) {
+          console.warn("[EmailQueue] Failed to record batch email logs in Supabase:", supaErr);
+        }
+      }
 
       if (supaAdmin) {
         try {

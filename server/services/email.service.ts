@@ -14,6 +14,19 @@ export interface SmtpConfig {
   secure?: boolean;
 }
 
+let cachedTransporter: Transporter | null = null;
+let cachedConfigHash = "";
+
+export function resetSmtpTransporterCache() {
+  if (cachedTransporter) {
+    try {
+      cachedTransporter.close();
+    } catch (e) {}
+  }
+  cachedTransporter = null;
+  cachedConfigHash = "";
+}
+
 /**
  * Helper to resolve active SMTP configuration from database or environment variables
  */
@@ -38,7 +51,6 @@ export function getResolvedSmtpConfig(customDb?: any): {
   const smtpPort = Number(process.env.SMTP_PORT || process.env.AUTH_SMTP_PORT || emailSettings.smtpPort || 587);
   
   // Resolve username/email
-  // Note: if user entered a display name in smtpUsername and an email in replyToAddress, pick the email
   let smtpUser = 
     process.env.SMTP_USER || 
     process.env.AUTH_SMTP_USER || 
@@ -65,7 +77,6 @@ export function getResolvedSmtpConfig(customDb?: any): {
     emailSettings.smtpPasswordMasked || 
     "";
 
-  // Clean whitespace from app password (e.g. "yavm raix ikvo idty" -> "yavmraixikvoidty" if 16 chars or keep intact)
   if (smtpPass) {
     smtpPass = smtpPass.trim();
   }
@@ -91,6 +102,18 @@ export function getResolvedSmtpConfig(customDb?: any): {
     };
   }
 
+  const cleanPass = smtpPass.replace(/\s+/g, "");
+  const currentConfigHash = `${smtpHost}:${smtpPort}:${smtpUser}:${cleanPass}`;
+
+  // Reuse pooled transporter if configuration hasn't changed
+  if (cachedTransporter && cachedConfigHash === currentConfigHash) {
+    return {
+      transporter: cachedTransporter,
+      config: { ...emailSettings, smtpHost, smtpPort, smtpUser, smtpPass },
+      fromAddress,
+    };
+  }
+
   try {
     const isGmail = smtpHost.includes("gmail") || smtpUser.includes("@gmail.com");
     let transporter: Transporter;
@@ -98,9 +121,14 @@ export function getResolvedSmtpConfig(customDb?: any): {
     if (isGmail && (!smtpHost || smtpHost === "smtp.gmail.com")) {
       transporter = nodemailer.createTransport({
         service: "gmail",
+        pool: true,             // Enable connection pooling
+        maxConnections: 5,      // Max 5 simultaneous TCP sockets
+        maxMessages: 100,       // Reuse connection up to 100 messages
+        rateDelta: 1000,        // 1 sec window
+        rateLimit: 8,           // Safe max 8 emails/sec to prevent Gmail 421 drop errors
         auth: {
           user: smtpUser,
-          pass: smtpPass.replace(/\s+/g, ""), // Gmail App passwords work with spaces stripped
+          pass: cleanPass,
         },
       });
     } else {
@@ -108,15 +136,23 @@ export function getResolvedSmtpConfig(customDb?: any): {
         host: smtpHost,
         port: smtpPort,
         secure: smtpPort === 465,
+        pool: true,             // Enable connection pooling
+        maxConnections: 5,
+        maxMessages: 100,
+        rateDelta: 1000,
+        rateLimit: 10,
         auth: {
           user: smtpUser,
-          pass: smtpPass.replace(/\s+/g, ""),
+          pass: cleanPass,
         },
         tls: {
-          rejectUnauthorized: false, // Prevents self-signed cert blocks
+          rejectUnauthorized: false,
         },
       });
     }
+
+    cachedTransporter = transporter;
+    cachedConfigHash = currentConfigHash;
 
     return {
       transporter,
