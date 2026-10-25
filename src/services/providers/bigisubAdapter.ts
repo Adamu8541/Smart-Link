@@ -59,6 +59,50 @@ export interface BigisubResponse {
   [key: string]: any;
 }
 
+/**
+ * Detect Nigerian telecom provider from phone number prefix
+ */
+export function detectNetworkFromPhone(phone?: string): string {
+  if (!phone) return "";
+  const cleaned = String(phone).replace(/\D/g, "");
+  let local = cleaned;
+  if (local.startsWith("234") && local.length >= 13) {
+    local = "0" + local.slice(3);
+  } else if (!local.startsWith("0") && local.length === 10) {
+    local = "0" + local;
+  }
+  if (local.length < 4) return "";
+
+  const prefix4 = local.slice(0, 4);
+  const prefix5 = local.slice(0, 5);
+
+  // MTN: 0803, 0806, 0703, 0706, 0813, 0816, 0810, 0814, 0903, 0906, 0913, 0916, 0704
+  const mtnPrefixes = [
+    "0803", "0806", "0703", "0706", "0813", "0816", "0810", "0814", "0903", "0906", "0913", "0916", "0704"
+  ];
+  if (mtnPrefixes.includes(prefix4) || prefix5 === "07025" || prefix5 === "07026") return "MTN";
+
+  // Glo: 0805, 0807, 0705, 0815, 0811, 0905, 0915
+  const gloPrefixes = [
+    "0805", "0807", "0705", "0815", "0811", "0905", "0915"
+  ];
+  if (gloPrefixes.includes(prefix4)) return "GLO";
+
+  // Airtel: 0802, 0808, 0708, 0701, 0812, 0901, 0902, 0904, 0907, 0912
+  const airtelPrefixes = [
+    "0802", "0808", "0708", "0701", "0812", "0901", "0902", "0904", "0907", "0912"
+  ];
+  if (airtelPrefixes.includes(prefix4)) return "AIRTEL";
+
+  // 9mobile: 0809, 0817, 0818, 0908, 0909
+  const nineMobilePrefixes = [
+    "0809", "0817", "0818", "0908", "0909"
+  ];
+  if (nineMobilePrefixes.includes(prefix4)) return "9MOBILE";
+
+  return "";
+}
+
 export class BigisubAdapter implements ProviderAdapter {
   id = "bigisub";
   name = "Bigisub Digital Gateway (bigisub.ng)";
@@ -110,12 +154,21 @@ export class BigisubAdapter implements ProviderAdapter {
   /**
    * Helper to normalize network string to Bigisub network ID (1: MTN, 2: Glo, 3: Airtel, 4: 9mobile)
    */
-  public static resolveNetworkId(net?: string): number {
+  public static resolveNetworkId(net?: string, phoneNumber?: string): number {
     const n = String(net || "").toUpperCase().trim();
     if (n.includes("MTN") || n === "1" || n === "01") return 1;
     if (n.includes("GLO") || n === "2" || n === "02") return 2;
     if (n.includes("AIRTEL") || n === "3" || n === "03") return 3;
     if (n.includes("9MOBILE") || n.includes("ETISALAT") || n.includes("EMTS") || n === "4" || n === "04") return 4;
+
+    // If explicit network string is not matched or unrecognized, fallback to phone prefix detection
+    if (phoneNumber) {
+      const fromPhone = detectNetworkFromPhone(phoneNumber);
+      if (fromPhone === "MTN") return 1;
+      if (fromPhone === "GLO") return 2;
+      if (fromPhone === "AIRTEL") return 3;
+      if (fromPhone === "9MOBILE") return 4;
+    }
     return 1;
   }
 
@@ -452,7 +505,7 @@ export class BigisubAdapter implements ProviderAdapter {
       };
     }
 
-    const networkId = BigisubAdapter.resolveNetworkId(params.network);
+    const networkId = BigisubAdapter.resolveNetworkId(params.network, params.phoneNumber);
     const phone = normalizeNigerianPhone(params.phoneNumber);
 
     const payload = {
@@ -514,7 +567,7 @@ export class BigisubAdapter implements ProviderAdapter {
       };
     }
 
-    const networkId = BigisubAdapter.resolveNetworkId(params.network);
+    const networkId = BigisubAdapter.resolveNetworkId(params.network, params.phoneNumber);
     const rawPlanStr = String(params.planCode || "").trim();
     const parsedPlanPk = parseInt(rawPlanStr, 10);
     const planVal = !isNaN(parsedPlanPk) && parsedPlanPk > 0 ? parsedPlanPk : params.planCode;

@@ -8,14 +8,14 @@ import { readDB, writeDB, initializeDB, DB_DIR, DB_FILE, UPLOADS_DIR, SUPER_ADMI
 import { verifyUserOrAdminSession } from "../middleware/auth";
 import { isMaintenanceModeActive, getMaintenanceDetails, getValueByJsonPath, seedModule7SettingsIfEmpty, sanitizePublicSettings } from "../middleware/maintenance";
 import { getAI } from "../services/ai";
-import { 
-  DEFAULT_SERVICES_CATALOG, 
-  seedDefaultServicesCatalogIfEmpty, 
-  seedDefaultUsersIfEmpty, 
-  seedDefaultTransactionsIfEmpty, 
-  recordAdminUserAction, 
-  getOrCreateUserVirtualAccount, 
-  resolveVtuPlanAndPricing 
+import {
+  DEFAULT_SERVICES_CATALOG,
+  seedDefaultServicesCatalogIfEmpty,
+  seedDefaultUsersIfEmpty,
+  seedDefaultTransactionsIfEmpty,
+  recordAdminUserAction,
+  getOrCreateUserVirtualAccount,
+  resolveVtuPlanAndPricing
 } from "../services/sharedHelpers";
 import { ServerWalletEngine } from "../../src/services/serverWalletEngine";
 import { APIProviderManager, DEFAULT_PROVIDERS } from "../../src/services/apiProviderManager";
@@ -80,14 +80,18 @@ app.post("/api/services/vtu", async (req, res) => {
 
     // Execute real provider call
     const providerResult = await ProviderExecutor.executeProviderCall(db, {
-      category: "TELECOM_VTU",
+      category: type === "AIRTIME" ? "AIRTIME" : "DATA",
       providerName: provider,
       userId: effectiveUserId,
       customerId: phoneNumber,
       phoneNumber,
       amount: amt,
       smartlinkReference: reference,
-      extraData: { planId: extra },
+      extraData: {
+        planId: extra,
+        network: provider,
+        type: type,
+      },
     });
 
     if (!providerResult.success) {
@@ -206,7 +210,7 @@ app.post("/api/services/vtu", async (req, res) => {
     providerResult = await retry(
       async (bail) => {
         const result = await ProviderExecutor.executeProviderCall(db, {
-          category: "TELECOM_VTU",
+          category: type === "AIRTIME" ? "AIRTIME" : "DATA",
           providerName: secondaryProvider,
           userId,
           customerId: phoneNumber,
@@ -214,13 +218,14 @@ app.post("/api/services/vtu", async (req, res) => {
           amount: baseCost,
           smartlinkReference: reference,
           extraData: {
-            planId: providerPlanId,
+            planId: type === "AIRTIME" ? undefined : providerPlanId,
             providerPlanId,
             wholesaleCost: baseCost,
-            network,
+            network: network || provider || secondaryProvider,
+            type: type,
           },
         });
-        
+
         // If result.success is false and it's a client error (e.g., 400-499), bail.
         if (!result.success && result.statusCode && result.statusCode >= 400 && result.statusCode < 500) {
           bail(new Error(result.error || "Permanent provider failure"));
@@ -374,7 +379,7 @@ app.post("/api/services/bill", async (req, res) => {
         smartlinkReference: reference,
         extraData: { plan, category },
       });
-      
+
       // If result.success is false and it's a client error (e.g., 400-499), bail.
       if (!result.success && result.statusCode && result.statusCode >= 400 && result.statusCode < 500) {
         bail(new Error(result.error || "Permanent provider failure"));
@@ -938,6 +943,10 @@ app.post("/api/bills/pay", async (req, res) => {
     planId,
     planName,
     phoneNumber,
+    network,
+    operator,
+    provider,
+    extraData,
   } = req.body;
 
   if (!userId || !category || !amount || amount <= 0) {
@@ -1010,6 +1019,16 @@ app.post("/api/bills/pay", async (req, res) => {
     providerCode: activeProvider.id || providerCode,
     providerName: activeProvider.name || providerName,
     userId: effectiveUserId,
+    extraData: {
+      network: network || providerCode || provider || operator,
+      originalProviderCode: providerCode,
+      originalProviderName: providerName,
+      type: category === "AIRTIME" ? "AIRTIME" : (category === "DATA" ? "DATA" : undefined),
+      planId,
+      planName,
+      meterType,
+      ...(extraData || {}),
+    },
   });
 
   // 4. Handle Failure: Refund debit immediately and do not fabricate token/PIN (Requirement 3)

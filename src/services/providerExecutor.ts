@@ -9,6 +9,7 @@
 
 import crypto from "crypto";
 import { getActiveProviderAndAdapter, getAdapterForProvider } from "./providerConnector";
+import { detectNetworkFromPhone } from "./providers/bigisubAdapter";
 
 export interface ProviderExecutionParams {
   category: string; // AIRTIME, DATA, ELECTRICITY, CABLE, EDUCATION, UTILITY, etc.
@@ -563,21 +564,46 @@ export class ProviderExecutor {
       const resolveNetwork = (raw?: any): string => {
         if (!raw) return "";
         const upper = String(raw).toUpperCase().trim();
-        if (upper.includes("MTN") || upper === "01") return "MTN";
-        if (upper.includes("AIRTEL") || upper === "04") return "AIRTEL";
-        if (upper.includes("GLO") || upper === "02") return "GLO";
-        if (upper.includes("9MOBILE") || upper.includes("ETISALAT") || upper === "03") return "9MOBILE";
+        // Ignore aggregator/gateway provider names that are not telecom networks
+        if (
+          upper === "BIGISUB" ||
+          upper === "PROV_BIGISUB" ||
+          upper.includes("BIGISUB DIGITAL") ||
+          upper === "VTPASS" ||
+          upper === "PROV_VTPASS" ||
+          upper === "CLUBKONNECT" ||
+          upper === "ASPFIY" ||
+          upper === "IDENTRO" ||
+          upper === "TELECOM PORTAL" ||
+          upper === "AIRTIME" ||
+          upper === "DATA" ||
+          upper === "TELECOM_VTU"
+        ) {
+          return "";
+        }
+        if (upper.includes("MTN") || upper === "01" || upper === "1") return "MTN";
+        if (upper.includes("GLO") || upper === "02" || upper === "2") return "GLO";
+        if (upper.includes("AIRTEL") || upper === "03" || upper === "3") return "AIRTEL";
+        if (upper.includes("9MOBILE") || upper.includes("ETISALAT") || upper.includes("EMTS") || upper === "04" || upper === "4") return "9MOBILE";
         return "";
       };
 
       const resolvedNet =
         resolveNetwork(params.extraData?.network) ||
         resolveNetwork(params.extraData?.networkOrProvider) ||
+        resolveNetwork(params.extraData?.operator) ||
+        resolveNetwork(params.extraData?.provider) ||
+        resolveNetwork(params.extraData?.originalProviderCode) ||
+        resolveNetwork(params.extraData?.originalProviderName) ||
+        resolveNetwork(params.extraData?.planName) ||
+        resolveNetwork(params.planName) ||
+        resolveNetwork(params.planId) ||
         resolveNetwork(params.providerCode) ||
         resolveNetwork(params.providerName) ||
+        resolveNetwork(params.category) ||
+        detectNetworkFromPhone(targetPhoneNumber) ||
         resolveNetwork(params.customerName) ||
-        resolveNetwork(params.planName) ||
-        "AIRTEL";
+        "MTN";
 
       const allProviders = (Array.isArray(db?.api_providers) && db.api_providers.length > 0)
         ? db.api_providers
@@ -595,8 +621,10 @@ export class ProviderExecutor {
         );
       };
 
-      // Airtime
-      const isAirtime = cat === "AIRTIME" || (cat === "TELECOM_VTU" && (!params.extraData?.planId && params.extraData?.type !== "DATA" && (params as any).type !== "DATA"));
+      // Airtime vs Data Bundle disambiguation
+      const isExplicitAirtime = cat === "AIRTIME" || params.extraData?.type === "AIRTIME" || (params as any).type === "AIRTIME";
+      const isExplicitData = cat === "DATA" || params.extraData?.type === "DATA" || (params as any).type === "DATA";
+      const isAirtime = isExplicitAirtime || (cat === "TELECOM_VTU" && !isExplicitData && !params.extraData?.planId);
       if (isAirtime && typeof (registeredAdapter as any).purchaseAirtime === "function") {
         const res = await (registeredAdapter as any).purchaseAirtime(
           { network: resolvedNet, phoneNumber: targetPhoneNumber, amount: params.amount, reference: params.smartlinkReference },
