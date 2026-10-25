@@ -564,41 +564,165 @@ export class VerificationRepository {
 // 9. AUDIT LOG REPOSITORY
 // -----------------------------------------------------------------------------
 export class AuditLogRepository {
-  static async log(log: Omit<TursoAuditLog, "created_at">): Promise<TursoAuditLog> {
+  static async recordLog(log: {
+    id?: string;
+    log_id?: string;
+    user_id?: string | null;
+    admin_uid?: string | null;
+    admin_email?: string | null;
+    admin_role?: string | null;
+    action: string;
+    resource_type?: string | null;
+    resource_id?: string | null;
+    ip_address?: string | null;
+    user_agent?: string | null;
+    status?: "SUCCESS" | "FAILURE" | "FAILED" | "WARNING" | string;
+    details: string;
+  }): Promise<TursoAuditLog> {
     const now = new Date().toISOString();
+    const id = log.id || `aud_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+    const logId = log.log_id || id;
+    const normStatus = (log.status === "FAILED" || log.status === "FAILURE") ? "FAILURE" : (log.status === "WARNING" ? "WARNING" : "SUCCESS");
+
     const sql = `
       INSERT INTO audit_logs (
         id, log_id, user_id, admin_uid, admin_email, admin_role,
         action, resource_type, resource_id, ip_address, user_agent,
         status, details, created_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      RETURNING *;
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `;
     const args = [
-      log.id,
-      log.log_id,
+      id,
+      logId,
       log.user_id || null,
       log.admin_uid || null,
       log.admin_email || null,
       log.admin_role || null,
       log.action,
-      log.resource_type,
+      log.resource_type || "SYSTEM",
       log.resource_id || null,
-      log.ip_address || null,
-      log.user_agent || null,
-      log.status || "SUCCESS",
+      log.ip_address || "127.0.0.1",
+      log.user_agent || "System/Server",
+      normStatus,
       typeof log.details === "string" ? log.details : JSON.stringify(log.details || {}),
       now,
     ];
+    await executeTurso(sql, args).catch((err) => {
+      console.warn(`[AuditLogRepository] Failed to record log to Turso: ${err.message}`);
+    });
 
-    const result = await executeTurso(sql, args);
-    return result.rows[0] as unknown as TursoAuditLog;
+    return {
+      id,
+      log_id: logId,
+      user_id: log.user_id || null,
+      admin_uid: log.admin_uid || null,
+      admin_email: log.admin_email || null,
+      admin_role: log.admin_role || null,
+      action: log.action,
+      resource_type: log.resource_type || "SYSTEM",
+      resource_id: log.resource_id || null,
+      ip_address: log.ip_address || null,
+      user_agent: log.user_agent || null,
+      status: normStatus as "SUCCESS" | "FAILURE" | "WARNING",
+      details: typeof log.details === "string" ? log.details : JSON.stringify(log.details || {}),
+      created_at: now,
+    };
+  }
+
+  static async log(log: Omit<TursoAuditLog, "created_at">): Promise<TursoAuditLog> {
+    return this.recordLog(log);
+  }
+
+  static async listLogs(options?: {
+    userId?: string;
+    adminEmail?: string;
+    status?: string;
+    resourceType?: string;
+    search?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<{ logs: TursoAuditLog[]; total: number }> {
+    const limit = options?.limit || 100;
+    const offset = options?.offset || 0;
+    const whereClauses: string[] = [];
+    const args: any[] = [];
+
+    if (options?.userId && options.userId.trim()) {
+      whereClauses.push("(user_id = ? OR admin_uid = ? OR resource_id = ?)");
+      args.push(options.userId.trim(), options.userId.trim(), options.userId.trim());
+    }
+    if (options?.adminEmail && options.adminEmail.trim()) {
+      whereClauses.push("lower(admin_email) = lower(?)");
+      args.push(options.adminEmail.trim());
+    }
+    if (options?.status && options.status !== "ALL") {
+      const targetStatus = options.status === "FAILED" || options.status === "FAILURE" ? "FAILURE" : options.status;
+      whereClauses.push("status = ?");
+      args.push(targetStatus);
+    }
+    if (options?.resourceType && options.resourceType !== "ALL") {
+      whereClauses.push("resource_type = ?");
+      args.push(options.resourceType);
+    }
+    if (options?.search && options.search.trim()) {
+      const q = `%${options.search.trim()}%`;
+      whereClauses.push("(action LIKE ? OR details LIKE ? OR admin_email LIKE ? OR user_id LIKE ? OR ip_address LIKE ?)");
+      args.push(q, q, q, q, q);
+    }
+
+    const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(" AND ")}` : "";
+
+    const countSql = `SELECT COUNT(*) as total FROM audit_logs ${whereSql};`;
+    const countRes = await executeTurso(countSql, args);
+    const total = Number(countRes.rows[0]?.total || 0);
+
+    const listSql = `SELECT * FROM audit_logs ${whereSql} ORDER BY created_at DESC LIMIT ? OFFSET ?;`;
+    const listRes = await executeTurso(listSql, [...args, limit, offset]);
+
+    return {
+      logs: (listRes.rows || []) as unknown as TursoAuditLog[],
+      total,
+    };
   }
 
   static async list(limit = 100, offset = 0): Promise<TursoAuditLog[]> {
-    const sql = `SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT ? OFFSET ?;`;
-    const result = await executeTurso(sql, [limit, offset]);
-    return result.rows as unknown as TursoAuditLog[];
+    const res = await this.listLogs({ limit, offset });
+    return res.logs;
+  }
+
+  static async purgeLogs(period: "1_DAY" | "7_DAYS" | "30_DAYS" | "ALL_FAILED" | "ALL"): Promise<{ purgedCount: number; message: string }> {
+    let sql = "";
+
+    if (period === "1_DAY") {
+      sql = `DELETE FROM audit_logs WHERE created_at < datetime('now', '-1 day');`;
+    } else if (period === "7_DAYS") {
+      sql = `DELETE FROM audit_logs WHERE created_at < datetime('now', '-7 days');`;
+    } else if (period === "30_DAYS") {
+      sql = `DELETE FROM audit_logs WHERE created_at < datetime('now', '-30 days');`;
+    } else if (period === "ALL_FAILED") {
+      sql = `DELETE FROM audit_logs WHERE status = 'FAILURE' OR status = 'FAILED';`;
+    } else if (period === "ALL") {
+      sql = `DELETE FROM audit_logs;`;
+    } else {
+      throw new Error("Invalid purge period specified.");
+    }
+
+    const res = await executeTurso(sql, []);
+    const count = Number(res.rowsAffected || 0);
+
+    return {
+      purgedCount: count,
+      message: `Successfully purged ${count} activity log records from Turso database for period '${period}'.`,
+    };
+  }
+
+  static async deleteLogById(id: string): Promise<boolean> {
+    const sql = `DELETE FROM audit_logs WHERE id = ? OR log_id = ?;`;
+    const res = await executeTurso(sql, [id, id]).catch((err) => {
+      console.warn(`[AuditLogRepository] Failed to delete log from Turso: ${err.message}`);
+      return { rowsAffected: 0 };
+    });
+    return Number(res.rowsAffected || 0) > 0;
   }
 }
 
@@ -1369,6 +1493,154 @@ export class RoutingRuleRepository {
         await tx.execute({ sql, args });
       }
     });
+  }
+}
+
+// -----------------------------------------------------------------------------
+// 18. AUDIT & ACTIVITY LOG REPOSITORY (Turso Direct Persistence & Retention Purge)
+// -----------------------------------------------------------------------------
+class UnusedAuditLogRepository {
+  static async recordLog(log: {
+    id?: string;
+    log_id?: string;
+    user_id?: string | null;
+    admin_uid?: string | null;
+    admin_email?: string | null;
+    admin_role?: string | null;
+    action: string;
+    resource_type?: string | null;
+    resource_id?: string | null;
+    ip_address?: string | null;
+    user_agent?: string | null;
+    status?: "SUCCESS" | "FAILURE" | "FAILED" | "WARNING" | string;
+    details: string;
+  }): Promise<TursoAuditLog> {
+    const now = new Date().toISOString();
+    const id = log.id || `aud_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+    const logId = log.log_id || id;
+    const normStatus = (log.status === "FAILED" || log.status === "FAILURE") ? "FAILURE" : (log.status === "WARNING" ? "WARNING" : "SUCCESS");
+
+    const sql = `
+      INSERT INTO audit_logs (
+        id, log_id, user_id, admin_uid, admin_email, admin_role,
+        action, resource_type, resource_id, ip_address, user_agent,
+        status, details, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    `;
+    const args = [
+      id,
+      logId,
+      log.user_id || null,
+      log.admin_uid || null,
+      log.admin_email || null,
+      log.admin_role || null,
+      log.action,
+      log.resource_type || "SYSTEM",
+      log.resource_id || null,
+      log.ip_address || "127.0.0.1",
+      log.user_agent || "System/Server",
+      normStatus,
+      log.details,
+      now,
+    ];
+    await executeTurso(sql, args).catch((err) => {
+      console.warn(`[AuditLogRepository] Failed to record log to Turso: ${err.message}`);
+    });
+
+    return {
+      id,
+      log_id: logId,
+      user_id: log.user_id || null,
+      admin_uid: log.admin_uid || null,
+      admin_email: log.admin_email || null,
+      admin_role: log.admin_role || null,
+      action: log.action,
+      resource_type: log.resource_type || "SYSTEM",
+      resource_id: log.resource_id || null,
+      ip_address: log.ip_address || null,
+      user_agent: log.user_agent || null,
+      status: normStatus as "SUCCESS" | "FAILURE" | "WARNING",
+      details: log.details,
+      created_at: now,
+    };
+  }
+
+  static async listLogs(options?: {
+    userId?: string;
+    adminEmail?: string;
+    status?: string;
+    resourceType?: string;
+    search?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<{ logs: TursoAuditLog[]; total: number }> {
+    const limit = options?.limit || 100;
+    const offset = options?.offset || 0;
+    const whereClauses: string[] = [];
+    const args: any[] = [];
+
+    if (options?.userId && options.userId.trim()) {
+      whereClauses.push("(user_id = ? OR admin_uid = ? OR resource_id = ?)");
+      args.push(options.userId.trim(), options.userId.trim(), options.userId.trim());
+    }
+    if (options?.adminEmail && options.adminEmail.trim()) {
+      whereClauses.push("lower(admin_email) = lower(?)");
+      args.push(options.adminEmail.trim());
+    }
+    if (options?.status && options.status !== "ALL") {
+      const targetStatus = options.status === "FAILED" || options.status === "FAILURE" ? "FAILURE" : options.status;
+      whereClauses.push("status = ?");
+      args.push(targetStatus);
+    }
+    if (options?.resourceType && options.resourceType !== "ALL") {
+      whereClauses.push("resource_type = ?");
+      args.push(options.resourceType);
+    }
+    if (options?.search && options.search.trim()) {
+      const q = `%${options.search.trim()}%`;
+      whereClauses.push("(action LIKE ? OR details LIKE ? OR admin_email LIKE ? OR user_id LIKE ? OR ip_address LIKE ?)");
+      args.push(q, q, q, q, q);
+    }
+
+    const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(" AND ")}` : "";
+
+    const countSql = `SELECT COUNT(*) as total FROM audit_logs ${whereSql};`;
+    const countRes = await executeTurso(countSql, args);
+    const total = Number(countRes.rows[0]?.total || 0);
+
+    const listSql = `SELECT * FROM audit_logs ${whereSql} ORDER BY created_at DESC LIMIT ? OFFSET ?;`;
+    const listRes = await executeTurso(listSql, [...args, limit, offset]);
+
+    return {
+      logs: (listRes.rows || []) as unknown as TursoAuditLog[],
+      total,
+    };
+  }
+
+  static async purgeLogs(period: "1_DAY" | "7_DAYS" | "30_DAYS" | "ALL_FAILED" | "ALL"): Promise<{ purgedCount: number; message: string }> {
+    let sql = "";
+
+    if (period === "1_DAY") {
+      sql = `DELETE FROM audit_logs WHERE created_at < datetime('now', '-1 day');`;
+    } else if (period === "7_DAYS") {
+      sql = `DELETE FROM audit_logs WHERE created_at < datetime('now', '-7 days');`;
+    } else if (period === "30_DAYS") {
+      sql = `DELETE FROM audit_logs WHERE created_at < datetime('now', '-30 days');`;
+    } else if (period === "ALL_FAILED") {
+      sql = `DELETE FROM audit_logs WHERE status = 'FAILURE' OR status = 'FAILED';`;
+    } else if (period === "ALL") {
+      sql = `DELETE FROM audit_logs;`;
+    } else {
+      throw new Error("Invalid purge period specified.");
+    }
+
+    const res = await executeTurso(sql, []);
+    const count = Number(res.rowsAffected || 0);
+
+    return {
+      purgedCount: count,
+      message: `Successfully purged ${count} activity log records from Turso database for period '${period}'.`,
+    };
   }
 }
 

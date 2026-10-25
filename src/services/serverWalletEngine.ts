@@ -144,8 +144,8 @@ export class ServerWalletEngine {
         ? wallet.balance
         : (typeof wallet.currentBalance === "number" && !isNaN(wallet.currentBalance) ? wallet.currentBalance : 0.0);
 
-      // Reconcile: ALWAYS take the maximum non-negative balance (e.g. from admin manual credit)
-      const reconciledBal = Math.max(rawWalletBal, userBal);
+      // Reconcile: Prefer rawWalletBal as Turso wallets table source of truth; if rawWalletBal is 0 and userBal > 0, use userBal
+      const reconciledBal = (rawWalletBal === 0 && userBal > 0) ? userBal : rawWalletBal;
       wallet.balance = reconciledBal;
       wallet.currentBalance = reconciledBal;
 
@@ -159,13 +159,18 @@ export class ServerWalletEngine {
       if (!wallet.updatedAt) wallet.updatedAt = wallet.lastUpdated || now;
       wallet.lastUpdated = wallet.updatedAt;
 
-      // Sync reconciled balance to both usersStore and walletsStore
+      // Sync reconciled balance to usersStore, UserRepository, and walletsStore
       if (user && user.walletBalance !== reconciledBal) {
         user.walletBalance = reconciledBal;
         usersStore.updateUser(primaryUid, { walletBalance: reconciledBal }).catch(() => {});
         if (user.id && user.id !== primaryUid) {
           usersStore.updateUser(user.id, { walletBalance: reconciledBal }).catch(() => {});
         }
+        try {
+          UserRepository.updateBalance(primaryUid, reconciledBal).catch(() => {});
+          if (user.uid && user.uid !== primaryUid) UserRepository.updateBalance(user.uid, reconciledBal).catch(() => {});
+          if (user.id && user.id !== primaryUid) UserRepository.updateBalance(user.id, reconciledBal).catch(() => {});
+        } catch {}
       }
       if (rawWalletBal !== reconciledBal) {
         walletsStore.updateWallet(wallet).catch(() => {});

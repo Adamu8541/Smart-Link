@@ -283,6 +283,13 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
   }
 
   const handleInputChange = (fieldName: string, value: string) => {
+    if (fieldName === "phoneNumber" && (service?.id.includes("airtime") || service?.id.includes("data") || service?.category === "VTU")) {
+      let digits = value.replace(/\D/g, "");
+      if (digits.length > 0 && !digits.startsWith("0")) return;
+      if (digits.length > 11) digits = digits.slice(0, 11);
+      setFormData((prev) => ({ ...prev, [fieldName]: digits }));
+      return;
+    }
     setFormData((prev) => ({ ...prev, [fieldName]: value }));
   };
 
@@ -306,6 +313,14 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
     if (!currentUser) {
       setError("Please sign in to your account to perform transactions.");
       return;
+    }
+
+    if (service && (service.id.includes("airtime") || service.id.includes("data") || service.id === "vtu_airtime" || service.id === "vtu_data")) {
+      const phone = formData["phoneNumber"] || "";
+      if (phone.length !== 11 || !phone.startsWith("0") || !/^\d{11}$/.test(phone)) {
+        setError("Phone number must be exactly 11 digits, start with 0, and contain only numbers.");
+        return;
+      }
     }
 
     if ((currentUser.walletBalance ?? 0) < totalCost) {
@@ -624,12 +639,15 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
                     service.id.startsWith("tax_") ||
                     service.id === "id_tax_id_search" ||
                     service.id === "id_cac_registration";
+                  const isAirtimeOrDataPhone =
+                    (service.id.includes("airtime") || service.id.includes("data") || service.category === "VTU") &&
+                    f.name === "phoneNumber";
 
                   return (
                     <div key={f.name} className="space-y-1">
-                      <label htmlFor={uniqueFieldId} className="text-[11px] sm:text-xs font-semibold text-[#4B5563] flex justify-between">
-                        {f.label}
-                        {f.required && <span className="text-[#0F2D5C] text-[10px]">* Required</span>}
+                      <label htmlFor={uniqueFieldId} className={isAirtimeOrDataPhone ? "text-[11px] font-normal text-gray-400/35 dark:text-gray-500/35 select-none flex justify-between" : "text-[11px] sm:text-xs font-semibold text-[#4B5563] flex justify-between"}>
+                        {isAirtimeOrDataPhone ? "Phone Number" : f.label}
+                        {f.required && !isAirtimeOrDataPhone && <span className="text-[#0F2D5C] text-[10px]">* Required</span>}
                       </label>
 
                       {f.type === "select" ? (
@@ -660,14 +678,26 @@ export default function ServiceModal({ service, onClose, currentUser, onRefreshU
                         />
                       ) : (
                         <input
-                          type={f.type}
+                          type={isAirtimeOrDataPhone ? "tel" : f.type}
+                          inputMode={isAirtimeOrDataPhone ? "numeric" : undefined}
+                          pattern={isAirtimeOrDataPhone ? "[0-9]*" : undefined}
+                          maxLength={isAirtimeOrDataPhone ? 11 : undefined}
                           id={uniqueFieldId}
                           value={formData[f.name] || ""}
                           onChange={(e) => handleInputChange(f.name, e.target.value)}
-                          placeholder={isTaxOrCacService ? undefined : f.placeholder}
+                          onKeyDown={isAirtimeOrDataPhone ? (e) => {
+                            if (["Backspace", "Delete", "Tab", "Escape", "Enter", "ArrowLeft", "ArrowRight"].includes(e.key) || e.ctrlKey || e.metaKey) return;
+                            if (!/^\d$/.test(e.key)) { e.preventDefault(); return; }
+                            if (!formData[f.name] && e.key !== "0") { e.preventDefault(); return; }
+                          } : undefined}
+                          placeholder={isAirtimeOrDataPhone ? "" : (isTaxOrCacService ? undefined : f.placeholder)}
                           autoComplete="off"
+                          autoCorrect="off"
+                          autoCapitalize="off"
+                          spellCheck={false}
+                          data-lpignore={isAirtimeOrDataPhone ? "true" : undefined}
                           required={f.required}
-                          className="w-full px-2.5 py-1.5 sm:py-2 rounded-lg border border-[#E5E7EB] text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-[#0F2D5C] focus:border-[#0F2D5C] bg-white"
+                          className={`w-full px-2.5 py-1.5 sm:py-2 rounded-lg border border-[#E5E7EB] text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-[#0F2D5C] focus:border-[#0F2D5C] bg-white ${isAirtimeOrDataPhone ? "placeholder:text-gray-300/20" : ""}`}
                         />
                       )}
                     </div>

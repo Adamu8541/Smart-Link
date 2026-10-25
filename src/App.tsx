@@ -32,6 +32,7 @@ const AdminNotificationsView = lazyWithRetry(() => import("./components/admin/vi
 const AdminEmailBroadcastsView = lazyWithRetry(() => import("./components/admin/views/AdminEmailBroadcastsView").then(m => ({ default: m.default })), "AdminEmailBroadcastsView");
 const UserNotificationCenter = lazyWithRetry(() => import("./components/notification/UserNotificationCenter").then(m => ({ default: m.UserNotificationCenter })), "UserNotificationCenter");
 const AdminSecurityView = lazyWithRetry(() => import("./components/admin/views/AdminSecurityView").then(m => ({ default: m.AdminSecurityView })), "AdminSecurityView");
+const AdminActivityLogsView = lazyWithRetry(() => import("./components/admin/views/AdminActivityLogsView").then(m => ({ default: m.AdminActivityLogsView })), "AdminActivityLogsView");
 const AdminServicesView = lazyWithRetry(() => import("./components/admin/views/AdminServicesView").then(m => ({ default: m.AdminServicesView })), "AdminServicesView");
 const AdminPriceControlView = lazyWithRetry(() => import("./components/admin/views/AdminPriceControlView").then(m => ({ default: m.default })), "AdminPriceControlView");
 const AdminReconciliationView = lazyWithRetry(() => import("./components/admin/views/AdminReconciliationView").then(m => ({ default: m.AdminReconciliationView })), "AdminReconciliationView");
@@ -378,6 +379,7 @@ export default function App() {
     "/admin/reports": "ADMIN_REPORTS",
     "/admin/settings": "ADMIN_SETTINGS",
     "/admin/security": "ADMIN_SECURITY",
+    "/admin/activity-logs": "ADMIN_ACTIVITY_LOGS",
     "/admin/security/audit-logs": "ADMIN_SECURITY",
     "/admin/security/login-history": "ADMIN_SECURITY",
     "/admin/security/blocked-users": "ADMIN_SECURITY",
@@ -1557,6 +1559,16 @@ export default function App() {
                             if (routePath.startsWith("/admin/security")) {
                               setAdminSecuritySubRoute(routePath);
                             }
+                            const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
+                            setCurrentView(targetView);
+                          }}
+                        />
+                      )}
+
+                      {currentView === "ADMIN_ACTIVITY_LOGS" && (
+                        <AdminActivityLogsView
+                          session={adminSession!}
+                          onNavigate={(routePath) => {
                             const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
                             setCurrentView(targetView);
                           }}

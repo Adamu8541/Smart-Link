@@ -1026,81 +1026,34 @@ app.post("/api/admin/wallets/:userId/credit", requireAdmin, async (req, res) => 
     return res.status(400).json({ success: false, message: `Cannot credit a LOCKED wallet (${user.email}). Unlock wallet first.` });
   }
 
-  const previousBalance = user.walletBalance || 0.0;
-  const newBalance = previousBalance + numAmount;
-  const newTotalFunding = (user.totalFunding || 0.0) + numAmount;
   const refCode = reference || `CR_REF_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+  let newBalance = user.walletBalance || 0;
+  let previousBalance = user.walletBalance || 0;
+  let txnRecord: any = null;
 
-  await UserRepository.updateBalance(userId, newBalance).catch(() => {});
-  if (user.uid && user.uid !== userId) {
-    await UserRepository.updateBalance(user.uid, newBalance).catch(() => {});
+  try {
+    const creditRes = await ServerWalletEngine.creditWallet(db, {
+      userId: user.uid || user.id || userId,
+      amount: numAmount,
+      serviceName: "Admin Manual Wallet Credit",
+      provider: "System Admin",
+      description: `Manual Wallet Credit: ${reason}`,
+      reference: refCode,
+      recipientDetails: user.email,
+      type: "ADMIN_CREDIT",
+      idempotencyKey: refCode,
+    });
+    newBalance = creditRes.wallet.currentBalance;
+    previousBalance = creditRes.transaction.walletBalanceBefore;
+    txnRecord = creditRes.transaction;
+  } catch (cErr: any) {
+    return res.status(400).json({ success: false, message: cErr.message || "Wallet credit failed." });
   }
-  if (user.id && user.id !== userId) {
-    await UserRepository.updateBalance(user.id, newBalance).catch(() => {});
-  }
-  await usersStore.updateUser(userId, { walletBalance: newBalance, totalFunding: newTotalFunding });
-  if (user.uid && user.uid !== userId) {
-    await usersStore.updateUser(user.uid, { walletBalance: newBalance, totalFunding: newTotalFunding }).catch(() => {});
-  }
-  if (user.id && user.id !== userId) {
-    await usersStore.updateUser(user.id, { walletBalance: newBalance, totalFunding: newTotalFunding }).catch(() => {});
-  }
-
-  await walletsStore.updateWalletAtomic(userId, () => ({
-    balance: newBalance,
-    currentBalance: newBalance,
-    totalCredits: newTotalFunding,
-  }));
-  if (user.uid && user.uid !== userId) {
-    await walletsStore.updateWalletAtomic(user.uid, () => ({
-      balance: newBalance,
-      currentBalance: newBalance,
-      totalCredits: newTotalFunding,
-    })).catch(() => {});
-  }
-  if (user.id && user.id !== userId) {
-    await walletsStore.updateWalletAtomic(user.id, () => ({
-      balance: newBalance,
-      currentBalance: newBalance,
-      totalCredits: newTotalFunding,
-    })).catch(() => {});
-  }
-
-  // Update in-memory DB collections and sync
-  if (Array.isArray(db.users)) {
-    const uIdx = db.users.findIndex((u: any) => u.uid === userId || u.id === userId || (user.uid && u.uid === user.uid) || (user.id && u.id === user.id));
-    if (uIdx >= 0) {
-      db.users[uIdx].walletBalance = newBalance;
-      db.users[uIdx].totalFunding = newTotalFunding;
-    }
-  }
-  if (Array.isArray(db.wallets)) {
-    const wIdx = db.wallets.findIndex((w: any) => w.userId === userId || (user.uid && w.userId === user.uid) || (user.id && w.userId === user.id));
-    if (wIdx >= 0) {
-      db.wallets[wIdx].balance = newBalance;
-      db.wallets[wIdx].currentBalance = newBalance;
-      db.wallets[wIdx].totalCredits = newTotalFunding;
-    } else {
-      db.wallets.push({
-        userId: user.uid || userId,
-        walletId: `wal_${user.uid || userId}`,
-        balance: newBalance,
-        currentBalance: newBalance,
-        heldBalance: 0,
-        totalCredits: newTotalFunding,
-        totalDebits: 0,
-        status: "ACTIVE",
-        currency: "NGN",
-        updatedAt: new Date().toISOString(),
-      });
-    }
-  }
-  const updatedUser = { ...user, walletBalance: newBalance, totalFunding: newTotalFunding };
 
   // Create Transaction Entry
   const txnId = `TXN_CR_${Date.now()}`;
   if (!db.transactions) db.transactions = [];
-  const txnRecord = {
+  txnRecord = txnRecord || {
     id: txnId,
     transactionId: txnId,
     userId: user.uid,
@@ -1219,80 +1172,35 @@ app.post("/api/admin/wallets/:userId/debit", requireAdmin, async (req, res) => {
     return res.status(400).json({ success: false, message: `Cannot debit a ${currentWalletStatus} wallet (${user.email}). Modify wallet status first.` });
   }
 
-  const previousBalance = user.walletBalance || 0.0;
-  if (previousBalance < numAmount) {
-    return res.status(400).json({
-      success: false,
-      message: `Overdraft Protection Triggered: Cannot debit ₦${numAmount.toLocaleString()} from account balance of ₦${previousBalance.toLocaleString()}.`,
-    });
-  }
-
-  // Duplicate reference check
-  if (reference) {
-    const existingAdj = (db.wallet_adjustments || []).find((a: any) => a.reference === reference);
-    if (existingAdj) {
-      return res.status(400).json({ success: false, message: `Duplicate transaction request reference: ${reference}.` });
-    }
-  }
-
-  const newBalance = previousBalance - numAmount;
   const refCode = reference || `DB_REF_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+  let newBalance = user.walletBalance || 0;
+  let previousBalance = user.walletBalance || 0;
+  let txnRecord: any = null;
 
-  await UserRepository.updateBalance(userId, newBalance).catch(() => {});
-  if (user.uid && user.uid !== userId) {
-    await UserRepository.updateBalance(user.uid, newBalance).catch(() => {});
-  }
-  if (user.id && user.id !== userId) {
-    await UserRepository.updateBalance(user.id, newBalance).catch(() => {});
-  }
-  await usersStore.updateUser(userId, { walletBalance: newBalance });
-  if (user.uid && user.uid !== userId) {
-    await usersStore.updateUser(user.uid, { walletBalance: newBalance }).catch(() => {});
-  }
-  if (user.id && user.id !== userId) {
-    await usersStore.updateUser(user.id, { walletBalance: newBalance }).catch(() => {});
-  }
-
-  await walletsStore.updateWalletAtomic(userId, (current) => ({
-    balance: newBalance,
-    currentBalance: newBalance,
-    totalDebits: (current.totalDebits || 0) + numAmount,
-  }));
-  if (user.uid && user.uid !== userId) {
-    await walletsStore.updateWalletAtomic(user.uid, (current) => ({
-      balance: newBalance,
-      currentBalance: newBalance,
-      totalDebits: (current.totalDebits || 0) + numAmount,
-    })).catch(() => {});
-  }
-  if (user.id && user.id !== userId) {
-    await walletsStore.updateWalletAtomic(user.id, (current) => ({
-      balance: newBalance,
-      currentBalance: newBalance,
-      totalDebits: (current.totalDebits || 0) + numAmount,
-    })).catch(() => {});
-  }
-
-  if (Array.isArray(db.users)) {
-    const uIdx = db.users.findIndex((u: any) => u.uid === userId || u.id === userId || (user.uid && u.uid === user.uid) || (user.id && u.id === user.id));
-    if (uIdx >= 0) {
-      db.users[uIdx].walletBalance = newBalance;
-    }
-  }
-  if (Array.isArray(db.wallets)) {
-    const wIdx = db.wallets.findIndex((w: any) => w.userId === userId || (user.uid && w.userId === user.uid) || (user.id && w.userId === user.id));
-    if (wIdx >= 0) {
-      db.wallets[wIdx].balance = newBalance;
-      db.wallets[wIdx].currentBalance = newBalance;
-      db.wallets[wIdx].totalDebits = (db.wallets[wIdx].totalDebits || 0) + numAmount;
-    }
+  try {
+    const debitRes = await ServerWalletEngine.debitWallet(db, {
+      userId: user.uid || user.id || userId,
+      amount: numAmount,
+      serviceName: "Admin Manual Wallet Debit",
+      provider: "System Admin",
+      description: `Manual Wallet Debit: ${reason}`,
+      reference: refCode,
+      recipientDetails: user.email,
+      type: "ADMIN_DEBIT",
+      idempotencyKey: refCode,
+    });
+    newBalance = debitRes.wallet.currentBalance;
+    previousBalance = debitRes.transaction.walletBalanceBefore;
+    txnRecord = debitRes.transaction;
+  } catch (dErr: any) {
+    return res.status(400).json({ success: false, message: dErr.message || "Wallet debit failed." });
   }
   const updatedUser = { ...user, walletBalance: newBalance };
 
   // Create Transaction Entry
   const txnId = `TXN_DB_${Date.now()}`;
   if (!db.transactions) db.transactions = [];
-  const txnRecord = {
+  txnRecord = txnRecord || {
     id: txnId,
     transactionId: txnId,
     userId: user.uid,

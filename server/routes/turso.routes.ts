@@ -9,12 +9,14 @@
  */
 
 import express from "express";
+import { readDB, writeDB } from "../db";
 import { requireAdmin, requireSuperAdmin } from "../middleware/auth";
 import { testTursoConnection } from "../turso/client";
 import { initializeTursoSchema, TURSO_TABLES } from "../turso/schema";
 import { executeTurso } from "../turso/client";
 import { TursoMigrator } from "../turso/migrator";
 import { StorageToTursoMigrationService } from "../turso/migrationService";
+import { AuditLogRepository } from "../turso/repositories";
 
 const router = express.Router();
 
@@ -159,6 +161,160 @@ router.get("/api/admin/turso/migration-verification", requireAdmin, async (req, 
     res.status(500).json({
       success: false,
       error: err.message || "Failed to generate verification report",
+    });
+  }
+});
+
+/**
+ * GET /api/admin/activity-logs
+ * Retrieves real-time activity and audit logs directly from Turso database.
+ */
+router.get("/api/admin/activity-logs", requireAdmin, async (req, res) => {
+  try {
+    const { userId, adminEmail, status, resourceType, search, limit, offset } = req.query;
+
+    const result = await AuditLogRepository.listLogs({
+      userId: userId as string,
+      adminEmail: adminEmail as string,
+      status: status as string,
+      resourceType: resourceType as string,
+      search: search as string,
+      limit: limit ? parseInt(String(limit), 10) : 100,
+      offset: offset ? parseInt(String(offset), 10) : 0,
+    });
+
+    const normalizedLogs = (result.logs || []).map((log: any) => {
+      const rawDate = log.created_at || log.createdAt || log.timestamp || new Date().toISOString();
+      return {
+        ...log,
+        id: log.id || log.log_id,
+        created_at: rawDate,
+      };
+    });
+
+    res.json({
+      success: true,
+      logs: normalizedLogs,
+      totalCount: result.total,
+    });
+  } catch (err: any) {
+    res.status(500).json({
+      success: false,
+      error: err.message || "Failed to retrieve activity logs from Turso",
+    });
+  }
+});
+
+/**
+ * DELETE /api/admin/activity-logs/:id or POST /api/admin/activity-logs/delete
+ * Permanently deletes a single activity log record by ID from Turso SQL database and db.json memory arrays.
+ */
+const handleDeleteSingleLogRoute = async (req: express.Request, res: express.Response) => {
+  try {
+    const id = String(req.params.id || req.body.id || req.body.logId || req.body.log_id || "").trim();
+    if (!id) {
+      return res.status(400).json({ success: false, error: "Log ID is required." });
+    }
+
+    // 1. Delete from Turso audit_logs table
+    await AuditLogRepository.deleteLogById(id);
+
+    // 2. Clear from db.json memory DB fallback arrays
+    const db = readDB();
+    if (db.auditLogs && Array.isArray(db.auditLogs)) {
+      db.auditLogs = db.auditLogs.filter((l: any) => l.id !== id && l.log_id !== id && l.logId !== id);
+    }
+    if (db.activityLogs && Array.isArray(db.activityLogs)) {
+      db.activityLogs = db.activityLogs.filter((l: any) => l.id !== id && l.log_id !== id && l.logId !== id && l.activityId !== id);
+    }
+    if (db.admin_user_actions && Array.isArray(db.admin_user_actions)) {
+      db.admin_user_actions = db.admin_user_actions.filter((l: any) => l.id !== id && l.log_id !== id);
+    }
+    writeDB(db);
+
+    res.json({
+      success: true,
+      message: `Activity log record '${id}' was deleted successfully from Turso and db.json.`,
+      id,
+    });
+  } catch (err: any) {
+    res.status(500).json({
+      success: false,
+      error: err.message || "Failed to delete log entry from Turso database",
+    });
+  }
+};
+
+router.delete("/api/admin/activity-logs/:id", requireAdmin, handleDeleteSingleLogRoute);
+router.post("/api/admin/activity-logs/delete", requireAdmin, handleDeleteSingleLogRoute);
+
+/**
+ * POST /api/admin/activity-logs/purge
+ * Permanently deletes activity logs from Turso based on period retention (Daily, Weekly, Monthly, All Failed, or All).
+ */
+router.post("/api/admin/activity-logs/purge", requireAdmin, async (req, res) => {
+  try {
+    const { period } = req.body;
+    const admin = (req as any).admin;
+    const adminEmail = admin?.email || "admin@smartlink.ng";
+    const adminUid = (req as any).authenticatedUid || admin?.uid || "ADMIN";
+
+    if (!period || !["1_DAY", "7_DAYS", "30_DAYS", "ALL_FAILED", "ALL"].includes(period)) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid retention period. Allowed values: '1_DAY', '7_DAYS', '30_DAYS', 'ALL_FAILED', 'ALL'.",
+      });
+    }
+
+    const purgeResult = await AuditLogRepository.purgeLogs(period);
+
+    // Also purge from memory DB fallback arrays
+    const db = readDB();
+    const nowMs = Date.now();
+    const oneDayMs = 24 * 60 * 60 * 1000;
+
+    const filterMemoryArray = (arr: any[]) => {
+      if (!Array.isArray(arr)) return [];
+      if (period === "ALL") return [];
+      if (period === "ALL_FAILED") {
+        return arr.filter((l: any) => l.status !== "FAILURE" && l.status !== "FAILED");
+      }
+      let days = 1;
+      if (period === "7_DAYS") days = 7;
+      if (period === "30_DAYS") days = 30;
+      const cutoff = nowMs - days * oneDayMs;
+      return arr.filter((l: any) => {
+        const d = new Date(l.created_at || l.createdAt || l.timestamp || 0).getTime();
+        return d >= cutoff;
+      });
+    };
+
+    db.auditLogs = filterMemoryArray(db.auditLogs);
+    db.activityLogs = filterMemoryArray(db.activityLogs);
+    db.admin_user_actions = filterMemoryArray(db.admin_user_actions);
+    writeDB(db);
+
+    // Record audit entry in Turso documenting the log purge action
+    await AuditLogRepository.recordLog({
+      admin_uid: adminUid,
+      admin_email: adminEmail,
+      admin_role: admin?.role || "ADMIN",
+      action: "PURGE_ACTIVITY_LOGS",
+      resource_type: "SYSTEM_LOGS",
+      status: "SUCCESS",
+      details: `Admin ${adminEmail} executed log retention purge for period '${period}'. Purged ${purgeResult.purgedCount} log entries from Turso.`,
+    });
+
+    res.json({
+      success: true,
+      message: purgeResult.message,
+      purgedCount: purgeResult.purgedCount,
+      period,
+    });
+  } catch (err: any) {
+    res.status(500).json({
+      success: false,
+      error: err.message || "Failed to execute log purge on Turso database",
     });
   }
 });

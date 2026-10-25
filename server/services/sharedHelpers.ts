@@ -3,7 +3,7 @@ import { adminAuthService } from "../../src/services/adminAuthService";
 import { getActiveProviderAndAdapter } from "../../src/services/providerConnector";
 import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
-import { VirtualAccountRepository, ServicePriceRepository } from "../turso/repositories";
+import { VirtualAccountRepository, ServicePriceRepository, AuditLogRepository } from "../turso/repositories";
 import { executeTurso } from "../turso/client";
 import { getSupabaseAdmin } from "./supabaseAdmin";
 
@@ -173,6 +173,22 @@ export function recordAdminUserAction(
     description: params.details,
     timestamp: record.timestamp,
   });
+
+  // Record to Turso audit_logs table
+  try {
+    AuditLogRepository.recordLog({
+      id: record.id,
+      admin_uid: params.adminUid,
+      admin_email: params.adminEmail,
+      user_id: params.targetUserId,
+      action: params.action,
+      resource_type: "ADMIN",
+      resource_id: params.targetUserId,
+      ip_address: params.ipAddress || "127.0.0.1",
+      status: "SUCCESS",
+      details: params.details,
+    }).catch(() => {});
+  } catch {}
 
   return record;
 }

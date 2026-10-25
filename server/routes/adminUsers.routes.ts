@@ -581,25 +581,45 @@ app.post("/api/admin/users/:userId/wallet", requireAdmin, async (req, res) => {
 
   const previousBalance = user.walletBalance || 0;
   let newBalance = previousBalance;
-  let newTotalFunding = user.totalFunding || 0;
 
-  if (action === "CREDIT") {
-    newBalance = previousBalance + numAmount;
-    newTotalFunding = (user.totalFunding || 0) + numAmount;
-  } else if (action === "DEBIT") {
-    if (previousBalance < numAmount) {
-      return res.status(400).json({
-        success: false,
-        message: `Insufficient Float: Cannot debit ₦${numAmount.toLocaleString()} from account balance of ₦${previousBalance.toLocaleString()}.`,
+  try {
+    const targetUserId = user.uid || user.id || userId;
+    const descriptionText = req.body.description || reason || `Manual adjustment by Admin (${admin.fullName || admin.email})`;
+    if (action === "CREDIT") {
+      const ref = "ADM-CR-" + Math.floor(100000 + Math.random() * 900000);
+      const creditRes = await ServerWalletEngine.creditWallet(db, {
+        userId: targetUserId,
+        amount: numAmount,
+        serviceName: "Admin Manual Wallet Adjustment",
+        provider: "System Admin",
+        description: descriptionText,
+        reference: ref,
+        recipientDetails: user.email,
+        type: "WALLET_FUNDING",
+        idempotencyKey: ref,
       });
+      newBalance = creditRes.wallet.currentBalance;
+    } else if (action === "DEBIT") {
+      const ref = "ADM-DR-" + Math.floor(100000 + Math.random() * 900000);
+      const debitRes = await ServerWalletEngine.debitWallet(db, {
+        userId: targetUserId,
+        amount: numAmount,
+        serviceName: "Admin Manual Wallet Adjustment",
+        provider: "System Admin",
+        description: descriptionText,
+        reference: ref,
+        recipientDetails: user.email,
+        type: "SERVICE_PURCHASE",
+      });
+      newBalance = debitRes.wallet.currentBalance;
+    } else {
+      return res.status(400).json({ success: false, message: "Action must be CREDIT or DEBIT." });
     }
-    newBalance = previousBalance - numAmount;
-  } else {
-    return res.status(400).json({ success: false, message: "Action must be CREDIT or DEBIT." });
+  } catch (err: any) {
+    return res.status(400).json({ success: false, message: err.message || "Wallet adjustment failed" });
   }
 
-  await usersStore.updateUser(userId, { walletBalance: newBalance, totalFunding: newTotalFunding });
-  const updatedUser = { ...user, walletBalance: newBalance, totalFunding: newTotalFunding };
+  const updatedUser = { ...user, walletBalance: newBalance };
 
   // Record Transaction Entry
   const txnId = `TXN_ADMIN_${Date.now()}`;

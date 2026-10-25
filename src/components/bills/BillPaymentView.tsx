@@ -87,14 +87,90 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
   const [selectedDataType, setSelectedDataType] = useState<string>("ALL");
   const [selectedDurationFilter, setSelectedDurationFilter] = useState<string>("ALL");
 
-  // Form inputs
-  const [phoneNumber, setPhoneNumber] = useState<string>(currentUser.phoneNumber || "");
+  // Form inputs (autofill removed)
+  const [phoneNumber, setPhoneNumber] = useState<string>("");
   const [customerId, setCustomerId] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
   const [meterType, setMeterType] = useState<"PREPAID" | "POSTPAID">("PREPAID");
   const [institutionId, setInstitutionId] = useState<string>("");
   const [quantity, setQuantity] = useState<number>(1);
   const [customFields, setCustomFields] = useState<{ [key: string]: string }>({});
+
+  // Strict Phone number handlers (11 digits, numbers only, must start with 0, no characters, no symbols)
+  const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+    // Disallow non-numeric characters and symbols
+    let digits = raw.replace(/\D/g, "");
+
+    // Must start with zero
+    if (digits.length > 0 && !digits.startsWith("0")) {
+      return;
+    }
+
+    // Only 11 digits
+    if (digits.length > 11) {
+      digits = digits.slice(0, 11);
+    }
+
+    setPhoneNumber(digits);
+  };
+
+  const handlePhoneNumberKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Allow navigational/control keys
+    if (
+      [
+        "Backspace",
+        "Delete",
+        "Tab",
+        "Escape",
+        "Enter",
+        "ArrowLeft",
+        "ArrowRight",
+        "ArrowUp",
+        "ArrowDown",
+        "Home",
+        "End",
+      ].includes(e.key) ||
+      e.ctrlKey ||
+      e.metaKey
+    ) {
+      return;
+    }
+
+    // Only numbers allowed (no characters, no symbols)
+    if (!/^\d$/.test(e.key)) {
+      e.preventDefault();
+      return;
+    }
+
+    // Must start with zero if field is currently empty
+    if (phoneNumber.length === 0 && e.key !== "0") {
+      e.preventDefault();
+      return;
+    }
+
+    // Only 11 digits (if not selecting text)
+    const target = e.target as HTMLInputElement;
+    const hasSelection = target.selectionStart !== target.selectionEnd;
+    if (phoneNumber.length >= 11 && !hasSelection) {
+      e.preventDefault();
+      return;
+    }
+  };
+
+  const handlePhoneNumberPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData("text");
+    let digits = pasted.replace(/\D/g, "");
+    if (digits.startsWith("234") && digits.length === 13) {
+      digits = "0" + digits.slice(3);
+    }
+    if (!digits.startsWith("0")) {
+      return;
+    }
+    digits = digits.slice(0, 11);
+    setPhoneNumber(digits);
+  };
 
   // Customer verification state
   const [isValidatingCustomer, setIsValidatingCustomer] = useState(false);
@@ -295,6 +371,10 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
 
     // Category specific validations
     if (selectedCategory.id === "AIRTIME" || selectedCategory.id === "DATA") {
+      if (!phoneNumber || phoneNumber.length !== 11 || !phoneNumber.startsWith("0") || !/^\d{11}$/.test(phoneNumber)) {
+        setValidationError("Phone number must be exactly 11 digits, start with 0, and contain only numbers.");
+        return;
+      }
       const phoneCheck = BillPaymentEngine.validatePhoneNumber(phoneNumber);
       if (!phoneCheck.valid) {
         setValidationError(phoneCheck.error || "Invalid phone number.");
@@ -1008,18 +1088,31 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
               {/* Airtime & Data Phone Number */}
               {(selectedCategory.id === "AIRTIME" || selectedCategory.id === "DATA") && (
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-[#111827] dark:text-[#E5E7EB]">
-                    Target Phone Number (11-Digits)
+                  <label htmlFor="airtime_data_phone_input" className="text-[11px] font-normal text-gray-400/35 dark:text-gray-500/35 select-none">
+                    Phone Number
                   </label>
                   <div className="relative">
-                    <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9CA3AF]" />
+                    <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400/35 dark:text-gray-500/35" />
                     <input
                       type="tel"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       required
+                      maxLength={11}
+                      autoComplete="off"
+                      autoCorrect="off"
+                      autoCapitalize="off"
+                      spellCheck={false}
+                      data-lpignore="true"
+                      data-1p-ignore="true"
+                      name="phone_no_autofill_prevent"
+                      id="airtime_data_phone_input"
                       value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                      placeholder="08012345678"
-                      className="w-full pl-10 pr-4 py-3 border border-[#E5E7EB] dark:border-[#4B5563] rounded-xl text-sm outline-none transition-all bg-white dark:bg-[#111827] text-[#111827] dark:text-white focus:border-[#0F2D5C] focus:ring-4 focus:ring-[#F5F7FA]"
+                      onChange={handlePhoneNumberChange}
+                      onKeyDown={handlePhoneNumberKeyDown}
+                      onPaste={handlePhoneNumberPaste}
+                      placeholder="e.g 08123456789"
+                      className="w-full pl-10 pr-4 py-3 border border-[#E5E7EB] dark:border-[#4B5563] rounded-xl text-sm outline-none transition-all bg-white dark:bg-[#111827] text-[#111827] dark:text-white focus:border-[#0F2D5C] focus:ring-4 focus:ring-[#F5F7FA] placeholder:text-gray-400/35 dark:placeholder:text-gray-500/35"
                     />
                   </div>
                 </div>

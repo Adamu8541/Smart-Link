@@ -172,7 +172,7 @@ app.post("/api/services/vtu", async (req, res) => {
   const desc = `${secondaryProvider} ${type === "AIRTIME" ? "Airtime Top-up" : "Data Bundle (" + planName + ")"} to ${phoneNumber}`;
 
   // 1. Check if user's available wallet balance can cover the finalCustomerPrice (baseCost + markupFee)
-  const userWallet = await walletsStore.getWalletByUserId(userId);
+  const userWallet = await ServerWalletEngine.getOrCreateWallet(db, userId);
   const currentBalance = userWallet ? Number(userWallet.balance) || 0 : 0;
   if (currentBalance < finalCustomerPrice) {
     return res.status(400).json({
@@ -351,7 +351,7 @@ app.post("/api/services/bill", async (req, res) => {
   if (isNaN(amt) || amt <= 0) return res.status(400).json({ error: "Invalid amount" });
 
   // Pre-execution solvency check
-  const userWallet = await walletsStore.getWalletByUserId(effectiveUserId);
+  const userWallet = await ServerWalletEngine.getOrCreateWallet(db, effectiveUserId);
   const currentBalance = userWallet ? Number(userWallet.balance) || 0 : 0;
   if (currentBalance < amt) {
     return res.status(400).json({
