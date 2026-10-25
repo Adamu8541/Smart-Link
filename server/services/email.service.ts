@@ -282,6 +282,8 @@ async function sendViaBrevoApi(
   }
 ): Promise<{ success: boolean; messageId?: string; message: string; error?: string }> {
   try {
+    const cleanKey = apiKey.trim().replace(/^['"]|['"]$/g, "").replace(/\s+/g, "");
+
     const formattedAttachments = options.attachments?.map((att) => ({
       name: att.filename,
       content: att.base64Content || (att.content ? Buffer.from(att.content).toString("base64") : ""),
@@ -294,8 +296,9 @@ async function sendViaBrevoApi(
       htmlContent: options.html,
     };
 
-    if (options.replyTo) {
-      payload.replyTo = { email: options.replyTo };
+    const effectiveReplyTo = options.replyTo || process.env.AUTH_EMAIL || options.senderEmail;
+    if (effectiveReplyTo) {
+      payload.replyTo = { email: effectiveReplyTo };
     }
     if (formattedAttachments && formattedAttachments.length > 0) {
       payload.attachment = formattedAttachments;
@@ -305,7 +308,7 @@ async function sendViaBrevoApi(
       method: "POST",
       headers: {
         "accept": "application/json",
-        "api-key": apiKey.trim(),
+        "api-key": cleanKey,
         "content-type": "application/json",
       },
       body: JSON.stringify(payload),
@@ -319,7 +322,10 @@ async function sendViaBrevoApi(
         message: `Email successfully sent to ${options.to} via Brevo HTTPS API`,
       };
     }
-    const errMsg = data.message || `Brevo API returned status ${res.status}`;
+    let errMsg = data.message || `Brevo API returned status ${res.status}`;
+    if (errMsg.toLowerCase().includes("key not found")) {
+      errMsg = "Brevo API Key not found. Please ensure you copied the key from Brevo's 'API Keys' tab (starts with xkeysib-...), NOT the SMTP tab (which starts with xsmtpsib-...).";
+    }
     return { success: false, message: `Brevo dispatch failed: ${errMsg}`, error: errMsg };
   } catch (err: any) {
     return { success: false, message: `Brevo dispatch error: ${err.message}`, error: err.message };
@@ -414,7 +420,7 @@ export async function sendPlatformEmail(
   // 1. Check for HTTPS REST API Keys (Brevo or Resend) - Operates over Port 443 (Never blocked by Render Free Tier)
   const brevoKey = (process.env.BREVO_API_KEY || "").trim();
   const resendKey = (process.env.RESEND_API_KEY || "").trim();
-  const senderEmail = (process.env.AUTH_EMAIL || process.env.AUTH_SMTP_USER || process.env.SMTP_USER || "notifications@smartlink.ng").trim();
+  const senderEmail = (process.env.BREVO_SENDER_EMAIL || process.env.AUTH_EMAIL || process.env.AUTH_SMTP_USER || process.env.SMTP_USER || "muhammadadamua8541@gmail.com").trim();
   const activeSenderName = options.senderName || process.env.AUTH_EMAIL_SENDER_NAME || "SmartLink NG";
 
   if (brevoKey) {
