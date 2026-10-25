@@ -204,6 +204,9 @@ export function getResolvedSmtpConfig(customDb?: any): {
         secure: smtpPort !== 587,
         lookup: forceIpv4Lookup,
         family: 4, // Enforce IPv4 socket connection
+        connectionTimeout: 8000, // 8s connection timeout
+        greetingTimeout: 5000,
+        socketTimeout: 12000,
         pool: true,
         maxConnections: 5,
         maxMessages: 100,
@@ -226,6 +229,9 @@ export function getResolvedSmtpConfig(customDb?: any): {
         secure: smtpPort === 465,
         lookup: forceIpv4Lookup,
         family: 4, // Enforce IPv4 socket connection
+        connectionTimeout: 8000,
+        greetingTimeout: 5000,
+        socketTimeout: 12000,
         pool: true,
         maxConnections: 5,
         maxMessages: 100,
@@ -354,6 +360,9 @@ export async function sendPlatformEmail(
           secure: fallbackPort === 465,
           lookup: forceIpv4Lookup,
           family: 4,
+          connectionTimeout: 8000,
+          greetingTimeout: 5000,
+          socketTimeout: 12000,
           auth: {
             user: config.smtpUser,
             pass: cleanPass,
