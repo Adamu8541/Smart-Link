@@ -1303,6 +1303,7 @@ app.post("/api/admin/emails/send", async (req, res) => {
   let sentCount = 0;
   let failedCount = 0;
   let smtpSuccessCount = 0;
+  let lastSmtpError = "";
   const failedEmails: string[] = [];
 
   for (const email of targetEmails) {
@@ -1363,13 +1364,18 @@ app.post("/api/admin/emails/send", async (req, res) => {
       if (result.success) {
         smtpSuccessCount++;
       } else {
-        console.warn(`[AdminBroadcast] Live SMTP warning for ${email}:`, result.message || result.error);
+        lastSmtpError = result.message || result.error || "SMTP configuration or connection error";
+        failedCount++;
+        failedEmails.push(email);
+        console.warn(`[AdminBroadcast] Live SMTP error for ${email}:`, lastSmtpError);
       }
     } catch (err: any) {
-      console.error(`[AdminBroadcast] Exception dispatching email to ${email}:`, err.message);
+      lastSmtpError = err.message || "Exception during SMTP dispatch";
+      failedCount++;
+      failedEmails.push(email);
+      console.error(`[AdminBroadcast] Exception dispatching email to ${email}:`, lastSmtpError);
     }
 
-    // Increment sent count (in-app notification saved + email delivery processed)
     sentCount++;
   }
 
@@ -1395,15 +1401,36 @@ app.post("/api/admin/emails/send", async (req, res) => {
   writeDB(db);
   await syncToStorage(db);
 
-  const deliveryNotice = smtpSuccessCount > 0
-    ? `Broadcast dispatched to ${sentCount} recipient(s) (${smtpSuccessCount} via Gmail SMTP & in-app notifications).`
-    : `Broadcast dispatched to ${sentCount} recipient(s) via in-app notifications${targetEmails.length > 0 ? " (Gmail SMTP live delivery was unconfigured or skipped)." : "."}`;
+  if (isTest) {
+    if (smtpSuccessCount > 0) {
+      return res.json({
+        success: true,
+        message: `Test email sent successfully to ${targetEmails[0]}! Check your inbox.`,
+        sentCount: 1,
+        smtpSuccessCount,
+      });
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: `Failed to deliver test email: ${lastSmtpError || "Gmail SMTP credentials missing or invalid."}`,
+        error: lastSmtpError,
+      });
+    }
+  }
+
+  if (smtpSuccessCount === 0 && targetEmails.length > 0) {
+    return res.status(400).json({
+      success: false,
+      message: `Failed to deliver live email broadcast: ${lastSmtpError || "Gmail SMTP live delivery was unconfigured or failed."}`,
+      error: lastSmtpError,
+      sentCount: 0,
+      failedCount: targetEmails.length,
+    });
+  }
 
   return res.json({
-    success: sentCount > 0,
-    message: isTest
-      ? `Test email sent successfully to ${targetEmails[0]}!`
-      : deliveryNotice,
+    success: true,
+    message: `Broadcast successfully dispatched to ${sentCount} recipient(s) (${smtpSuccessCount} delivered via Gmail SMTP).`,
     sentCount,
     failedCount,
     smtpSuccessCount,
