@@ -267,7 +267,130 @@ export function getResolvedSmtpConfig(customDb?: any): {
 }
 
 /**
- * Global helper to send an email with robust error handling and automatic port fallback (465 <-> 587)
+ * Dispatch email via Brevo REST API (HTTPS Port 443 - Never blocked by Render or cloud firewalls)
+ */
+async function sendViaBrevoApi(
+  apiKey: string,
+  options: {
+    to: string;
+    subject: string;
+    html: string;
+    senderName: string;
+    senderEmail: string;
+    replyTo?: string;
+    attachments?: Array<{ filename: string; content?: Buffer; base64Content?: string; contentType?: string }>;
+  }
+): Promise<{ success: boolean; messageId?: string; message: string; error?: string }> {
+  try {
+    const formattedAttachments = options.attachments?.map((att) => ({
+      name: att.filename,
+      content: att.base64Content || (att.content ? Buffer.from(att.content).toString("base64") : ""),
+    })).filter((a) => a.content);
+
+    const payload: any = {
+      sender: { name: options.senderName, email: options.senderEmail },
+      to: [{ email: options.to }],
+      subject: options.subject,
+      htmlContent: options.html,
+    };
+
+    if (options.replyTo) {
+      payload.replyTo = { email: options.replyTo };
+    }
+    if (formattedAttachments && formattedAttachments.length > 0) {
+      payload.attachment = formattedAttachments;
+    }
+
+    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "accept": "application/json",
+        "api-key": apiKey.trim(),
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data: any = await res.json().catch(() => ({}));
+    if (res.ok && data.messageId) {
+      return {
+        success: true,
+        messageId: data.messageId,
+        message: `Email successfully sent to ${options.to} via Brevo HTTPS API`,
+      };
+    }
+    const errMsg = data.message || `Brevo API returned status ${res.status}`;
+    return { success: false, message: `Brevo dispatch failed: ${errMsg}`, error: errMsg };
+  } catch (err: any) {
+    return { success: false, message: `Brevo dispatch error: ${err.message}`, error: err.message };
+  }
+}
+
+/**
+ * Dispatch email via Resend REST API (HTTPS Port 443 - Never blocked by Render or cloud firewalls)
+ */
+async function sendViaResendApi(
+  apiKey: string,
+  options: {
+    to: string;
+    subject: string;
+    html: string;
+    senderName: string;
+    senderEmail: string;
+    replyTo?: string;
+    attachments?: Array<{ filename: string; content?: Buffer; base64Content?: string; contentType?: string }>;
+  }
+): Promise<{ success: boolean; messageId?: string; message: string; error?: string }> {
+  try {
+    const formattedAttachments = options.attachments?.map((att) => ({
+      filename: att.filename,
+      content: att.base64Content || (att.content ? Buffer.from(att.content).toString("base64") : ""),
+    })).filter((a) => a.content);
+
+    const from = options.senderEmail.includes("@gmail.com")
+      ? `${options.senderName} <onboarding@resend.dev>`
+      : `${options.senderName} <${options.senderEmail}>`;
+
+    const payload: any = {
+      from,
+      to: [options.to],
+      subject: options.subject,
+      html: options.html,
+    };
+
+    if (options.replyTo) {
+      payload.reply_to = options.replyTo;
+    }
+    if (formattedAttachments && formattedAttachments.length > 0) {
+      payload.attachments = formattedAttachments;
+    }
+
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey.trim()}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data: any = await res.json().catch(() => ({}));
+    if (res.ok && data.id) {
+      return {
+        success: true,
+        messageId: data.id,
+        message: `Email successfully sent to ${options.to} via Resend HTTPS API`,
+      };
+    }
+    const errMsg = data.message || `Resend API returned status ${res.status}`;
+    return { success: false, message: `Resend dispatch failed: ${errMsg}`, error: errMsg };
+  } catch (err: any) {
+    return { success: false, message: `Resend dispatch error: ${err.message}`, error: err.message };
+  }
+}
+
+/**
+ * Global helper to send an email with robust error handling, HTTPS API fallback (Port 443), and automatic port fallback (465 <-> 587)
  */
 export async function sendPlatformEmail(
   options: {
@@ -288,6 +411,37 @@ export async function sendPlatformEmail(
   },
   customDb?: any
 ): Promise<{ success: boolean; messageId?: string; message: string; error?: string }> {
+  // 1. Check for HTTPS REST API Keys (Brevo or Resend) - Operates over Port 443 (Never blocked by Render Free Tier)
+  const brevoKey = (process.env.BREVO_API_KEY || "").trim();
+  const resendKey = (process.env.RESEND_API_KEY || "").trim();
+  const senderEmail = (process.env.AUTH_EMAIL || process.env.AUTH_SMTP_USER || process.env.SMTP_USER || "notifications@smartlink.ng").trim();
+  const activeSenderName = options.senderName || process.env.AUTH_EMAIL_SENDER_NAME || "SmartLink NG";
+
+  if (brevoKey) {
+    return sendViaBrevoApi(brevoKey, {
+      to: options.to,
+      subject: options.subject,
+      html: options.html,
+      senderName: activeSenderName,
+      senderEmail,
+      replyTo: options.replyTo,
+      attachments: options.attachments as any,
+    });
+  }
+
+  if (resendKey) {
+    return sendViaResendApi(resendKey, {
+      to: options.to,
+      subject: options.subject,
+      html: options.html,
+      senderName: activeSenderName,
+      senderEmail,
+      replyTo: options.replyTo,
+      attachments: options.attachments as any,
+    });
+  }
+
+  // 2. Fall back to SMTP Transporter
   const { transporter, fromAddress, error, config } = getResolvedSmtpConfig(customDb);
 
   if (!transporter) {
@@ -339,16 +493,19 @@ export async function sendPlatformEmail(
       message: `Email successfully sent to ${options.to}`,
     };
   } catch (err: any) {
-    const errMsg = err.message || "";
-    console.error("[EmailService] Primary dispatch attempt failed:", errMsg);
+    const rawErrMsg = err.message || "";
+    const lowerMsg = rawErrMsg.toLowerCase();
+    console.error("[EmailService] Primary dispatch attempt failed:", rawErrMsg);
 
-    // If socket error or connection error (ENETUNREACH, ETIMEDOUT, ECONNREFUSED), try fallback port (587 or 465)
-    if (
-      errMsg.includes("ENETUNREACH") ||
-      errMsg.includes("ETIMEDOUT") ||
-      errMsg.includes("ECONNREFUSED") ||
-      errMsg.includes("connect")
-    ) {
+    // If socket error or connection timeout (ENETUNREACH, ETIMEDOUT, ECONNREFUSED, timeout)
+    const isNetworkError =
+      lowerMsg.includes("timeout") ||
+      lowerMsg.includes("enetunreach") ||
+      lowerMsg.includes("etimedout") ||
+      lowerMsg.includes("econnrefused") ||
+      lowerMsg.includes("connect");
+
+    if (isNetworkError) {
       console.warn("[EmailService] Triggering fallback IPv4 transporter on alternate port...");
       try {
         const fallbackPort = Number(config.smtpPort) === 587 ? 465 : 587;
@@ -382,6 +539,21 @@ export async function sendPlatformEmail(
         };
       } catch (fallbackErr: any) {
         console.error("[EmailService] Fallback dispatch also failed:", fallbackErr.message);
+
+        // If Render Free Tier blocked both ports 465 and 587
+        const isRenderTimeout =
+          fallbackErr.message?.toLowerCase().includes("timeout") ||
+          rawErrMsg.toLowerCase().includes("timeout");
+
+        if (isRenderTimeout) {
+          const explanation = "Connection timeout: Render Free Tier blocks outbound SMTP ports (465 and 587) by firewall. To send emails from Render without paying, add a free BREVO_API_KEY (from brevo.com, 300 free emails/day) in your Render Environment Variables. It operates over HTTPS Port 443 with no port restrictions!";
+          return {
+            success: false,
+            message: explanation,
+            error: explanation,
+          };
+        }
+
         return {
           success: false,
           message: `Failed to dispatch email: ${fallbackErr.message}`,
