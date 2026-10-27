@@ -205,11 +205,6 @@ export default function App() {
     const path = window.location.pathname;
     const params = new URLSearchParams(window.location.search);
 
-    const unauthPaths = ["/", "/home", "/admin/login", "/forgot-password", "/reset-password", "/verify-email"];
-    if ((hasUser || hasAdmin) && (unauthPaths.includes(path) || path === "")) {
-      return hasAdmin ? "ADMIN_DASHBOARD" : "DASHBOARD";
-    }
-
     if (path.startsWith("/verify/slip/") || path === "/validate-slip" || params.get("slipToken")) {
       return "VERIFY_SLIP";
     }
@@ -220,9 +215,19 @@ export default function App() {
       path.startsWith("/auth/action") ||
       path.startsWith("/__/auth/action") ||
       Boolean(params.get("mode")) ||
+      Boolean(params.get("token")) ||
+      Boolean(params.get("resetToken")) ||
       (params.get("oobCode") && !path.includes("reset-password") && !path.includes("verify-email"))
     ) {
+      if (params.get("token") || params.get("resetToken") || params.get("mode") === "resetPassword") {
+        return "RESET_PASSWORD";
+      }
       return "AUTH_ACTION";
+    }
+
+    const unauthPaths = ["/", "/home", "/admin/login"];
+    if ((hasUser || hasAdmin) && (unauthPaths.includes(path) || path === "")) {
+      return hasAdmin ? "ADMIN_DASHBOARD" : "DASHBOARD";
     }
     if (path === "/explore-services") return "PUBLIC_EXPLORE_SERVICES";
     if (path === "/services" && !hasUser && !hasAdmin) return "PUBLIC_EXPLORE_SERVICES";
@@ -1704,10 +1709,8 @@ export default function App() {
               <ResetPasswordView
                 onNavigateToLogin={() => {
                   window.history.pushState({}, "", "/");
-                  setCurrentView("DASHBOARD");
+                  setCurrentView(currentUser ? "DASHBOARD" : "HOME");
                   setIsRegistering(false);
-                  
-                  
                 }}
                 onNavigateHome={() => {
                   window.history.pushState({}, "", "/");

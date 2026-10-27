@@ -417,14 +417,15 @@ export async function sendPlatformEmail(
   },
   customDb?: any
 ): Promise<{ success: boolean; messageId?: string; message: string; error?: string }> {
-  // 1. Check for HTTPS REST API Keys (Brevo or Resend) - Operates over Port 443 (Never blocked by Render Free Tier)
+  // 1. Check for HTTPS REST API Keys (Brevo or Resend) - Operates over Port 443
   const brevoKey = (process.env.BREVO_API_KEY || "").trim();
   const resendKey = (process.env.RESEND_API_KEY || "").trim();
   const senderEmail = (process.env.BREVO_SENDER_EMAIL || process.env.AUTH_EMAIL || process.env.AUTH_SMTP_USER || process.env.SMTP_USER || "muhammadadamua8541@gmail.com").trim();
   const activeSenderName = options.senderName || process.env.AUTH_EMAIL_SENDER_NAME || "SmartLink NG";
 
-  if (brevoKey) {
-    return sendViaBrevoApi(brevoKey, {
+  // Only call Brevo REST API if the key is a valid API key (starts with xkeysib-), not an SMTP password (xsmtpsib-)
+  if (brevoKey && !brevoKey.startsWith("xsmtpsib-")) {
+    const brevoRes = await sendViaBrevoApi(brevoKey, {
       to: options.to,
       subject: options.subject,
       html: options.html,
@@ -433,10 +434,15 @@ export async function sendPlatformEmail(
       replyTo: options.replyTo,
       attachments: options.attachments as any,
     });
+    if (brevoRes.success) {
+      return brevoRes;
+    }
+    console.warn("[EmailService] Brevo API dispatch note:", brevoRes.message);
   }
 
-  if (resendKey) {
-    return sendViaResendApi(resendKey, {
+  // Only call Resend REST API if the key looks like a Resend key (starts with re_), not an SMTP password
+  if (resendKey && !resendKey.startsWith("xsmtpsib-")) {
+    const resendRes = await sendViaResendApi(resendKey, {
       to: options.to,
       subject: options.subject,
       html: options.html,
@@ -445,6 +451,10 @@ export async function sendPlatformEmail(
       replyTo: options.replyTo,
       attachments: options.attachments as any,
     });
+    if (resendRes.success) {
+      return resendRes;
+    }
+    console.warn("[EmailService] Resend API dispatch note:", resendRes.message);
   }
 
   // 2. Fall back to SMTP Transporter

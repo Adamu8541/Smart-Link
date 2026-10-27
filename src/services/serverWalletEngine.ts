@@ -6,7 +6,7 @@
 import { walletsStore, WalletDbRecord } from "./walletsStore";
 import * as usersStore from "./usersStore";
 import { formatNaira } from "../utils/formatUtils";
-import { UserRepository, TransactionRepository, LedgerRepository } from "../../server/turso/repositories/index";
+import { UserRepository, TransactionRepository, LedgerRepository, AuditLogRepository } from "../../server/turso/repositories/index";
 
 export type { WalletDbRecord };
 
@@ -355,6 +355,19 @@ export class ServerWalletEngine {
       console.warn(`[ServerWalletEngine] Turso LedgerRepository recordEntry error: ${lErr}`);
     }
 
+    // ENFORCED TURSO SQL & db.json SYNC: Record activity log for user wallet credit
+    try {
+      await AuditLogRepository.recordLog({
+        id: `aud_${txId}`,
+        user_id: user?.uid || user?.id || userId,
+        action: "WALLET_TRANSACTION",
+        resource_type: "WALLET_CREDIT",
+        resource_id: txId,
+        status: "SUCCESS",
+        details: `Wallet Credited ₦${amt.toLocaleString()} via ${serviceName || "Wallet Top-up"}. Ref: ${ref}. New Balance: ₦${newBal.toLocaleString()}`,
+      }).catch(() => {});
+    } catch {}
+
     if (db) {
       if (!db.transactions) db.transactions = [];
       if (!db.transactions.some((t: any) => t.id === txId)) db.transactions.push(txResult);
@@ -542,6 +555,19 @@ export class ServerWalletEngine {
     } catch (lErr) {
       console.warn(`[ServerWalletEngine] Turso LedgerRepository recordEntry error: ${lErr}`);
     }
+
+    // ENFORCED TURSO SQL & db.json SYNC: Record activity log for user wallet debit
+    try {
+      await AuditLogRepository.recordLog({
+        id: `aud_${txId}`,
+        user_id: user?.uid || user?.id || userId,
+        action: "WALLET_TRANSACTION",
+        resource_type: "WALLET_DEBIT",
+        resource_id: txId,
+        status: "SUCCESS",
+        details: `Wallet Debited ₦${amt.toLocaleString()} for ${serviceName || "Service Payment"}. Ref: ${ref}. New Balance: ₦${newBal.toLocaleString()}`,
+      }).catch(() => {});
+    } catch {}
 
     if (db) {
       if (!db.transactions) db.transactions = [];
@@ -764,6 +790,19 @@ export class ServerWalletEngine {
       createdAt: now,
       updatedAt: now,
     };
+
+    // ENFORCED TURSO SQL & db.json SYNC: Record activity log for wallet transaction reversal
+    try {
+      await AuditLogRepository.recordLog({
+        id: `aud_${revId}`,
+        user_id: user?.uid || user?.id || userId,
+        action: "WALLET_TRANSACTION",
+        resource_type: "WALLET_REVERSAL",
+        resource_id: revId,
+        status: "SUCCESS",
+        details: `Wallet Reversal ₦${amt.toLocaleString()} for Tx #${origTx.reference}. Reason: ${reason || "Service reversal"}. New Balance: ₦${newBal.toLocaleString()}`,
+      }).catch(() => {});
+    } catch {}
 
     if (db) {
       if (!db.transactions) db.transactions = [];

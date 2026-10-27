@@ -75,7 +75,7 @@ export const AuthActionHandler: React.FC<AuthActionHandlerProps>= ({
     setOobCode(codeParam);
   }, []);
 
-  if (mode === "resetPassword" || (oobCode && !mode && window.location.pathname.includes("reset-password"))) {
+  if (mode === "resetPassword" || window.location.pathname.includes("reset-password") || (oobCode && !mode)) {
     return (
       <ResetPasswordView
         onNavigateToLogin={onNavigateToLogin}

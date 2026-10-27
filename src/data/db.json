@@ -67,7 +67,24 @@
   ],
   "cacApplications": [],
   "vendorServices": [],
-  "auditLogs": [],
+  "auditLogs": [
+    {
+      "id": "aud_1793120108881_hlzoqq",
+      "log_id": "aud_1793120108881_hlzoqq",
+      "user_id": "test_user_muhammad",
+      "admin_uid": null,
+      "admin_email": null,
+      "admin_role": null,
+      "action": "USER_LOGIN",
+      "resource_type": "AUTH",
+      "resource_id": null,
+      "ip_address": "127.0.0.1",
+      "user_agent": "TestAgent/1.0",
+      "status": "SUCCESS",
+      "details": "User muhammadadamua8541@gmail.com logged in successfully",
+      "created_at": "2026-10-27T16:55:08.881Z"
+    }
+  ],
   "siteSettings": {
     "siteName": "Smart Link Digital",
     "primaryColor": "#2563eb",
@@ -478,7 +495,24 @@
   "receipts": [],
   "notifications": [],
   "walletLogs": [],
-  "activityLogs": [],
+  "activityLogs": [
+    {
+      "id": "aud_1793120108881_hlzoqq",
+      "log_id": "aud_1793120108881_hlzoqq",
+      "user_id": "test_user_muhammad",
+      "admin_uid": null,
+      "admin_email": null,
+      "admin_role": null,
+      "action": "USER_LOGIN",
+      "resource_type": "AUTH",
+      "resource_id": null,
+      "ip_address": "127.0.0.1",
+      "user_agent": "TestAgent/1.0",
+      "status": "SUCCESS",
+      "details": "User muhammadadamua8541@gmail.com logged in successfully",
+      "created_at": "2026-10-27T16:55:08.881Z"
+    }
+  ],
   "notificationSettings": [],
   "adminLogs": [],
   "webhooks": [],
@@ -2765,5 +2799,6 @@
       "timestamp": "2026-10-24T07:48:42.926Z"
     }
   ],
-  "provider_failovers": []
+  "provider_failovers": [],
+  "admin_user_actions": []
 }

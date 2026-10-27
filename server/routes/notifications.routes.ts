@@ -32,6 +32,7 @@ import * as securityStore from "../../src/services/securityStore";
 import * as notificationsStore from "../../src/services/notificationsStore";
 import { sendPlatformEmail, getResolvedSmtpConfig } from "../services/email.service";
 import { getAllPlatformRecipients, RecipientUser } from "../services/emailRecipient.service";
+import { AuditLogRepository, TransactionRepository, VerificationRepository, WalletRepository } from "../turso/repositories";
 
 
 const router = express.Router();
@@ -297,7 +298,7 @@ app.put("/api/notifications/settings/:userId", async (req, res) => {
   res.json({ success: true });
 });
 
-// 8. Get Activity Logs
+// 8. Get Activity Logs (Direct Turso SQL Query)
 app.get("/api/activity-logs", async (req, res) => {
   const { userId, activityType, searchQuery, page = 1, pageSize = 20 } = req.query;
   const db = readDB();
@@ -309,44 +310,63 @@ app.get("/api/activity-logs", async (req, res) => {
     }
   }
 
-  let list = db.activityLogs || [];
-
-  if (userId) {
-    list = list.filter((a: any) => a.userId === userId);
-  }
-
-  if (activityType) {
-    list = list.filter((a: any) => a.activityType === activityType || a.action === activityType);
-  }
-
-  if (searchQuery) {
-    const q = (searchQuery as string).toLowerCase();
-    list = list.filter(
-      (a: any) =>
-        a.description?.toLowerCase().includes(q) ||
-        a.ipAddress?.toLowerCase().includes(q) ||
-        a.action?.toLowerCase().includes(q) ||
-        a.activityType?.toLowerCase().includes(q)
-    );
-  }
-
-  const total = list.length;
   const pageNum = parseInt(page as string) || 1;
   const limitNum = parseInt(pageSize as string) || 20;
   const startIndex = (pageNum - 1) * limitNum;
-  const paginatedList = list.slice(startIndex, startIndex + limitNum);
 
-  res.json({
-    logs: paginatedList,
-    total,
-    page: pageNum,
-    pageSize: limitNum
-  });
+  try {
+    const result = await AuditLogRepository.listLogs({
+      userId: (userId as string) || undefined,
+      status: "ALL",
+      resourceType: (activityType && activityType !== "ALL") ? (activityType as string) : "ALL",
+      search: (searchQuery as string) || undefined,
+      limit: limitNum,
+      offset: startIndex,
+    });
+
+    const normalizedLogs = (result.logs || []).map((l: any) => ({
+      ...l,
+      id: l.id || l.log_id,
+      activityId: l.id || l.log_id,
+      userId: l.user_id || l.admin_uid || userId,
+      activityType: l.resource_type || l.action || "SECURITY_EVENT",
+      action: l.action,
+      description: l.details || l.description || "",
+      ipAddress: l.ip_address || "127.0.0.1",
+      status: l.status || "SUCCESS",
+      createdAt: l.created_at || l.timestamp || new Date().toISOString(),
+      timestamp: l.created_at || l.timestamp || new Date().toISOString(),
+    }));
+
+    return res.json({
+      logs: normalizedLogs,
+      total: result.total,
+      page: pageNum,
+      pageSize: limitNum
+    });
+  } catch (err: any) {
+    console.warn(`[/api/activity-logs] Falling back to db.json: ${err?.message}`);
+    let list = db.activityLogs || [];
+    if (userId) list = list.filter((a: any) => a.userId === userId);
+    if (activityType && activityType !== "ALL") list = list.filter((a: any) => a.activityType === activityType || a.action === activityType);
+    if (searchQuery) {
+      const q = (searchQuery as string).toLowerCase();
+      list = list.filter((a: any) => a.description?.toLowerCase().includes(q) || a.action?.toLowerCase().includes(q));
+    }
+    const total = list.length;
+    const paginatedList = list.slice(startIndex, startIndex + limitNum);
+    return res.json({
+      logs: paginatedList,
+      total,
+      page: pageNum,
+      pageSize: limitNum
+    });
+  }
 });
 
 
 
-// 10. Get Consolidated User History
+// 10. Get Consolidated User History (Turso SQL + Local)
 app.get("/api/user-history/:userId", async (req, res) => {
   const { userId } = req.params;
   const db = readDB();
@@ -356,21 +376,107 @@ app.get("/api/user-history/:userId", async (req, res) => {
     return res.status(403).json({ error: authCheck.reason || "Forbidden" });
   }
 
-  const walletLogs = (db.walletLogs || []).filter((w: any) => w.userId === userId);
-  const verifications = (db.verificationHistory || []).filter((v: any) => v.userId === userId);
-  const transactions = (db.transactions || []).filter((t: any) => t.userId === userId);
-  const notifications = (db.notifications || []).filter((n: any) => n.userId === userId);
-  const logins = (db.loginHistory || []).filter((l: any) => l.userId === userId);
-  const activityLogs = (db.activityLogs || []).filter((a: any) => a.userId === userId);
+  try {
+    // 1. Fetch synthesized audit logs (logins, security events, etc.) from Turso SQL
+    const auditRes = await AuditLogRepository.listLogs({ userId, limit: 1000 });
+    const allAuditLogs = auditRes.logs || [];
 
-  res.json({
-    walletLogs,
-    verifications,
-    transactions,
-    notifications,
-    logins,
-    activityLogs
-  });
+    // Filter logins
+    const logins = allAuditLogs.filter(
+      (l: any) =>
+        l.action === "USER_LOGIN" ||
+        l.action === "USER_LOGIN_FAILED" ||
+        l.action === "USER_REGISTRATION" ||
+        l.resource_type === "AUTH" ||
+        String(l.action || '').toLowerCase().includes('login')
+    );
+
+    // 2. Fetch transactions from Turso SQL
+    let txRows: any[] = [];
+    try {
+      txRows = await TransactionRepository.findByUserId(userId, 500, 0);
+    } catch {}
+
+    const dbTxs = (db.transactions || []).filter(
+      (t: any) => t.userId === userId || t.user_id === userId
+    );
+    const seenTxIds = new Set(txRows.map((t: any) => String(t.reference || t.id)));
+    for (const dt of dbTxs) {
+      const ref = String(dt.reference || dt.id);
+      if (!seenTxIds.has(ref)) {
+        seenTxIds.add(ref);
+        txRows.push(dt);
+      }
+    }
+
+    // Filter VTU vs Financial
+    const vtuServices = txRows.filter(
+      (t: any) =>
+        t.service_category === "VTU" ||
+        t.service_category === "BILLS" ||
+        String(t.service_name || '').toLowerCase().includes('airtime') ||
+        String(t.service_name || '').toLowerCase().includes('data') ||
+        String(t.service_name || '').toLowerCase().includes('electricity') ||
+        String(t.service_name || '').toLowerCase().includes('cable') ||
+        String(t.service_name || '').toLowerCase().includes('jamb') ||
+        String(t.service_name || '').toLowerCase().includes('waec')
+    );
+
+    // 3. Fetch verifications from Turso SQL
+    let verRows: any[] = [];
+    try {
+      verRows = await VerificationRepository.listByUser(userId, 500);
+    } catch {}
+
+    const dbVers = (db.verificationHistory || []).filter(
+      (v: any) => v.userId === userId || v.user_id === userId
+    );
+    const seenVerIds = new Set(verRows.map((v: any) => String(v.reference || v.id)));
+    for (const dv of dbVers) {
+      const ref = String(dv.reference || dv.id);
+      if (!seenVerIds.has(ref)) {
+        seenVerIds.add(ref);
+        verRows.push(dv);
+      }
+    }
+
+    // 4. Fetch wallet logs from db.json & Turso
+    const walletLogs = (db.walletLogs || []).filter(
+      (w: any) => w.userId === userId || w.user_id === userId
+    );
+
+    const notifications = (db.notifications || []).filter(
+      (n: any) => n.userId === userId || n.user_id === userId
+    );
+
+    return res.json({
+      walletLogs,
+      verifications: verRows,
+      transactions: txRows,
+      vtuServices,
+      notifications,
+      logins,
+      activityLogs: allAuditLogs
+    });
+  } catch (err: any) {
+    console.warn(`[/api/user-history] Error synthesizing Turso records:`, err);
+    const walletLogs = (db.walletLogs || []).filter((w: any) => w.userId === userId);
+    const verifications = (db.verificationHistory || []).filter((v: any) => v.userId === userId);
+    const transactions = (db.transactions || []).filter((t: any) => t.userId === userId);
+    const notifications = (db.notifications || []).filter((n: any) => n.userId === userId);
+    const logins = (db.loginHistory || []).filter((l: any) => l.userId === userId);
+    const activityLogs = (db.activityLogs || []).filter((a: any) => a.userId === userId);
+
+    return res.json({
+      walletLogs,
+      verifications,
+      transactions,
+      vtuServices: transactions.filter((t: any) => t.serviceCategory === "VTU"),
+      notifications,
+      logins,
+      activityLogs
+    });
+  }
 });
 
 

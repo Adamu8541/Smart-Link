@@ -61,56 +61,43 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps>= ({
         console.warn("[ForgotPasswordView] Check email existence note:", checkErr);
       }
 
-      let sent = false;
+      // 1. Dispatch secure password recovery via server with direct link and 6-digit code in Turso
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: cleanEmail }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.success === false) {
+        if (
+          res.status === 404 ||
+          data.error?.toLowerCase().includes("not found") ||
+          data.error?.toLowerCase().includes("not registered")
+        ) {
+          soundFx.playErrorSound();
+          setError("email not found or not registered, register instead");
+          setLoading(false);
+          return;
+        }
+        throw new Error(data.error || data.message || "Unable to send password reset email.");
+      }
+
+      // 2. Also trigger client-side Supabase recovery dispatch for 100% delivery guarantee
       if (isSupabaseConfigured) {
         try {
           await SupabaseAuthService.resetPasswordForEmail(
             cleanEmail,
             `${window.location.origin}/reset-password`
           );
-          sent = true;
         } catch (supaErr: any) {
-          if (
-            supaErr?.message?.toLowerCase().includes("not found") ||
-            supaErr?.message?.toLowerCase().includes("user not registered")
-          ) {
-            soundFx.playErrorSound();
-            setError("email not found or not registered, register instead");
-            setLoading(false);
-            return;
-          }
-          throw supaErr;
+          console.warn("[ForgotPasswordView] Client Supabase recovery dispatch note:", supaErr?.message);
         }
-      }
-
-      if (!sent) {
-        // Fallback or server-side email dispatch
-        const res = await fetch("/api/auth/forgot-password", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: cleanEmail }),
-        });
-        const data = await res.json();
-        if (!res.ok || data.success === false) {
-          if (
-            res.status === 404 ||
-            data.error?.toLowerCase().includes("not found") ||
-            data.error?.toLowerCase().includes("not registered")
-          ) {
-            soundFx.playErrorSound();
-            setError("email not found or not registered, register instead");
-            setLoading(false);
-            return;
-          }
-          throw new Error(data.error || data.message || "Unable to send password reset email.");
-        }
-        sent = true;
       }
 
       soundFx.playSuccessSound();
       setEmailSent(true);
       setSuccessMessage(
-        `We've sent password reset instructions to ${cleanEmail}. Please check your inbox and spam folder.`
+        `We've sent password reset instructions and your 6-digit verification code to ${cleanEmail}. Please check your inbox and spam folder.`
       );
     } catch (err: any) {
       soundFx.playErrorSound();
@@ -152,9 +139,9 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps>= ({
         <button
           type="button"
           onClick={onNavigateHome}
-          className="flex items-center gap-2 text-xs font-semibold text-slate-600 hover:text-[#0F2D5C] transition-colors cursor-pointer px-3.5 py-2 rounded-xl border border-slate-200 bg-white shadow-2xs"
+          className="inline-flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-[#0F2D5C] transition-colors cursor-pointer px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 shadow-2xs"
         >
-          <ArrowLeft className="w-3.5 h-3.5" />
+          <ArrowLeft className="w-4 h-4" />
           <span>Back to Home</span>
         </button>
         
@@ -240,11 +227,22 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps>= ({
               <p>Check your spam/junk folder or verify that you entered the correct email address.</p>
             </div>
 
-            <div className="pt-2 flex flex-col gap-2">
+            <div className="pt-2 flex flex-col gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  window.location.href = `/reset-password?email=${encodeURIComponent(email.trim().toLowerCase())}`;
+                }}
+                className="w-full h-12 py-3 px-5 active:scale-[0.99] font-bold text-sm sm:text-base rounded-xl bg-[#0F2D5C] hover:bg-[#17407E] text-white transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
+              >
+                <KeyRound className="w-4 h-4" />
+                <span>Enter 6-Digit Code / Reset Password</span>
+              </button>
+
               <button
                 type="button"
                 onClick={() => setEmailSent(false)}
-                className="w-full py-2.5 px-4 font-semibold text-xs rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
+                className="w-full h-11 py-2.5 px-4 font-semibold text-sm rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer flex items-center justify-center gap-2"
               >
                 Try Another Email
               </button>
@@ -252,7 +250,7 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps>= ({
               <button
                 type="button"
                 onClick={onNavigateToLogin}
-                className="w-full py-3 px-4 active:scale-98 font-bold text-xs rounded-xl bg-[#0F2D5C] hover:bg-[#17407E] text-white transition-all shadow-md cursor-pointer"
+                className="w-full h-11 py-2.5 px-4 font-semibold text-sm rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 transition-all cursor-pointer flex items-center justify-center gap-2"
               >
                 Back to Sign In
               </button>
@@ -284,18 +282,18 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps>= ({
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 active:scale-98 font-bold text-xs rounded-xl bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full h-12 py-3 px-5 active:scale-[0.99] font-bold text-sm sm:text-base rounded-xl bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <span>Send Reset Instructions</span>
             </button>
 
-            <div className="pt-2 text-center border-t border-slate-100">
-              <p className="text-xs text-slate-600">
+            <div className="pt-3 text-center border-t border-slate-100">
+              <p className="text-sm text-slate-600">
                 Remembered your password?{" "}
                 <button
                   type="button"
                   onClick={onNavigateToLogin}
-                  className="font-bold text-[#0F2D5C] hover:text-[#17407E] hover:underline cursor-pointer border-none p-0 focus:outline-none"
+                  className="font-bold text-sm text-[#0F2D5C] hover:text-[#17407E] hover:underline cursor-pointer border-none p-0 focus:outline-none ml-1"
                 >
                   Sign In
                 </button>

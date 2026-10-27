@@ -26,6 +26,26 @@ export interface UserDoc {
   [key: string]: any;
 }
 
+let authColumnsEnsured = false;
+export async function ensureAuthColumns() {
+  if (authColumnsEnsured) return;
+  authColumnsEnsured = true;
+  const queries = [
+    "ALTER TABLE users ADD COLUMN password_hash TEXT;",
+    "ALTER TABLE users ADD COLUMN salt TEXT;",
+    "ALTER TABLE users ADD COLUMN reset_token TEXT;",
+    "ALTER TABLE users ADD COLUMN reset_token_expires INTEGER;",
+    "ALTER TABLE users ADD COLUMN reset_otp TEXT;"
+  ];
+  for (const q of queries) {
+    try {
+      await executeTurso(q);
+    } catch {}
+  }
+}
+// Run once on module initialization
+ensureAuthColumns().catch(() => {});
+
 function sanitizeUserRecord(row: any): UserDoc {
   if (!row) return row;
   const uid = row.uid || row.id;
@@ -37,6 +57,12 @@ function sanitizeUserRecord(row: any): UserDoc {
 
   const pwdHash = row.password_hash || row.passwordHash || undefined;
   const salt = row.salt || undefined;
+  const resetToken = row.reset_token !== undefined ? row.reset_token : (row.resetToken !== undefined ? row.resetToken : undefined);
+  const resetTokenExpires = row.reset_token_expires !== undefined
+    ? Number(row.reset_token_expires)
+    : (row.resetTokenExpires !== undefined ? Number(row.resetTokenExpires) : undefined);
+  const resetOtp = row.reset_otp !== undefined ? row.reset_otp : (row.resetOtp !== undefined ? row.resetOtp : undefined);
+
   let perms = row.permissions;
   if (typeof perms === "string") {
     try { perms = JSON.parse(perms); } catch { perms = []; }
@@ -57,6 +83,12 @@ function sanitizeUserRecord(row: any): UserDoc {
     passwordHash: pwdHash,
     password_hash: pwdHash,
     salt: salt,
+    resetToken: resetToken,
+    reset_token: resetToken,
+    resetTokenExpires: resetTokenExpires,
+    reset_token_expires: resetTokenExpires,
+    resetOtp: resetOtp,
+    reset_otp: resetOtp,
     permissions: Array.isArray(perms) ? perms : (row.role === "SUPER_ADMIN" ? ["*"] : undefined),
     hasTransactionPin: hasPin,
     transactionPinHash: pinHash,
@@ -67,6 +99,7 @@ function sanitizeUserRecord(row: any): UserDoc {
 }
 
 export async function getAllUsers(): Promise<UserDoc[]> {
+  await ensureAuthColumns();
   const res = await executeTurso("SELECT * FROM users ORDER BY created_at DESC;");
   if (res.rows && res.rows.length > 0) {
     return res.rows.map(sanitizeUserRecord);
@@ -76,6 +109,7 @@ export async function getAllUsers(): Promise<UserDoc[]> {
 
 export async function getUserByUid(uid: string): Promise<UserDoc | null> {
   if (!uid) return null;
+  await ensureAuthColumns();
   const res = await executeTurso("SELECT * FROM users WHERE uid = ? OR id = ? LIMIT 1;", [uid, uid]);
   if (res.rows && res.rows.length > 0) {
     return sanitizeUserRecord(res.rows[0]);
@@ -87,11 +121,26 @@ export const getUserById = getUserByUid;
 
 export async function getUserByEmail(email: string): Promise<UserDoc | null> {
   if (!email) return null;
+  await ensureAuthColumns();
   const targetEmail = email.toLowerCase().trim();
   const res = await executeTurso("SELECT * FROM users WHERE lower(email) = lower(?) LIMIT 1;", [targetEmail]);
   if (res.rows && res.rows.length > 0) {
     return sanitizeUserRecord(res.rows[0]);
   }
+
+  // Fallback to db.json if exists
+  try {
+    const db = readDB();
+    if (Array.isArray(db.users)) {
+      const match = db.users.find((u: any) => u.email && u.email.toLowerCase().trim() === targetEmail);
+      if (match) {
+        // Seed into Turso so it exists going forward
+        await createUser(match);
+        return sanitizeUserRecord(match);
+      }
+    }
+  } catch {}
+
   return null;
 }
 
@@ -251,6 +300,7 @@ export async function ensureUserExists(uid: string, fallback?: Partial<UserDoc>)
 
 export async function updateUser(uid: string, updates: Partial<UserDoc>): Promise<UserDoc | null> {
   if (!uid) return null;
+  await ensureAuthColumns();
   const now = new Date().toISOString();
 
   const hasPinVal = updates.hasTransactionPin !== undefined
@@ -260,6 +310,17 @@ export async function updateUser(uid: string, updates: Partial<UserDoc>): Promis
   const pinReqVal = updates.pinRequiredForTransactions !== undefined
     ? (updates.pinRequiredForTransactions ? 1 : 0)
     : null;
+
+  const pwdHash = updates.passwordHash || updates.password_hash || null;
+  const saltVal = updates.salt || null;
+  const hasResetToken = updates.resetToken !== undefined || updates.reset_token !== undefined;
+  const resetTokenVal = updates.resetToken !== undefined ? updates.resetToken : (updates.reset_token !== undefined ? updates.reset_token : null);
+
+  const hasResetExpires = updates.resetTokenExpires !== undefined || updates.reset_token_expires !== undefined;
+  const resetExpiresVal = updates.resetTokenExpires !== undefined ? updates.resetTokenExpires : (updates.reset_token_expires !== undefined ? updates.reset_token_expires : null);
+
+  const hasResetOtp = updates.resetOtp !== undefined || updates.reset_otp !== undefined;
+  const resetOtpVal = updates.resetOtp !== undefined ? updates.resetOtp : (updates.reset_otp !== undefined ? updates.reset_otp : null);
 
   await executeTurso(
     `UPDATE users SET 
@@ -272,6 +333,11 @@ export async function updateUser(uid: string, updates: Partial<UserDoc>): Promis
        has_transaction_pin = COALESCE(?, has_transaction_pin),
        transaction_pin_hash = COALESCE(?, transaction_pin_hash),
        pin_required_for_transactions = COALESCE(?, pin_required_for_transactions),
+       password_hash = CASE WHEN ? IS NOT NULL THEN ? ELSE password_hash END,
+       salt = CASE WHEN ? IS NOT NULL THEN ? ELSE salt END,
+       reset_token = CASE WHEN ? = 1 THEN ? ELSE reset_token END,
+       reset_token_expires = CASE WHEN ? = 1 THEN ? ELSE reset_token_expires END,
+       reset_otp = CASE WHEN ? = 1 THEN ? ELSE reset_otp END,
        updated_at = ?
      WHERE uid = ? OR id = ?;`,
     [
@@ -284,11 +350,33 @@ export async function updateUser(uid: string, updates: Partial<UserDoc>): Promis
       hasPinVal,
       pinHashVal,
       pinReqVal,
+      pwdHash,
+      pwdHash,
+      saltVal,
+      saltVal,
+      hasResetToken ? 1 : 0,
+      resetTokenVal,
+      hasResetExpires ? 1 : 0,
+      resetExpiresVal,
+      hasResetOtp ? 1 : 0,
+      resetOtpVal,
       now,
       uid,
       uid
     ]
   );
+
+  // Keep db.json in sync if it exists
+  try {
+    const db = readDB();
+    if (Array.isArray(db.users)) {
+      const idx = db.users.findIndex((u: any) => u.uid === uid || u.id === uid);
+      if (idx !== -1) {
+        db.users[idx] = { ...db.users[idx], ...updates, updatedAt: now };
+        writeDB(db);
+      }
+    }
+  } catch {}
 
   return getUserByUid(uid);
 }

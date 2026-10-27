@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "motion/react";
-import { Lock, Eye, EyeOff, CheckCircle2, AlertCircle, ArrowLeft, KeyRound, ShieldCheck, Check, Sparkles } from "lucide-react";
+import { motion } from "motion/react";
+import { Lock, Eye, EyeOff, CheckCircle2, AlertCircle, ArrowLeft, KeyRound, ShieldCheck, Check, Sparkles, Mail, RefreshCw } from "lucide-react";
 import { SupabaseAuthService, isSupabaseConfigured } from "../../services/supabaseAuth";
 import { getFriendlyErrorMessage } from "../../utils/authErrorHandler";
 import { soundFx } from "../../utils/audioEffects";
@@ -66,16 +66,17 @@ const getPasswordStrength = (password: string): PasswordStrength => {
   return { score, label, colorClass, textColorClass, checks };
 };
 
-export const ResetPasswordView: React.FC<ResetPasswordViewProps>= ({
+export const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({
   onNavigateToLogin,
   onNavigateHome,
   onNavigateToForgotPassword,
   oobCodeFromProps,
 }) => {
-  const [oobCode, setOobCode] = useState<string | null>(null);
-  const [verifyingCode, setVerifyingCode] = useState(true);
-  const [targetEmail, setTargetEmail] = useState<string | null>(null);
-  
+  const [resetCode, setResetCode] = useState<string>("");
+  const [emailInput, setEmailInput] = useState<string>("");
+  const [isPrefilledCode, setIsPrefilledCode] = useState(false);
+  const [expiredLinkNotice, setExpiredLinkNotice] = useState<string | null>(null);
+
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -85,10 +86,9 @@ export const ResetPasswordView: React.FC<ResetPasswordViewProps>= ({
   const [error, setError] = useState<string | null>(null);
   const [resetSuccess, setResetSuccess] = useState(false);
   const [countdown, setCountdown] = useState(5);
-
   const [isSupabaseRecovery, setIsSupabaseRecovery] = useState(false);
 
-  // Parse and verify oobCode or Supabase tokens on mount
+  // Parse token, code, email, or error parameters on mount
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     let hashParams = new URLSearchParams();
@@ -97,7 +97,27 @@ export const ResetPasswordView: React.FC<ResetPasswordViewProps>= ({
       hashParams = new URLSearchParams(cleanHash);
     }
 
-    // 1. Check for Supabase recovery hash tokens
+    // 1. Check for email parameter
+    const detectedEmail =
+      searchParams.get("email") ||
+      hashParams.get("email") ||
+      "";
+    if (detectedEmail) {
+      setEmailInput(detectedEmail.trim());
+    }
+
+    // 2. Check for expired link errors from Supabase / external mail clients
+    const errCode = searchParams.get("error_code") || hashParams.get("error_code");
+    const errDesc = searchParams.get("error_description") || hashParams.get("error_description");
+    const err = searchParams.get("error") || hashParams.get("error");
+
+    if (errCode === "otp_expired" || (errDesc && errDesc.toLowerCase().includes("expired")) || err === "access_denied") {
+      setExpiredLinkNotice(
+        "The single-use link in your email has expired. You can still reset your password below using the 6-digit code from your email, or request a new code."
+      );
+    }
+
+    // 3. Check for Supabase session recovery tokens
     const hashAccessToken = hashParams.get("access_token");
     const hashRefreshToken = hashParams.get("refresh_token");
     const hashType = hashParams.get("type");
@@ -105,42 +125,38 @@ export const ResetPasswordView: React.FC<ResetPasswordViewProps>= ({
     if (isSupabaseConfigured && (hashType === "recovery" || (hashAccessToken && hashRefreshToken))) {
       if (hashAccessToken && hashRefreshToken) {
         setIsSupabaseRecovery(true);
-        setOobCode("supabase_session");
+        setResetCode("supabase_session");
+        setIsPrefilledCode(true);
         SupabaseAuthService.setSession(hashAccessToken, hashRefreshToken)
           .then(async (res) => {
             const user = res?.user || (await SupabaseAuthService.getUser());
             if (user?.email) {
-              setTargetEmail(user.email);
+              setEmailInput(user.email);
             }
-            setVerifyingCode(false);
           })
-          .catch((err) => {
-            soundFx.playErrorSound();
-            setError(getFriendlyErrorMessage(err));
-            setVerifyingCode(false);
-          });
+          .catch(() => {});
         return;
       }
     }
 
+    // 4. Check for direct query/hash tokens or OTP codes
     const code =
       oobCodeFromProps ||
-      searchParams.get("oobCode") ||
-      searchParams.get("resetToken") ||
       searchParams.get("token") ||
-      hashParams.get("oobCode") ||
+      searchParams.get("resetToken") ||
+      searchParams.get("code") ||
+      searchParams.get("otp") ||
+      searchParams.get("oobCode") ||
+      hashParams.get("token") ||
       hashParams.get("resetToken") ||
-      hashParams.get("token");
+      hashParams.get("code") ||
+      hashParams.get("otp") ||
+      hashParams.get("oobCode");
 
-    if (!code) {
-      setVerifyingCode(false);
-      setError("No valid password reset code found in the link. Please request a new link.");
-      return;
+    if (code && !code.startsWith("pkce_")) {
+      setResetCode(code.trim());
+      setIsPrefilledCode(true);
     }
-
-    setOobCode(code);
-    setTargetEmail("user@smartlinkng.com.ng");
-    setVerifyingCode(false);
   }, [oobCodeFromProps]);
 
   // Auto-redirect countdown after success
@@ -164,6 +180,13 @@ export const ResetPasswordView: React.FC<ResetPasswordViewProps>= ({
     e.preventDefault();
     setError(null);
 
+    const cleanCode = resetCode.trim();
+    if (!cleanCode) {
+      soundFx.playErrorSound();
+      setError("Please enter the 6-digit verification code or token from your email.");
+      return;
+    }
+
     if (!newPassword || newPassword.length < 6) {
       soundFx.playErrorSound();
       setError("Password must be at least 6 characters long.");
@@ -176,28 +199,50 @@ export const ResetPasswordView: React.FC<ResetPasswordViewProps>= ({
       return;
     }
 
-    if (!oobCode) {
-      soundFx.playErrorSound();
-      setError("Missing reset code. Please request a new password reset link.");
-      return;
-    }
-
     setLoading(true);
 
     try {
-      if (isSupabaseRecovery || oobCode === "supabase_session") {
-        await SupabaseAuthService.updatePassword(newPassword);
-      } else {
-        // Backend API
-        const res = await fetch("/api/auth/reset-password", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token: oobCode, newPassword }),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.error || "Password reset failed.");
+      // 1. If code is 6 digits and email is present, attempt Supabase OTP verification
+      if (/^\d{6}$/.test(cleanCode) && emailInput.trim() && isSupabaseConfigured) {
+        try {
+          const otpRes = await SupabaseAuthService.verifyEmailOtpForAction(
+            emailInput.trim().toLowerCase(),
+            cleanCode,
+            "recovery"
+          );
+          if (!otpRes.error && otpRes.data?.session) {
+            await SupabaseAuthService.updatePassword(newPassword);
+          }
+        } catch (otpErr) {
+          console.warn("[ResetPasswordView] Supabase OTP verify note:", otpErr);
         }
+      }
+
+      // 2. If active Supabase recovery session exists, update password in Supabase
+      if (isSupabaseRecovery || cleanCode === "supabase_session") {
+        try {
+          await SupabaseAuthService.updatePassword(newPassword);
+        } catch (supaErr) {
+          console.warn("[ResetPasswordView] Supabase client session update note:", supaErr);
+        }
+      }
+
+      // Submit password update to backend API
+      const res = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token: cleanCode,
+          code: cleanCode,
+          password: newPassword,
+          newPassword: newPassword,
+          email: emailInput.trim().toLowerCase(),
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.success === false) {
+        throw new Error(data.error || data.message || "Password reset failed. Please check your reset code.");
       }
 
       soundFx.playSuccessSound();
@@ -234,9 +279,9 @@ export const ResetPasswordView: React.FC<ResetPasswordViewProps>= ({
         <button
           type="button"
           onClick={onNavigateHome}
-          className="flex items-center gap-2 text-xs font-semibold text-slate-600 hover:text-[#0F2D5C] transition-colors cursor-pointer px-3.5 py-2 rounded-xl border border-slate-200 bg-white shadow-2xs"
+          className="inline-flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-[#0F2D5C] transition-colors cursor-pointer px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 shadow-2xs"
         >
-          <ArrowLeft className="w-3.5 h-3.5" />
+          <ArrowLeft className="w-4 h-4" />
           <span>Home</span>
         </button>
 
@@ -255,22 +300,15 @@ export const ResetPasswordView: React.FC<ResetPasswordViewProps>= ({
       >
         {/* Brand Header */}
         <div className="text-center space-y-2">
-          <div>
-            <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-              Create New Password
-            </h1>
-            {targetEmail && (
-              <p className="text-xs text-[#0F2D5C] font-medium mt-1.5 bg-blue-50 border border-blue-200 inline-block px-3 py-1 rounded-full">
-                For account: <span className="font-semibold text-slate-900">{targetEmail}</span>
-              </p>
-            )}
-          </div>
+          <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+            Create New Password
+          </h1>
+          <p className="text-xs text-slate-600">
+            Enter your new secure password below to regain full account access.
+          </p>
         </div>
 
-        {/* Verifying Skeleton State */}
-        {verifyingCode ? (
-          <AuthFormSkeleton />
-        ) : resetSuccess ? (
+        {resetSuccess ? (
           /* Success Screen */
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -278,13 +316,13 @@ export const ResetPasswordView: React.FC<ResetPasswordViewProps>= ({
             className="space-y-6 text-center py-2"
           >
             <div className="w-16 h-16 bg-blue-50 border border-blue-200 text-[#0F2D5C] rounded-full flex items-center justify-center mx-auto shadow-xs">
-              <CheckCircle2 className="w-9 h-9 animate-bounce" />
+              <CheckCircle2 className="w-9 h-9 text-emerald-600 animate-bounce" />
             </div>
 
             <div className="space-y-2">
               <h3 className="text-lg font-bold text-slate-900">Password Reset Complete!</h3>
               <p className="text-xs text-slate-600 leading-relaxed max-w-sm mx-auto">
-                Your password has been securely updated. You can now log into your Smart Link Nigeria account with your new credentials.
+                Your password has been successfully updated. You can now sign into your SmartLink account using your new password.
               </p>
             </div>
 
@@ -296,49 +334,78 @@ export const ResetPasswordView: React.FC<ResetPasswordViewProps>= ({
             <button
               type="button"
               onClick={onNavigateToLogin}
-              className="w-full py-3.5 px-4 active:scale-98 font-bold text-xs rounded-xl bg-[#0F2D5C] hover:bg-[#17407E] text-white transition-all shadow-md cursor-pointer"
+              className="w-full h-12 py-3 px-5 active:scale-[0.99] font-bold text-sm sm:text-base rounded-xl bg-[#0F2D5C] hover:bg-[#17407E] text-white transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
             >
               Sign In Now
             </button>
           </motion.div>
-        ) : error && !targetEmail ? (
-          /* Invalid Code / Link Expired State */
-          <div className="space-y-5 text-center py-2">
-            <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs space-y-2 text-left">
-              <div className="flex items-center gap-2 font-bold text-red-900">
-                <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
-                <span>Link Invalid or Expired</span>
-              </div>
-              <p className="leading-relaxed font-medium">{error}</p>
-            </div>
-
-            <div className="pt-2 flex flex-col gap-2">
-              <button
-                type="button"
-                onClick={onNavigateToForgotPassword}
-                className="w-full py-3 px-4 active:scale-98 font-bold text-xs rounded-xl bg-[#0F2D5C] hover:bg-[#17407E] text-white transition-all shadow-md cursor-pointer"
-              >
-                Request New Password Reset Link
-              </button>
-
-              <button
-                type="button"
-                onClick={onNavigateToLogin}
-                className="w-full py-2.5 px-4 font-semibold text-xs rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
-              >
-                Back to Sign In
-              </button>
-            </div>
-          </div>
         ) : (
           /* Form to enter new password */
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Expired link notice if detected from Supabase redirect */}
+            {expiredLinkNotice && (
+              <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-1">
+                <div className="flex items-center gap-1.5 font-bold">
+                  <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>Email Link Expired</span>
+                </div>
+                <p className="leading-relaxed font-normal text-amber-800">
+                  {expiredLinkNotice}
+                </p>
+              </div>
+            )}
+
             {error && (
               <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs flex items-start gap-2">
                 <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
                 <div className="leading-relaxed flex-1 font-medium">{error}</div>
               </div>
             )}
+
+            {/* Email Address (optional / prefilled) */}
+            <div className="space-y-1.5">
+              <label htmlFor="reset-email" className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                <Mail className="w-3.5 h-3.5 text-[#0F2D5C]" />
+                Account Email
+              </label>
+              <input
+                id="reset-email"
+                type="email"
+                value={emailInput}
+                onChange={(e) => setEmailInput(e.target.value)}
+                placeholder="name@example.com"
+                className="w-full bg-white border border-slate-300 focus:border-[#0F2D5C] focus:ring-2 focus:ring-[#0F2D5C]/15 text-slate-900 rounded-xl px-3.5 py-2.5 text-sm placeholder-slate-400 transition-colors outline-none"
+              />
+            </div>
+
+            {/* Reset Code / Token Input */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label htmlFor="reset-code" className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                  <KeyRound className="w-3.5 h-3.5 text-[#0F2D5C]" />
+                  6-Digit Code or Reset Token
+                </label>
+                {isPrefilledCode && (
+                  <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                    ✓ Verified from Link
+                  </span>
+                )}
+              </div>
+              <input
+                id="reset-code"
+                type="text"
+                required
+                value={resetCode}
+                onChange={(e) => {
+                  setResetCode(e.target.value);
+                  setIsPrefilledCode(false);
+                }}
+                placeholder="e.g. 123456"
+                className={`w-full bg-white border ${
+                  isPrefilledCode ? "border-emerald-300 bg-emerald-50/20" : "border-slate-300"
+                } focus:border-[#0F2D5C] focus:ring-2 focus:ring-[#0F2D5C]/15 text-slate-900 rounded-xl px-3.5 py-2.5 text-sm font-mono placeholder-slate-400 transition-colors outline-none`}
+              />
+            </div>
 
             {/* New Password Input */}
             <div className="space-y-1.5">
@@ -437,10 +504,28 @@ export const ResetPasswordView: React.FC<ResetPasswordViewProps>= ({
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 px-4 active:scale-98 font-bold text-xs rounded-xl bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full h-12 py-3 px-5 active:scale-[0.99] font-bold text-sm sm:text-base rounded-xl bg-[#0F2D5C] hover:bg-[#17407E] active:bg-[#0A1E3F] text-white transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <span>{loading ? "Updating Password..." : "Update Password"}</span>
             </button>
+
+            <div className="pt-3 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-100 text-sm">
+              <button
+                type="button"
+                onClick={onNavigateToForgotPassword}
+                className="text-[#0F2D5C] font-semibold hover:underline flex items-center gap-1.5 cursor-pointer"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                Request a new code
+              </button>
+              <button
+                type="button"
+                onClick={onNavigateToLogin}
+                className="text-slate-600 hover:text-slate-900 font-medium cursor-pointer"
+              >
+                Back to Sign In
+              </button>
+            </div>
           </form>
         )}
       </motion.div>

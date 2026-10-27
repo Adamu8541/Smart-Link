@@ -249,13 +249,13 @@ export function AdminActivityLogsView({ session, onNavigate }: AdminActivityLogs
         <div className="space-y-2 max-w-2xl text-left">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-xs font-semibold text-blue-200">
             <Database className="h-3.5 w-3.5 text-emerald-400" />
-            <span>Turso Database Live Ledger & Audit Trail</span>
+            <span>Turso SQL & db.json Live Activity Engine</span>
           </div>
           <h1 className="text-xl md:text-3xl font-extrabold text-white tracking-tight">
-            Activity & Event Audit Logs
+            Turso Activity and purge
           </h1>
           <p className="text-xs md:text-sm text-blue-100">
-            Real-time tracking for user logins, service requests, failed transactions, and administrative governance.
+            All user activities (transactions, service executions, wallet transactions, logins, etc.) recorded live in Turso SQL & db.json. Delete individual records or purge retention periods (daily, weekend/weekly, monthly, all) permanently from both storage systems simultaneously in one click.
           </p>
         </div>
 
@@ -279,7 +279,7 @@ export function AdminActivityLogsView({ session, onNavigate }: AdminActivityLogs
             className="py-2.5 px-4 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-extrabold rounded-xl text-xs flex items-center gap-2 cursor-pointer transition-all shadow-md border border-white/30"
           >
             <Trash2 className="h-3.5 w-3.5 text-white" />
-            <span className="text-white font-extrabold">Purge / Clean Turso Records</span>
+            <span className="text-white font-extrabold">Purge Turso & db.json Activity</span>
           </button>
         </div>
       </div>
@@ -524,10 +524,10 @@ export function AdminActivityLogsView({ session, onNavigate }: AdminActivityLogs
                   </div>
                   <div>
                     <h3 className="text-base font-bold text-[#111827]">
-                      Purge Turso Activity Records
+                      Turso Activity and purge
                     </h3>
                     <p className="text-xs text-[#6B7280]">
-                      Permanently delete selected activity logs from Turso database.
+                      Permanently delete selected activity logs from Turso database & db.json simultaneously.
                     </p>
                   </div>
                 </div>
@@ -561,15 +561,15 @@ export function AdminActivityLogsView({ session, onNavigate }: AdminActivityLogs
 
                 <div>
                   <label className="block font-bold text-[#111827] mb-2">
-                    Select Retention Purge Window:
+                    Select Retention Purge Window (Turso SQL + db.json):
                   </label>
                   <div className="space-y-2">
                     {[
-                      { id: "1_DAY", label: "Purge Logs Older Than 24 Hours (Daily)", desc: "Cleans logs created before yesterday" },
-                      { id: "7_DAYS", label: "Purge Logs Older Than 7 Days (Weekly)", desc: "Cleans activity older than 1 week" },
-                      { id: "30_DAYS", label: "Purge Logs Older Than 30 Days (Monthly)", desc: "Cleans activity older than 1 month" },
-                      { id: "ALL_FAILED", label: "Purge All Failed Activity Logs", desc: "Deletes all error/failed attempts only" },
-                      { id: "ALL", label: "Purge Entire Activity Log History", desc: "Completely wipes all audit records" },
+                      { id: "1_DAY", label: "Purge Logs Older Than 24 Hours (Daily)", desc: "Cleans logs created before yesterday from Turso & db.json" },
+                      { id: "7_DAYS", label: "Purge Logs Older Than 7 Days (Weekend / Weekly)", desc: "Cleans activity older than 1 week from Turso & db.json" },
+                      { id: "30_DAYS", label: "Purge Logs Older Than 30 Days (Monthly)", desc: "Cleans activity older than 1 month from Turso & db.json" },
+                      { id: "ALL_FAILED", label: "Purge All Failed Activity Logs", desc: "Deletes all error/failed attempts only from Turso & db.json" },
+                      { id: "ALL", label: "Purge Entire Activity Log History (All Records)", desc: "Completely wipes all audit records from Turso & db.json" },
                     ].map((opt) => (
                       <label
                         key={opt.id}
@@ -598,9 +598,9 @@ export function AdminActivityLogsView({ session, onNavigate }: AdminActivityLogs
 
                 <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800 space-y-1">
                   <div className="font-bold flex items-center gap-1 text-amber-900">
-                    <AlertTriangle className="h-3.5 w-3.5" /> Permanent Database Deletion:
+                    <AlertTriangle className="h-3.5 w-3.5" /> Simultaneous Permanent Deletion:
                   </div>
-                  <p>This action executes direct SQL DELETE commands on Turso. This cannot be undone.</p>
+                  <p>This action executes direct SQL DELETE commands on Turso and purges records from db.json simultaneously. This cannot be undone.</p>
                 </div>
               </div>
 
@@ -657,7 +657,7 @@ export function AdminActivityLogsView({ session, onNavigate }: AdminActivityLogs
                     Delete Activity Log Record
                   </h3>
                   <p className="text-xs text-[#6B7280]">
-                    Permanently remove this event entry from Turso SQL & db.json.
+                    Permanently remove this event entry from Turso SQL & db.json simultaneously.
                   </p>
                 </div>
               </div>
@@ -704,7 +704,7 @@ export function AdminActivityLogsView({ session, onNavigate }: AdminActivityLogs
                   ) : (
                     <Trash2 className="h-4 w-4 text-white" />
                   )}
-                  <span className="text-white font-extrabold">Confirm & Delete Record</span>
+                  <span className="text-white font-extrabold">Confirm & Delete from Turso & db.json</span>
                 </button>
               </div>
             </motion.div>

@@ -31,7 +31,7 @@ import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
 import * as securityStore from "../../src/services/securityStore";
 import * as notificationsStore from "../../src/services/notificationsStore";
-import { ServicePriceRepository } from "../turso/repositories";
+import { ServicePriceRepository, AuditLogRepository } from "../turso/repositories";
 
 
 const router = express.Router();
@@ -95,6 +95,17 @@ app.post("/api/services/vtu", async (req, res) => {
     });
 
     if (!providerResult.success) {
+      AuditLogRepository.recordLog({
+        user_id: effectiveUserId,
+        action: "SERVICE_EXECUTION",
+        resource_type: "VTU_EXECUTION",
+        resource_id: reference,
+        status: "FAILURE",
+        details: `${provider} ${type} purchase failed for ${phoneNumber}: ${providerResult.error || "Provider error"}`,
+        ip_address: (req.headers["x-forwarded-for"] as string) || req.ip || "127.0.0.1",
+        user_agent: (req.headers["user-agent"] as string) || "Browser",
+      }).catch(() => {});
+
       return res.status(422).json({
         error: providerResult.error || `${provider} did not confirm this ${type === "AIRTIME" ? "airtime" : "data"} purchase.`,
         errorCode: "PROVIDER_FAILED",
@@ -115,6 +126,18 @@ app.post("/api/services/vtu", async (req, res) => {
         providerReference: providerResult.providerReference || providerResult.transactionId,
         rawResponse: providerResult.rawResponse,
       });
+
+      // ENFORCED TURSO SQL & db.json SYNC: Record successful VTU execution in Turso & db.json
+      AuditLogRepository.recordLog({
+        user_id: effectiveUserId,
+        action: "SERVICE_EXECUTION",
+        resource_type: "VTU_EXECUTION",
+        resource_id: reference,
+        status: "SUCCESS",
+        details: `${provider} ${type} purchase successful for ${phoneNumber}. Amount: ₦${amt}. Ref: ${reference}`,
+        ip_address: (req.headers["x-forwarded-for"] as string) || req.ip || "127.0.0.1",
+        user_agent: (req.headers["user-agent"] as string) || "Browser",
+      }).catch(() => {});
 
       const user = await usersStore.getUserById(userId);
       if (user && user.referredBy) {

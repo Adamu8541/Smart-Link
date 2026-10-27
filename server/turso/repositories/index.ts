@@ -10,6 +10,7 @@
  */
 
 import { executeTurso, withTursoTransaction } from "../client";
+import { readDB, writeDB } from "../../db";
 import { 
   TursoUser, 
   TursoAdminUser, 
@@ -607,11 +608,13 @@ export class AuditLogRepository {
       typeof log.details === "string" ? log.details : JSON.stringify(log.details || {}),
       now,
     ];
+
+    // 1. Persist to Turso SQL table
     await executeTurso(sql, args).catch((err) => {
       console.warn(`[AuditLogRepository] Failed to record log to Turso: ${err.message}`);
     });
 
-    return {
+    const record: TursoAuditLog = {
       id,
       log_id: logId,
       user_id: log.user_id || null,
@@ -627,6 +630,22 @@ export class AuditLogRepository {
       details: typeof log.details === "string" ? log.details : JSON.stringify(log.details || {}),
       created_at: now,
     };
+
+    // 2. Persist to db.json simultaneously (auditLogs and activityLogs arrays)
+    try {
+      const db = readDB();
+      if (!Array.isArray(db.auditLogs)) db.auditLogs = [];
+      if (!Array.isArray(db.activityLogs)) db.activityLogs = [];
+      db.auditLogs.unshift(record);
+      db.activityLogs.unshift(record);
+      if (db.auditLogs.length > 5000) db.auditLogs = db.auditLogs.slice(0, 5000);
+      if (db.activityLogs.length > 5000) db.activityLogs = db.activityLogs.slice(0, 5000);
+      writeDB(db);
+    } catch (dbErr) {
+      console.warn(`[AuditLogRepository] Failed to write log to db.json:`, dbErr);
+    }
+
+    return record;
   }
 
   static async log(log: Omit<TursoAuditLog, "created_at">): Promise<TursoAuditLog> {
@@ -644,45 +663,258 @@ export class AuditLogRepository {
   }): Promise<{ logs: TursoAuditLog[]; total: number }> {
     const limit = options?.limit || 100;
     const offset = options?.offset || 0;
-    const whereClauses: string[] = [];
-    const args: any[] = [];
 
-    if (options?.userId && options.userId.trim()) {
-      whereClauses.push("(user_id = ? OR admin_uid = ? OR resource_id = ?)");
-      args.push(options.userId.trim(), options.userId.trim(), options.userId.trim());
-    }
-    if (options?.adminEmail && options.adminEmail.trim()) {
-      whereClauses.push("lower(admin_email) = lower(?)");
-      args.push(options.adminEmail.trim());
-    }
-    if (options?.status && options.status !== "ALL") {
-      const targetStatus = options.status === "FAILED" || options.status === "FAILURE" ? "FAILURE" : options.status;
-      whereClauses.push("status = ?");
-      args.push(targetStatus);
-    }
-    if (options?.resourceType && options.resourceType !== "ALL") {
-      whereClauses.push("resource_type = ?");
-      args.push(options.resourceType);
-    }
-    if (options?.search && options.search.trim()) {
-      const q = `%${options.search.trim()}%`;
-      whereClauses.push("(action LIKE ? OR details LIKE ? OR admin_email LIKE ? OR user_id LIKE ? OR ip_address LIKE ?)");
-      args.push(q, q, q, q, q);
-    }
+    try {
+      const allSynthesized: TursoAuditLog[] = [];
+      const seenIds = new Set<string>();
 
-    const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(" AND ")}` : "";
+      // 1. Resolve user identifiers if userId specified
+      const userIds = new Set<string>();
+      let primaryEmail = "";
+      if (options?.userId && options.userId.trim()) {
+        const uStr = options.userId.trim();
+        userIds.add(uStr);
+        if (uStr.includes("@")) primaryEmail = uStr;
 
-    const countSql = `SELECT COUNT(*) as total FROM audit_logs ${whereSql};`;
-    const countRes = await executeTurso(countSql, args);
-    const total = Number(countRes.rows[0]?.total || 0);
+        try {
+          const db = readDB();
+          for (const u of (db.users || [])) {
+            if (
+              u.id === uStr ||
+              u.uid === uStr ||
+              (u.email && u.email.toLowerCase() === uStr.toLowerCase()) ||
+              (primaryEmail && u.email && u.email.toLowerCase() === primaryEmail.toLowerCase())
+            ) {
+              if (u.id) userIds.add(String(u.id));
+              if (u.uid) userIds.add(String(u.uid));
+              if (u.email) {
+                userIds.add(String(u.email));
+                if (!primaryEmail) primaryEmail = String(u.email);
+              }
+            }
+          }
+        } catch {}
 
-    const listSql = `SELECT * FROM audit_logs ${whereSql} ORDER BY created_at DESC LIMIT ? OFFSET ?;`;
-    const listRes = await executeTurso(listSql, [...args, limit, offset]);
+        try {
+          const uParts = uStr.includes("@") ? uStr.split("@")[0] : uStr;
+          const uRes = await executeTurso(
+            "SELECT id, uid, email FROM users WHERE id = ? OR uid = ? OR lower(email) = lower(?) OR lower(email) LIKE ?",
+            [uStr, uStr, uStr, `%${uParts}%`]
+          );
+          for (const row of uRes.rows || []) {
+            if (row.id) userIds.add(String(row.id));
+            if (row.uid) userIds.add(String(row.uid));
+            if (row.email) {
+              userIds.add(String(row.email));
+              if (!primaryEmail) primaryEmail = String(row.email);
+            }
+          }
+        } catch {}
+      }
 
-    return {
-      logs: (listRes.rows || []) as unknown as TursoAuditLog[],
-      total,
-    };
+      const idList = Array.from(userIds);
+
+      // 2. Query audit_logs
+      let auditSql = "SELECT * FROM audit_logs";
+      const auditArgs: any[] = [];
+      if (idList.length > 0) {
+        const qMarks = idList.map(() => "?").join(",");
+        auditSql += ` WHERE (user_id IN (${qMarks}) OR admin_uid IN (${qMarks}) OR lower(admin_email) IN (${qMarks}) OR details LIKE ?)`;
+        auditArgs.push(...idList, ...idList, ...idList, `%${primaryEmail || options!.userId!}%`);
+      } else if (options?.adminEmail && options.adminEmail.trim()) {
+        auditSql += " WHERE lower(admin_email) = lower(?)";
+        auditArgs.push(options.adminEmail.trim());
+      }
+      auditSql += " ORDER BY created_at DESC LIMIT 500;";
+
+      const auditRes = await executeTurso(auditSql, auditArgs).catch(() => ({ rows: [] }));
+      for (const l of (auditRes.rows || []) as any[]) {
+        const id = l.id || l.log_id;
+        if (id && !seenIds.has(id)) {
+          seenIds.add(id);
+          allSynthesized.push({
+            id,
+            log_id: l.log_id || id,
+            user_id: l.user_id || null,
+            admin_uid: l.admin_uid || null,
+            admin_email: l.admin_email || null,
+            admin_role: l.admin_role || null,
+            action: l.action || "ACTIVITY",
+            resource_type: l.resource_type || "SYSTEM",
+            resource_id: l.resource_id || null,
+            ip_address: l.ip_address || "127.0.0.1",
+            user_agent: l.user_agent || "System",
+            status: l.status || "SUCCESS",
+            details: typeof l.details === "string" ? l.details : JSON.stringify(l.details || {}),
+            created_at: l.created_at || new Date().toISOString(),
+          });
+        }
+      }
+
+      // 3. Query transactions
+      let txSql = "SELECT * FROM transactions";
+      const txArgs: any[] = [];
+      if (idList.length > 0) {
+        const qMarks = idList.map(() => "?").join(",");
+        txSql += ` WHERE (user_id IN (${qMarks}) OR recipient_details LIKE ?)`;
+        txArgs.push(...idList, `%${primaryEmail || options!.userId!}%`);
+      }
+      txSql += " ORDER BY created_at DESC LIMIT 500;";
+
+      const txRes = await executeTurso(txSql, txArgs).catch(() => ({ rows: [] }));
+      for (const tx of (txRes.rows || []) as any[]) {
+        const id = `tx_${tx.id || tx.transaction_id}`;
+        if (!seenIds.has(id) && !seenIds.has(tx.id)) {
+          seenIds.add(id);
+          const isCredit = tx.service_type === "CREDIT" || tx.type === "WALLET_FUNDING" || (tx.amount && tx.amount > 0 && String(tx.description || '').toLowerCase().includes('credited'));
+          allSynthesized.push({
+            id,
+            log_id: id,
+            user_id: tx.user_id,
+            admin_uid: null,
+            admin_email: null,
+            admin_role: null,
+            action: isCredit ? "WALLET_CREDIT" : (tx.service_type || "WALLET_DEBIT"),
+            resource_type: tx.service_category || (String(tx.service_name || '').toLowerCase().includes('vtu') ? 'VTU_EXECUTION' : 'WALLET_TRANSACTION'),
+            resource_id: tx.reference || tx.id,
+            ip_address: "127.0.0.1",
+            user_agent: "System",
+            status: tx.status === "SUCCESS" ? "SUCCESS" : (tx.status === "FAILED" ? "FAILURE" : "SUCCESS"),
+            details: tx.description || `${tx.service_name || 'Transaction'}: ₦${Number(tx.amount || 0).toLocaleString()} (Ref: ${tx.reference || tx.id})`,
+            created_at: tx.created_at || new Date().toISOString(),
+          });
+        }
+      }
+
+      // 4. Query verification_records
+      if (idList.length > 0) {
+        const qMarks = idList.map(() => "?").join(",");
+        const vSql = `SELECT * FROM verification_records WHERE user_id IN (${qMarks}) ORDER BY created_at DESC LIMIT 500;`;
+        const vRes = await executeTurso(vSql, idList).catch(() => ({ rows: [] }));
+        for (const v of (vRes.rows || []) as any[]) {
+          const id = `ver_${v.id || v.verification_id}`;
+          if (!seenIds.has(id) && !seenIds.has(v.id)) {
+            seenIds.add(id);
+            allSynthesized.push({
+              id,
+              log_id: id,
+              user_id: v.user_id,
+              admin_uid: null,
+              admin_email: null,
+              admin_role: null,
+              action: `${v.verification_type || 'IDENTITY'}_VERIFICATION`,
+              resource_type: `${v.verification_type || 'IDENTITY'}_VERIFICATION`,
+              resource_id: v.reference || v.id,
+              ip_address: "127.0.0.1",
+              user_agent: "System",
+              status: v.status === "SUCCESS" ? "SUCCESS" : "FAILURE",
+              details: `Verified ${v.verification_type || 'Identity'} record [${v.target_id || ''}] via ${v.provider || 'Portal'}. Ref: ${v.reference || v.id}`,
+              created_at: v.created_at || new Date().toISOString(),
+            });
+          }
+        }
+      }
+
+      // 5. Query cac_applications
+      if (idList.length > 0) {
+        const qMarks = idList.map(() => "?").join(",");
+        const cSql = `SELECT * FROM cac_applications WHERE user_id IN (${qMarks}) ORDER BY created_at DESC LIMIT 500;`;
+        const cRes = await executeTurso(cSql, idList).catch(() => ({ rows: [] }));
+        for (const c of (cRes.rows || []) as any[]) {
+          const id = `cac_${c.id}`;
+          if (!seenIds.has(id) && !seenIds.has(c.id)) {
+            seenIds.add(id);
+            allSynthesized.push({
+              id,
+              log_id: id,
+              user_id: c.user_id,
+              admin_uid: null,
+              admin_email: null,
+              admin_role: null,
+              action: "CAC_REGISTRATION",
+              resource_type: "CAC",
+              resource_id: c.id,
+              ip_address: "127.0.0.1",
+              user_agent: "System",
+              status: "SUCCESS",
+              details: `CAC ${c.type || 'Business'} Application filed. Status: ${c.status || 'PENDING'}`,
+              created_at: c.created_at || new Date().toISOString(),
+            });
+          }
+        }
+      }
+
+      // 6. Merge fallback db.json records
+      try {
+        const db = readDB();
+        const dbLogs = [...(db.auditLogs || []), ...(db.activityLogs || [])];
+        for (const l of dbLogs) {
+          const id = l.id || l.log_id || l.activityId;
+          if (id && !seenIds.has(id)) {
+            const matchesUser = !idList.length || idList.includes(l.userId) || idList.includes(l.user_id) || (primaryEmail && String(l.details || '').toLowerCase().includes(primaryEmail.toLowerCase()));
+            if (matchesUser) {
+              seenIds.add(id);
+              allSynthesized.push({
+                id,
+                log_id: l.log_id || id,
+                user_id: l.user_id || l.userId,
+                admin_uid: l.admin_uid || null,
+                admin_email: l.admin_email || null,
+                admin_role: l.admin_role || null,
+                action: l.action || l.activityType || "ACTIVITY",
+                resource_type: l.resource_type || l.activityType || "SYSTEM",
+                resource_id: l.resource_id || null,
+                ip_address: l.ip_address || l.ipAddress || "127.0.0.1",
+                user_agent: l.user_agent || "System",
+                status: l.status || "SUCCESS",
+                details: l.details || l.description || "",
+                created_at: l.created_at || l.timestamp || l.createdAt || new Date().toISOString(),
+              });
+            }
+          }
+        }
+      } catch {}
+
+      // Filter by status if requested
+      let filtered = allSynthesized;
+      if (options?.status && options.status !== "ALL") {
+        const targetStatus = (options.status === "FAILED" || options.status === "FAILURE") ? "FAILURE" : options.status;
+        filtered = filtered.filter((l) => l.status === targetStatus);
+      }
+
+      // Filter by resourceType if requested
+      if (options?.resourceType && options.resourceType !== "ALL") {
+        filtered = filtered.filter((l) =>
+          l.resource_type?.toLowerCase().includes(options.resourceType!.toLowerCase()) ||
+          l.action?.toLowerCase().includes(options.resourceType!.toLowerCase())
+        );
+      }
+
+      // Filter by search query if requested
+      if (options?.search && options.search.trim()) {
+        const sq = options.search.toLowerCase().trim();
+        filtered = filtered.filter((l) =>
+          (l.action && l.action.toLowerCase().includes(sq)) ||
+          (l.details && l.details.toLowerCase().includes(sq)) ||
+          (l.user_id && l.user_id.toLowerCase().includes(sq)) ||
+          (l.resource_type && l.resource_type.toLowerCase().includes(sq))
+        );
+      }
+
+      // Sort by created_at DESC
+      filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+      const total = filtered.length;
+      const paginatedLogs = filtered.slice(offset, offset + limit);
+
+      return {
+        logs: paginatedLogs,
+        total,
+      };
+    } catch (err: any) {
+      console.warn(`[AuditLogRepository] listLogs error: ${err?.message}`);
+      return { logs: [], total: 0 };
+    }
   }
 
   static async list(limit = 100, offset = 0): Promise<TursoAuditLog[]> {
@@ -707,12 +939,47 @@ export class AuditLogRepository {
       throw new Error("Invalid purge period specified.");
     }
 
-    const res = await executeTurso(sql, []);
+    const res = await executeTurso(sql, []).catch((e) => {
+      console.warn(`[AuditLogRepository] Error executing purge on Turso:`, e);
+      return { rowsAffected: 0 };
+    });
     const count = Number(res.rowsAffected || 0);
+
+    // Simultaneously purge from db.json
+    try {
+      const db = readDB();
+      const nowMs = Date.now();
+      const oneDayMs = 24 * 60 * 60 * 1000;
+
+      const filterArray = (arr: any[]) => {
+        if (!Array.isArray(arr)) return [];
+        if (period === "ALL") return [];
+        if (period === "ALL_FAILED") {
+          return arr.filter((l: any) => l.status !== "FAILURE" && l.status !== "FAILED");
+        }
+        let days = 1;
+        if (period === "7_DAYS") days = 7;
+        if (period === "30_DAYS") days = 30;
+        const cutoff = nowMs - days * oneDayMs;
+        return arr.filter((l: any) => {
+          const d = new Date(l.created_at || l.createdAt || l.timestamp || 0).getTime();
+          return d >= cutoff;
+        });
+      };
+
+      db.auditLogs = filterArray(db.auditLogs);
+      db.activityLogs = filterArray(db.activityLogs);
+      db.adminLogs = filterArray(db.adminLogs);
+      db.admin_activity_logs = filterArray(db.admin_activity_logs);
+      db.admin_user_actions = filterArray(db.admin_user_actions);
+      writeDB(db);
+    } catch (dbErr) {
+      console.warn(`[AuditLogRepository] Error updating db.json on purge:`, dbErr);
+    }
 
     return {
       purgedCount: count,
-      message: `Successfully purged ${count} activity log records from Turso database for period '${period}'.`,
+      message: `Successfully purged activity log records from Turso SQL & db.json for period '${period}'.`,
     };
   }
 
@@ -722,6 +989,41 @@ export class AuditLogRepository {
       console.warn(`[AuditLogRepository] Failed to delete log from Turso: ${err.message}`);
       return { rowsAffected: 0 };
     });
+
+    // Simultaneously delete permanently from db.json
+    try {
+      const db = readDB();
+      let changed = false;
+      const filterItem = (l: any) => l.id !== id && l.log_id !== id && l.logId !== id && l.activityId !== id;
+      if (db.auditLogs && Array.isArray(db.auditLogs)) {
+        const prev = db.auditLogs.length;
+        db.auditLogs = db.auditLogs.filter(filterItem);
+        if (db.auditLogs.length !== prev) changed = true;
+      }
+      if (db.activityLogs && Array.isArray(db.activityLogs)) {
+        const prev = db.activityLogs.length;
+        db.activityLogs = db.activityLogs.filter(filterItem);
+        if (db.activityLogs.length !== prev) changed = true;
+      }
+      if (db.adminLogs && Array.isArray(db.adminLogs)) {
+        db.adminLogs = db.adminLogs.filter((l: any) => l.id !== id && l.log_id !== id);
+        changed = true;
+      }
+      if (db.admin_activity_logs && Array.isArray(db.admin_activity_logs)) {
+        db.admin_activity_logs = db.admin_activity_logs.filter((l: any) => l.id !== id && l.log_id !== id);
+        changed = true;
+      }
+      if (db.admin_user_actions && Array.isArray(db.admin_user_actions)) {
+        db.admin_user_actions = db.admin_user_actions.filter((l: any) => l.id !== id && l.log_id !== id);
+        changed = true;
+      }
+      if (changed) {
+        writeDB(db);
+      }
+    } catch (dbErr) {
+      console.warn(`[AuditLogRepository] Warning deleting from db.json:`, dbErr);
+    }
+
     return Number(res.rowsAffected || 0) > 0;
   }
 }

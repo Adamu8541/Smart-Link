@@ -97,6 +97,7 @@ class AdminLayoutService {
       "/admin/reports": { label: "Financial Settlement Reports", categoryLabel: "Finance & Accounting" },
       "/admin/support": { label: "Customer Support Tickets", categoryLabel: "Operations & Support" },
       "/admin/notifications": { label: "Admin Alerts & Notifications", categoryLabel: "Operations & Support" },
+      "/admin/activity-logs": { label: "Turso Activity and purge", categoryLabel: "Operations & System" },
       "/admin/security": { label: "Audit Logs & Security", categoryLabel: "Operations & Support" },
       "/admin/settings": { label: "System Platform Settings", categoryLabel: "System Admin" },
       "/admin/system": { label: "System Logs & Health", categoryLabel: "System Admin" },

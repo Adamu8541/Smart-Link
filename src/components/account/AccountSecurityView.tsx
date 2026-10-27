@@ -29,6 +29,7 @@ import { SupabaseAuthService } from "../../services/supabaseAuth";
 import { BiometricAuthService, BiometricDevice } from "../../services/biometricAuthService";
 import { soundFx } from "../../utils/audioEffects";
 import { DeveloperApiKeysSection } from "./DeveloperApiKeysSection";
+import { UserActivityHistoryView } from "../history/UserActivityHistoryView";
 
 interface AccountSecurityViewProps {
   currentUser: UserProfile;
@@ -1414,6 +1415,16 @@ export const AccountSecurityView: React.FC<AccountSecurityViewProps>= ({
             />
           )}
         </div>
+
+        {/* USER ACTIVITY HISTORY: OUTSIDE & BELOW DEVELOPER API DOCUMENTATION COMPONENT */}
+        {activeTab === "API_KEYS" && (
+          <div className="mt-6">
+            <UserActivityHistoryView
+              userId={currentUser?.uid || (currentUser as any)?.id || currentUser?.email}
+              isDarkMode={isDarkMode}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

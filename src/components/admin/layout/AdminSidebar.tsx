@@ -98,7 +98,7 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
     title: "OPERATIONS & SYSTEM",
     items: [
       { id: "NAV_LEGAL", label: "Legal & Compliance", path: "/admin/legal", icon: ShieldCheck, requiredPermissions: ["VIEW_DASHBOARD", "MANAGE_SETTINGS"] },
-      { id: "NAV_ACTIVITY_LOGS", label: "Turso Activity & Purge", path: "/admin/activity-logs", icon: Activity, requiredPermissions: ["MANAGE_SECURITY", "VIEW_AUDIT_LOGS", "VIEW_DASHBOARD"], badge: "Turso" },
+      { id: "NAV_ACTIVITY_LOGS", label: "Turso Activity and purge", path: "/admin/activity-logs", icon: Activity, requiredPermissions: ["MANAGE_SECURITY", "VIEW_AUDIT_LOGS", "VIEW_DASHBOARD"], badge: "Turso" },
       { id: "NAV_SECURITY", label: "Security & Audit Logs", path: "/admin/security", icon: Shield, requiredPermissions: ["MANAGE_SECURITY", "VIEW_AUDIT_LOGS"] },
       { id: "NAV_SETTINGS", label: "System Settings", path: "/admin/settings", icon: Settings, requiredPermissions: ["MANAGE_SETTINGS", "VIEW_SETTINGS"] },
       { id: "NAV_SYSTEM", label: "System Health & Logs", path: "/admin/system", icon: Activity, requiredPermissions: ["MANAGE_SYSTEM", "VIEW_AUDIT_LOGS"] },

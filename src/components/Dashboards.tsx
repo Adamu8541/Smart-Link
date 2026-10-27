@@ -82,6 +82,7 @@ import { safeFetchJson } from "../utils/authErrorHandler";
 import { SMART_LINK_SERVICES, ServiceItem } from "../data/servicesData";
 import { UserAnnouncementBanner } from "./notification/UserAnnouncementBanner";
 import { getRealServiceIcon } from "./common/ServiceIcons";
+import { UserActivityHistoryView } from "./history/UserActivityHistoryView";
 import {
   NimcOfficialCardLogo,
   NibssOfficialCardLogo,
@@ -1407,6 +1408,14 @@ export default function Dashboards({
                   <span>API Docs</span>
                 </button>
               </div>
+            </div>
+
+            {/* USER ACTIVITY HISTORY (TURSO LIVE LEDGER): BELOW SERVICES GRID & BELOW DEVELOPER API CARD */}
+            <div className="pt-2">
+              <UserActivityHistoryView
+                userId={currentUser?.uid || (currentUser as any)?.id || currentUser?.email}
+                isDarkMode={isDarkMode}
+              />
             </div>
 
         {/* ======================================================== */}

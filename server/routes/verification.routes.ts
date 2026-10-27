@@ -36,7 +36,7 @@ import * as securityStore from "../../src/services/securityStore";
 import * as notificationsStore from "../../src/services/notificationsStore";
 import { signQRPayload } from "../services/qrSecurity";
 import { generateIdentitySlipPdf, type IdentitySlipData } from "../../identitySlipPdfOverlay";
-import { ServicePriceRepository } from "../turso/repositories";
+import { ServicePriceRepository, AuditLogRepository } from "../turso/repositories";
 
 
 const router = express.Router();
@@ -87,6 +87,18 @@ app.post("/api/cac/apply", async (req, res) => {
 
     if (!db.cacApplications) db.cacApplications = [];
     db.cacApplications.push(newApp);
+
+    // ENFORCED TURSO SQL & db.json SYNC: Record CAC service execution in Turso & db.json
+    AuditLogRepository.recordLog({
+      user_id: effectiveUserId,
+      action: "SERVICE_EXECUTION",
+      resource_type: "CAC_REGISTRATION",
+      resource_id: appId,
+      status: "SUCCESS",
+      details: `CAC ${type} Application filed for '${proposedNames.join(", ")}'. Ref: ${txRef}`,
+      ip_address: (req.headers["x-forwarded-for"] as string) || req.ip || "127.0.0.1",
+      user_agent: (req.headers["user-agent"] as string) || "Browser",
+    }).catch(() => {});
 
     writeDB(db);
     res.json({ success: true, application: newApp, balance: debitRes.wallet.currentBalance });
@@ -933,6 +945,17 @@ app.post("/api/services/nin-verify", async (req, res) => {
   });
 
   if (!portalResult.success) {
+    AuditLogRepository.recordLog({
+      user_id: effectiveUserId,
+      action: "SERVICE_EXECUTION",
+      resource_type: "NIN_VERIFICATION",
+      resource_id: reference,
+      status: "FAILURE",
+      details: `NIN Verification failed for [${cleanNin.substring(0, 3)}****${cleanNin.substring(7)}]: ${portalResult.error || "Provider error"}`,
+      ip_address: (req.headers["x-forwarded-for"] as string) || req.ip || "127.0.0.1",
+      user_agent: (req.headers["user-agent"] as string) || "Browser",
+    }).catch(() => {});
+
     return res.status(422).json({
       error: portalResult.error || "Identity verification provider could not confirm this record.",
       errorCode: "PROVIDER_FAILED",
@@ -1078,6 +1101,18 @@ app.post("/api/services/nin-verify", async (req, res) => {
     timestamp: new Date().toISOString()
   });
 
+  // ENFORCED TURSO SQL & db.json SYNC: Record NIN service execution in Turso & db.json
+  AuditLogRepository.recordLog({
+    user_id: effectiveUserId,
+    action: "SERVICE_EXECUTION",
+    resource_type: "NIN_VERIFICATION",
+    resource_id: reference,
+    status: "SUCCESS",
+    details: `Verified NIN record [${maskedId}] via ${resolvedProviderName}. Ref: ${reference}`,
+    ip_address: (req.headers["x-forwarded-for"] as string) || req.ip || "127.0.0.1",
+    user_agent: (req.headers["user-agent"] as string) || "Browser",
+  }).catch(() => {});
+
   writeDB(db);
 
   return res.json({
@@ -1161,6 +1196,17 @@ app.post("/api/services/bvn-verify", async (req, res) => {
   });
 
   if (!portalResult.success) {
+    AuditLogRepository.recordLog({
+      user_id: effectiveUserId,
+      action: "SERVICE_EXECUTION",
+      resource_type: "BVN_VERIFICATION",
+      resource_id: reference,
+      status: "FAILURE",
+      details: `BVN Verification failed for [${cleanBvn.substring(0, 3)}****${cleanBvn.substring(7)}]: ${portalResult.error || "Provider error"}`,
+      ip_address: (req.headers["x-forwarded-for"] as string) || req.ip || "127.0.0.1",
+      user_agent: (req.headers["user-agent"] as string) || "Browser",
+    }).catch(() => {});
+
     return res.status(422).json({
       error: portalResult.error || "Verification provider could not confirm this record.",
       errorCode: "PROVIDER_FAILED",
@@ -1291,6 +1337,18 @@ app.post("/api/services/bvn-verify", async (req, res) => {
     ipAddress: "127.0.0.1",
     timestamp: new Date().toISOString()
   });
+
+  // ENFORCED TURSO SQL & db.json SYNC: Record BVN service execution in Turso & db.json
+  AuditLogRepository.recordLog({
+    user_id: effectiveUserId,
+    action: "SERVICE_EXECUTION",
+    resource_type: "BVN_VERIFICATION",
+    resource_id: reference,
+    status: "SUCCESS",
+    details: `Verified BVN record [${maskedId}] via ${resolvedProviderName}. Ref: ${reference}`,
+    ip_address: (req.headers["x-forwarded-for"] as string) || req.ip || "127.0.0.1",
+    user_agent: (req.headers["user-agent"] as string) || "Browser",
+  }).catch(() => {});
 
   writeDB(db);
 
