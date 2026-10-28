@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { X, Download, Printer, ShieldCheck, FileText, CheckCircle2, QrCode, CreditCard, Mail, Send, Check } from "lucide-react";
 import { StandardizedVerificationResult } from "../../types/verification";
 import { EmailSlipService } from "../../services/emailSlipService";
+import { sanitizeProviderDisplay, sanitizeReference } from "../../utils/providerSanitizer";
 
 
 interface VerificationReceiptProps {
@@ -71,7 +72,7 @@ export const VerificationReceipt: React.FC<VerificationReceiptProps> = ({
           `Receipt Number: ${result.receiptNumber}\n` +
           `Reference: ${result.reference}\n` +
           `Service: ${result.serviceTitle}\n` +
-          `Provider: ${result.providerName}\n` +
+          `Network: ${sanitizeProviderDisplay(result.providerName, result.serviceTitle)}\n` +
           `Verified Target ID: ${result.maskedId}\n` +
           `Status: ${result.status}\n` +
           `Verification Fee: ₦${(result.fee ?? 0).toLocaleString()}\n` +
@@ -165,9 +166,9 @@ export const VerificationReceipt: React.FC<VerificationReceiptProps> = ({
           </div>
 
           <div className="flex justify-between items-center">
-            <span className="text-[#6B7280] dark:text-[#9CA3AF]">Provider Portal</span>
+            <span className="text-[#6B7280] dark:text-[#9CA3AF]">Verification Network</span>
             <span className="font-medium text-[#111827] dark:text-[#E5E7EB]">
-              {result.providerName}
+              {sanitizeProviderDisplay(result.providerName, result.serviceTitle)}
             </span>
           </div>
 

@@ -3,6 +3,7 @@ import { Search, History, FileText, RefreshCw, CheckCircle2, AlertCircle, Downlo
 import { VerificationHistoryItem, StandardizedVerificationResult } from "../../types/verification";
 import { VerificationEngine } from "../../services/verificationEngine";
 import { VerificationReceipt } from "./VerificationReceipt";
+import { sanitizeProviderDisplay, sanitizeUserDescription, sanitizeReference } from "../../utils/providerSanitizer";
 
 interface VerificationHistoryProps {
   userId: string;
@@ -154,16 +155,16 @@ export const VerificationHistory: React.FC<VerificationHistoryProps> = ({
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-[#111827] dark:text-white">
-                      {item.serviceTitle}
+                      {sanitizeUserDescription(item.serviceTitle)}
                     </span>
                     <span className="font-mono text-[10px] bg-[#E5E7EB] dark:bg-[#111827] px-2 py-0.5 rounded-md font-bold text-[#4B5563] dark:text-[#9CA3AF]">
                       ID: {item.maskedId}
                     </span>
                   </div>
                   <p className="text-[11px] text-[#6B7280] dark:text-[#9CA3AF] flex items-center gap-2 mt-0.5">
-                    <span>{item.providerName}</span>
+                    <span>{sanitizeProviderDisplay(item.providerName, item.serviceTitle)}</span>
                     <span>•</span>
-                    <span className="font-mono">#{item.reference}</span>
+                    <span className="font-mono">#{sanitizeReference(item.reference)}</span>
                   </p>
                 </div>
               </div>

@@ -97,10 +97,12 @@ export const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({
       hashParams = new URLSearchParams(cleanHash);
     }
 
-    // 1. Check for email parameter
+    // 1. Check for email parameter in search, hash, or sessionStorage
+    const storedEmail = typeof sessionStorage !== "undefined" ? (sessionStorage.getItem("smartlink_reset_email") || "") : "";
     const detectedEmail =
       searchParams.get("email") ||
       hashParams.get("email") ||
+      storedEmail ||
       "";
     if (detectedEmail) {
       setEmailInput(detectedEmail.trim());
@@ -181,7 +183,8 @@ export const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({
     setError(null);
 
     const cleanCode = resetCode.trim();
-    if (!cleanCode) {
+    const normalizedCode = cleanCode.replace(/[\s-]+/g, "");
+    if (!normalizedCode) {
       soundFx.playErrorSound();
       setError("Please enter the 6-digit verification code or token from your email.");
       return;
@@ -203,11 +206,11 @@ export const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({
 
     try {
       // 1. If code is 6 digits and email is present, attempt Supabase OTP verification
-      if (/^\d{6}$/.test(cleanCode) && emailInput.trim() && isSupabaseConfigured) {
+      if (/^\d{6}$/.test(normalizedCode) && emailInput.trim() && isSupabaseConfigured) {
         try {
           const otpRes = await SupabaseAuthService.verifyEmailOtpForAction(
             emailInput.trim().toLowerCase(),
-            cleanCode,
+            normalizedCode,
             "recovery"
           );
           if (!otpRes.error && otpRes.data?.session) {
@@ -219,7 +222,7 @@ export const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({
       }
 
       // 2. If active Supabase recovery session exists, update password in Supabase
-      if (isSupabaseRecovery || cleanCode === "supabase_session") {
+      if (isSupabaseRecovery || normalizedCode === "supabase_session" || cleanCode === "supabase_session") {
         try {
           await SupabaseAuthService.updatePassword(newPassword);
         } catch (supaErr) {
@@ -232,8 +235,9 @@ export const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          token: cleanCode,
-          code: cleanCode,
+          token: normalizedCode,
+          code: normalizedCode,
+          rawCode: cleanCode,
           password: newPassword,
           newPassword: newPassword,
           email: emailInput.trim().toLowerCase(),

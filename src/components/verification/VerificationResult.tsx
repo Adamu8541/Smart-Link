@@ -81,7 +81,7 @@ export const VerificationResult: React.FC<VerificationResultProps> = ({
               </span>
             </div>
             <p className="text-[11px] text-[#4B5563] dark:text-[#9CA3AF]">
-              Query matched against federal records at {providerName}
+              Query successfully matched against official registry database
             </p>
           </div>
         </div>

@@ -82,6 +82,9 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps>= ({
       }
 
       soundFx.playSuccessSound();
+      try {
+        sessionStorage.setItem("smartlink_reset_email", cleanEmail);
+      } catch {}
       setEmailSent(true);
       setSuccessMessage(
         `We've sent password reset instructions and your 6-digit verification code to ${cleanEmail}. Please check your inbox and spam folder.`

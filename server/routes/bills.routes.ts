@@ -32,6 +32,7 @@ import * as walletsStore from "../../src/services/walletsStore";
 import * as securityStore from "../../src/services/securityStore";
 import * as notificationsStore from "../../src/services/notificationsStore";
 import { ServicePriceRepository, AuditLogRepository } from "../turso/repositories";
+import { sanitizeErrorMessage, sanitizeUserDescription } from "../../src/utils/providerSanitizer";
 
 
 const router = express.Router();
@@ -107,9 +108,8 @@ app.post("/api/services/vtu", async (req, res) => {
       }).catch(() => {});
 
       return res.status(422).json({
-        error: providerResult.error || `${provider} did not confirm this ${type === "AIRTIME" ? "airtime" : "data"} purchase.`,
-        errorCode: "PROVIDER_FAILED",
-        rawResponse: providerResult.rawResponse,
+        error: sanitizeErrorMessage(providerResult.error) || `The network could not complete this ${type === "AIRTIME" ? "airtime" : "data"} purchase at this time. Please try again shortly.`,
+        errorCode: "NETWORK_FAILED",
       });
     }
 
@@ -277,9 +277,9 @@ app.post("/api/services/vtu", async (req, res) => {
       await ServerWalletEngine.creditWallet(db, {
         userId,
         amount: finalCustomerPrice,
-        serviceName: `${secondaryProvider} VTU Refund`,
-        provider: secondaryProvider,
-        description: `Automatic refund for failed ${type} purchase to ${phoneNumber} (${providerResult.error || "Provider unreachable"})`,
+        serviceName: `${type === "AIRTIME" ? "Airtime" : "Data"} Refund`,
+        provider: "SmartLink Telecom Network",
+        description: `Automatic refund for failed ${type} purchase to ${phoneNumber}`,
         reference: `REF-${reference}`,
         type: "WALLET_REFUND",
       });
@@ -289,10 +289,9 @@ app.post("/api/services/vtu", async (req, res) => {
     }
 
     return res.status(422).json({
-      error: providerResult.error || `${secondaryProvider} did not confirm this purchase. Your wallet has been refunded.`,
-      errorCode: "PROVIDER_FAILED",
+      error: sanitizeErrorMessage(providerResult.error) || `The network could not complete this purchase. Your wallet has been refunded.`,
+      errorCode: "NETWORK_FAILED",
       refunded: true,
-      rawResponse: providerResult.rawResponse,
     });
   }
 
@@ -1062,7 +1061,7 @@ app.post("/api/bills/pay", async (req, res) => {
         amount: totalDeduction,
         serviceName: `Bill Payment Refund - ${category}`,
         provider: userFacingProviderName,
-        description: `Refund for failed ${category} payment: ${execRes.error || execRes.message || "Provider call failed"}`,
+        description: `Refund for unconfirmed ${category} payment to ${customerId || phoneNumber}`,
         reference: `REFUND-${smartlinkReference}`,
         type: "REFUND",
       });
@@ -1089,7 +1088,7 @@ app.post("/api/bills/pay", async (req, res) => {
       portal: userFacingProviderName,
       customerId: customerId || phoneNumber,
       customerName: customerName || "Customer",
-      errorReason: execRes.error || execRes.message || "Provider execution failed",
+      errorReason: sanitizeErrorMessage(execRes.error || execRes.message),
       timestamp: new Date().toISOString(),
       createdAt: new Date().toISOString(),
     };
@@ -1101,8 +1100,8 @@ app.post("/api/bills/pay", async (req, res) => {
       id: "NOTIF_" + Date.now(),
       notificationId: "NOTIF_" + Date.now(),
       userId,
-      title: `${category} Bill Payment Failed`,
-      body: `Your payment of ₦${totalDeduction.toLocaleString("en-NG", { minimumFractionDigits: 2 })} for ${userFacingProviderName} failed (${execRes.error || execRes.message || "Provider error"}). Your wallet was refunded.`,
+      title: `${category} Bill Payment Unsuccessful`,
+      body: `Your payment of ₦${totalDeduction.toLocaleString("en-NG", { minimumFractionDigits: 2 })} for ${category} could not be completed at this time. Your wallet balance has been refunded.`,
       reference: smartlinkReference,
       read: false,
       type: "BILL_PAYMENT",
@@ -1118,7 +1117,7 @@ app.post("/api/bills/pay", async (req, res) => {
       userEmail: debitRes.wallet?.userEmail || "",
       activityType: "BILL_PAYMENT",
       action: "BILL_PAYMENT_FAILED",
-      description: `Failed payment of ₦${totalDeduction.toLocaleString()} for ${category}. Reason: ${execRes.error || execRes.message}. Refunded to wallet.`,
+      description: `Unsuccessful payment of ₦${totalDeduction.toLocaleString()} for ${category}. Refunded to wallet.`,
       status: "FAILED",
       ipAddress: "127.0.0.1",
       timestamp: new Date().toISOString(),
@@ -1128,7 +1127,7 @@ app.post("/api/bills/pay", async (req, res) => {
 
     return res.status(400).json({
       success: false,
-      error: execRes.error || execRes.message || "Payment execution failed on provider network. Wallet refunded.",
+      error: sanitizeErrorMessage(execRes.error || execRes.message),
       refundStatus: "REFUNDED",
       smartlinkReference,
     });

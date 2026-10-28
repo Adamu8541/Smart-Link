@@ -472,7 +472,7 @@ export const SMART_LINK_SERVICES: ServiceItem[] = [
     id: "vtu_cable",
     name: "Cable TV Subscription",
     category: "VTU",
-    description: "Instant decoder renewal and bouquet activation for GOtv, DStv, StarTimes, and Showmax via Bigisub wholesale gateway.",
+    description: "Instant decoder renewal and bouquet activation for GOtv, DStv, StarTimes, and Showmax with instant automated activation.",
     priceLabel: "Select package",
     actionLabel: "Renew Cable Subscription",
     fields: [

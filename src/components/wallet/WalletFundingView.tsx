@@ -40,6 +40,7 @@ import { SmartLinkLogoMark } from "../ui/SmartLinkLogoMark";
 import { ProviderService, ActiveProviderConfig, getAuthHeaders } from "../../services/providerService";
 import { PaymentTermsConsentNotice } from "../legal/PaymentTermsConsentNotice";
 import { legalConsentService } from "../../services/legalConsentService";
+import { sanitizePaymentMethod, sanitizeReference } from "../../utils/providerSanitizer";
 
 export interface VirtualAccountDetails {
   provider: string;
@@ -151,7 +152,7 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
           return;
         }
       }
-      
+
       // Fallback to profile
       const profileRes = await fetch(`/api/auth/profile?uid=${encodeURIComponent(uid)}`, { headers });
       const profileType = profileRes.headers.get("content-type") || "";
@@ -497,16 +498,16 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
   const downloadReceiptPDF = async (receipt: any) => {
     const { jsPDF } = await import("jspdf");
     const doc = new jsPDF();
-    
+
     // Brand header
     doc.setFillColor(27, 100, 242);
     doc.rect(0, 0, 210, 30, "F");
-    
+
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(20);
     doc.setFont("helvetica", "bold");
     doc.text("SMART LINK COMPUTER BUSINESS", 15, 18);
-    
+
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
     doc.text("Official Financial Payment Voucher & Wallet Receipt", 15, 25);
@@ -538,8 +539,8 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
     doc.text("Payment Metrics:", 110, 75);
     doc.setFont("helvetica", "normal");
     doc.text(`Amount Funded: NGN ${(receipt.amount || 0).toLocaleString("en-NG", { minimumFractionDigits: 2 })}`, 110, 82);
-    doc.text(`Portal / Provider: ${receipt.portal || receipt.provider || "SmartLink Portal"}`, 110, 88);
-    doc.text(`SmartLink Ref: ${receipt.smartlinkReference || receipt.reference || "N/A"}`, 110, 94);
+    doc.text(`Payment Channel: ${sanitizePaymentMethod(receipt.portal || receipt.provider || "Direct Bank Transfer")}`, 110, 88);
+    doc.text(`SmartLink Ref: ${sanitizeReference(receipt.smartlinkReference || receipt.reference || "N/A")}`, 110, 94);
     doc.text(`Status: ${receipt.status || "SUCCESSFUL"}`, 110, 100);
 
     doc.setFont("helvetica", "bold");
@@ -572,7 +573,7 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
       {/* Top Banner & Wallet Balance */}
       <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-[#0F2D5C] p-3.5 sm:p-6 text-white shadow-xl border border-[#0F2D5C]">
         <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white/5 blur-3xl pointer-events-none" />
-        
+
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-6 relative z-10">
           <div className="space-y-1 sm:space-y-2">
             <div className="flex items-center gap-1.5 sm:gap-2">
@@ -1142,7 +1143,7 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
                       })}
                     </td>
                     <td className="py-3.5 px-4 font-bold text-[#111827] dark:text-white">
-                      {item.portal || item.provider || "SmartLink Portal"}
+                      {sanitizePaymentMethod(item.portal || item.provider || "Direct Bank Transfer")}
                     </td>
                     <td className="py-3.5 px-4 font-mono text-[#6B7280] dark:text-[#9CA3AF]">
                       {item.smartlinkReference || item.reference || "N/A"}
@@ -1296,8 +1297,8 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
                   <span className="font-bold text-[#111827] dark:text-white">{currentUser.fullName}</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-[#E5E7EB]/60 dark:border-[#4B5563]">
-                  <span className="text-[#6B7280]">Payment Portal</span>
-                  <span className="font-bold text-[#111827] dark:text-white">{selectedReceipt.portal || selectedReceipt.provider || "SmartLink Portal"}</span>
+                  <span className="text-[#6B7280]">Payment Channel</span>
+                  <span className="font-bold text-[#111827] dark:text-white">{sanitizePaymentMethod(selectedReceipt.portal || selectedReceipt.provider || "Dedicated Virtual Account")}</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-[#E5E7EB]/60 dark:border-[#4B5563]">
                   <span className="text-[#6B7280]">Date &amp; Time</span>

@@ -19,6 +19,7 @@ import { TransactionDocument, TransactionStatusType, ReceiptDocument } from "../
 import { TransactionEngine, TransactionFilterParams } from "../../services/transactionEngine";
 import { formatNaira, formatSafeDate } from "../../utils/formatUtils";
 import { TransactionReceiptModal } from "../receipt/TransactionReceiptModal";
+import { sanitizeUserDescription, sanitizeServiceLabel, sanitizeReference } from "../../utils/providerSanitizer";
 
 interface TransactionHistoryViewProps {
   userId?: string;
@@ -67,7 +68,7 @@ export const TransactionHistoryView: React.FC<TransactionHistoryViewProps> = ({
     };
 
     const res = await TransactionEngine.getHistory(filter);
-    
+
     // Client-side provider filtering if set
     let filteredList = res.transactions;
     if (providerFilter && providerFilter !== "ALL") {
@@ -202,9 +203,9 @@ export const TransactionHistoryView: React.FC<TransactionHistoryViewProps> = ({
               }}
               className="w-full px-3 py-2 bg-[#F5F7FA]  border border-[#E5E7EB]  rounded-xl text-xs text-[#111827]  focus:outline-none focus:ring-2 focus:ring-[#0F2D5C]"
             >
-              <option value="ALL">All Providers</option>
-              <option value="PORTAL">Payment Portal</option>
-              <option value="DYNAMIC">Dynamic Bank</option>
+              <option value="ALL">All Channels</option>
+              <option value="PORTAL">Direct Bank</option>
+              <option value="DYNAMIC">Dynamic Bank Account</option>
             </select>
           </div>
 
@@ -303,17 +304,17 @@ export const TransactionHistoryView: React.FC<TransactionHistoryViewProps> = ({
                           </div>
                           <div>
                             <div className="font-semibold text-[#111827] ">
-                              {txn.service}
+                              {sanitizeServiceLabel(txn.service)}
                             </div>
                             <div className="text-[11px] text-[#9CA3AF]">
-                              {txn.description}
+                              {sanitizeUserDescription(txn.description)}
                             </div>
                           </div>
                         </div>
                       </td>
 
                       <td className="py-3.5 px-4 font-mono text-[11px] text-[#4B5563] ">
-                        {txn.smartlinkReference}
+                        {sanitizeReference(txn.smartlinkReference)}
                       </td>
 
                       <td className="py-3.5 px-4 text-[#4B5563] ">

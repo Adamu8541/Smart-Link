@@ -278,7 +278,7 @@ export const VerificationEngine: React.FC<VerificationEngineProps> = ({
                   {selectedService.category} PORTAL
                 </span>
                 <p className="text-xs font-semibold text-[#4B5563] dark:text-[#E5E7EB]">
-                  {selectedService.providerName}
+                  Official Identity Registry
                 </p>
               </div>
 

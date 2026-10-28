@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { ReceiptDocument, TransactionDocument } from "../../types/database";
 import { formatNaira, formatNumber, formatSafeDateTime } from "../../utils/formatUtils";
+import { sanitizeUserDescription, sanitizeReference, sanitizePaymentMethod } from "../../utils/providerSanitizer";
 
 interface TransactionReceiptModalProps {
   receipt?: ReceiptDocument | null;
@@ -37,9 +38,11 @@ export const TransactionReceiptModal: React.FC<TransactionReceiptModalProps> = (
   if (!isOpen) return null;
 
   // Normalize data between receipt & transaction
-  const ref = receipt?.smartlinkRef || (receipt as any)?.smartlinkReference || transaction?.smartlinkReference || "SL-RECEIPT-00000";
-  const providerRef = receipt?.providerRef || (receipt as any)?.providerReference || transaction?.providerReference || "PROV-PENDING";
-  const title = receipt?.title || transaction?.service || "SmartLink Wallet Funding";
+  const rawRef = receipt?.smartlinkRef || (receipt as any)?.smartlinkReference || transaction?.smartlinkReference || "SL-RECEIPT-00000";
+  const ref = sanitizeReference(rawRef);
+  const rawProviderRef = receipt?.providerRef || (receipt as any)?.providerReference || transaction?.providerReference;
+  const networkRef = sanitizeReference(rawProviderRef || rawRef);
+  const title = sanitizeUserDescription(receipt?.title || transaction?.service || "SmartLink Wallet Funding");
   const amount = receipt?.amount ?? transaction?.amount ?? 0;
   const charge = receipt?.charge ?? transaction?.charge ?? 0;
   const totalAmount = amount + charge;
@@ -47,7 +50,7 @@ export const TransactionReceiptModal: React.FC<TransactionReceiptModalProps> = (
   const dateStr = receipt?.issueTimestamp || (receipt as any)?.createdAt || transaction?.createdAt || new Date().toISOString();
   const formattedDate = formatSafeDateTime(dateStr, "Recently");
   const recipient = receipt?.recipient || transaction?.recipient || "Self";
-  const paymentMethod = receipt?.paymentMethod || transaction?.paymentMethod || "Virtual Bank Account";
+  const paymentMethod = sanitizePaymentMethod(receipt?.paymentMethod || transaction?.paymentMethod || "Virtual Bank Account");
   const userName = receipt?.userName || (receipt as any)?.userEmail || "Verified User";
   const userEmail = receipt?.userEmail || "user@smartlink.com";
   const balanceBefore = receipt?.balanceBefore ?? (receipt as any)?.previousBalance ?? transaction?.balanceBefore;
@@ -191,8 +194,8 @@ export const TransactionReceiptModal: React.FC<TransactionReceiptModalProps> = (
             </div>
 
             <div className="flex justify-between py-1.5 border-b border-[#E5E7EB] dark:border-[#111827]">
-              <span className="text-[#6B7280] dark:text-[#9CA3AF]">Provider Ref:</span>
-              <span className="font-mono text-[#4B5563] dark:text-[#E5E7EB]">{providerRef}</span>
+              <span className="text-[#6B7280] dark:text-[#9CA3AF]">Network Reference:</span>
+              <span className="font-mono text-[#4B5563] dark:text-[#E5E7EB]">{networkRef}</span>
             </div>
 
             <div className="flex justify-between py-1.5 border-b border-[#E5E7EB] dark:border-[#111827]">

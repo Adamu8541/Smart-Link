@@ -1,9 +1,9 @@
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
- * 
+ *
  * SmartLink NG Developer Hub - Complete API Documentation Portal
- * Follows LumiID & Identro Provider Standards with SmartLink NG Navy & Royal Theme
+ * Enterprise Developer API Standards with SmartLink NG Navy & Royal Theme
  * API Keys Generation strictly gated to User Dashboard per security & KYC compliance guidelines
  */
 
@@ -179,7 +179,7 @@ export const ApiDocsPublicView: React.FC<ApiDocsPublicViewProps> = ({
   // =========================================================================
   const endpoints: EndpointDefinition[] = [
     // -----------------------------------------------------------------------
-    // 1. IDENTITY & KYC VERIFICATION (LumiID / Identro Standard)
+    // 1. IDENTITY & KYC VERIFICATION (National Identity Clearinghouse Standard)
     // -----------------------------------------------------------------------
     {
       id: "nin_verify",
@@ -681,7 +681,7 @@ export const ApiDocsPublicView: React.FC<ApiDocsPublicViewProps> = ({
       path: "/api/v1/vtu/data",
       title: "Purchase Mobile SME & Direct Data",
       shortDesc: "Instant SME, corporate gifting, and direct mobile data provisioning",
-      description: "Delivers SME, Corporate, or Direct mobile data bundles with real-time telco delivery validation and automatic retry logic across Bigisub and telecom provider rails.",
+      description: "Delivers SME, Corporate, or Direct mobile data bundles with real-time telco delivery validation and automatic retry logic across high-availability telecom carrier network rails.",
       parameters: [
         { name: "network", type: "string", required: true, description: "Network identifier: 'MTN', 'AIRTEL', 'GLO', '9MOBILE'", example: "MTN" },
         { name: "phone", type: "string", required: true, description: "11-digit recipient phone number", example: "08085490982" },
@@ -1186,12 +1186,12 @@ export const ApiDocsPublicView: React.FC<ApiDocsPublicViewProps> = ({
         uptimePercentage: 99.98,
         providersCount: 7,
         providers: [
-          { id: "prov_aspfiy", name: "Aspfiy Payment & Virtual Accounts", status: "OPERATIONAL", latencyMs: 142, uptime: "99.99%" },
-          { id: "prov_bigisub", name: "Bigisub Wholesale VTU & Utilities", status: "OPERATIONAL", latencyMs: 240, uptime: "99.97%" },
-          { id: "prov_vtpass", name: "VTpass Power Discos & Cable TV", status: "OPERATIONAL", latencyMs: 285, uptime: "99.96%" },
-          { id: "prov_lumiid", name: "LumiID NIMC Identity Gateway", status: "OPERATIONAL", latencyMs: 380, uptime: "99.92%" },
-          { id: "prov_identro", name: "Identro NIBSS BVN Portal", status: "OPERATIONAL", latencyMs: 340, uptime: "99.94%" },
-          { id: "prov_prembley", name: "Prembley Multi-KYC & CAC", status: "OPERATIONAL", latencyMs: 295, uptime: "99.97%" },
+          { id: "rail_banking", name: "Direct Bank & Virtual Accounts Rail", status: "OPERATIONAL", latencyMs: 142, uptime: "99.99%" },
+          { id: "rail_vtu", name: "National Telecom & Data Network Rail", status: "OPERATIONAL", latencyMs: 240, uptime: "99.97%" },
+          { id: "rail_utilities", name: "National Power Discos & Cable TV Rail", status: "OPERATIONAL", latencyMs: 285, uptime: "99.96%" },
+          { id: "rail_nin", name: "National Identity (NIMC / NIN) Clearing Rail", status: "OPERATIONAL", latencyMs: 380, uptime: "99.92%" },
+          { id: "rail_bvn", name: "Banking & BVN Identity Clearing Rail", status: "OPERATIONAL", latencyMs: 340, uptime: "99.94%" },
+          { id: "rail_cac", name: "Corporate Affairs & Business Registry Rail", status: "OPERATIONAL", latencyMs: 295, uptime: "99.97%" },
         ],
       },
     },
@@ -1486,7 +1486,7 @@ echo $response;`;
                 </span>
               </div>
               <p className="text-[10.5px] text-[#475569] font-medium">
-                LumiID &amp; Identro Rails Standard
+                Enterprise Identity &amp; Financial Rails
               </p>
             </div>
           </button>
@@ -1588,7 +1588,7 @@ echo $response;`;
           BODY 3-COLUMN WORKSPACE: LEFT NAV | CENTER DOCS | RIGHT CONSOLE
       ========================================================================= */}
       <div className="flex-1 flex max-w-[1920px] w-full mx-auto relative overflow-hidden">
-        
+
         {/* ========================================================
             COLUMN 1: LEFT SIDEBAR NAVIGATION
         ======================================================== */}
@@ -1717,13 +1717,13 @@ echo $response;`;
             COLUMN 2 & 3: MAIN DOCUMENTATION CANVAS & CONSOLE
         ======================================================== */}
         <main className="flex-1 overflow-y-auto flex flex-col xl:flex-row bg-[#F8FAFC]">
-          
+
           {/* ========================================================
               IF GUIDE SELECTED: RENDER SPECIFIC ARCHITECTURE GUIDE
           ======================================================== */}
           {isGuideActive ? (
             <div className="flex-1 p-5 sm:p-8 max-w-5xl mx-auto space-y-8 animate-in fade-in duration-150">
-              
+
               {/* Guide 1: Overview */}
               {selectedItem === "guide_overview" && (
                 <div className="space-y-6">
@@ -1736,7 +1736,7 @@ echo $response;`;
                       Digital Identity, KYC &amp; Fintech Automation Rails
                     </h1>
                     <p className="text-xs sm:text-sm text-slate-100 max-w-2xl leading-relaxed">
-                      Official REST JSON endpoints for instant Nigerian NIN/vNIN identity verification, BVN biometric lookup, corporate CAC entity search, automated VTU airtime &amp; SME data bundles, and electricity STS tokens modeled on LumiID and Identro provider standards.
+                      Official REST JSON endpoints for instant Nigerian NIN/vNIN identity verification, BVN biometric lookup, corporate CAC entity search, automated VTU airtime &amp; SME data bundles, and electricity STS tokens with high-availability enterprise redundancy.
                     </p>
                   </div>
 
@@ -2252,7 +2252,7 @@ export class SmartLinkClient {
 
               {/* RIGHT COLUMN: SMARTLINK NAVY TERMINAL & LIVE TESTBED CONSOLE */}
               <div className="w-full xl:w-[480px] 2xl:w-[540px] bg-[#07152B] border-t xl:border-t-0 xl:border-l border-[#17407E] p-4 sm:p-6 flex flex-col space-y-6 text-slate-100 shadow-xl">
-                
+
                 {/* 1. Code Snippets Window */}
                 <div className="rounded-2xl border border-[#17407E] bg-[#030B17] overflow-hidden shadow-inner">
                   {/* Language Switcher */}

@@ -311,8 +311,12 @@ export async function updateUser(uid: string, updates: Partial<UserDoc>): Promis
     ? (updates.pinRequiredForTransactions ? 1 : 0)
     : null;
 
-  const pwdHash = updates.passwordHash || updates.password_hash || null;
-  const saltVal = updates.salt || null;
+  const hasPwdHash = updates.passwordHash !== undefined || updates.password_hash !== undefined;
+  const pwdHash = updates.passwordHash !== undefined ? updates.passwordHash : (updates.password_hash !== undefined ? updates.password_hash : null);
+
+  const hasSalt = updates.salt !== undefined;
+  const saltVal = updates.salt !== undefined ? updates.salt : null;
+
   const hasResetToken = updates.resetToken !== undefined || updates.reset_token !== undefined;
   const resetTokenVal = updates.resetToken !== undefined ? updates.resetToken : (updates.reset_token !== undefined ? updates.reset_token : null);
 
@@ -333,8 +337,8 @@ export async function updateUser(uid: string, updates: Partial<UserDoc>): Promis
        has_transaction_pin = COALESCE(?, has_transaction_pin),
        transaction_pin_hash = COALESCE(?, transaction_pin_hash),
        pin_required_for_transactions = COALESCE(?, pin_required_for_transactions),
-       password_hash = CASE WHEN ? IS NOT NULL THEN ? ELSE password_hash END,
-       salt = CASE WHEN ? IS NOT NULL THEN ? ELSE salt END,
+       password_hash = CASE WHEN ? = 1 THEN ? ELSE password_hash END,
+       salt = CASE WHEN ? = 1 THEN ? ELSE salt END,
        reset_token = CASE WHEN ? = 1 THEN ? ELSE reset_token END,
        reset_token_expires = CASE WHEN ? = 1 THEN ? ELSE reset_token_expires END,
        reset_otp = CASE WHEN ? = 1 THEN ? ELSE reset_otp END,
@@ -350,9 +354,9 @@ export async function updateUser(uid: string, updates: Partial<UserDoc>): Promis
       hasPinVal,
       pinHashVal,
       pinReqVal,
+      hasPwdHash ? 1 : 0,
       pwdHash,
-      pwdHash,
-      saltVal,
+      hasSalt ? 1 : 0,
       saltVal,
       hasResetToken ? 1 : 0,
       resetTokenVal,

@@ -57,6 +57,7 @@ import {
 } from "../../types/bills";
 import { BillPaymentEngine } from "../../services/billPaymentEngine";
 import { formatNaira, formatNumber, formatSafeDate, formatSafeDateTime } from "../../utils/formatUtils";
+import { sanitizeUserDescription, sanitizeProviderDisplay, sanitizeReference, sanitizeErrorMessage } from "../../utils/providerSanitizer";
 
 export interface BillPaymentViewProps {
   currentUser: UserProfile;
@@ -194,7 +195,7 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCategory, setFilterCategory] = useState<string>("ALL");
-  const [viewMode, setViewMode] = useState<"CATALOG" | "FORM" | "RESULT" | "HISTORY" | "ADMIN_STATS">("CATALOG");
+  const [viewMode, setViewMode] = useState<"FORM" | "RESULT" | "HISTORY" | "ADMIN_STATS">("FORM");
 
   // Admin stats
   const [adminStats, setAdminStats] = useState<any | null>(null);
@@ -225,9 +226,10 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
     setCategories(catList);
     setLoadingCategories(false);
 
-    if (initialCategory) {
-      const match = catList.find((c) => c.id === initialCategory);
-      if (match) selectCategory(match, initialProviderCode);
+    const targetCatId = initialCategory || "AIRTIME";
+    const match = catList.find((c) => c.id === targetCatId) || catList[0];
+    if (match) {
+      selectCategory(match, initialProviderCode);
     }
   };
 
@@ -556,7 +558,7 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
     doc.text(`Status: ${resObj.status}`, 22, yPos + 34);
 
     doc.text(`SmartLink Ref: ${resObj.smartlinkReference}`, 110, yPos + 16);
-    doc.text(`Provider Ref: ${resObj.providerReference || "PROV-ACK"}`, 110, yPos + 22);
+    doc.text(`Network Ref: ${sanitizeReference(resObj.providerReference || resObj.smartlinkReference)}`, 110, yPos + 22);
     doc.text(`Wallet Balance After: NGN ${formatNumber(resObj.balanceAfter, { minimumFractionDigits: 2 })}`, 110, yPos + 28);
 
     // Footer
@@ -647,17 +649,6 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
         <div className="flex items-center gap-1.5 sm:gap-2 mt-3 sm:mt-5 pt-3 sm:pt-4 border-t border-white/10 text-xs font-semibold overflow-x-auto scrollbar-none">
           <button
             onClick={() => {
-              setViewMode("CATALOG");
-              setSelectedCategory(null);
-            }}
-            className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
-              viewMode === "CATALOG" ? "bg-white text-[#111827] font-bold" : "text-[#E5E7EB] hover:text-white hover:bg-white/10"
-            }`}
-          >
-            <Sparkles className="h-3.5 w-3.5" /> Service Catalog
-          </button>
-          <button
-            onClick={() => {
               setViewMode("HISTORY");
               loadHistory();
             }}
@@ -682,91 +673,6 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
           )}
         </div>
       </div>
-
-      {/* VIEW 1: CATEGORY CATALOG DASHBOARD */}
-      {viewMode === "CATALOG" && (
-        <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              {onBackToDashboard && (
-                <button
-                  type="button"
-                  onClick={onBackToDashboard}
-                  className="p-2.5 rounded-xl bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#4B5563] text-[#4B5563] dark:text-[#E5E7EB] hover:bg-[#F5F7FA] transition-colors cursor-pointer"
-                  title="Back to Services"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                </button>
-              )}
-              <div>
-                <h2 className="text-lg font-bold text-[#111827] dark:text-white">Supported Payment Categories</h2>
-                <p className="text-xs text-[#6B7280]">Select a service category to initiate instant bill settlement.</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 text-xs font-medium text-[#6B7280]">
-                <span className="h-2 w-2 rounded-full bg-[#0F2D5C]"></span> 100% Provider API Portal Online
-              </div>
-              {onBackToDashboard && (
-                <button
-                  type="button"
-                  onClick={onBackToDashboard}
-                  className="p-2 rounded-xl text-[#9CA3AF] hover:text-[#4B5563] dark:hover:text-white hover:bg-[#E5E7EB] dark:hover:bg-[#111827] transition-colors cursor-pointer"
-                  title="Close"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              )}
-            </div>
-          </div>
-
-          {loadingCategories ? (
-            <div className="py-16 text-center space-y-3 flex flex-col items-center">
-              <SmartLinkLogoMark size="lg" animating={true} />
-              <p className="text-xs text-[#6B7280] font-medium">Loading Bill Payment categories catalog...</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {categories.map((cat) => (
-                <div
-                  key={cat.id}
-                  onClick={() => selectCategory(cat)}
-                  className="group bg-white dark:bg-[#111827] border border-[#E5E7EB] dark:border-[#111827] rounded-2xl p-5 hover:border-[#0F2D5C] dark:hover:border-[#0F2D5C] hover:shadow-xl hover:shadow-indigo-500/5 transition-all cursor-pointer space-y-4 relative overflow-hidden flex flex-col justify-between"
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="h-12 w-12 rounded-xl bg-[#F5F7FA] dark:bg-[#0F2D5C]/50 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-[#0F2D5C] dark:text-[#9CA3AF] group-hover:scale-110 transition-transform">
-                        {renderCategoryIcon(cat.icon)}
-                      </div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/50 text-[#0F2D5C] dark:text-blue-300 border border-slate-200 dark:border-slate-700">
-                        {cat.providerStatus}
-                      </span>
-                    </div>
-
-                    <div>
-                      <h3 className="font-bold text-[#111827] dark:text-white text-base group-hover:text-[#0F2D5C] dark:group-hover:text-[#9CA3AF] transition-colors">
-                        {cat.name}
-                      </h3>
-                      <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-1 line-clamp-2 leading-relaxed">
-                        {cat.description}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="pt-3 border-t border-[#E5E7EB] dark:border-[#111827] flex items-center justify-between text-[11px] text-[#6B7280] dark:text-[#9CA3AF] font-medium">
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3.5 w-3.5 text-[#0F2D5C]" /> {cat.estimatedProcessingTime}
-                    </span>
-                    <span className="text-[#0F2D5C] dark:text-[#9CA3AF] font-bold flex items-center gap-0.5 group-hover:translate-x-1 transition-transform">
-                      Pay <ChevronRight className="h-3.5 w-3.5" />
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
 
       {/* VIEW 2: BILL PAYMENT FORM */}
       {viewMode === "FORM" && selectedCategory && (
@@ -994,7 +900,7 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
                     if (selectedCategory.id !== "DATA") return true;
                     // Filter by plan type
                     const matchesType = selectedDataType === "ALL" || p.dataType === selectedDataType;
-                    
+
                     // Filter by validity duration
                     let matchesDuration = true;
                     if (selectedDurationFilter !== "ALL") {
@@ -1485,21 +1391,12 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs bg-[#F5F7FA] dark:bg-[#111827]/40 p-5 rounded-2xl border border-[#E5E7EB] dark:border-[#4B5563]">
                 <div>
                   <span className="text-[10px] text-[#9CA3AF] uppercase">Service</span>
-                  <p className="font-bold text-[#111827] dark:text-white mt-0.5">{paymentResult.serviceName}</p>
+                  <p className="font-bold text-[#111827] dark:text-white mt-0.5">{sanitizeUserDescription(paymentResult.serviceName)}</p>
                 </div>
                 <div>
-                  <span className="text-[10px] text-[#9CA3AF] uppercase">Provider / Network</span>
+                  <span className="text-[10px] text-[#9CA3AF] uppercase">Service Network</span>
                   <p className="font-bold text-[#111827] dark:text-white mt-0.5">
-                    {(() => {
-                      const pName = paymentResult.providerName || "";
-                      const lower = pName.toLowerCase();
-                      if (lower.includes("bigisub") || lower.includes("prov_") || lower.includes("vtpass") || lower.includes("clubkonnect")) {
-                        return selectedProvider?.name && !selectedProvider.name.toLowerCase().includes("bigisub")
-                          ? selectedProvider.name
-                          : "SmartLink Telecom Network";
-                      }
-                      return pName || "SmartLink Telecom Network";
-                    })()}
+                    {sanitizeProviderDisplay(paymentResult.providerName, paymentResult.serviceName)}
                   </p>
                 </div>
                 <div>
@@ -1515,13 +1412,13 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
                 <div>
                   <span className="text-[10px] text-[#9CA3AF] uppercase">SmartLink Ref</span>
                   <p className="font-bold text-[#111827] dark:text-white mt-0.5 font-mono text-[11px] truncate">
-                    {paymentResult.smartlinkReference}
+                    {sanitizeReference(paymentResult.smartlinkReference)}
                   </p>
                 </div>
                 <div>
-                  <span className="text-[10px] text-[#9CA3AF] uppercase">Provider Ref</span>
+                  <span className="text-[10px] text-[#9CA3AF] uppercase">Network Reference</span>
                   <p className="font-bold text-[#111827] dark:text-white mt-0.5 font-mono text-[11px] truncate">
-                    {paymentResult.providerReference || "N/A"}
+                    {sanitizeReference(paymentResult.providerReference || paymentResult.smartlinkReference)}
                   </p>
                 </div>
               </div>
@@ -1545,12 +1442,12 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
 
                 <button
                   onClick={() => {
-                    setViewMode("CATALOG");
-                    setSelectedCategory(null);
+                    if (onBackToDashboard) onBackToDashboard();
+                    else setViewMode("FORM");
                   }}
                   className="px-5 py-2.5 rounded-xl bg-[#111827] dark:bg-[#E5E7EB] text-white dark:text-[#111827] text-xs font-bold transition-all cursor-pointer"
                 >
-                  Done / Make Another Payment
+                  Done / Close
                 </button>
               </div>
             </div>
@@ -1563,7 +1460,7 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
               <div className="space-y-2">
                 <h2 className="text-2xl font-black text-[#111827] dark:text-white">Bill Payment Failed</h2>
                 <p className="text-xs text-[#0F2D5C] dark:text-[#9CA3AF] max-w-md mx-auto font-medium">
-                  {paymentResult.errorMessage || "The payment could not be completed by the provider portal."}
+                  {sanitizeErrorMessage(paymentResult.errorMessage)}
                 </p>
               </div>
 
@@ -1575,10 +1472,13 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
                   Retry Payment
                 </button>
                 <button
-                  onClick={() => setViewMode("CATALOG")}
+                  onClick={() => {
+                    if (onBackToDashboard) onBackToDashboard();
+                    else setViewMode("FORM");
+                  }}
                   className="px-5 py-2.5 rounded-xl bg-[#E5E7EB] dark:bg-[#111827] text-[#4B5563] dark:text-[#E5E7EB] font-bold text-xs hover:bg-[#E5E7EB] transition-colors cursor-pointer"
                 >
-                  Go Back to Catalog
+                  Close
                 </button>
               </div>
             </div>
@@ -1611,7 +1511,7 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search reference, customer ID, or provider..."
+                placeholder="Search reference, customer ID, or service..."
                 className="w-full pl-9 pr-4 py-2.5 border border-[#E5E7EB] dark:border-[#4B5563] rounded-xl text-xs outline-none bg-white dark:bg-[#111827] text-[#111827] dark:text-white"
               />
             </div>
@@ -1646,7 +1546,7 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
               <table className="w-full text-left text-xs">
                 <thead>
                   <tr className="border-b border-[#E5E7EB] dark:border-[#111827] text-[#9CA3AF] font-semibold uppercase tracking-wider text-[10px]">
-                    <th className="pb-3 pl-2">Service / Provider</th>
+                    <th className="pb-3 pl-2">Service / Network</th>
                     <th className="pb-3">Customer ID</th>
                     <th className="pb-3">Reference</th>
                     <th className="pb-3">Amount</th>
@@ -1659,11 +1559,11 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
                   {filteredHistory.map((item) => (
                     <tr key={item.id} className="hover:bg-[#F5F7FA] dark:hover:bg-[#111827]/40 transition-colors">
                       <td className="py-3.5 pl-2 font-bold text-[#111827] dark:text-white">
-                        {item.serviceName || item.service || "Bill Payment"}
-                        <div className="text-[10px] text-[#9CA3AF] font-normal">{item.providerName || item.provider}</div>
+                        {sanitizeUserDescription(item.serviceName || item.service || "Bill Payment")}
+                        <div className="text-[10px] text-[#9CA3AF] font-normal">{sanitizeProviderDisplay(item.providerName || item.provider, item.category || item.serviceName)}</div>
                       </td>
                       <td className="py-3.5 font-mono text-[#4B5563] dark:text-[#E5E7EB]">{item.customerId || item.recipient || "N/A"}</td>
-                      <td className="py-3.5 font-mono text-[#6B7280] text-[11px]">{item.smartlinkReference || item.reference}</td>
+                      <td className="py-3.5 font-mono text-[#6B7280] text-[11px]">{sanitizeReference(item.smartlinkReference || item.reference)}</td>
                       <td className="py-3.5 font-mono font-bold text-[#111827] dark:text-white">
                         {formatNaira((item.amount || item.amountPaid || 0), true)}
                       </td>
@@ -1684,12 +1584,12 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
                           onClick={() => handleDownloadPDF({
                             success: true,
                             transactionId: item.id,
-                            smartlinkReference: item.smartlinkReference || item.reference,
-                            providerReference: item.providerReference || "PROV-ACK",
+                            smartlinkReference: sanitizeReference(item.smartlinkReference || item.reference),
+                            providerReference: sanitizeReference(item.providerReference || item.smartlinkReference || "SL-CONFIRMED"),
                             receiptId: item.receiptId || "REC-" + item.id,
-                            serviceName: item.serviceName || item.service || "Bill Payment",
+                            serviceName: sanitizeUserDescription(item.serviceName || item.service || "Bill Payment"),
                             category: item.category || "AIRTIME",
-                            providerName: item.providerName || item.provider || "Portal",
+                            providerName: sanitizeProviderDisplay(item.providerName || item.provider, item.category),
                             customerId: item.customerId || item.recipient || "N/A",
                             amountPaid: item.amount || 0,
                             charge: item.charge || 0,

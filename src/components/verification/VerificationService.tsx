@@ -133,7 +133,7 @@ export const VerificationService: React.FC<VerificationServiceProps> = ({
                 <span className="font-mono text-xs font-extrabold text-[#0F2D5C] dark:text-[#9CA3AF] bg-[#F5F7FA] dark:bg-[#0F2D5C]/60 px-2.5 py-1 rounded-lg border border-[#E5E7EB]/60 dark:border-[#0F2D5C]/60">
                   {formatNaira(service.fee ?? 0)}
                 </span>
-                <p className="text-[10px] text-[#9CA3AF] mt-1">{service.providerName}</p>
+                <p className="text-[10px] text-[#9CA3AF] mt-1">Official Verification</p>
               </div>
             </div>
 

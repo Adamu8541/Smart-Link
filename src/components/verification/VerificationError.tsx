@@ -1,6 +1,7 @@
 import React from "react";
 import { AlertTriangle, RefreshCw, ArrowLeft, Headphones, ShieldAlert, Wallet, WifiOff } from "lucide-react";
 import { VerificationErrorState } from "../../types/verification";
+import { sanitizeErrorMessage } from "../../utils/providerSanitizer";
 
 interface VerificationErrorProps {
   errorState?: VerificationErrorState;
@@ -56,10 +57,10 @@ export const VerificationError: React.FC<VerificationErrorProps> = ({
           {isMerchantLowBal ? "GATEWAY NOTICE" : `Code: ${activeError.code || "ERROR"}`}
         </div>
         <h3 className="text-base font-bold text-[#111827] dark:text-white">
-          {activeError.friendlyMessage || activeError.message || "Verification Failed"}
+          {activeError.friendlyMessage || "Verification Failed"}
         </h3>
         <p className="text-xs text-[#4B5563] dark:text-[#E5E7EB] max-w-sm mx-auto leading-relaxed">
-          {activeError.details || activeError.message || "Please check your inputs and try again."}
+          {sanitizeErrorMessage(activeError.details || activeError.message || "Please check your inputs and try again.")}
         </p>
       </div>
 
@@ -69,7 +70,7 @@ export const VerificationError: React.FC<VerificationErrorProps> = ({
             <span>🛡️</span> Your User Wallet Was Not Charged
           </p>
           <p className="text-emerald-700">
-            Your personal SmartLink wallet balance is 100% safe. This notification refers to the external provider API account (Prembley) having zero balance.
+            Your personal SmartLink wallet balance is 100% safe. The official registry gateway is temporarily undergoing routine network maintenance.
           </p>
         </div>
       )}
@@ -80,19 +81,18 @@ export const VerificationError: React.FC<VerificationErrorProps> = ({
           {activeError.code === "PROVIDER_MERCHANT_LOW_BALANCE" || isMerchantLowBal ? (
             <>
               <li>Your SmartLink account balance is safe and was not debited.</li>
-              <li>Switch the Gateway Provider dropdown or configure an alternate provider in Admin Multi-Provider Matrix.</li>
-              <li>Administrators can top up the upstream Prembley balance at prembly.com.</li>
+              <li>The verification registry will reconnect automatically. Please retry in a few moments.</li>
             </>
           ) : activeError.code === "WALLET_ERROR" ? (
             <li>Fund your SmartLink wallet or reduce requested quantity.</li>
           ) : activeError.code === "SERVER_WARMING_UP" ? (
-            <li>The server was briefly restarting. Click "Retry Query" to proceed immediately.</li>
+            <li>The server was briefly refreshing. Click "Retry Query" to proceed immediately.</li>
           ) : activeError.code === "INVALID_INPUT" ? (
             <li>Check input parameters (e.g. 11 digits for NIN/BVN).</li>
           ) : activeError.code === "PORTAL_CONFIG_REQUIRED" ? (
-            <li>Admin: Go to Admin Dashboard &rarr; API Providers to configure your LumiID, Identro, or VerifyNG portal API keys.</li>
+            <li>The verification gateway is initializing. Please try again in a few moments or contact support.</li>
           ) : (
-            <li>Check network connection or try repeating the request.</li>
+            <li>Check your network connection and retry the verification query.</li>
           )}
         </ul>
       </div>

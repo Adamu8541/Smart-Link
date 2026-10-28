@@ -37,6 +37,7 @@ import { getSupabaseAdmin, createSupabaseUser, updateSupabaseUserPassword, updat
 
 
 import { PasskeyRepository, UserRepository, AuditLogRepository } from "../turso/repositories";
+import { executeTurso } from "../turso/client";
 
 const router = express.Router();
 const app = router;
@@ -623,13 +624,24 @@ app.post("/api/auth/forgot-password", async (req, res) => {
   // Generate a secure high-entropy token and a convenient 6-digit verification code
   const token = crypto.randomBytes(24).toString("hex");
   const otpCode = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit numeric OTP code
-  const expires = Date.now() + 2 * 3600000; // 2 hours validity
+  const expires = Date.now() + 24 * 3600000; // 24 hours validity
 
-  await usersStore.updateUser(user.id || user.uid || "", {
+  const targetUid = user.id || user.uid || "";
+  await usersStore.updateUser(targetUid, {
     resetToken: token,
     resetTokenExpires: expires,
     resetOtp: otpCode,
   });
+
+  // Ensure immediate Turso persistence
+  try {
+    await executeTurso(
+      `UPDATE users SET reset_token = ?, reset_token_expires = ?, reset_otp = ?, updated_at = ? WHERE uid = ? OR id = ? OR lower(email) = lower(?);`,
+      [token, expires, otpCode, new Date().toISOString(), targetUid, targetUid, cleanEmail]
+    );
+  } catch (tursoErr) {
+    console.warn("[ForgotPassword] Turso immediate write note:", tursoErr);
+  }
 
   const clientOrigin = req.body?.clientOrigin;
   let originHeader = clientOrigin || req.get("origin") || "";
@@ -643,36 +655,17 @@ app.post("/api/auth/forgot-password", async (req, res) => {
   const CANONICAL_DOMAIN = "https://smartlinkng.com.ng";
 
   let appUrl = "";
-  // 1. If explicit custom domain was provided via APP_URL (and not a generic render, run.app, or localhost URL)
-  if (
-    process.env.APP_URL &&
-    !process.env.APP_URL.includes("onrender.com") &&
-    !process.env.APP_URL.includes("localhost") &&
-    !process.env.APP_URL.includes("127.0.0.1") &&
-    !process.env.APP_URL.includes("run.app")
-  ) {
+  // 1. If client origin was explicitly sent from the browser, prioritize it so reset link matches current app instance
+  if (originHeader && (originHeader.startsWith("http://") || originHeader.startsWith("https://"))) {
+    appUrl = originHeader;
+  }
+  // 2. If APP_URL is provided and not localhost/internal
+  else if (process.env.APP_URL) {
     appUrl = process.env.APP_URL;
   }
-  // 2. If client origin is the custom domain, respect it
-  else if (originHeader && (originHeader.includes("smartlinkng.com.ng") || originHeader.includes("smartlinkng.ng"))) {
-    appUrl = originHeader;
-  }
-  // 3. If running on Render or production, default to canonical domain (https://smartlinkng.com.ng) instead of internal *.onrender.com
-  else if (
-    process.env.RENDER ||
-    process.env.NODE_ENV === "production" ||
-    (originHeader && originHeader.includes("onrender.com")) ||
-    (req.get("host") && req.get("host")!.includes("onrender.com"))
-  ) {
-    appUrl = CANONICAL_DOMAIN;
-  }
-  // 4. If originHeader is a legitimate non-render origin, use it
-  else if (originHeader && !originHeader.includes("onrender.com")) {
-    appUrl = originHeader;
-  }
-  // 5. Fallback for local development or preview
+  // 3. Fallback to host header or canonical domain
   else {
-    appUrl = process.env.APP_URL || (req.get("host") ? `${req.protocol}://${req.get("host")}` : CANONICAL_DOMAIN);
+    appUrl = req.get("host") ? `${req.protocol}://${req.get("host")}` : CANONICAL_DOMAIN;
   }
 
   appUrl = (appUrl || CANONICAL_DOMAIN).replace(/\/+$/, "");
@@ -760,11 +753,11 @@ app.post("/api/auth/forgot-password", async (req, res) => {
 });
 
 app.post("/api/auth/reset-password", async (req, res) => {
-  const token = (req.body.token || req.body.code || req.body.oobCode || req.body.resetToken || req.body.otp || "").toString().trim();
+  const rawToken = (req.body.token || req.body.code || req.body.oobCode || req.body.resetToken || req.body.otp || req.body.normalizedCode || "").toString().trim();
   const password = (req.body.password || req.body.newPassword || "").toString();
   const email = (req.body.email || "").toString().toLowerCase().trim();
 
-  if (!token || !password) {
+  if (!rawToken || !password) {
     return res.status(400).json({ error: "Reset code/token and new password are required fields" });
   }
 
@@ -772,37 +765,56 @@ app.post("/api/auth/reset-password", async (req, res) => {
     return res.status(400).json({ error: "Password must be at least 6 characters long for security compliance" });
   }
 
-  const allUsers = await usersStore.getAllUsers();
+  // Strip spaces, dashes, and invisible chars from user-entered OTP or token
+  const cleanToken = rawToken.replace(/[\s-]+/g, "").trim();
   const now = Date.now();
 
-  let user = allUsers.find((u: any) => {
-    // Check if recovery was authenticated via Supabase session
-    if (token === "supabase_session" && email && u.email && u.email.toLowerCase().trim() === email) {
-      return true;
-    }
-    const isTokenMatch =
-      (u.resetToken && (safeCompareHash(u.resetToken, token) || u.resetToken === token)) ||
-      (u.resetOtp && String(u.resetOtp).trim() === token);
-    const notExpired = u.resetTokenExpires && Number(u.resetTokenExpires) > now;
-    if (email) {
-      return u.email && u.email.toLowerCase().trim() === email && isTokenMatch && notExpired;
-    }
-    return isTokenMatch && notExpired;
-  });
+  let user: any = null;
 
-  if (!user && email) {
+  // 1. If email is provided, check directly first for best performance and accuracy
+  if (email) {
     const directUser = await usersStore.getUserByEmail(email);
     if (directUser) {
-      if (token === "supabase_session") {
+      if (rawToken === "supabase_session" || cleanToken === "supabase_session") {
         user = directUser;
       } else {
-        const isTokenMatch =
-          (directUser.resetToken && (safeCompareHash(directUser.resetToken, token) || directUser.resetToken === token)) ||
-          (directUser.resetOtp && String(directUser.resetOtp).trim() === token);
-        const notExpired = directUser.resetTokenExpires && Number(directUser.resetTokenExpires) > now;
-        if (isTokenMatch && notExpired) {
+        const storedOtp = directUser.resetOtp ? String(directUser.resetOtp).replace(/[\s-]+/g, "").trim() : "";
+        const storedToken = directUser.resetToken ? String(directUser.resetToken).replace(/[\s-]+/g, "").trim() : "";
+        const isOtpMatch = storedOtp && (storedOtp === cleanToken || storedOtp === rawToken);
+        const isTokenMatch = storedToken && (storedToken === cleanToken || storedToken === rawToken || safeCompareHash(storedToken, cleanToken) || safeCompareHash(storedToken, rawToken));
+
+        // 24 hour validity + 2-hour grace period for clock drift / email latency
+        const notExpired = directUser.resetTokenExpires && (Number(directUser.resetTokenExpires) + 7200000 > now);
+
+        if ((isOtpMatch || isTokenMatch) && notExpired) {
           user = directUser;
+        } else if (isOtpMatch || isTokenMatch) {
+          return res.status(400).json({ error: "The reset code has expired. Please request a new code from the forgot password page." });
         }
+      }
+    }
+  }
+
+  // 2. If not found yet (or email was not provided), search across users by token or OTP
+  if (!user) {
+    const allUsers = await usersStore.getAllUsers();
+    for (const u of allUsers) {
+      if (email && u.email && u.email.toLowerCase().trim() !== email) {
+        continue;
+      }
+      if (rawToken === "supabase_session" && email && u.email && u.email.toLowerCase().trim() === email) {
+        user = u;
+        break;
+      }
+      const storedOtp = u.resetOtp ? String(u.resetOtp).replace(/[\s-]+/g, "").trim() : "";
+      const storedToken = u.resetToken ? String(u.resetToken).replace(/[\s-]+/g, "").trim() : "";
+      const isOtpMatch = storedOtp && (storedOtp === cleanToken || storedOtp === rawToken);
+      const isTokenMatch = storedToken && (storedToken === cleanToken || storedToken === rawToken || safeCompareHash(storedToken, cleanToken) || safeCompareHash(storedToken, rawToken));
+      const notExpired = u.resetTokenExpires && (Number(u.resetTokenExpires) + 7200000 > now);
+
+      if ((isOtpMatch || isTokenMatch) && notExpired) {
+        user = u;
+        break;
       }
     }
   }
@@ -814,6 +826,7 @@ app.post("/api/auth/reset-password", async (req, res) => {
   const newHash = hashPassword(password);
   const uid = user.id || user.uid || "";
 
+  // 1. Update user store & db.json
   await usersStore.updateUser(uid, {
     passwordHash: newHash,
     salt: "",
@@ -822,7 +835,17 @@ app.post("/api/auth/reset-password", async (req, res) => {
     resetOtp: "",
   });
 
-  // Keep Supabase Auth in sync
+  // 2. Direct Turso SQL update to ensure immediate database consistency
+  try {
+    await executeTurso(
+      `UPDATE users SET password_hash = ?, salt = '', reset_token = '', reset_token_expires = 0, reset_otp = '', updated_at = ? WHERE uid = ? OR id = ? OR lower(email) = lower(?);`,
+      [newHash, new Date().toISOString(), uid, uid, user.email || email]
+    );
+  } catch (sqlErr) {
+    console.warn("[ResetPassword] Direct SQL update note:", sqlErr);
+  }
+
+  // 3. Keep Supabase Auth in sync
   try {
     const supaAdmin = getSupabaseAdmin();
     if (supaAdmin) {
@@ -840,7 +863,7 @@ app.post("/api/auth/reset-password", async (req, res) => {
     console.warn("[ResetPassword] Supabase sync note:", supaErr);
   }
 
-  // ENFORCED TURSO SQL & db.json SYNC: Record password reset completion event
+  // 4. ENFORCED TURSO SQL & db.json SYNC: Record password reset completion event
   AuditLogRepository.recordLog({
     user_id: user?.uid || user?.id || null,
     action: "PASSWORD_RESET",
