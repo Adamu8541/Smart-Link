@@ -34,6 +34,8 @@ interface TursoAuditLog {
   id: string;
   log_id: string;
   user_id?: string | null;
+  user_email?: string | null;
+  user_name?: string | null;
   admin_uid?: string | null;
   admin_email?: string | null;
   admin_role?: string | null;
@@ -252,7 +254,7 @@ export function AdminActivityLogsView({ session, onNavigate }: AdminActivityLogs
             <span>Turso SQL & db.json Live Activity Engine</span>
           </div>
           <h1 className="text-xl md:text-3xl font-extrabold text-white tracking-tight">
-            Turso Activity and purge
+            Activities and Events
           </h1>
           <p className="text-xs md:text-sm text-blue-100">
             All user activities (transactions, service executions, wallet transactions, logins, etc.) recorded live in Turso SQL & db.json. Delete individual records or purge retention periods (daily, weekend/weekly, monthly, all) permanently from both storage systems simultaneously in one click.
@@ -408,7 +410,7 @@ export function AdminActivityLogsView({ session, onNavigate }: AdminActivityLogs
               </thead>
               <tbody className="divide-y divide-[#E5E7EB]">
                 {logs.map((log) => {
-                  const isFail = log.status === "FAILURE" || log.status === "FAILED";
+                  const isFail = log.status === "FAILURE";
                   const isWarn = log.status === "WARNING";
                   const logDateStr = log.created_at || (log as any).timestamp || (log as any).createdAt;
 
@@ -439,8 +441,30 @@ export function AdminActivityLogsView({ session, onNavigate }: AdminActivityLogs
                         {log.action}
                       </td>
 
-                      <td className="p-3.5 whitespace-nowrap font-mono text-[11px] text-[#4B5563]">
-                        {log.admin_email || log.user_id || log.admin_uid || "System"}
+                      <td className="p-3.5 whitespace-nowrap text-[11px] text-[#4B5563]">
+                        {log.user_email || log.user_name || log.user_id ? (
+                          <div className="flex items-center gap-1.5">
+                            <div className="p-1 rounded bg-blue-50 text-blue-700 border border-blue-200">
+                              <User className="h-3 w-3" />
+                            </div>
+                            <div className="flex flex-col text-left">
+                              <span className="font-bold text-[#111827]">{log.user_name || log.user_email || log.user_id}</span>
+                              <span className="text-[10px] text-[#6B7280] font-mono">{log.user_email || log.user_id}</span>
+                            </div>
+                          </div>
+                        ) : log.admin_email ? (
+                          <div className="flex items-center gap-1.5">
+                            <div className="p-1 rounded bg-purple-50 text-purple-700 border border-purple-200">
+                              <Shield className="h-3 w-3" />
+                            </div>
+                            <div className="flex flex-col text-left">
+                              <span className="font-bold text-purple-900">Admin</span>
+                              <span className="text-[10px] text-purple-700 font-mono">{log.admin_email}</span>
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="font-mono text-[#6B7280]">{log.admin_uid || "System"}</span>
+                        )}
                       </td>
 
                       <td className="p-3.5 whitespace-nowrap">
@@ -524,7 +548,7 @@ export function AdminActivityLogsView({ session, onNavigate }: AdminActivityLogs
                   </div>
                   <div>
                     <h3 className="text-base font-bold text-[#111827]">
-                      Turso Activity and purge
+                      Activities and Events
                     </h3>
                     <p className="text-xs text-[#6B7280]">
                       Permanently delete selected activity logs from Turso database & db.json simultaneously.

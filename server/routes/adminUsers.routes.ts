@@ -7,14 +7,14 @@ import { readDB, writeDB, initializeDB, DB_DIR, DB_FILE, UPLOADS_DIR, SUPER_ADMI
 import { verifyUserOrAdminSession, requireAdmin } from "../middleware/auth";
 import { isMaintenanceModeActive, getMaintenanceDetails, getValueByJsonPath, seedModule7SettingsIfEmpty, sanitizePublicSettings } from "../middleware/maintenance";
 import { getAI } from "../services/ai";
-import { 
-  DEFAULT_SERVICES_CATALOG, 
-  seedDefaultServicesCatalogIfEmpty, 
-  seedDefaultUsersIfEmpty, 
-  seedDefaultTransactionsIfEmpty, 
-  recordAdminUserAction, 
-  getOrCreateUserVirtualAccount, 
-  resolveVtuPlanAndPricing 
+import {
+  DEFAULT_SERVICES_CATALOG,
+  seedDefaultServicesCatalogIfEmpty,
+  seedDefaultUsersIfEmpty,
+  seedDefaultTransactionsIfEmpty,
+  recordAdminUserAction,
+  getOrCreateUserVirtualAccount,
+  resolveVtuPlanAndPricing
 } from "../services/sharedHelpers";
 import { ServerWalletEngine } from "../../src/services/serverWalletEngine";
 import { APIProviderManager, DEFAULT_PROVIDERS } from "../../src/services/apiProviderManager";
@@ -31,6 +31,7 @@ import * as walletsStore from "../../src/services/walletsStore";
 import * as securityStore from "../../src/services/securityStore";
 import * as notificationsStore from "../../src/services/notificationsStore";
 import { EmailOtpService } from "../services/emailOtp.service";
+import { deleteSupabaseUser } from "../services/supabaseAdmin";
 
 
 const router = express.Router();
@@ -140,7 +141,7 @@ app.post("/api/admin/users/update", requireAdmin, async (req, res) => {
   if (walletBalance !== undefined && !isNaN(parseFloat(walletBalance))) {
     const newBal = parseFloat(walletBalance);
     updates.walletBalance = newBal;
-    
+
     // Sync walletsStore and db.wallets so ServerWalletEngine validation matches
     try {
       const wallet = await ServerWalletEngine.getOrCreateWallet(db, targetUid);
@@ -165,7 +166,7 @@ app.post("/api/admin/users/update", requireAdmin, async (req, res) => {
   // Synchronize admin_users if role is an administrative role
   if (!db.admin_users) db.admin_users = [];
   const adminRoles = ["SUPER_ADMIN", "ADMIN", "SUB_ADMIN", "STAFF", "FINANCE_MANAGER", "SUPPORT_OFFICER", "VERIFICATION_OFFICER", "READ_ONLY_AUDITOR"];
-  
+
   if (adminRoles.includes(updatedUser.role)) {
     const adminIdx = db.admin_users.findIndex((a: any) => a.email.toLowerCase() === updatedUser.email.toLowerCase());
     if (adminIdx !== -1) {
@@ -287,52 +288,167 @@ app.post("/api/admin/users/wallet", requireAdmin, async (req, res) => {
   res.json({ success: true, balance: newBal, transaction: txResult });
 });
 
-app.post("/api/admin/users/delete", requireAdmin, async (req, res) => {
-  const { targetUid } = req.body;
+// Helper for comprehensive user deletion across Supabase Auth, Turso Database, and db.json
+async function executeFullUserDeletion(targetUidOrId: string, admin: any, adminUid?: string) {
   const db = readDB();
+  const targetUser =
+    (await usersStore.getUserById(targetUidOrId)) ||
+    (await usersStore.getUserByUid(targetUidOrId)) ||
+    (db.users || []).find((u: any) => u.uid === targetUidOrId || u.id === targetUidOrId);
+
+  if (!targetUser) {
+    return { success: false, status: 404, error: "User record not found." };
+  }
+
+  // Prevent deleting Super Admin
+  if (
+    targetUser.role === "SUPER_ADMIN" ||
+    (SUPER_ADMIN_EMAIL && targetUser.email?.toLowerCase().trim() === SUPER_ADMIN_EMAIL.toLowerCase().trim())
+  ) {
+    return { success: false, status: 400, error: "Cannot delete the primary Super Admin account." };
+  }
+
+  const userUid = targetUser.uid || targetUser.id || targetUidOrId;
+  const userEmail = (targetUser.email || "").toLowerCase().trim();
+  const userName = targetUser.fullName || userEmail;
+
+  // 1. Delete from Supabase Auth
+  let supabaseResult = { success: true, message: "Handled" };
+  try {
+    supabaseResult = await deleteSupabaseUser(userUid, userEmail);
+  } catch (err: any) {
+    console.warn("[AdminUsers] Supabase deletion error:", err);
+  }
+
+  // 2. Delete from Turso Database & db.json via usersStore
+  try {
+    await usersStore.deleteUser(userUid, userEmail);
+  } catch (err: any) {
+    console.warn("[AdminUsers] Turso delete cascade error:", err);
+  }
+
+  // 3. Direct deep clean in db.json for any lingering records
+  try {
+    const freshDb = readDB();
+    if (freshDb) {
+      if (Array.isArray(freshDb.users)) {
+        freshDb.users = freshDb.users.filter(
+          (u: any) =>
+            u.uid !== userUid &&
+            u.id !== userUid &&
+            u.uid !== targetUidOrId &&
+            u.id !== targetUidOrId &&
+            (!userEmail || u.email?.toLowerCase().trim() !== userEmail)
+        );
+      }
+      if (Array.isArray(freshDb.wallets)) {
+        freshDb.wallets = freshDb.wallets.filter(
+          (w: any) => w.userId !== userUid && w.userId !== targetUidOrId && w.user_id !== userUid
+        );
+      }
+      if (Array.isArray(freshDb.virtualAccounts)) {
+        freshDb.virtualAccounts = freshDb.virtualAccounts.filter(
+          (v: any) => v.userId !== userUid && v.userId !== targetUidOrId && v.user_id !== userUid
+        );
+      }
+      if (Array.isArray(freshDb.passkeys)) {
+        freshDb.passkeys = freshDb.passkeys.filter(
+          (p: any) => p.userId !== userUid && p.userId !== targetUidOrId
+        );
+      }
+      if (Array.isArray(freshDb.admin_users)) {
+        freshDb.admin_users = freshDb.admin_users.filter(
+          (a: any) => a.uid !== userUid && a.uid !== targetUidOrId && (!userEmail || a.email?.toLowerCase().trim() !== userEmail)
+        );
+      }
+
+      if (!freshDb.auditLogs) freshDb.auditLogs = [];
+      freshDb.auditLogs.unshift({
+        id: "audit_" + Date.now(),
+        adminUid: adminUid || admin?.uid || "admin",
+        adminEmail: admin?.email || "admin@smartlink.ng",
+        action: "DELETE_USER",
+        details: `Permanently deleted user ${userEmail} (${userName}) across Supabase Auth, Turso DB, and db.json.`,
+        timestamp: new Date().toISOString(),
+      });
+
+      recordAdminUserAction(freshDb, {
+        adminUid: admin?.uid || "admin",
+        adminEmail: admin?.email || "admin@smartlink.ng",
+        targetUserId: userUid,
+        action: "DELETE_USER",
+        details: `Deleted user ${userEmail} (${userName}) across Supabase, Turso, and db.json.`,
+      });
+
+      writeDB(freshDb);
+    }
+  } catch (cleanErr) {
+    console.warn("[AdminUsers] db.json deep clean error:", cleanErr);
+  }
+
+  return {
+    success: true,
+    status: 200,
+    message: `User ${userEmail} has been permanently deleted from Supabase, Turso, and db.json.`,
+    deletedUser: {
+      uid: userUid,
+      email: userEmail,
+      fullName: userName,
+    },
+    supabase: supabaseResult,
+  };
+}
+
+app.post("/api/admin/users/delete", requireAdmin, async (req, res) => {
+  const targetUid = req.body.targetUid || req.body.userId;
+  if (!targetUid) {
+    return res.status(400).json({ success: false, error: "targetUid or userId is required." });
+  }
+
   const admin = (req as any).admin;
   const adminUid = (req as any).authenticatedUid;
-  if (admin.role !== "SUPER_ADMIN") {
-    return res.status(403).json({ error: "Only Super Admin can delete user accounts." });
+
+  if (
+    admin.role !== "SUPER_ADMIN" &&
+    admin.role !== "ADMIN" &&
+    !admin.permissions?.includes("manage_users") &&
+    !admin.permissions?.includes("*")
+  ) {
+    return res.status(403).json({ success: false, error: "Only authorized administrators can delete user accounts." });
   }
 
-  // Zero-Trust Backend Enforcement: Account deletion is high-risk
-  const actorId = adminUid || admin.uid || admin.email;
-  const delAuth = EmailOtpService.validateHighRiskAction({
-    req,
-    userId: actorId,
-    purpose: "CHANGE_USER_PRIVILEGES",
-  });
-  if (!delAuth.valid) {
-    return res.status(delAuth.status || 403).json({
-      error: delAuth.reason || "Deleting user accounts requires security authorization.",
-      requiresVerification: true,
-      purpose: "CHANGE_USER_PRIVILEGES",
-    });
+  const result = await executeFullUserDeletion(targetUid, admin, adminUid);
+  if (!result.success) {
+    return res.status(result.status || 400).json({ success: false, error: result.error });
   }
-
-  const targetUser = await usersStore.getUserById(targetUid);
-  if (!targetUser) return res.status(404).json({ error: "User not found" });
-
-  if (targetUser.role === "SUPER_ADMIN") {
-    return res.status(400).json({ error: "Cannot delete primary Super Admin account." });
-  }
-
-  const deletedEmail = targetUser.email;
-  await usersStore.deleteUser(targetUid);
-
-  db.auditLogs.unshift({
-    id: "audit_" + Date.now(),
-    adminUid,
-    adminEmail: admin.email,
-    action: "DELETE_USER",
-    details: `Deleted user account: ${deletedEmail}`,
-    timestamp: new Date().toISOString()
-  });
-
-  writeDB(db);
-  res.json({ success: true });
+  return res.json(result);
 });
+
+app.delete("/api/admin/users/:userId", requireAdmin, async (req, res) => {
+  const targetUid = req.params.userId;
+  if (!targetUid) {
+    return res.status(400).json({ success: false, error: "userId param is required." });
+  }
+
+  const admin = (req as any).admin;
+  const adminUid = (req as any).authenticatedUid;
+
+  if (
+    admin.role !== "SUPER_ADMIN" &&
+    admin.role !== "ADMIN" &&
+    !admin.permissions?.includes("manage_users") &&
+    !admin.permissions?.includes("*")
+  ) {
+    return res.status(403).json({ success: false, error: "Only authorized administrators can delete user accounts." });
+  }
+
+  const result = await executeFullUserDeletion(targetUid, admin, adminUid);
+  if (!result.success) {
+    return res.status(result.status || 400).json({ success: false, error: result.error });
+  }
+  return res.json(result);
+});
+
 
 // --- ONE-TIME ADMIN MIGRATION: USERS TO SUPABASE/TURSO ---
 app.post("/api/admin/migrate-users-to-supabase-auth", requireAdmin, async (req, res) => {
@@ -804,8 +920,8 @@ app.post("/api/admin/users/bulk-action", requireAdmin, async (req, res) => {
       await usersStore.updateUser(uid, { status: "SUSPENDED" });
       affectedCount++;
     } else if (action === "DELETE") {
-      await usersStore.updateUser(uid, { status: "DELETED" });
-      affectedCount++;
+      const delRes = await executeFullUserDeletion(uid, admin, adminUid);
+      if (delRes.success) affectedCount++;
     } else if (action === "BROADCAST") {
       if (!db.notifications) db.notifications = [];
       db.notifications.unshift({

@@ -188,9 +188,9 @@ export async function createUser(user: UserDoc): Promise<UserDoc> {
     const existingByEmail = await getUserByEmail(cleanEmail);
     if (existingByEmail) {
       await executeTurso(
-        `UPDATE users SET 
-           uid = ?, 
-           id = ?, 
+        `UPDATE users SET
+           uid = ?,
+           id = ?,
            phone_number = COALESCE(?, phone_number),
            full_name = COALESCE(?, full_name),
            role = COALESCE(?, role),
@@ -323,7 +323,7 @@ export async function updateUser(uid: string, updates: Partial<UserDoc>): Promis
   const resetOtpVal = updates.resetOtp !== undefined ? updates.resetOtp : (updates.reset_otp !== undefined ? updates.reset_otp : null);
 
   await executeTurso(
-    `UPDATE users SET 
+    `UPDATE users SET
        full_name = COALESCE(?, full_name),
        phone_number = COALESCE(?, phone_number),
        role = COALESCE(?, role),
@@ -381,11 +381,105 @@ export async function updateUser(uid: string, updates: Partial<UserDoc>): Promis
   return getUserByUid(uid);
 }
 
-export async function deleteUser(uid: string): Promise<boolean> {
-  if (!uid) return false;
-  await executeTurso(`DELETE FROM users WHERE uid = ? OR id = ?;`, [uid, uid]);
+export async function deleteUser(uid: string, email?: string): Promise<boolean> {
+  if (!uid && !email) return false;
+
+  let targetUid = uid || "";
+  let targetId = uid || "";
+  let targetEmail = (email || "").toLowerCase().trim();
+
+  // Try to lookup user details if not fully provided
+  try {
+    const existing = uid ? await getUserByUid(uid) : (targetEmail ? await getUserByEmail(targetEmail) : null);
+    if (existing) {
+      if (existing.uid) targetUid = existing.uid;
+      if (existing.id) targetId = existing.id;
+      if (existing.email) targetEmail = existing.email.toLowerCase().trim();
+    }
+  } catch {}
+
+  // 1. Delete from Turso tables (in strict reverse dependency order)
+  try {
+    if (targetUid || targetId || targetEmail) {
+      // Step A: Delete child records that reference user/wallet first
+      await executeTurso(`DELETE FROM wallet_ledger WHERE user_id = ? OR user_id = ?;`, [targetUid, targetId]).catch(() => {});
+      await executeTurso(`DELETE FROM transactions WHERE user_id = ? OR user_id = ?;`, [targetUid, targetId]).catch(() => {});
+      await executeTurso(`DELETE FROM payments WHERE user_id = ? OR user_id = ?;`, [targetUid, targetId]).catch(() => {});
+      await executeTurso(`DELETE FROM user_virtual_accounts WHERE user_id = ? OR user_id = ?;`, [targetUid, targetId]).catch(() => {});
+      await executeTurso(`DELETE FROM user_passkeys WHERE user_id = ? OR user_id = ?;`, [targetUid, targetId]).catch(() => {});
+      await executeTurso(`DELETE FROM cac_applications WHERE user_id = ? OR user_id = ?;`, [targetUid, targetId]).catch(() => {});
+      await executeTurso(`DELETE FROM slip_logs WHERE user_id = ? OR user_id = ?;`, [targetUid, targetId]).catch(() => {});
+      await executeTurso(`DELETE FROM verification_records WHERE user_id = ? OR user_id = ?;`, [targetUid, targetId]).catch(() => {});
+      await executeTurso(
+        `DELETE FROM admin_users WHERE uid = ? OR uid = ? OR (email = ? AND ? != '');`,
+        [targetUid, targetId, targetEmail, targetEmail]
+      ).catch(() => {});
+
+      // Step B: Delete wallet records
+      await executeTurso(`DELETE FROM wallets WHERE user_id = ? OR user_id = ?;`, [targetUid, targetId]).catch(() => {});
+
+      // Step C: Delete parent user record LAST
+      await executeTurso(
+        `DELETE FROM users WHERE uid = ? OR id = ? OR (email = ? AND ? != '');`,
+        [targetUid, targetId, targetEmail, targetEmail]
+      );
+    }
+  } catch (err) {
+    console.warn("[usersStore] Turso delete error:", err);
+  }
+
+  // 2. Synchronize and clean db.json
+  try {
+    const db = readDB();
+    if (db) {
+      let modified = false;
+      if (Array.isArray(db.users)) {
+        const prevLen = db.users.length;
+        db.users = db.users.filter(
+          (u: any) =>
+            u.uid !== targetUid &&
+            u.id !== targetId &&
+            u.uid !== targetId &&
+            u.id !== targetUid &&
+            (!targetEmail || u.email?.toLowerCase().trim() !== targetEmail)
+        );
+        if (db.users.length !== prevLen) modified = true;
+      }
+      if (Array.isArray(db.wallets)) {
+        db.wallets = db.wallets.filter((w: any) => w.userId !== targetUid && w.userId !== targetId && w.user_id !== targetUid && w.user_id !== targetId);
+        modified = true;
+      }
+      if (Array.isArray(db.virtualAccounts)) {
+        db.virtualAccounts = db.virtualAccounts.filter((v: any) => v.userId !== targetUid && v.userId !== targetId && v.user_id !== targetUid && v.user_id !== targetId);
+        modified = true;
+      }
+      if (Array.isArray(db.passkeys)) {
+        db.passkeys = db.passkeys.filter((p: any) => p.userId !== targetUid && p.userId !== targetId && p.user_id !== targetUid && p.user_id !== targetId);
+        modified = true;
+      }
+      if (Array.isArray(db.admin_users)) {
+        db.admin_users = db.admin_users.filter((a: any) => a.uid !== targetUid && a.uid !== targetId && (!targetEmail || a.email?.toLowerCase().trim() !== targetEmail));
+        modified = true;
+      }
+      if (Array.isArray(db.transactions)) {
+        db.transactions = db.transactions.filter((t: any) => t.userId !== targetUid && t.userId !== targetId && (!targetEmail || t.userEmail?.toLowerCase().trim() !== targetEmail));
+        modified = true;
+      }
+      if (Array.isArray(db.notifications)) {
+        db.notifications = db.notifications.filter((n: any) => n.userId !== targetUid && n.userId !== targetId && (!targetEmail || n.userEmail?.toLowerCase().trim() !== targetEmail));
+        modified = true;
+      }
+      if (modified) {
+        writeDB(db);
+      }
+    }
+  } catch (err) {
+    console.warn("[usersStore] db.json sync delete error:", err);
+  }
+
   return true;
 }
+
 
 export async function seedUsersIfEmpty(initialUsers: UserDoc[] = []): Promise<void> {
   try {

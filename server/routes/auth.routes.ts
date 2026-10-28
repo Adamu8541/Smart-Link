@@ -7,14 +7,14 @@ import { readDB, writeDB, initializeDB, DB_DIR, DB_FILE, UPLOADS_DIR, SUPER_ADMI
 import { verifyUserOrAdminSession, requireAdmin } from "../middleware/auth";
 import { isMaintenanceModeActive, getMaintenanceDetails, getValueByJsonPath, seedModule7SettingsIfEmpty, sanitizePublicSettings } from "../middleware/maintenance";
 import { getAI } from "../services/ai";
-import { 
-  DEFAULT_SERVICES_CATALOG, 
-  seedDefaultServicesCatalogIfEmpty, 
-  seedDefaultUsersIfEmpty, 
-  seedDefaultTransactionsIfEmpty, 
-  recordAdminUserAction, 
-  getOrCreateUserVirtualAccount, 
-  resolveVtuPlanAndPricing 
+import {
+  DEFAULT_SERVICES_CATALOG,
+  seedDefaultServicesCatalogIfEmpty,
+  seedDefaultUsersIfEmpty,
+  seedDefaultTransactionsIfEmpty,
+  recordAdminUserAction,
+  getOrCreateUserVirtualAccount,
+  resolveVtuPlanAndPricing
 } from "../services/sharedHelpers";
 import { ServerWalletEngine } from "../../src/services/serverWalletEngine";
 import { APIProviderManager, DEFAULT_PROVIDERS } from "../../src/services/apiProviderManager";
@@ -631,8 +631,51 @@ app.post("/api/auth/forgot-password", async (req, res) => {
     resetOtp: otpCode,
   });
 
-  const originHeader = req.get("origin") || (req.get("referer") ? new URL(req.get("referer")!).origin : "");
-  const appUrl = (process.env.APP_URL || originHeader || `${req.protocol}://${req.get("host")}`).replace(/\/+$/, "");
+  const clientOrigin = req.body?.clientOrigin;
+  let originHeader = clientOrigin || req.get("origin") || "";
+  if (!originHeader && req.get("referer")) {
+    try {
+      originHeader = new URL(req.get("referer")!).origin;
+    } catch {}
+  }
+
+  // Canonical custom domain
+  const CANONICAL_DOMAIN = "https://smartlinkng.com.ng";
+
+  let appUrl = "";
+  // 1. If explicit custom domain was provided via APP_URL (and not a generic render, run.app, or localhost URL)
+  if (
+    process.env.APP_URL &&
+    !process.env.APP_URL.includes("onrender.com") &&
+    !process.env.APP_URL.includes("localhost") &&
+    !process.env.APP_URL.includes("127.0.0.1") &&
+    !process.env.APP_URL.includes("run.app")
+  ) {
+    appUrl = process.env.APP_URL;
+  }
+  // 2. If client origin is the custom domain, respect it
+  else if (originHeader && (originHeader.includes("smartlinkng.com.ng") || originHeader.includes("smartlinkng.ng"))) {
+    appUrl = originHeader;
+  }
+  // 3. If running on Render or production, default to canonical domain (https://smartlinkng.com.ng) instead of internal *.onrender.com
+  else if (
+    process.env.RENDER ||
+    process.env.NODE_ENV === "production" ||
+    (originHeader && originHeader.includes("onrender.com")) ||
+    (req.get("host") && req.get("host")!.includes("onrender.com"))
+  ) {
+    appUrl = CANONICAL_DOMAIN;
+  }
+  // 4. If originHeader is a legitimate non-render origin, use it
+  else if (originHeader && !originHeader.includes("onrender.com")) {
+    appUrl = originHeader;
+  }
+  // 5. Fallback for local development or preview
+  else {
+    appUrl = process.env.APP_URL || (req.get("host") ? `${req.protocol}://${req.get("host")}` : CANONICAL_DOMAIN);
+  }
+
+  appUrl = (appUrl || CANONICAL_DOMAIN).replace(/\/+$/, "");
   const resetLink = `${appUrl}/reset-password?token=${token}&email=${encodeURIComponent(cleanEmail)}`;
 
   // Email delivery with direct reset button and 6-digit verification code
@@ -1443,7 +1486,7 @@ app.post("/api/auth/step-up/verify", async (req, res) => {
 app.get("/api/auth/profile", async (req, res) => {
   let uid = (req.query.uid as string) || (req.query.userId as string) || "";
   const authCheck = await verifyUserOrAdminSession(req, uid);
-  
+
   if (!uid && authCheck.authorized && authCheck.authenticatedUid) {
     uid = authCheck.authenticatedUid;
   }

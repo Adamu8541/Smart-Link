@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Mail, ArrowLeft, CheckCircle2, AlertCircle, Sparkles, KeyRound, UserPlus } from "lucide-react";
-import { SupabaseAuthService, isSupabaseConfigured } from "../../services/supabaseAuth";
 import { SmartLinkLogoMark } from "../ui/SmartLinkLogoMark";
 import { getFriendlyErrorMessage } from "../../utils/authErrorHandler";
 import { soundFx } from "../../utils/audioEffects";
@@ -65,7 +64,7 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps>= ({
       const res = await fetch("/api/auth/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: cleanEmail }),
+        body: JSON.stringify({ email: cleanEmail, clientOrigin: window.location.origin }),
       });
       const data = await res.json();
       if (!res.ok || data.success === false) {
@@ -80,18 +79,6 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps>= ({
           return;
         }
         throw new Error(data.error || data.message || "Unable to send password reset email.");
-      }
-
-      // 2. Also trigger client-side Supabase recovery dispatch for 100% delivery guarantee
-      if (isSupabaseConfigured) {
-        try {
-          await SupabaseAuthService.resetPasswordForEmail(
-            cleanEmail,
-            `${window.location.origin}/reset-password`
-          );
-        } catch (supaErr: any) {
-          console.warn("[ForgotPasswordView] Client Supabase recovery dispatch note:", supaErr?.message);
-        }
       }
 
       soundFx.playSuccessSound();
@@ -144,7 +131,7 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps>= ({
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Home</span>
         </button>
-        
+
         <span className="text-[11px] font-bold tracking-wider text-[#0F2D5C] uppercase bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-full flex items-center gap-1.5">
           <KeyRound className="w-3 h-3 text-[#0F2D5C]" />
           Account Recovery
@@ -246,7 +233,7 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps>= ({
               >
                 Try Another Email
               </button>
-              
+
               <button
                 type="button"
                 onClick={onNavigateToLogin}

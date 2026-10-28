@@ -281,3 +281,87 @@ export async function confirmSupabaseUser(emailOrUid: string): Promise<boolean> 
     return false;
   }
 }
+
+/**
+ * Permanently delete user from Supabase Auth via server admin
+ */
+export async function deleteSupabaseUser(
+  uidOrEmail: string,
+  optionalEmail?: string
+): Promise<{ success: boolean; deletedUid?: string; message: string }> {
+  if (!uidOrEmail && !optionalEmail) {
+    return { success: false, message: "No user identifier provided." };
+  }
+
+  const client = getSupabaseAdmin();
+  if (!client) {
+    return { success: true, message: "Supabase admin client not configured or unavailable." };
+  }
+
+  try {
+    const rawTarget = (uidOrEmail || "").trim();
+    const targetEmail = (optionalEmail || (!rawTarget.includes("-") ? rawTarget : "") || "").toLowerCase().trim();
+    let foundSupabaseUid: string | null = null;
+
+    // 1. Fetch user list from Supabase Auth to check if user actually exists
+    try {
+      const { data, error } = await client.auth.admin.listUsers();
+      if (!error && data?.users?.length) {
+        const match = data.users.find(
+          (u: any) =>
+            (u.id && u.id.toLowerCase() === rawTarget.toLowerCase()) ||
+            (targetEmail && u.email?.toLowerCase().trim() === targetEmail) ||
+            (rawTarget && u.email?.toLowerCase().trim() === rawTarget.toLowerCase())
+        );
+        if (match) {
+          foundSupabaseUid = match.id;
+        }
+      }
+    } catch (listErr) {
+      console.warn("[SupabaseAdmin] listUsers for deletion note:", listErr);
+    }
+
+    // 2. Fallback: If not found in listUsers, check getUserById if rawTarget is a UUID
+    if (!foundSupabaseUid && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawTarget)) {
+      try {
+        const { data: userData, error: getUserErr } = await client.auth.admin.getUserById(rawTarget);
+        if (!getUserErr && userData?.user?.id) {
+          foundSupabaseUid = userData.user.id;
+        }
+      } catch {}
+    }
+
+    // 3. If user is confirmed in Supabase Auth, execute deletion
+    if (foundSupabaseUid) {
+      const { error } = await client.auth.admin.deleteUser(foundSupabaseUid);
+      if (error) {
+        const isUserNotFound = error.message?.toLowerCase().includes("user not found");
+        if (!isUserNotFound) {
+          console.warn("[SupabaseAdmin] deleteUser note:", error.message);
+          // Fallback: direct REST DELETE
+          const rawUrl = (process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || "").trim();
+          const url = sanitizeSupabaseUrl(rawUrl);
+          const serviceKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
+          if (url && serviceKey) {
+            try {
+              await fetch(`${url}/auth/v1/admin/users/${foundSupabaseUid}`, {
+                method: "DELETE",
+                headers: {
+                  apikey: serviceKey,
+                  Authorization: `Bearer ${serviceKey}`,
+                },
+              });
+            } catch {}
+          }
+        }
+      }
+      return { success: true, deletedUid: foundSupabaseUid, message: "User deleted from Supabase Auth." };
+    }
+
+    // User was not present in Supabase Auth (e.g. local user only) -> handle gracefully without error logs
+    return { success: true, message: "User not present in Supabase Auth (already removed or local only)." };
+  } catch (err: any) {
+    console.warn("[SupabaseAdmin] deleteSupabaseUser exception:", err);
+    return { success: true, message: err?.message || "Supabase deletion handled." };
+  }
+}

@@ -7,14 +7,14 @@ import { readDB, writeDB, initializeDB, DB_DIR, DB_FILE, UPLOADS_DIR, SUPER_ADMI
 import { verifyUserOrAdminSession, requireAdmin, requireAuth, verifySessionToken, SUPER_ADMIN_EMAILS } from "../middleware/auth";
 import { isMaintenanceModeActive, getMaintenanceDetails, getValueByJsonPath, seedModule7SettingsIfEmpty, sanitizePublicSettings } from "../middleware/maintenance";
 import { getAI } from "../services/ai";
-import { 
-  DEFAULT_SERVICES_CATALOG, 
-  seedDefaultServicesCatalogIfEmpty, 
-  seedDefaultUsersIfEmpty, 
-  seedDefaultTransactionsIfEmpty, 
-  recordAdminUserAction, 
-  getOrCreateUserVirtualAccount, 
-  resolveVtuPlanAndPricing 
+import {
+  DEFAULT_SERVICES_CATALOG,
+  seedDefaultServicesCatalogIfEmpty,
+  seedDefaultUsersIfEmpty,
+  seedDefaultTransactionsIfEmpty,
+  recordAdminUserAction,
+  getOrCreateUserVirtualAccount,
+  resolveVtuPlanAndPricing
 } from "../services/sharedHelpers";
 import { ServerWalletEngine } from "../../src/services/serverWalletEngine";
 import { APIProviderManager, DEFAULT_PROVIDERS } from "../../src/services/apiProviderManager";
@@ -391,6 +391,28 @@ app.get("/api/user-history/:userId", async (req, res) => {
         String(l.action || '').toLowerCase().includes('login')
     );
 
+    const purgeAllCutoffMs = db.activities_purge_all_cutoff ? new Date(db.activities_purge_all_cutoff).getTime() : 0;
+    const dailyCutoffMs = db.activities_daily_cutoff ? new Date(db.activities_daily_cutoff).getTime() : 0;
+    const weeklyCutoffMs = db.activities_weekly_cutoff ? new Date(db.activities_weekly_cutoff).getTime() : 0;
+    const monthlyCutoffMs = db.activities_monthly_cutoff ? new Date(db.activities_monthly_cutoff).getTime() : 0;
+    const deletedSet = new Set<string>(Array.isArray(db.deleted_activity_ids) ? db.deleted_activity_ids : []);
+
+    const isRecordPurgedForUser = (id: string, dateStr: string | number, ref?: string) => {
+      if (deletedSet.has(id)) return true;
+      if (ref && deletedSet.has(ref)) return true;
+      if (deletedSet.has(`tx_${id}`) || (ref && deletedSet.has(`tx_${ref}`))) return true;
+      if (deletedSet.has(`ver_${id}`) || (ref && deletedSet.has(`ver_${ref}`))) return true;
+
+      const itemTime = new Date(dateStr || 0).getTime();
+      if (itemTime > 0) {
+        if (purgeAllCutoffMs > 0 && itemTime <= purgeAllCutoffMs) return true;
+        if (dailyCutoffMs > 0 && itemTime < dailyCutoffMs) return true;
+        if (weeklyCutoffMs > 0 && itemTime < weeklyCutoffMs) return true;
+        if (monthlyCutoffMs > 0 && itemTime < monthlyCutoffMs) return true;
+      }
+      return false;
+    };
+
     // 2. Fetch transactions from Turso SQL
     let txRows: any[] = [];
     try {
@@ -408,6 +430,12 @@ app.get("/api/user-history/:userId", async (req, res) => {
         txRows.push(dt);
       }
     }
+    txRows = txRows.filter((t: any) => {
+      const tid = String(t.id || "");
+      const tref = String(t.reference || "");
+      const tdate = t.created_at || t.createdAt || t.timestamp;
+      return !isRecordPurgedForUser(tid, tdate, tref);
+    });
 
     // Filter VTU vs Financial
     const vtuServices = txRows.filter(
@@ -439,10 +467,16 @@ app.get("/api/user-history/:userId", async (req, res) => {
         verRows.push(dv);
       }
     }
+    verRows = verRows.filter((v: any) => {
+      const vid = String(v.id || "");
+      const vref = String(v.reference || "");
+      const vdate = v.created_at || v.createdAt || v.timestamp;
+      return !isRecordPurgedForUser(vid, vdate, vref);
+    });
 
     // 4. Fetch wallet logs from db.json & Turso
     const walletLogs = (db.walletLogs || []).filter(
-      (w: any) => w.userId === userId || w.user_id === userId
+      (w: any) => (w.userId === userId || w.user_id === userId) && !isRecordPurgedForUser(String(w.id || ''), w.created_at || w.createdAt || w.timestamp)
     );
 
     const notifications = (db.notifications || []).filter(
@@ -1166,7 +1200,7 @@ function generateProfessionalBroadcastHtml(options: {
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #F1F5F9; margin: 0; padding: 24px 12px; color: #1E293B;">
   <div style="max-width: 660px; margin: 0 auto; background-color: #FFFFFF; border-radius: 14px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04); border: 1px solid #E2E8F0;">
-    
+
     <!-- Header Banner with Logo -->
     <div style="background-color: ${theme.headerBg}; color: #FFFFFF; padding: 24px 28px; text-align: left;">
       <table style="width: 100%; border-collapse: collapse;">

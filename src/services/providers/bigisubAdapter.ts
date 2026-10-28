@@ -886,6 +886,8 @@ export class BigisubAdapter implements ProviderAdapter {
     };
 
     const candidateEndpoints = [
+      `${baseUrl}/bills/result-checker/purchase/`,
+      `${baseUrl}/result-checker/purchase/`,
       `${baseUrl}/exam/purchase/`,
       `${baseUrl}/education/purchase/`,
       `${baseUrl}/education/`,

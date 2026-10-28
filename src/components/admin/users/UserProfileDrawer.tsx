@@ -29,7 +29,8 @@ import {
   PlusCircle,
   MinusCircle,
   RefreshCw,
-  Bell
+  Bell,
+  Trash2
 } from "lucide-react";
 import { UserProfile, UserRole } from "../../../types";
 import { AdminSession } from "../../../services/adminAuthTypes";
@@ -43,6 +44,7 @@ interface UserProfileDrawerProps {
   onOpenStatus: (user: UserProfile, status: "ACTIVE" | "SUSPENDED" | "DISABLED" | "LOCKED" | "DELETED") => void;
   onOpenWallet: (user: UserProfile) => void;
   onOpenNotify: (user: UserProfile) => void;
+  onOpenDelete?: (user: UserProfile) => void;
 }
 
 export function UserProfileDrawer({
@@ -54,7 +56,9 @@ export function UserProfileDrawer({
   onOpenStatus,
   onOpenWallet,
   onOpenNotify,
+  onOpenDelete,
 }: UserProfileDrawerProps) {
+
   if (!isOpen || !userId) return null;
 
   const [activeTab, setActiveTab] = useState<"OVERVIEW" | "FINANCE" | "VERIFICATION" | "TRANSACTIONS" | "DEVICES" | "TIMELINE">("OVERVIEW");
@@ -180,6 +184,16 @@ export function UserProfileDrawer({
                     className=" px-3 py-1.5 border border-[#0F2D5C] text-xs font-bold rounded-xl cursor-pointer"
                   >
                     Activate User
+                  </button>
+                )}
+                {onOpenDelete && (
+                  <button
+                    type="button"
+                    onClick={() => onOpenDelete(user)}
+                    title="Permanently Delete User"
+                    className="px-3 py-1.5 border border-red-500/40 bg-red-950/30 hover:bg-red-900/40 text-red-400 text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer transition-colors"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" /> Delete
                   </button>
                 )}
               </div>

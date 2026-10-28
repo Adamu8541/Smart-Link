@@ -417,64 +417,6 @@ export async function sendPlatformEmail(
   },
   customDb?: any
 ): Promise<{ success: boolean; messageId?: string; message: string; error?: string }> {
-  // 1. Check for HTTPS REST API Keys (Brevo or Resend) - Operates over Port 443
-  const brevoKey = (process.env.BREVO_API_KEY || "").trim();
-  const resendKey = (process.env.RESEND_API_KEY || "").trim();
-  const senderEmail = (process.env.BREVO_SENDER_EMAIL || process.env.AUTH_EMAIL || process.env.AUTH_SMTP_USER || process.env.SMTP_USER || "muhammadadamua8541@gmail.com").trim();
-  const activeSenderName = options.senderName || process.env.AUTH_EMAIL_SENDER_NAME || "SmartLink NG";
-
-  // Only call Brevo REST API if the key is a valid API key (starts with xkeysib-), not an SMTP password (xsmtpsib-)
-  if (brevoKey && !brevoKey.startsWith("xsmtpsib-")) {
-    const brevoRes = await sendViaBrevoApi(brevoKey, {
-      to: options.to,
-      subject: options.subject,
-      html: options.html,
-      senderName: activeSenderName,
-      senderEmail,
-      replyTo: options.replyTo,
-      attachments: options.attachments as any,
-    });
-    if (brevoRes.success) {
-      return brevoRes;
-    }
-    console.warn("[EmailService] Brevo API dispatch note:", brevoRes.message);
-  }
-
-  // Only call Resend REST API if the key looks like a Resend key (starts with re_), not an SMTP password
-  if (resendKey && !resendKey.startsWith("xsmtpsib-")) {
-    const resendRes = await sendViaResendApi(resendKey, {
-      to: options.to,
-      subject: options.subject,
-      html: options.html,
-      senderName: activeSenderName,
-      senderEmail,
-      replyTo: options.replyTo,
-      attachments: options.attachments as any,
-    });
-    if (resendRes.success) {
-      return resendRes;
-    }
-    console.warn("[EmailService] Resend API dispatch note:", resendRes.message);
-  }
-
-  // 2. Fall back to SMTP Transporter
-  const { transporter, fromAddress, error, config } = getResolvedSmtpConfig(customDb);
-
-  if (!transporter) {
-    return {
-      success: false,
-      message: error || "SMTP Transporter not configured",
-      error: error || "SMTP Transporter not configured",
-    };
-  }
-
-  // Format sender header
-  let activeFrom = fromAddress;
-  if (options.senderName) {
-    const activeEmail = config.smtpUser || config.replyToAddress || "notifications@smartlink.ng";
-    activeFrom = `"${options.senderName}" <${activeEmail}>`;
-  }
-
   // Prepare attachments if present
   let resolvedAttachments: any[] | undefined = undefined;
   if (Array.isArray(options.attachments) && options.attachments.length > 0) {
@@ -491,97 +433,79 @@ export async function sendPlatformEmail(
     });
   }
 
-  const mailData = {
-    from: activeFrom,
-    to: options.to,
-    subject: options.subject,
-    html: options.html,
-    text: options.text,
-    replyTo: options.replyTo || config.replyToAddress || config.smtpUser,
-    attachments: resolvedAttachments,
-  };
+  // 1. Primary Channel: Direct Gmail / SMTP Transporter (Highest Deliverability straight to main INBOX)
+  const { transporter, fromAddress, error: smtpConfigErr, config } = getResolvedSmtpConfig(customDb);
 
-  try {
-    const info = await transporter.sendMail(mailData);
-    return {
-      success: true,
-      messageId: info.messageId,
-      message: `Email successfully sent to ${options.to}`,
-    };
-  } catch (err: any) {
-    const rawErrMsg = err.message || "";
-    const lowerMsg = rawErrMsg.toLowerCase();
-    console.error("[EmailService] Primary dispatch attempt failed:", rawErrMsg);
-
-    // If socket error or connection timeout (ENETUNREACH, ETIMEDOUT, ECONNREFUSED, timeout)
-    const isNetworkError =
-      lowerMsg.includes("timeout") ||
-      lowerMsg.includes("enetunreach") ||
-      lowerMsg.includes("etimedout") ||
-      lowerMsg.includes("econnrefused") ||
-      lowerMsg.includes("connect");
-
-    if (isNetworkError) {
-      console.warn("[EmailService] Triggering fallback IPv4 transporter on alternate port...");
-      try {
-        const fallbackPort = Number(config.smtpPort) === 587 ? 465 : 587;
-        const cleanPass = (config.smtpPass || "").replace(/\s+/g, "").replace(/['"]/g, "");
-
-        const fallbackTransporter = nodemailer.createTransport({
-          host: config.smtpHost || "smtp.gmail.com",
-          port: fallbackPort,
-          secure: fallbackPort === 465,
-          lookup: forceIpv4Lookup,
-          family: 4,
-          connectionTimeout: 8000,
-          greetingTimeout: 5000,
-          socketTimeout: 12000,
-          auth: {
-            user: config.smtpUser,
-            pass: cleanPass,
-          },
-          tls: {
-            rejectUnauthorized: false,
-            minVersion: "TLSv1.2",
-            servername: config.smtpHost || "smtp.gmail.com",
-          },
-        } as any);
-
-        const fallbackInfo = await fallbackTransporter.sendMail(mailData);
-        return {
-          success: true,
-          messageId: fallbackInfo.messageId,
-          message: `Email successfully sent to ${options.to} via fallback port ${fallbackPort}`,
-        };
-      } catch (fallbackErr: any) {
-        console.error("[EmailService] Fallback dispatch also failed:", fallbackErr.message);
-
-        // If Render Free Tier blocked both ports 465 and 587
-        const isRenderTimeout =
-          fallbackErr.message?.toLowerCase().includes("timeout") ||
-          rawErrMsg.toLowerCase().includes("timeout");
-
-        if (isRenderTimeout) {
-          const explanation = "Connection timeout: Render Free Tier blocks outbound SMTP ports (465 and 587) by firewall. To send emails from Render without paying, add a free BREVO_API_KEY (from brevo.com, 300 free emails/day) in your Render Environment Variables. It operates over HTTPS Port 443 with no port restrictions!";
-          return {
-            success: false,
-            message: explanation,
-            error: explanation,
-          };
-        }
-
-        return {
-          success: false,
-          message: `Failed to dispatch email: ${fallbackErr.message}`,
-          error: fallbackErr.message,
-        };
-      }
+  if (transporter) {
+    let activeFrom = fromAddress;
+    if (options.senderName) {
+      const activeEmail = config.smtpUser || config.replyToAddress || "info.smartlinkng@gmail.com";
+      activeFrom = `"${options.senderName}" <${activeEmail}>`;
     }
 
-    return {
-      success: false,
-      message: `Failed to dispatch email: ${err.message}`,
-      error: err.message,
+    const mailData = {
+      from: activeFrom,
+      to: options.to,
+      subject: options.subject,
+      html: options.html,
+      text: options.text,
+      replyTo: options.replyTo || config.replyToAddress || config.smtpUser,
+      attachments: resolvedAttachments,
     };
+
+    try {
+      const info = await transporter.sendMail(mailData);
+      return {
+        success: true,
+        messageId: info.messageId,
+        message: `Email successfully delivered to ${options.to} via Direct Gmail SMTP`,
+      };
+    } catch (smtpErr: any) {
+      console.warn("[EmailService] Primary Gmail SMTP dispatch attempt failed, attempting HTTPS REST API fallback:", smtpErr.message);
+    }
   }
+
+  // 2. Secondary Fallback Channel: Brevo / Resend HTTPS REST APIs (Port 443 - Operates over HTTPS)
+  const brevoKey = (process.env.BREVO_API_KEY || "").trim();
+  const resendKey = (process.env.RESEND_API_KEY || "").trim();
+  const senderEmail = (process.env.BREVO_SENDER_EMAIL || process.env.AUTH_EMAIL || process.env.AUTH_SMTP_USER || process.env.SMTP_USER || "info.smartlinkng@gmail.com").trim();
+  const activeSenderName = options.senderName || process.env.AUTH_EMAIL_SENDER_NAME || "SmartLink NG";
+
+  if (brevoKey && !brevoKey.startsWith("xsmtpsib-")) {
+    const brevoRes = await sendViaBrevoApi(brevoKey, {
+      to: options.to,
+      subject: options.subject,
+      html: options.html,
+      senderName: activeSenderName,
+      senderEmail,
+      replyTo: options.replyTo,
+      attachments: options.attachments as any,
+    });
+    if (brevoRes.success) {
+      return brevoRes;
+    }
+    console.warn("[EmailService] Brevo API dispatch note:", brevoRes.message);
+  }
+
+  if (resendKey && !resendKey.startsWith("xsmtpsib-")) {
+    const resendRes = await sendViaResendApi(resendKey, {
+      to: options.to,
+      subject: options.subject,
+      html: options.html,
+      senderName: activeSenderName,
+      senderEmail,
+      replyTo: options.replyTo,
+      attachments: options.attachments as any,
+    });
+    if (resendRes.success) {
+      return resendRes;
+    }
+    console.warn("[EmailService] Resend API dispatch note:", resendRes.message);
+  }
+
+  return {
+    success: false,
+    message: smtpConfigErr || "All email dispatch transports (Gmail SMTP & HTTPS REST APIs) failed.",
+    error: smtpConfigErr || "All email dispatch transports failed.",
+  };
 }

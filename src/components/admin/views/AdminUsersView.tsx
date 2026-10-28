@@ -99,6 +99,9 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
   useModalBackHandler(!!bulkActionType, "admin-user-bulk-modal", () => setBulkActionType(null));
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   useModalBackHandler(isExportModalOpen, "admin-user-export-modal", () => setIsExportModalOpen(false));
+  const [deleteModalUser, setDeleteModalUser] = useState<UserProfile | null>(null);
+  useModalBackHandler(!!deleteModalUser, "admin-user-delete-modal", () => setDeleteModalUser(null));
+  const [isDeletingUser, setIsDeletingUser] = useState(false);
   const [showTestPanel, setShowTestPanel] = useState(false);
 
   // Toast Feedback
@@ -256,6 +259,46 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
       showToast("success", `Password reset instructions sent to ${user.email}.`);
     } catch (err: any) {
       showToast("error", err.message);
+    }
+  };
+
+  // User Deletion Handler (Supabase, Turso & db.json at one click)
+  const handleConfirmDeleteUser = async () => {
+    if (!deleteModalUser) return;
+    setIsDeletingUser(true);
+    try {
+      const targetId = deleteModalUser.uid || (deleteModalUser as any).id;
+      const res = await fetch("/api/admin/users/delete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-token": session.sessionToken,
+        },
+        body: JSON.stringify({
+          targetUid: targetId,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || data.message || "Failed to delete user account.");
+      }
+      showToast(
+        "success",
+        data.message || `User ${deleteModalUser.email} has been permanently deleted from Supabase, Turso, and db.json.`
+      );
+      setUsers((prev) =>
+        prev.filter(
+          (u) =>
+            u.uid !== targetId &&
+            (u as any).id !== targetId &&
+            u.email?.toLowerCase().trim() !== deleteModalUser.email?.toLowerCase().trim()
+        )
+      );
+      setDeleteModalUser(null);
+    } catch (err: any) {
+      showToast("error", err.message || "Failed to delete user.");
+    } finally {
+      setIsDeletingUser(false);
     }
   };
 
@@ -698,6 +741,15 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
                                 <Unlock className="h-3.5 w-3.5" />
                               </button>
                             )}
+
+                            <button
+                              type="button"
+                              onClick={() => setDeleteModalUser(u)}
+                              title="Delete User Permanently (Supabase, Turso & db.json)"
+                              className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg cursor-pointer transition-colors shadow-xs"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -780,6 +832,7 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
         onOpenStatus={(u, st) => { setStatusModalUser(u); setTargetStatus(st); setActiveDrawerUserId(null); }}
         onOpenWallet={(u) => { setWalletModalUser(u); setActiveDrawerUserId(null); }}
         onOpenNotify={(u) => { setNotifyModalUser(u); setActiveDrawerUserId(null); }}
+        onOpenDelete={(u) => { setDeleteModalUser(u); setActiveDrawerUserId(null); }}
       />
 
       {/* Action Modals */}
@@ -831,6 +884,132 @@ export function AdminUsersView({ session, onNavigate }: AdminUsersViewProps) {
         usersToExport={filteredUsers}
         activeFilterSummary={`Status: ${statusFilter} | Verification: ${verificationFilter} | Role: ${roleFilter}`}
       />
+
+      {/* Permanent Multi-Store User Deletion Modal (Supabase, Turso & db.json) */}
+      <AnimatePresence>
+        {deleteModalUser && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 12 }}
+              className="bg-white rounded-2xl border border-rose-200 shadow-2xl max-w-lg w-full overflow-hidden text-[#111827]"
+            >
+              {/* Header */}
+              <div className="p-6 bg-rose-50/80 border-b border-rose-100 flex items-start gap-4">
+                <div className="h-12 w-12 rounded-xl bg-rose-100 border border-rose-200 flex items-center justify-center shrink-0 text-rose-600 shadow-xs">
+                  <Trash2 className="h-6 w-6" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base font-bold text-gray-900">
+                    Permanently Delete User Account
+                  </h3>
+                  <p className="text-xs text-rose-800 mt-1 leading-relaxed">
+                    This single-click action permanently and irrevocably deletes this user from all database and authentication platforms.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => !isDeletingUser && setDeleteModalUser(null)}
+                  disabled={isDeletingUser}
+                  className="p-1.5 rounded-lg hover:bg-rose-100 text-gray-400 hover:text-gray-700 disabled:opacity-40 cursor-pointer"
+                >
+                  <XCircle className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Target User Info Card */}
+              <div className="p-6 space-y-4">
+                <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Account Subject</span>
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-gray-200 text-gray-800 border border-gray-300">
+                      {deleteModalUser.role || "CUSTOMER"}
+                    </span>
+                  </div>
+                  <p className="text-sm font-bold text-gray-900 truncate">
+                    {deleteModalUser.fullName || "Registered User"}
+                  </p>
+                  <p className="text-xs text-gray-600 font-mono truncate">
+                    {deleteModalUser.email}
+                  </p>
+                  <div className="pt-2 border-t border-gray-200 flex items-center justify-between text-xs">
+                    <span className="text-gray-500">Wallet Balance:</span>
+                    <span className="font-bold text-emerald-700">
+                      ₦{(deleteModalUser.walletBalance || 0).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+
+                {/* 3 Storage Engines Purge Scope */}
+                <div className="space-y-2">
+                  <p className="text-[11px] font-bold text-gray-700 uppercase tracking-wider">
+                    Simultaneous Deletion Across 3 Systems:
+                  </p>
+                  <div className="grid grid-cols-1 gap-2 text-xs">
+                    <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 flex items-start gap-2.5 text-emerald-950">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <div>
+                        <span className="font-bold">Supabase Auth:</span> Credentials, active sessions, and refresh tokens are permanently purged.
+                      </div>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-200 flex items-start gap-2.5 text-blue-950">
+                      <CheckCircle2 className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+                      <div>
+                        <span className="font-bold">Turso SQL Database:</span> User row, wallet record, virtual accounts, passkeys, and ledger records are deleted.
+                      </div>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-purple-50 border border-purple-200 flex items-start gap-2.5 text-purple-950">
+                      <CheckCircle2 className="h-4 w-4 text-purple-600 shrink-0 mt-0.5" />
+                      <div>
+                        <span className="font-bold">db.json Store:</span> Cached user profiles, virtual accounts, and internal fallback stores are scrubbed.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Irreversible Caution */}
+                <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 flex items-start gap-2 text-xs text-amber-900">
+                  <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                  <span>
+                    <strong>Warning:</strong> This cannot be undone. Any remaining wallet balance will be lost and the user will not be able to log in.
+                  </span>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="p-4 bg-gray-50 border-t border-gray-200 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setDeleteModalUser(null)}
+                  disabled={isDeletingUser}
+                  className="px-4 py-2 bg-white hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-xl border border-gray-300 transition-colors disabled:opacity-40 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmDeleteUser}
+                  disabled={isDeletingUser}
+                  className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition-colors shadow-sm flex items-center gap-2 disabled:opacity-60 cursor-pointer"
+                >
+                  {isDeletingUser ? (
+                    <>
+                      <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                      <span>Deleting from Supabase, Turso & db.json...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="h-3.5 w-3.5" />
+                      <span>Delete from Supabase, Turso & db.json</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -229,6 +229,8 @@ export interface TursoAuditLog {
   id: string;
   log_id: string;
   user_id?: string | null;
+  user_email?: string | null;
+  user_name?: string | null;
   admin_uid?: string | null;
   admin_email?: string | null;
   admin_role?: string | null;

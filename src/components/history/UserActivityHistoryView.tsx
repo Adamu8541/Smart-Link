@@ -126,7 +126,7 @@ export const UserActivityHistoryView: React.FC<UserActivityHistoryViewProps> = (
     walletLogs: any[];
     verifications: any[];
     transactions: any[];
-    vtuServices: any[];
+    vtuServices?: any[];
     notifications: any[];
     logins: any[];
     activityLogs: any[];
