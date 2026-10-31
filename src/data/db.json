@@ -69,6 +69,22 @@
   "vendorServices": [],
   "auditLogs": [
     {
+      "id": "aud_tx_uwiq7ew",
+      "log_id": "aud_tx_uwiq7ew",
+      "user_id": "fde38150-6292-46db-815b-fb24b4aea352",
+      "admin_uid": null,
+      "admin_email": null,
+      "admin_role": null,
+      "action": "WALLET_TRANSACTION",
+      "resource_type": "WALLET_CREDIT",
+      "resource_id": "tx_uwiq7ew",
+      "ip_address": null,
+      "user_agent": null,
+      "status": "SUCCESS",
+      "details": "Wallet Credited ₦250 via Automated Virtual Account Top-Up. Ref: ASP-LIVE-TEST-1793455402976. New Balance: ₦1,080",
+      "created_at": "2026-10-31T14:03:26.905Z"
+    },
+    {
       "id": "aud_tx_pew0y1d",
       "log_id": "aud_tx_pew0y1d",
       "user_id": "fde38150-6292-46db-815b-fb24b4aea352",
@@ -545,6 +561,22 @@
   "walletLogs": [],
   "activityLogs": [
     {
+      "id": "aud_tx_uwiq7ew",
+      "log_id": "aud_tx_uwiq7ew",
+      "user_id": "fde38150-6292-46db-815b-fb24b4aea352",
+      "admin_uid": null,
+      "admin_email": null,
+      "admin_role": null,
+      "action": "WALLET_TRANSACTION",
+      "resource_type": "WALLET_CREDIT",
+      "resource_id": "tx_uwiq7ew",
+      "ip_address": null,
+      "user_agent": null,
+      "status": "SUCCESS",
+      "details": "Wallet Credited ₦250 via Automated Virtual Account Top-Up. Ref: ASP-LIVE-TEST-1793455402976. New Balance: ₦1,080",
+      "created_at": "2026-10-31T14:03:26.905Z"
+    },
+    {
       "id": "aud_tx_pew0y1d",
       "log_id": "aud_tx_pew0y1d",
       "user_id": "fde38150-6292-46db-815b-fb24b4aea352",
@@ -901,6 +933,18 @@
       "reference": "SL-5b6afc32-e50f-4a80-acfe-2c2ef08ed9ee-2095",
       "status": "ACTIVE",
       "createdAt": "2026-10-29T12:58:50.451Z"
+    },
+    {
+      "id": "va_prov_aspfiy_1793444375796",
+      "userId": "cb2ec973-5600-4f9d-802a-123f46366ad5",
+      "accountNumber": "3515742643",
+      "bankName": "Paga",
+      "bankCode": "999991",
+      "accountName": "Aspfiy-Smartlinkng Nasiru",
+      "provider": "prov_aspfiy",
+      "reference": "SL-cb2ec973-5600-4f9d-802a-123f46366ad5-9510",
+      "status": "ACTIVE",
+      "createdAt": "2026-10-31T10:59:36.195Z"
     }
   ],
   "api_providers": [
@@ -2424,6 +2468,50 @@
   ],
   "reconciliation_records": [
     {
+      "id": "rec_1793455404114_4272",
+      "paymentReference": "ASP-LIVE-TEST-1793455402976",
+      "providerTransactionId": "ASP-LIVE-TEST-1793455402976",
+      "provider": "Aspfiy Payment Portal",
+      "amount": 250,
+      "accountNumber": "3328714882",
+      "status": "VERIFIED",
+      "userId": "fde38150-6292-46db-815b-fb24b4aea352",
+      "userEmail": "harunagarba2019@gmail.com",
+      "walletId": "wlt_fde38150-6292-46db-815b-fb24b4aea352",
+      "date": "2026-10-31T14:03:24.114Z",
+      "verificationResult": {
+        "verified": true,
+        "matched": true,
+        "providerName": "Aspfiy Payment Portal",
+        "providerResponseCode": "SUCCESS",
+        "comparisonDetails": {
+          "amountMatch": true,
+          "referenceMatch": true,
+          "accountMatch": true,
+          "providerTxIdMatch": true,
+          "statusMatch": true,
+          "verifiedAmount": 250,
+          "verifiedReference": "ASP-LIVE-TEST-1793455402976",
+          "verifiedAccount": "3328714882"
+        },
+        "message": "Payment verified and matched successfully."
+      },
+      "rawPayload": {
+        "event": "charge.completed",
+        "data": {
+          "reference": "ASP-LIVE-TEST-1793455402976",
+          "amount": 250,
+          "status": "success",
+          "account": {
+            "account_number": "3328714882",
+            "bank_name": "Paga"
+          }
+        }
+      },
+      "createdAt": "2026-10-31T14:03:24.114Z",
+      "updatedAt": "2026-10-31T14:03:24.114Z"
+    },
+    {
       "id": "rec_1792827566523_9179",
       "paymentReference": "TEST_DEV_ASP_99",
       "providerTransactionId": "TEST_DEV_ASP_99",
@@ -2909,8 +2997,8 @@
     {
       "userId": "fde38150-6292-46db-815b-fb24b4aea352",
       "walletId": "wal_fde38150-6292-46db-815b-fb24b4aea352",
-      "balance": 130,
-      "currentBalance": 130,
+      "balance": 830,
+      "currentBalance": 830,
       "heldBalance": 0,
       "totalCredits": 50,
       "totalDebits": 0,
@@ -2918,7 +3006,7 @@
       "walletStatus": "ACTIVE",
       "currency": "NGN",
       "createdAt": "2026-10-30 18:52:39",
-      "updatedAt": "2026-10-31T05:58:58.082Z",
+      "updatedAt": "2026-10-31T14:03:38.052Z",
       "id": "wal_fde38150-6292-46db-815b-fb24b4aea352",
       "wallet_id": "wal_fde38150-6292-46db-815b-fb24b4aea352",
       "user_id": "fde38150-6292-46db-815b-fb24b4aea352",

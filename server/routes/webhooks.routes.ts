@@ -7,14 +7,14 @@ import { readDB, writeDB, initializeDB, DB_DIR, DB_FILE, UPLOADS_DIR, SUPER_ADMI
 import { verifyUserOrAdminSession, requireAdmin } from "../middleware/auth";
 import { isMaintenanceModeActive, getMaintenanceDetails, getValueByJsonPath, seedModule7SettingsIfEmpty, sanitizePublicSettings } from "../middleware/maintenance";
 import { getAI } from "../services/ai";
-import { 
-  DEFAULT_SERVICES_CATALOG, 
-  seedDefaultServicesCatalogIfEmpty, 
-  seedDefaultUsersIfEmpty, 
-  seedDefaultTransactionsIfEmpty, 
-  recordAdminUserAction, 
-  getOrCreateUserVirtualAccount, 
-  resolveVtuPlanAndPricing 
+import {
+  DEFAULT_SERVICES_CATALOG,
+  seedDefaultServicesCatalogIfEmpty,
+  seedDefaultUsersIfEmpty,
+  seedDefaultTransactionsIfEmpty,
+  recordAdminUserAction,
+  getOrCreateUserVirtualAccount,
+  resolveVtuPlanAndPricing
 } from "../services/sharedHelpers";
 import { ServerWalletEngine } from "../../src/services/serverWalletEngine";
 import { APIProviderManager, DEFAULT_PROVIDERS } from "../../src/services/apiProviderManager";
@@ -42,7 +42,8 @@ function verifyPortalWebhookSignature(req: express.Request, db: any): { isValid:
     (db.api_providers || []).find((p: any) => (p.category || "").toLowerCase().includes("portal") || (p.type || "").toLowerCase().includes("payment")) ||
     (db.apiProviders || []).find((p: any) => (p.category || "").toLowerCase().includes("portal") || (p.type || "").toLowerCase().includes("payment")) ||
     (db.api_providers || []).find((p: any) => p.status === "Active" || p.isActive) ||
-    (db.apiProviders || []).find((p: any) => p.status === "Active" || p.isActive);
+    (db.apiProviders || []).find((p: any) => p.status === "Active" || p.isActive) ||
+    DEFAULT_PROVIDERS.find((p: any) => p.id === "prov_aspfiy" || (p.name || "").toLowerCase().includes("aspfiy"));
 
   const rawBodyStr = (req as any).rawBody || (typeof req.body === "string" ? req.body : JSON.stringify(req.body));
   return verifyWebhookSignature(provider, rawBodyStr, req.headers as any);
@@ -715,7 +716,7 @@ app.post("/api/admin/webhooks/:id/test", requireAdmin, async (req, res) => {
     db.webhooks[idx].lastTestedAt = new Date().toISOString();
     db.webhooks[idx].lastResult = "Invalid URL";
     db.webhooks[idx].lastStatusCode = 0;
-    
+
     if (!db.webhookLogs) db.webhookLogs = [];
     db.webhookLogs.unshift({
       id: "whlog_" + Date.now() + "_" + Math.floor(Math.random() * 1000),

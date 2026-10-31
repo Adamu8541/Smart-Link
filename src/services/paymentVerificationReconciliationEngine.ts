@@ -169,12 +169,20 @@ export class PaymentVerificationReconciliationEngine {
         extractAccNumFromObj(payload.account_number) ||
         extractAccNumFromObj(payload.destinationAccountNumber) ||
         extractAccNumFromObj(payload.virtualAccountNumber) ||
+        extractAccNumFromObj(payload.virtual_account_number) ||
         extractAccNumFromObj(payload.account) ||
         extractAccNumFromObj(eventData.account) ||
         extractAccNumFromObj(eventData.accountNumber) ||
         extractAccNumFromObj(eventData.account_number) ||
+        extractAccNumFromObj(eventData.virtual_account_number) ||
         extractAccNumFromObj(eventData.destinationAccountNumber) ||
         extractAccNumFromObj(eventData.virtualAccountNumber) ||
+        extractAccNumFromObj(eventData.virtual_account) ||
+        extractAccNumFromObj(eventData.virtualAccount) ||
+        extractAccNumFromObj(eventData.bank_account) ||
+        extractAccNumFromObj(eventData.bankAccount) ||
+        extractAccNumFromObj(eventData.customer_account) ||
+        extractAccNumFromObj(eventData.customerAccount) ||
         extractAccNumFromObj(eventData.palmpay_account) ||
         extractAccNumFromObj(eventData.palmpayAccount) ||
         extractAccNumFromObj(params.expectedAccount) ||
