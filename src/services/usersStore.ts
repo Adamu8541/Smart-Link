@@ -370,6 +370,23 @@ export async function updateUser(uid: string, updates: Partial<UserDoc>): Promis
     ]
   );
 
+  // If walletBalance was updated, atomically synchronize Turso wallets table and db.wallets
+  if (updates.walletBalance !== undefined && !isNaN(Number(updates.walletBalance))) {
+    const numericBal = Number(updates.walletBalance);
+    try {
+      await executeTurso(
+        `INSERT INTO wallets (id, user_id, wallet_id, balance, held_balance, total_credits, total_debits, status, currency, created_at, updated_at)
+         VALUES (?, ?, ?, ?, 0, ?, 0, 'ACTIVE', 'NGN', ?, ?)
+         ON CONFLICT(user_id) DO UPDATE SET
+           balance = excluded.balance,
+           updated_at = excluded.updated_at;`,
+        [`wal_${uid}`, uid, `wal_${uid}`, numericBal, numericBal, now, now]
+      );
+    } catch (err: any) {
+      console.warn(`[usersStore] Sync to wallets table note: ${err?.message}`);
+    }
+  }
+
   // Keep db.json in sync if it exists
   try {
     const db = readDB();
@@ -377,9 +394,32 @@ export async function updateUser(uid: string, updates: Partial<UserDoc>): Promis
       const idx = db.users.findIndex((u: any) => u.uid === uid || u.id === uid);
       if (idx !== -1) {
         db.users[idx] = { ...db.users[idx], ...updates, updatedAt: now };
-        writeDB(db);
       }
     }
+    if (updates.walletBalance !== undefined && !isNaN(Number(updates.walletBalance))) {
+      const numericBal = Number(updates.walletBalance);
+      if (!Array.isArray(db.wallets)) db.wallets = [];
+      const wIdx = db.wallets.findIndex((w: any) => w.userId === uid || w.walletId === `wal_${uid}` || w.walletId === uid);
+      if (wIdx !== -1) {
+        db.wallets[wIdx] = { ...db.wallets[wIdx], balance: numericBal, currentBalance: numericBal, updatedAt: now };
+      } else {
+        db.wallets.push({
+          userId: uid,
+          walletId: `wal_${uid}`,
+          balance: numericBal,
+          currentBalance: numericBal,
+          heldBalance: 0,
+          totalCredits: numericBal,
+          totalDebits: 0,
+          status: "ACTIVE",
+          walletStatus: "ACTIVE",
+          currency: "NGN",
+          createdAt: now,
+          updatedAt: now,
+        });
+      }
+    }
+    writeDB(db);
   } catch {}
 
   return getUserByUid(uid);

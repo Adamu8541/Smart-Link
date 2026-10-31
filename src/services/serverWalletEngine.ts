@@ -139,13 +139,31 @@ export class ServerWalletEngine {
       }
     } else {
       if (!wallet.walletId) wallet.walletId = `wal_${primaryUid}`;
-      
+
       const rawWalletBal = typeof wallet.balance === "number" && !isNaN(wallet.balance)
         ? wallet.balance
         : (typeof wallet.currentBalance === "number" && !isNaN(wallet.currentBalance) ? wallet.currentBalance : 0.0);
 
-      // Reconcile: Prefer rawWalletBal as Turso wallets table source of truth; if rawWalletBal is 0 and userBal > 0, use userBal
-      const reconciledBal = (rawWalletBal === 0 && userBal > 0) ? userBal : rawWalletBal;
+      // Reconcile user.walletBalance and wallet.balance with timestamp and adjustment awareness
+      let reconciledBal = rawWalletBal;
+      const userUpdatedAtMs = user?.updatedAt ? new Date(user.updatedAt).getTime() : 0;
+      const walletUpdatedAtMs = wallet.updatedAt ? new Date(wallet.updatedAt).getTime() : 0;
+
+      if (rawWalletBal !== userBal) {
+        if (rawWalletBal === 0 && userBal > 0) {
+          reconciledBal = userBal;
+        } else if (userBal === 0 && rawWalletBal > 0 && (!userUpdatedAtMs || userUpdatedAtMs <= walletUpdatedAtMs)) {
+          reconciledBal = rawWalletBal;
+        } else if (userUpdatedAtMs > walletUpdatedAtMs + 500) {
+          // User record was modified more recently (e.g. admin manual wallet adjustment or profile update)
+          reconciledBal = userBal;
+        } else if (walletUpdatedAtMs > userUpdatedAtMs + 500) {
+          // Wallet record was modified more recently
+          reconciledBal = rawWalletBal;
+        } else {
+          reconciledBal = rawWalletBal;
+        }
+      }
       wallet.balance = reconciledBal;
       wallet.currentBalance = reconciledBal;
 

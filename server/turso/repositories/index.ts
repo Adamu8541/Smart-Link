@@ -70,6 +70,10 @@ export class UserRepository {
     return (result.rows[0] as unknown as TursoUser) || null;
   }
 
+  static async findById(id: string): Promise<TursoUser | null> {
+    return this.findByUid(id);
+  }
+
   static async findByEmail(email: string): Promise<TursoUser | null> {
     const sql = `SELECT * FROM users WHERE lower(email) = lower(?) LIMIT 1;`;
     const result = await executeTurso(sql, [email.trim()]);
@@ -508,9 +512,42 @@ export class VirtualAccountRepository {
   }
 
   static async findByAccountNumber(accountNumber: string): Promise<TursoVirtualAccount | null> {
-    const sql = `SELECT * FROM user_virtual_accounts WHERE account_number = ? LIMIT 1;`;
-    const result = await executeTurso(sql, [accountNumber]);
+    if (!accountNumber) return null;
+    const rawAcc = String(accountNumber).trim();
+    const cleanAcc = rawAcc.replace(/\D/g, "");
+    const tail10 = cleanAcc.length >= 10 ? cleanAcc.slice(-10) : cleanAcc;
+
+    // 1. Exact match on raw or clean account number
+    let sql = `SELECT * FROM user_virtual_accounts WHERE account_number = ? OR account_number = ? LIMIT 1;`;
+    let result = await executeTurso(sql, [rawAcc, cleanAcc]);
+    if (result.rows && result.rows.length > 0) {
+      return result.rows[0] as unknown as TursoVirtualAccount;
+    }
+
+    // 2. Suffix match on last 10 digits
+    if (tail10 && tail10.length >= 8) {
+      sql = `SELECT * FROM user_virtual_accounts WHERE account_number LIKE ? OR REPLACE(account_number, ' ', '') LIKE ? LIMIT 1;`;
+      result = await executeTurso(sql, [`%${tail10}`, `%${tail10}`]);
+      if (result.rows && result.rows.length > 0) {
+        return result.rows[0] as unknown as TursoVirtualAccount;
+      }
+    }
+
+    return null;
+  }
+
+  static async findByReference(reference: string): Promise<TursoVirtualAccount | null> {
+    if (!reference) return null;
+    const cleanRef = String(reference).trim();
+    const sql = `SELECT * FROM user_virtual_accounts WHERE reference = ? OR reference LIKE ? LIMIT 1;`;
+    const result = await executeTurso(sql, [cleanRef, `%${cleanRef}%`]);
     return (result.rows[0] as unknown as TursoVirtualAccount) || null;
+  }
+
+  static async listAll(): Promise<TursoVirtualAccount[]> {
+    const sql = `SELECT * FROM user_virtual_accounts WHERE is_active = 1 ORDER BY created_at DESC;`;
+    const result = await executeTurso(sql, []);
+    return (result.rows || []) as unknown as TursoVirtualAccount[];
   }
 }
 

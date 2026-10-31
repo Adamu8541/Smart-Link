@@ -261,6 +261,21 @@ export async function getOrCreateUserVirtualAccount(
             createdAt: tursoVa.created_at || new Date().toISOString(),
           };
 
+          // Synchronize in-memory cache and db.json
+          if (!Array.isArray(db.virtualAccounts)) db.virtualAccounts = [];
+          if (!Array.isArray(db.walletAccounts)) db.walletAccounts = [];
+          const cleanAccNum = accNum.replace(/\D/g, "");
+          const vaIdx = db.virtualAccounts.findIndex(
+            (va: any) => String(va.accountNumber || va.account_number || "").replace(/\D/g, "") === cleanAccNum
+          );
+          if (vaIdx === -1) {
+            db.virtualAccounts.push(existingAccount);
+            db.walletAccounts.push(existingAccount);
+            writeDB(db);
+          } else {
+            db.virtualAccounts[vaIdx] = { ...db.virtualAccounts[vaIdx], ...existingAccount };
+          }
+
           return {
             success: true,
             account: existingAccount,
@@ -520,8 +535,11 @@ export async function getOrCreateUserVirtualAccount(
     console.warn(`[Turso] Virtual account save note: ${tursoSaveErr?.message}`);
   }
 
+  if (!Array.isArray(db.virtualAccounts)) db.virtualAccounts = [];
+  if (!Array.isArray(db.walletAccounts)) db.walletAccounts = [];
   db.virtualAccounts.push(virtualAccount);
   db.walletAccounts.push(virtualAccount);
+  writeDB(db);
 
   try {
     await walletsStore.updateWalletAtomic(userId, () => ({

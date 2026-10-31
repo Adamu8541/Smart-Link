@@ -8,7 +8,7 @@ import crypto from "crypto";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
 import { adminAuthService } from "../src/services/adminAuthService";
-import { testTursoConnection } from "./turso/client";
+import { testTursoConnection, executeTurso } from "./turso/client";
 import { initializeTursoSchema } from "./turso/schema";
 
 dotenv.config();
@@ -205,6 +205,38 @@ testTursoConnection().then(async (conn) => {
       const initRes = await initializeTursoSchema();
       if (initRes.success) {
         console.log(`[server] Turso schema verified (${initRes.tablesCreated} tables ready).`);
+      }
+      // Populate active virtual accounts from Turso database to ensure zero-loss during reboots/writes
+      try {
+        const vaRes = await executeTurso("SELECT * FROM user_virtual_accounts WHERE is_active = 1;");
+        if (vaRes.rows && vaRes.rows.length > 0) {
+          const mem = readDB();
+          if (!Array.isArray(mem.virtualAccounts)) mem.virtualAccounts = [];
+          for (const row of vaRes.rows as any[]) {
+            const clean = String(row.account_number || "").replace(/\D/g, "");
+            const exists = mem.virtualAccounts.some(
+              (va: any) => String(va.accountNumber || va.account_number || "").replace(/\D/g, "") === clean
+            );
+            if (!exists) {
+              mem.virtualAccounts.push({
+                id: row.id,
+                userId: row.user_id,
+                accountNumber: row.account_number,
+                bankName: row.bank_name,
+                bankCode: row.bank_code,
+                accountName: row.account_name,
+                provider: row.provider,
+                reference: row.reference,
+                status: "ACTIVE",
+                createdAt: row.created_at,
+              });
+            }
+          }
+          writeDB(mem);
+          console.log(`[server] Synchronized ${vaRes.rows.length} persistent virtual accounts from Turso.`);
+        }
+      } catch (vaSyncErr: any) {
+        console.warn("[server] Virtual accounts initial sync note:", vaSyncErr?.message);
       }
     } catch (schemaErr: any) {
       console.warn("[server] Turso schema auto-init note:", schemaErr?.message);

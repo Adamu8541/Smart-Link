@@ -20,6 +20,7 @@ import { ProviderExecutor, verifyWebhookSignature } from "./providerExecutor";
 import { getActiveProviderAndAdapter, getAdapterById } from "./providerConnector";
 import * as usersStore from "./usersStore";
 import { formatNaira } from "../utils/formatUtils";
+import { VirtualAccountRepository, UserRepository } from "../../server/turso/repositories/index";
 
 const saveDocToStorage = async (...args: any[]) => {};
 
@@ -402,27 +403,69 @@ export class PaymentVerificationReconciliationEngine {
 
     // 5. User & Wallet Matching Strategy
     // 5. User & Wallet Matching Strategy (Option 1: Account Number + Email & Phone Fallback)
+    // 5. User & Wallet Matching Strategy
     let matchedUser: any = null;
 
-    // Strategy 5A: Account Number Lookup
+    // Strategy 5A: Account Number Lookup (Turso user_virtual_accounts primary + memory cache)
     if (accountNumber) {
-      const cleanAcc = accountNumber.replace(/\D/g, "");
-      const allAccounts = (db.virtualAccounts || []).concat(db.walletAccounts || []);
-      const matchedAccount = allAccounts.find((acc: any) => {
-        const accNum = String(acc.accountNumber || acc.virtualAccountNumber || "").replace(/\D/g, "");
-        return accNum && (accNum === cleanAcc || accNum.endsWith(cleanAcc) || cleanAcc.endsWith(accNum));
-      });
+      const cleanAcc = String(accountNumber).replace(/\D/g, "");
 
-      if (matchedAccount) {
-        matchedUser = (db.users || []).find((u: any) => u.uid === matchedAccount.userId || u.id === matchedAccount.userId);
-        if (!matchedUser) {
+      // 1. First priority: Direct query on Turso SQL user_virtual_accounts table
+      try {
+        const tursoVa = await VirtualAccountRepository.findByAccountNumber(cleanAcc);
+        if (tursoVa && tursoVa.user_id) {
           matchedUser =
-            (await usersStore.getUserById(matchedAccount.userId)) ||
-            (matchedAccount.userEmail ? await usersStore.getUserByEmail(matchedAccount.userEmail) : null);
+            (await usersStore.getUserById(tursoVa.user_id)) ||
+            (await usersStore.getUserByUid(tursoVa.user_id)) ||
+            (await UserRepository.findByUid(tursoVa.user_id));
+
+          if (matchedUser) {
+            // Keep in-memory virtualAccounts synchronized so downstream routines find it
+            if (!Array.isArray(db.virtualAccounts)) db.virtualAccounts = [];
+            const existingIdx = db.virtualAccounts.findIndex(
+              (va: any) => String(va.accountNumber || va.account_number || "").replace(/\D/g, "") === cleanAcc
+            );
+            const vaEntry = {
+              id: tursoVa.id || `va_${tursoVa.provider || "portal"}_${tursoVa.user_id}`,
+              userId: tursoVa.user_id,
+              userEmail: matchedUser.email || "",
+              userName: tursoVa.account_name || matchedUser.fullName,
+              accountNumber: tursoVa.account_number,
+              bankName: tursoVa.bank_name,
+              provider: tursoVa.provider,
+              reference: tursoVa.reference,
+              status: "ACTIVE",
+            };
+            if (existingIdx !== -1) {
+              db.virtualAccounts[existingIdx] = { ...db.virtualAccounts[existingIdx], ...vaEntry };
+            } else {
+              db.virtualAccounts.push(vaEntry);
+            }
+          }
+        }
+      } catch (vaErr) {
+        console.warn(`[ReconciliationEngine] Turso virtual account lookup error: ${vaErr}`);
+      }
+
+      // 2. Secondary: in-memory / JSON virtualAccounts
+      if (!matchedUser) {
+        const allAccounts = (db.virtualAccounts || []).concat(db.walletAccounts || []);
+        const matchedAccount = allAccounts.find((acc: any) => {
+          const accNum = String(acc.accountNumber || acc.virtualAccountNumber || "").replace(/\D/g, "");
+          return accNum && (accNum === cleanAcc || accNum.endsWith(cleanAcc) || cleanAcc.endsWith(accNum));
+        });
+
+        if (matchedAccount) {
+          matchedUser = (db.users || []).find((u: any) => u.uid === matchedAccount.userId || u.id === matchedAccount.userId);
+          if (!matchedUser) {
+            matchedUser =
+              (await usersStore.getUserById(matchedAccount.userId)) ||
+              (matchedAccount.userEmail ? await usersStore.getUserByEmail(matchedAccount.userEmail) : null);
+          }
         }
       }
 
-      // Also check Storage user documents directly
+      // 3. Direct scan of usersStore
       if (!matchedUser) {
         try {
           const allUsers = await usersStore.getAllUsers();
@@ -451,7 +494,8 @@ export class PaymentVerificationReconciliationEngine {
       if (extractedEmail && extractedEmail.includes("@")) {
         matchedUser =
           (db.users || []).find((u: any) => u.email && u.email.toLowerCase() === extractedEmail) ||
-          (await usersStore.getUserByEmail(extractedEmail));
+          (await usersStore.getUserByEmail(extractedEmail)) ||
+          (await UserRepository.findByEmail(extractedEmail));
       }
     }
 
@@ -485,11 +529,22 @@ export class PaymentVerificationReconciliationEngine {
 
     // Strategy 5D: User Reference / Merchant Reference Lookup
     if (!matchedUser && userReference) {
-      if (userReference.startsWith("SL-")) {
+      try {
+        const tursoVaRef = await VirtualAccountRepository.findByReference(userReference);
+        if (tursoVaRef && tursoVaRef.user_id) {
+          matchedUser =
+            (await usersStore.getUserById(tursoVaRef.user_id)) ||
+            (await usersStore.getUserByUid(tursoVaRef.user_id)) ||
+            (await UserRepository.findByUid(tursoVaRef.user_id));
+        }
+      } catch {}
+
+      if (!matchedUser && userReference.startsWith("SL-")) {
         const potentialUid = userReference.substring(3).trim();
         matchedUser =
           (db.users || []).find((u: any) => u.uid === potentialUid || u.id === potentialUid) ||
-          (await usersStore.getUserById(potentialUid));
+          (await usersStore.getUserById(potentialUid)) ||
+          (await UserRepository.findByUid(potentialUid));
       }
 
       if (!matchedUser) {
@@ -501,7 +556,8 @@ export class PaymentVerificationReconciliationEngine {
               (u.email && u.email.toLowerCase() === userReference.toLowerCase())
           ) ||
           (await usersStore.getUserById(userReference)) ||
-          (await usersStore.getUserByEmail(userReference));
+          (await usersStore.getUserByEmail(userReference)) ||
+          (await UserRepository.findByUid(userReference));
       }
 
       if (!matchedUser && (db.virtualAccounts || db.walletAccounts)) {
@@ -521,13 +577,25 @@ export class PaymentVerificationReconciliationEngine {
     }
 
     if (!matchedUser && reference) {
-      if (reference.startsWith("SL-")) {
+      try {
+        const tursoVaRef = await VirtualAccountRepository.findByReference(reference);
+        if (tursoVaRef && tursoVaRef.user_id) {
+          matchedUser =
+            (await usersStore.getUserById(tursoVaRef.user_id)) ||
+            (await usersStore.getUserByUid(tursoVaRef.user_id)) ||
+            (await UserRepository.findByUid(tursoVaRef.user_id));
+        }
+      } catch {}
+
+      if (!matchedUser && reference.startsWith("SL-")) {
         const potentialUid = reference.substring(3).trim();
         const stemUid = potentialUid.includes("-") ? potentialUid.slice(0, potentialUid.lastIndexOf("-")) : potentialUid;
         matchedUser =
           (db.users || []).find((u: any) => u.uid === potentialUid || u.id === potentialUid || u.uid === stemUid || u.id === stemUid) ||
           (await usersStore.getUserById(potentialUid)) ||
-          (await usersStore.getUserById(stemUid));
+          (await usersStore.getUserById(stemUid)) ||
+          (await UserRepository.findByUid(potentialUid)) ||
+          (await UserRepository.findByUid(stemUid));
       }
 
       if (!matchedUser && (db.virtualAccounts || db.walletAccounts)) {
@@ -542,6 +610,16 @@ export class PaymentVerificationReconciliationEngine {
             (db.users || []).find((u: any) => u.uid === matchedAccount.userId || u.id === matchedAccount.userId) ||
             (await usersStore.getUserById(matchedAccount.userId));
         }
+      }
+    }
+
+    // Ensure matchedUser identifier normalization (uid vs id)
+    if (matchedUser) {
+      if (!matchedUser.uid && matchedUser.id) {
+        matchedUser.uid = matchedUser.id;
+      }
+      if (!matchedUser.id && matchedUser.uid) {
+        matchedUser.id = matchedUser.uid;
       }
     }
 
