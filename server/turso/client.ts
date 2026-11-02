@@ -1,7 +1,7 @@
 /**
  * SMART LINK NG — Turso Database Client (Phase 5)
  * Centralized, secure database client for libSQL / Turso.
- * 
+ *
  * SECURITY:
  * - Credentials are strictly accessed server-side from environment variables.
  * - Enforces PRAGMA foreign_keys = ON on connection.
@@ -13,7 +13,7 @@ import { createClient } from "@libsql/client";
 import type { Client, InStatement, Transaction } from "@libsql/client";
 import dotenv from "dotenv";
 
-dotenv.config();
+dotenv.config({ override: true });
 
 let clientInstance: Client | null = null;
 
@@ -79,11 +79,11 @@ export async function testTursoConnection(): Promise<{ ok: boolean; url: string;
   try {
     const client = getTursoClient();
     const config = getTursoConfig();
-    
+
     // Enable foreign keys
     await client.execute("PRAGMA foreign_keys = ON;");
     const result = await client.execute("SELECT 1 AS connected, sqlite_version() AS version;");
-    
+
     if (result.rows && result.rows.length > 0) {
       return {
         ok: true,

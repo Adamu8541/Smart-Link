@@ -11,7 +11,7 @@ import { adminAuthService } from "../src/services/adminAuthService";
 import { testTursoConnection, executeTurso } from "./turso/client";
 import { initializeTursoSchema } from "./turso/schema";
 
-dotenv.config();
+dotenv.config({ override: true });
 
 // Database directories and file paths
 export const IS_VERCEL = Boolean(process.env.VERCEL);

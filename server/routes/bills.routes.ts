@@ -25,6 +25,7 @@ import { AutomaticWalletFundingEngine } from "../../src/services/automaticWallet
 import { PaymentVerificationReconciliationEngine } from "../../src/services/paymentVerificationReconciliationEngine";
 import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/services/providerConnector";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
+import { ClubKonnectAdapter } from "../../src/services/providers/clubkonnectAdapter";
 import { MultiProviderRoutingEngine } from "../../src/services/multiProviderRoutingEngine";
 import { syncFromStorage, syncToStorage } from "../../src/services/settingsStore";
 import * as usersStore from "../../src/services/usersStore";
@@ -742,41 +743,16 @@ app.get("/api/bills/providers", async (req, res) => {
   res.json({ success: true, providers });
 });
 
-let cachedBigisubDataPlans: any[] = [];
-let lastBigisubDataPlansFetchTime = 0;
-
-async function fetchLiveBigisubDataPlans(db: any): Promise<any[]> {
-  const now = Date.now();
-  if (cachedBigisubDataPlans.length > 0 && (now - lastBigisubDataPlansFetchTime) < 300000) {
-    return cachedBigisubDataPlans;
-  }
-
-  try {
-    const prov = (db.api_providers || db.apiProviders || []).find(
-      (p: any) => p && (p.id === "prov_bigisub" || (p.name || "").toLowerCase().includes("bigisub"))
-    );
-    const apiToken = (prov?.apiToken || prov?.apiKey || prov?.secretKey || process.env.BIGISUB_API_TOKEN || "86d0661f6d7990712294818a202c7b092df21b41").trim();
-    const baseUrl = (prov?.baseUrl || "https://bigisub.ng/api/v2").replace(/\/+$/, "");
-
-    const fetchRes = await fetch(`${baseUrl}/vtu/data/plans/`, {
-      headers: { "Authorization": `Token ${apiToken}` },
-    });
-
-    if (fetchRes.ok) {
-      const json = await fetchRes.json();
-      const rawList = Array.isArray(json) ? json : (json.data || json.results || json.plans || []);
-      if (Array.isArray(rawList) && rawList.length > 0) {
-        cachedBigisubDataPlans = rawList;
-        lastBigisubDataPlansFetchTime = now;
-        return rawList;
-      }
-    }
-  } catch (err: any) {
-    console.error("[Bigisub Plans Engine] Error fetching live plans:", err?.message || err);
-  }
-
-  return cachedBigisubDataPlans;
-}
+export {
+  isDataPlanUnder1GB,
+  extractDataPlanValidity,
+  extractDataPlanVolume,
+  fetchLiveClubkonnectDataPlans,
+  fetchLiveBigisubDataPlans,
+  fetchLiveDataPlans,
+  getLiveDataPlanById
+} from "../services/dataPlans.service";
+import { fetchLiveDataPlans, getLiveDataPlanById } from "../services/dataPlans.service";
 
 // Get Plans for Provider
 app.get("/api/bills/plans", async (req, res) => {
@@ -786,43 +762,12 @@ app.get("/api/bills/plans", async (req, res) => {
 
   let plans: any[] = [];
   if (category === "DATA") {
-    const rawBigisubPlans = await fetchLiveBigisubDataPlans(db);
-    const markupFee = 20.0;
-
-    if (rawBigisubPlans.length > 0) {
-      const formatted = rawBigisubPlans.map((p: any) => {
-        const netUpper = String(p.network_name || "MTN").toUpperCase().trim();
-        const baseCost = Number(p.amount || p.plan_amount || 0);
-        const retailPrice = Math.round((baseCost + markupFee) * 100) / 100;
-        let dType = String(p.plantype || "DIRECT").toUpperCase().trim();
-        if (dType.includes("CG") || dType.includes("CORPORATE")) dType = "CORPORATE";
-        else if (dType.includes("SME")) dType = "SME";
-        else if (dType.includes("GIFT")) dType = "GIFTING";
-        else dType = "DIRECT";
-
-        const sizeStr = `${p.size}${p.plan_volume || "MB"}`;
-        const validityStr = p.validity || "30 Days";
-
-        return {
-          id: p.id, // INTEGER pk value e.g. 258, 71, 304!
-          providerCode: netUpper,
-          planCode: p.id, // INTEGER pk value!
-          planName: `${netUpper} ${sizeStr} ${p.plantype || ""} (${validityStr})`,
-          dataType: dType,
-          dataVolume: sizeStr,
-          validity: validityStr,
-          amount: retailPrice,
-          baseCost,
-          category: "DATA"
-        };
-      });
-
-      const reqProvUpper = String(provider || "").toUpperCase().trim();
-      if (reqProvUpper && reqProvUpper !== "ALL") {
-        plans = formatted.filter((p: any) => p.providerCode === reqProvUpper);
-      } else {
-        plans = formatted;
-      }
+    const liveDataPlans = await fetchLiveDataPlans(db);
+    const reqProvUpper = String(provider || "").toUpperCase().trim();
+    if (reqProvUpper && reqProvUpper !== "ALL") {
+      plans = liveDataPlans.filter((p: any) => p.providerCode === reqProvUpper);
+    } else {
+      plans = liveDataPlans;
     }
   } else if (category === "CABLE_TV") {
     if (provider === "DSTV") {
@@ -998,7 +943,17 @@ app.post("/api/bills/pay", async (req, res) => {
     });
   }
 
-  const totalDeduction = parseFloat(amount) + parseFloat(charge);
+  let effectiveAmount = parseFloat(amount);
+  let livePlan: any = null;
+  if (category === "DATA" && planId) {
+    livePlan = await getLiveDataPlanById(db, planId);
+    if (livePlan && livePlan.amount) {
+      // Securely enforce exact wholesale + 15 (<1GB) or 30 (>=1GB) profit margin pricing
+      effectiveAmount = livePlan.amount;
+    }
+  }
+
+  const totalDeduction = effectiveAmount + parseFloat(charge);
   const smartlinkReference = `SL-BILL-${category}-${Math.floor(100000 + Math.random() * 900000)}`;
   const receiptId = `REC-${smartlinkReference}`;
 
@@ -1027,16 +982,18 @@ app.post("/api/bills/pay", async (req, res) => {
   }
 
   // 3. Execute real HTTP call to the active provider via providerExecutor (Requirements 1 & 2)
+  const execPlanId = livePlan?.planCode || planId;
+  const execPlanName = livePlan?.planName || planName;
   const execRes = await ProviderExecutor.executeProviderCall(db, {
     category,
     customerId,
     customerName,
     phoneNumber,
-    amount: parseFloat(amount),
+    amount: livePlan?.baseCost || effectiveAmount,
     charge: parseFloat(charge),
     meterType,
-    planId,
-    planName,
+    planId: execPlanId,
+    planName: execPlanName,
     smartlinkReference,
     providerCode: activeProvider.id || providerCode,
     providerName: activeProvider.name || providerName,
@@ -1046,9 +1003,13 @@ app.post("/api/bills/pay", async (req, res) => {
       originalProviderCode: providerCode,
       originalProviderName: providerName,
       type: category === "AIRTIME" ? "AIRTIME" : (category === "DATA" ? "DATA" : undefined),
-      planId,
-      planName,
+      planId: execPlanId,
+      planCode: execPlanId,
+      planName: execPlanName,
       meterType,
+      baseCost: livePlan?.baseCost,
+      profitMargin: livePlan?.profitMargin,
+      wholesaleCost: livePlan?.baseCost,
       ...(extraData || {}),
     },
   });

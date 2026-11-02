@@ -13,6 +13,7 @@ import { IdentroAdapter } from "./providers/identroAdapter";
 import { PrembleyAdapter } from "./providers/prembleyAdapter";
 import { VTpassAdapter } from "./providers/vtpassAdapter";
 import { BigisubAdapter } from "./providers/bigisubAdapter";
+import { ClubKonnectAdapter } from "./providers/clubkonnectAdapter";
 
 const registeredAdapters: Record<string, ProviderAdapter> = {
   aspfiy: new AspfiyAdapter(),
@@ -23,6 +24,8 @@ const registeredAdapters: Record<string, ProviderAdapter> = {
   identitypass: new PrembleyAdapter(),
   vtpass: new VTpassAdapter(),
   bigisub: new BigisubAdapter(),
+  clubkonnect: new ClubKonnectAdapter(),
+  prov_clubkonnect: new ClubKonnectAdapter(),
 };
 
 /**
@@ -121,4 +124,4 @@ export function getAdapterById(providerIdOrName?: string): ProviderAdapter | nul
   return getAdapterForProvider({ name: providerIdOrName, id: providerIdOrName }) || registeredAdapters["aspfiy"] || null;
 }
 
-export { type ProviderAdapter, type PaymentProviderConfig, AspfiyAdapter, PrembleyAdapter, VTpassAdapter, BigisubAdapter };
+export { type ProviderAdapter, type PaymentProviderConfig, AspfiyAdapter, PrembleyAdapter, VTpassAdapter, BigisubAdapter, ClubKonnectAdapter };

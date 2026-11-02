@@ -116,7 +116,7 @@ export function verifyWebhookSignature(
 
   const isAspfiy = String(providerConfig.name || providerConfig.id || "").toLowerCase().includes("aspfiy");
   const method = String(providerConfig.webhookSignatureMethod || (isAspfiy ? "NONE" : "NONE")).toUpperCase().trim();
-  
+
   if (method === "NONE") {
     return { isValid: true };
   }
@@ -193,7 +193,7 @@ export function verifyWebhookSignature(
       return { isValid: false, reason: `MD5 signature mismatch for provider '${providerConfig.name}'.` };
     }
   }
-  
+
   if (method === "HMAC-SHA512" || method === "SHA512") {
     algorithm = "sha512";
   } else if (method === "HMAC-SHA256" || method === "SHA256") {
@@ -487,7 +487,7 @@ export class ProviderExecutor {
       const sType = params.extraData?.type || params.extraData?.verificationType || params.extraData?.serviceType || params.extraData?.service || "NIN";
       const targetId = params.customerId || params.phoneNumber || params.extraData?.idNumber || params.extraData?.rcNumber || params.extraData?.nin || params.extraData?.bvn || "";
       const adapterRes = await (registeredAdapter as any).verifyIdentity(sType, targetId, params.extraData || {}, provider);
-      
+
       if (adapterRes.success) {
         return {
           success: true,
@@ -505,7 +505,7 @@ export class ProviderExecutor {
       const allProviders = (Array.isArray(db?.api_providers) && db.api_providers.length > 0)
         ? db.api_providers
         : (Array.isArray(db?.apiProviders) ? db.apiProviders : []);
-      
+
       const fallbackCandidates = allProviders.filter((p: any) =>
         p &&
         p.id !== provider.id &&
@@ -621,6 +621,79 @@ export class ProviderExecutor {
         );
       };
 
+      // Dynamic Multi-Provider Failover Helper for Telecom VTU, Data, Electricity & Cable TV
+      const attemptVtuFailover = async (serviceCat: string, executeFunc: (adapter: any, prov: any) => Promise<any>, primaryError: string) => {
+        const rules = Array.isArray(db.provider_routing_rules) ? db.provider_routing_rules : [];
+        const routingRule = rules.find((r: any) =>
+          r && r.enabled !== false &&
+          (String(r.service || "").toUpperCase() === serviceCat ||
+           (serviceCat.includes("AIRTIME") && String(r.service || "").toUpperCase().includes("AIRTIME")) ||
+           (serviceCat.includes("DATA") && String(r.service || "").toUpperCase().includes("DATA")) ||
+           (serviceCat.includes("ELECTRIC") && String(r.service || "").toUpperCase().includes("ELECTRICITY")) ||
+           (serviceCat.includes("CABLE") && String(r.service || "").toUpperCase().includes("CABLE")))
+        );
+
+        if (!routingRule || routingRule.autoFailover === false) return null;
+
+        const candidateIds = [routingRule.secondaryProviderId, routingRule.tertiaryProviderId].filter(
+          (cid) => cid && String(cid).trim() !== "" && String(cid).toLowerCase() !== "none"
+        );
+
+        for (const targetId of candidateIds) {
+          const cleanTarget = String(targetId).toLowerCase().trim();
+          const fallbackProv = allProviders.find((p: any) => {
+            const pid = String(p.id || "").toLowerCase().trim();
+            const pname = String(p.name || "").toLowerCase().trim();
+            return (
+              (pid === cleanTarget || pid === `prov_${cleanTarget}` || pid.replace(/^prov_/, "") === cleanTarget.replace(/^prov_/, "") || pname.includes(cleanTarget.replace(/^prov_/, ""))) &&
+              pid !== String(provider.id || "").toLowerCase().trim()
+            );
+          });
+
+          if (fallbackProv) {
+            const fbAdapter = getAdapterForProvider(fallbackProv);
+            if (fbAdapter) {
+              try {
+                const fbRes = await executeFunc(fbAdapter, fallbackProv);
+                if (!db.provider_failover_logs) db.provider_failover_logs = [];
+                db.provider_failover_logs.unshift({
+                  id: `fol_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+                  service: serviceCat,
+                  failedProviderId: provider.id || providerCode,
+                  failedProviderName: providerName,
+                  fallbackProviderId: fallbackProv.id,
+                  fallbackProviderName: fallbackProv.name || "Failover Provider",
+                  reason: primaryError || "Primary provider request failed, routing engine engaged failover.",
+                  timestamp: new Date().toISOString(),
+                  reference: params.smartlinkReference,
+                  success: Boolean(fbRes?.success),
+                });
+
+                if (fbRes?.success) {
+                  return {
+                    success: true,
+                    providerName: fallbackProv.name || "Failover Provider",
+                    providerCode: fallbackProv.id,
+                    providerReference: fbRes.orderId || fbRes.reference,
+                    transactionId: fbRes.orderId || fbRes.reference,
+                    token: fbRes.token,
+                    units: fbRes.units,
+                    message: `${fbRes.message || "Transaction Successful"} (via Failover: ${fallbackProv.name})`,
+                    error: fbRes.error,
+                    rawResponse: fbRes.rawResponse,
+                    responseTimeMs: Date.now() - startTime,
+                    wasFailedOver: true,
+                  };
+                }
+              } catch (foErr) {
+                console.warn(`[ProviderExecutor] Failover to ${fallbackProv.name} failed:`, foErr);
+              }
+            }
+          }
+        }
+        return null;
+      };
+
       // Airtime vs Data Bundle disambiguation
       const isExplicitAirtime = cat === "AIRTIME" || params.extraData?.type === "AIRTIME" || (params as any).type === "AIRTIME";
       const isExplicitData = cat === "DATA" || params.extraData?.type === "DATA" || (params as any).type === "DATA";
@@ -645,7 +718,14 @@ export class ProviderExecutor {
           };
         }
 
-        // No automatic failover allowed: Only Bigisub VTU is authorized.
+        // Attempt automated failover (e.g. Clubkonnect)
+        const failoverRes = await attemptVtuFailover(
+          "AIRTIME",
+          (ad, p) => ad.purchaseAirtime({ network: resolvedNet, phoneNumber: targetPhoneNumber, amount: params.amount, reference: `${params.smartlinkReference}-FO` }, p),
+          res.error || res.message || "Airtime purchase failed"
+        );
+        if (failoverRes) return failoverRes;
+
         return {
           success: false,
           providerName,
@@ -662,7 +742,8 @@ export class ProviderExecutor {
       // Data Bundle
       const isData = cat === "DATA" || (cat === "TELECOM_VTU" && (params.extraData?.planId || params.extraData?.type === "DATA" || (params as any).type === "DATA"));
       if (isData && typeof (registeredAdapter as any).purchaseData === "function") {
-        const plan = params.planId || params.extraData?.planId || params.extraData?.planCode || "1000";
+        const rawPlan = params.planId || params.extraData?.planId || params.extraData?.planCode || "1000";
+        const plan = String(rawPlan).replace(/^ck_[a-zA-Z0-9]+_/i, "").trim();
         const res = await (registeredAdapter as any).purchaseData(
           { network: resolvedNet, phoneNumber: targetPhoneNumber, planCode: plan, reference: params.smartlinkReference },
           provider
@@ -682,7 +763,14 @@ export class ProviderExecutor {
           };
         }
 
-        // No automatic failover allowed: Only Bigisub VTU is authorized.
+        // Attempt automated failover (e.g. Clubkonnect)
+        const failoverRes = await attemptVtuFailover(
+          "DATA",
+          (ad, p) => ad.purchaseData({ network: resolvedNet, phoneNumber: targetPhoneNumber, planCode: plan, reference: `${params.smartlinkReference}-FO` }, p),
+          res.error || res.message || "Data purchase failed"
+        );
+        if (failoverRes) return failoverRes;
+
         return {
           success: false,
           providerName,
@@ -727,7 +815,21 @@ export class ProviderExecutor {
           };
         }
 
-        // Direct return of Bigisub electricity response without failover
+        // Attempt automated failover (e.g. Clubkonnect)
+        const failoverRes = await attemptVtuFailover(
+          "ELECTRICITY",
+          (ad, p) => ad.payElectricity({
+            electricCompany: disco,
+            meterType: params.meterType || "PREPAID",
+            meterNo: targetCustomerId,
+            amount: params.amount,
+            phoneNumber: targetPhoneNumber,
+            reference: `${params.smartlinkReference}-FO`,
+          }, p),
+          res.error || res.message || "Electricity payment failed"
+        );
+        if (failoverRes) return failoverRes;
+
         return {
           success: false,
           providerName,
@@ -771,7 +873,20 @@ export class ProviderExecutor {
           };
         }
 
-        // Direct return of Bigisub cable response without failover
+        // Attempt automated failover (e.g. Clubkonnect)
+        const failoverRes = await attemptVtuFailover(
+          "CABLE_TV",
+          (ad, p) => ad.payCableTV({
+            cableProvider: cable,
+            packageCode: pkg,
+            smartCardNo: targetCustomerId,
+            phoneNumber: targetPhoneNumber,
+            reference: `${params.smartlinkReference}-FO`,
+          }, p),
+          res.error || res.message || "Cable payment failed"
+        );
+        if (failoverRes) return failoverRes;
+
         return {
           success: false,
           providerName,
@@ -1073,7 +1188,7 @@ export class ProviderExecutor {
     const statusVal = responseJson?.status !== undefined ? responseJson.status : responseJson?.code;
     const statusStr = String(statusVal || "").toLowerCase().trim();
     const isSuccessStatus = statusStr === "success" || statusStr === "00" || statusStr === "0" || statusStr === "true" || statusStr === "ok" || statusStr === "200" || responseJson?.success === true;
-    
+
     // If response body is generic or HTTP 200 OK without explicit error fields
     let isSuccess = fetchRes.ok && (isSuccessStatus || (responseJson && !responseJson.error && !responseJson.errorMessage && fetchRes.status === 200));
 

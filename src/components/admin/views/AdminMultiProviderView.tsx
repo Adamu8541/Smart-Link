@@ -55,6 +55,7 @@ export const AdminMultiProviderView: React.FC = () => {
   const [isProcessingSweep, setIsProcessingSweep] = useState<boolean>(false);
   const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [registeredProviders, setRegisteredProviders] = useState<any[]>([]);
 
   // New Queue Form State
   const [newJobService, setNewJobService] = useState<string>("NIN");
@@ -74,6 +75,7 @@ export const AdminMultiProviderView: React.FC = () => {
         setMetrics(data.metrics || []);
         setFailovers(data.failovers || []);
         setJobs(data.backgroundJobs || []);
+        if (data.providers) setRegisteredProviders(data.providers);
       }
     } catch (err) {
       console.error("Failed to load portal data:", err);
@@ -210,6 +212,36 @@ export const AdminMultiProviderView: React.FC = () => {
     } catch (err: any) {
       showFeedback(`Queue error: ${err.message}`, "error");
     }
+  };
+
+  // Provider Key Normalization & Friendly Label Resolvers
+  const normalizeProviderKey = (id?: string): string => {
+    if (!id) return "";
+    const clean = String(id).toLowerCase().trim();
+    if (clean === "clubkonnect" || clean === "prov_clubkonnect") return "prov_clubkonnect";
+    if (clean === "bigisub" || clean === "prov_bigisub") return "prov_bigisub";
+    if (clean === "vtpass" || clean === "prov_vtpass") return "vtpass";
+    if (clean === "lumiid" || clean === "prov_lumiid") return "lumiid";
+    if (clean === "identro" || clean === "prov_identro") return "identro";
+    if (clean === "prembley" || clean === "prembly" || clean === "prov_prembly" || clean === "identitypass") return "prembley";
+    if (clean === "verifyng" || clean === "prov_verifyng") return "verifyng";
+    if (clean === "aspfiy" || clean === "prov_aspfiy") return "aspfiy";
+    return id;
+  };
+
+  const resolveProviderLabel = (id: string): string => {
+    if (!id || id === "none") return "None (Unassigned)";
+    const norm = normalizeProviderKey(id);
+    if (norm === "prov_clubkonnect") return "Clubkonnect VTU & Bill Payment";
+    if (norm === "prov_bigisub") return "Bigisub Digital Gateway";
+    if (norm === "vtpass") return "VTpass Digital Services";
+    if (norm === "lumiid") return "LumiID Portal";
+    if (norm === "identro") return "Identro Portal";
+    if (norm === "prembley") return "Prembley Portal (Identitypass)";
+    if (norm === "verifyng") return "VerifyNG Portal";
+    if (norm === "aspfiy") return "Aspfiy Payment Portal";
+    const found = registeredProviders.find((p) => p.id === id || p.id?.toLowerCase() === norm);
+    return found?.name || id;
   };
 
   // Filtered lists
@@ -859,37 +891,29 @@ export const AdminMultiProviderView: React.FC = () => {
                     Primary Provider
                   </label>
                   <select
-                    value={selectedRule.primaryProviderId || ""}
+                    value={normalizeProviderKey(selectedRule.primaryProviderId)}
                     onChange={(e) => {
                       const pId = e.target.value;
-                      const pName =
-                        pId === "bigisub"
-                          ? "Bigisub Digital Gateway"
-                          : pId === "prembley"
-                          ? "Prembley Portal (Identitypass)"
-                          : pId === "identro"
-                          ? "Identro Portal"
-                          : pId === "vtpass"
-                          ? "VTpass Digital Services"
-                          : pId === "aspfiy"
-                          ? "Aspfiy Payment Portal"
-                          : pId === "verifyng"
-                          ? "VerifyNG Portal"
-                          : pId === "lumiid"
-                          ? "LumiID Portal"
-                          : "None (Unassigned)";
+                      const pName = pId ? resolveProviderLabel(pId) : "None (Unassigned)";
                       setSelectedRule({ ...selectedRule, primaryProviderId: pId, primaryProviderName: pName });
                     }}
                     className="w-full p-2 rounded-lg border border-[#E5E7EB] dark:border-[#4B5563] bg-white dark:bg-[#111827] text-[#111827] dark:text-white"
                   >
                     <option value="">None (No Provider Assigned)</option>
-                    <option value="bigisub">Bigisub Digital Gateway</option>
-                    <option value="vtpass">VTpass Digital Services</option>
-                    <option value="identro">Identro Portal</option>
-                    <option value="lumiid">LumiID Portal</option>
-                    <option value="prembley">Prembley Portal (Identitypass)</option>
-                    <option value="verifyng">VerifyNG Portal</option>
-                    <option value="aspfiy">Aspfiy Payment Portal</option>
+                    <optgroup label="VTU, Telecom & Bills (Airtime, Data, Electricity, Cable)">
+                      <option value="prov_clubkonnect">Clubkonnect VTU &amp; Bill Payment</option>
+                      <option value="prov_bigisub">Bigisub Digital Gateway</option>
+                      <option value="vtpass">VTpass Digital Services</option>
+                    </optgroup>
+                    <optgroup label="Identity & Verification Portals">
+                      <option value="lumiid">LumiID Portal</option>
+                      <option value="identro">Identro Portal</option>
+                      <option value="prembley">Prembley Portal (Identitypass)</option>
+                      <option value="verifyng">VerifyNG Portal</option>
+                    </optgroup>
+                    <optgroup label="Payment Gateways">
+                      <option value="aspfiy">Aspfiy Payment Portal</option>
+                    </optgroup>
                   </select>
                 </div>
 
@@ -898,37 +922,60 @@ export const AdminMultiProviderView: React.FC = () => {
                     Secondary Portal (Failover 1)
                   </label>
                   <select
-                    value={selectedRule.secondaryProviderId || ""}
+                    value={normalizeProviderKey(selectedRule.secondaryProviderId)}
                     onChange={(e) => {
                       const pId = e.target.value;
-                      const pName =
-                        pId === "bigisub"
-                          ? "Bigisub Digital Gateway"
-                          : pId === "prembley"
-                          ? "Prembley Portal (Identitypass)"
-                          : pId === "identro"
-                          ? "Identro Portal"
-                          : pId === "vtpass"
-                          ? "VTpass Digital Services"
-                          : pId === "aspfiy"
-                          ? "Aspfiy Payment Portal"
-                          : pId === "verifyng"
-                          ? "VerifyNG Portal"
-                          : pId === "lumiid"
-                          ? "LumiID Portal"
-                          : "";
+                      const pName = pId ? resolveProviderLabel(pId) : "";
                       setSelectedRule({ ...selectedRule, secondaryProviderId: pId, secondaryProviderName: pName });
                     }}
                     className="w-full p-2 rounded-lg border border-[#E5E7EB] dark:border-[#4B5563] bg-white dark:bg-[#111827] text-[#111827] dark:text-white"
                   >
                     <option value="">None (No Failover)</option>
-                    <option value="bigisub">Bigisub Digital Gateway</option>
-                    <option value="vtpass">VTpass Digital Services</option>
-                    <option value="identro">Identro Portal</option>
-                    <option value="lumiid">LumiID Portal</option>
-                    <option value="prembley">Prembley Portal (Identitypass)</option>
-                    <option value="verifyng">VerifyNG Portal</option>
-                    <option value="aspfiy">Aspfiy Payment Portal</option>
+                    <optgroup label="VTU, Telecom & Bills (Airtime, Data, Electricity, Cable)">
+                      <option value="prov_clubkonnect">Clubkonnect VTU &amp; Bill Payment</option>
+                      <option value="prov_bigisub">Bigisub Digital Gateway</option>
+                      <option value="vtpass">VTpass Digital Services</option>
+                    </optgroup>
+                    <optgroup label="Identity & Verification Portals">
+                      <option value="lumiid">LumiID Portal</option>
+                      <option value="identro">Identro Portal</option>
+                      <option value="prembley">Prembley Portal (Identitypass)</option>
+                      <option value="verifyng">VerifyNG Portal</option>
+                    </optgroup>
+                    <optgroup label="Payment Gateways">
+                      <option value="aspfiy">Aspfiy Payment Portal</option>
+                    </optgroup>
+                  </select>
+                </div>
+
+                <div className="col-span-2">
+                  <label className="block font-semibold text-[#4B5563] dark:text-[#E5E7EB] mb-1">
+                    Tertiary Portal (Failover 2)
+                  </label>
+                  <select
+                    value={normalizeProviderKey(selectedRule.tertiaryProviderId)}
+                    onChange={(e) => {
+                      const pId = e.target.value;
+                      const pName = pId ? resolveProviderLabel(pId) : "";
+                      setSelectedRule({ ...selectedRule, tertiaryProviderId: pId, tertiaryProviderName: pName });
+                    }}
+                    className="w-full p-2 rounded-lg border border-[#E5E7EB] dark:border-[#4B5563] bg-white dark:bg-[#111827] text-[#111827] dark:text-white"
+                  >
+                    <option value="">None (No Tertiary Failover)</option>
+                    <optgroup label="VTU, Telecom & Bills (Airtime, Data, Electricity, Cable)">
+                      <option value="prov_clubkonnect">Clubkonnect VTU &amp; Bill Payment</option>
+                      <option value="prov_bigisub">Bigisub Digital Gateway</option>
+                      <option value="vtpass">VTpass Digital Services</option>
+                    </optgroup>
+                    <optgroup label="Identity & Verification Portals">
+                      <option value="lumiid">LumiID Portal</option>
+                      <option value="identro">Identro Portal</option>
+                      <option value="prembley">Prembley Portal (Identitypass)</option>
+                      <option value="verifyng">VerifyNG Portal</option>
+                    </optgroup>
+                    <optgroup label="Payment Gateways">
+                      <option value="aspfiy">Aspfiy Payment Portal</option>
+                    </optgroup>
                   </select>
                 </div>
               </div>

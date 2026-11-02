@@ -7,14 +7,14 @@ import { readDB, writeDB, initializeDB, DB_DIR, DB_FILE, UPLOADS_DIR, SUPER_ADMI
 import { verifyUserOrAdminSession, requireAdmin, optionalAdmin } from "../middleware/auth";
 import { isMaintenanceModeActive, getMaintenanceDetails, getValueByJsonPath, seedModule7SettingsIfEmpty, sanitizePublicSettings } from "../middleware/maintenance";
 import { getAI } from "../services/ai";
-import { 
-  DEFAULT_SERVICES_CATALOG, 
-  seedDefaultServicesCatalogIfEmpty, 
-  seedDefaultUsersIfEmpty, 
-  seedDefaultTransactionsIfEmpty, 
-  recordAdminUserAction, 
-  getOrCreateUserVirtualAccount, 
-  resolveVtuPlanAndPricing 
+import {
+  DEFAULT_SERVICES_CATALOG,
+  seedDefaultServicesCatalogIfEmpty,
+  seedDefaultUsersIfEmpty,
+  seedDefaultTransactionsIfEmpty,
+  recordAdminUserAction,
+  getOrCreateUserVirtualAccount,
+  resolveVtuPlanAndPricing
 } from "../services/sharedHelpers";
 import { ServerWalletEngine } from "../../src/services/serverWalletEngine";
 import { APIProviderManager, DEFAULT_PROVIDERS } from "../../src/services/apiProviderManager";
@@ -29,6 +29,7 @@ import { IdentroAdapter } from "../../src/services/providers/identroAdapter";
 import { PrembleyAdapter } from "../../src/services/providers/prembleyAdapter";
 import { VTpassAdapter } from "../../src/services/providers/vtpassAdapter";
 import { BigisubAdapter } from "../../src/services/providers/bigisubAdapter";
+import { ClubKonnectAdapter } from "../../src/services/providers/clubkonnectAdapter";
 import { MultiProviderRoutingEngine } from "../../src/services/multiProviderRoutingEngine";
 import { syncFromStorage, syncToStorage } from "../../src/services/settingsStore";
 import { RoutingRuleRepository } from "../turso/repositories";
@@ -1183,6 +1184,9 @@ app.post("/api/admin/payment-providers/:id/test-connection", requireAdmin, async
 // 1. Get Portal Routing Rules, Health Metrics & Failover Summaries (Turso Primary Persistence Only)
 app.get("/api/admin/routing", requireAdmin, async (req, res) => {
   try {
+    const db = readDB();
+    seedModule6ProvidersIfEmpty(db);
+
     let rules = await RoutingRuleRepository.getAllRules();
     if (!rules || rules.length === 0) {
       const defaultRules = MultiProviderRoutingEngine.getDefaultRoutingRules();
@@ -1190,7 +1194,6 @@ app.get("/api/admin/routing", requireAdmin, async (req, res) => {
       rules = await RoutingRuleRepository.getAllRules();
     }
 
-    const db = readDB();
     // Keep runtime in-memory pointer synced without writing to db.json
     db.provider_routing_rules = rules;
 
@@ -1198,12 +1201,27 @@ app.get("/api/admin/routing", requireAdmin, async (req, res) => {
     const failovers = db.provider_failover_logs || [];
     const backgroundJobs = db.background_verification_jobs || [];
 
+    const providers = (db.api_providers || []).map((p: any) => ({
+      id: p.id,
+      name: p.name,
+      category: p.category,
+      providerType: p.providerType,
+      status: p.status,
+      enabled: p.enabled !== false && p.isActive !== false,
+      supportsAirtime: Boolean(p.supportsAirtime),
+      supportsData: Boolean(p.supportsData),
+      supportsElectricity: Boolean(p.supportsElectricity),
+      supportsCableTv: Boolean(p.supportsCableTv),
+      supportsTelecomVtu: Boolean(p.supportsTelecomVtu),
+    }));
+
     return res.json({
       success: true,
       rules,
       metrics,
       failovers,
       backgroundJobs,
+      providers,
       storage: "TURSO_ONLY",
     });
   } catch (err: any) {
@@ -1512,15 +1530,12 @@ function seedModule6ProvidersIfEmpty(db: any) {
 
     db.api_providers.push(defaultAspfiy);
   } else {
-    // Keep credentials synchronized with server environment
+    // Synchronize provider metadata without storing secrets in DB
     const p = db.api_providers[aspfiyIndex];
-    if (aspfiySecretKey && (!p.secretKey || p.secretKey.includes("••••"))) {
-      p.secretKey = aspfiySecretKey;
-      p.apiKey = aspfiySecretKey;
-    }
-    if (aspfiyPublicKey && (!p.publicKey || p.publicKey.includes("••••"))) {
-      p.publicKey = aspfiyPublicKey;
-    }
+    p.secretKey = "";
+    p.apiKey = "";
+    p.publicKey = "";
+    p.keySource = "SERVER_ENVIRONMENT_VARIABLE";
     if (!p.baseUrl) p.baseUrl = "https://api-v1.aspfiy.com";
     if (!p.webhookUrl) p.webhookUrl = "https://smartlinkng.com.ng/api/webhooks/aspfiy";
   }
@@ -1537,8 +1552,9 @@ function seedModule6ProvidersIfEmpty(db: any) {
       baseUrl: "https://api.lumiid.com",
       apiVersion: "v1.0",
       authMethod: "API_KEY",
-      secretKey: String(process.env.LUMIID_API_KEY || process.env.LUMIID_SECRET_KEY || "").trim(),
-      apiKey: String(process.env.LUMIID_API_KEY || process.env.LUMIID_SECRET_KEY || "").trim(),
+      secretKey: "",
+      apiKey: "",
+      keySource: "SERVER_ENVIRONMENT_VARIABLE",
       clientId: "smartlink_identity_app",
       appId: "smartlink_identity_app",
       supportsWalletFunding: false,
@@ -1600,11 +1616,48 @@ function seedModule6ProvidersIfEmpty(db: any) {
     });
   }
 
-  // Purge Clubkonnect provider row
-  if (Array.isArray(db.api_providers)) {
-    db.api_providers = db.api_providers.filter(
-      (p: any) => p && p.id !== "prov_clubkonnect" && !String(p.name || "").toLowerCase().includes("clubkonnect")
-    );
+  // Ensure Clubkonnect VTU & Bill Payment Provider
+  if (!db.api_providers.some((p: any) => p.id === "prov_clubkonnect" || (p.name || "").toLowerCase().includes("clubkonnect"))) {
+    db.api_providers.push({
+      id: "prov_clubkonnect",
+      name: "Clubkonnect VTU & Bill Payment",
+      category: "TELECOM_VTU",
+      providerType: "BILL_PAYMENT",
+      description: "Clubkonnect VTU, Data Bundles, Cable TV, Electricity Bills & Utilities Gateway (clubkonnect.com / nellobytesystems.com)",
+      logoUrl: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=100&auto=format&fit=crop&q=60",
+      baseUrl: "https://nellobytesystems.com",
+      apiVersion: "v1.0",
+      authMethod: "API_KEY",
+      userId: String(process.env.CLUBKONNECT_USER_ID || "").trim(),
+      clientId: String(process.env.CLUBKONNECT_USER_ID || "").trim(),
+      merchantId: String(process.env.CLUBKONNECT_USER_ID || "").trim(),
+      secretKey: String(process.env.CLUBKONNECT_API_KEY || "").trim(),
+      apiKey: String(process.env.CLUBKONNECT_API_KEY || "").trim(),
+      pin: String(process.env.CLUBKONNECT_PIN || "").trim(),
+      transactionPin: String(process.env.CLUBKONNECT_PIN || "").trim(),
+      supportsWalletFunding: false,
+      supportsBankTransfer: false,
+      supportsCardPayment: false,
+      supportsVirtualAccount: false,
+      supportsPaymentLink: false,
+      supportsPayout: false,
+      supportsRefund: false,
+      supportsTxVerification: true,
+      supportsAirtime: true,
+      supportsData: true,
+      supportsTelecomVtu: true,
+      supportsElectricity: true,
+      supportsCableTv: true,
+      timeout: 15000,
+      retryAttempts: 3,
+      healthStatus: "ONLINE",
+      priority: 5,
+      isDefault: false,
+      environment: "PRODUCTION",
+      status: "ENABLED",
+      enabled: true,
+      isActive: true,
+    });
   }
 
   // Ensure Identro Portal Provider (official base URL & built-in App ID)
@@ -1619,8 +1672,9 @@ function seedModule6ProvidersIfEmpty(db: any) {
       baseUrl: "https://api.identro.ng",
       apiVersion: "v1.0",
       authMethod: "API_KEY",
-      secretKey: String(process.env.IDENTRO_API_KEY || process.env.IDENTRO_SECRET_KEY || "").trim(),
-      apiKey: String(process.env.IDENTRO_API_KEY || process.env.IDENTRO_SECRET_KEY || "").trim(),
+      secretKey: "",
+      apiKey: "",
+      keySource: "SERVER_ENVIRONMENT_VARIABLE",
       clientId: "smartlink_identro_app",
       appId: "smartlink_identro_app",
       supportsWalletFunding: false,
@@ -1657,9 +1711,10 @@ function seedModule6ProvidersIfEmpty(db: any) {
       baseUrl: "https://api.prembly.com",
       apiVersion: "v2.0",
       authMethod: "API_KEY",
-      secretKey: String(process.env.PREMBLEY_SECRET_KEY || process.env.IDENTITYPASS_SECRET_KEY || "").trim(),
-      publicKey: String(process.env.PREMBLEY_PUBLIC_KEY || process.env.PREMBLEY_API_KEY || process.env.IDENTITYPASS_PUBLIC_KEY || process.env.IDENTITYPASS_API_KEY || "").trim(),
-      apiKey: String(process.env.PREMBLEY_PUBLIC_KEY || process.env.PREMBLEY_API_KEY || process.env.PREMBLEY_SECRET_KEY || "").trim(),
+      secretKey: "",
+      publicKey: "",
+      apiKey: "",
+      keySource: "SERVER_ENVIRONMENT_VARIABLE",
       supportsWalletFunding: false,
       supportsBankTransfer: false,
       supportsCardPayment: false,
@@ -1691,9 +1746,10 @@ function seedModule6ProvidersIfEmpty(db: any) {
       baseUrl: "https://api-service.vtpass.com/api",
       apiVersion: "v1.0",
       authMethod: "API_KEY",
-      secretKey: String(process.env.VTPASS_SECRET_KEY || "").trim(),
-      apiKey: String(process.env.VTPASS_API_KEY || process.env.VTPASS_PUBLIC_KEY || "").trim(),
-      publicKey: String(process.env.VTPASS_PUBLIC_KEY || process.env.VTPASS_API_KEY || "").trim(),
+      secretKey: "",
+      apiKey: "",
+      publicKey: "",
+      keySource: "SERVER_ENVIRONMENT_VARIABLE",
       supportsWalletFunding: false,
       supportsBankTransfer: false,
       supportsCardPayment: false,
@@ -1730,9 +1786,10 @@ function seedModule6ProvidersIfEmpty(db: any) {
       baseUrl: "https://bigisub.ng/api/v2",
       apiVersion: "v2.0",
       authMethod: "API_TOKEN",
-      apiToken: String(process.env.BIGISUB_API_TOKEN || "").trim(),
-      secretKey: String(process.env.BIGISUB_API_TOKEN || "").trim(),
-      apiKey: String(process.env.BIGISUB_API_TOKEN || "").trim(),
+      apiToken: "",
+      secretKey: "",
+      apiKey: "",
+      keySource: "SERVER_ENVIRONMENT_VARIABLE",
       supportsWalletFunding: false,
       supportsBankTransfer: false,
       supportsCardPayment: false,
@@ -1779,6 +1836,10 @@ function seedModule6ProvidersIfEmpty(db: any) {
   }
 
   db.apiProviders = db.api_providers;
+  try {
+    writeDB(db);
+    syncToStorage(db).catch(() => {});
+  } catch {}
 }
 
 // 1. GET /api/admin/providers — List Providers with Search, Filter, Sort, Pagination & Metrics
@@ -1862,9 +1923,46 @@ app.get("/api/admin/providers", requireAdmin, async (req, res) => {
   const overallSuccessRate = allProviders.length > 0 ? (totalSuccess / allProviders.length).toFixed(1) : "100.0";
   const failoversToday = (db.provider_failovers || []).reduce((sum: number, f: any) => sum + (f.failoverCount || 0), 0);
 
+  function sanitizeProviderForClient(p: any) {
+    if (!p) return p;
+    const pId = String(p.id || "").toLowerCase();
+    const pName = String(p.name || "").toLowerCase();
+
+    let hasServerSecret = false;
+    if (pId.includes("aspfiy") || pName.includes("aspfiy")) {
+      hasServerSecret = Boolean(process.env.ASPFIY_SECRET_KEY);
+    } else if (pId.includes("lumiid") || pName.includes("lumiid")) {
+      hasServerSecret = Boolean(process.env.LUMIID_API_KEY || process.env.LUMIID_SECRET_KEY);
+    } else if (pId.includes("identro") || pName.includes("identro")) {
+      hasServerSecret = Boolean(process.env.IDENTRO_API_KEY || process.env.IDENTRO_SECRET_KEY);
+    } else if (pId.includes("prembley") || pName.includes("prembley") || pName.includes("identitypass")) {
+      hasServerSecret = Boolean(process.env.PREMBLEY_SECRET_KEY || process.env.IDENTITYPASS_SECRET_KEY);
+    } else if (pId.includes("bigisub") || pName.includes("bigisub")) {
+      hasServerSecret = Boolean(process.env.BIGISUB_API_TOKEN);
+    } else if (pId.includes("clubkonnect") || pName.includes("clubkonnect")) {
+      hasServerSecret = Boolean(process.env.CLUBKONNECT_API_KEY);
+    } else if (pId.includes("vtpass") || pName.includes("vtpass")) {
+      hasServerSecret = Boolean(process.env.VTPASS_SECRET_KEY || process.env.VTPASS_API_KEY);
+    }
+
+    return {
+      ...p,
+      secretKey: hasServerSecret ? "••••••••••••••••" : (p.secretKey ? "••••••••••••••••" : ""),
+      apiKey: hasServerSecret ? "••••••••••••••••" : (p.apiKey ? "••••••••••••••••" : ""),
+      apiToken: hasServerSecret ? "••••••••••••••••" : (p.apiToken ? "••••••••••••••••" : ""),
+      publicKey: p.publicKey ? (p.publicKey.length > 16 ? `${p.publicKey.slice(0, 6)}...${p.publicKey.slice(-4)}` : p.publicKey) : "",
+      privateKey: p.privateKey ? "••••••••••••••••" : "",
+      pin: p.pin ? "••••" : "",
+      transactionPin: p.transactionPin ? "••••" : "",
+      webhookSecret: p.webhookSecret ? "••••••••••••••••" : "",
+      keySource: "SERVER_ENVIRONMENT_VARIABLE",
+      isConfiguredInEnv: hasServerSecret,
+    };
+  }
+
   res.json({
     success: true,
-    providers: paginatedItems,
+    providers: paginatedItems.map(sanitizeProviderForClient),
     pagination: {
       totalRecords,
       pageNum,
@@ -1898,9 +1996,37 @@ app.get("/api/admin/providers/:providerId", requireAdmin, async (req, res) => {
   const logs = (db.provider_logs || []).filter((l: any) => l.providerId === provider.id);
   const failovers = (db.provider_failovers || []).filter((f: any) => f.primaryProviderId === provider.id || f.secondaryProviderId === provider.id);
 
+  function sanitizeProvider(p: any) {
+    if (!p) return p;
+    const pId = String(p.id || "").toLowerCase();
+    const pName = String(p.name || "").toLowerCase();
+    let hasServerSecret = Boolean(
+      (pId.includes("aspfiy") && process.env.ASPFIY_SECRET_KEY) ||
+      (pId.includes("lumiid") && (process.env.LUMIID_API_KEY || process.env.LUMIID_SECRET_KEY)) ||
+      (pId.includes("identro") && (process.env.IDENTRO_API_KEY || process.env.IDENTRO_SECRET_KEY)) ||
+      (pId.includes("prembley") && (process.env.PREMBLEY_SECRET_KEY || process.env.IDENTITYPASS_SECRET_KEY)) ||
+      (pId.includes("bigisub") && process.env.BIGISUB_API_TOKEN) ||
+      (pId.includes("clubkonnect") && process.env.CLUBKONNECT_API_KEY) ||
+      (pId.includes("vtpass") && (process.env.VTPASS_SECRET_KEY || process.env.VTPASS_API_KEY))
+    );
+    return {
+      ...p,
+      secretKey: hasServerSecret ? "••••••••••••••••" : (p.secretKey ? "••••••••••••••••" : ""),
+      apiKey: hasServerSecret ? "••••••••••••••••" : (p.apiKey ? "••••••••••••••••" : ""),
+      apiToken: hasServerSecret ? "••••••••••••••••" : (p.apiToken ? "••••••••••••••••" : ""),
+      publicKey: p.publicKey ? (p.publicKey.length > 16 ? `${p.publicKey.slice(0, 6)}...${p.publicKey.slice(-4)}` : p.publicKey) : "",
+      privateKey: p.privateKey ? "••••••••••••••••" : "",
+      pin: p.pin ? "••••" : "",
+      transactionPin: p.transactionPin ? "••••" : "",
+      webhookSecret: p.webhookSecret ? "••••••••••••••••" : "",
+      keySource: "SERVER_ENVIRONMENT_VARIABLE",
+      isConfiguredInEnv: hasServerSecret,
+    };
+  }
+
   res.json({
     success: true,
-    provider,
+    provider: sanitizeProvider(provider),
     logs: logs.slice(0, 50),
     failovers,
   });
@@ -2288,6 +2414,9 @@ app.post("/api/admin/providers/:providerId/test-connection", requireAdmin, async
   } else if (provider.name.toLowerCase().includes("bigisub") || (provider.id && provider.id.toLowerCase().includes("bigisub"))) {
     const bigisubAdapter = new BigisubAdapter();
     testResult = await bigisubAdapter.testConnection(provider);
+  } else if (provider.name.toLowerCase().includes("clubkonnect") || (provider.id && provider.id.toLowerCase().includes("clubkonnect"))) {
+    const clubkonnectAdapter = new ClubKonnectAdapter();
+    testResult = await clubkonnectAdapter.testConnection(provider);
   } else {
     testResult = { ok: false, message: `No integration adapter registered for provider "${provider.name}".`, responseTimeMs: 0 };
   }

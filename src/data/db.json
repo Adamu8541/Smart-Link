@@ -259,8 +259,8 @@
       "baseUrl": "https://api-v1.aspfiy.com",
       "apiVersion": "v1.0",
       "authMethod": "BEARER_TOKEN",
-      "publicKey": "Aspfiy-PUB-KEY-b33e9ab1feffe36fd00ff44ad1fba21fd88ffe45f1e6d1da",
-      "apiKey": "Aspfiy-SEC-KEY-f3a18caa07137555b7cb6ce794e36e075a3eaf7f6340ab44",
+      "publicKey": "",
+      "apiKey": "",
       "webhookUrl": "https://smartlinkng.com.ng/api/webhooks/aspfiy",
       "webhookSignatureMethod": "MD5_OF_SECRET",
       "webhookSignatureHeaderName": "x-wiaxy-signature",
@@ -295,8 +295,11 @@
       "lastTested": "2026-10-24T07:48:42.926Z",
       "avgResponseTimeMs": 2316,
       "connectionStatus": "Connected",
-      "secretKey": "Aspfiy-SEC-KEY-f3a18caa07137555b7cb6ce794e36e075a3eaf7f6340ab44",
-      "keySource": "SERVER_ENVIRONMENT_VARIABLE"
+      "secretKey": "",
+      "keySource": "SERVER_ENVIRONMENT_VARIABLE",
+      "apiToken": "",
+      "pin": "",
+      "transactionPin": ""
     },
     {
       "id": "prov_lumiid",
@@ -308,8 +311,8 @@
       "baseUrl": "https://api.lumiid.com",
       "apiVersion": "v1.0",
       "authMethod": "API_KEY",
-      "secretKey": "YOUR_API_KEY_HERE",
-      "apiKey": "YOUR_API_KEY_HERE",
+      "secretKey": "",
+      "apiKey": "",
       "clientId": "smartlink_identity_app",
       "appId": "smartlink_identity_app",
       "supportsWalletFunding": false,
@@ -328,7 +331,13 @@
       "status": "ENABLED",
       "enabled": true,
       "isActive": true,
-      "isDefault": false
+      "isDefault": false,
+      "apiToken": "",
+      "publicKey": "",
+      "pin": "",
+      "transactionPin": "",
+      "webhookSecret": "",
+      "keySource": "SERVER_ENVIRONMENT_VARIABLE"
     },
     {
       "id": "prov_verifyng",
@@ -360,7 +369,13 @@
       "status": "ENABLED",
       "enabled": true,
       "isActive": true,
-      "isDefault": false
+      "isDefault": false,
+      "apiToken": "",
+      "publicKey": "",
+      "pin": "",
+      "transactionPin": "",
+      "webhookSecret": "",
+      "keySource": "SERVER_ENVIRONMENT_VARIABLE"
     },
     {
       "id": "prov_identro",
@@ -372,8 +387,8 @@
       "baseUrl": "https://api.identro.ng",
       "apiVersion": "v1.0",
       "authMethod": "API_KEY",
-      "secretKey": "identro_live_2170df009861f22d_7d6d2c60b31a5bbc1c1bb6d5b5962f44259f402dfa978186c3d6aceeabba6fb4",
-      "apiKey": "identro_live_2170df009861f22d_7d6d2c60b31a5bbc1c1bb6d5b5962f44259f402dfa978186c3d6aceeabba6fb4",
+      "secretKey": "",
+      "apiKey": "",
       "clientId": "smartlink_identro_app",
       "appId": "smartlink_identro_app",
       "supportsWalletFunding": false,
@@ -392,7 +407,13 @@
       "status": "ENABLED",
       "enabled": true,
       "isActive": true,
-      "isDefault": false
+      "isDefault": false,
+      "apiToken": "",
+      "publicKey": "",
+      "pin": "",
+      "transactionPin": "",
+      "webhookSecret": "",
+      "keySource": "SERVER_ENVIRONMENT_VARIABLE"
     },
     {
       "id": "prov_prembley",
@@ -404,9 +425,9 @@
       "baseUrl": "https://api.prembly.com",
       "apiVersion": "v2.0",
       "authMethod": "API_KEY",
-      "secretKey": "live_sk_f2b42e3dd8954aa6b5d0e4a8a7b0d96f",
-      "publicKey": "live_pk_ab45252a65c94b0aade9a644e0f700c1",
-      "apiKey": "live_pk_ab45252a65c94b0aade9a644e0f700c1",
+      "secretKey": "",
+      "publicKey": "",
+      "apiKey": "",
       "supportsWalletFunding": false,
       "supportsBankTransfer": false,
       "supportsCardPayment": false,
@@ -423,7 +444,12 @@
       "status": "ENABLED",
       "enabled": true,
       "isActive": true,
-      "isDefault": false
+      "isDefault": false,
+      "apiToken": "",
+      "pin": "",
+      "transactionPin": "",
+      "webhookSecret": "",
+      "keySource": "SERVER_ENVIRONMENT_VARIABLE"
     },
     {
       "id": "prov_vtpass",
@@ -459,7 +485,12 @@
       "status": "ENABLED",
       "enabled": true,
       "isActive": true,
-      "isDefault": false
+      "isDefault": false,
+      "apiToken": "",
+      "pin": "",
+      "transactionPin": "",
+      "webhookSecret": "",
+      "keySource": "SERVER_ENVIRONMENT_VARIABLE"
     },
     {
       "id": "prov_bigisub",
@@ -471,9 +502,9 @@
       "baseUrl": "https://bigisub.ng/api/v2",
       "apiVersion": "v2.0",
       "authMethod": "API_TOKEN",
-      "apiToken": "86d0661f6d7990712294818a202c7b092df21b41",
-      "secretKey": "86d0661f6d7990712294818a202c7b092df21b41",
-      "apiKey": "86d0661f6d7990712294818a202c7b092df21b41",
+      "apiToken": "",
+      "secretKey": "",
+      "apiKey": "",
       "supportsWalletFunding": false,
       "supportsBankTransfer": false,
       "supportsCardPayment": false,
@@ -518,7 +549,50 @@
       "rsaPrivateKey": "",
       "hmacSecret": "",
       "isDefault": true,
-      "updatedAt": "2026-10-15T13:42:25.391Z"
+      "updatedAt": "2026-10-15T13:42:25.391Z",
+      "pin": "",
+      "transactionPin": "",
+      "keySource": "SERVER_ENVIRONMENT_VARIABLE"
+    },
+    {
+      "id": "prov_clubkonnect",
+      "name": "Clubkonnect VTU & Bill Payment",
+      "category": "TELECOM_VTU",
+      "providerType": "BILL_PAYMENT",
+      "description": "Clubkonnect VTU, Data Bundles, Cable TV, Electricity Bills & Utilities Gateway (clubkonnect.com / nellobytesystems.com)",
+      "logoUrl": "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=100&auto=format&fit=crop&q=60",
+      "baseUrl": "https://nellobytesystems.com",
+      "apiVersion": "v1.0",
+      "authMethod": "API_KEY",
+      "userId": "CK101288522",
+      "clientId": "CK101288522",
+      "merchantId": "CK101288522",
+      "secretKey": "GF8R9290SEM80KN1020HP91 ‎9OBCUUA7CD4P212DFRN490 ‎B2FI4H5T16U3DQ32K6A",
+      "apiKey": "GF8R9290SEM80KN1020HP91 ‎9OBCUUA7CD4P212DFRN490 ‎B2FI4H5T16U3DQ32K6A",
+      "pin": "",
+      "transactionPin": "",
+      "supportsWalletFunding": false,
+      "supportsBankTransfer": false,
+      "supportsCardPayment": false,
+      "supportsVirtualAccount": false,
+      "supportsPaymentLink": false,
+      "supportsPayout": false,
+      "supportsRefund": false,
+      "supportsTxVerification": true,
+      "supportsAirtime": true,
+      "supportsData": true,
+      "supportsTelecomVtu": true,
+      "supportsElectricity": true,
+      "supportsCableTv": true,
+      "timeout": 15000,
+      "retryAttempts": 3,
+      "healthStatus": "ONLINE",
+      "priority": 15,
+      "isDefault": false,
+      "environment": "PRODUCTION",
+      "status": "ENABLED",
+      "enabled": true,
+      "isActive": true
     }
   ],
   "providerLogs": [],
@@ -613,36 +687,7 @@
   "adminLogs": [],
   "webhooks": [],
   "webhookLogs": [],
-  "admin_sessions": [
-    {
-      "sessionToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3MzQ5Y2Y2MC04MzBjLTQ4NTktYTczOC02MzBjMDc1MWI0MjEiLCJ1aWQiOiI3MzQ5Y2Y2MC04MzBjLTQ4NTktYTczOC02MzBjMDc1MWI0MjEiLCJlbWFpbCI6ImFkYW11YW11aGFtbWFkODU0MUBnbWFpbC5jb20iLCJyb2xlIjoiU1VQRVJfQURNSU4iLCJwZXJtaXNzaW9ucyI6WyIqIl0sImlhdCI6MTc5MTgwOTQ5NiwiZXhwIjoxNzkxODExMjk2LCJleHBpcmVzQXQiOiIyMDI2LTEwLTEyVDEzOjIxOjM2LjQ4OFoiLCJpc3MiOiJzbWFydGxpbmstYWRtaW4ifQ.y-som-0Esa6IQLjxiAVmuhaxJaImjJuc1NyyTZ6abQ8",
-      "uid": "7349cf60-830c-4859-a738-630c0751b421",
-      "email": "adamuamuhammad8541@gmail.com",
-      "fullName": "Adamu Muhammad",
-      "role": "SUPER_ADMIN",
-      "permissions": [
-        "*"
-      ],
-      "loginTime": "2026-10-12T12:51:36.488Z",
-      "expiresAt": "2026-10-12T13:21:36.488Z",
-      "lastActive": "2026-10-12T12:51:36.488Z",
-      "status": "ACTIVE"
-    },
-    {
-      "sessionToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3MzQ5Y2Y2MC04MzBjLTQ4NTktYTczOC02MzBjMDc1MWI0MjEiLCJ1aWQiOiI3MzQ5Y2Y2MC04MzBjLTQ4NTktYTczOC02MzBjMDc1MWI0MjEiLCJlbWFpbCI6ImFkYW11YW11aGFtbWFkODU0MUBnbWFpbC5jb20iLCJyb2xlIjoiU1VQRVJfQURNSU4iLCJwZXJtaXNzaW9ucyI6WyIqIl0sImlhdCI6MTc5MTgwNjc4NiwiZXhwIjoxNzkxODA4NTg2LCJleHBpcmVzQXQiOiIyMDI2LTEwLTEyVDEyOjM2OjI2LjU1NloiLCJpc3MiOiJzbWFydGxpbmstYWRtaW4ifQ.fZjsImgIO5DbGWaMFgw3bnygPOLxmB1ZG_FR-7xZdCI",
-      "uid": "7349cf60-830c-4859-a738-630c0751b421",
-      "email": "adamuamuhammad8541@gmail.com",
-      "fullName": "Adamu Muhammad",
-      "role": "SUPER_ADMIN",
-      "permissions": [
-        "*"
-      ],
-      "loginTime": "2026-10-12T12:06:26.556Z",
-      "expiresAt": "2026-10-12T12:36:26.556Z",
-      "lastActive": "2026-10-12T12:06:26.556Z",
-      "status": "ACTIVE"
-    }
-  ],
+  "admin_sessions": [],
   "admin_users": [],
   "admin_activity_logs": [],
   "virtualAccounts": [
@@ -945,6 +990,42 @@
       "reference": "SL-cb2ec973-5600-4f9d-802a-123f46366ad5-9510",
       "status": "ACTIVE",
       "createdAt": "2026-10-31T10:59:36.195Z"
+    },
+    {
+      "id": "va_prov_aspfiy_1793462841369",
+      "userId": "d70a25f5-900b-4164-a51b-1e2b3568d8c8",
+      "accountNumber": "3510803767",
+      "bankName": "Paga",
+      "bankCode": "999991",
+      "accountName": "Aspfiy-Smartlinkng haruna",
+      "provider": "prov_aspfiy",
+      "reference": "SL-d70a25f5-900b-4164-a51b-1e2b3568d8c8-6443",
+      "status": "ACTIVE",
+      "createdAt": "2026-10-31T16:07:21.775Z"
+    },
+    {
+      "id": "va_prov_aspfiy_1793501969050",
+      "userId": "a81da4fd-5e96-46a0-9a4c-e511b1921d79",
+      "accountNumber": "3813235111",
+      "bankName": "Paga",
+      "bankCode": "999991",
+      "accountName": "Aspfiy-Smartlinkng Samuel",
+      "provider": "prov_aspfiy",
+      "reference": "SL-a81da4fd-5e96-46a0-9a4c-e511b1921d79-3494",
+      "status": "ACTIVE",
+      "createdAt": "2026-11-01T02:59:29.464Z"
+    },
+    {
+      "id": "va_prov_aspfiy_1793537463371",
+      "userId": "a0a8e5be-615c-4f01-9977-013ede3db186",
+      "accountNumber": "0924575334",
+      "bankName": "Paga",
+      "bankCode": "999991",
+      "accountName": "Aspfiy-Smartlinkng Babangida",
+      "provider": "prov_aspfiy",
+      "reference": "SL-a0a8e5be-615c-4f01-9977-013ede3db186-6348",
+      "status": "ACTIVE",
+      "createdAt": "2026-11-01T12:51:03.784Z"
     }
   ],
   "api_providers": [
@@ -958,8 +1039,8 @@
       "baseUrl": "https://api-v1.aspfiy.com",
       "apiVersion": "v1.0",
       "authMethod": "BEARER_TOKEN",
-      "publicKey": "Aspfiy-PUB-KEY-b33e9ab1feffe36fd00ff44ad1fba21fd88ffe45f1e6d1da",
-      "apiKey": "Aspfiy-SEC-KEY-f3a18caa07137555b7cb6ce794e36e075a3eaf7f6340ab44",
+      "publicKey": "",
+      "apiKey": "",
       "webhookUrl": "https://smartlinkng.com.ng/api/webhooks/aspfiy",
       "webhookSignatureMethod": "MD5_OF_SECRET",
       "webhookSignatureHeaderName": "x-wiaxy-signature",
@@ -994,8 +1075,11 @@
       "lastTested": "2026-10-24T07:48:42.926Z",
       "avgResponseTimeMs": 2316,
       "connectionStatus": "Connected",
-      "secretKey": "Aspfiy-SEC-KEY-f3a18caa07137555b7cb6ce794e36e075a3eaf7f6340ab44",
-      "keySource": "SERVER_ENVIRONMENT_VARIABLE"
+      "secretKey": "",
+      "keySource": "SERVER_ENVIRONMENT_VARIABLE",
+      "apiToken": "",
+      "pin": "",
+      "transactionPin": ""
     },
     {
       "id": "prov_lumiid",
@@ -1007,8 +1091,8 @@
       "baseUrl": "https://api.lumiid.com",
       "apiVersion": "v1.0",
       "authMethod": "API_KEY",
-      "secretKey": "YOUR_API_KEY_HERE",
-      "apiKey": "YOUR_API_KEY_HERE",
+      "secretKey": "",
+      "apiKey": "",
       "clientId": "smartlink_identity_app",
       "appId": "smartlink_identity_app",
       "supportsWalletFunding": false,
@@ -1027,7 +1111,13 @@
       "status": "ENABLED",
       "enabled": true,
       "isActive": true,
-      "isDefault": false
+      "isDefault": false,
+      "apiToken": "",
+      "publicKey": "",
+      "pin": "",
+      "transactionPin": "",
+      "webhookSecret": "",
+      "keySource": "SERVER_ENVIRONMENT_VARIABLE"
     },
     {
       "id": "prov_verifyng",
@@ -1059,7 +1149,13 @@
       "status": "ENABLED",
       "enabled": true,
       "isActive": true,
-      "isDefault": false
+      "isDefault": false,
+      "apiToken": "",
+      "publicKey": "",
+      "pin": "",
+      "transactionPin": "",
+      "webhookSecret": "",
+      "keySource": "SERVER_ENVIRONMENT_VARIABLE"
     },
     {
       "id": "prov_identro",
@@ -1071,8 +1167,8 @@
       "baseUrl": "https://api.identro.ng",
       "apiVersion": "v1.0",
       "authMethod": "API_KEY",
-      "secretKey": "identro_live_2170df009861f22d_7d6d2c60b31a5bbc1c1bb6d5b5962f44259f402dfa978186c3d6aceeabba6fb4",
-      "apiKey": "identro_live_2170df009861f22d_7d6d2c60b31a5bbc1c1bb6d5b5962f44259f402dfa978186c3d6aceeabba6fb4",
+      "secretKey": "",
+      "apiKey": "",
       "clientId": "smartlink_identro_app",
       "appId": "smartlink_identro_app",
       "supportsWalletFunding": false,
@@ -1091,7 +1187,13 @@
       "status": "ENABLED",
       "enabled": true,
       "isActive": true,
-      "isDefault": false
+      "isDefault": false,
+      "apiToken": "",
+      "publicKey": "",
+      "pin": "",
+      "transactionPin": "",
+      "webhookSecret": "",
+      "keySource": "SERVER_ENVIRONMENT_VARIABLE"
     },
     {
       "id": "prov_prembley",
@@ -1103,9 +1205,9 @@
       "baseUrl": "https://api.prembly.com",
       "apiVersion": "v2.0",
       "authMethod": "API_KEY",
-      "secretKey": "live_sk_f2b42e3dd8954aa6b5d0e4a8a7b0d96f",
-      "publicKey": "live_pk_ab45252a65c94b0aade9a644e0f700c1",
-      "apiKey": "live_pk_ab45252a65c94b0aade9a644e0f700c1",
+      "secretKey": "",
+      "publicKey": "",
+      "apiKey": "",
       "supportsWalletFunding": false,
       "supportsBankTransfer": false,
       "supportsCardPayment": false,
@@ -1122,7 +1224,12 @@
       "status": "ENABLED",
       "enabled": true,
       "isActive": true,
-      "isDefault": false
+      "isDefault": false,
+      "apiToken": "",
+      "pin": "",
+      "transactionPin": "",
+      "webhookSecret": "",
+      "keySource": "SERVER_ENVIRONMENT_VARIABLE"
     },
     {
       "id": "prov_vtpass",
@@ -1158,7 +1265,12 @@
       "status": "ENABLED",
       "enabled": true,
       "isActive": true,
-      "isDefault": false
+      "isDefault": false,
+      "apiToken": "",
+      "pin": "",
+      "transactionPin": "",
+      "webhookSecret": "",
+      "keySource": "SERVER_ENVIRONMENT_VARIABLE"
     },
     {
       "id": "prov_bigisub",
@@ -1170,9 +1282,9 @@
       "baseUrl": "https://bigisub.ng/api/v2",
       "apiVersion": "v2.0",
       "authMethod": "API_TOKEN",
-      "apiToken": "86d0661f6d7990712294818a202c7b092df21b41",
-      "secretKey": "86d0661f6d7990712294818a202c7b092df21b41",
-      "apiKey": "86d0661f6d7990712294818a202c7b092df21b41",
+      "apiToken": "",
+      "secretKey": "",
+      "apiKey": "",
       "supportsWalletFunding": false,
       "supportsBankTransfer": false,
       "supportsCardPayment": false,
@@ -1217,7 +1329,50 @@
       "rsaPrivateKey": "",
       "hmacSecret": "",
       "isDefault": true,
-      "updatedAt": "2026-10-15T13:42:25.391Z"
+      "updatedAt": "2026-10-15T13:42:25.391Z",
+      "pin": "",
+      "transactionPin": "",
+      "keySource": "SERVER_ENVIRONMENT_VARIABLE"
+    },
+    {
+      "id": "prov_clubkonnect",
+      "name": "Clubkonnect VTU & Bill Payment",
+      "category": "TELECOM_VTU",
+      "providerType": "BILL_PAYMENT",
+      "description": "Clubkonnect VTU, Data Bundles, Cable TV, Electricity Bills & Utilities Gateway (clubkonnect.com / nellobytesystems.com)",
+      "logoUrl": "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=100&auto=format&fit=crop&q=60",
+      "baseUrl": "https://nellobytesystems.com",
+      "apiVersion": "v1.0",
+      "authMethod": "API_KEY",
+      "userId": "CK101288522",
+      "clientId": "CK101288522",
+      "merchantId": "CK101288522",
+      "secretKey": "GF8R9290SEM80KN1020HP91 ‎9OBCUUA7CD4P212DFRN490 ‎B2FI4H5T16U3DQ32K6A",
+      "apiKey": "GF8R9290SEM80KN1020HP91 ‎9OBCUUA7CD4P212DFRN490 ‎B2FI4H5T16U3DQ32K6A",
+      "pin": "",
+      "transactionPin": "",
+      "supportsWalletFunding": false,
+      "supportsBankTransfer": false,
+      "supportsCardPayment": false,
+      "supportsVirtualAccount": false,
+      "supportsPaymentLink": false,
+      "supportsPayout": false,
+      "supportsRefund": false,
+      "supportsTxVerification": true,
+      "supportsAirtime": true,
+      "supportsData": true,
+      "supportsTelecomVtu": true,
+      "supportsElectricity": true,
+      "supportsCableTv": true,
+      "timeout": 15000,
+      "retryAttempts": 3,
+      "healthStatus": "ONLINE",
+      "priority": 15,
+      "isDefault": false,
+      "environment": "PRODUCTION",
+      "status": "ENABLED",
+      "enabled": true,
+      "isActive": true
     }
   ],
   "provider_routing_rules": [
@@ -2452,6 +2607,25 @@
       "lastPingAt": "2026-10-24T09:06:34.138Z",
       "lastPingStatus": "SUCCESS",
       "lastPingLatencyMs": 140
+    },
+    {
+      "providerId": "prov_clubkonnect",
+      "providerName": "Clubkonnect VTU & Bill Payment",
+      "category": "VTU_PROVIDER",
+      "baseUrl": "https://nellobytesystems.com",
+      "status": "DEGRADED",
+      "uptimePercentage": 99.95,
+      "avgLatencyMs": 180,
+      "totalQueries": 12400,
+      "successfulQueries": 12380,
+      "failedQueries": 20,
+      "failoverTriggeredCount": 0,
+      "consecutiveFailures": 1,
+      "circuitBreakerTripped": false,
+      "lastPingAt": "2026-11-02T08:48:24.148Z",
+      "lastPingStatus": "FAILED",
+      "lastPingLatencyMs": 405,
+      "lastError": "Clubkonnect Gateway reached (405ms), but credentials were rejected (INVALID_CREDENTIALS). Verify UserID (CK101288522) and API Key."
     }
   ],
   "processed_payment_references": [
@@ -2955,12 +3129,13 @@
       "senderName": "Smart Link NG",
       "replyToAddress": "support@smartlinkng.com.ng",
       "smtpHost": "smtp.gmail.com",
-      "smtpUsername": "info.smartlinkng@gmail.com",
-      "smtpPasswordMasked": "hqay jdxw vyxu mcga",
+      "smtpUsername": "support@smartlinkng.com.ng",
+      "smtpPasswordMasked": "",
       "updatedBy": "adamuamuhammad8541@gmail.com",
       "updatedAt": "2026-10-24T20:17:18.724Z",
       "versionNumber": 8,
-      "smtpPort": 465
+      "smtpPort": 465,
+      "smtpPassword": ""
     }
   },
   "branding_settings": {

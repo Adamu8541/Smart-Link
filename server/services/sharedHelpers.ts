@@ -6,6 +6,7 @@ import * as walletsStore from "../../src/services/walletsStore";
 import { VirtualAccountRepository, ServicePriceRepository, AuditLogRepository } from "../turso/repositories";
 import { executeTurso } from "../turso/client";
 import { getSupabaseAdmin } from "./supabaseAdmin";
+import { getLiveDataPlanById } from "./dataPlans.service";
 
 export const DEFAULT_SERVICES_CATALOG = [
   {
@@ -634,32 +635,41 @@ export async function resolveVtuPlanAndPricing(
     planName = `${provider || "Telecom"} ₦${faceValue} Airtime`;
     network = netUpper;
   } else {
-    const plans: any[] = Array.isArray(priceMatrix.dataPlans) ? priceMatrix.dataPlans : [];
-    const matchedPlan = plans.find((p: any) => {
-      if (!p) return false;
-      const cleanExtra = String(extra).toLowerCase().trim();
-      const pId = String(p.id || "").toLowerCase().trim();
-      const pPlanId = String(p.planId || "").toLowerCase().trim();
-      const pProvId = String(p.providerPlanId || "").toLowerCase().trim();
-      const pName = String(p.planName || p.name || "").toLowerCase().trim();
-      return pId === cleanExtra || pPlanId === cleanExtra || pProvId === cleanExtra || pName === cleanExtra;
-    });
-
-    if (matchedPlan) {
-      baseCost = Number(
-        matchedPlan.agentPrice ??
-          matchedPlan.wholesalePrice ??
-          matchedPlan.costPrice ??
-          matchedPlan.baseCost ??
-          (matchedPlan.customerPrice ? matchedPlan.customerPrice - markupFee : 240)
-      );
-      providerPlanId = matchedPlan.providerPlanId || matchedPlan.planId || matchedPlan.id || extra;
-      planName = matchedPlan.planName || matchedPlan.name || extra;
-      network = matchedPlan.network || provider || "";
+    const livePlan = await getLiveDataPlanById(db, extra);
+    if (livePlan) {
+      baseCost = livePlan.baseCost;
+      markupFee = livePlan.profitMargin; // 15 naira (<1GB) or 30 naira (>=1GB)
+      providerPlanId = livePlan.planCode || livePlan.id;
+      planName = livePlan.planName;
+      network = livePlan.providerCode || provider || "";
     } else {
-      baseCost = 240;
-      providerPlanId = extra;
-      planName = extra || "Data Bundle";
+      const plans: any[] = Array.isArray(priceMatrix.dataPlans) ? priceMatrix.dataPlans : [];
+      const matchedPlan = plans.find((p: any) => {
+        if (!p) return false;
+        const cleanExtra = String(extra).toLowerCase().trim();
+        const pId = String(p.id || "").toLowerCase().trim();
+        const pPlanId = String(p.planId || "").toLowerCase().trim();
+        const pProvId = String(p.providerPlanId || "").toLowerCase().trim();
+        const pName = String(p.planName || p.name || "").toLowerCase().trim();
+        return pId === cleanExtra || pPlanId === cleanExtra || pProvId === cleanExtra || pName === cleanExtra;
+      });
+
+      if (matchedPlan) {
+        baseCost = Number(
+          matchedPlan.agentPrice ??
+            matchedPlan.wholesalePrice ??
+            matchedPlan.costPrice ??
+            matchedPlan.baseCost ??
+            (matchedPlan.customerPrice ? matchedPlan.customerPrice - markupFee : 240)
+        );
+        providerPlanId = matchedPlan.providerPlanId || matchedPlan.planId || matchedPlan.id || extra;
+        planName = matchedPlan.planName || matchedPlan.name || extra;
+        network = matchedPlan.network || provider || "";
+      } else {
+        baseCost = 240;
+        providerPlanId = extra;
+        planName = extra || "Data Bundle";
+      }
     }
   }
 

@@ -58,7 +58,7 @@ export {
   getAI,
 };
 
-dotenv.config();
+dotenv.config({ override: true });
 
 const app = express();
 app.set("trust proxy", 1);
@@ -441,7 +441,7 @@ async function startServer() {
     const isSvg = req.path.endsWith(".svg");
     const isIco = req.path.endsWith(".ico");
     const mime = isSvg ? "image/svg+xml" : isWebp ? "image/webp" : isIco ? "image/x-icon" : "image/png";
-    
+
     const publicPath = path.join(process.cwd(), "public");
     const distPath = path.join(process.cwd(), "dist");
 
@@ -468,7 +468,7 @@ async function startServer() {
     const isWebp = req.path.endsWith(".webp");
     const ext = isWebp ? ".webp" : ".png";
     const mime = isWebp ? "image/webp" : "image/png";
-    
+
     const publicPath = path.join(process.cwd(), "public");
     const distPath = path.join(process.cwd(), "dist");
 
@@ -515,11 +515,11 @@ async function startServer() {
       const isWebp = req.path.endsWith(".webp");
       const ext = isWebp ? ".webp" : ".png";
       const mime = isWebp ? "image/webp" : "image/png";
-      
+
       const publicLogo = path.join(publicPath, `logo${ext}`);
       const distLogo = path.join(distPath, `logo${ext}`);
       const rootLogo = path.join(process.cwd(), `logo${ext}`);
-      
+
       res.setHeader("Content-Type", mime);
       res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
       if (fs.existsSync(publicLogo)) return res.sendFile(publicLogo);
@@ -577,7 +577,7 @@ async function startServer() {
         path.join(process.cwd(), "public", "assets"),
         path.join(process.cwd(), "assets"),
       ];
-      
+
       // 1. Exact match
       for (const dir of searchDirs) {
         const exactPath = path.join(dir, filename);
