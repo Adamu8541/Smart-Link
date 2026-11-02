@@ -141,7 +141,18 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
     }
     try {
       const headers = await getAuthHeaders(uid);
-      // Fetch from the secure authoritative balance endpoint directly
+
+      // 1. Trigger automated reconciliation of any pending/unmatched payments
+      try {
+        await fetch(`/api/wallet/auto-reconcile/${encodeURIComponent(uid)}`, {
+          method: "POST",
+          headers,
+        });
+      } catch (autoErr) {
+        console.warn("[Auto-Reconcile Check Note]:", autoErr);
+      }
+
+      // 2. Fetch from the secure authoritative balance endpoint directly
       const res = await fetch(`/api/wallet/balance/${encodeURIComponent(uid)}`, { headers });
       const contentType = res.headers.get("content-type") || "";
       if (contentType.includes("application/json")) {
@@ -149,6 +160,7 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
         if (res.ok && data?.wallet) {
           setWalletBalance(data.wallet.balance || 0);
           onBalanceUpdate();
+          loadFundingHistory();
           return;
         }
       }
@@ -161,6 +173,7 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
         if (profileRes.ok && profileData.user) {
           setWalletBalance(profileData.user.walletBalance || 0);
           onBalanceUpdate();
+          loadFundingHistory();
         }
       }
     } catch (err) {
@@ -813,6 +826,15 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
                 <div className="p-3 bg-[#F5F7FA] dark:bg-[#0F2D5C]/30 rounded-xl border border-slate-200 dark:border-slate-700 text-[11px] text-[#0F2D5C] dark:text-[#9CA3AF] font-medium">
                   💡 Zero minimum funding limit. All incoming transfers are credited instantly.
                 </div>
+                <button
+                  type="button"
+                  onClick={fetchLatestBalance}
+                  disabled={isRefreshing}
+                  className="w-full py-2.5 px-4 bg-[#0F2D5C] hover:bg-[#1E40AF] text-white rounded-xl font-bold flex items-center justify-center gap-2 text-xs transition shadow-sm cursor-pointer disabled:opacity-50"
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
+                  <span>{isRefreshing ? "Checking & Synchronizing..." : "I've Sent Money / Refresh"}</span>
+                </button>
               </div>
             </div>
           ) : (

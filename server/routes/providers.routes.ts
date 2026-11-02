@@ -37,7 +37,7 @@ import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
 import * as securityStore from "../../src/services/securityStore";
 import * as notificationsStore from "../../src/services/notificationsStore";
-
+import { getUnifiedUserTransactions } from "../services/unifiedTransactions";
 
 const router = express.Router();
 const app = router;
@@ -780,6 +780,24 @@ app.get("/api/wallet/verify-payment", async (req, res) => {
   }
 
   const verificationResult = await adapter.verifyTransaction(db, reference as string, provider);
+
+  // If verified by provider, ensure it is credited to the customer's wallet exactly once
+  if (verificationResult.verified) {
+    try {
+      await PaymentVerificationReconciliationEngine.verifyAndReconcilePayment(db, {
+        payload: {
+          reference: reference as string,
+          amount: verificationResult.amountPaid,
+          status: "SUCCESS",
+          ...(verificationResult.rawResponse || {})
+        },
+        providerOverride: provider.name
+      });
+    } catch (credErr) {
+      console.warn(`[verify-payment] Auto-credit reconciliation note:`, credErr);
+    }
+  }
+
   return res.json({
     success: verificationResult.verified,
     provider: { id: provider.id, name: provider.name },
@@ -816,8 +834,13 @@ app.get("/api/wallet/deposits/:userId", async (req, res) => {
     });
   }
 
-  const deposits = (db.transactions || []).filter(
-    (t: any) => (t.userId === userId || t.userUid === userId) && (t.type === "CREDIT" || t.type === "DEPOSIT" || t.type === "FUNDING")
+  const userTxs = await getUnifiedUserTransactions(db, userId);
+  const depositTypes = ["CREDIT", "DEPOSIT", "FUNDING", "WALLET_FUNDING", "ADMIN_ADJUSTMENT"];
+  const deposits = userTxs.filter(
+    (t: any) =>
+      depositTypes.includes(String(t.type || "").toUpperCase()) ||
+      String(t.service || t.serviceName || "").toUpperCase().includes("FUNDING") ||
+      String(t.service || t.serviceName || "").toUpperCase().includes("DEPOSIT")
   );
 
   writeDB(db);
@@ -849,8 +872,10 @@ app.get("/api/wallet/withdrawals/:userId", async (req, res) => {
     });
   }
 
-  const withdrawals = (db.transactions || []).filter(
-    (t: any) => (t.userId === userId || t.userUid === userId) && (t.type === "DEBIT" || t.type === "WITHDRAWAL" || t.type === "TRANSFER")
+  const userTxs = await getUnifiedUserTransactions(db, userId);
+  const withdrawalTypes = ["DEBIT", "WITHDRAWAL", "TRANSFER"];
+  const withdrawals = userTxs.filter(
+    (t: any) => withdrawalTypes.includes(String(t.type || "").toUpperCase())
   );
 
   writeDB(db);

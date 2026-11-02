@@ -7,14 +7,14 @@ import { readDB, writeDB, initializeDB, DB_DIR, DB_FILE, UPLOADS_DIR, SUPER_ADMI
 import { verifyUserOrAdminSession, requireAdmin, requireAuth, verifySessionToken } from "../middleware/auth";
 import { isMaintenanceModeActive, getMaintenanceDetails, getValueByJsonPath, seedModule7SettingsIfEmpty, sanitizePublicSettings } from "../middleware/maintenance";
 import { getAI } from "../services/ai";
-import { 
-  DEFAULT_SERVICES_CATALOG, 
-  seedDefaultServicesCatalogIfEmpty, 
-  seedDefaultUsersIfEmpty, 
-  seedDefaultTransactionsIfEmpty, 
-  recordAdminUserAction, 
-  getOrCreateUserVirtualAccount, 
-  resolveVtuPlanAndPricing 
+import {
+  DEFAULT_SERVICES_CATALOG,
+  seedDefaultServicesCatalogIfEmpty,
+  seedDefaultUsersIfEmpty,
+  seedDefaultTransactionsIfEmpty,
+  recordAdminUserAction,
+  getOrCreateUserVirtualAccount,
+  resolveVtuPlanAndPricing
 } from "../services/sharedHelpers";
 import { ServerWalletEngine } from "../../src/services/serverWalletEngine";
 import { APIProviderManager, DEFAULT_PROVIDERS } from "../../src/services/apiProviderManager";
@@ -31,7 +31,8 @@ import * as walletsStore from "../../src/services/walletsStore";
 import * as securityStore from "../../src/services/securityStore";
 import * as notificationsStore from "../../src/services/notificationsStore";
 import { ServicePriceRepository } from "../turso/repositories";
-
+import { getUnifiedUserTransactions } from "../services/unifiedTransactions";
+import { runBackgroundReconciliationCycle } from "../services/reconciliationWorker";
 
 const router = express.Router();
 const app = router;
@@ -60,7 +61,7 @@ app.post("/api/admin/transactions/override", requireAdmin, async (req, res) => {
       await usersStore.updateUser(oldTx.userId, {
         walletBalance: currentBal + oldTx.amount
       });
-      
+
       const refundTx = {
         id: "tx_ref_" + Math.random().toString(36).substring(2, 9),
         userId: oldTx.userId,
@@ -564,18 +565,27 @@ app.get("/api/transaction/history", async (req, res) => {
 
   const targetUserScope = authCheck.isAdmin ? (userId as string) : authCheck.authenticatedUid;
 
-  let list = db.transactions || [];
-
+  let list: any[] = [];
   if (targetUserScope) {
-    list = list.filter((t: any) => t.userId === targetUserScope || t.uid === targetUserScope);
+    list = await getUnifiedUserTransactions(db, targetUserScope);
+  } else {
+    list = (db.transactions || []).slice();
   }
 
   if (status && status !== "ALL") {
-    list = list.filter((t: any) => t.status === status);
+    const s = String(status).toUpperCase();
+    list = list.filter((t: any) => {
+      const ts = String(t.status || "").toUpperCase();
+      return ts === s || (s === "SUCCESS" && ts === "SUCCESSFUL") || (s === "SUCCESSFUL" && ts === "SUCCESS");
+    });
   }
 
   if (serviceType) {
-    list = list.filter((t: any) => t.service === serviceType || t.service?.includes(serviceType as string));
+    const st = String(serviceType).toUpperCase();
+    list = list.filter((t: any) => {
+      const sName = String(t.service || t.serviceName || t.type || "").toUpperCase();
+      return sName.includes(st);
+    });
   }
 
   if (searchQuery) {
@@ -584,18 +594,21 @@ app.get("/api/transaction/history", async (req, res) => {
       (t: any) =>
         t.smartlinkReference?.toLowerCase().includes(q) ||
         t.providerReference?.toLowerCase().includes(q) ||
+        t.reference?.toLowerCase().includes(q) ||
+        t.paymentReference?.toLowerCase().includes(q) ||
         t.service?.toLowerCase().includes(q) ||
+        t.serviceName?.toLowerCase().includes(q) ||
         t.recipient?.toLowerCase().includes(q) ||
         t.description?.toLowerCase().includes(q)
     );
   }
 
   if (startDate) {
-    list = list.filter((t: any) => new Date(t.createdAt) >= new Date(startDate as string));
+    list = list.filter((t: any) => new Date(t.createdAt || t.created_at || t.timestamp) >= new Date(startDate as string));
   }
 
   if (endDate) {
-    list = list.filter((t: any) => new Date(t.createdAt) <= new Date(endDate as string));
+    list = list.filter((t: any) => new Date(t.createdAt || t.created_at || t.timestamp) <= new Date(endDate as string));
   }
 
   const total = list.length;
@@ -693,16 +706,31 @@ app.get("/api/transactions/history", async (req, res) => {
 
     const targetUserScope = authCheck.isAdmin ? userId : authCheck.authenticatedUid;
 
-    let records = db.reconciliation_records || db.transactions || [];
-    if (targetUserScope) records = records.filter((r: any) => r.userId === targetUserScope);
-    if (status) records = records.filter((r: any) => (r.status || "").toUpperCase() === String(status).toUpperCase());
+    let records: any[] = [];
+    if (targetUserScope) {
+      records = await getUnifiedUserTransactions(db, targetUserScope);
+    } else {
+      records = (db.reconciliation_records || db.transactions || []).slice();
+    }
+
+    if (status) {
+      const s = String(status).toUpperCase();
+      records = records.filter((r: any) => {
+        const rs = String(r.status || "").toUpperCase();
+        return rs === s || (s === "SUCCESS" && (rs === "SUCCESSFUL" || rs === "VERIFIED" || rs === "CREDITED"));
+      });
+    }
+
     if (searchQuery) {
       const q = String(searchQuery).toLowerCase();
       records = records.filter((r: any) =>
         (r.paymentReference || "").toLowerCase().includes(q) ||
-        (r.providerTransactionId || "").toLowerCase().includes(q)
+        (r.providerTransactionId || "").toLowerCase().includes(q) ||
+        (r.reference || "").toLowerCase().includes(q) ||
+        (r.description || "").toLowerCase().includes(q)
       );
     }
+
     res.json({
       success: true,
       data: { records, total: records.length },
@@ -714,11 +742,17 @@ app.get("/api/transactions/history", async (req, res) => {
 
 // Generic Reconciliation & Settlement Endpoints (Admin Only)
 app.post("/api/reconciliation/run", requireAdmin, async (req, res) => {
+  try {
+    await runBackgroundReconciliationCycle();
+  } catch (cycleErr) {
+    console.warn("[AdminReconciliation] Run cycle note:", cycleErr);
+  }
+
   const db = readDB();
   const records = db.reconciliation_records || [];
   const unmatched = db.unmatched_payments || [];
 
-  const matchedCount = records.filter((r: any) => r.status === "VERIFIED" || r.status === "CREDITED").length;
+  const matchedCount = records.filter((r: any) => r.status === "VERIFIED" || r.status === "CREDITED" || r.status === "SUCCESS").length;
   const discrepancyCount = unmatched.length + records.filter((r: any) => r.status === "UNMATCHED" || r.status === "FAILED").length;
 
   res.json({

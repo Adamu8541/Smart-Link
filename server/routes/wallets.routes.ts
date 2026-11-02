@@ -7,14 +7,14 @@ import { readDB, writeDB, initializeDB, DB_DIR, DB_FILE, UPLOADS_DIR, SUPER_ADMI
 import { verifyUserOrAdminSession, requireAdmin } from "../middleware/auth";
 import { isMaintenanceModeActive, getMaintenanceDetails, getValueByJsonPath, seedModule7SettingsIfEmpty, sanitizePublicSettings } from "../middleware/maintenance";
 import { getAI } from "../services/ai";
-import { 
-  DEFAULT_SERVICES_CATALOG, 
-  seedDefaultServicesCatalogIfEmpty, 
-  seedDefaultUsersIfEmpty, 
-  seedDefaultTransactionsIfEmpty, 
-  recordAdminUserAction, 
-  getOrCreateUserVirtualAccount, 
-  resolveVtuPlanAndPricing 
+import {
+  DEFAULT_SERVICES_CATALOG,
+  seedDefaultServicesCatalogIfEmpty,
+  seedDefaultUsersIfEmpty,
+  seedDefaultTransactionsIfEmpty,
+  recordAdminUserAction,
+  getOrCreateUserVirtualAccount,
+  resolveVtuPlanAndPricing
 } from "../services/sharedHelpers";
 import { ServerWalletEngine } from "../../src/services/serverWalletEngine";
 import { APIProviderManager, DEFAULT_PROVIDERS } from "../../src/services/apiProviderManager";
@@ -32,7 +32,8 @@ import * as walletsStore from "../../src/services/walletsStore";
 import * as securityStore from "../../src/services/securityStore";
 import * as notificationsStore from "../../src/services/notificationsStore";
 import { UserRepository, VirtualAccountRepository } from "../turso/repositories/index";
-
+import { getUnifiedUserTransactions, syncAuthoritativeWalletBalance } from "../services/unifiedTransactions";
+import { reconcileUserPendingDeposits } from "../services/reconciliationWorker";
 
 const router = express.Router();
 const app = router;
@@ -51,6 +52,13 @@ app.get(["/api/wallet/balance", "/api/wallet/balance/:userId"], async (req, res)
     return res.status(400).json({ error: "User identification required to retrieve wallet balance." });
   }
 
+  // Auto-reconcile any pending or unmatched deposits on-the-fly for this user
+  try {
+    await reconcileUserPendingDeposits(db, effectiveUid);
+  } catch (err: any) {
+    console.warn(`[WalletBalance] Auto-reconciliation check note: ${err?.message}`);
+  }
+
   const balanceInfo = await ServerWalletEngine.getWalletBalance(db, effectiveUid);
 
   if ("error" in balanceInfo && balanceInfo.error) {
@@ -58,6 +66,33 @@ app.get(["/api/wallet/balance", "/api/wallet/balance/:userId"], async (req, res)
   }
 
   res.json({ wallet: balanceInfo });
+});
+
+// Dedicated auto-reconciliation and wallet balance synchronization endpoint
+app.post(["/api/wallet/auto-reconcile", "/api/wallet/auto-reconcile/:userId"], async (req, res) => {
+  const userId = req.params.userId || req.body?.userId || "";
+  const db = readDB();
+
+  const authCheck = await verifyUserOrAdminSession(req, userId, db);
+  if (!authCheck.authorized) {
+    return res.status(403).json({ error: authCheck.reason || "Forbidden" });
+  }
+
+  const effectiveUid = userId || authCheck.authenticatedUid;
+  if (!effectiveUid) {
+    return res.status(400).json({ error: "User identification required." });
+  }
+
+  const result = await reconcileUserPendingDeposits(db, effectiveUid);
+  const transactions = await getUnifiedUserTransactions(db, effectiveUid, { limit: 50 });
+
+  res.json({
+    success: true,
+    reconciledCount: result.reconciledCount,
+    totalAmountReconciled: result.totalAmountReconciled,
+    newBalance: result.newBalance,
+    transactions,
+  });
 });
 
 app.post("/api/wallet/validate", async (req, res) => {
@@ -271,7 +306,7 @@ app.get("/api/wallet/history/:userId", async (req, res) => {
     return res.status(403).json({ error: authCheck.reason || "Forbidden" });
   }
 
-  const history = ServerWalletEngine.getTransactionHistory(db, userId, {
+  const history = await getUnifiedUserTransactions(db, userId, {
     limit: limit ? parseInt(limit as string, 10) : undefined,
     offset: offset ? parseInt(offset as string, 10) : undefined,
     type: type as string,
@@ -291,7 +326,7 @@ app.get("/api/wallet/transactions/:userId", async (req, res) => {
     return res.status(403).json({ error: authCheck.reason || "Forbidden" });
   }
 
-  const history = ServerWalletEngine.getTransactionHistory(db, userId, {
+  const history = await getUnifiedUserTransactions(db, userId, {
     limit: limit ? parseInt(limit as string, 10) : undefined,
     offset: offset ? parseInt(offset as string, 10) : undefined,
     type: type as string,
@@ -299,6 +334,34 @@ app.get("/api/wallet/transactions/:userId", async (req, res) => {
   });
 
   res.json({ success: true, transactions: history });
+});
+
+app.get(["/api/wallet/funding-history", "/api/wallet/funding-history/:userId"], async (req, res) => {
+  const userId = req.params.userId || (req.query.userId as string) || (req.query.uid as string) || "";
+  const db = readDB();
+
+  const authCheck = await verifyUserOrAdminSession(req, userId, db);
+  if (!authCheck.authorized) {
+    return res.status(403).json({ error: authCheck.reason || "Forbidden" });
+  }
+
+  const effectiveUid = authCheck.authenticatedUid || userId;
+  const txs = await getUnifiedUserTransactions(db, effectiveUid);
+  const fundingTxs = txs.filter((t: any) => {
+    const type = String(t.type || "").toUpperCase();
+    const service = String(t.service || t.serviceName || "").toUpperCase();
+    return (
+      type === "WALLET_FUNDING" ||
+      type === "CREDIT" ||
+      type === "DEPOSIT" ||
+      type === "FUNDING" ||
+      type === "ADMIN_ADJUSTMENT" ||
+      service.includes("FUNDING") ||
+      service.includes("DEPOSIT")
+    );
+  });
+
+  res.json({ success: true, history: fundingTxs, transactions: fundingTxs });
 });
 
 
@@ -310,7 +373,7 @@ app.post("/api/admin/wallets/adjust", requireAdmin, async (req, res) => {
   const admin = (req as any).admin;
   const adminUid = (req as any).authenticatedUid;
   const isAuthorized = admin.role === "SUPER_ADMIN" || admin.role === "ADMIN" || admin.permissions?.includes("manage_wallets");
-  
+
   if (!isAuthorized) {
     return res.status(403).json({ error: "Unauthorized. Admin permission required for wallet adjustments." });
   }
@@ -400,8 +463,8 @@ app.get("/api/transactions/:userId", async (req, res) => {
     return res.status(403).json({ error: authCheck.reason || "Forbidden" });
   }
 
-  const txs = db.transactions.filter((tx: any) => tx.userId === userId);
-  res.json({ transactions: txs.sort((a: any, b: any) => (b.createdAt || "").localeCompare(a.createdAt || "")) });
+  const txs = await getUnifiedUserTransactions(db, userId);
+  res.json({ transactions: txs });
 });
 
 // Admin Dashboard stats
@@ -564,6 +627,21 @@ app.post("/api/wallet/self-verify-deposit", async (req, res) => {
   const parsedAmount = typeof amount === "number" ? amount : parseFloat(String(amount).replace(/[^0-9.]/g, ""));
   if (isNaN(parsedAmount) || !isFinite(parsedAmount) || parsedAmount <= 0) {
     return res.status(400).json({ success: false, error: "Please enter a valid deposit amount greater than zero." });
+  }
+
+  // 1b. Check if there are any unmatched or pending deposits already received for this user
+  try {
+    const autoRec = await reconcileUserPendingDeposits(db, effectiveUid);
+    if (autoRec.reconciledCount > 0) {
+      return res.json({
+        success: true,
+        message: `Successfully recovered and credited ${autoRec.reconciledCount} deposit(s) totaling ₦${autoRec.totalAmountReconciled.toLocaleString()} to your wallet!`,
+        newBalance: autoRec.newBalance,
+        reconciledCount: autoRec.reconciledCount,
+      });
+    }
+  } catch (recErr) {
+    console.warn(`[SelfVerify] Pre-reconciliation check error:`, recErr);
   }
 
   // 2. Resolve user's virtual account

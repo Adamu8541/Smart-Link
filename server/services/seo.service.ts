@@ -537,7 +537,7 @@ export function injectSEOTags(html: string, metadata: SEOMetadata): string {
     <meta name="author" content="SmartLink Nigeria Technology" />
     <meta http-equiv="content-language" content="en-NG" />
     <meta name="language" content="English" />
-    
+
     <!-- Agentic AI & LLM Discovery Standards -->
     <link rel="alternate" type="text/markdown" href="${origin}/llms.txt" title="SmartLink LLM Summary" />
     <link rel="alternate" type="text/markdown" href="${origin}/llms-full.txt" title="SmartLink LLM Knowledge Base" />
@@ -570,6 +570,7 @@ export function injectSEOTags(html: string, metadata: SEOMetadata): string {
     <meta property="og:image:height" content="${metadata.ogImageHeight}" />
     <meta property="og:image:alt" content="${escapeHtml(metadata.ogImageAlt)}" />
     <meta property="og:locale" content="en_NG" />
+    <link rel="image_src" href="${metadata.ogImage}" />
 
     <!-- Twitter / X Card Meta Tags -->
     <meta name="twitter:card" content="${metadata.twitterCard}" />
@@ -648,7 +649,7 @@ function escapeHtml(text: string): string {
  */
 export function generateSitemapXml(origin: string = DEFAULT_DOMAIN): string {
   const currentDate = new Date().toISOString().split("T")[0];
-  
+
   const pages = [
     // 1. Homepage & Core Portals
     { path: "", priority: "1.00", changefreq: "daily", image: `${origin}/og-image.png`, title: "SmartLink Nigeria Digital Enterprise Portal" },
@@ -658,7 +659,7 @@ export function generateSitemapXml(origin: string = DEFAULT_DOMAIN): string {
     { path: "/bvn", priority: "0.90", changefreq: "weekly" },
     { path: "/cac", priority: "0.90", changefreq: "weekly" },
     { path: "/scuml", priority: "0.85", changefreq: "weekly" },
-    
+
     // 2. Utility Bills, VTU & Telecom
     { path: "/bills", priority: "0.90", changefreq: "weekly" },
     { path: "/electricity", priority: "0.90", changefreq: "weekly" },

@@ -43,6 +43,7 @@ import securityRoutes from "./server/routes/security.routes";
 import apiBuilderRoutes from "./server/routes/apiBuilder.routes";
 import developerApiRoutes from "./server/routes/developerApi.routes";
 import emailCampaignsRoutes from "./server/routes/emailCampaigns.routes";
+import { startReconciliationWorker } from "./server/services/reconciliationWorker";
 
 // Re-export core helpers for backwards compatibility
 export {
@@ -500,6 +501,44 @@ async function startServer() {
     return res.status(204).send();
   });
 
+  // Universal Open Graph & Social Preview image route handler (works in both dev and production modes)
+  app.get(["/og-image.png", "/assets/og-image.png", "/og-image.jpg", "/assets/og-image.jpg"], (req, res) => {
+    const isJpg = req.path.endsWith(".jpg") || req.path.endsWith(".jpeg");
+    const mime = isJpg ? "image/jpeg" : "image/png";
+    const filename = isJpg ? "og-image.jpg" : "og-image.png";
+
+    const publicPath = path.join(process.cwd(), "public");
+    const distPath = path.join(process.cwd(), "dist");
+
+    const primaryOg = path.join(publicPath, filename);
+    const distOg = path.join(distPath, filename);
+    const rootOg = path.join(process.cwd(), filename);
+    const assetsOg = path.join(publicPath, "assets", filename);
+    const fallbackPng = path.join(publicPath, "og-image.png");
+    const fallbackLogo = path.join(publicPath, "logo.png");
+
+    res.setHeader("Content-Type", mime);
+    res.setHeader("Cache-Control", "public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800");
+    res.setHeader("CDN-Cache-Control", "public, max-age=86400");
+    res.setHeader("Cloudflare-CDN-Cache-Control", "public, max-age=86400");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Accept-Ranges", "bytes");
+
+    if (fs.existsSync(primaryOg)) return res.sendFile(primaryOg);
+    if (fs.existsSync(distOg)) return res.sendFile(distOg);
+    if (fs.existsSync(rootOg)) return res.sendFile(rootOg);
+    if (fs.existsSync(assetsOg)) return res.sendFile(assetsOg);
+    if (fs.existsSync(fallbackPng)) {
+      res.setHeader("Content-Type", "image/png");
+      return res.sendFile(fallbackPng);
+    }
+    if (fs.existsSync(fallbackLogo)) {
+      res.setHeader("Content-Type", "image/png");
+      return res.sendFile(fallbackLogo);
+    }
+    return res.status(404).send("OG image not found");
+  });
+
   if (!isProductionMode) {
     const vite = await createViteServer({
       server: { middlewareMode: true },
@@ -509,41 +548,6 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), "dist");
     const publicPath = path.join(process.cwd(), "public");
-
-    // Explicit route for WebP and PNG logos with long-term caching
-    app.get(["/logo.webp", "/assets/logo.webp", "/logo.png", "/assets/logo.png"], (req, res) => {
-      const isWebp = req.path.endsWith(".webp");
-      const ext = isWebp ? ".webp" : ".png";
-      const mime = isWebp ? "image/webp" : "image/png";
-
-      const publicLogo = path.join(publicPath, `logo${ext}`);
-      const distLogo = path.join(distPath, `logo${ext}`);
-      const rootLogo = path.join(process.cwd(), `logo${ext}`);
-
-      res.setHeader("Content-Type", mime);
-      res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
-      if (fs.existsSync(publicLogo)) return res.sendFile(publicLogo);
-      if (fs.existsSync(distLogo)) return res.sendFile(distLogo);
-      if (fs.existsSync(rootLogo)) return res.sendFile(rootLogo);
-      return res.status(404).send("Logo not found");
-    });
-
-    // Explicit route for Open Graph & Social Preview image (1200x630)
-    app.get(["/og-image.png", "/assets/og-image.png", "/og-image.jpg"], (_req, res) => {
-      const publicOg = path.join(publicPath, "og-image.png");
-      const distOg = path.join(distPath, "og-image.png");
-      const rootOg = path.join(process.cwd(), "og-image.png");
-
-      res.setHeader("Content-Type", "image/png");
-      res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
-      if (fs.existsSync(publicOg)) return res.sendFile(publicOg);
-      if (fs.existsSync(distOg)) return res.sendFile(distOg);
-      if (fs.existsSync(rootOg)) return res.sendFile(rootOg);
-      // Fallback to logo if og-image is missing
-      const publicLogo = path.join(publicPath, "logo.webp");
-      if (fs.existsSync(publicLogo)) return res.sendFile(publicLogo);
-      return res.status(404).send("OG image not found");
-    });
 
     // Hashed Vite production assets - 1 Year Immutable Cache (Registered FIRST to avoid fallback interception)
     app.use("/assets", express.static(path.join(distPath, "assets"), {
@@ -667,6 +671,7 @@ async function startServer() {
 
   serverInstance = app.listen(PORT, "0.0.0.0", () => {
     console.log(`[Server] SmartLink Core Server running on http://0.0.0.0:${PORT}`);
+    startReconciliationWorker();
   });
 
   return serverInstance;
