@@ -32,7 +32,7 @@ function checkMarketplaceRateLimit(key: string, limit = 15, windowMs = 60000): b
 app.get("/api/marketplace/services", async (req, res) => {
   const db = readDB();
   const services = (db.vendorServices || []).filter((s: any) => s.isActive);
-  
+
   // Clean sensitive internal attributes if any
   const sanitizedServices = services.map((s: any) => ({
     id: s.id,

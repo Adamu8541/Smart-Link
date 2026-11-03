@@ -92,7 +92,7 @@ app.post("/api/admin/manual-services/email-routes", requireAdmin, async (req, re
 /**
  * POST /api/manual-services/submit
  * Handles user submission of CAC, TIN, Passport, Modification, and other manual services.
- * 
+ *
  * - Debits user wallet (if fee > 0)
  * - Saves attachments to local disk storage (NEVER sent or saved to cloud storage)
  * - Dispatches formatted HTML email with attachments to admin email (from settings or route)
@@ -203,7 +203,7 @@ app.post("/api/manual-services/submit", async (req, res) => {
 
   // 5. Construct Beautiful HTML Email
   const timestamp = new Date().toLocaleString("en-NG", { timeZone: "Africa/Lagos", dateStyle: "full", timeStyle: "medium" });
-  
+
   // Format form entries into table rows
   const formRowsHtml = Object.entries(formData)
     .map(([key, val]) => {
@@ -243,7 +243,7 @@ app.post("/api/manual-services/submit", async (req, res) => {
     </head>
     <body style="font-family: Arial, sans-serif; background-color: #F3F4F6; margin: 0; padding: 24px; color: #111827;">
       <div style="max-width: 680px; margin: 0 auto; background-color: #FFFFFF; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid #E5E7EB;">
-        
+
         <!-- Header -->
         <div style="background-color: #0F2D5C; color: #FFFFFF; padding: 24px; text-align: left;">
           <h1 style="margin: 0 0 6px 0; font-size: 20px; letter-spacing: -0.5px; font-weight: bold;">Smart Link NG</h1>
@@ -262,7 +262,7 @@ app.post("/api/manual-services/submit", async (req, res) => {
 
         <!-- Content Body -->
         <div style="padding: 24px;">
-          
+
           <!-- User Summary Card -->
           <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
             <h3 style="margin: 0 0 10px 0; font-size: 14px; text-transform: uppercase; color: #64748B; letter-spacing: 0.5px;">Customer Overview</h3>
@@ -310,7 +310,7 @@ app.post("/api/manual-services/submit", async (req, res) => {
 
   try {
     const transporter = getEmailTransporter(db);
-    
+
     if (transporter) {
       // Attachments formatted for nodemailer
       const mailAttachments = savedAttachments.map((att) => ({

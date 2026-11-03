@@ -266,13 +266,24 @@ app.put("/api/admin/payment-providers/:id", requireAdmin, async (req, res) => {
   let updatedProvider: any;
 
   if (isAspfiy) {
-    // STRICT ASPFIY SECURITY:
-    // Block any modification of sensitive fields (secretKey, publicKey, webhookSecret, encryptionKey, clientSecret) via admin panel.
-    // Preserve active environment configurations and read-only constants. Only allow modifications to non-critical display descriptions or UI toggles.
+    // ASPFIY CREDENTIAL HANDLING:
+    // Accept unmasked user input for credentials, while preserving existing keys or env vars if masked (e.g. '******').
+    const sanitizeAspfiyCredential = (incomingVal: any, existingVal: any): string => {
+      if (incomingVal === undefined || incomingVal === null) return existingVal || "";
+      if (typeof incomingVal === "string") {
+        const trimmedVal = incomingVal.trim();
+        if (!trimmedVal || isMaskedValue(trimmedVal)) {
+          return existingVal || "";
+        }
+        return trimmedVal;
+      }
+      return existingVal || "";
+    };
+
     const aspfiyEnvSecret = process.env.ASPFIY_SECRET_KEY ? String(process.env.ASPFIY_SECRET_KEY).trim() : "";
     const aspfiyEnvPublic = process.env.ASPFIY_PUBLIC_KEY ? String(process.env.ASPFIY_PUBLIC_KEY).trim() : "";
-    const activeAspfiySecret = aspfiyEnvSecret || existing.secretKey || existing.apiKey || "";
-    const activeAspfiyPublic = aspfiyEnvPublic || existing.publicKey || "";
+    const activeAspfiySecret = sanitizeAspfiyCredential(secretKey || body.apiKey, aspfiyEnvSecret || existing.secretKey || existing.apiKey || "");
+    const activeAspfiyPublic = sanitizeAspfiyCredential(publicKey, aspfiyEnvPublic || existing.publicKey || "");
 
     updatedProvider = {
       ...existing,
@@ -294,16 +305,15 @@ app.put("/api/admin/payment-providers/:id", requireAdmin, async (req, res) => {
       priority: priority !== undefined ? Number(priority) : (existing.priority || 1),
       webhookSignatureMethod: webhookSignatureMethod || existing.webhookSignatureMethod || "MD5_OF_SECRET",
       webhookSignatureHeaderName: webhookSignatureHeaderName || existing.webhookSignatureHeaderName || "x-wiaxy-signature",
-      // Sensitive fields strictly locked & preserved
       secretKey: activeAspfiySecret,
       apiKey: activeAspfiySecret,
       publicKey: activeAspfiyPublic,
-      webhookSecret: existing.webhookSecret || activeAspfiySecret,
-      webhookSigningSecret: existing.webhookSigningSecret || existing.webhookSecret || activeAspfiySecret,
-      encryptionKey: existing.encryptionKey || "",
-      clientSecret: existing.clientSecret || "",
-      clientId: existing.clientId || "",
-      merchantId: existing.merchantId || "",
+      webhookSecret: sanitizeAspfiyCredential(webhookSecret, existing.webhookSecret || activeAspfiySecret),
+      webhookSigningSecret: sanitizeAspfiyCredential(webhookSigningSecret, existing.webhookSigningSecret || existing.webhookSecret || activeAspfiySecret),
+      encryptionKey: sanitizeAspfiyCredential(encryptionKey, existing.encryptionKey || ""),
+      clientSecret: sanitizeAspfiyCredential(clientSecret, existing.clientSecret || ""),
+      clientId: sanitizeAspfiyCredential(clientId, existing.clientId || ""),
+      merchantId: sanitizeAspfiyCredential(merchantId, existing.merchantId || ""),
       updatedAt: new Date().toISOString(),
     };
   } else {

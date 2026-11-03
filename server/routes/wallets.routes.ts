@@ -605,7 +605,7 @@ app.post("/api/admin/remove-all-wallets", requireAdmin, async (req, res) => {
 // OPTION 1: USER DIRECT DEPOSIT RECONCILIATION & RE-QUERY
 // ==========================================
 app.post("/api/wallet/self-verify-deposit", async (req, res) => {
-  const { userId, amount, reference, accountNumber } = req.body;
+  const { userId, amount, reference, accountNumber, processorReference, paymentReference, transactionReference } = req.body;
   const db = readDB();
 
   // 1. Authenticate user session
@@ -654,15 +654,24 @@ app.post("/api/wallet/self-verify-deposit", async (req, res) => {
   }
 
   // 3. Resolve transaction reference & check idempotency
-  const cleanRef = reference && typeof reference === "string" && reference.trim().length > 3
-    ? reference.trim()
+  const rawCandidate = processorReference || paymentReference || transactionReference || reference;
+  const isVirtualAccRef = typeof rawCandidate === "string" && (rawCandidate.startsWith("SL-") || rawCandidate.startsWith("VA-"));
+
+  let cleanRef = rawCandidate && typeof rawCandidate === "string" && rawCandidate.trim().length > 3
+    ? rawCandidate.trim()
     : `DEP-${effectiveUid.slice(-6)}-${Date.now()}`;
+
+  if (isVirtualAccRef) {
+    cleanRef = `${cleanRef}_${Date.now()}`;
+  }
 
   if (!db.processed_payment_references) db.processed_payment_references = [];
   if (!db.transactions) db.transactions = [];
 
-  const isDuplicate = db.processed_payment_references.includes(cleanRef) ||
-    db.transactions.some((t: any) => t.reference === cleanRef || t.paymentReference === cleanRef);
+  const isDuplicate = !isVirtualAccRef && (
+    db.processed_payment_references.includes(cleanRef) ||
+    db.transactions.some((t: any) => (t.reference === cleanRef || t.paymentReference === cleanRef) && t.status === "SUCCESS")
+  );
 
   if (isDuplicate) {
     return res.status(400).json({

@@ -2,7 +2,7 @@
  * SMART LINK NG — Turso Administrative & Diagnostic Routes (Phase 5)
  * Allows Super Admin to inspect Turso connection status, verify schema tables,
  * and test libSQL connectivity safely.
- * 
+ *
  * ZERO TOLERANCE SECURITY:
  * - Strictly guarded by `requireAdmin` / `requireSuperAdmin`.
  * - Never returns raw database credentials or auth tokens to client.
@@ -27,7 +27,7 @@ const router = express.Router();
 router.get("/api/admin/turso/status", requireAdmin, async (req, res) => {
   try {
     const conn = await testTursoConnection();
-    
+
     // Retrieve table list if connected
     let tables: string[] = [];
     if (conn.ok) {

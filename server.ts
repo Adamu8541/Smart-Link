@@ -612,6 +612,7 @@ async function startServer() {
 
     // Static public directory - 1 Year Cache for images, icons & assets with ETag support
     app.use(express.static(publicPath, {
+      index: false,
       maxAge: "31536000s",
       immutable: true,
       setHeaders: (res, filePath) => {
@@ -626,6 +627,7 @@ async function startServer() {
     }));
 
     app.use(express.static(distPath, {
+      index: false,
       maxAge: "31536000s",
       immutable: true,
       setHeaders: (res, filePath) => {

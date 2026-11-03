@@ -8,14 +8,14 @@ import { requireAdmin, verifyUserOrAdminSession } from "../middleware/auth";
 import { isMaintenanceModeActive, getMaintenanceDetails, getValueByJsonPath, seedModule7SettingsIfEmpty, sanitizePublicSettings } from "../middleware/maintenance";
 import { getAI } from "../services/ai";
 import { sendPlatformEmail } from "../services/email.service";
-import { 
-  DEFAULT_SERVICES_CATALOG, 
-  seedDefaultServicesCatalogIfEmpty, 
-  seedDefaultUsersIfEmpty, 
-  seedDefaultTransactionsIfEmpty, 
-  recordAdminUserAction, 
-  getOrCreateUserVirtualAccount, 
-  resolveVtuPlanAndPricing 
+import {
+  DEFAULT_SERVICES_CATALOG,
+  seedDefaultServicesCatalogIfEmpty,
+  seedDefaultUsersIfEmpty,
+  seedDefaultTransactionsIfEmpty,
+  recordAdminUserAction,
+  getOrCreateUserVirtualAccount,
+  resolveVtuPlanAndPricing
 } from "../services/sharedHelpers";
 import { ServerWalletEngine } from "../../src/services/serverWalletEngine";
 import { APIProviderManager, DEFAULT_PROVIDERS } from "../../src/services/apiProviderManager";
@@ -329,7 +329,7 @@ app.get("/api/admin/services", requireAdmin, async (req, res) => {
   seedDefaultServicesCatalogIfEmpty(db);
 
   const allTxns = (db.transactions || []).concat(db.wallet_transactions || []);
-  
+
   // Compute live totalVolume for each service from actual transaction history
   db.servicesCatalog.forEach((s: any) => {
     const liveVolume = allTxns.filter((t: any) => {
@@ -691,7 +691,7 @@ app.post("/api/admin/services/:id/pricing", requireAdmin, async (req, res) => {
 // 7.5 Contact Admin Form Submission with CAC-style Email Template Dispatch
 app.post("/api/contact/submit", async (req, res) => {
   const { name, email, phone, phoneNumber, subject, department, message } = req.body;
-  
+
   const senderName = (name || "").trim();
   const senderEmail = (email || "").toLowerCase().trim();
   const senderPhone = (phone || phoneNumber || "").trim();
@@ -735,11 +735,11 @@ app.post("/api/contact/submit", async (req, res) => {
   writeDB(db);
 
   // 1. Build CAC-Style Email Template for Admin/Support Desk
-  const adminTargetEmail = 
-    process.env.ADMIN_NOTIFY_EMAIL || 
-    process.env.SUPPORT_EMAIL || 
+  const adminTargetEmail =
+    process.env.ADMIN_NOTIFY_EMAIL ||
+    process.env.SUPPORT_EMAIL ||
     process.env.SUPER_ADMIN_EMAIL ||
-    db.system_settings?.email?.replyToAddress || 
+    db.system_settings?.email?.replyToAddress ||
     "support@smartlink.ng";
 
   const adminNotificationHtml = `
@@ -751,7 +751,7 @@ app.post("/api/contact/submit", async (req, res) => {
     </head>
     <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #111827; background-color: #F1F5F9; margin: 0; padding: 24px 12px;">
       <div style="max-width: 640px; margin: 0 auto; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-        
+
         <!-- Header: Deep Navy Brand Header matching CAC filing emails -->
         <div style="background: linear-gradient(135deg, #0F2D5C 0%, #081B3A 100%); padding: 28px 24px; text-align: left; border-bottom: 3px solid #D4AF37;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
@@ -848,7 +848,7 @@ app.post("/api/contact/submit", async (req, res) => {
     </head>
     <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #111827; background-color: #F1F5F9; margin: 0; padding: 24px 12px;">
       <div style="max-width: 640px; margin: 0 auto; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-        
+
         <!-- Header -->
         <div style="background: linear-gradient(135deg, #0F2D5C 0%, #081B3A 100%); padding: 28px 24px; text-align: left; border-bottom: 3px solid #D4AF37;">
           <span style="font-size: 11px; font-weight: 800; color: #D4AF37; text-transform: uppercase; letter-spacing: 1.5px;">
@@ -900,7 +900,7 @@ app.post("/api/contact/submit", async (req, res) => {
           </p>
 
           <div style="text-align: center; margin: 24px 0 12px 0;">
-            <a href="https://wa.me/2349047738212?text=Hello%20SmartLink%20Support,%20I%20have%20an%20inquiry%20regarding%20ticket%20${inquiryRef}" 
+            <a href="https://wa.me/2349047738212?text=Hello%20SmartLink%20Support,%20I%20have%20an%20inquiry%20regarding%20ticket%20${inquiryRef}"
                style="display: inline-block; background-color: #0F2D5C; color: #FFFFFF; padding: 12px 24px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 13px;">
               Chat on WhatsApp (+234 904 773 8212)
             </a>

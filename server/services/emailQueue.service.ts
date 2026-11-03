@@ -90,7 +90,7 @@ export function renderNewsletterHtml(options: {
           ${formattedBody}
           ${ctaButtonHtml}
         </div>
-        
+
         <div style="background-color: #F9FAFB; padding: 20px 24px; border-top: 1px solid #E5E7EB; text-align: center; font-size: 12px; color: #6B7280;">
           <p style="margin: 0; font-weight: 600;">SmartLink Digital Services</p>
           <p style="margin: 6px 0 0 0;">© ${new Date().getFullYear()} ${senderName || "SmartLink Digital Services"}. All rights reserved.</p>
@@ -132,7 +132,7 @@ export async function dispatchEmailCampaign(job: CampaignJob): Promise<{ campaig
   setImmediate(async () => {
     let sentCount = 0;
     let failedCount = 0;
-    
+
     // Optimized batching parameters for SMTP connection pool
     const BATCH_SIZE = 25;
     const BATCH_DELAY_MS = 100;

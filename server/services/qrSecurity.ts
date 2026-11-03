@@ -21,7 +21,7 @@ export function signQRPayload(data: QRPayload): string {
 
   // Canonical string for signing
   const rawString = `${payload.nin}|${payload.fn}|${payload.sn}|${payload.mn}|${payload.dob}`;
-  
+
   const hmac = crypto.createHmac("sha256", QR_SIGNING_SECRET);
   hmac.update(rawString);
   const signature = hmac.digest("hex").substring(0, 32); // Take first 32 chars for brevity
@@ -36,7 +36,7 @@ export function verifyQRPayload(jsonStr: string): { valid: boolean; data?: QRPay
   try {
     const payload = JSON.parse(jsonStr);
     const { nin, fn, sn, mn, dob, sig } = payload;
-    
+
     if (!nin || !fn || !sn || !dob || !sig) return { valid: false };
 
     const rawString = `${nin}|${fn}|${sn}|${mn || ""}|${dob}`;

@@ -48,7 +48,7 @@ export function resolveSEOMetadata(req: Request): SEOMetadata {
 
   const rawPath = (req.originalUrl || req.url || "/").split("?")[0].toLowerCase();
   const canonicalUrl = `${origin}${rawPath === "/" ? "" : rawPath}`;
-  const ogImageUrl = `${origin}/og-image.png`;
+  const ogImageUrl = `${origin}/og-image.jpg`;
 
   let title = `${siteName} | NIN, BVN, CAC, SCUML, Bills, Airtime & Data Portal in Nigeria`;
   let description = siteDescription;
@@ -558,13 +558,22 @@ export function injectSEOTags(html: string, metadata: SEOMetadata): string {
     <meta name="theme-color" content="#0F2D5C" />
 
     <!-- Open Graph / Facebook / WhatsApp Social Previews -->
+    <meta property="fb:app_id" content="966242223397117" />
     <meta property="og:type" content="${metadata.ogType}" />
-    <meta property="og:site_name" content="Smart Link Nigeria Digital Platform" />
+    <meta property="og:site_name" content="Smart Link NG" />
     <meta property="og:url" content="${metadata.canonicalUrl}" />
     <meta property="og:title" content="${escapeHtml(metadata.title)}" />
     <meta property="og:description" content="${escapeHtml(metadata.description)}" />
+    <!-- Primary JPEG (1200x630, 162KB) for WhatsApp & Facebook -->
     <meta property="og:image" content="${metadata.ogImage}" />
     <meta property="og:image:secure_url" content="${metadata.ogImage}" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="${metadata.ogImageWidth}" />
+    <meta property="og:image:height" content="${metadata.ogImageHeight}" />
+    <meta property="og:image:alt" content="${escapeHtml(metadata.ogImageAlt)}" />
+    <!-- Secondary PNG fallback -->
+    <meta property="og:image" content="${origin}/og-image.png" />
+    <meta property="og:image:secure_url" content="${origin}/og-image.png" />
     <meta property="og:image:type" content="image/png" />
     <meta property="og:image:width" content="${metadata.ogImageWidth}" />
     <meta property="og:image:height" content="${metadata.ogImageHeight}" />

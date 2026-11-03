@@ -189,13 +189,6 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
     document.documentElement.scrollTop = 0;
     loadActiveProvider();
     loadFundingHistory();
-
-    // High-reliability automated balance poller while user is on Wallet Funding screen
-    const poller = setInterval(() => {
-      fetchLatestBalance();
-    }, 4000);
-
-    return () => clearInterval(poller);
   }, [currentUser.uid]);
 
   useEffect(() => {
