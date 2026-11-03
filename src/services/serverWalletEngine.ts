@@ -144,26 +144,22 @@ export class ServerWalletEngine {
         ? wallet.balance
         : (typeof wallet.currentBalance === "number" && !isNaN(wallet.currentBalance) ? wallet.currentBalance : 0.0);
 
-      // Reconcile user.walletBalance and wallet.balance with timestamp and adjustment awareness
+      // Authoritative zero-loss balance reconciliation between wallets table and users table
       let reconciledBal = rawWalletBal;
-      const userUpdatedAtMs = user?.updatedAt ? new Date(user.updatedAt).getTime() : 0;
-      const walletUpdatedAtMs = wallet.updatedAt ? new Date(wallet.updatedAt).getTime() : 0;
 
-      if (rawWalletBal !== userBal) {
-        if (rawWalletBal === 0 && userBal > 0) {
-          reconciledBal = userBal;
-        } else if (userBal === 0 && rawWalletBal > 0 && (!userUpdatedAtMs || userUpdatedAtMs <= walletUpdatedAtMs)) {
-          reconciledBal = rawWalletBal;
-        } else if (userUpdatedAtMs > walletUpdatedAtMs + 500) {
-          // User record was modified more recently (e.g. admin manual wallet adjustment or profile update)
-          reconciledBal = userBal;
-        } else if (walletUpdatedAtMs > userUpdatedAtMs + 500) {
-          // Wallet record was modified more recently
-          reconciledBal = rawWalletBal;
-        } else {
-          reconciledBal = rawWalletBal;
-        }
+      if (rawWalletBal > 0 && userBal === 0) {
+        // Authoritative wallet balance takes precedence - never zero out real funds
+        reconciledBal = rawWalletBal;
+      } else if (userBal > 0 && rawWalletBal === 0) {
+        // User record has positive funds, wallet table is at 0
+        reconciledBal = userBal;
+      } else if (rawWalletBal > 0 && userBal > 0) {
+        // Both positive: preserve the higher authoritative balance
+        reconciledBal = Math.max(rawWalletBal, userBal);
+      } else {
+        reconciledBal = 0.0;
       }
+
       wallet.balance = reconciledBal;
       wallet.currentBalance = reconciledBal;
 

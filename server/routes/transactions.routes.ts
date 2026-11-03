@@ -31,6 +31,7 @@ import * as walletsStore from "../../src/services/walletsStore";
 import * as securityStore from "../../src/services/securityStore";
 import * as notificationsStore from "../../src/services/notificationsStore";
 import { ServicePriceRepository } from "../turso/repositories";
+import { executeTurso } from "../turso/client";
 import { getUnifiedUserTransactions } from "../services/unifiedTransactions";
 import { runBackgroundReconciliationCycle } from "../services/reconciliationWorker";
 
@@ -1511,7 +1512,43 @@ app.get("/api/admin/transactions", requireAdmin, async (req, res) => {
     sortOrder = "desc"
   } = req.query as Record<string, string>;
 
-  let filtered = [...(db.transactions || [])];
+  const allTxsMap = new Map<string, any>();
+  for (const t of db.transactions || []) {
+    const key = t.reference || t.id || t.transactionId;
+    if (key) allTxsMap.set(key, t);
+  }
+
+  try {
+    const tursoRows = await executeTurso("SELECT * FROM transactions ORDER BY created_at DESC LIMIT 200;");
+    if (tursoRows.rows && tursoRows.rows.length > 0) {
+      for (const row of tursoRows.rows as any[]) {
+        const key = row.reference || row.id || row.transaction_id;
+        if (key && !allTxsMap.has(key)) {
+          allTxsMap.set(key, {
+            id: row.id || row.transaction_id,
+            transactionId: row.transaction_id || row.id,
+            reference: row.reference,
+            userId: row.user_id,
+            userEmail: row.recipient_details || "",
+            userName: row.user_name || "Customer",
+            amount: Number(row.amount || 0),
+            fee: Number(row.fee || 0),
+            totalAmount: Number(row.total_amount || row.amount || 0),
+            type: row.service_type || "WALLET_FUNDING",
+            serviceType: row.service_type || "WALLET_FUNDING",
+            serviceName: row.service_name || "Automated Virtual Account Top-Up",
+            status: row.status || "SUCCESS",
+            provider: row.provider || "Aspfiy Payment Portal",
+            description: row.description || "Virtual Account Deposit",
+            createdAt: row.created_at,
+            timestamp: row.created_at,
+          });
+        }
+      }
+    }
+  } catch {}
+
+  let filtered = Array.from(allTxsMap.values());
 
   // 1. Search Filter (SmartLink Ref, Provider Ref, User Name, Email, Phone, TxID)
   if (search && search.trim()) {

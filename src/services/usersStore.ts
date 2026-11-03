@@ -112,7 +112,20 @@ export async function getUserByUid(uid: string): Promise<UserDoc | null> {
   await ensureAuthColumns();
   const res = await executeTurso("SELECT * FROM users WHERE uid = ? OR id = ? LIMIT 1;", [uid, uid]);
   if (res.rows && res.rows.length > 0) {
-    return sanitizeUserRecord(res.rows[0]);
+    const user = sanitizeUserRecord(res.rows[0]);
+    // Authoritatively reconcile with wallets table
+    try {
+      const walRes = await executeTurso("SELECT balance FROM wallets WHERE user_id = ? OR wallet_id = ? OR id = ? LIMIT 1;", [uid, uid, uid]);
+      if (walRes.rows && walRes.rows.length > 0) {
+        const walBal = Number(walRes.rows[0].balance || 0);
+        if (walBal > (user.walletBalance || 0)) {
+          user.walletBalance = walBal;
+          user.wallet_balance = walBal;
+          executeTurso("UPDATE users SET wallet_balance = ?, updated_at = ? WHERE uid = ? OR id = ?;", [walBal, new Date().toISOString(), uid, uid]).catch(() => {});
+        }
+      }
+    } catch {}
+    return user;
   }
   return null;
 }
@@ -125,7 +138,20 @@ export async function getUserByEmail(email: string): Promise<UserDoc | null> {
   const targetEmail = email.toLowerCase().trim();
   const res = await executeTurso("SELECT * FROM users WHERE lower(email) = lower(?) LIMIT 1;", [targetEmail]);
   if (res.rows && res.rows.length > 0) {
-    return sanitizeUserRecord(res.rows[0]);
+    const user = sanitizeUserRecord(res.rows[0]);
+    // Authoritatively reconcile with wallets table
+    try {
+      const walRes = await executeTurso("SELECT balance FROM wallets WHERE user_id = ? OR wallet_id = ? OR id = ? LIMIT 1;", [user.uid, user.uid, user.uid]);
+      if (walRes.rows && walRes.rows.length > 0) {
+        const walBal = Number(walRes.rows[0].balance || 0);
+        if (walBal > (user.walletBalance || 0)) {
+          user.walletBalance = walBal;
+          user.wallet_balance = walBal;
+          executeTurso("UPDATE users SET wallet_balance = ?, updated_at = ? WHERE uid = ? OR id = ?;", [walBal, new Date().toISOString(), user.uid, user.uid]).catch(() => {});
+        }
+      }
+    } catch {}
+    return user;
   }
 
   // Fallback to db.json if exists
@@ -134,7 +160,7 @@ export async function getUserByEmail(email: string): Promise<UserDoc | null> {
     if (Array.isArray(db.users)) {
       const match = db.users.find((u: any) => u.email && u.email.toLowerCase().trim() === targetEmail);
       if (match) {
-        // Seed into Turso so it exists going forward
+        // Seed into Turso so it exists going forward, preserving any existing wallet balance
         await createUser(match);
         return sanitizeUserRecord(match);
       }
@@ -176,10 +202,15 @@ export async function createUser(user: UserDoc): Promise<UserDoc> {
   const pinHash = cleanUser.transactionPinHash || null;
   const pinReq = cleanUser.pinRequiredForTransactions !== false ? 1 : 0;
 
-  // Check if user exists by UID first
+  // Check if user exists by UID first - preserve any positive existing wallet balance
   const existingByUid = await getUserByUid(uid);
   if (existingByUid) {
-    await updateUser(uid, cleanUser);
+    const preservedBal = Math.max(existingByUid.walletBalance || 0, cleanUser.walletBalance || 0);
+    const { walletBalance: _wb, ...updatesToApply } = cleanUser;
+    await updateUser(uid, {
+      ...updatesToApply,
+      ...(preservedBal > 0 ? { walletBalance: preservedBal } : {})
+    });
     return (await getUserByUid(uid)) || cleanUser;
   }
 
@@ -187,6 +218,7 @@ export async function createUser(user: UserDoc): Promise<UserDoc> {
   if (cleanEmail) {
     const existingByEmail = await getUserByEmail(cleanEmail);
     if (existingByEmail) {
+      const preservedBal = Math.max(existingByEmail.walletBalance || 0, cleanUser.walletBalance || 0);
       await executeTurso(
         `UPDATE users SET
            uid = ?,
@@ -194,7 +226,7 @@ export async function createUser(user: UserDoc): Promise<UserDoc> {
            phone_number = COALESCE(?, phone_number),
            full_name = COALESCE(?, full_name),
            role = COALESCE(?, role),
-           wallet_balance = COALESCE(?, wallet_balance),
+           wallet_balance = CASE WHEN ? > 0 THEN ? ELSE wallet_balance END,
            is_verified = COALESCE(?, is_verified),
            status = COALESCE(?, status),
            updated_at = ?
@@ -205,7 +237,8 @@ export async function createUser(user: UserDoc): Promise<UserDoc> {
           cleanUser.phoneNumber || null,
           cleanUser.fullName || null,
           cleanUser.role || null,
-          cleanUser.walletBalance || null,
+          preservedBal,
+          preservedBal,
           cleanUser.isVerified ? 1 : 0,
           cleanUser.status || null,
           now,
@@ -229,7 +262,7 @@ export async function createUser(user: UserDoc): Promise<UserDoc> {
          phone_number=excluded.phone_number,
          full_name=excluded.full_name,
          role=excluded.role,
-         wallet_balance=excluded.wallet_balance,
+         wallet_balance=CASE WHEN excluded.wallet_balance > 0 THEN excluded.wallet_balance ELSE users.wallet_balance END,
          is_verified=excluded.is_verified,
          status=excluded.status,
          has_transaction_pin=excluded.has_transaction_pin,

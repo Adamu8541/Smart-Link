@@ -9,7 +9,7 @@
       "walletBalance": 5000,
       "isVerified": true,
       "status": "ACTIVE",
-      "updatedAt": "2026-11-03T07:59:17.325Z"
+      "updatedAt": "2026-11-03T15:53:23.748Z"
     },
     {
       "id": "18521a70-9205-45ca-aaea-571d81b0069f_alt",
@@ -4114,7 +4114,7 @@
       "walletStatus": "ACTIVE",
       "currency": "NGN",
       "createdAt": "2026-11-03T07:58:42.039Z",
-      "updatedAt": "2026-11-03T07:59:17.325Z",
+      "updatedAt": "2026-11-03T15:53:23.748Z",
       "lastUpdated": "2026-11-03T07:58:42.039Z"
     }
   ]

@@ -1525,7 +1525,19 @@ app.get("/api/auth/profile", async (req, res) => {
   const user = await usersStore.getUserById(uid as string);
   if (!user) return res.status(404).json({ error: "User not found" });
 
+  // Resolve authoritative live wallet balance from walletsStore
+  let liveWalletBal = typeof user.walletBalance === "number" ? user.walletBalance : 0;
+  try {
+    const wal = await walletsStore.getWalletByUserId(uid as string);
+    if (wal && typeof wal.balance === "number" && wal.balance > liveWalletBal) {
+      liveWalletBal = wal.balance;
+    }
+  } catch {}
+
   const { passwordHash, salt, transactionPinHash, ...safeUser } = user;
+  safeUser.walletBalance = liveWalletBal;
+  (safeUser as any).wallet_balance = liveWalletBal;
+
   res.json({
     user: {
       ...safeUser,
@@ -1554,7 +1566,19 @@ app.get("/api/users/:uid", async (req, res) => {
 
   const user = await usersStore.getUserById(uid);
   if (!user) return res.status(404).json({ error: "User not found" });
+
+  let liveWalletBal = typeof user.walletBalance === "number" ? user.walletBalance : 0;
+  try {
+    const wal = await walletsStore.getWalletByUserId(uid);
+    if (wal && typeof wal.balance === "number" && wal.balance > liveWalletBal) {
+      liveWalletBal = wal.balance;
+    }
+  } catch {}
+
   const { passwordHash, salt, transactionPinHash, ...safeUser } = user;
+  safeUser.walletBalance = liveWalletBal;
+  (safeUser as any).wallet_balance = liveWalletBal;
+
   res.json({
     user: {
       ...safeUser,
