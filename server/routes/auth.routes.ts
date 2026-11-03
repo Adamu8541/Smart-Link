@@ -1522,6 +1522,15 @@ app.get("/api/auth/profile", async (req, res) => {
     return res.status(403).json({ error: authCheck.reason || "Forbidden" });
   }
 
+  // Authoritative balance sync and auto-reconciliation of pending bank deposits
+  try {
+    const db = readDB();
+    const { reconcileUserPendingDeposits } = await import("../services/reconciliationWorker");
+    await reconcileUserPendingDeposits(db, uid as string);
+  } catch (err: any) {
+    console.warn("[Profile] Balance sync notice:", err?.message);
+  }
+
   const user = await usersStore.getUserById(uid as string);
   if (!user) return res.status(404).json({ error: "User not found" });
 
@@ -1550,6 +1559,15 @@ app.get("/api/users/:uid", async (req, res) => {
   const authCheck = await verifyUserOrAdminSession(req, uid);
   if (!authCheck.authorized) {
     return res.status(403).json({ error: authCheck.reason || "Forbidden" });
+  }
+
+  // Authoritative balance sync and auto-reconciliation of pending bank deposits
+  try {
+    const db = readDB();
+    const { reconcileUserPendingDeposits } = await import("../services/reconciliationWorker");
+    await reconcileUserPendingDeposits(db, uid);
+  } catch (err: any) {
+    console.warn("[UsersUID] Balance sync notice:", err?.message);
   }
 
   const user = await usersStore.getUserById(uid);

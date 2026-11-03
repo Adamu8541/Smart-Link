@@ -219,6 +219,32 @@ export class PaymentVerificationReconciliationEngine {
     const cleanAccPadded = cleanAccDigits.length === 9 ? `0${cleanAccDigits}` : cleanAccDigits;
     const accountNumber = cleanAccPadded || rawAccountExtracted;
 
+    // Reservation / Virtual Account Reference (e.g. SL-${userId}-...)
+    const virtualAccountReservationRef = String(
+      eventData.account?.reference ||
+        eventData.reservation_reference ||
+        eventData.account_reference ||
+        payload.account_reference ||
+        payload.reservation_reference ||
+        ""
+    ).trim();
+
+    // Check if a reference matches the permanent virtual account
+    const isReferenceVirtualAccountRef = (refToCheck: string): boolean => {
+      if (!refToCheck) return false;
+      const clean = refToCheck.trim();
+      if (clean.startsWith("SL-")) return true;
+      if (virtualAccountReservationRef && clean === virtualAccountReservationRef) return true;
+      if (cleanAccDigits && clean === cleanAccDigits) return true;
+      if (cleanAccPadded && clean === cleanAccPadded) return true;
+      if (Array.isArray(db.virtualAccounts)) {
+        if (db.virtualAccounts.some((va: any) => va && (va.reference === clean || va.providerReference === clean || va.accountNumber === clean))) {
+          return true;
+        }
+      }
+      return false;
+    };
+
     const rawReference = String(
       payload.reference ||
         payload.tx_ref ||
@@ -252,36 +278,61 @@ export class PaymentVerificationReconciliationEngine {
         ""
     ).trim();
 
-    // Specific unique provider transaction ID distinct from the permanent virtual account reference
-    const providerTransactionId = String(
-      payload.providerTransactionId ||
-        payload.aspfiy_ref ||
-        payload.transaction_ref ||
-        payload.transactionId ||
-        payload.flwRef ||
-        payload.paystackRef ||
-        payload.sessionId ||
-        payload.session_id ||
-        eventData.aspfiy_ref ||
-        eventData.transaction_ref ||
-        eventData.transactionReference ||
-        eventData.paymentReference ||
-        eventData.transactionId ||
-        eventData.trans_id ||
-        eventData.sessionId ||
-        eventData.session_id ||
-        ""
-    ).trim();
+    // Extract genuine per-transaction identifier (distinct from permanent virtual account reference)
+    const rawDistinctTxCandidates = [
+      payload.providerTransactionId,
+      payload.transactionId,
+      payload.transaction_id,
+      payload.transId,
+      payload.trans_id,
+      payload.orderNo,
+      payload.order_no,
+      payload.orderId,
+      payload.order_id,
+      payload.aspfiy_ref,
+      payload.sessionId,
+      payload.session_id,
+      payload.bank_reference,
+      payload.bankReference,
+      payload.channel_reference,
+      payload.channelReference,
+      payload.paymentId,
+      payload.payment_id,
+      payload.flwRef,
+      payload.paystackRef,
+      eventData.providerTransactionId,
+      eventData.transactionId,
+      eventData.transaction_id,
+      eventData.transId,
+      eventData.trans_id,
+      eventData.orderNo,
+      eventData.order_no,
+      eventData.orderId,
+      eventData.order_id,
+      eventData.aspfiy_ref,
+      eventData.sessionId,
+      eventData.session_id,
+      eventData.bank_reference,
+      eventData.bankReference,
+      eventData.channel_reference,
+      eventData.channelReference,
+      eventData.paymentId,
+      eventData.payment_id,
+      eventData.id,
+      payload.id,
+    ];
 
-    // Virtual account reservation reference (e.g. SL-${userId}-...)
-    const virtualAccountReservationRef = String(
-      eventData.account?.reference ||
-        eventData.reservation_reference ||
-        eventData.account_reference ||
-        payload.account_reference ||
-        (rawReference.startsWith("SL-") ? rawReference : "") ||
-        ""
-    ).trim();
+    let providerTransactionId = "";
+    for (const cand of rawDistinctTxCandidates) {
+      if (cand !== undefined && cand !== null) {
+        const strVal = String(cand).trim();
+        // Ensure it's not empty and not the virtual account permanent reference
+        if (strVal && !isReferenceVirtualAccountRef(strVal)) {
+          providerTransactionId = strVal;
+          break;
+        }
+      }
+    }
 
     const rawAmt =
       payload.amount ||
@@ -330,45 +381,50 @@ export class PaymentVerificationReconciliationEngine {
         "SUCCESS"
     ).toUpperCase();
 
-    // Signature verification with graceful Aspfiy server-to-server fallback
-    let signatureVerified = true;
-    if (activeProvider && !isAspfiy) {
-      const sigCheck = verifyWebhookSignature(activeProvider, JSON.stringify(params.payload), params.headers || {});
-      if (!sigCheck.isValid) {
-        signatureVerified = false;
-      }
-    }
-
-    // 3. Establish Genuine Unique Payment Key (Guarantees Protection Against Duplicate Crediting without Blocking Subsequent Deposits)
+    // 3. Establish Genuine Unique Payment Key
     if (!db.processed_payment_references) db.processed_payment_references = [];
     if (!db.processed_provider_tx_ids) db.processed_provider_tx_ids = [];
     if (!db.reconciliation_records) db.reconciliation_records = [];
 
-    // If rawReference is a virtual account reservation reference (starts with "SL-"),
-    // subsequent deposits will have the same reservation reference!
-    // We construct a truly unique transaction key from providerTransactionId, session ID, or composite.
-    const isVirtualAccRef = rawReference.startsWith("SL-") || rawReference === virtualAccountReservationRef;
+    const isVirtualAccRef = isReferenceVirtualAccountRef(rawReference);
 
+    // Guaranteed Unique Key for this specific deposit
     let uniquePaymentKey = "";
-    if (providerTransactionId && providerTransactionId !== rawReference) {
+    if (providerTransactionId) {
       uniquePaymentKey = providerTransactionId;
     } else if (!isVirtualAccRef && rawReference) {
       uniquePaymentKey = rawReference;
     } else {
-      const txTime = eventData.paid_at || eventData.created_at || eventData.timestamp || eventData.date || Date.now();
-      uniquePaymentKey = `${rawReference || "DEP"}_${cleanAccPadded || "ACC"}_${amount}_${txTime}`;
+      // Build high-precision unique transaction key so subsequent deposits to the same account NEVER collide
+      const txTimeRaw = String(
+        eventData.paid_at ||
+        eventData.paidAt ||
+        eventData.created_at ||
+        eventData.createdAt ||
+        eventData.timestamp ||
+        eventData.date ||
+        payload.paid_at ||
+        payload.timestamp ||
+        ""
+      ).replace(/[^0-9]/g, "");
+
+      if (txTimeRaw && txTimeRaw.length >= 8) {
+        uniquePaymentKey = `DEP_${accountNumber || "ACC"}_${amount}_${txTimeRaw}`;
+      } else {
+        uniquePaymentKey = `DEP_${accountNumber || "ACC"}_${amount}_${Date.now()}_${Math.floor(100 + Math.random() * 900)}`;
+      }
     }
 
-    const effectiveRef = rawReference || uniquePaymentKey;
+    const effectiveRef = isVirtualAccRef ? uniquePaymentKey : (rawReference || uniquePaymentKey);
 
     // Check duplicate: Only duplicate if this EXACT transaction key has already been credited!
+    // NEVER block a transfer based on the permanent virtual account reference!
     const isAlreadyCredited =
       (uniquePaymentKey && db.processed_provider_tx_ids.includes(uniquePaymentKey)) ||
-      (!isVirtualAccRef && db.processed_payment_references.includes(effectiveRef)) ||
+      (!isVirtualAccRef && rawReference && db.processed_payment_references.includes(rawReference)) ||
       db.reconciliation_records.some(
         (r: any) =>
-          ((uniquePaymentKey && r.providerTransactionId === uniquePaymentKey) ||
-            (!isVirtualAccRef && r.paymentReference === effectiveRef)) &&
+          r.providerTransactionId === uniquePaymentKey &&
           (r.status === "VERIFIED" || r.status === "CREDITED")
       );
 
@@ -386,7 +442,7 @@ export class PaymentVerificationReconciliationEngine {
     try {
       const existingTursoTx =
         (uniquePaymentKey ? await TransactionRepository.findByReference(uniquePaymentKey) : null) ||
-        (!isVirtualAccRef && effectiveRef ? await TransactionRepository.findByReference(effectiveRef) : null);
+        (!isVirtualAccRef && rawReference ? await TransactionRepository.findByReference(rawReference) : null);
 
       if (existingTursoTx && (existingTursoTx.status === "SUCCESS" || String(existingTursoTx.status) === "VERIFIED")) {
         console.log(`[ReconciliationEngine] Turso SQL confirmed transaction ${uniquePaymentKey} was already credited.`);
@@ -402,7 +458,7 @@ export class PaymentVerificationReconciliationEngine {
       }
     } catch {}
 
-    // 4. Validate Status and Server-to-Server Verification (Requirement 3)
+    // 4. Validate Status
     const isSuccessfulStatus = [
       "SUCCESS",
       "SUCCESSFUL",
@@ -439,16 +495,15 @@ export class PaymentVerificationReconciliationEngine {
     let verifiedAmount = amount;
     let apiVerificationFailureReason: string | undefined = undefined;
 
-    // Direct Server-to-Server Verification with Aspfiy if secret key is available
-    if (isAspfiy && (rawReference || providerTransactionId)) {
+    // Only query direct server-to-server /verify if explicitly requested with a specific checkout reference
+    // NOTE: Aspfiy /verify/{ref} is for single checkout transactions, NOT for virtual account bank transfers with SL-... references.
+    if (params.expectedReference && !isVirtualAccRef && isAspfiy && providerTransactionId) {
       try {
         const resolved = getActiveProviderAndAdapter(db);
         if (resolved && resolved.adapter && typeof resolved.adapter.verifyTransaction === "function") {
-          const queryRef = providerTransactionId || rawReference;
-          const verifiedData = await resolved.adapter.verifyTransaction(db, queryRef, resolved.provider || activeProvider);
+          const verifiedData = await resolved.adapter.verifyTransaction(db, providerTransactionId, resolved.provider || activeProvider);
           if (verifiedData && verifiedData.verified) {
             verifiedAmount = Number(verifiedData.amountPaid || amount);
-            signatureVerified = true;
           } else if (verifiedData && (verifiedData.paymentStatus === "FAILED" || verifiedData.paymentStatus === "CANCELLED")) {
             apiVerificationFailureReason = `Aspfiy reported transaction status as ${verifiedData.paymentStatus}`;
           }
@@ -464,7 +519,8 @@ export class PaymentVerificationReconciliationEngine {
 
     const referenceMatch =
       !params.expectedReference ||
-      params.expectedReference.toLowerCase() === effectiveRef.toLowerCase();
+      params.expectedReference.toLowerCase() === uniquePaymentKey.toLowerCase() ||
+      params.expectedReference.toLowerCase() === rawReference.toLowerCase();
 
     const accountMatch =
       !params.expectedAccount ||
@@ -482,7 +538,7 @@ export class PaymentVerificationReconciliationEngine {
       expectedAmount: params.expectedAmount,
       verifiedAmount,
       expectedReference: params.expectedReference,
-      verifiedReference: effectiveRef,
+      verifiedReference: uniquePaymentKey,
       expectedAccount: params.expectedAccount,
       verifiedAccount: accountNumber,
     };
@@ -693,7 +749,7 @@ export class PaymentVerificationReconciliationEngine {
 
     const reconciliationRecord: ReconciliationRecord = {
       id: `rec_${Date.now()}_${Math.floor(1000 + Math.random() * 9000)}`,
-      paymentReference: effectiveRef,
+      paymentReference: isVirtualAccRef ? uniquePaymentKey : effectiveRef,
       providerTransactionId: uniquePaymentKey,
       provider: providerName,
       amount: isNaN(amount) ? 0 : amount,
@@ -717,7 +773,7 @@ export class PaymentVerificationReconciliationEngine {
       if (!db.unmatched_payments) db.unmatched_payments = [];
       const unmatchedItem = {
         id: reconciliationRecord.id,
-        paymentReference: effectiveRef,
+        paymentReference: isVirtualAccRef ? uniquePaymentKey : effectiveRef,
         providerTransactionId: uniquePaymentKey,
         provider: providerName,
         amount: reconciliationRecord.amount,
@@ -733,7 +789,9 @@ export class PaymentVerificationReconciliationEngine {
       };
       // Check if already in unmatched payments
       const existingUnmatchedIdx = db.unmatched_payments.findIndex(
-        (u: any) => u.paymentReference === effectiveRef || (uniquePaymentKey && u.providerTransactionId === uniquePaymentKey)
+        (u: any) =>
+          (uniquePaymentKey && (u.providerTransactionId === uniquePaymentKey || u.paymentReference === uniquePaymentKey)) ||
+          (!isVirtualAccRef && effectiveRef && u.paymentReference === effectiveRef)
       );
       if (existingUnmatchedIdx !== -1) {
         db.unmatched_payments[existingUnmatchedIdx] = unmatchedItem;
@@ -780,6 +838,9 @@ export class PaymentVerificationReconciliationEngine {
       if (!db.processed_provider_tx_ids.includes(uniquePaymentKey)) {
         db.processed_provider_tx_ids.push(uniquePaymentKey);
       }
+      if (!db.processed_payment_references.includes(uniquePaymentKey)) {
+        db.processed_payment_references.push(uniquePaymentKey);
+      }
     }
     if (!isVirtualAccRef && effectiveRef) {
       if (!db.processed_payment_references.includes(effectiveRef)) {
@@ -791,10 +852,18 @@ export class PaymentVerificationReconciliationEngine {
     if (Array.isArray(db.unmatched_payments)) {
       db.unmatched_payments = db.unmatched_payments.filter(
         (u: any) =>
-          u.paymentReference !== effectiveRef &&
           u.providerTransactionId !== uniquePaymentKey &&
-          (!cleanAccDigits || u.accountNumber !== cleanAccPadded)
+          u.paymentReference !== uniquePaymentKey &&
+          (isVirtualAccRef ? true : u.paymentReference !== effectiveRef)
       );
+    }
+
+    // Synchronize authoritative wallet balance across Turso and memory
+    try {
+      const { syncAuthoritativeWalletBalance } = await import("../../server/services/unifiedTransactions");
+      await syncAuthoritativeWalletBalance(db, matchedUser.uid);
+    } catch (syncErr: any) {
+      console.warn(`[PaymentReconciliationEngine] Authoritative balance sync note: ${syncErr?.message}`);
     }
 
     // Notify customer in real-time
