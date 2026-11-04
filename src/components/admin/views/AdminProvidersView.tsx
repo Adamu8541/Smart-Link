@@ -110,7 +110,7 @@ export function AdminProvidersView() {
   const [addEnvironment, setAddEnvironment] = useState("Production");
   const [addIsDefault, setAddIsDefault] = useState(false);
 
-  const applyProviderPreset = (preset: "vtpass" | "bigisub" | "aspfiy" | "lumiid" | "verifyng" | "identro" | "prembley") => {
+  const applyProviderPreset = (preset: "vtpass" | "bigisub" | "aspfiy" | "lumiid" | "identro") => {
     if (preset === "bigisub") {
       setAddName("Bigisub Digital Gateway");
       setAddCategory("TELECOM_VTU");
@@ -173,12 +173,6 @@ export function AdminProvidersView() {
       setAddBaseUrl("https://api.lumiid.com");
       setAddAuthMethod("API_KEY");
       setToast("LumiID preset applied.");
-    } else if (preset === "verifyng") {
-      setAddName("VerifyNG Identity Portal");
-      setAddCategory("IDENTITY_API");
-      setAddDescription("VerifyNG KYC & Identity Verification Portal");
-      setAddBaseUrl("https://kyc.edirect.ng");
-      setToast("VerifyNG preset applied.");
     } else if (preset === "identro") {
       setAddName("Identro Identity Portal");
       setAddCategory("IDENTITY_API");
@@ -196,24 +190,6 @@ export function AdminProvidersView() {
       setAddEnvironment("Production");
       setAddStatus("ENABLED");
       setToast("Identro preset applied. Enter your x-api-key in API Credentials.");
-    } else if (preset === "prembley") {
-      setAddName("Prembley Portal (Identitypass)");
-      setAddCategory("IDENTITY_API");
-      setAddDescription("Prembley (Identitypass) API for NIN, BVN, CAC, TIN, Driver's License & Biometrics");
-      setAddBaseUrl("https://api.myidentitypay.com");
-      setAddApiVersion("v2.0");
-      setAddAuthMethod("API_KEY");
-      setAddSupportsWalletFunding(false);
-      setAddSupportsBankTransfer(false);
-      setAddSupportsCardPayment(false);
-      setAddSupportsVirtualAccount(false);
-      setAddSupportsPaymentLink(false);
-      setAddSupportsPayout(false);
-      setAddSupportsRefund(false);
-      setAddSupportsTxVerification(true);
-      setAddEnvironment("Production");
-      setAddStatus("ENABLED");
-      setToast("Prembley (Identitypass) preset applied. Enter your Public Key and Secret Key in API Credentials.");
     }
   };
 
@@ -888,24 +864,10 @@ export function AdminProvidersView() {
               </button>
               <button
                 type="button"
-                onClick={() => applyProviderPreset("verifyng")}
-                className="px-2.5 py-1 bg-white border border-cyan-300 text-cyan-900 rounded-lg font-medium transition cursor-pointer shrink-0 shadow-xs"
-              >
-                🔍 VerifyNG (KYC)
-              </button>
-              <button
-                type="button"
                 onClick={() => applyProviderPreset("identro")}
                 className="px-2.5 py-1 bg-white border border-indigo-300 text-indigo-900 rounded-lg font-medium transition cursor-pointer shrink-0 shadow-xs"
               >
                 🪪 Identro (identro.ng)
-              </button>
-              <button
-                type="button"
-                onClick={() => applyProviderPreset("prembley")}
-                className="px-2.5 py-1 bg-white border border-blue-300 text-[#0F2D5C] rounded-lg font-medium transition cursor-pointer shrink-0 shadow-xs"
-              >
-                🛡️ Prembley (Identitypass)
               </button>
             </div>
 

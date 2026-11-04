@@ -10,26 +10,22 @@
 import { AspfiyAdapter, ProviderAdapter, PaymentProviderConfig } from "./providers/aspfiyAdapter";
 import { LumiIDAdapter } from "./providers/lumiidAdapter";
 import { IdentroAdapter } from "./providers/identroAdapter";
-import { PrembleyAdapter } from "./providers/prembleyAdapter";
 import { VTpassAdapter } from "./providers/vtpassAdapter";
 import { BigisubAdapter } from "./providers/bigisubAdapter";
 import { ClubKonnectAdapter } from "./providers/clubkonnectAdapter";
-import { BestVerifyAdapter } from "./providers/bestverifyAdapter";
 
 const registeredAdapters: Record<string, ProviderAdapter> = {
   aspfiy: new AspfiyAdapter(),
   lumiid: new LumiIDAdapter(),
+  prov_lumiid: new LumiIDAdapter(),
   identro: new IdentroAdapter(),
-  prembley: new PrembleyAdapter(),
-  prembly: new PrembleyAdapter(),
-  identitypass: new PrembleyAdapter(),
+  prov_identro: new IdentroAdapter(),
   vtpass: new VTpassAdapter(),
+  prov_vtpass: new VTpassAdapter(),
   bigisub: new BigisubAdapter(),
+  prov_bigisub: new BigisubAdapter(),
   clubkonnect: new ClubKonnectAdapter(),
   prov_clubkonnect: new ClubKonnectAdapter(),
-  bestverify: new BestVerifyAdapter(),
-  submit_bestverify: new BestVerifyAdapter(),
-  prov_bestverify: new BestVerifyAdapter(),
 };
 
 /**
@@ -128,4 +124,4 @@ export function getAdapterById(providerIdOrName?: string): ProviderAdapter | nul
   return getAdapterForProvider({ name: providerIdOrName, id: providerIdOrName }) || registeredAdapters["aspfiy"] || null;
 }
 
-export { type ProviderAdapter, type PaymentProviderConfig, AspfiyAdapter, PrembleyAdapter, VTpassAdapter, BigisubAdapter, ClubKonnectAdapter };
+export { type ProviderAdapter, type PaymentProviderConfig, AspfiyAdapter, LumiIDAdapter, IdentroAdapter, VTpassAdapter, BigisubAdapter, ClubKonnectAdapter };

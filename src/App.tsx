@@ -796,13 +796,13 @@ export default function App() {
     const email = params.get("email");
     const msg = params.get("message");
     if (verificationStatus) {
-
+      
       if (verificationStatus === "success") {
         setToast({
           message: msg || "Your email address is verified! You can now log in securely.",
           type: "success"
         });
-
+        
       } else if (verificationStatus === "error") {
         setToast({
           message: msg || "Email verification failed. Please try again or request a new link.",
@@ -1022,7 +1022,7 @@ export default function App() {
     });
   };
 
-
+  
 
   return (
     <div id="root-container" className={`min-h-screen bg-[#F5F7FA] text-[#111827] flex font-sans transition-colors duration-200 selection:bg-[#0F2D5C] selection:text-white ${isDarkMode ? "dark-theme-active" : ""} ${!currentUser ? "flex-col" : "flex-col lg:flex-row"}`}>
@@ -1123,7 +1123,7 @@ export default function App() {
 
             {/* Center Menu */}
             <div className="hidden md:flex items-center gap-8">
-              <button
+              <button 
                 onClick={() => {
                   navigateToView("HOME");
                   setTimeout(() => {
@@ -1137,7 +1137,7 @@ export default function App() {
                 Solutions
               </button>
               <div className="relative">
-                <button
+                <button 
                   onClick={() => {
                     setShowServicesSummaryDropdown(!showServicesSummaryDropdown);
                   }}
@@ -1163,8 +1163,8 @@ export default function App() {
                 {showServicesSummaryDropdown && (
                   <>
                     {/* Click-away overlay */}
-                    <div
-                      className="fixed inset-0 z-40 cursor-default"
+                    <div 
+                      className="fixed inset-0 z-40 cursor-default" 
                       onClick={() => setShowServicesSummaryDropdown(false)}
                     />
                     <div className="absolute left-1/2 -translate-x-1/2 mt-3 w-[460px] bg-white border border-[#E5E7EB]/80 rounded-2xl shadow-xl p-5 z-50 text-left">
@@ -1262,7 +1262,7 @@ export default function App() {
                   </>
                 )}
               </div>
-              <button
+              <button 
                 onClick={() => {
                   setCurrentView("HOME");
                   setTimeout(() => {
@@ -1273,7 +1273,7 @@ export default function App() {
               >
                 About Us
               </button>
-              <button
+              <button 
                 onClick={() => {
                   setCurrentView("HOME");
                   setTimeout(() => {
@@ -1366,7 +1366,7 @@ export default function App() {
                         onClick={() => {
                           setCurrentView("DASHBOARD");
                           setIsRegistering(false);
-
+                          
                         }}
                         className="w-full py-2.5 bg-[#111827] text-white hover:bg-[#0F2D5C] hover:text-white font-bold rounded-lg text-xs transition-all cursor-pointer shadow-xs"
                       >
@@ -1690,15 +1690,15 @@ export default function App() {
                   window.history.pushState({}, "", "/");
                   setCurrentView("DASHBOARD");
                   setIsRegistering(false);
-
-
+                  
+                  
                 }}
                 onNavigateToRegister={() => {
                   window.history.pushState({}, "", "/");
                   setCurrentView("DASHBOARD");
                   setIsRegistering(true);
-
-
+                  
+                  
                 }}
                 onNavigateHome={() => {
                   window.history.pushState({}, "", "/");
@@ -1732,8 +1732,8 @@ export default function App() {
                   window.history.pushState({}, "", "/");
                   setCurrentView("DASHBOARD");
                   setIsRegistering(false);
-
-
+                  
+                  
                 }}
                 onNavigateHome={() => {
                   window.history.pushState({}, "", "/");
@@ -1753,8 +1753,8 @@ export default function App() {
                   window.history.pushState({}, "", "/");
                   setCurrentView("DASHBOARD");
                   setIsRegistering(false);
-
-
+                  
+                  
                 }}
                 onNavigateHome={() => {
                   window.history.pushState({}, "", "/");

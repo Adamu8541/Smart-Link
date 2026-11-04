@@ -223,8 +223,6 @@ export const AdminMultiProviderView: React.FC = () => {
     if (clean === "vtpass" || clean === "prov_vtpass") return "vtpass";
     if (clean === "lumiid" || clean === "prov_lumiid") return "lumiid";
     if (clean === "identro" || clean === "prov_identro") return "identro";
-    if (clean === "prembley" || clean === "prembly" || clean === "prov_prembly" || clean === "identitypass") return "prembley";
-    if (clean === "verifyng" || clean === "prov_verifyng") return "verifyng";
     if (clean === "aspfiy" || clean === "prov_aspfiy") return "aspfiy";
     return id;
   };
@@ -237,8 +235,6 @@ export const AdminMultiProviderView: React.FC = () => {
     if (norm === "vtpass") return "VTpass Digital Services";
     if (norm === "lumiid") return "LumiID Portal";
     if (norm === "identro") return "Identro Portal";
-    if (norm === "prembley") return "Prembley Portal (Identitypass)";
-    if (norm === "verifyng") return "VerifyNG Portal";
     if (norm === "aspfiy") return "Aspfiy Payment Portal";
     const found = registeredProviders.find((p) => p.id === id || p.id?.toLowerCase() === norm);
     return found?.name || id;
@@ -908,8 +904,6 @@ export const AdminMultiProviderView: React.FC = () => {
                     <optgroup label="Identity & Verification Portals">
                       <option value="lumiid">LumiID Portal</option>
                       <option value="identro">Identro Portal</option>
-                      <option value="prembley">Prembley Portal (Identitypass)</option>
-                      <option value="verifyng">VerifyNG Portal</option>
                     </optgroup>
                     <optgroup label="Payment Gateways">
                       <option value="aspfiy">Aspfiy Payment Portal</option>
@@ -939,8 +933,6 @@ export const AdminMultiProviderView: React.FC = () => {
                     <optgroup label="Identity & Verification Portals">
                       <option value="lumiid">LumiID Portal</option>
                       <option value="identro">Identro Portal</option>
-                      <option value="prembley">Prembley Portal (Identitypass)</option>
-                      <option value="verifyng">VerifyNG Portal</option>
                     </optgroup>
                     <optgroup label="Payment Gateways">
                       <option value="aspfiy">Aspfiy Payment Portal</option>
@@ -970,8 +962,6 @@ export const AdminMultiProviderView: React.FC = () => {
                     <optgroup label="Identity & Verification Portals">
                       <option value="lumiid">LumiID Portal</option>
                       <option value="identro">Identro Portal</option>
-                      <option value="prembley">Prembley Portal (Identitypass)</option>
-                      <option value="verifyng">VerifyNG Portal</option>
                     </optgroup>
                     <optgroup label="Payment Gateways">
                       <option value="aspfiy">Aspfiy Payment Portal</option>

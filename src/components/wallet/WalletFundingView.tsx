@@ -164,7 +164,7 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
           return;
         }
       }
-
+      
       // Fallback to profile
       const profileRes = await fetch(`/api/auth/profile?uid=${encodeURIComponent(uid)}`, { headers });
       const profileType = profileRes.headers.get("content-type") || "";
@@ -511,16 +511,16 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
   const downloadReceiptPDF = async (receipt: any) => {
     const { jsPDF } = await import("jspdf");
     const doc = new jsPDF();
-
+    
     // Brand header
     doc.setFillColor(27, 100, 242);
     doc.rect(0, 0, 210, 30, "F");
-
+    
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(20);
     doc.setFont("helvetica", "bold");
     doc.text("SMART LINK COMPUTER BUSINESS", 15, 18);
-
+    
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
     doc.text("Official Financial Payment Voucher & Wallet Receipt", 15, 25);
@@ -586,7 +586,7 @@ export const WalletFundingView: React.FC<WalletFundingViewProps> = ({
       {/* Top Banner & Wallet Balance */}
       <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-[#0F2D5C] p-3.5 sm:p-6 text-white shadow-xl border border-[#0F2D5C]">
         <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white/5 blur-3xl pointer-events-none" />
-
+        
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-6 relative z-10">
           <div className="space-y-1 sm:space-y-2">
             <div className="flex items-center gap-1.5 sm:gap-2">

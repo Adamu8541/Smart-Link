@@ -9,9 +9,9 @@
  *   - Accept: application/json
  *
  * Supported Services:
- *   1. NIN (National Identification Number) — NIMC: /ng/nin-premium/, /ng/nin-advance/, /ng/nin
- *   2. BVN (Bank Verification Number) — NIBSS: /ng/bvn-advance/, /ng/bvn-premium/, /ng/bvn
- *   3. CAC / KYB (Corporate Affairs Commission) — /ng/cac-premium/, /kyb/verify, /ng/cac
+ *   1. NIN (National Identification Number) — NIMC Basic Search: /ng/nin, /v1/ng/nin
+ *   2. BVN (Bank Verification Number) — NIBSS Basic Search: /ng/bvn, /v1/ng/bvn
+ *   3. CAC / KYB (Corporate Affairs Commission) — Basic Search: /ng/cac, /kyb/verify
  *   4. Driver's License — FRSC: /ng/driver-license, /ng/drivers-license
  *   5. Voter's Card (VIN) — INEC: /ng/voters-card, /ng/vin
  *   6. TIN (Tax Identification Number) — FIRS: /ng/tin, /tin/verify
@@ -262,20 +262,20 @@ export class LumiIDAdapter implements ProviderAdapter {
   private resolveEndpoints(serviceType: string): { primary: string; fallbacks: string[]; payloadKey: string } {
     const sType = serviceType.toUpperCase().replace(/[^A-Z0-9_]/g, "_");
 
-    // NIN Phone Search
+    // NIN Phone Search (Basic Phone Lookup)
     if (sType.includes("NIN") && (sType.includes("PHONE") || sType.includes("SEARCH") || sType.includes("TELCO"))) {
       return {
         primary: "/v1/ng/nin-phone/",
-        fallbacks: ["/v1/ng/phone-nin/", "/v1/ng/phone/", "/v1/ng/nin-premium/", "/v1/ng/nin-advance/"],
+        fallbacks: ["/v1/ng/phone-nin/", "/v1/ng/phone/", "/ng/phone"],
         payloadKey: "phone",
       };
     }
 
-    // BVN Phone Search
+    // BVN Phone Search (Basic Phone Lookup)
     if (sType.includes("BVN") && (sType.includes("PHONE") || sType.includes("SEARCH"))) {
       return {
         primary: "/v1/ng/bvn-phone/",
-        fallbacks: ["/v1/ng/phone-bvn/", "/v1/ng/phone/", "/v1/ng/bvn-advance/", "/v1/ng/bvn-premium/"],
+        fallbacks: ["/v1/ng/phone-bvn/", "/v1/ng/phone/", "/ng/phone"],
         payloadKey: "phone",
       };
     }
@@ -289,29 +289,29 @@ export class LumiIDAdapter implements ProviderAdapter {
       };
     }
 
-    // NIN Identity & NIN Demographic / Premium (With Photo)
+    // NIN Identity - Standard Basic Search (removes premium search)
     if (sType.includes("NIN")) {
       return {
-        primary: "/v1/ng/nin-premium/",
-        fallbacks: ["/v1/ng/nin-advance/", "/v1/ng/nin/"],
+        primary: "/v1/ng/nin/",
+        fallbacks: ["/ng/nin/", "/ng/nin", "/v1/ng/nin"],
         payloadKey: "id_number",
       };
     }
 
-    // BVN Identity & BVN Demographic / Advance / Premium (With Photo)
+    // BVN Identity - Standard Basic Search (removes premium search)
     if (sType.includes("BVN")) {
       return {
-        primary: "/v1/ng/bvn-advance/",
-        fallbacks: ["/v1/ng/bvn-premium/", "/v1/ng/bvn/"],
+        primary: "/v1/ng/bvn/",
+        fallbacks: ["/ng/bvn/", "/ng/bvn", "/v1/ng/bvn"],
         payloadKey: "id_number",
       };
     }
 
-    // CAC / KYB / Business / SCUML
+    // CAC / KYB / Business / SCUML - Basic Search (removes premium search)
     if (sType.includes("CAC") || sType.includes("KYB") || sType.includes("SCUML") || sType.includes("BUSINESS")) {
       return {
-        primary: "/v1/ng/cac-premium/",
-        fallbacks: ["/v1/kyb/verify/", "/v1/ng/cac/"],
+        primary: "/v1/ng/cac/",
+        fallbacks: ["/v1/kyb/verify/", "/v1/ng/cac", "/ng/cac"],
         payloadKey: "reg_number",
       };
     }
@@ -338,7 +338,7 @@ export class LumiIDAdapter implements ProviderAdapter {
     if (sType.includes("TIN") || sType.includes("TAX")) {
       return {
         primary: "/v1/ng/tin/",
-        fallbacks: ["/v1/ng/tin-premium/", "/ng/tin"],
+        fallbacks: ["/ng/tin/", "/ng/tin", "/tin/verify"],
         payloadKey: "id_number",
       };
     }
@@ -359,10 +359,10 @@ export class LumiIDAdapter implements ProviderAdapter {
       };
     }
 
-    // Default generic identity verification
+    // Default generic identity verification (Basic Search)
     return {
-      primary: "/v1/ng/nin-premium/",
-      fallbacks: ["/v1/ng/nin-advance/", "/v1/ng/nin/"],
+      primary: "/v1/ng/nin/",
+      fallbacks: ["/ng/nin/", "/ng/nin", "/v1/ng/nin"],
       payloadKey: "id_number",
     };
   }

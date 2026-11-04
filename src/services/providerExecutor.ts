@@ -116,7 +116,7 @@ export function verifyWebhookSignature(
 
   const isAspfiy = String(providerConfig.name || providerConfig.id || "").toLowerCase().includes("aspfiy");
   const method = String(providerConfig.webhookSignatureMethod || (isAspfiy ? "NONE" : "NONE")).toUpperCase().trim();
-
+  
   if (method === "NONE") {
     return { isValid: true };
   }
@@ -193,7 +193,7 @@ export function verifyWebhookSignature(
       return { isValid: false, reason: `MD5 signature mismatch for provider '${providerConfig.name}'.` };
     }
   }
-
+  
   if (method === "HMAC-SHA512" || method === "SHA512") {
     algorithm = "sha512";
   } else if (method === "HMAC-SHA256" || method === "SHA256") {
@@ -487,7 +487,7 @@ export class ProviderExecutor {
       const sType = params.extraData?.type || params.extraData?.verificationType || params.extraData?.serviceType || params.extraData?.service || "NIN";
       const targetId = params.customerId || params.phoneNumber || params.extraData?.idNumber || params.extraData?.rcNumber || params.extraData?.nin || params.extraData?.bvn || "";
       const adapterRes = await (registeredAdapter as any).verifyIdentity(sType, targetId, params.extraData || {}, provider);
-
+      
       if (adapterRes.success) {
         return {
           success: true,
@@ -505,7 +505,7 @@ export class ProviderExecutor {
       const allProviders = (Array.isArray(db?.api_providers) && db.api_providers.length > 0)
         ? db.api_providers
         : (Array.isArray(db?.apiProviders) ? db.apiProviders : []);
-
+      
       const fallbackCandidates = allProviders.filter((p: any) =>
         p &&
         p.id !== provider.id &&
@@ -1188,7 +1188,7 @@ export class ProviderExecutor {
     const statusVal = responseJson?.status !== undefined ? responseJson.status : responseJson?.code;
     const statusStr = String(statusVal || "").toLowerCase().trim();
     const isSuccessStatus = statusStr === "success" || statusStr === "00" || statusStr === "0" || statusStr === "true" || statusStr === "ok" || statusStr === "200" || responseJson?.success === true;
-
+    
     // If response body is generic or HTTP 200 OK without explicit error fields
     let isSuccess = fetchRes.ok && (isSuccessStatus || (responseJson && !responseJson.error && !responseJson.errorMessage && fetchRes.status === 200));
 

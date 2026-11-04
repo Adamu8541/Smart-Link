@@ -27,7 +27,7 @@ import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/se
 import { sendPlatformEmail } from "../services/email.service";
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
 import { LumiIDAdapter } from "../../src/services/providers/lumiidAdapter";
-import { PrembleyAdapter } from "../../src/services/providers/prembleyAdapter";
+import { IdentroAdapter } from "../../src/services/providers/identroAdapter";
 import { MultiProviderRoutingEngine } from "../../src/services/multiProviderRoutingEngine";
 import { syncFromStorage, syncToStorage } from "../../src/services/settingsStore";
 import * as usersStore from "../../src/services/usersStore";
@@ -679,18 +679,19 @@ app.post("/api/verify/engine", async (req, res) => {
         rawError.toLowerCase().includes("insufficient wallet balance") ||
         rawError.toLowerCase().includes("merchant account low balance") ||
         rawError.toLowerCase().includes("gateway merchant") ||
-        rawError.toLowerCase().includes("gateway low balance") ||
-        rawError.toLowerCase().includes("prembley gateway");
+        rawError.toLowerCase().includes("gateway low balance");
 
       const isConfigMissing =
         rawError.toLowerCase().includes("not configured") ||
         rawError.toLowerCase().includes("credentials need verification") ||
+        rawError.toLowerCase().includes("no provider selected") ||
+        rawError.toLowerCase().includes("a provider must be explicitly selected") ||
         rawError.toLowerCase().includes("api key") ||
         rawError.toLowerCase().includes("secret key");
 
       return res.status(isConfigMissing ? 400 : 422).json({
         error: isGatewayLowBalance
-          ? "Prembley Gateway Merchant Low Balance: The upstream Prembley provider API account has insufficient merchant credit (₦0.00). Your SmartLink user wallet is unaffected and was not charged. Please top up your Prembley merchant account on prembly.com or switch provider in Admin Dashboard."
+          ? "Gateway Merchant Low Balance: The upstream provider API account has insufficient merchant credit (₦0.00). Your SmartLink user wallet is unaffected and was not charged. Please top up your provider merchant account or switch provider in Admin Dashboard."
           : portalResult.error || "Verification portals failed to confirm this identity record.",
         errorCode: isGatewayLowBalance
           ? "PROVIDER_MERCHANT_LOW_BALANCE"
@@ -698,14 +699,14 @@ app.post("/api/verify/engine", async (req, res) => {
             ? "PORTAL_CONFIG_REQUIRED"
             : "PORTAL_VERIFICATION_FAILED",
         friendlyMessage: isGatewayLowBalance
-          ? "Prembley Gateway Low Balance"
+          ? "Gateway Merchant Low Balance"
           : isConfigMissing
             ? "Identity Portal Not Configured"
             : `${sType} Verification Failed`,
         details: isGatewayLowBalance
-          ? "The upstream Prembley provider API account has insufficient funds (₦0.00) to fulfill this verification request. Your personal SmartLink wallet was NOT debited. Please top up your Prembley merchant account at prembly.com or configure another provider in the Admin Multi-Provider Matrix."
+          ? "The upstream provider API account has insufficient funds (₦0.00) to fulfill this verification request. Your personal SmartLink wallet was NOT debited. Please top up your provider merchant account or configure another provider in the Admin Multi-Provider Matrix."
           : isConfigMissing
-            ? "No active provider is configured or selected for this service. Please navigate to Admin Dashboard > Multi-Provider Matrix to configure a provider, or select a provider."
+            ? "No active provider is configured or selected for this service. Please navigate to Admin Dashboard > Multi-Provider Matrix to select and activate a provider."
             : portalResult.error,
         wasFailedOver: portalResult.wasFailedOver,
         failoverChain: portalResult.failoverChain,

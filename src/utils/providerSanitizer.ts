@@ -1,6 +1,6 @@
 /**
  * SmartLink NG — Provider & Technical Plumbing Sanitizer
- * Ensures no third-party vendor names (Clubkonnect, Bigisub, Aspfiy, VTpass, Prembley, etc.)
+ * Ensures no third-party vendor names (Clubkonnect, Bigisub, Aspfiy, VTpass, etc.)
  * or internal upstream error messages are ever exposed to end-users across receipts,
  * successful modals, failed messages, history tables, and exports.
  */

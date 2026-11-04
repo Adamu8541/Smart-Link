@@ -68,7 +68,7 @@ export const TransactionHistoryView: React.FC<TransactionHistoryViewProps> = ({
     };
 
     const res = await TransactionEngine.getHistory(filter);
-
+    
     // Client-side provider filtering if set
     let filteredList = res.transactions;
     if (providerFilter && providerFilter !== "ALL") {

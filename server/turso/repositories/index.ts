@@ -1,7 +1,7 @@
 /**
  * SMART LINK NG — Turso Repository / Data Access Layer (Phase 5)
  * Centralized, parameterized, and secure repository layer for all core entities.
- *
+ * 
  * ZERO TOLERANCE SECURITY:
  * - 100% Parameterized queries using args arrays.
  * - Transactions wrapped with ACID isolation and automatic rollback.
@@ -11,16 +11,16 @@
 
 import { executeTurso, withTursoTransaction } from "../client";
 import { readDB, writeDB } from "../../db";
-import {
-  TursoUser,
-  TursoAdminUser,
-  TursoWallet,
-  TursoWalletLedger,
-  TursoTransaction,
-  TursoPayment,
-  TursoVirtualAccount,
-  TursoVerificationRecord,
-  TursoAuditLog,
+import { 
+  TursoUser, 
+  TursoAdminUser, 
+  TursoWallet, 
+  TursoWalletLedger, 
+  TursoTransaction, 
+  TursoPayment, 
+  TursoVirtualAccount, 
+  TursoVerificationRecord, 
+  TursoAuditLog, 
   TursoApplicationSetting,
   TursoWebhookEvent,
   TursoServicePrice
@@ -92,8 +92,8 @@ export class UserRepository {
     args.push(now, uid, uid);
 
     const sql = `
-      UPDATE users
-      SET ${setClauses}, updated_at = ?
+      UPDATE users 
+      SET ${setClauses}, updated_at = ? 
       WHERE uid = ? OR id = ?
       RETURNING *;
     `;
@@ -105,8 +105,8 @@ export class UserRepository {
   static async updateBalance(uid: string, newBalance: number): Promise<boolean> {
     const now = new Date().toISOString();
     const sql = `
-      UPDATE users
-      SET wallet_balance = ?, updated_at = ?
+      UPDATE users 
+      SET wallet_balance = ?, updated_at = ? 
       WHERE uid = ? OR id = ?;
     `;
     const result = await executeTurso(sql, [newBalance, now, uid, uid]);
@@ -224,7 +224,7 @@ export class WalletRepository {
   static async holdBalance(walletId: string, holdAmount: number): Promise<boolean> {
     const now = new Date().toISOString();
     const sql = `
-      UPDATE wallets
+      UPDATE wallets 
       SET balance = balance - ?, held_balance = held_balance + ?, updated_at = ?
       WHERE (wallet_id = ? OR id = ?) AND balance >= ?;
     `;
@@ -235,10 +235,10 @@ export class WalletRepository {
   static async releaseHold(walletId: string, holdAmount: number, shouldDebit = false): Promise<boolean> {
     const now = new Date().toISOString();
     const sql = shouldDebit
-      ? `UPDATE wallets
+      ? `UPDATE wallets 
          SET held_balance = held_balance - ?, total_debits = total_debits + ?, updated_at = ?
          WHERE (wallet_id = ? OR id = ?) AND held_balance >= ?;`
-      : `UPDATE wallets
+      : `UPDATE wallets 
          SET balance = balance + ?, held_balance = held_balance - ?, updated_at = ?
          WHERE (wallet_id = ? OR id = ?) AND held_balance >= ?;`;
 
@@ -375,15 +375,15 @@ export class TransactionRepository {
   }
 
   static async updateStatus(
-    reference: string,
-    status: TursoTransaction["status"],
+    reference: string, 
+    status: TursoTransaction["status"], 
     balanceAfter?: number,
     rawResponse?: string
   ): Promise<TursoTransaction | null> {
     const now = new Date().toISOString();
     const sql = `
-      UPDATE transactions
-      SET status = ?,
+      UPDATE transactions 
+      SET status = ?, 
           wallet_balance_after = COALESCE(?, wallet_balance_after),
           raw_response = COALESCE(?, raw_response),
           updated_at = ?
@@ -446,15 +446,15 @@ export class PaymentRepository {
   }
 
   static async updateStatus(
-    reference: string,
-    status: TursoPayment["status"],
+    reference: string, 
+    status: TursoPayment["status"], 
     verifiedAt?: string,
     rawPayload?: string
   ): Promise<TursoPayment | null> {
     const now = new Date().toISOString();
     const sql = `
-      UPDATE payments
-      SET status = ?,
+      UPDATE payments 
+      SET status = ?, 
           verified_at = COALESCE(?, verified_at),
           raw_webhook_payload = COALESCE(?, raw_webhook_payload),
           updated_at = ?
@@ -1283,8 +1283,8 @@ export class AtomicWalletOperations {
 
       // 3. Update Wallet Balance
       await tx.execute({
-        sql: `UPDATE wallets
-              SET balance = ?, total_credits = ?, updated_at = ?
+        sql: `UPDATE wallets 
+              SET balance = ?, total_credits = ?, updated_at = ? 
               WHERE id = ?;`,
         args: [balanceAfter, totalCredits, now, wallet.id],
       });
@@ -1377,19 +1377,19 @@ export class AtomicWalletOperations {
     recipientDetails?: string;
     metadata?: any;
   }): Promise<{ success: boolean; newBalance: number; ledgerId: string; txId: string }> {
-    const {
-      userId,
-      amount,
-      reference,
-      idempotencyKey,
-      serviceName,
-      serviceCategory = "SERVICE",
-      serviceType = "SERVICE_PURCHASE",
-      provider,
-      description,
-      fee = 0,
-      recipientDetails,
-      metadata
+    const { 
+      userId, 
+      amount, 
+      reference, 
+      idempotencyKey, 
+      serviceName, 
+      serviceCategory = "SERVICE", 
+      serviceType = "SERVICE_PURCHASE", 
+      provider, 
+      description, 
+      fee = 0, 
+      recipientDetails, 
+      metadata 
     } = params;
 
     const totalDebit = amount + fee;
@@ -1434,8 +1434,8 @@ export class AtomicWalletOperations {
 
       // 3. Update Wallet Balance
       await tx.execute({
-        sql: `UPDATE wallets
-              SET balance = ?, total_debits = ?, updated_at = ?
+        sql: `UPDATE wallets 
+              SET balance = ?, total_debits = ?, updated_at = ? 
               WHERE id = ? AND balance >= ?;`,
         args: [balanceAfter, totalDebits, now, wallet.id, totalDebit],
       });
@@ -2829,7 +2829,7 @@ export class ServicePriceRepository {
              price, cost_price, service_charge, commission_rate, price_label,
              is_active, updated_by, created_at, updated_at
       FROM service_prices
-      WHERE service_id = ?
+      WHERE service_id = ? 
          OR upper(service_code) = upper(?)
          OR service_id = ?
          OR upper(service_code) = upper(?)

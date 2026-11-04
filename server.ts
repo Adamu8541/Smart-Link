@@ -442,7 +442,7 @@ async function startServer() {
     const isSvg = req.path.endsWith(".svg");
     const isIco = req.path.endsWith(".ico");
     const mime = isSvg ? "image/svg+xml" : isWebp ? "image/webp" : isIco ? "image/x-icon" : "image/png";
-
+    
     const publicPath = path.join(process.cwd(), "public");
     const distPath = path.join(process.cwd(), "dist");
 
@@ -469,7 +469,7 @@ async function startServer() {
     const isWebp = req.path.endsWith(".webp");
     const ext = isWebp ? ".webp" : ".png";
     const mime = isWebp ? "image/webp" : "image/png";
-
+    
     const publicPath = path.join(process.cwd(), "public");
     const distPath = path.join(process.cwd(), "dist");
 
@@ -581,7 +581,7 @@ async function startServer() {
         path.join(process.cwd(), "public", "assets"),
         path.join(process.cwd(), "assets"),
       ];
-
+      
       // 1. Exact match
       for (const dir of searchDirs) {
         const exactPath = path.join(dir, filename);

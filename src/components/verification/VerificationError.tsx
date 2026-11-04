@@ -44,7 +44,7 @@ export const VerificationError: React.FC<VerificationErrorProps> = ({
     }
   };
 
-  const isMerchantLowBal = activeError.code === "PROVIDER_MERCHANT_LOW_BALANCE" || (activeError.details || "").includes("Prembley Gateway") || (activeError.message || "").includes("Merchant Account Low Balance");
+  const isMerchantLowBal = activeError.code === "PROVIDER_MERCHANT_LOW_BALANCE" || (activeError.details || "").includes("Gateway Merchant") || (activeError.message || "").includes("Merchant Account Low Balance");
 
   return (
     <div className="p-6 text-center space-y-6 max-w-md mx-auto animate-fade-in">

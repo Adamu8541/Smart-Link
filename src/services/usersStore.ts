@@ -220,9 +220,9 @@ export async function createUser(user: UserDoc): Promise<UserDoc> {
     if (existingByEmail) {
       const preservedBal = Math.max(existingByEmail.walletBalance || 0, cleanUser.walletBalance || 0);
       await executeTurso(
-        `UPDATE users SET
-           uid = ?,
-           id = ?,
+        `UPDATE users SET 
+           uid = ?, 
+           id = ?, 
            phone_number = COALESCE(?, phone_number),
            full_name = COALESCE(?, full_name),
            role = COALESCE(?, role),
@@ -360,7 +360,7 @@ export async function updateUser(uid: string, updates: Partial<UserDoc>): Promis
   const resetOtpVal = updates.resetOtp !== undefined ? updates.resetOtp : (updates.reset_otp !== undefined ? updates.reset_otp : null);
 
   await executeTurso(
-    `UPDATE users SET
+    `UPDATE users SET 
        full_name = COALESCE(?, full_name),
        phone_number = COALESCE(?, phone_number),
        role = COALESCE(?, role),
@@ -460,7 +460,7 @@ export async function updateUser(uid: string, updates: Partial<UserDoc>): Promis
 
 export async function deleteUser(uid: string, email?: string): Promise<boolean> {
   if (!uid && !email) return false;
-
+  
   let targetUid = uid || "";
   let targetId = uid || "";
   let targetEmail = (email || "").toLowerCase().trim();

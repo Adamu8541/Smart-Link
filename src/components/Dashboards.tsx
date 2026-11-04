@@ -362,7 +362,7 @@ export default function Dashboards({
         // 2. Fetch latest wallet balance directly from the authoritative endpoint
         const res = await fetch(`/api/wallet/balance/${encodeURIComponent(uid)}`, { headers });
         const contentType = res.headers.get("content-type") || "";
-
+        
         if (contentType.includes("application/json")) {
           const data = await res.json();
           if (res.ok && data?.wallet) {
@@ -630,7 +630,7 @@ export default function Dashboards({
   const getChartData = () => {
     const dataMap: { [dateStr: string]: { date: string; displayDate: string; successful: number; pending: number } } = {};
     const now = new Date();
-
+    
     for (let i = 29; i >= 0; i--) {
       const d = new Date();
       d.setDate(now.getDate() - i);
@@ -659,7 +659,7 @@ export default function Dashboards({
     const chartDataList = Object.values(dataMap).map((item, index) => {
       const baselineSuccess = (index % 6 === 0 ? 2 : index % 4 === 0 ? 1 : 0) + (index % 11 === 0 ? 2 : 0) + (index % 15 === 0 ? 1 : 0);
       const baselinePending = (index % 8 === 0 ? 1 : index % 13 === 0 ? 2 : 0);
-
+      
       return {
         ...item,
         successful: item.successful + baselineSuccess,
@@ -684,10 +684,10 @@ export default function Dashboards({
     transactions.forEach((tx) => {
       const isFunding = tx.type === "WALLET_FUNDING";
       const title = isFunding ? "Digital Wallet Funded" : "Service Debit Transaction";
-      const description = isFunding
+      const description = isFunding 
         ? `Credited ${formatNaira(tx.amount, true)} via Bank Transfer. Reference: ${tx.reference}`
         : `Sent ${formatNaira(tx.amount, true)} to ${tx.description}. Reference: ${tx.reference}`;
-
+      
       list.push({
         id: `tx-${tx.id}`,
         timestamp: new Date(tx.createdAt || Date.now()),
@@ -701,7 +701,7 @@ export default function Dashboards({
     cacApps.forEach((app) => {
       const title = `CAC Corporate Filing Uploaded`;
       const description = `Corporate name reservation dispatch: "${app.proposedNames.join(" / ")}" for ${app.type}. Objective: "${app.objective.substring(0, 75)}..."`;
-
+      
       list.push({
         id: `cac-submit-${app.id}`,
         timestamp: new Date(app.createdAt || Date.now()),
@@ -894,8 +894,8 @@ export default function Dashboards({
       return priceMatrix?.cacRates?.companyFee ?? 35000;
     }
     // Check if catalog has matching entry
-    const matched = servicesCatalog.find((s: any) =>
-      s.id === serviceId ||
+    const matched = servicesCatalog.find((s: any) => 
+      s.id === serviceId || 
       (s.code && serviceId.toUpperCase().includes(s.code.replace(/_/g, ""))) ||
       (s.name && s.name.toLowerCase() === serviceId.toLowerCase())
     );
@@ -1002,13 +1002,13 @@ export default function Dashboards({
   });
 
   const displayedServices = allEnrichedServices.filter(srv => {
-    const matchesCategory = selectedServiceCategory === "ALL" ||
-      (selectedServiceCategory === "BANKING" ? (srv.id.includes("bvn") || srv.id.includes("bank") || (srv.category === "IDENTITY" && srv.id.includes("bvn"))) :
+    const matchesCategory = selectedServiceCategory === "ALL" || 
+      (selectedServiceCategory === "BANKING" ? (srv.id.includes("bvn") || srv.id.includes("bank") || (srv.category === "IDENTITY" && srv.id.includes("bvn"))) : 
        selectedServiceCategory === "IDENTITY" ? (srv.category === "IDENTITY" && !srv.id.includes("bvn") && !srv.id.includes("bank")) :
        srv.category === selectedServiceCategory);
-
+       
     const query = dashboardSearchQuery.trim().toLowerCase();
-    const matchesSearch = !query ||
+    const matchesSearch = !query || 
       srv.name.toLowerCase().includes(query) ||
       srv.description.toLowerCase().includes(query) ||
       srv.id.toLowerCase().includes(query);
@@ -1089,7 +1089,7 @@ export default function Dashboards({
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-slate-300 font-medium">Available Balance</span>
-                    <button
+                    <button 
                       onClick={() => setIsBalanceHidden(!isBalanceHidden)}
                       className="text-slate-300 hover:text-white transition-colors cursor-pointer"
                       title={isBalanceHidden ? "Show Balance" : "Hide Balance"}
@@ -1435,14 +1435,14 @@ export default function Dashboards({
         {/* 💳 FUND WALLET MODAL (VIRTUAL ACCOUNT DETAILS)           */}
         {/* ======================================================== */}
         {showSuggestionModal && (
-          <div
+          <div 
             id="suggestion-modal"
             className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn overflow-y-auto"
             onClick={(e) => {
               if (e.target === e.currentTarget) setShowSuggestionModal(false);
             }}
           >
-            <div
+            <div 
               className="bg-white w-full max-w-md rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-200 animate-scaleIn text-left my-auto p-5 sm:p-6 space-y-4"
               onClick={(e) => e.stopPropagation()}
             >
@@ -1495,7 +1495,7 @@ export default function Dashboards({
                   </div>
                 </div>
               ) : (
-                <form
+                <form 
                   onSubmit={async (e) => {
                     e.preventDefault();
                     if (!suggestionText.trim()) return;
@@ -1570,14 +1570,14 @@ export default function Dashboards({
         {/* 📞 SMART LINK NG CONTACT INFORMATION MODAL               */}
         {/* ======================================================== */}
         {showContactInfoModal && (
-          <div
+          <div 
             id="contact-info-modal"
             className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn overflow-y-auto"
             onClick={(e) => {
               if (e.target === e.currentTarget) setShowContactInfoModal(false);
             }}
           >
-            <div
+            <div 
               className="bg-white w-full max-w-lg rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-slate-200 animate-scaleIn text-left my-auto p-5 sm:p-7 space-y-5"
               onClick={(e) => e.stopPropagation()}
             >
@@ -1618,8 +1618,8 @@ export default function Dashboards({
                       <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
                         Official Support Email
                       </span>
-                      <a
-                        href="mailto:Smartlinkcomputerbusiness@gmail.com"
+                      <a 
+                        href="mailto:Smartlinkcomputerbusiness@gmail.com" 
                         className="text-xs sm:text-sm font-bold text-[#0F2D5C] hover:underline break-all block"
                       >
                         Smartlinkcomputerbusiness@gmail.com
@@ -1650,8 +1650,8 @@ export default function Dashboards({
                       <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
                         Direct Phone &amp; Hotlines
                       </span>
-                      <a
-                        href="tel:+2348085490982"
+                      <a 
+                        href="tel:+2348085490982" 
                         className="text-xs sm:text-sm font-bold text-[#111827] hover:text-[#0F2D5C] block"
                       >
                         +234 808 549 0982
@@ -1682,10 +1682,10 @@ export default function Dashboards({
                       <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">
                         WhatsApp Live Support Desk
                       </span>
-                      <a
-                        href="https://wa.me/2349047738212?text=Hello%20SmartLink%20Support,%20I%20have%20an%20inquiry"
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <a 
+                        href="https://wa.me/2349047738212?text=Hello%20SmartLink%20Support,%20I%20have%20an%20inquiry" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
                         className="text-xs sm:text-sm font-extrabold text-emerald-900 hover:underline flex items-center gap-1.5"
                       >
                         +234 904 773 8212
@@ -1734,14 +1734,14 @@ export default function Dashboards({
         {/* 💳 FUND WALLET MODAL (VIRTUAL ACCOUNT DETAILS)           */}
         {/* ======================================================== */}
         {showFundModal && (
-          <div
+          <div 
             id="fund-wallet-modal"
             className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn overflow-y-auto"
             onClick={(e) => {
               if (e.target === e.currentTarget) setShowFundModal(false);
             }}
           >
-            <div
+            <div 
               className="bg-white w-full max-w-lg rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-200 animate-scaleIn text-left my-auto max-h-[92vh]"
               onClick={(e) => e.stopPropagation()}
             >
@@ -1820,7 +1820,7 @@ export default function Dashboards({
                   <>
                     <div className="bg-gradient-to-br from-[#0F2D5C] to-[#17407E] rounded-2xl p-5 text-white space-y-4 shadow-sm relative overflow-hidden">
                       <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-xl pointer-events-none"></div>
-
+                      
                       <div className="flex items-center justify-between">
                         <span className="text-[11px] uppercase tracking-wider text-slate-300 font-bold">
                           Dedicated Virtual Account
@@ -1917,14 +1917,14 @@ export default function Dashboards({
         {/* 🌟 MORE SERVICES & ALL SOLUTIONS MODAL                   */}
         {/* ======================================================== */}
         {showMoreServicesModal && (
-          <div
+          <div 
             id="more-services-modal"
             className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn overflow-y-auto"
             onClick={(e) => {
               if (e.target === e.currentTarget) setShowMoreServicesModal(false);
             }}
           >
-            <div
+            <div 
               className="bg-white w-full max-w-2xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-200 animate-scaleIn text-left my-auto"
               onClick={(e) => e.stopPropagation()}
             >
@@ -2050,7 +2050,7 @@ export default function Dashboards({
           className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/90 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] px-2 sm:px-6 py-1.5 sm:py-2 transition-all"
         >
           <div className="max-w-md sm:max-w-lg md:max-w-xl mx-auto flex items-center justify-between gap-1 sm:gap-4 relative">
-
+            
             {/* 1. NIN */}
             <button
               onClick={() => handleServiceCardClick("id_nin_ver")}

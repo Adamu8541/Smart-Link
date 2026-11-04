@@ -895,8 +895,8 @@ router.post("/api/v1/sandbox/execute", async (req, res) => {
             supportedFeatures: ["BVN Interbank Rails", "Phone Demographics", "Account Name Matching"],
           },
           {
-            id: "prov_prembley",
-            name: "Prembley / IdentityPass Multi-KYC",
+            id: "prov_lumiid",
+            name: "LumiID Sovereign Identity Portal",
             category: "IDENTITY_API",
             status: "OPERATIONAL",
             health: "HEALTHY",
@@ -1281,7 +1281,7 @@ router.post("/api/v1/sandbox/execute", async (req, res) => {
  * -----------------------------------------------------------------------------
  * 3. LIVE PRODUCTION /api/v1/ REST API ENDPOINTS
  * Authenticated via Authorization: Bearer sk_live_...
- * Directly connected to Active Provider Adapters (VTpass / Bigisub / Prembley)
+ * Directly connected to Active Provider Adapters (VTpass / Bigisub / Identro / LumiID)
  * -----------------------------------------------------------------------------
  */
 
@@ -1831,8 +1831,8 @@ router.get("/api/v1/providers/status", async (_req, res) => {
       supportedFeatures: ["BVN Interbank Rails", "Phone Demographics", "Account Name Matching"],
     },
     {
-      id: "prov_prembley",
-      name: "Prembley / IdentityPass Multi-KYC",
+      id: "prov_lumiid",
+      name: "LumiID Sovereign Identity Portal",
       category: "IDENTITY_API",
       status: "OPERATIONAL",
       health: "HEALTHY",
@@ -1997,7 +1997,7 @@ router.post("/api/v1/cac/verify", authenticateDeveloperApiKey, async (req: any, 
       amount: fee,
       serviceName: "CAC Verification",
       description: `Corporate Affairs Commission query for ${rcNumber}`,
-      provider: "Prembley Corporate Rails",
+      provider: "Corporate Registry Portal",
     });
   }
 

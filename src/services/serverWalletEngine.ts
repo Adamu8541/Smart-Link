@@ -139,7 +139,7 @@ export class ServerWalletEngine {
       }
     } else {
       if (!wallet.walletId) wallet.walletId = `wal_${primaryUid}`;
-
+      
       const rawWalletBal = typeof wallet.balance === "number" && !isNaN(wallet.balance)
         ? wallet.balance
         : (typeof wallet.currentBalance === "number" && !isNaN(wallet.currentBalance) ? wallet.currentBalance : 0.0);

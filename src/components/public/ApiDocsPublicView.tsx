@@ -1,7 +1,7 @@
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
- *
+ * 
  * SmartLink NG Developer Hub - Complete API Documentation Portal
  * Enterprise Developer API Standards with SmartLink NG Navy & Royal Theme
  * API Keys Generation strictly gated to User Dashboard per security & KYC compliance guidelines
@@ -1588,7 +1588,7 @@ echo $response;`;
           BODY 3-COLUMN WORKSPACE: LEFT NAV | CENTER DOCS | RIGHT CONSOLE
       ========================================================================= */}
       <div className="flex-1 flex max-w-[1920px] w-full mx-auto relative overflow-hidden">
-
+        
         {/* ========================================================
             COLUMN 1: LEFT SIDEBAR NAVIGATION
         ======================================================== */}
@@ -1717,13 +1717,13 @@ echo $response;`;
             COLUMN 2 & 3: MAIN DOCUMENTATION CANVAS & CONSOLE
         ======================================================== */}
         <main className="flex-1 overflow-y-auto flex flex-col xl:flex-row bg-[#F8FAFC]">
-
+          
           {/* ========================================================
               IF GUIDE SELECTED: RENDER SPECIFIC ARCHITECTURE GUIDE
           ======================================================== */}
           {isGuideActive ? (
             <div className="flex-1 p-5 sm:p-8 max-w-5xl mx-auto space-y-8 animate-in fade-in duration-150">
-
+              
               {/* Guide 1: Overview */}
               {selectedItem === "guide_overview" && (
                 <div className="space-y-6">
@@ -2252,7 +2252,7 @@ export class SmartLinkClient {
 
               {/* RIGHT COLUMN: SMARTLINK NAVY TERMINAL & LIVE TESTBED CONSOLE */}
               <div className="w-full xl:w-[480px] 2xl:w-[540px] bg-[#07152B] border-t xl:border-t-0 xl:border-l border-[#17407E] p-4 sm:p-6 flex flex-col space-y-6 text-slate-100 shadow-xl">
-
+                
                 {/* 1. Code Snippets Window */}
                 <div className="rounded-2xl border border-[#17407E] bg-[#030B17] overflow-hidden shadow-inner">
                   {/* Language Switcher */}

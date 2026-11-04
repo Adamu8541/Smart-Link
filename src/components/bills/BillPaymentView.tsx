@@ -900,7 +900,7 @@ export const BillPaymentView: React.FC<BillPaymentViewProps> = ({
                     if (selectedCategory.id !== "DATA") return true;
                     // Filter by plan type
                     const matchesType = selectedDataType === "ALL" || p.dataType === selectedDataType;
-
+                    
                     // Filter by validity duration
                     let matchesDuration = true;
                     if (selectedDurationFilter !== "ALL") {

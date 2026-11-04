@@ -134,7 +134,7 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps>= ({
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Home</span>
         </button>
-
+        
         <span className="text-[11px] font-bold tracking-wider text-[#0F2D5C] uppercase bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-full flex items-center gap-1.5">
           <KeyRound className="w-3 h-3 text-[#0F2D5C]" />
           Account Recovery
@@ -236,7 +236,7 @@ export const ForgotPasswordView: React.FC<ForgotPasswordViewProps>= ({
               >
                 Try Another Email
               </button>
-
+              
               <button
                 type="button"
                 onClick={onNavigateToLogin}

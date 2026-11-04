@@ -26,7 +26,6 @@ import { getActiveProviderAndAdapter, getAdapterForProvider } from "../../src/se
 import { AspfiyAdapter } from "../../src/services/providers/aspfiyAdapter";
 import { LumiIDAdapter } from "../../src/services/providers/lumiidAdapter";
 import { IdentroAdapter } from "../../src/services/providers/identroAdapter";
-import { PrembleyAdapter } from "../../src/services/providers/prembleyAdapter";
 import { VTpassAdapter } from "../../src/services/providers/vtpassAdapter";
 import { BigisubAdapter } from "../../src/services/providers/bigisubAdapter";
 import { ClubKonnectAdapter } from "../../src/services/providers/clubkonnectAdapter";
@@ -595,11 +594,6 @@ function getCentralActivePaymentProvider(db: any, isAdmin = false) {
     activeProvider.clientId = activeProvider.clientId || String(process.env.IDENTRO_CLIENT_ID || "smartlink_identro_app").trim();
     activeProvider.apiKey = activeProvider.secretKey;
     activeProvider.baseUrl = activeProvider.baseUrl || "https://api.identro.ng";
-  } else if (activeProvName.includes("prembley") || activeProvName.includes("prembly") || activeProvName.includes("identitypass")) {
-    activeProvider.secretKey = activeProvider.secretKey || String(process.env.PREMBLEY_SECRET_KEY || process.env.IDENTITYPASS_SECRET_KEY || "").trim();
-    activeProvider.publicKey = activeProvider.publicKey || String(process.env.PREMBLEY_PUBLIC_KEY || process.env.PREMBLEY_API_KEY || process.env.IDENTITYPASS_PUBLIC_KEY || process.env.IDENTITYPASS_API_KEY || "").trim();
-    activeProvider.apiKey = activeProvider.publicKey || activeProvider.secretKey;
-    activeProvider.baseUrl = activeProvider.baseUrl || "https://api.prembly.com";
   } else if (activeProvName.includes("bigisub")) {
     activeProvider.apiToken = activeProvider.apiToken || activeProvider.secretKey || activeProvider.apiKey || String(process.env.BIGISUB_API_TOKEN || "").trim();
     activeProvider.apiKey = activeProvider.apiToken;
@@ -1030,15 +1024,6 @@ app.post("/api/admin/payment-providers/:id/test-connection", requireAdmin, async
     provider.clientId = provider.clientId || String(process.env.IDENTRO_CLIENT_ID || "smartlink_identro_app").trim();
     provider.apiKey = provider.secretKey;
     provider.baseUrl = provider.baseUrl || "https://api.identro.ng";
-  } else if (testProvName.includes("prembley") || testProvName.includes("prembly") || testProvName.includes("identitypass")) {
-    provider.secretKey = provider.secretKey || String(process.env.PREMBLEY_SECRET_KEY || process.env.IDENTITYPASS_SECRET_KEY || "").trim();
-    provider.publicKey = provider.publicKey || String(process.env.PREMBLEY_PUBLIC_KEY || process.env.PREMBLEY_API_KEY || process.env.IDENTITYPASS_PUBLIC_KEY || process.env.IDENTITYPASS_API_KEY || "").trim();
-    provider.apiKey = provider.publicKey || provider.secretKey;
-    provider.baseUrl = provider.baseUrl || "https://api.prembly.com";
-  } else if (testProvName.includes("bestverify")) {
-    provider.apiKey = provider.apiKey || String(process.env.BESTVERIFY_API_KEY || "bv_live_3e56d38ad2d1449c106c891ba2c5e3b7be365173750ce408").trim();
-    provider.secretKey = provider.secretKey || String(process.env.BESTVERIFY_SECRET_KEY || "whsec_e70c2dacec1bd793e5e33de577dbd39ebf0cf3ca").trim();
-    provider.baseUrl = provider.baseUrl || "https://submit-bestverify.com.ng";
   } else if (testProvName.includes("bigisub")) {
     provider.apiToken = provider.apiToken || provider.secretKey || provider.apiKey || String(process.env.BIGISUB_API_TOKEN || "").trim();
     provider.apiKey = provider.apiToken;
@@ -1738,41 +1723,6 @@ function seedModule6ProvidersIfEmpty(db: any) {
     });
   }
 
-  // Ensure Prembley (Identitypass) Portal Provider
-  if (!db.api_providers.some((p: any) => p.id === "prov_prembley" || (p.name || "").toLowerCase().includes("prembley") || (p.name || "").toLowerCase().includes("identitypass"))) {
-    db.api_providers.push({
-      id: "prov_prembley",
-      name: "Prembley Portal (Identitypass)",
-      category: "IDENTITY_API",
-      providerType: "IDENTITY_API",
-      description: "Prembley (Identitypass) Identity, NIN, BVN, CAC & KYB Verification API",
-      logoUrl: "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=100&auto=format&fit=crop&q=60",
-      baseUrl: "https://api.prembly.com",
-      apiVersion: "v2.0",
-      authMethod: "API_KEY",
-      secretKey: "",
-      publicKey: "",
-      apiKey: "",
-      keySource: "SERVER_ENVIRONMENT_VARIABLE",
-      supportsWalletFunding: false,
-      supportsBankTransfer: false,
-      supportsCardPayment: false,
-      supportsVirtualAccount: false,
-      supportsPaymentLink: false,
-      supportsPayout: false,
-      supportsRefund: false,
-      supportsTxVerification: true,
-      timeout: 15000,
-      retryAttempts: 3,
-      healthStatus: "ONLINE",
-      priority: 5,
-      environment: "PRODUCTION",
-      status: "ENABLED",
-      enabled: true,
-      isActive: true,
-    });
-  }
-
   // Ensure VTpass Digital Services Provider
   if (!db.api_providers.some((p: any) => p.id === "prov_vtpass" || (p.name || "").toLowerCase().includes("vtpass"))) {
     db.api_providers.push({
@@ -1974,10 +1924,6 @@ app.get("/api/admin/providers", requireAdmin, async (req, res) => {
       hasServerSecret = Boolean(process.env.LUMIID_API_KEY || process.env.LUMIID_SECRET_KEY);
     } else if (pId.includes("identro") || pName.includes("identro")) {
       hasServerSecret = Boolean(process.env.IDENTRO_API_KEY || process.env.IDENTRO_SECRET_KEY);
-    } else if (pId.includes("prembley") || pName.includes("prembley") || pName.includes("identitypass")) {
-      hasServerSecret = Boolean(process.env.PREMBLEY_SECRET_KEY || process.env.IDENTITYPASS_SECRET_KEY);
-    } else if (pId.includes("bestverify") || pName.includes("bestverify")) {
-      hasServerSecret = Boolean(process.env.BESTVERIFY_API_KEY || p.apiKey);
     } else if (pId.includes("bigisub") || pName.includes("bigisub")) {
       hasServerSecret = Boolean(process.env.BIGISUB_API_TOKEN);
     } else if (pId.includes("clubkonnect") || pName.includes("clubkonnect")) {
@@ -2045,7 +1991,6 @@ app.get("/api/admin/providers/:providerId", requireAdmin, async (req, res) => {
       (pId.includes("aspfiy") && process.env.ASPFIY_SECRET_KEY) ||
       (pId.includes("lumiid") && (process.env.LUMIID_API_KEY || process.env.LUMIID_SECRET_KEY)) ||
       (pId.includes("identro") && (process.env.IDENTRO_API_KEY || process.env.IDENTRO_SECRET_KEY)) ||
-      (pId.includes("prembley") && (process.env.PREMBLEY_SECRET_KEY || process.env.IDENTITYPASS_SECRET_KEY)) ||
       (pId.includes("bigisub") && process.env.BIGISUB_API_TOKEN) ||
       (pId.includes("clubkonnect") && process.env.CLUBKONNECT_API_KEY) ||
       (pId.includes("vtpass") && (process.env.VTPASS_SECRET_KEY || process.env.VTPASS_API_KEY))
@@ -2411,25 +2356,12 @@ app.post("/api/admin/providers/:providerId/test-connection", requireAdmin, async
       provider.secretKey = process.env.IDENTRO_API_KEY || process.env.IDENTRO_SECRET_KEY || provider.secretKey;
     }
     provider.apiKey = provider.secretKey;
-  } else if (pName.includes("prembley") || pId.includes("prembley") || pName.includes("prembly") || pId.includes("prembly") || pName.includes("identitypass") || pId.includes("identitypass")) {
-    provider.baseUrl = provider.baseUrl || "https://api.prembly.com";
-    if (!provider.secretKey || provider.secretKey.includes("•")) {
-      provider.secretKey = process.env.PREMBLEY_SECRET_KEY || process.env.IDENTITYPASS_SECRET_KEY || provider.secretKey;
-    }
-    if (!provider.publicKey || provider.publicKey.includes("•")) {
-      provider.publicKey = process.env.PREMBLEY_PUBLIC_KEY || process.env.PREMBLEY_API_KEY || process.env.IDENTITYPASS_PUBLIC_KEY || process.env.IDENTITYPASS_API_KEY || provider.publicKey;
-    }
-    provider.apiKey = provider.publicKey || provider.secretKey;
   } else if (pName.includes("bigisub") || pId.includes("bigisub")) {
     provider.baseUrl = provider.baseUrl || "https://bigisub.ng/api/v2";
     provider.apiToken = provider.apiToken || process.env.BIGISUB_API_TOKEN || provider.apiToken;
     provider.apiKey = provider.apiToken || provider.apiKey;
     provider.secretKey = provider.apiToken || provider.secretKey;
     provider.pin = provider.pin || process.env.BIGISUB_PIN || provider.pin;
-  } else if (pName.includes("bestverify") || pId.includes("bestverify")) {
-    provider.baseUrl = provider.baseUrl || "https://submit-bestverify.com.ng";
-    provider.apiKey = provider.apiKey || process.env.BESTVERIFY_API_KEY || "bv_live_3e56d38ad2d1449c106c891ba2c5e3b7be365173750ce408";
-    provider.secretKey = provider.secretKey || process.env.BESTVERIFY_SECRET_KEY || "whsec_e70c2dacec1bd793e5e33de577dbd39ebf0cf3ca";
   } else if (pName.includes("aspfiy") || pId.includes("aspfiy")) {
     provider.baseUrl = provider.baseUrl || "https://api-v1.aspfiy.com";
     provider.secretKey = provider.secretKey || process.env.ASPFIY_SECRET_KEY || process.env.ASPFIY_API_KEY;
@@ -2450,9 +2382,6 @@ app.post("/api/admin/providers/:providerId/test-connection", requireAdmin, async
   } else if (provider.name.toLowerCase().includes("identro") || (provider.id && provider.id.toLowerCase().includes("identro"))) {
     const identroAdapter = new IdentroAdapter();
     testResult = await identroAdapter.testConnection(provider);
-  } else if (provider.name.toLowerCase().includes("prembley") || (provider.id && provider.id.toLowerCase().includes("prembley")) || provider.name.toLowerCase().includes("identitypass") || (provider.id && provider.id.toLowerCase().includes("identitypass"))) {
-    const prembleyAdapter = new PrembleyAdapter();
-    testResult = await prembleyAdapter.testConnection(provider);
   } else if (provider.name.toLowerCase().includes("vtpass") || (provider.id && provider.id.toLowerCase().includes("vtpass"))) {
     const vtpassAdapter = new VTpassAdapter();
     testResult = await vtpassAdapter.testConnection(provider);
