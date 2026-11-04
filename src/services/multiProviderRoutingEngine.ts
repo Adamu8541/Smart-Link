@@ -18,6 +18,7 @@ import { AspfiyAdapter } from "./providers/aspfiyAdapter";
 import { LumiIDAdapter } from "./providers/lumiidAdapter";
 import { IdentroAdapter } from "./providers/identroAdapter";
 import { PrembleyAdapter } from "./providers/prembleyAdapter";
+import { BestVerifyAdapter } from "./providers/bestverifyAdapter";
 import { syncFromStorage } from "./settingsStore";
 
 export interface MultiPortalExecutionParams {
@@ -60,14 +61,14 @@ export class MultiProviderRoutingEngine {
         service: "NIN",
         serviceName: "NIN Identity Verification",
         strategy: "PRIORITY_ORDER",
-        primaryProviderId: "lumiid",
-        primaryProviderName: "LumiID Identity Verification",
-        secondaryProviderId: "identro",
-        secondaryProviderName: "Identro Portal",
-        tertiaryProviderId: "",
-        tertiaryProviderName: "",
-        fallbackProviderId: "",
-        fallbackProviderName: "",
+        primaryProviderId: "bestverify",
+        primaryProviderName: "BestVerify Identity Gateway",
+        secondaryProviderId: "prembley",
+        secondaryProviderName: "Prembley Portal (Identitypass)",
+        tertiaryProviderId: "identro",
+        tertiaryProviderName: "Identro Portal",
+        fallbackProviderId: "lumiid",
+        fallbackProviderName: "LumiID Portal",
         timeoutMs: 20000,
         maxRetries: 2,
         autoFailover: true,
@@ -81,14 +82,14 @@ export class MultiProviderRoutingEngine {
         service: "BVN",
         serviceName: "BVN Banking Verification",
         strategy: "PRIORITY_ORDER",
-        primaryProviderId: "lumiid",
-        primaryProviderName: "LumiID Identity Verification",
-        secondaryProviderId: "identro",
-        secondaryProviderName: "Identro Portal",
-        tertiaryProviderId: "",
-        tertiaryProviderName: "",
-        fallbackProviderId: "",
-        fallbackProviderName: "",
+        primaryProviderId: "bestverify",
+        primaryProviderName: "BestVerify Identity Gateway",
+        secondaryProviderId: "prembley",
+        secondaryProviderName: "Prembley Portal (Identitypass)",
+        tertiaryProviderId: "identro",
+        tertiaryProviderName: "Identro Portal",
+        fallbackProviderId: "lumiid",
+        fallbackProviderName: "LumiID Portal",
         timeoutMs: 20000,
         maxRetries: 2,
         autoFailover: true,
@@ -390,6 +391,7 @@ export class MultiProviderRoutingEngine {
       if (match?.name) return match.name;
     }
     if (clean === "clubkonnect" || clean === "prov_clubkonnect") return "Clubkonnect VTU & Bill Payment";
+    if (clean === "bestverify" || clean === "prov_bestverify" || clean === "submit_bestverify") return "BestVerify Identity Gateway";
     if (clean === "identro" || clean === "prov_identro") return "Identro Portal";
     if (clean === "lumiid" || clean === "prov_lumiid") return "LumiID Portal";
     if (clean === "prembley" || clean === "prembly" || clean === "prov_prembly" || clean === "identitypass") return "Prembley Portal (Identitypass)";
@@ -681,6 +683,13 @@ export class MultiProviderRoutingEngine {
       providerRow.apiKey = providerRow.apiToken || providerRow.apiKey;
       providerRow.secretKey = providerRow.apiToken || providerRow.secretKey;
       providerRow.pin = providerRow.pin || process.env.BIGISUB_PIN;
+    } else if (normalizedKey.includes("bestverify")) {
+      providerRow.baseUrl = providerRow.baseUrl || "https://submit-bestverify.com.ng";
+      const envKey = process.env.BESTVERIFY_API_KEY || process.env.BESTVERIFY_SECRET_KEY || "bv_live_3e56d38ad2d1449c106c891ba2c5e3b7be365173750ce408";
+      if (!providerRow.apiKey || providerRow.apiKey.includes("•")) {
+        providerRow.apiKey = envKey;
+      }
+      providerRow.secretKey = providerRow.apiKey;
     } else if (normalizedKey.includes("aspfiy")) {
       providerRow.baseUrl = providerRow.baseUrl || "https://api-v1.aspfiy.com";
       providerRow.secretKey = providerRow.secretKey || process.env.ASPFIY_SECRET_KEY || process.env.ASPFIY_API_KEY;
@@ -816,6 +825,19 @@ export class MultiProviderRoutingEngine {
             id: rule.fallbackProviderId,
             name: rule.fallbackProviderName || this.resolveProviderDisplayName(rule.fallbackProviderId, db),
           });
+        }
+      }
+
+      // Resilient Identity Fallover: Ensure BVN and NIN have all real available gateways in the failover chain
+      if (sType.includes("BVN") || sType.includes("NIN")) {
+        const idFallbacks = ["bestverify", "prembley", "identro", "lumiid"];
+        for (const cand of idFallbacks) {
+          if (!providerChain.some((p) => p.id.toLowerCase().includes(cand))) {
+            providerChain.push({
+              id: cand,
+              name: this.resolveProviderDisplayName(cand, db),
+            });
+          }
         }
       }
     }
@@ -956,6 +978,12 @@ export class MultiProviderRoutingEngine {
         }
         pConfig.apiKey = pConfig.apiToken || pConfig.apiKey;
         pConfig.secretKey = pConfig.apiToken || pConfig.secretKey;
+      } else if (keyId.includes("bestverify")) {
+        pConfig.baseUrl = pConfig.baseUrl || "https://submit-bestverify.com.ng";
+        if (isMaskedOrEmpty(pConfig.apiKey)) {
+          pConfig.apiKey = process.env.BESTVERIFY_API_KEY || process.env.BESTVERIFY_SECRET_KEY || pConfig.apiKey || "bv_live_3e56d38ad2d1449c106c891ba2c5e3b7be365173750ce408";
+        }
+        pConfig.secretKey = pConfig.apiKey;
       } else if (keyId.includes("clubkonnect")) {
         pConfig.baseUrl = pConfig.baseUrl || "https://nellobytesystems.com";
         pConfig.userId = process.env.CLUBKONNECT_USER_ID || pConfig.userId;
@@ -1104,7 +1132,10 @@ export class MultiProviderRoutingEngine {
     };
 
     const executeCall = async () => {
-      if (key.includes("lumiid")) {
+      if (key.includes("bestverify")) {
+        const adapter = new BestVerifyAdapter();
+        return await adapter.verifyIdentity(serviceType, targetId, augmentedExtra, config);
+      } else if (key.includes("lumiid")) {
         const adapter = new LumiIDAdapter();
         return await adapter.verifyIdentity(serviceType, targetId, augmentedExtra, config);
       } else if (key.includes("identro")) {

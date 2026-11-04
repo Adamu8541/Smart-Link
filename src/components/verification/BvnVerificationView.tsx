@@ -137,7 +137,6 @@ export const BvnVerificationView: React.FC<BvnVerificationViewProps> = ({
   const [primaryInput, setPrimaryInput] = useState("");
   const [hasConsent, setHasConsent] = useState(false);
   const [inputError, setInputError] = useState<string | null>(null);
-  const [selectedProvider, setSelectedProvider] = useState<string>("");
 
   const [userBalance, setUserBalance] = useState<number>(0);
   const [stepMode, setStepMode] = useState<"INPUT" | "LOADING" | "ERROR">("INPUT");
@@ -232,10 +231,6 @@ export const BvnVerificationView: React.FC<BvnVerificationViewProps> = ({
           idNumber: cleanBvn,
           slipType: selectedSlip.id,
           consent: true,
-          ...(selectedProvider ? {
-            preferredProvider: selectedProvider,
-            providerId: selectedProvider,
-          } : {}),
         },
       });
 
@@ -550,6 +545,7 @@ export const BvnVerificationView: React.FC<BvnVerificationViewProps> = ({
                 </p>
               </div>
             </div>
+
 
             {/* SECTION 3: CONSENT CHECKBOX */}
             <div className="space-y-3 pt-2">

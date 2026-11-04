@@ -131,7 +131,6 @@ export const NinVerificationView: React.FC<NinVerificationViewProps> = ({
   const [primaryInput, setPrimaryInput] = useState("");
   const [hasConsent, setHasConsent] = useState(false);
   const [inputError, setInputError] = useState<string | null>(null);
-  const [selectedProvider, setSelectedProvider] = useState<string>("");
 
   // Fee & Balance
   const [userBalance, setUserBalance] = useState<number>(0);
@@ -225,10 +224,6 @@ export const NinVerificationView: React.FC<NinVerificationViewProps> = ({
           idNumber: cleanNin,
           slipType: selectedSlip.id,
           consent: true,
-          ...(selectedProvider ? {
-            preferredProvider: selectedProvider,
-            providerId: selectedProvider,
-          } : {}),
         },
       });
 
@@ -522,6 +517,7 @@ export const NinVerificationView: React.FC<NinVerificationViewProps> = ({
                   <strong className="font-bold text-slate-800">Privacy Notice:</strong> Encrypted &amp; securely processed. We never store personal data.
                 </p>
               </div>
+
             </div>
 
             {/* SECTION 3: CONSENT */}

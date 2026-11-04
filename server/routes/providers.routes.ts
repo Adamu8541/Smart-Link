@@ -1035,6 +1035,10 @@ app.post("/api/admin/payment-providers/:id/test-connection", requireAdmin, async
     provider.publicKey = provider.publicKey || String(process.env.PREMBLEY_PUBLIC_KEY || process.env.PREMBLEY_API_KEY || process.env.IDENTITYPASS_PUBLIC_KEY || process.env.IDENTITYPASS_API_KEY || "").trim();
     provider.apiKey = provider.publicKey || provider.secretKey;
     provider.baseUrl = provider.baseUrl || "https://api.prembly.com";
+  } else if (testProvName.includes("bestverify")) {
+    provider.apiKey = provider.apiKey || String(process.env.BESTVERIFY_API_KEY || "bv_live_3e56d38ad2d1449c106c891ba2c5e3b7be365173750ce408").trim();
+    provider.secretKey = provider.secretKey || String(process.env.BESTVERIFY_SECRET_KEY || "whsec_e70c2dacec1bd793e5e33de577dbd39ebf0cf3ca").trim();
+    provider.baseUrl = provider.baseUrl || "https://submit-bestverify.com.ng";
   } else if (testProvName.includes("bigisub")) {
     provider.apiToken = provider.apiToken || provider.secretKey || provider.apiKey || String(process.env.BIGISUB_API_TOKEN || "").trim();
     provider.apiKey = provider.apiToken;
@@ -1972,6 +1976,8 @@ app.get("/api/admin/providers", requireAdmin, async (req, res) => {
       hasServerSecret = Boolean(process.env.IDENTRO_API_KEY || process.env.IDENTRO_SECRET_KEY);
     } else if (pId.includes("prembley") || pName.includes("prembley") || pName.includes("identitypass")) {
       hasServerSecret = Boolean(process.env.PREMBLEY_SECRET_KEY || process.env.IDENTITYPASS_SECRET_KEY);
+    } else if (pId.includes("bestverify") || pName.includes("bestverify")) {
+      hasServerSecret = Boolean(process.env.BESTVERIFY_API_KEY || p.apiKey);
     } else if (pId.includes("bigisub") || pName.includes("bigisub")) {
       hasServerSecret = Boolean(process.env.BIGISUB_API_TOKEN);
     } else if (pId.includes("clubkonnect") || pName.includes("clubkonnect")) {
@@ -2420,6 +2426,10 @@ app.post("/api/admin/providers/:providerId/test-connection", requireAdmin, async
     provider.apiKey = provider.apiToken || provider.apiKey;
     provider.secretKey = provider.apiToken || provider.secretKey;
     provider.pin = provider.pin || process.env.BIGISUB_PIN || provider.pin;
+  } else if (pName.includes("bestverify") || pId.includes("bestverify")) {
+    provider.baseUrl = provider.baseUrl || "https://submit-bestverify.com.ng";
+    provider.apiKey = provider.apiKey || process.env.BESTVERIFY_API_KEY || "bv_live_3e56d38ad2d1449c106c891ba2c5e3b7be365173750ce408";
+    provider.secretKey = provider.secretKey || process.env.BESTVERIFY_SECRET_KEY || "whsec_e70c2dacec1bd793e5e33de577dbd39ebf0cf3ca";
   } else if (pName.includes("aspfiy") || pId.includes("aspfiy")) {
     provider.baseUrl = provider.baseUrl || "https://api-v1.aspfiy.com";
     provider.secretKey = provider.secretKey || process.env.ASPFIY_SECRET_KEY || process.env.ASPFIY_API_KEY;

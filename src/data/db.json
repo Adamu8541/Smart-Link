@@ -800,6 +800,18 @@
       "status": "ENABLED",
       "enabled": true,
       "isActive": true
+    },
+    {
+      "id": "prov_bestverify",
+      "name": "BestVerify Identity Gateway",
+      "providerType": "IDENTITY_API",
+      "category": "IDENTITY_API",
+      "status": "ENABLED",
+      "enabled": true,
+      "isActive": true,
+      "baseUrl": "https://submit-bestverify.com.ng",
+      "apiKey": "bv_live_3e56d38ad2d1449c106c891ba2c5e3b7be365173750ce408",
+      "secretKey": "whsec_e70c2dacec1bd793e5e33de577dbd39ebf0cf3ca"
     }
   ],
   "providerLogs": [],
@@ -1430,6 +1442,30 @@
       "bankName": "PalmPay",
       "reference": "SL-user_test_funding_1793640233232-VA99",
       "status": "ACTIVE"
+    },
+    {
+      "id": "va_prov_aspfiy_1793779826990",
+      "userId": "c2a52a18-b0a4-4db6-9a55-e01400d426c5",
+      "accountNumber": "3342865030",
+      "bankName": "Paga",
+      "bankCode": "999991",
+      "accountName": "Aspfiy-Smartlinkng Brightonweogala",
+      "provider": "prov_aspfiy",
+      "reference": "SL-c2a52a18-b0a4-4db6-9a55-e01400d426c5-0841",
+      "status": "ACTIVE",
+      "createdAt": "2026-11-04T08:10:27.636Z"
+    },
+    {
+      "id": "va_prov_aspfiy_1793780403156",
+      "userId": "049a2b68-fdb3-4cd1-a006-5dee24082150",
+      "accountNumber": "1914216550",
+      "bankName": "Paga",
+      "bankCode": "999991",
+      "accountName": "Aspfiy-Smartlinkng Adesina",
+      "provider": "prov_aspfiy",
+      "reference": "SL-049a2b68-fdb3-4cd1-a006-5dee24082150-7017",
+      "status": "ACTIVE",
+      "createdAt": "2026-11-04T08:20:03.835Z"
     }
   ],
   "api_providers": [
@@ -1777,6 +1813,18 @@
       "status": "ENABLED",
       "enabled": true,
       "isActive": true
+    },
+    {
+      "id": "prov_bestverify",
+      "name": "BestVerify Identity Gateway",
+      "providerType": "IDENTITY_API",
+      "category": "IDENTITY_API",
+      "status": "ENABLED",
+      "enabled": true,
+      "isActive": true,
+      "baseUrl": "https://submit-bestverify.com.ng",
+      "apiKey": "bv_live_3e56d38ad2d1449c106c891ba2c5e3b7be365173750ce408",
+      "secretKey": "whsec_e70c2dacec1bd793e5e33de577dbd39ebf0cf3ca"
     }
   ],
   "provider_routing_rules": [
@@ -1804,10 +1852,10 @@
       "service": "BVN",
       "serviceName": "BVN Banking Verification",
       "strategy": "PRIORITY_ORDER",
-      "primaryProviderId": "identro",
-      "primaryProviderName": "Identro Portal",
-      "secondaryProviderId": "identro",
-      "secondaryProviderName": "Identro Portal",
+      "primaryProviderId": "bestverify",
+      "primaryProviderName": "BestVerify Identity Gateway",
+      "secondaryProviderId": "prembley",
+      "secondaryProviderName": "Prembley Portal (Identitypass)",
       "tertiaryProviderId": "identro",
       "tertiaryProviderName": "Identro Portal",
       "timeoutMs": 20000,
@@ -1816,7 +1864,9 @@
       "circuitBreakerThreshold": 3,
       "circuitBreakerResetMs": 60000,
       "enabled": true,
-      "updatedAt": "2026-10-22T16:40:40.880Z"
+      "updatedAt": "2026-11-04T08:48:30.773Z",
+      "fallbackProviderId": "lumiid",
+      "fallbackProviderName": "LumiID Portal"
     },
     {
       "id": "rule_bvn_demography",
@@ -1978,10 +2028,10 @@
       "service": "NIN",
       "serviceName": "NIN Identity Verification",
       "strategy": "PRIORITY_ORDER",
-      "primaryProviderId": "identro",
-      "primaryProviderName": "Identro Portal",
-      "secondaryProviderId": "identro",
-      "secondaryProviderName": "Identro Portal",
+      "primaryProviderId": "bestverify",
+      "primaryProviderName": "BestVerify Identity Gateway",
+      "secondaryProviderId": "prembley",
+      "secondaryProviderName": "Prembley Portal (Identitypass)",
       "tertiaryProviderId": "identro",
       "tertiaryProviderName": "Identro Portal",
       "timeoutMs": 20000,
@@ -1990,7 +2040,9 @@
       "circuitBreakerThreshold": 3,
       "circuitBreakerResetMs": 60000,
       "enabled": true,
-      "updatedAt": "2026-10-22T16:40:11.517Z"
+      "updatedAt": "2026-11-04T08:48:30.773Z",
+      "fallbackProviderId": "lumiid",
+      "fallbackProviderName": "LumiID Portal"
     },
     {
       "id": "rule_nin_demography",
@@ -2131,10 +2183,10 @@
       "service": "BVN",
       "serviceName": "BVN Banking Verification",
       "strategy": "PRIORITY_ORDER",
-      "primaryProviderId": "identro",
-      "primaryProviderName": "Identro Portal",
-      "secondaryProviderId": "identro",
-      "secondaryProviderName": "Identro Portal",
+      "primaryProviderId": "bestverify",
+      "primaryProviderName": "BestVerify Identity Gateway",
+      "secondaryProviderId": "prembley",
+      "secondaryProviderName": "Prembley Portal (Identitypass)",
       "tertiaryProviderId": "identro",
       "tertiaryProviderName": "Identro Portal",
       "timeoutMs": 20000,
@@ -2143,7 +2195,9 @@
       "circuitBreakerThreshold": 3,
       "circuitBreakerResetMs": 60000,
       "enabled": true,
-      "updatedAt": "2026-10-22T16:40:40.880Z"
+      "updatedAt": "2026-11-04T08:48:30.773Z",
+      "fallbackProviderId": "lumiid",
+      "fallbackProviderName": "LumiID Portal"
     },
     {
       "id": "rule_bvn_demography",
@@ -2305,10 +2359,10 @@
       "service": "NIN",
       "serviceName": "NIN Identity Verification",
       "strategy": "PRIORITY_ORDER",
-      "primaryProviderId": "identro",
-      "primaryProviderName": "Identro Portal",
-      "secondaryProviderId": "identro",
-      "secondaryProviderName": "Identro Portal",
+      "primaryProviderId": "bestverify",
+      "primaryProviderName": "BestVerify Identity Gateway",
+      "secondaryProviderId": "prembley",
+      "secondaryProviderName": "Prembley Portal (Identitypass)",
       "tertiaryProviderId": "identro",
       "tertiaryProviderName": "Identro Portal",
       "timeoutMs": 20000,
@@ -2317,7 +2371,9 @@
       "circuitBreakerThreshold": 3,
       "circuitBreakerResetMs": 60000,
       "enabled": true,
-      "updatedAt": "2026-10-22T16:40:11.517Z"
+      "updatedAt": "2026-11-04T08:48:30.773Z",
+      "fallbackProviderId": "lumiid",
+      "fallbackProviderName": "LumiID Portal"
     },
     {
       "id": "rule_nin_demography",
@@ -2458,10 +2514,10 @@
       "service": "BVN",
       "serviceName": "BVN Banking Verification",
       "strategy": "PRIORITY_ORDER",
-      "primaryProviderId": "identro",
-      "primaryProviderName": "Identro Portal",
-      "secondaryProviderId": "identro",
-      "secondaryProviderName": "Identro Portal",
+      "primaryProviderId": "bestverify",
+      "primaryProviderName": "BestVerify Identity Gateway",
+      "secondaryProviderId": "prembley",
+      "secondaryProviderName": "Prembley Portal (Identitypass)",
       "tertiaryProviderId": "identro",
       "tertiaryProviderName": "Identro Portal",
       "timeoutMs": 20000,
@@ -2470,7 +2526,9 @@
       "circuitBreakerThreshold": 3,
       "circuitBreakerResetMs": 60000,
       "enabled": true,
-      "updatedAt": "2026-10-22T16:40:40.880Z"
+      "updatedAt": "2026-11-04T08:48:30.773Z",
+      "fallbackProviderId": "lumiid",
+      "fallbackProviderName": "LumiID Portal"
     },
     {
       "id": "rule_bvn_demography",
@@ -2632,10 +2690,10 @@
       "service": "NIN",
       "serviceName": "NIN Identity Verification",
       "strategy": "PRIORITY_ORDER",
-      "primaryProviderId": "identro",
-      "primaryProviderName": "Identro Portal",
-      "secondaryProviderId": "identro",
-      "secondaryProviderName": "Identro Portal",
+      "primaryProviderId": "bestverify",
+      "primaryProviderName": "BestVerify Identity Gateway",
+      "secondaryProviderId": "prembley",
+      "secondaryProviderName": "Prembley Portal (Identitypass)",
       "tertiaryProviderId": "identro",
       "tertiaryProviderName": "Identro Portal",
       "timeoutMs": 20000,
@@ -2644,7 +2702,9 @@
       "circuitBreakerThreshold": 3,
       "circuitBreakerResetMs": 60000,
       "enabled": true,
-      "updatedAt": "2026-10-22T16:40:11.517Z"
+      "updatedAt": "2026-11-04T08:48:30.773Z",
+      "fallbackProviderId": "lumiid",
+      "fallbackProviderName": "LumiID Portal"
     },
     {
       "id": "rule_nin_demography",

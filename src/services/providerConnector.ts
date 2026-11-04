@@ -14,6 +14,7 @@ import { PrembleyAdapter } from "./providers/prembleyAdapter";
 import { VTpassAdapter } from "./providers/vtpassAdapter";
 import { BigisubAdapter } from "./providers/bigisubAdapter";
 import { ClubKonnectAdapter } from "./providers/clubkonnectAdapter";
+import { BestVerifyAdapter } from "./providers/bestverifyAdapter";
 
 const registeredAdapters: Record<string, ProviderAdapter> = {
   aspfiy: new AspfiyAdapter(),
@@ -26,6 +27,9 @@ const registeredAdapters: Record<string, ProviderAdapter> = {
   bigisub: new BigisubAdapter(),
   clubkonnect: new ClubKonnectAdapter(),
   prov_clubkonnect: new ClubKonnectAdapter(),
+  bestverify: new BestVerifyAdapter(),
+  submit_bestverify: new BestVerifyAdapter(),
+  prov_bestverify: new BestVerifyAdapter(),
 };
 
 /**
