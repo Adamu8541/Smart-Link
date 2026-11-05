@@ -52,11 +52,12 @@ app.get(["/api/wallet/balance", "/api/wallet/balance/:userId"], async (req, res)
     return res.status(400).json({ error: "User identification required to retrieve wallet balance." });
   }
 
-  // Auto-reconcile any pending or unmatched deposits on-the-fly for this user
+  let reconResult: any = null;
   try {
-    await reconcileUserPendingDeposits(db, effectiveUid);
+    reconResult = await reconcileUserPendingDeposits(db, effectiveUid);
   } catch (err: any) {
     console.warn(`[WalletBalance] Auto-reconciliation check note: ${err?.message}`);
+    reconResult = { error: err?.message };
   }
 
   const balanceInfo = await ServerWalletEngine.getWalletBalance(db, effectiveUid);
@@ -163,14 +164,7 @@ app.post("/api/wallet/credit", async (req, res) => {
   }
   const cleanReference = reference.trim();
 
-  if (Array.isArray(db.transactions)) {
-    const existingTx = db.transactions.find(
-      (t: any) => t && (t.reference === cleanReference || t.paymentReference === cleanReference)
-    );
-    if (existingTx) {
-      return res.status(409).json({ error: `Duplicate transaction reference detected: '${cleanReference}' has already been processed.` });
-    }
-  }
+  // Duplicate protection removed: duplicate credits are allowed and credited directly to wallet balance
 
   // 5. Execute Wallet Credit
   try {
@@ -668,18 +662,9 @@ app.post("/api/wallet/self-verify-deposit", async (req, res) => {
   if (!db.processed_payment_references) db.processed_payment_references = [];
   if (!db.transactions) db.transactions = [];
 
-  const isDuplicate = !isVirtualAccRef && (
-    db.processed_payment_references.includes(cleanRef) ||
-    db.transactions.some((t: any) => (t.reference === cleanRef || t.paymentReference === cleanRef) && t.status === "SUCCESS")
-  );
+  // Duplicate protection removed: allow claim transfer to credit repeatedly without rejection
+  const isDuplicate = false;
 
-  if (isDuplicate) {
-    return res.status(400).json({
-      success: false,
-      isDuplicate: true,
-      error: `Transaction reference '${cleanRef}' has already been credited to your wallet.`
-    });
-  }
 
   // 4. Resolve matching unmatched payment if one was logged
   if (db.unmatched_payments && Array.isArray(db.unmatched_payments)) {
@@ -808,12 +793,9 @@ app.post("/api/admin/reconciliation/manual-settle", requireAdmin, async (req, re
   if (!db.processed_payment_references) db.processed_payment_references = [];
   if (!db.transactions) db.transactions = [];
 
-  const isDuplicate = db.processed_payment_references.includes(cleanRef) ||
-    db.transactions.some((t: any) => t.reference === cleanRef || t.paymentReference === cleanRef);
+  // Duplicate protection removed: allow settlement credit even if reference was previously processed
+  const isDuplicate = false;
 
-  if (isDuplicate) {
-    return res.status(400).json({ success: false, message: `Transaction reference '${cleanRef}' has already been credited.` });
-  }
 
   // Credit user wallet
   try {

@@ -321,21 +321,8 @@ app.post("/api/admin/unmatched-payments/reconcile", requireAdmin, async (req, re
   const paymentRef = record.paymentReference || record.id;
   const providerTxId = record.providerTransactionId;
 
-  // STRICT DUPLICATE GUARD: Check if already credited or reconciled
-  const isAlreadyCredited =
-    record.status === "VERIFIED" ||
-    record.status === "CREDITED" ||
-    record.status === "RECONCILED" ||
-    db.processed_payment_references.includes(paymentRef) ||
-    (providerTxId && db.processed_provider_tx_ids.includes(providerTxId));
-
-  if (isAlreadyCredited) {
-    return res.status(400).json({
-      success: false,
-      code: "DUPLICATE_CREDIT_PREVENTED",
-      message: `Transaction ${paymentRef} has ALREADY been credited to a user wallet. Double crediting is strictly blocked.`,
-    });
-  }
+  // Duplicate protections removed: allow credit operation even if record was previously processed
+  console.log(`[AdminReconciliation] Reconciling payment ${paymentRef} (Duplicate protections removed - proceeding with wallet credit).`);
 
   // Locate target user
   let targetUser = (db.users || []).find((u: any) => u.uid === targetUserId || u.id === targetUserId || (u.email && u.email.toLowerCase() === targetUserId.toLowerCase()));

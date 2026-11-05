@@ -263,9 +263,12 @@ export class ServerWalletEngine {
 
     const allTxs = (db?.transactions || []).concat(db?.wallet_transactions || []);
     const existingTx = allTxs.find((t: any) => (t.reference && t.reference === ref) || (idempotencyKey && t.idempotencyKey === idempotencyKey));
-    if (existingTx) {
-      throw new Error(`Duplicate transaction reference detected (${ref}). Credit operation already processed.`);
+    const isDuplicateRef = !!existingTx;
+    if (isDuplicateRef) {
+      console.log(`[ServerWalletEngine] Duplicate transfer reference detected (${ref}). Protections removed: allowing double credit and adding to wallet balance.`);
     }
+    const sqlRef = isDuplicateRef ? `${ref}_DUP_${Date.now()}` : ref;
+    const sqlIdempotency = isDuplicateRef && idempotencyKey ? `${idempotencyKey}_DUP_${Date.now()}` : (idempotencyKey || (isDuplicateRef ? sqlRef : ref));
 
     const user = (await usersStore.getUserByUid(userId)) || (db?.users ? db.users.find((u: any) => u.uid === userId || u.id === userId) : null);
     const wallet = await this.getOrCreateWallet(db, userId);
@@ -326,8 +329,8 @@ export class ServerWalletEngine {
       await TransactionRepository.create({
         id: txId,
         transaction_id: txId,
-        reference: ref,
-        idempotency_key: idempotencyKey || ref,
+        reference: sqlRef,
+        idempotency_key: sqlIdempotency,
         user_id: user?.uid || user?.id || userId,
         wallet_id: wallet.walletId || `wal_${userId}`,
         service_name: serviceName || "Wallet Top-up",
@@ -340,9 +343,12 @@ export class ServerWalletEngine {
         wallet_balance_after: newBal,
         status: "SUCCESS",
         provider: provider || "System Admin",
+        provider_reference: ref,
         recipient_details: recipientDetails || user?.email || null,
         description: description || `Wallet Credited ₦${amt.toLocaleString()} via ${serviceName}`,
-      }).catch(() => {});
+      }).catch((tErr) => {
+        console.warn(`[ServerWalletEngine] Turso TransactionRepository create warning: ${tErr}`);
+      });
     } catch (tErr) {
       console.warn(`[ServerWalletEngine] Turso TransactionRepository create error: ${tErr}`);
     }
@@ -359,8 +365,8 @@ export class ServerWalletEngine {
         fee,
         balance_before: balanceBefore,
         balance_after: newBal,
-        reference: ref,
-        idempotency_key: idempotencyKey || ref,
+        reference: sqlRef,
+        idempotency_key: sqlIdempotency,
         service_name: serviceName || "Wallet Top-up",
         provider: provider || "System Admin",
         description: description || `Wallet Credited ₦${amt.toLocaleString()}`,

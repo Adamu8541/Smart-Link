@@ -352,8 +352,26 @@ export class TransactionRepository {
       now,
     ];
 
-    const result = await executeTurso(sql, args);
-    return result.rows[0] as unknown as TursoTransaction;
+    try {
+      const result = await executeTurso(sql, args);
+      return result.rows[0] as unknown as TursoTransaction;
+    } catch (err: any) {
+      if (String(err?.message || "").includes("UNIQUE constraint failed")) {
+        // When duplicate references are allowed, insert with unique reference suffix while keeping original in provider_reference
+        const fallbackRef = `${tx.reference}_DUP_${Date.now()}`;
+        const fallbackIdem = tx.idempotency_key ? `${tx.idempotency_key}_DUP_${Date.now()}` : fallbackRef;
+        const fallbackTxId = `tx_${Math.random().toString(36).substring(2, 9)}_${Date.now()}`;
+        const fallbackArgs = [...args];
+        fallbackArgs[0] = fallbackTxId;
+        fallbackArgs[1] = fallbackTxId;
+        fallbackArgs[2] = fallbackRef;
+        fallbackArgs[3] = fallbackIdem;
+        fallbackArgs[16] = tx.provider_reference || tx.reference;
+        const retryRes = await executeTurso(sql, fallbackArgs);
+        return retryRes.rows[0] as unknown as TursoTransaction;
+      }
+      throw err;
+    }
   }
 
   static async findByReference(reference: string): Promise<TursoTransaction | null> {
@@ -1251,15 +1269,16 @@ export class AtomicWalletOperations {
     }
 
     return await withTursoTransaction(async (tx) => {
-      // 1. Check duplicate reference / idempotency key
+      // 1. Duplicate check (Protections removed: allow duplicate references to be credited and added to balance)
       const checkRef = await tx.execute({
         sql: `SELECT id FROM transactions WHERE reference = ? OR (idempotency_key IS NOT NULL AND idempotency_key = ?) LIMIT 1;`,
         args: [reference, idempotencyKey || ""],
       });
 
-      if (checkRef.rows.length > 0) {
-        throw new Error(`Duplicate transaction detected: reference '${reference}' already processed.`);
-      }
+      const isDuplicate = checkRef.rows.length > 0;
+      const effectiveReference = isDuplicate ? `${reference}_DUP_${Date.now()}` : reference;
+      const effectiveIdempotencyKey = isDuplicate ? (idempotencyKey ? `${idempotencyKey}_DUP_${Date.now()}` : null) : (idempotencyKey || null);
+
 
       // 2. Lock & Retrieve Wallet
       const walletRes = await tx.execute({
@@ -1312,8 +1331,8 @@ export class AtomicWalletOperations {
           fee,
           balanceBefore,
           balanceAfter,
-          reference,
-          idempotencyKey || null,
+          effectiveReference,
+          effectiveIdempotencyKey,
           serviceName,
           provider || "System",
           description,
@@ -1334,8 +1353,8 @@ export class AtomicWalletOperations {
         args: [
           txId,
           txId,
-          reference,
-          idempotencyKey || null,
+          effectiveReference,
+          effectiveIdempotencyKey,
           userId,
           wallet.id,
           serviceName,

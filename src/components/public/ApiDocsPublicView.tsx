@@ -1305,7 +1305,7 @@ export const ApiDocsPublicView: React.FC<ApiDocsPublicViewProps> = ({
   const getDynamicCurl = (ep: EndpointDefinition) => {
     const payloadStr = ep.defaultPayload ? JSON.stringify(ep.defaultPayload, null, 2) : "{}";
     const baseUrl = activeEnvironment === "production" ? "https://smartlinkng.com.ng" : "https://sandbox.smartlinkng.com.ng";
-    const key = activeEnvironment === "production" ? "YOUR_API_KEY_HERE" : sandboxApiKey;
+    const key = activeEnvironment === "production" ? "sk_live_your_secret_key" : sandboxApiKey;
 
     if (ep.method === "GET") {
       return `curl -X GET "${baseUrl}${ep.path}" \\
@@ -1321,7 +1321,7 @@ export const ApiDocsPublicView: React.FC<ApiDocsPublicViewProps> = ({
   const getDynamicNode = (ep: EndpointDefinition) => {
     const payloadStr = ep.defaultPayload ? JSON.stringify(ep.defaultPayload, null, 2) : "{}";
     const baseUrl = activeEnvironment === "production" ? "https://smartlinkng.com.ng" : "https://sandbox.smartlinkng.com.ng";
-    const key = activeEnvironment === "production" ? "YOUR_API_KEY_HERE" : sandboxApiKey;
+    const key = activeEnvironment === "production" ? "sk_live_your_secret_key" : sandboxApiKey;
 
     if (ep.method === "GET") {
       return `import axios from 'axios';
@@ -1358,7 +1358,7 @@ console.log('Result:', response.data);`;
   const getDynamicPython = (ep: EndpointDefinition) => {
     const payloadStr = ep.defaultPayload ? JSON.stringify(ep.defaultPayload, null, 2) : "{}";
     const baseUrl = activeEnvironment === "production" ? "https://smartlinkng.com.ng" : "https://sandbox.smartlinkng.com.ng";
-    const key = activeEnvironment === "production" ? "YOUR_API_KEY_HERE" : sandboxApiKey;
+    const key = activeEnvironment === "production" ? "sk_live_your_secret_key" : sandboxApiKey;
 
     if (ep.method === "GET") {
       return `import requests
@@ -1388,7 +1388,7 @@ print(response.json())`;
   const getDynamicPhp = (ep: EndpointDefinition) => {
     const payloadStr = ep.defaultPayload ? JSON.stringify(ep.defaultPayload, null, 2) : "{}";
     const baseUrl = activeEnvironment === "production" ? "https://smartlinkng.com.ng" : "https://sandbox.smartlinkng.com.ng";
-    const key = activeEnvironment === "production" ? "YOUR_API_KEY_HERE" : sandboxApiKey;
+    const key = activeEnvironment === "production" ? "sk_live_your_secret_key" : sandboxApiKey;
 
     if (ep.method === "GET") {
       return `<?php
@@ -1821,7 +1821,7 @@ echo $response;`;
                       <span className="font-bold text-[#0F2D5C]">Header Specification</span>
                       <button
                         type="button"
-                        onClick={() => handleCopy("Authorization: Bearer YOUR_API_KEY_HERE", "auth_header")}
+                        onClick={() => handleCopy("Authorization: Bearer sk_live_your_secret_key", "auth_header")}
                         className="text-[#0F2D5C] hover:text-[#17407E] font-bold flex items-center gap-1 cursor-pointer"
                       >
                         {copiedField === "auth_header" ? <Check className="h-3 w-3 text-emerald-600" /> : <Copy className="h-3 w-3" />}
@@ -1829,7 +1829,7 @@ echo $response;`;
                       </button>
                     </div>
                     <pre className="text-xs font-mono text-[#0F2D5C] p-3 bg-[#F1F5F9] rounded-xl border border-[#CBD5E1] overflow-x-auto font-bold">
-Authorization: Bearer YOUR_API_KEY_HERE
+Authorization: Bearer sk_live_your_secret_key
                     </pre>
                   </div>
 

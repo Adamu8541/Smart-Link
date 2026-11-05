@@ -357,10 +357,10 @@ export class PaymentVerificationReconciliationEngine {
     const isVirtualAccRef = rawReference.startsWith("SL-") || rawReference === virtualAccountReservationRef;
 
     let uniquePaymentKey = "";
-    if (providerTransactionId && providerTransactionId !== rawReference) {
-      uniquePaymentKey = providerTransactionId;
-    } else if (!isVirtualAccRef && rawReference) {
+    if (!isVirtualAccRef && rawReference) {
       uniquePaymentKey = rawReference;
+    } else if (providerTransactionId && providerTransactionId !== rawReference) {
+      uniquePaymentKey = providerTransactionId;
     } else {
       const txTime = eventData.paid_at || eventData.created_at || eventData.timestamp || eventData.date || Date.now();
       uniquePaymentKey = `${rawReference || "DEP"}_${cleanAccPadded || "ACC"}_${amount}_${txTime}`;
@@ -368,46 +368,8 @@ export class PaymentVerificationReconciliationEngine {
 
     const effectiveRef = rawReference || uniquePaymentKey;
 
-    // Check duplicate: Only duplicate if this EXACT transaction key has already been credited!
-    const isAlreadyCredited =
-      (uniquePaymentKey && db.processed_provider_tx_ids.includes(uniquePaymentKey)) ||
-      (!isVirtualAccRef && db.processed_payment_references.includes(effectiveRef)) ||
-      db.reconciliation_records.some(
-        (r: any) =>
-          ((uniquePaymentKey && r.providerTransactionId === uniquePaymentKey) ||
-            (!isVirtualAccRef && r.paymentReference === effectiveRef)) &&
-          (r.status === "VERIFIED" || r.status === "CREDITED")
-      );
-
-    if (isAlreadyCredited) {
-      console.log(`[ReconciliationEngine] Duplicate payment detected for key: ${uniquePaymentKey}. Acknowledging.`);
-      return {
-        success: true,
-        code: "DUPLICATE_PAYMENT_ACKNOWLEDGED",
-        message: "Duplicate payment transaction detected and acknowledged. Wallet already credited.",
-        isDuplicate: true,
-      };
-    }
-
-    // Also check Turso SQL transactions table to guarantee zero duplicate credits
-    try {
-      const existingTursoTx =
-        (uniquePaymentKey ? await TransactionRepository.findByReference(uniquePaymentKey) : null) ||
-        (!isVirtualAccRef && effectiveRef ? await TransactionRepository.findByReference(effectiveRef) : null);
-
-      if (existingTursoTx && (existingTursoTx.status === "SUCCESS" || String(existingTursoTx.status) === "VERIFIED")) {
-        console.log(`[ReconciliationEngine] Turso SQL confirmed transaction ${uniquePaymentKey} was already credited.`);
-        if (uniquePaymentKey && !db.processed_provider_tx_ids.includes(uniquePaymentKey)) {
-          db.processed_provider_tx_ids.push(uniquePaymentKey);
-        }
-        return {
-          success: true,
-          code: "DUPLICATE_PAYMENT_ACKNOWLEDGED",
-          message: "Duplicate payment transaction confirmed in database. Wallet already credited.",
-          isDuplicate: true,
-        };
-      }
-    } catch {}
+    // Duplicate protections removed: duplicate transfers and repeated attempts are credited and added to wallet balance
+    console.log(`[ReconciliationEngine] Processing payment transfer key: ${uniquePaymentKey} (Duplicate protections removed - proceeding with wallet credit).`);
 
     // 4. Validate Status and Server-to-Server Verification (Requirement 3)
     const isSuccessfulStatus = [
