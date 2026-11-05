@@ -80,8 +80,10 @@ export async function testTursoConnection(): Promise<{ ok: boolean; url: string;
     const client = getTursoClient();
     const config = getTursoConfig();
     
-    // Enable foreign keys
+    // Enable foreign keys, WAL mode, and busy timeout for high-concurrency resilience
     await client.execute("PRAGMA foreign_keys = ON;");
+    await client.execute("PRAGMA journal_mode = WAL;");
+    await client.execute("PRAGMA busy_timeout = 5000;");
     const result = await client.execute("SELECT 1 AS connected, sqlite_version() AS version;");
     
     if (result.rows && result.rows.length > 0) {

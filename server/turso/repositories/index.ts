@@ -1280,24 +1280,55 @@ export class AtomicWalletOperations {
       const effectiveIdempotencyKey = isDuplicate ? (idempotencyKey ? `${idempotencyKey}_DUP_${Date.now()}` : null) : (idempotencyKey || null);
 
 
-      // 2. Lock & Retrieve Wallet
+      // 2. Lock & Retrieve Wallet (Auto-create in Turso if not yet initialized)
       const walletRes = await tx.execute({
         sql: `SELECT * FROM wallets WHERE user_id = ? LIMIT 1;`,
         args: [userId],
       });
 
+      let wallet: TursoWallet;
       if (walletRes.rows.length === 0) {
-        throw new Error(`Wallet not found for user '${userId}'`);
+        const newWalletId = `wal_${userId}`;
+        const createSql = `
+          INSERT INTO wallets (id, wallet_id, user_id, currency, balance, held_balance, total_credits, total_debits, status, created_at, updated_at)
+          VALUES (?, ?, ?, 'NGN', 0.0, 0.0, 0.0, 0.0, 'ACTIVE', datetime('now'), datetime('now'))
+          RETURNING *;
+        `;
+        const createRes = await tx.execute({
+          sql: createSql,
+          args: [newWalletId, newWalletId, userId],
+        });
+        wallet = (createRes.rows[0] as unknown as TursoWallet) || {
+          id: newWalletId,
+          wallet_id: newWalletId,
+          user_id: userId,
+          currency: "NGN",
+          balance: 0.0,
+          held_balance: 0.0,
+          total_credits: 0.0,
+          total_debits: 0.0,
+          status: "ACTIVE",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+      } else {
+        wallet = walletRes.rows[0] as unknown as TursoWallet;
       }
 
-      const wallet = walletRes.rows[0] as unknown as TursoWallet;
       if (wallet.status === "SUSPENDED" || wallet.status === "FROZEN") {
         throw new Error(`Wallet is ${wallet.status}. Credit operation denied.`);
       }
 
-      const balanceBefore = Number(wallet.balance);
+      // Lock and check current user balance to guarantee maximum zero-loss balance baseline
+      const userRes = await tx.execute({
+        sql: `SELECT wallet_balance FROM users WHERE uid = ? OR id = ? LIMIT 1;`,
+        args: [userId, userId],
+      });
+      const userBal = userRes.rows.length > 0 ? Number((userRes.rows[0] as any).wallet_balance || 0) : 0;
+      const rawWalBal = Number(wallet.balance || 0);
+      const balanceBefore = Math.max(rawWalBal, userBal);
       const balanceAfter = balanceBefore + amount;
-      const totalCredits = Number(wallet.total_credits) + amount;
+      const totalCredits = Number(wallet.total_credits || 0) + amount;
       const now = new Date().toISOString();
 
       // 3. Update Wallet Balance

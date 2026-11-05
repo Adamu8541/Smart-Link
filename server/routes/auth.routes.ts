@@ -36,7 +36,7 @@ import { createClient } from "@supabase/supabase-js";
 import { getSupabaseAdmin, createSupabaseUser, updateSupabaseUserPassword, updateSupabaseUserEmail, updateSupabaseUserMetadata, sanitizeSupabaseUrl, confirmSupabaseUser } from "../services/supabaseAdmin";
 
 
-import { PasskeyRepository, UserRepository, AuditLogRepository } from "../turso/repositories";
+import { PasskeyRepository, UserRepository, WalletRepository, AuditLogRepository } from "../turso/repositories";
 import { executeTurso } from "../turso/client";
 
 const router = express.Router();
@@ -1525,13 +1525,16 @@ app.get("/api/auth/profile", async (req, res) => {
   const user = await usersStore.getUserById(uid as string);
   if (!user) return res.status(404).json({ error: "User not found" });
 
-  // Resolve authoritative live wallet balance from walletsStore
+  // Resolve authoritative live wallet balance directly from Turso SQL Database
   let liveWalletBal = typeof user.walletBalance === "number" ? user.walletBalance : 0;
   try {
-    const wal = await walletsStore.getWalletByUserId(uid as string);
-    if (wal && typeof wal.balance === "number" && wal.balance > liveWalletBal) {
-      liveWalletBal = wal.balance;
-    }
+    const tursoUser = await UserRepository.findByUid(uid as string);
+    const tursoWal = await WalletRepository.findByUserId(uid as string);
+    const tursoMax = Math.max(
+      Number(tursoWal?.balance ?? 0),
+      Number(tursoUser?.wallet_balance ?? 0)
+    );
+    liveWalletBal = Math.max(liveWalletBal, tursoMax);
   } catch {}
 
   const { passwordHash, salt, transactionPinHash, ...safeUser } = user;
@@ -1567,12 +1570,16 @@ app.get("/api/users/:uid", async (req, res) => {
   const user = await usersStore.getUserById(uid);
   if (!user) return res.status(404).json({ error: "User not found" });
 
+  // Resolve authoritative live wallet balance directly from Turso SQL Database
   let liveWalletBal = typeof user.walletBalance === "number" ? user.walletBalance : 0;
   try {
-    const wal = await walletsStore.getWalletByUserId(uid);
-    if (wal && typeof wal.balance === "number" && wal.balance > liveWalletBal) {
-      liveWalletBal = wal.balance;
-    }
+    const tursoUser = await UserRepository.findByUid(uid);
+    const tursoWal = await WalletRepository.findByUserId(uid);
+    const tursoMax = Math.max(
+      Number(tursoWal?.balance ?? 0),
+      Number(tursoUser?.wallet_balance ?? 0)
+    );
+    liveWalletBal = Math.max(liveWalletBal, tursoMax);
   } catch {}
 
   const { passwordHash, salt, transactionPinHash, ...safeUser } = user;

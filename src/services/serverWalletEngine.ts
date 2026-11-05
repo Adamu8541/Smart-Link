@@ -6,7 +6,8 @@
 import { walletsStore, WalletDbRecord } from "./walletsStore";
 import * as usersStore from "./usersStore";
 import { formatNaira } from "../utils/formatUtils";
-import { UserRepository, TransactionRepository, LedgerRepository, AuditLogRepository } from "../../server/turso/repositories/index";
+import { UserRepository, WalletRepository, TransactionRepository, LedgerRepository, AuditLogRepository, AtomicWalletOperations } from "../../server/turso/repositories/index";
+import { executeTurso } from "../../server/turso/client";
 
 export type { WalletDbRecord };
 
@@ -47,10 +48,23 @@ export interface WalletEngineValidationResult {
 
 export class ServerWalletEngine {
   /**
-   * Gets or initializes user wallet in DB. Syncs currentBalance with user.walletBalance.
+   * Gets or initializes user wallet in DB. Authoritative Turso SQL primary source of truth.
    */
   static async getOrCreateWallet(db: any, userId: string): Promise<WalletDbRecord | null> {
     if (!userId) return null;
+
+    // 0. Primary Authoritative Lookup directly from Turso SQL Database
+    let tursoUser: any = null;
+    let tursoWallet: any = null;
+    try {
+      tursoUser = (await UserRepository.findByUid(userId)) || (await UserRepository.findByEmail(userId));
+      tursoWallet = await WalletRepository.findByUserId(userId);
+      if (!tursoWallet && tursoUser?.uid && tursoUser.uid !== userId) {
+        tursoWallet = await WalletRepository.findByUserId(tursoUser.uid);
+      }
+    } catch (tErr) {
+      console.warn("[ServerWalletEngine] Turso direct lookup note:", tErr);
+    }
 
     // 1. Resolve user record across all possible identifier keys (uid, id, email)
     let user: any = null;
@@ -63,6 +77,18 @@ export class ServerWalletEngine {
 
     if (!user && db?.users) {
       user = db.users.find((u: any) => u.uid === userId || u.id === userId || (u.email && u.email.toLowerCase() === userId.toLowerCase()));
+    }
+
+    if (!user && tursoUser) {
+      user = {
+        id: tursoUser.uid || tursoUser.id,
+        uid: tursoUser.uid,
+        email: tursoUser.email,
+        fullName: tursoUser.full_name || tursoUser.fullName,
+        walletBalance: Number(tursoUser.wallet_balance || 0),
+        status: tursoUser.status || "ACTIVE",
+        role: tursoUser.role || "USER",
+      };
     }
 
     // 2. Resolve wallet record across userId, user.uid, and user.id
@@ -90,33 +116,13 @@ export class ServerWalletEngine {
     const now = new Date().toISOString();
     const primaryUid = user?.uid || user?.id || userId;
     const userBal = typeof user?.walletBalance === "number" && !isNaN(user.walletBalance) ? user.walletBalance : 0.0;
+    const tursoBal = Math.max(
+      Number(tursoWallet?.balance ?? 0),
+      Number(tursoUser?.wallet_balance ?? 0)
+    );
 
     if (!wallet) {
-      if (!user) {
-        // Fallback: create default active wallet for this user identifier
-        const defaultWallet: WalletDbRecord = {
-          userId: primaryUid,
-          walletId: `wal_${primaryUid}`,
-          balance: 0.0,
-          currentBalance: 0.0,
-          heldBalance: 0.0,
-          totalCredits: 0.0,
-          totalDebits: 0.0,
-          status: "ACTIVE",
-          walletStatus: "ACTIVE",
-          currency: "NGN",
-          updatedAt: now,
-          lastUpdated: now,
-          createdAt: now,
-        };
-        try {
-          return await walletsStore.createWallet(defaultWallet);
-        } catch {
-          return defaultWallet;
-        }
-      }
-
-      const initialBal = userBal;
+      const initialBal = Math.max(userBal, tursoBal);
       const newWallet: WalletDbRecord = {
         userId: primaryUid,
         walletId: `wal_${primaryUid}`,
@@ -125,12 +131,12 @@ export class ServerWalletEngine {
         heldBalance: 0.0,
         totalCredits: initialBal,
         totalDebits: 0.0,
-        status: user.status === "SUSPENDED" ? "SUSPENDED" : "ACTIVE",
-        walletStatus: user.status === "SUSPENDED" ? "SUSPENDED" : "ACTIVE",
+        status: (user?.status === "SUSPENDED" || tursoUser?.status === "SUSPENDED") ? "SUSPENDED" : "ACTIVE",
+        walletStatus: (user?.status === "SUSPENDED" || tursoUser?.status === "SUSPENDED") ? "SUSPENDED" : "ACTIVE",
         currency: "NGN",
         updatedAt: now,
         lastUpdated: now,
-        createdAt: user.createdAt || now,
+        createdAt: user?.createdAt || now,
       };
       try {
         wallet = await walletsStore.createWallet(newWallet);
@@ -144,21 +150,8 @@ export class ServerWalletEngine {
         ? wallet.balance
         : (typeof wallet.currentBalance === "number" && !isNaN(wallet.currentBalance) ? wallet.currentBalance : 0.0);
 
-      // Authoritative zero-loss balance reconciliation between wallets table and users table
-      let reconciledBal = rawWalletBal;
-
-      if (rawWalletBal > 0 && userBal === 0) {
-        // Authoritative wallet balance takes precedence - never zero out real funds
-        reconciledBal = rawWalletBal;
-      } else if (userBal > 0 && rawWalletBal === 0) {
-        // User record has positive funds, wallet table is at 0
-        reconciledBal = userBal;
-      } else if (rawWalletBal > 0 && userBal > 0) {
-        // Both positive: preserve the higher authoritative balance
-        reconciledBal = Math.max(rawWalletBal, userBal);
-      } else {
-        reconciledBal = 0.0;
-      }
+      // Authoritative zero-loss balance reconciliation: Turso SQL takes supreme precedence
+      const reconciledBal = Math.max(rawWalletBal, userBal, tursoBal);
 
       wallet.balance = reconciledBal;
       wallet.currentBalance = reconciledBal;
@@ -180,12 +173,17 @@ export class ServerWalletEngine {
         if (user.id && user.id !== primaryUid) {
           usersStore.updateUser(user.id, { walletBalance: reconciledBal }).catch(() => {});
         }
-        try {
-          UserRepository.updateBalance(primaryUid, reconciledBal).catch(() => {});
-          if (user.uid && user.uid !== primaryUid) UserRepository.updateBalance(user.uid, reconciledBal).catch(() => {});
-          if (user.id && user.id !== primaryUid) UserRepository.updateBalance(user.id, reconciledBal).catch(() => {});
-        } catch {}
       }
+      try {
+        await UserRepository.updateBalance(primaryUid, reconciledBal).catch(() => {});
+        if (user?.uid && user.uid !== primaryUid) UserRepository.updateBalance(user.uid, reconciledBal).catch(() => {});
+        if (user?.id && user.id !== primaryUid) UserRepository.updateBalance(user.id, reconciledBal).catch(() => {});
+        await executeTurso(
+          `UPDATE wallets SET balance = ?, updated_at = ? WHERE user_id = ? OR id = ? OR wallet_id = ?;`,
+          [reconciledBal, now, primaryUid, wallet.walletId, wallet.walletId]
+        ).catch(() => {});
+      } catch {}
+
       if (rawWalletBal !== reconciledBal) {
         walletsStore.updateWallet(wallet).catch(() => {});
       }
@@ -289,7 +287,7 @@ export class ServerWalletEngine {
       await usersStore.updateUser(userId, { walletBalance: newBal }).catch(() => {});
     }
 
-    // ENFORCED TURSO SQL SYNC: Update user's wallet_balance directly in Turso users table
+    // ENFORCED TURSO SQL SYNC: Update user's wallet_balance and wallets table directly in Turso SQL
     try {
       await UserRepository.updateBalance(userId, newBal).catch(() => {});
       if (user?.uid && user.uid !== userId) {
@@ -298,8 +296,12 @@ export class ServerWalletEngine {
       if (user?.id && user.id !== userId) {
         await UserRepository.updateBalance(user.id, newBal).catch(() => {});
       }
+      await executeTurso(
+        `UPDATE wallets SET balance = ?, total_credits = total_credits + ?, updated_at = ? WHERE user_id = ? OR id = ? OR wallet_id = ?;`,
+        [newBal, amt, now, userId, wallet.walletId || `wal_${userId}`, wallet.walletId || `wal_${userId}`]
+      ).catch(() => {});
     } catch (uErr) {
-      console.warn(`[ServerWalletEngine] Turso UserRepository update balance error: ${uErr}`);
+      console.warn(`[ServerWalletEngine] Turso wallet balance update error: ${uErr}`);
     }
 
     const txResult: WalletTxRecord = {

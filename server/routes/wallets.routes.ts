@@ -31,7 +31,7 @@ import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
 import * as securityStore from "../../src/services/securityStore";
 import * as notificationsStore from "../../src/services/notificationsStore";
-import { UserRepository, VirtualAccountRepository } from "../turso/repositories/index";
+import { UserRepository, WalletRepository, AtomicWalletOperations, VirtualAccountRepository } from "../turso/repositories/index";
 import { getUnifiedUserTransactions, syncAuthoritativeWalletBalance } from "../services/unifiedTransactions";
 import { reconcileUserPendingDeposits } from "../services/reconciliationWorker";
 
@@ -52,15 +52,32 @@ app.get(["/api/wallet/balance", "/api/wallet/balance/:userId"], async (req, res)
     return res.status(400).json({ error: "User identification required to retrieve wallet balance." });
   }
 
-  let reconResult: any = null;
   try {
-    reconResult = await reconcileUserPendingDeposits(db, effectiveUid);
-  } catch (err: any) {
-    console.warn(`[WalletBalance] Auto-reconciliation check note: ${err?.message}`);
-    reconResult = { error: err?.message };
-  }
+    // Non-blocking fast auto-reconciliation check
+    Promise.race([
+      reconcileUserPendingDeposits(db, effectiveUid),
+      new Promise((_, reject) => setTimeout(() => reject(new Error("Auto-recon timeout")), 1200))
+    ]).catch((err) => {
+      console.warn(`[WalletBalance] Auto-reconciliation note: ${err?.message}`);
+    });
+  } catch {}
 
   const balanceInfo = await ServerWalletEngine.getWalletBalance(db, effectiveUid);
+
+  // Authoritative Turso SQL primary balance check
+  try {
+    const tursoUser = await UserRepository.findByUid(effectiveUid);
+    const tursoWallet = await WalletRepository.findByUserId(effectiveUid);
+    const tursoMaxBal = Math.max(
+      Number(tursoWallet?.balance ?? 0),
+      Number(tursoUser?.wallet_balance ?? 0)
+    );
+    if (tursoMaxBal > (balanceInfo.balance || 0)) {
+      balanceInfo.balance = tursoMaxBal;
+      balanceInfo.currentBalance = tursoMaxBal;
+      balanceInfo.availableBalance = tursoMaxBal - (balanceInfo.heldBalance || 0);
+    }
+  } catch {}
 
   if ("error" in balanceInfo && balanceInfo.error) {
     return res.status(404).json(balanceInfo);

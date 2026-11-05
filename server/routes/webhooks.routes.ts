@@ -30,8 +30,15 @@ import * as usersStore from "../../src/services/usersStore";
 import * as walletsStore from "../../src/services/walletsStore";
 import * as securityStore from "../../src/services/securityStore";
 import * as notificationsStore from "../../src/services/notificationsStore";
-
-
+import {
+  UserRepository,
+  WalletRepository,
+  VirtualAccountRepository,
+  AtomicWalletOperations,
+  WebhookRepository,
+  TransactionRepository,
+} from "../turso/repositories/index";
+import { executeTurso } from "../turso/client";
 const router = express.Router();
 const app = router;
 
@@ -227,31 +234,139 @@ app.post(
     // 2. Validate Provider & Webhook Signature with Active Fallback
     const sigResult = verifyPortalWebhookSignature(req, db);
     if (!sigResult.isValid) {
-      console.warn(`[Webhook] Signature notice on ${req.originalUrl || req.url}: ${sigResult.reason}. Initiating authoritative verification pipeline...`);
+      console.warn(`[Webhook] Signature notice on ${req.originalUrl || req.url}: ${sigResult.reason}. Initiating authoritative Turso pipeline...`);
     }
 
-    // 3. Process payload, extract details, find user, prevent duplicates, verify & credit wallet
+    // 3. DIRECT TURSO WEBHOOK STAGING: Record raw event in Turso SQL webhook_events table immediately
+    const webhookEventId = `whk_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+    try {
+      await WebhookRepository.recordEvent({
+        id: webhookEventId,
+        event_id: rawRef ? `ref_${rawRef}_${Date.now()}` : webhookEventId,
+        provider: "ASPFIY",
+        event_type: eventName || "charge.success",
+        reference: rawRef || null,
+        signature: (req.headers["x-aspfiy-signature"] as string) || (req.headers["x-signature"] as string) || null,
+        signature_valid: 1,
+        status: "PENDING",
+        payload: body,
+        ip_address: req.ip || null,
+        processed_at: null,
+        processing_error: null,
+      });
+    } catch (whErr) {
+      console.warn(`[Webhook] Turso webhook_events staging note:`, whErr);
+    }
+
+    // 4. DIRECT TURSO-NATIVE PIPELINE: Directly resolve virtual account and credit Turso SQL
+    const rawAccountNum = String(
+      eventData.account?.account_number ||
+      eventData.account_number ||
+      body.accountNumber ||
+      body.account_number ||
+      ""
+    ).replace(/\D/g, "");
+
+    const parsedAmount = Number(eventData.amount || body.amount || 0);
+
+    if (rawAccountNum && parsedAmount > 0) {
+      try {
+        const cleanPadded = rawAccountNum.length === 9 ? `0${rawAccountNum}` : rawAccountNum;
+        const tursoVa =
+          (await VirtualAccountRepository.findByAccountNumber(cleanPadded)) ||
+          (await VirtualAccountRepository.findByAccountNumber(rawAccountNum));
+
+        if (tursoVa && tursoVa.user_id) {
+          const tursoUser = await UserRepository.findByUid(tursoVa.user_id);
+          if (tursoUser) {
+            console.log(`[Webhook] Direct Turso match found for user: ${tursoVa.user_id} (${tursoUser.email}). Executing atomic Turso SQL credit...`);
+
+            const creditRes = await AtomicWalletOperations.creditWalletAtomic({
+              userId: tursoVa.user_id,
+              amount: parsedAmount,
+              reference: rawRef || `DEP_${tursoVa.user_id.slice(-6)}_${Date.now()}`,
+              idempotencyKey: rawRef || `DEP_${tursoVa.user_id.slice(-6)}_${Date.now()}`,
+              serviceName: "Automated Virtual Account Top-Up (Direct Turso)",
+              provider: "Aspfiy Payment Portal",
+              description: `Direct bank transfer deposit of ₦${parsedAmount.toLocaleString()} credited to wallet via Turso`,
+              fee: 0,
+              metadata: {
+                accountNumber: cleanPadded,
+                reference: rawRef,
+                webhookEventId,
+              },
+            });
+
+            console.log(`[Webhook] Direct Turso SQL credit SUCCESS: credited ₦${parsedAmount} to ${tursoUser.email}. New Turso balance: ₦${creditRes.newBalance}`);
+
+            // Mark webhook event as PROCESSED in Turso
+            await WebhookRepository.updateStatus(rawRef ? `ref_${rawRef}_${Date.now()}` : webhookEventId, "PROCESSED").catch(() => {});
+
+            // Send real-time in-app notification
+            try {
+              await notificationsStore.createNotification({
+                userId: tursoVa.user_id,
+                title: "Wallet Credited Successfully",
+                message: `Your bank transfer deposit of ₦${parsedAmount.toLocaleString()} has been verified and credited directly to your wallet balance.`,
+                type: "WALLET_FUNDING",
+                read: false,
+              });
+            } catch {}
+
+            // Background non-blocking sync to in-memory db.json
+            try {
+              if (Array.isArray(db.users)) {
+                const memUser = db.users.find((u: any) => u.uid === tursoVa.user_id || u.id === tursoVa.user_id);
+                if (memUser) memUser.walletBalance = creditRes.newBalance;
+              }
+              if (Array.isArray(db.wallets)) {
+                const memWal = db.wallets.find((w: any) => w.userId === tursoVa.user_id || w.walletId === `wal_${tursoVa.user_id}`);
+                if (memWal) {
+                  memWal.balance = creditRes.newBalance;
+                  memWal.currentBalance = creditRes.newBalance;
+                }
+              }
+              writeDB(db);
+            } catch {}
+
+            return res.status(200).json({
+              status: "SUCCESS",
+              success: true,
+              responseCode: "0",
+              responseMessage: `Payment of ₦${parsedAmount.toLocaleString()} successfully credited directly to Turso wallet.`,
+              walletBalance: creditRes.newBalance,
+              userId: tursoVa.user_id,
+              reference: rawRef,
+            });
+          }
+        }
+      } catch (tursoDirectErr: any) {
+        console.warn(`[Webhook] Direct Turso credit note, falling back to comprehensive reconciliation engine:`, tursoDirectErr?.message);
+      }
+    }
+
+    // 5. Secondary fallback: Comprehensive multi-strategy reconciliation engine
     const result = await AutomaticWalletFundingEngine.processIncomingPaymentNotification(db, {
       payload: body,
       headers: req.headers,
       providerOverride: "Aspfiy Payment Portal",
     });
 
-    writeDB(db);
-
-    if (result.isDuplicate) {
-      return res.status(200).json({
-        status: "SUCCESS",
-        success: true,
-        responseCode: "0",
-        responseMessage: "Duplicate transaction acknowledged. Wallet already credited.",
-        code: "DUPLICATE_TRANSACTION_ACKNOWLEDGED",
-        isDuplicate: true,
-      });
+    if (result.success && result.userId && typeof result.walletBalance === "number") {
+      try {
+        await UserRepository.updateBalance(result.userId, result.walletBalance).catch(() => {});
+        await executeTurso(
+          `UPDATE wallets SET balance = ?, updated_at = ? WHERE user_id = ? OR wallet_id = ?;`,
+          [result.walletBalance, new Date().toISOString(), result.userId, `wal_${result.userId}`]
+        ).catch(() => {});
+        await WebhookRepository.updateStatus(rawRef ? `ref_${rawRef}_${Date.now()}` : webhookEventId, "PROCESSED").catch(() => {});
+      } catch {}
     }
 
-    // Return HTTP 200 to acknowledge webhook receipt to Aspfiy.
-    // If unmatched, transaction is logged into Admin Reconciliation Ledger for Super Admin review without causing Aspfiy retry storms.
+    try {
+      writeDB(db);
+    } catch {}
+
     if (result.success) {
       return res.status(200).json({
         status: "SUCCESS",
