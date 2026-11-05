@@ -56,26 +56,26 @@ export function getNinSlipOptions(siteConfig?: any): NinSlipType3[] {
   const priceMap = priceMatrix.priceMap || siteConfig?.priceMap || {};
 
   const regularPrice =
-    typeof slipPrices.REGULAR === "number"
-      ? slipPrices.REGULAR
-      : typeof slipPrices.regular === "number"
-      ? slipPrices.regular
-      : typeof priceMap["slip_regular"] === "number"
+    typeof priceMap["slip_regular"] === "number"
       ? priceMap["slip_regular"]
       : typeof priceMap["NIN_REGULAR"] === "number"
       ? priceMap["NIN_REGULAR"]
+      : typeof slipPrices.REGULAR === "number"
+      ? slipPrices.REGULAR
+      : typeof slipPrices.regular === "number"
+      ? slipPrices.regular
       : 180;
 
   const premiumPrice =
-    typeof slipPrices.PREMIUM === "number"
-      ? slipPrices.PREMIUM
-      : typeof slipPrices.premium === "number"
-      ? slipPrices.premium
-      : typeof priceMap["slip_premium"] === "number"
+    typeof priceMap["slip_premium"] === "number"
       ? priceMap["slip_premium"]
       : typeof priceMap["NIN_PREMIUM_WHITE"] === "number"
       ? priceMap["NIN_PREMIUM_WHITE"]
-      : 250;
+      : typeof slipPrices.PREMIUM === "number"
+      ? slipPrices.PREMIUM
+      : typeof slipPrices.premium === "number"
+      ? slipPrices.premium
+      : 200;
 
   return [
     {
@@ -409,7 +409,7 @@ export const NinVerificationView: React.FC<NinVerificationViewProps> = ({
                   </option>
                   {availableSlips.map((opt) => (
                     <option key={opt.id} value={opt.id}>
-                      {opt.name} — {formatNaira(opt.price)}
+                      {opt.name}
                     </option>
                   ))}
                 </select>

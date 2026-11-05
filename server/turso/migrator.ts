@@ -92,7 +92,9 @@ export class TursoMigrator {
   }> {
     await this.initTrackingTable();
     const client = getTursoClient();
-    await client.execute("PRAGMA foreign_keys = ON;");
+    try {
+      await client.execute("PRAGMA foreign_keys = ON;");
+    } catch {}
 
     const files = this.getMigrationFiles();
     const appliedRes = await executeTurso(`SELECT name FROM _migrations;`);

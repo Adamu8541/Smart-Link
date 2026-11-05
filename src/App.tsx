@@ -1476,8 +1476,9 @@ export default function App() {
                       )}
 
                       {currentView === "ADMIN_PRICE_CONTROL" && (
-                        <AdminPriceControlView
+                        <AdminServicesView
                           session={adminSession}
+                          initialTab="turso_pricing"
                           onNavigate={(routePath) => {
                             const targetView = routeToViewMap[routePath] || "ADMIN_DASHBOARD";
                             setCurrentView(targetView);

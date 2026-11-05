@@ -102,7 +102,9 @@ export class StorageToTursoMigrationService {
    */
   static async cleanTursoDatabase(): Promise<void> {
     const client = getTursoClient();
-    await client.execute("PRAGMA foreign_keys = OFF;");
+    try {
+      await client.execute("PRAGMA foreign_keys = OFF;");
+    } catch {}
     const tables = [
       "wallet_ledger",
       "transactions",
@@ -123,7 +125,9 @@ export class StorageToTursoMigrationService {
     for (const tbl of tables) {
       await client.execute(`DELETE FROM ${tbl};`);
     }
-    await client.execute("PRAGMA foreign_keys = ON;");
+    try {
+      await client.execute("PRAGMA foreign_keys = ON;");
+    } catch {}
   }
 
   /**
@@ -143,7 +147,9 @@ export class StorageToTursoMigrationService {
       // 1. Ensure latest schema & migrations are applied in Turso
       await TursoMigrator.runPendingMigrations();
       const client = getTursoClient();
-      await client.execute("PRAGMA foreign_keys = ON;");
+      try {
+        await client.execute("PRAGMA foreign_keys = ON;");
+      } catch {}
 
       if (options?.clean) {
         await this.cleanTursoDatabase();

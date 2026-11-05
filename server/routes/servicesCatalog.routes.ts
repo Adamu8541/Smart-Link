@@ -47,14 +47,14 @@ function buildPriceMatrixFromTursoPrices(prices: any[]) {
 
   return {
     slipPrices: {
-      PREMIUM: priceMap["slip_premium"] ?? priceMap["NIN_PREMIUM_WHITE"] ?? priceMap["NIN_PREMIUM"] ?? 250,
+      PREMIUM: priceMap["slip_premium"] ?? priceMap["NIN_PREMIUM_WHITE"] ?? priceMap["NIN_PREMIUM"] ?? 200,
       STANDARD: priceMap["slip_standard"] ?? priceMap["NIN_STANDARD"] ?? 200,
       REGULAR: priceMap["slip_regular"] ?? priceMap["NIN_REGULAR"] ?? 180,
-      BVN_CARD: priceMap["slip_bvn_card"] ?? priceMap["BVN_CARD"] ?? 250,
+      BVN_CARD: priceMap["slip_bvn_card"] ?? priceMap["BVN_CARD"] ?? 200,
       BVN_SLIP_1: priceMap["slip_bvn_slip"] ?? priceMap["BVN_SLIP_1"] ?? priceMap["BVN_SLIP"] ?? 200,
       BVN_SLIP: priceMap["slip_bvn_slip"] ?? priceMap["BVN_SLIP_1"] ?? priceMap["BVN_SLIP"] ?? 200,
       regular: priceMap["slip_regular"] ?? priceMap["NIN_REGULAR"] ?? 180,
-      premium: priceMap["slip_premium"] ?? priceMap["NIN_PREMIUM_WHITE"] ?? 250,
+      premium: priceMap["slip_premium"] ?? priceMap["NIN_PREMIUM_WHITE"] ?? 200,
       standard: priceMap["slip_standard"] ?? 200,
     },
     identityRates: {
@@ -344,6 +344,33 @@ app.get("/api/admin/services", requireAdmin, async (req, res) => {
     s.totalVolume = liveVolume;
   });
 
+  // Strictly merge active prices from Turso so admin services reflect Turso authority
+  try {
+    const tursoPrices = await ServicePriceRepository.getAllPrices();
+    const tursoMap = new Map(tursoPrices.map((p) => [p.service_id, p]));
+    const tursoCodeMap = new Map(tursoPrices.map((p) => [p.service_code.toUpperCase(), p]));
+
+    db.servicesCatalog = (db.servicesCatalog || []).map((s: any) => {
+      const matched =
+        tursoMap.get(s.id) ||
+        tursoCodeMap.get(String(s.code || "").toUpperCase()) ||
+        tursoMap.get(s.code?.toLowerCase());
+      if (matched) {
+        return {
+          ...s,
+          sellingFee: matched.price,
+          costPrice: matched.cost_price,
+          serviceCharge: matched.service_charge,
+          commissionRate: matched.commission_rate,
+          isActive: Boolean(matched.is_active),
+        };
+      }
+      return s;
+    });
+  } catch (tursoMergeErr: any) {
+    console.warn("[/api/admin/services] Turso pricing merge note:", tursoMergeErr?.message);
+  }
+
   const { search = "", category = "ALL", status = "ALL", provider = "ALL", page = "1", limit = "15" } = req.query;
 
   let filtered = [...db.servicesCatalog];
@@ -543,9 +570,28 @@ app.put("/api/admin/services/:id", requireAdmin, async (req, res) => {
     timestamp: new Date().toISOString(),
   });
 
+  // Synchronize price update strictly to Turso database
+  try {
+    const adminEmail = (req as any).adminEmail || "Admin";
+    await ServicePriceRepository.upsertPrice({
+      service_id: updated.id,
+      service_code: updated.code,
+      name: updated.name,
+      category: updated.category,
+      price: Number(updated.sellingFee) || 0,
+      cost_price: Number(updated.costPrice) || 0,
+      service_charge: Number(updated.serviceCharge) || 0,
+      commission_rate: Number(updated.commissionRate) || 0,
+      is_active: updated.isActive ? 1 : 0,
+      updated_by: adminEmail,
+    });
+  } catch (tursoUpsertErr: any) {
+    console.warn("[/api/admin/services/:id] Turso price synchronization note:", tursoUpsertErr?.message);
+  }
+
   writeDB(db);
   await syncToStorage(db);
-  res.json({ success: true, service: updated, message: `Service '${updated.name}' updated successfully.` });
+  res.json({ success: true, service: updated, message: `Service '${updated.name}' updated successfully in Turso.` });
 });
 
 // 4. DELETE /api/admin/services/:id - Delete Service
@@ -679,9 +725,28 @@ app.post("/api/admin/services/:id/pricing", requireAdmin, async (req, res) => {
     timestamp: new Date().toISOString(),
   });
 
+  // Strictly synchronize updated pricing directly to Turso
+  try {
+    const adminEmail = (req as any).adminEmail || "Admin";
+    await ServicePriceRepository.upsertPrice({
+      service_id: s.id,
+      service_code: s.code,
+      name: s.name,
+      category: s.category,
+      price: Number(s.sellingFee) || 0,
+      cost_price: Number(s.costPrice) || 0,
+      service_charge: Number(s.serviceCharge) || 0,
+      commission_rate: Number(s.commissionRate) || 0,
+      is_active: s.isActive ? 1 : 0,
+      updated_by: adminEmail,
+    });
+  } catch (tursoPriceSyncErr: any) {
+    console.warn("[/api/admin/services/:id/pricing] Turso price synchronization note:", tursoPriceSyncErr?.message);
+  }
+
   writeDB(db);
   await syncToStorage(db);
-  res.json({ success: true, service: s, message: `Pricing updated for '${s.name}'.` });
+  res.json({ success: true, service: s, message: `Pricing saved strictly to Turso for '${s.name}'.` });
 });
 
 

@@ -67,23 +67,23 @@ export function getBvnSlipOptions(siteConfig?: any): BvnSlipType3[] {
   const priceMap = priceMatrix.priceMap || siteConfig?.priceMap || {};
 
   const cardPrice =
-    typeof slipPrices.BVN_CARD === "number"
-      ? slipPrices.BVN_CARD
-      : typeof priceMap["slip_bvn_card"] === "number"
+    typeof priceMap["slip_bvn_card"] === "number"
       ? priceMap["slip_bvn_card"]
       : typeof priceMap["BVN_CARD"] === "number"
       ? priceMap["BVN_CARD"]
-      : 250;
+      : typeof slipPrices.BVN_CARD === "number"
+      ? slipPrices.BVN_CARD
+      : 200;
 
   const slip1Price =
-    typeof slipPrices.BVN_SLIP_1 === "number"
-      ? slipPrices.BVN_SLIP_1
-      : typeof slipPrices.BVN_SLIP === "number"
-      ? slipPrices.BVN_SLIP
-      : typeof priceMap["slip_bvn_slip"] === "number"
+    typeof priceMap["slip_bvn_slip"] === "number"
       ? priceMap["slip_bvn_slip"]
       : typeof priceMap["BVN_SLIP_1"] === "number"
       ? priceMap["BVN_SLIP_1"]
+      : typeof slipPrices.BVN_SLIP_1 === "number"
+      ? slipPrices.BVN_SLIP_1
+      : typeof slipPrices.BVN_SLIP === "number"
+      ? slipPrices.BVN_SLIP
       : 200;
 
   return [
@@ -448,7 +448,7 @@ export const BvnVerificationView: React.FC<BvnVerificationViewProps> = ({
                   </option>
                   {availableSlips.map((opt) => (
                     <option key={opt.id} value={opt.id}>
-                      {opt.name} — {formatNaira(opt.price)}
+                      {opt.name}
                     </option>
                   ))}
                 </select>
@@ -584,7 +584,7 @@ export const BvnVerificationView: React.FC<BvnVerificationViewProps> = ({
             >
               <ShieldCheck className="w-4 h-4" />
               <span>
-                Verify &amp; Print {selectedSlip ? selectedSlip.name : "BVN Slip"} (₦{selectedSlip?.price || 0})
+                Verify &amp; Print {selectedSlip ? selectedSlip.name : "BVN Slip"}
               </span>
             </button>
           </div>

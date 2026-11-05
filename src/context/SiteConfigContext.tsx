@@ -236,12 +236,14 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
 
       let tursoPriceMap: Record<string, number> = {};
       let tursoServices: any[] = [];
+      let tursoPriceMatrix: any = null;
       if (pricesRes.ok) {
         try {
           const pricesData = await pricesRes.json();
-          if (pricesData.success && pricesData.priceMap) {
-            tursoPriceMap = pricesData.priceMap;
+          if (pricesData.success) {
+            tursoPriceMap = pricesData.priceMap || {};
             tursoServices = pricesData.services || [];
+            tursoPriceMatrix = pricesData.priceMatrix || null;
           }
         } catch (e) {
           // ignore json parse error
@@ -276,6 +278,17 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
           const rawPriceMatrix = data.priceMatrix || {};
           const mergedPriceMatrix = {
             ...rawPriceMatrix,
+            ...(tursoPriceMatrix || {}),
+            slipPrices: {
+              ...(rawPriceMatrix.slipPrices || {}),
+              ...(tursoPriceMatrix?.slipPrices || {}),
+              PREMIUM: tursoPriceMap["slip_premium"] ?? tursoPriceMap["NIN_PREMIUM_WHITE"] ?? tursoPriceMatrix?.slipPrices?.PREMIUM ?? 200,
+              STANDARD: tursoPriceMap["slip_standard"] ?? tursoPriceMap["SLIP_STANDARD"] ?? tursoPriceMatrix?.slipPrices?.STANDARD ?? 200,
+              REGULAR: tursoPriceMap["slip_regular"] ?? tursoPriceMap["NIN_REGULAR"] ?? tursoPriceMatrix?.slipPrices?.REGULAR ?? 180,
+              BVN_CARD: tursoPriceMap["slip_bvn_card"] ?? tursoPriceMap["BVN_CARD"] ?? tursoPriceMatrix?.slipPrices?.BVN_CARD ?? 200,
+              BVN_SLIP_1: tursoPriceMap["slip_bvn_slip"] ?? tursoPriceMap["BVN_SLIP_1"] ?? tursoPriceMatrix?.slipPrices?.BVN_SLIP_1 ?? 200,
+              BVN_SLIP: tursoPriceMap["slip_bvn_slip"] ?? tursoPriceMap["BVN_SLIP_1"] ?? tursoPriceMatrix?.slipPrices?.BVN_SLIP ?? 200,
+            },
             priceMap: {
               ...(rawPriceMatrix.priceMap || {}),
               ...tursoPriceMap,
@@ -333,41 +346,14 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
 
   useEffect(() => {
     // Non-blocking deferred synchronization to keep initial navigation critical path completely unchained
-    let syncScheduled = false;
-    const scheduleDeferredSync = () => {
-      if (syncScheduled) return;
-      syncScheduled = true;
-
-      // Check cache age: if updated within last 5 minutes, defer even further
-      const lastSync = Number(localStorage.getItem(SETTINGS_CACHE_TIME_KEY) || "0");
-      const isFresh = Date.now() - lastSync < 300000;
-
-      if (isFresh) {
-        return;
-      }
-
-      if (typeof window !== "undefined" && "requestIdleCallback" in window) {
-        (window as any).requestIdleCallback(() => fetchConfig(), { timeout: 6000 });
-      } else {
-        setTimeout(() => fetchConfig(), 4000);
-      }
-    };
-
-    // Trigger on user interaction or delayed after window load
-    const handleInteraction = () => {
-      scheduleDeferredSync();
-      window.removeEventListener("scroll", handleInteraction);
-      window.removeEventListener("pointerdown", handleInteraction);
-      window.removeEventListener("keydown", handleInteraction);
-    };
-
-    window.addEventListener("scroll", handleInteraction, { passive: true });
-    window.addEventListener("pointerdown", handleInteraction, { passive: true });
-    window.addEventListener("keydown", handleInteraction, { passive: true });
-
-    const loadTimer = setTimeout(scheduleDeferredSync, 5000);
+    // Always fetch fresh configuration & Turso prices on mount
+    fetchConfig();
 
     const handleConfigUpdated = () => {
+      try {
+        localStorage.removeItem(SETTINGS_CACHE_KEY);
+        localStorage.removeItem(SETTINGS_CACHE_TIME_KEY);
+      } catch {}
       fetchConfig();
     };
 
@@ -400,11 +386,7 @@ export const SiteConfigProvider: React.FC<{ children: ReactNode }> = ({ children
     document.addEventListener("visibilitychange", handleVisibility);
 
     return () => {
-      clearTimeout(loadTimer);
       if (interval) clearInterval(interval);
-      window.removeEventListener("scroll", handleInteraction);
-      window.removeEventListener("pointerdown", handleInteraction);
-      window.removeEventListener("keydown", handleInteraction);
       window.removeEventListener("site_config_updated", handleConfigUpdated);
       window.removeEventListener("services_updated", handleConfigUpdated);
       window.removeEventListener("prices_updated", handleConfigUpdated);

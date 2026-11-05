@@ -80,10 +80,23 @@ export async function testTursoConnection(): Promise<{ ok: boolean; url: string;
     const client = getTursoClient();
     const config = getTursoConfig();
     
-    // Enable foreign keys, WAL mode, and busy timeout for high-concurrency resilience
-    await client.execute("PRAGMA foreign_keys = ON;");
-    await client.execute("PRAGMA journal_mode = WAL;");
-    await client.execute("PRAGMA busy_timeout = 5000;");
+    // Only configure WAL mode and busy timeout for local SQLite files.
+    // Remote Turso / sqld cloud databases manage WAL and replication internally and reject PRAGMA journal_mode.
+    if (config.isLocal) {
+      try {
+        await client.execute("PRAGMA journal_mode = WAL;");
+        await client.execute("PRAGMA busy_timeout = 5000;");
+      } catch {
+        // Ignored if local driver does not support pragma
+      }
+    }
+
+    try {
+      await client.execute("PRAGMA foreign_keys = ON;");
+    } catch {
+      // Ignored for cloud endpoints that disallow PRAGMA statements
+    }
+
     const result = await client.execute("SELECT 1 AS connected, sqlite_version() AS version;");
     
     if (result.rows && result.rows.length > 0) {
@@ -111,7 +124,12 @@ export async function testTursoConnection(): Promise<{ ok: boolean; url: string;
  */
 export async function executeTurso(sql: string, args: any[] = []) {
   const client = getTursoClient();
-  await client.execute("PRAGMA foreign_keys = ON;");
+  const config = getTursoConfig();
+  if (config.isLocal) {
+    try {
+      await client.execute("PRAGMA foreign_keys = ON;");
+    } catch {}
+  }
   return await client.execute({ sql, args });
 }
 
@@ -129,9 +147,14 @@ export async function batchTurso(statements: InStatement[], mode: "write" | "rea
  */
 export async function withTursoTransaction<T>(callback: (tx: Transaction) => Promise<T>): Promise<T> {
   const client = getTursoClient();
+  const config = getTursoConfig();
   const tx = await client.transaction("write");
   try {
-    await tx.execute("PRAGMA foreign_keys = ON;");
+    if (config.isLocal) {
+      try {
+        await tx.execute("PRAGMA foreign_keys = ON;");
+      } catch {}
+    }
     const result = await callback(tx);
     await tx.commit();
     return result;

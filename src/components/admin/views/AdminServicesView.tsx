@@ -35,13 +35,15 @@ import {
   Save
 } from "lucide-react";
 import { getStoredAdminSession } from "../../../services/adminAuthTypes";
+import AdminPriceControlView from "./AdminPriceControlView";
 
 interface AdminServicesViewProps {
   session?: any;
   onNavigate?: (route: string) => void;
+  initialTab?: "services" | "turso_pricing";
 }
 
-export function AdminServicesView({ session, onNavigate }: AdminServicesViewProps) {
+export function AdminServicesView({ session, onNavigate, initialTab = "services" }: AdminServicesViewProps) {
   const [services, setServices] = useState<any[]>([]);
   const [metrics, setMetrics] = useState<any>(null);
   const [categories, setCategories] = useState<any[]>([]);
@@ -87,11 +89,22 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
   // Delete Confirmation State
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // NIN Slip Price Control State
+  // Active Sub-Panel: "services" (Services Catalog) or "turso_pricing" (Unified Turso Price Control)
+  const [activeTab, setActiveTab] = useState<"services" | "turso_pricing">(initialTab || "services");
+
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
+
+  // Slip Price Control State (Strictly Turso authoritative)
   const [slipPriceState, setSlipPriceState] = useState({
-    PREMIUM: 250,
+    PREMIUM: 200,
     STANDARD: 200,
     REGULAR: 180,
+    BVN_CARD: 200,
+    BVN_SLIP_1: 200,
   });
   const [savingSlipPrices, setSavingSlipPrices] = useState(false);
 
@@ -102,13 +115,15 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
 
   const fetchSlipPrices = async () => {
     try {
-      const res = await fetch("/api/site/prices");
+      const res = await fetch("/api/prices");
       const json = await res.json();
-      if (json.priceMatrix?.slipPrices) {
+      if (json.success && json.priceMatrix?.slipPrices) {
         setSlipPriceState({
-          PREMIUM: json.priceMatrix.slipPrices.PREMIUM ?? 250,
+          PREMIUM: json.priceMatrix.slipPrices.PREMIUM ?? 200,
           STANDARD: json.priceMatrix.slipPrices.STANDARD ?? 200,
           REGULAR: json.priceMatrix.slipPrices.REGULAR ?? 180,
+          BVN_CARD: json.priceMatrix.slipPrices.BVN_CARD ?? 200,
+          BVN_SLIP_1: json.priceMatrix.slipPrices.BVN_SLIP_1 ?? 200,
         });
       }
     } catch (err) {
@@ -132,14 +147,19 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
               PREMIUM: Number(slipPriceState.PREMIUM),
               STANDARD: Number(slipPriceState.STANDARD),
               REGULAR: Number(slipPriceState.REGULAR),
+              BVN_CARD: Number(slipPriceState.BVN_CARD),
+              BVN_SLIP_1: Number(slipPriceState.BVN_SLIP_1),
             },
           },
         }),
       });
       const json = await res.json();
       if (json.success) {
-        showToast("success", "NIN Slip rates updated successfully across platform!");
+        showToast("success", "Slip rates saved strictly to Turso database!");
         window.dispatchEvent(new CustomEvent("site_config_updated"));
+        window.dispatchEvent(new CustomEvent("prices_updated"));
+        fetchSlipPrices();
+        fetchServices();
       } else {
         showToast("error", json.error || "Failed to update slip rates.");
       }
@@ -470,21 +490,41 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
           </div>
 
           <div className="flex items-center gap-3 flex-wrap">
+            {/* Unified Tabs: One place for Services and Price Control */}
+            <div className="inline-flex bg-[#F5F7FA] p-1 rounded-xl border border-[#E5E7EB]">
+              <button
+                type="button"
+                onClick={() => setActiveTab("services")}
+                className={`py-2 px-3.5 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                  activeTab === "services"
+                    ? "bg-[#0F2D5C] text-white shadow-xs"
+                    : "text-[#6B7280] hover:text-[#111827]"
+                }`}
+              >
+                <CheckSquare className="w-3.5 h-3.5" />
+                <span>Services &amp; Slips</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("turso_pricing")}
+                className={`py-2 px-3.5 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                  activeTab === "turso_pricing"
+                    ? "bg-emerald-700 text-white shadow-xs"
+                    : "text-[#6B7280] hover:text-[#111827]"
+                }`}
+              >
+                <DollarSign className="w-3.5 h-3.5" />
+                <span>Turso Price Control</span>
+              </button>
+            </div>
+
             <button
-              onClick={fetchServices}
+              onClick={() => { fetchServices(); fetchSlipPrices(); }}
               disabled={loading}
               className="py-2.5 px-4 bg-[#F5F7FA] hover:bg-[#E5E7EB] border border-[#E5E7EB] text-[#111827] font-bold text-xs rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-xs"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-[#0F2D5C]" : "text-[#6B7280]"}`} />
               <span>Refresh</span>
-            </button>
-            <button
-              onClick={() => onNavigate ? onNavigate("/admin/prices") : window.location.assign("/admin/prices")}
-              className="py-2.5 px-4 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-xs"
-              title="Manage all service prices directly in Turso database"
-            >
-              <DollarSign className="h-4 w-4" />
-              <span>Turso Price Control</span>
             </button>
             <button
               onClick={handleOpenAddModal}
@@ -547,8 +587,12 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
         )}
       </div>
 
-      {/* NIN Slip Pricing Admin Control Panel */}
-      <div className="p-6 bg-white border border-[#E5E7EB] rounded-2xl space-y-4 shadow-xs text-left">
+      {activeTab === "turso_pricing" ? (
+        <AdminPriceControlView session={session} onNavigate={onNavigate} />
+      ) : (
+        <>
+          {/* Slip Pricing Admin Control Panel */}
+          <div className="p-6 bg-white border border-[#E5E7EB] rounded-2xl space-y-4 shadow-xs text-left">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E5E7EB] pb-4">
           <div>
             <div className="flex items-center gap-2 text-amber-700 text-xs font-bold font-mono uppercase tracking-wider">
@@ -556,10 +600,10 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
               <span>SUPER ADMIN PRICING CONTROL</span>
             </div>
             <h3 className="text-lg font-black text-[#111827] mt-0.5">
-              NIN Verification Slip Rates (Premium Card, Regular Slip)
+              Verification Slip &amp; Card Rates (Turso Authoritative)
             </h3>
             <p className="text-xs text-[#6B7280]">
-              Adjust official fees automatically deducted from user wallets upon successful NIN verification.
+              Adjust official fees saved strictly on Turso and automatically deducted upon verification lookup.
             </p>
           </div>
           <button
@@ -569,19 +613,19 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
             className="py-2.5 px-5 bg-[#0F2D5C] hover:bg-[#17407E] text-white font-black text-xs rounded-xl flex items-center gap-2 cursor-pointer transition shadow-xs self-start sm:self-auto"
           >
             {savingSlipPrices ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            <span>Save Slip Rates</span>
+            <span>Save Slip Rates to Turso</span>
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Premium Slip */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* 1. NIN Premium Card */}
           <div className="p-4 bg-[#F9FAFB] border border-amber-200 rounded-xl space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-extrabold text-amber-900 uppercase tracking-wider">
-                Premium Card
+                NIN Premium Card
               </span>
               <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full border border-amber-300">
-                PLASTIC CARD
+                CR80 CARD
               </span>
             </div>
             <label className="block text-[11px] text-[#6B7280]">Fee Amount (₦)</label>
@@ -596,14 +640,14 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
                 className="w-full bg-white border border-[#E5E7EB] rounded-xl pl-7 pr-3 py-2 text-sm text-[#111827] font-mono font-bold focus:outline-hidden focus:border-[#0F2D5C]"
               />
             </div>
-            <p className="text-[10px] text-[#6B7280]">Default: ₦250.00 • Green Guilloche Plastic</p>
+            <p className="text-[10px] text-[#6B7280]">Default: ₦200.00 • Green Guilloche Plastic</p>
           </div>
 
-          {/* Regular Slip */}
+          {/* 2. NIN Regular Slip */}
           <div className="p-4 bg-[#F9FAFB] border border-emerald-200 rounded-xl space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-extrabold text-emerald-900 uppercase tracking-wider">
-                Regular Slip
+                NIN Regular Slip
               </span>
               <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full border border-emerald-300">
                 BASIC POS
@@ -622,6 +666,56 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
               />
             </div>
             <p className="text-[10px] text-[#6B7280]">Default: ₦180.00 • POS Thermal Monochrome</p>
+          </div>
+
+          {/* 3. BVN Wallet Card */}
+          <div className="p-4 bg-[#F9FAFB] border border-blue-200 rounded-xl space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-extrabold text-blue-900 uppercase tracking-wider">
+                BVN Wallet Card
+              </span>
+              <span className="text-[10px] bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded-full border border-blue-300">
+                CR80 CARD
+              </span>
+            </div>
+            <label className="block text-[11px] text-[#6B7280]">Fee Amount (₦)</label>
+            <div className="relative">
+              <span className="absolute left-3 top-2.5 text-[#6B7280] font-mono font-bold text-xs">₦</span>
+              <input
+                type="number"
+                step="1"
+                min="0"
+                value={slipPriceState.BVN_CARD}
+                onChange={(e) => setSlipPriceState({ ...slipPriceState, BVN_CARD: parseFloat(e.target.value) || 0 })}
+                className="w-full bg-white border border-[#E5E7EB] rounded-xl pl-7 pr-3 py-2 text-sm text-[#111827] font-mono font-bold focus:outline-hidden focus:border-[#0F2D5C]"
+              />
+            </div>
+            <p className="text-[10px] text-[#6B7280]">Default: ₦200.00 • Dual-Sided Plastic</p>
+          </div>
+
+          {/* 4. BVN Standard Slip */}
+          <div className="p-4 bg-[#F9FAFB] border border-indigo-200 rounded-xl space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-extrabold text-indigo-900 uppercase tracking-wider">
+                BVN Standard Slip
+              </span>
+              <span className="text-[10px] bg-indigo-100 text-indigo-800 font-bold px-2 py-0.5 rounded-full border border-indigo-300">
+                BANKING KYC
+              </span>
+            </div>
+            <label className="block text-[11px] text-[#6B7280]">Fee Amount (₦)</label>
+            <div className="relative">
+              <span className="absolute left-3 top-2.5 text-[#6B7280] font-mono font-bold text-xs">₦</span>
+              <input
+                type="number"
+                step="1"
+                min="0"
+                value={slipPriceState.BVN_SLIP_1}
+                onChange={(e) => setSlipPriceState({ ...slipPriceState, BVN_SLIP_1: parseFloat(e.target.value) || 0 })}
+                className="w-full bg-white border border-[#E5E7EB] rounded-xl pl-7 pr-3 py-2 text-sm text-[#111827] font-mono font-bold focus:outline-hidden focus:border-[#0F2D5C]"
+              />
+            </div>
+            <p className="text-[10px] text-[#6B7280]">Default: ₦200.00 • A4 Official Seal</p>
           </div>
         </div>
       </div>
@@ -872,6 +966,8 @@ export function AdminServicesView({ session, onNavigate }: AdminServicesViewProp
           </table>
         </div>
       </div>
+    </>
+  )}
 
       {/* Add / Edit Service Modal */}
       {isModalOpen && (
