@@ -398,7 +398,7 @@ export class VerificationEngine {
       const maxAttempts = 3;
       for (let attempt = 1; attempt <= maxAttempts; attempt++) {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 25000);
+        const timeoutId = setTimeout(() => controller.abort(), 50000); // 50s client timeout
 
         try {
           response = await fetch("/api/verify/engine", {

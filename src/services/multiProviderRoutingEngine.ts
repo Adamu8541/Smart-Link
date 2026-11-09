@@ -1012,7 +1012,7 @@ export class MultiProviderRoutingEngine {
     db?: any
   ): Promise<{ success: boolean; providerReference?: string; transactionId?: string; data?: any; error?: string; responseTimeMs: number; statusCode?: number }> {
     const key = providerKey.toLowerCase().trim();
-    const timeoutMs = Number(config?.timeoutMs) || 20000;
+    const timeoutMs = Math.max(Number(config?.timeoutMs) || 0, 45000); // Allow at least 45s for external cloud gateway latency
 
     const sType = (serviceType || "").toUpperCase();
     const cleanTarget = String(targetId || "").trim();

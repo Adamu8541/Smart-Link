@@ -382,7 +382,7 @@ export class IdentroAdapter implements ProviderAdapter {
 
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3500); // 3.5s fast timeout
+      const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s timeout for cloud container network latency
 
       let hostResponded = false;
       let hostLatency = 0;
@@ -404,7 +404,7 @@ export class IdentroAdapter implements ProviderAdapter {
         // Fallback non-billable root / merchant-api probe (GET /merchant-api)
         try {
           const rootController = new AbortController();
-          const rootTimeout = setTimeout(() => rootController.abort(), 2000);
+          const rootTimeout = setTimeout(() => rootController.abort(), 10000); // 10s timeout
           const rootRes = await fetch(`${base}/merchant-api`, {
             method: "GET",
             headers: { "User-Agent": "SmartLink-Identro/1.0" },
@@ -1035,7 +1035,7 @@ export class IdentroAdapter implements ProviderAdapter {
     for (const url of candidateUrls) {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 8000);
+        const timeoutId = setTimeout(() => controller.abort(), 45000);
 
         const res = await fetch(url, {
           method: "POST",
@@ -1375,7 +1375,7 @@ export class IdentroAdapter implements ProviderAdapter {
       for (const url of candidateUrls) {
         try {
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 8000);
+          const timeoutId = setTimeout(() => controller.abort(), 30000);
 
           const res = await fetch(url, {
             method: "POST",
@@ -1433,7 +1433,7 @@ export class IdentroAdapter implements ProviderAdapter {
     for (const path of candidatePaths) {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 6000);
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
 
         const res = await fetch(`${base}${path}`, {
           method: "GET",
