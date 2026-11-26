@@ -7,6 +7,42 @@ import { RootErrorBoundary } from './components/common/RootErrorBoundary.tsx';
 import './index.css';
 import './services/webmcp.ts';
 
+import { Capacitor } from "@capacitor/core";
+
+// Rewrite only same-origin /api requests in the installed native app.
+if (typeof window !== "undefined" && Capacitor.isNativePlatform()) {
+  const originalFetch = window.fetch.bind(window);
+
+  window.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
+    const rawUrl = input instanceof Request ? input.url : String(input);
+    let parsedUrl: URL;
+
+    try {
+      parsedUrl = new URL(rawUrl, window.location.href);
+    } catch {
+      return originalFetch(input, init);
+    }
+
+    const isLocalApi =
+      parsedUrl.origin === window.location.origin &&
+      (parsedUrl.pathname === "/api" || parsedUrl.pathname.startsWith("/api/"));
+
+    if (!isLocalApi) return originalFetch(input, init);
+
+    const targetUrl = new URL(
+      parsedUrl.pathname + parsedUrl.search + parsedUrl.hash,
+      "https://smartlinkng.com.ng"
+    ).toString();
+
+    if (input instanceof Request) {
+      const rewrittenRequest = new Request(targetUrl, input);
+      return originalFetch(rewrittenRequest, init);
+    }
+
+    return originalFetch(targetUrl, init);
+  }) as typeof window.fetch;
+}
+
 // Initialize Sentry dynamically
 if (import.meta.env.VITE_SENTRY_DSN) {
   import("@sentry/react").then((Sentry) => {

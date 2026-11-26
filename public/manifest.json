@@ -7,13 +7,21 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "display_override": ["standalone", "minimal-ui"],
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
   "orientation": "portrait-primary",
-  "background_color": "#0F2D5C",
-  "theme_color": "#0F2D5C",
+  "background_color": "#FFFFFF",
+  "theme_color": "#FFFFFF",
   "lang": "en-NG",
   "dir": "ltr",
-  "categories": ["finance", "utilities", "business", "productivity"],
+  "categories": [
+    "finance",
+    "utilities",
+    "business",
+    "productivity"
+  ],
   "prefer_related_applications": false,
   "related_applications": [],
   "icons": [
@@ -82,28 +90,52 @@
       "short_name": "NIN Verify",
       "description": "Instant NIN lookup, validation and slip print",
       "url": "/verification",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     },
     {
       "name": "BVN Validation",
       "short_name": "BVN Verify",
       "description": "Instant Bank Verification Number check and wallet slip",
       "url": "/verification",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     },
     {
       "name": "Buy Airtime & Data",
       "short_name": "VTU Data",
       "description": "MTN SME, Glo, Airtel data bundles and electricity meter tokens",
       "url": "/bills",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     },
     {
       "name": "CAC Registration",
       "short_name": "CAC Business",
       "description": "Corporate Affairs Commission business name registration and filing",
       "url": "/cac",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     }
   ]
 }

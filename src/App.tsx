@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useRef, Suspense } from "react";
+import { Capacitor } from "@capacitor/core";
 import SmartLinkLandingPage from "./components/landing/SmartLinkLandingPage";
 import { RouteLoadingFallback } from "./components/common/RouteLoadingFallback";
 import { lazyWithRetry } from "./utils/lazyRetry";
@@ -226,6 +227,17 @@ export default function App() {
     }
 
     const unauthPaths = ["/", "/home", "/admin/login"];
+
+    // Android launch: show the existing login portal for signed-out users.
+    // Browser homepage routing remains unchanged.
+    if (
+      Capacitor.isNativePlatform() &&
+      !hasUser &&
+      !hasAdmin &&
+      (path === "/" || path === "/home" || path === "")
+    ) {
+      return "DASHBOARD";
+    }
     if ((hasUser || hasAdmin) && (unauthPaths.includes(path) || path === "")) {
       return hasAdmin ? "ADMIN_DASHBOARD" : "DASHBOARD";
     }
