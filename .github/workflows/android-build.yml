@@ -39,6 +39,9 @@ jobs:
       - name: Synchronize Capacitor
         run: npx cap sync android
 
+      - name: Generate native Android launcher icons
+        run: node scripts/generate-android-icons.cjs
+
       - name: Build Android packages
         working-directory: android
         run: |

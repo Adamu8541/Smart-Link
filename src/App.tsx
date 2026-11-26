@@ -696,6 +696,20 @@ export default function App() {
       const userIsSignedIn = Boolean(currentUserRef.current);
       const adminIsSignedIn = Boolean(adminSessionRef.current);
 
+      // Keep the public homepage available in browsers, but send signed-out
+      // users back to the login portal when navigating inside the native app.
+      if (
+        Capacitor.isNativePlatform() &&
+        !userIsSignedIn &&
+        !adminIsSignedIn &&
+        targetView === "HOME"
+      ) {
+        targetView = "DASHBOARD";
+        try {
+          window.history.replaceState({ view: "DASHBOARD", userUid: null }, document.title, "/dashboard");
+        } catch {}
+      }
+
       const unauthenticatedViews = [
         "HOME",
         "ADMIN_LOGIN",
@@ -790,10 +804,24 @@ export default function App() {
       initialView = docIdToViewMap[docId] || "LEGAL_DOCUMENT";
     }
 
+    const nativeSignedOutLaunch =
+      Capacitor.isNativePlatform() &&
+      !currentUserRef.current &&
+      !adminSessionRef.current;
+
+    if (nativeSignedOutLaunch && initialView === "HOME") {
+      initialView = "DASHBOARD";
+    }
+
     setCurrentView(initialView);
 
     try {
-      window.history.replaceState({ view: initialView, userUid: currentUser?.uid || null }, document.title, pathOnMount);
+      const historyPath =
+        nativeSignedOutLaunch && initialView === "DASHBOARD" &&
+        (pathOnMount === "/" || pathOnMount === "/home" || pathOnMount === "/app" || pathOnMount === "/mobile")
+          ? "/dashboard"
+          : pathOnMount;
+      window.history.replaceState({ view: initialView, userUid: currentUser?.uid || null }, document.title, historyPath);
     } catch (e) {}
 
     window.addEventListener("popstate", handlePopState);
