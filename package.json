@@ -33,7 +33,7 @@
     "motion": "^12.23.24",
     "nodemailer": "^10.0.10",
     "pdf-lib": "^1.17.1",
-    "pdfjs-dist": "3.11.174",
+    "pdfjs-dist": "4.2.67",
     "qrcode": "^1.5.4",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
