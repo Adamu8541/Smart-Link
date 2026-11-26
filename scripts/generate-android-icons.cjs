@@ -79,24 +79,7 @@ async function main() {
   fs.writeFileSync(path.join(anydpiDir, 'ic_launcher.xml'), adaptiveXml);
   fs.writeFileSync(path.join(anydpiDir, 'ic_launcher_round.xml'), adaptiveXml);
 
-  const valuesDir = path.join(resDir, 'values');
-  fs.mkdirSync(valuesDir, { recursive: true });
-  const colorsPath = path.join(valuesDir, 'colors.xml');
 
-  let colors = fs.existsSync(colorsPath)
-    ? fs.readFileSync(colorsPath, 'utf8')
-    : '<?xml version="1.0" encoding="utf-8"?>\n<resources>\n</resources>\n';
-
-  const backgroundColor = '<color name="ic_launcher_background">#FFFFFF</color>';
-  const colorPattern = /<color\s+name=["']ic_launcher_background["'][^>]*>[\s\S]*?<\/color>/;
-
-  if (colorPattern.test(colors)) {
-    colors = colors.replace(colorPattern, backgroundColor);
-  } else {
-    colors = colors.replace('</resources>', `    ${backgroundColor}\n</resources>`);
-  }
-
-  fs.writeFileSync(colorsPath, colors);
 
   console.log(
     `Generated Android launcher icons from public/logo.png (${metadata.width}x${metadata.height}).`
